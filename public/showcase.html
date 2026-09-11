@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Shuug — one business engine, shaped to you</title>
+<meta name="description" content="Shuug is the free all-in-one business platform. Say what you run and it molds around you: CRM, scheduling, real double-entry books, inventory, HR, AI workers, white-label — one connected engine." />
+<style>
+  :root{
+    --bg:#0b0910; --bg2:#120e1c; --panel:#161022; --panel2:#1b1430;
+    --line:rgba(255,255,255,.09); --line2:rgba(255,255,255,.14);
+    --tx:#f2ecff; --mut:#a99cc4; --mut2:#7d7199;
+    --pink:#ff4d9d; --cyan:#33e1ff; --purple:#b07bff; --violet:#8b5cf6;
+    --lime:#b6ff4d; --amber:#ffc24d; --blue:#5b8cff; --coral:#ff6a5c;
+    --g-hot:linear-gradient(120deg,#ff6a5c,#ff4d9d 48%,#b07bff);
+    --g-cool:linear-gradient(120deg,#33e1ff,#5b8cff 55%,#b07bff);
+    --g-lime:linear-gradient(120deg,#b6ff4d,#33e1ff);
+    --g-sun:linear-gradient(120deg,#ffc24d,#ff6a5c);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:"Geist",ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  a{color:inherit;text-decoration:none}
+  code,.mono{font-family:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .eyebrow{font-weight:800;font-size:12px;letter-spacing:.16em;text-transform:uppercase;background:var(--g-hot);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .grad{background:var(--g-hot);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .grad2{background:var(--g-cool);-webkit-background-clip:text;background-clip:text;color:transparent}
+  h1,h2,h3,h4{letter-spacing:-.03em;line-height:1.04;margin:0}
+  .mut{color:var(--mut)}
+
+  /* ambient glow */
+  .aura{position:fixed;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(700px 460px at 78% -8%,rgba(176,123,255,.28),transparent 70%),
+      radial-gradient(680px 460px at 8% 4%,rgba(255,77,157,.18),transparent 70%),
+      radial-gradient(700px 500px at 60% 42%,rgba(51,225,255,.10),transparent 70%)}
+  .content{position:relative;z-index:1}
+
+  /* nav */
+  .nav{position:sticky;top:0;z-index:60;backdrop-filter:blur(14px);background:rgba(11,9,16,.72);border-bottom:1px solid var(--line)}
+  .nav .wrap{display:flex;align-items:center;gap:8px;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+  .brand .m{width:30px;height:30px;border-radius:9px;background:var(--g-hot);display:grid;place-items:center;font-size:16px;box-shadow:0 8px 24px -6px rgba(255,77,157,.6)}
+  .nlinks{margin-left:14px;display:flex;gap:2px}
+  .nlinks a{padding:8px 12px;border-radius:9px;font-size:14px;color:var(--mut);font-weight:600}
+  .nlinks a:hover{color:#fff;background:rgba(255,255,255,.06)}
+  .nav .right{margin-left:auto;display:flex;align-items:center;gap:10px}
+  .search{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px;color:var(--mut2);min-width:190px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:0;cursor:pointer;font-weight:750;border-radius:11px;padding:10px 16px;font-size:14px}
+  .btn-hot{background:var(--g-hot);color:#fff;box-shadow:0 12px 30px -12px rgba(255,77,157,.7);transition:transform .16s,box-shadow .16s}
+  .btn-hot:hover{transform:translateY(-2px);box-shadow:0 18px 40px -12px rgba(176,123,255,.7)}
+  .btn-line{background:rgba(255,255,255,.05);border:1px solid var(--line2);color:#fff}
+  @media(max-width:820px){.nlinks,.search{display:none}}
+
+  /* hero */
+  .hero{padding:60px 0 30px}
+  .hero .wrap{display:grid;grid-template-columns:1.05fr .95fr;gap:40px;align-items:center}
+  .tag{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:650;color:var(--purple)}
+  h1{font-size:clamp(38px,5.4vw,62px);font-weight:850;margin:18px 0 14px}
+  .lede{font-size:18px;color:var(--mut);max-width:520px}
+  .cyc{display:inline-block;min-width:6ch;background:var(--g-cool);-webkit-background-clip:text;background-clip:text;color:transparent;transition:opacity .3s}
+  .hcta{display:flex;gap:12px;margin-top:26px;flex-wrap:wrap}
+  .hstats{display:flex;gap:28px;margin-top:30px;flex-wrap:wrap}
+  .hstats b{display:block;font-size:26px;font-weight:850}
+  .hstats span{font-size:11.5px;color:var(--mut2);text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+  @media(max-width:880px){.hero .wrap{grid-template-columns:1fr} .heroart{order:-1}}
+
+  /* hero art — a browser window app mock + floating phone + chips */
+  .heroart{position:relative}
+  .win{border-radius:16px;overflow:hidden;border:1px solid var(--line2);background:#0f0a1a;box-shadow:0 40px 90px -30px rgba(139,92,246,.6);animation:floaty 7s ease-in-out infinite}
+  @keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+  .win .bar{display:flex;gap:6px;align-items:center;padding:10px 12px;background:#150f24;border-bottom:1px solid var(--line)}
+  .win .bar i{width:10px;height:10px;border-radius:50%}
+  .win .bar i:nth-child(1){background:#ff6a5c}.win .bar i:nth-child(2){background:#ffc24d}.win .bar i:nth-child(3){background:#b6ff4d}
+  .win .bar b{margin-left:8px;font-size:11px;color:var(--mut2);font-weight:600;font-family:"Geist Mono",monospace}
+  .app{display:grid;grid-template-columns:96px 1fr;height:290px}
+  .side{background:#120c20;border-right:1px solid var(--line);padding:12px 10px;display:flex;flex-direction:column;gap:9px}
+  .side .s{height:9px;border-radius:5px;background:rgba(255,255,255,.09)}
+  .side .s.act{background:var(--g-hot)}
+  .main{padding:14px;display:grid;gap:12px;grid-template-rows:auto 1fr}
+  .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .kpi{border:1px solid var(--line);border-radius:12px;padding:10px;background:rgba(255,255,255,.03)}
+  .kpi u{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut2);text-decoration:none}
+  .kpi b{font-size:16px;font-weight:850}
+  .kc1 b{color:var(--pink)}.kc2 b{color:var(--cyan)}.kc3 b{color:var(--lime)}
+  .chart{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;align-items:flex-end;gap:7px;background:rgba(255,255,255,.02)}
+  .chart span{flex:1;border-radius:5px 5px 0 0;background:var(--g-cool);opacity:.85}
+  .phone{position:absolute;right:-14px;bottom:-26px;width:132px;border-radius:20px;border:1px solid var(--line2);background:#0f0a1a;padding:10px;box-shadow:0 30px 60px -20px rgba(255,77,157,.5);animation:floaty 6s ease-in-out infinite;animation-delay:-2s}
+  .phone u{display:block;font-size:8px;color:var(--mut2);text-transform:uppercase;letter-spacing:.08em}
+  .phone .ok{margin-top:4px;background:linear-gradient(120deg,rgba(182,255,77,.16),rgba(51,225,255,.14));border:1px solid rgba(182,255,77,.35);border-radius:10px;padding:8px;color:#c9ff8a;font-weight:800;font-size:13px}
+  .chip{position:absolute;padding:6px 11px;border-radius:999px;font-size:11.5px;font-weight:800;color:#0b0910;box-shadow:0 10px 26px -8px rgba(0,0,0,.6);animation:floaty 5s ease-in-out infinite}
+  .chip.c1{background:var(--g-lime);left:-26px;top:24px}
+  .chip.c2{background:var(--g-sun);right:34px;top:-16px;animation-delay:-1.5s}
+  .chip.c3{background:linear-gradient(120deg,#ff4d9d,#b07bff);left:-30px;bottom:70px;color:#fff;animation-delay:-3s}
+
+  /* marquee */
+  .marq{margin:26px 0 6px;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+  .marq .row{display:flex;gap:12px;width:max-content;animation:scroll 26s linear infinite}
+  @keyframes scroll{to{transform:translateX(-50%)}}
+  .mchip{white-space:nowrap;border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:999px;padding:9px 16px;font-weight:700;font-size:14px;color:var(--mut)}
+  .mchip b{color:#fff}
+
+  /* section shell */
+  section{padding:84px 0;position:relative}
+  .head{max-width:680px;margin-bottom:38px}
+  h2{font-size:clamp(28px,3.6vw,42px);font-weight:850;margin:.34em 0 .3em}
+  .sub{color:var(--mut);font-size:17px}
+
+  /* three big cards w/ illustrations */
+  .three{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+  @media(max-width:900px){.three{grid-template-columns:1fr}}
+  .bigcard{border:1px solid var(--line);border-radius:20px;background:var(--panel);overflow:hidden;transition:transform .2s,border-color .2s}
+  .bigcard:hover{transform:translateY(-6px);border-color:var(--line2)}
+  .bigcard .txt{padding:22px 22px 8px}
+  .bigcard h3{font-size:21px;font-weight:820;margin-bottom:8px}
+  .bigcard p{color:var(--mut);font-size:14.5px;margin:0 0 14px}
+  .bigcard .go{font-weight:750;font-size:13.5px;color:#fff;display:inline-flex;gap:6px;align-items:center}
+  .art{height:186px;position:relative;overflow:hidden;border-top:1px solid var(--line)}
+
+  /* code / capability section */
+  .codewrap{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:center}
+  @media(max-width:900px){.codewrap{grid-template-columns:1fr}}
+  .code{background:#0d0918;border:1px solid var(--line2);border-radius:16px;overflow:hidden;box-shadow:0 30px 70px -34px rgba(139,92,246,.6)}
+  .code .h{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--mut2);font-size:12px;font-family:"Geist Mono",monospace;background:#120c20}
+  .code pre{margin:0;padding:16px;font-size:13px;line-height:1.9;overflow:auto;font-family:"Geist Mono",monospace}
+  .cm{color:#6f6390}.cf{color:#ff9ecf}.cs{color:#b6ff4d}.cn{color:#8fd7ff}
+  .doslist{list-style:none;padding:0;margin:18px 0 0;display:grid;gap:10px}
+  .doslist li{display:flex;gap:10px;color:var(--mut);font-size:15px}
+  .doslist b{color:#fff;font-weight:750}
+  .doslist .d{color:var(--lime);font-weight:900}
+
+  /* verticals thumbnails grid */
+  .vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:900px){.vgrid{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.vgrid{grid-template-columns:1fr}}
+  .vt{border:1px solid var(--line);border-radius:18px;background:var(--panel);overflow:hidden;transition:transform .2s}
+  .vt:hover{transform:translateY(-5px)}
+  .vt .vart{height:120px;position:relative;overflow:hidden}
+  .vt .vtx{padding:16px}
+  .vt h4{font-size:17px;font-weight:800}
+  .vt p{color:var(--mut);font-size:13.5px;margin:6px 0 0}
+
+  /* pillars (compact list w/ icon) */
+  .plist{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:820px){.plist{grid-template-columns:1fr}}
+  .pl{border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:20px;transition:transform .2s,border-color .2s}
+  .pl:hover{transform:translateY(-4px);border-color:var(--line2)}
+  .pl .pi{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;margin-bottom:12px;border:1px solid var(--line)}
+  .pl h3{font-size:18px;font-weight:800;margin-bottom:7px}
+  .pl p{color:var(--mut);font-size:14px;margin:0}
+
+  /* peek mockups (dark) */
+  .peek{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  @media(max-width:960px){.peek{grid-template-columns:1fr 1fr}}
+  @media(max-width:560px){.peek{grid-template-columns:1fr}}
+  .mk{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:var(--panel);box-shadow:0 30px 70px -40px rgba(139,92,246,.6)}
+  .mk .t{display:flex;gap:5px;align-items:center;padding:9px 12px;background:#150f24;border-bottom:1px solid var(--line)}
+  .mk .t i{width:8px;height:8px;border-radius:50%}
+  .mk .t i:nth-child(1){background:#ff6a5c}.mk .t i:nth-child(2){background:#ffc24d}.mk .t i:nth-child(3){background:#b6ff4d}
+  .mk .t b{margin-left:6px;font-size:10px;color:var(--mut2);font-family:"Geist Mono",monospace;font-weight:600}
+  .mk .c{padding:13px}
+  .ml{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--pink)}
+  .mt{font-weight:800;font-size:15px;margin:2px 0 10px}
+  .prop{border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(255,255,255,.03)}
+  .prop b{font-size:13px}
+  .ck{display:flex;gap:7px;font-size:12px;color:var(--mut);margin-top:5px}.ck .y{color:var(--lime);font-weight:900}
+  .pbtn{background:var(--g-hot);color:#fff;border-radius:9px;padding:6px 10px;font-size:11px;font-weight:800;display:inline-block;margin-top:10px}
+  .kb{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+  .kc{background:rgba(255,255,255,.03);border-radius:10px;padding:6px}
+  .kc p{margin:0 0 5px;font-size:8px;font-weight:800;text-transform:uppercase;color:var(--mut2)}
+  .kt{background:#160f26;border:1px solid var(--line);border-radius:8px;padding:6px;margin-bottom:5px;font-size:10.5px}
+  .kt b{display:block;font-size:11px}
+  .dot{display:inline-block;border-radius:999px;padding:1px 6px;font-size:8px;font-weight:800}
+  .d-new{background:rgba(91,140,255,.2);color:#9db8ff}.d-cook{background:rgba(255,194,77,.2);color:#ffd98a}.d-rd{background:rgba(182,255,77,.2);color:#cdff9a}
+  .lr{display:flex;justify-content:space-between;font-size:11.5px;padding:4px 0;border-bottom:1px dashed var(--line);font-family:"Geist Mono",monospace;color:var(--mut)}
+  .lr.tot{border-top:2px solid var(--line2);border-bottom:0;color:#fff;font-weight:800;margin-top:3px;padding-top:6px}
+  .okline{margin-top:8px;background:rgba(182,255,77,.12);border:1px solid rgba(182,255,77,.3);color:#cdff9a;border-radius:9px;padding:7px;font-size:11px;font-weight:750}
+  .rt{background:linear-gradient(180deg,rgba(182,255,77,.12),transparent);border:1px solid rgba(182,255,77,.3);border-radius:12px;padding:12px}
+  .rt .big{font-size:22px;font-weight:850;color:#cdff9a}
+  .rt .g{display:inline-block;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:8px;padding:4px 8px;font-size:10px;margin:6px 6px 0 0;color:var(--mut)}
+
+  /* money 3-up */
+  .m3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+  @media(max-width:860px){.m3{grid-template-columns:1fr}}
+  .mc{border:1px solid var(--line);border-radius:18px;background:var(--panel);padding:22px}
+  .mc .e{font-size:30px}
+  .mc h4{font-size:18px;font-weight:800;margin:10px 0 12px}
+  .mc ul{margin:0;padding-left:18px;color:var(--mut);font-size:14px}
+  .mc li{margin:5px 0}
+
+  /* dark stack */
+  .stack{border:1px solid var(--line2);border-radius:24px;background:linear-gradient(180deg,#1a1030,#120c20);padding:34px;position:relative;overflow:hidden}
+  .layer{display:flex;align-items:center;gap:14px;border:1px solid var(--line);border-radius:14px;padding:14px 18px;background:rgba(255,255,255,.03);margin-bottom:10px}
+  .layer.hot{background:linear-gradient(120deg,rgba(255,77,157,.16),rgba(176,123,255,.12));border-color:rgba(255,77,157,.35)}
+  .layer b{font-size:15px}.layer span{color:var(--mut);font-size:13px}
+  .layer .pin{margin-left:auto;font-size:11px;color:var(--cyan);font-weight:750}
+  .ar{text-align:center;color:var(--mut2);margin:2px 0}
+
+  /* feature toolbox */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .filters button{border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--mut);border-radius:999px;padding:8px 15px;font-weight:700;font-size:13px;cursor:pointer;transition:.15s}
+  .filters button:hover{color:#fff}
+  .filters button.on{background:var(--g-cool);color:#0b0910;border-color:transparent;box-shadow:0 10px 24px -10px rgba(51,225,255,.6)}
+  .fg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+  .fx{border:1px solid var(--line);border-radius:14px;padding:14px 15px;background:var(--panel);transition:.15s}
+  .fx:hover{border-color:var(--line2);transform:translateY(-3px)}
+  .fx h5{margin:0 0 4px;font-size:14.5px;font-weight:750;display:flex;justify-content:space-between;gap:8px;align-items:center}
+  .fx p{margin:0;font-size:12.5px;color:var(--mut2)}
+  .tag2{border-radius:999px;padding:2px 8px;font-size:10px;font-weight:800;white-space:nowrap}
+  .t-live{background:rgba(182,255,77,.16);color:#cdff9a}.t-partial{background:rgba(255,194,77,.18);color:#ffd98a}.t-planned{background:rgba(176,123,255,.18);color:#cbb0ff}
+
+  /* cta band */
+  .band{border:1px solid var(--line2);border-radius:26px;padding:46px;text-align:center;background:radial-gradient(600px 300px at 50% -20%,rgba(255,77,157,.28),transparent),linear-gradient(180deg,#1a1030,#120c20);position:relative;overflow:hidden}
+  .band h2{font-size:clamp(30px,4vw,46px)}
+
+  footer{border-top:1px solid var(--line);padding:44px 0 60px;color:var(--mut2)}
+  .fcols{display:grid;grid-template-columns:1.6fr 1fr 1fr 1fr;gap:24px}
+  @media(max-width:820px){.fcols{grid-template-columns:1fr 1fr}}
+  .fcols h6{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--mut2);margin:0 0 10px}
+  .fcols a{display:block;color:var(--mut);font-size:14px;padding:3px 0}
+  .fcols a:hover{color:#fff}
+  .badge{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:999px;padding:5px 11px;color:var(--purple)}
+
+  /* reveal */
+  .rv{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+  .rv.in{opacity:1;transform:none}
+</style>
+</head>
+<body>
+<div class="aura"></div>
+<div class="content">
+
+<!-- nav -->
+<nav class="nav"><div class="wrap">
+  <div class="brand"><span class="m">◎</span> Shuug</div>
+  <div class="nlinks">
+    <a href="#three">Start</a><a href="#pillars">Platform</a><a href="#verticals">Industries</a>
+    <a href="#peek">Peek inside</a><a href="#features">Everything</a>
+  </div>
+  <div class="right">
+    <span class="search">🔍 Search features</span>
+    <a class="btn btn-hot" href="/">Open the app →</a>
+  </div>
+</div></nav>
+
+<!-- hero -->
+<header class="hero"><div class="wrap">
+  <div>
+    <span class="tag">✨ Free · own it · one engine, not 40 apps</span>
+    <h1>Say what you run.<br><span class="grad">Shuug becomes</span> a<br><span class="cyc" id="cyc">mechanic shop</span>.</h1>
+    <p class="lede">The all-in-one business platform that molds to any trade — CRM, scheduling, real double-entry books, inventory, HR, AI workers and a white-label front. The same engine underneath, wearing your business's clothes.</p>
+    <div class="hcta">
+      <a class="btn btn-hot" href="/">Open the app →</a>
+      <a class="btn btn-line" href="#three">See how it works</a>
+    </div>
+    <div class="hstats">
+      <div><b class="grad">1</b><span>engine underneath</span></div>
+      <div><b class="grad2">13+</b><span>industries</span></div>
+      <div><b style="color:var(--lime)">50+</b><span>features connected</span></div>
+      <div><b style="color:var(--amber)">$0</b><span>the software is free</span></div>
+    </div>
+  </div>
+
+  <!-- illustrated app scene -->
+  <div class="heroart">
+    <div class="chip c1">🏊 Swim school</div>
+    <div class="chip c2">🍽️ Restaurant</div>
+    <div class="chip c3">🔧 Auto repair</div>
+    <div class="win">
+      <div class="bar"><i></i><i></i><i></i><b>shuug · your workspace</b></div>
+      <div class="app">
+        <div class="side"><span class="s act"></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="s" style="width:70%"></span><span class="s" style="width:80%"></span><span class="s" style="width:60%"></span></div>
+        <div class="main">
+          <div class="kpis">
+            <div class="kpi kc1"><u>Revenue</u><b>$48.2k</b></div>
+            <div class="kpi kc2"><u>Open work</u><b>17</b></div>
+            <div class="kpi kc3"><u>Ledger</u><b>✓</b></div>
+          </div>
+          <div class="chart"><span style="height:40%"></span><span style="height:65%"></span><span style="height:52%"></span><span style="height:80%"></span><span style="height:70%"></span><span style="height:95%"></span><span style="height:60%"></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="phone"><u>Ratio · live</u><div class="ok">Compliant ✓</div><u style="margin-top:6px">15 kids · 4 staff</u></div>
+  </div>
+</div></header>
+
+<!-- marquee -->
+<div class="marq"><div class="row" id="marq">
+  <span class="mchip">🔧 <b>Auto repair</b></span><span class="mchip">🍽️ <b>Restaurant</b></span><span class="mchip">🏊 <b>Swim school</b></span><span class="mchip">🧸 <b>Home daycare</b></span><span class="mchip">📦 <b>Wholesale</b></span><span class="mchip">💜 <b>Nonprofit</b></span><span class="mchip">🏗️ <b>Construction</b></span><span class="mchip">✂️ <b>Salon</b></span><span class="mchip">❄️ <b>HVAC</b></span><span class="mchip">🌿 <b>Landscaping</b></span><span class="mchip">🎨 <b>Agency</b></span><span class="mchip">🏫 <b>School</b></span>
+</div></div>
+
+<!-- three big cards -->
+<section id="three"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Three ways in</div><h2>Owners, staff &amp; AI — <span class="grad2">one system</span></h2><p class="sub">Describe your business and it configures itself. Then people and AI work from the same verified records.</p></div>
+  <div class="three">
+    <a class="bigcard rv" href="/blueprint">
+      <div class="txt"><h3>🪄 It molds around you</h3><p>Say “I run a mechanic shop.” Shuug turns on exactly the tools you need, names fields in your language, hides the rest.</p><span class="go">See your blueprint →</span></div>
+      <div class="art">
+        <svg viewBox="0 0 400 186" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <defs><linearGradient id="ga" x1="0" x2="1"><stop offset="0" stop-color="#ff6a5c"/><stop offset="1" stop-color="#b07bff"/></linearGradient><linearGradient id="gb" x1="0" x2="1"><stop offset="0" stop-color="#33e1ff"/><stop offset="1" stop-color="#5b8cff"/></linearGradient></defs>
+          <rect width="400" height="186" fill="#0f0a1a"/>
+          <circle cx="120" cy="93" r="70" fill="url(#ga)" opacity=".25"/><circle cx="270" cy="80" r="58" fill="url(#gb)" opacity=".28"/>
+          <rect x="70" y="58" width="120" height="70" rx="12" fill="url(#ga)"/><rect x="210" y="40" width="120" height="106" rx="12" fill="url(#gb)" opacity=".9"/>
+          <rect x="86" y="74" width="70" height="8" rx="4" fill="#fff" opacity=".85"/><rect x="86" y="90" width="52" height="8" rx="4" fill="#fff" opacity=".55"/>
+          <rect x="226" y="58" width="70" height="8" rx="4" fill="#0b0910" opacity=".7"/><rect x="226" y="74" width="88" height="8" rx="4" fill="#0b0910" opacity=".45"/><rect x="226" y="98" width="60" height="20" rx="10" fill="#0b0910" opacity=".7"/>
+        </svg>
+      </div>
+    </a>
+    <a class="bigcard rv" href="/handlers">
+      <div class="txt"><h3>🤖 AI does the work</h3><p>“I hate chasing invoices.” Shuug builds a Handler — a worker over the tools that exist. You approve the leash; it runs.</p><span class="go">Meet the Handlers →</span></div>
+      <div class="art">
+        <svg viewBox="0 0 400 186" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="186" fill="#0f0a1a"/>
+          <circle cx="300" cy="60" r="70" fill="#ff4d9d" opacity=".22"/>
+          <rect x="40" y="44" width="200" height="34" rx="17" fill="#1b1430" stroke="#33e1ff" stroke-opacity=".4"/><text x="58" y="66" fill="#a99cc4" font-size="13" font-family="monospace">“chase overdue invoices”</text>
+          <rect x="90" y="100" width="270" height="52" rx="14" fill="url(#gb)"/><circle cx="120" cy="126" r="15" fill="#0b0910" opacity=".85"/><text x="112" y="131" fill="#b6ff4d" font-size="16">✦</text>
+          <rect x="146" y="114" width="150" height="8" rx="4" fill="#0b0910" opacity=".7"/><rect x="146" y="130" width="100" height="8" rx="4" fill="#0b0910" opacity=".45"/>
+        </svg>
+      </div>
+    </a>
+    <a class="bigcard rv" href="/platform">
+      <div class="txt"><h3>🧬 One connected model</h3><p>Different trades, same primitives. Your books, work and customers are one source of truth — apps are just views.</p><span class="go">Explore the state layer →</span></div>
+      <div class="art">
+        <svg viewBox="0 0 400 186" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="186" fill="#0f0a1a"/>
+          <g stroke="#8b5cf6" stroke-opacity=".5" stroke-width="2">
+            <line x1="200" y1="93" x2="90" y2="46"/><line x1="200" y1="93" x2="330" y2="52"/><line x1="200" y1="93" x2="70" y2="140"/><line x1="200" y1="93" x2="320" y2="146"/><line x1="200" y1="93" x2="200" y2="30"/>
+          </g>
+          <circle cx="200" cy="93" r="26" fill="url(#ga)"/><text x="188" y="99" font-size="18">◎</text>
+          <circle cx="90" cy="46" r="15" fill="#33e1ff"/><circle cx="330" cy="52" r="15" fill="#b6ff4d"/><circle cx="70" cy="140" r="15" fill="#ffc24d"/><circle cx="320" cy="146" r="15" fill="#ff4d9d"/><circle cx="200" cy="30" r="13" fill="#5b8cff"/>
+        </svg>
+      </div>
+    </a>
+  </div>
+</div></section>
+
+<!-- capability code -->
+<section style="padding-top:20px"><div class="wrap">
+  <div class="codewrap">
+    <div class="rv">
+      <div class="eyebrow">The engine, not a dashboard</div>
+      <h2>One door, <span class="grad">not 40 SaaS APIs</span></h2>
+      <p class="sub">A person, your website and an AI handler all reach the business through the same permissioned operations. Nobody flips a status by hand — every change passes the rules, commits atomically, and leaves an audit trail.</p>
+      <ul class="doslist">
+        <li><span class="d">✦</span><span><b>Guarded</b> — approval needs evidence, scheduling needs a free bay</span></li>
+        <li><span class="d">✦</span><span><b>Atomic</b> — state, history &amp; audit commit together or not at all</span></li>
+        <li><span class="d">✦</span><span><b>Idempotent</b> — a retried request never charges twice</span></li>
+        <li><span class="d">✦</span><span><b>Audited</b> — who asked, what was checked, what changed, when</span></li>
+      </ul>
+    </div>
+    <div class="code rv">
+      <div class="h">shuug · capability surface</div>
+      <pre><span class="cm">// the same machinery for every trade</span>
+<span class="cf">customer</span>.lookup(<span class="cs">"Alex"</span>)
+<span class="cf">appointment</span>.available(<span class="cs">"Tue 10:00"</span>)
+<span class="cf">inventory</span>.reserve(<span class="cn">sku</span>, <span class="cn">2</span>)
+<span class="cf">invoice</span>.create(<span class="cn">order</span>)
+<span class="cf">payment</span>.status(<span class="cn">inv</span>)
+<span class="cf">ledger</span>.post(<span class="cn">entry</span>)   <span class="cm">// balanced or rejected</span>
+
+<span class="cm">// → all permission-gated. AI gets these,</span>
+<span class="cm">//   not 40 disconnected APIs.</span></pre>
+    </div>
+  </div>
+</div></section>
+
+<!-- verticals -->
+<section id="verticals"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">One platform · many shapes</div><h2>Purpose-built for <span class="grad2">how you actually work</span></h2><p class="sub">Same engine, molded. Same customers, work, money and staff underneath — different clothes on top.</p></div>
+  <div class="vgrid">
+    <div class="vt rv"><div class="vart" style="background:linear-gradient(120deg,#ff6a5c,#ff4d9d)"><svg viewBox="0 0 300 120" width="100%" height="100%"><g fill="#0b0910" opacity=".8"><circle cx="70" cy="80" r="16"/><circle cx="150" cy="80" r="16"/><rect x="55" y="44" width="150" height="28" rx="8"/><rect x="120" y="30" width="70" height="20" rx="6"/></g><text x="215" y="68" font-size="34">🔧</text></svg></div><div class="vtx"><h4>Auto repair &amp; service</h4><p>Vehicles, technicians &amp; bays, guarded repair orders, multi-point inspections, approvals &amp; invoicing.</p></div></div>
+    <div class="vt rv"><div class="vart" style="background:linear-gradient(120deg,#ffc24d,#ff6a5c)"><svg viewBox="0 0 300 120" width="100%" height="100%"><g fill="#0b0910" opacity=".75"><rect x="40" y="40" width="60" height="44" rx="6"/><rect x="112" y="40" width="60" height="44" rx="6"/><rect x="46" y="48" width="30" height="6" rx="3" fill="#ffc24d"/><rect x="118" y="48" width="30" height="6" rx="3" fill="#b6ff4d"/></g><text x="210" y="70" font-size="34">🍽️</text></svg></div><div class="vtx"><h4>Restaurant</h4><p>AI reservation host, best-fit seating with no double-books, a live kitchen board, recipes &amp; food cost.</p></div></div>
+    <div class="vt rv"><div class="vart" style="background:linear-gradient(120deg,#33e1ff,#5b8cff)"><svg viewBox="0 0 300 120" width="100%" height="100%"><g fill="#0b0910" opacity=".8"><rect x="40" y="50" width="120" height="30" rx="15"/><circle cx="60" cy="65" r="9" fill="#b6ff4d"/><rect x="80" y="61" width="60" height="8" rx="4" fill="#33e1ff"/></g><text x="205" y="70" font-size="34">🏊</text></svg></div><div class="vtx"><h4>Childcare, school &amp; classes</h4><p>Sign-in with authorized pickups, live staff ratios, swim/art/music classes, recurring tuition billing.</p></div></div>
+    <div class="vt rv"><div class="vart" style="background:linear-gradient(120deg,#8b5cf6,#ff4d9d)"><svg viewBox="0 0 300 120" width="100%" height="100%"><g fill="#0b0910" opacity=".78"><rect x="46" y="44" width="44" height="44" rx="6"/><rect x="100" y="44" width="44" height="44" rx="6"/><rect x="73" y="30" width="44" height="20" rx="6"/></g><text x="205" y="70" font-size="34">📦</text></svg></div><div class="vtx"><h4>Wholesale &amp; distribution</h4><p>Tier pricing agreements, orders, samples, routes, margin engine, Shopify → orders → QuickBooks.</p></div></div>
+    <div class="vt rv"><div class="vart" style="background:linear-gradient(120deg,#b6ff4d,#33e1ff)"><svg viewBox="0 0 300 120" width="100%" height="100%"><g fill="#0b0910" opacity=".8"><path d="M70 82 l24-40 24 40 z"/><circle cx="150" cy="60" r="20"/></g><text x="205" y="70" font-size="34">💜</text></svg></div><div class="vtx"><h4>Nonprofit</h4><p>Donations &amp; recurring gifts, pledges, grants, programs &amp; outcomes, volunteers, board governance.</p></div></div>
+    <div class="vt rv"><div class="vart" style="background:linear-gradient(120deg,#5b8cff,#8b5cf6)"><svg viewBox="0 0 300 120" width="100%" height="100%"><g fill="#0b0910" opacity=".78"><rect x="46" y="60" width="110" height="26" rx="6"/><rect x="60" y="40" width="14" height="20"/><rect x="130" y="40" width="14" height="20"/></g><text x="205" y="70" font-size="34">🏗️</text></svg></div><div class="vtx"><h4>Trades &amp; field service</h4><p>HVAC, landscaping, construction, salons &amp; agencies: scheduling, jobs, time-on-jobs, safety audits.</p></div></div>
+  </div>
+</div></section>
+
+<!-- pillars -->
+<section id="pillars"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">The whole platform</div><h2>Everything a business needs, <span class="grad">connected</span></h2><p class="sub">Not a pile of apps sharing a sidebar — one engine where every feature works from the same records.</p></div>
+  <div class="plist">
+    <div class="pl rv"><div class="pi">📚</div><h3>Real double-entry books</h3><p>An actual general ledger. Sales, payments &amp; expenses post themselves; the trial balance proves it; P&amp;L and Balance Sheet are derived from the ledger, so they always tie out.</p></div>
+    <div class="pl rv"><div class="pi">⚙️</div><h3>The guarded work engine</h3><p>Repair orders, bookings and jobs move through a lifecycle with real requirements at each step — and the same operation is used by staff, your website and AI.</p></div>
+    <div class="pl rv"><div class="pi">🧩</div><h3>Build your own modules</h3><p>A no-code tracker builder for anyone, and a developer SDK where one manifest file becomes a full feature — nav, permissions, records UI and API — with zero core edits.</p></div>
+    <div class="pl rv"><div class="pi">🔌</div><h3>Your whole stack, connected</h3><p>Amazon, Shopify, GoDaddy, Slack, Zapier, Stripe, QuickBooks, PayPal, Twilio &amp; more — as connectors, never competing sources of truth. Ghost Bridge brings legacy systems in too.</p></div>
+    <div class="pl rv"><div class="pi">🎨</div><h3>White-label, to the pixels</h3><p>Your name, colors, logo, backgrounds — applied app-wide the moment you save. Org modes for product, service and nonprofit. Agencies can resell it as their own.</p></div>
+    <div class="pl rv"><div class="pi">🕊️</div><h3>Free, and actually yours</h3><p>Own the engine, host it, move it. Templates, exports and backups stay distinct — you're never trapped. Paid help is only for hard legacy migration, with verified evidence.</p></div>
+  </div>
+</div></section>
+
+<!-- peek inside -->
+<section id="peek"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Show, don't tell</div><h2>Peek inside 👀</h2><p class="sub">The AI proposing a worker · the kitchen line · books that balance themselves · the ratio that keeps kids safe.</p></div>
+  <div class="peek">
+    <div class="mk rv"><div class="t"><i></i><i></i><i></i><b>/handlers</b></div><div class="c"><div class="ml">AI Handlers</div><div class="mt">“I hate chasing invoices”</div><div class="prop"><b>⏰ Collections Handler</b><div class="ck"><span class="y">✓</span> Watch overdue invoices</div><div class="ck"><span class="y">✓</span> Send approved reminders</div><div class="ck"><span class="y">✓</span> Record promises to pay</div><span class="pbtn">Test it →</span></div></div></div>
+    <div class="mk rv"><div class="t"><i></i><i></i><i></i><b>/restaurant</b></div><div class="c"><div class="ml">Kitchen board</div><div class="mt">The line, live</div><div class="kb"><div class="kc"><p>New</p><div class="kt"><b>T3</b>Burger <span class="dot d-new">grill</span></div><div class="kt"><b>Patio 2</b>Caesar <span class="dot d-new">salad</span></div></div><div class="kc"><p>Cooking</p><div class="kt"><b>T7</b>Ribeye <span class="dot d-cook">grill</span></div></div><div class="kc"><p>Ready</p><div class="kt"><b>Bar 1</b>Fries <span class="dot d-rd">up</span></div></div></div></div></div>
+    <div class="mk rv"><div class="t"><i></i><i></i><i></i><b>/ledger</b></div><div class="c"><div class="ml">General ledger</div><div class="mt">Books that tie out</div><div class="lr"><span>1200 · A/R</span><span>Dr 10,500</span></div><div class="lr"><span>4000 · Income</span><span>Cr 10,000</span></div><div class="lr"><span>2200 · Sales Tax</span><span>Cr 500</span></div><div class="lr tot"><span>Trial balance</span><span>21,000 / 21,000</span></div><div class="okline">✓ In balance · P&amp;L derived from the ledger</div></div></div>
+    <div class="mk rv"><div class="t"><i></i><i></i><i></i><b>/childcare</b></div><div class="c"><div class="ml">Staff-to-child ratio</div><div class="mt">Compliant, in real time</div><div class="rt"><div class="big">Compliant ✓</div><div style="font-size:12px;color:#a9e0bb">15 children · 4 staff · 4 required</div><div><span class="g">8×infant 1:4→2</span><span class="g">7×toddler 1:6→2</span></div></div></div></div>
+  </div>
+</div></section>
+
+<!-- money -->
+<section id="money"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">The serious stuff</div><h2>The books &amp; the crew, <span class="grad">done right</span></h2><p class="sub">Everything to get paid, stay compliant and run your people — connected to the same records.</p></div>
+  <div class="m3">
+    <div class="mc rv"><div class="e">💰</div><h4>Money</h4><ul><li>General ledger + trial balance</li><li>P&amp;L · Balance Sheet · Sales Tax</li><li>Invoicing, payments &amp; collections</li><li>12-week cash-flow forecast</li><li>Reconciliation &amp; chart of accounts</li></ul></div>
+    <div class="mc rv"><div class="e">🕒</div><h4>Team &amp; payroll</h4><ul><li>Time clock &amp; timesheets → payroll</li><li>Overtime, hours by job</li><li>Scheduling &amp; shifts</li><li>Performance ROI scorecards</li><li>Human-vs-AI benchmark lab</li></ul></div>
+    <div class="mc rv"><div class="e">🧾</div><h4>Sales &amp; customers</h4><ul><li>CRM pipeline &amp; contacts</li><li>Unified customer timeline</li><li>Quotes → orders, client portal</li><li>Documents &amp; e-sign</li><li>Automation rules (when/then)</li></ul></div>
+  </div>
+</div></section>
+
+<!-- stack -->
+<section><div class="wrap">
+  <div class="stack rv">
+    <div class="eyebrow" style="background:var(--g-cool);-webkit-background-clip:text;background-clip:text;color:transparent">Under the hood</div>
+    <h2 style="margin:.3em 0 .2em">One connected system — <span class="grad2">not a shared sidebar</span></h2>
+    <p class="sub" style="margin-bottom:22px">People, websites and AI all reach the business through the same permissioned door.</p>
+    <div class="layer"><b>Surfaces</b><span>Website · dashboard · staff app · phone · AI</span><span class="pin">who uses it</span></div>
+    <div class="ar">↕</div>
+    <div class="layer"><b>Access layer</b><span>Identity · permissions · validated actions · audit</span><span class="pin">the guard</span></div>
+    <div class="ar">↕</div>
+    <div class="layer hot"><b>Shuug business engine</b><span>Customers · work · scheduling · inventory · bookkeeping</span><span class="pin">the asset</span></div>
+    <div class="ar">↕</div>
+    <div class="layer"><b>Records &amp; connectors</b><span>Ledger · documents · history · QuickBooks · Stripe · legacy → Ghost Bridge</span><span class="pin">the truth</span></div>
+    <div class="hcta" style="margin-top:22px"><a class="btn btn-hot" href="/platform">Explore the state layer →</a><a class="btn btn-line" href="/handlers">Meet the AI Handlers →</a></div>
+  </div>
+</div></section>
+
+<!-- feature toolbox -->
+<section id="features"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Everything, in one place</div><h2>The whole toolbox 🧰</h2><p class="sub" id="fsub">Every feature is connected to the same records and mapped to an API. Filter by area.</p></div>
+  <div class="filters" id="filters">
+    <button class="on" data-f="all">All</button><button data-f="Money">Money</button><button data-f="Sales">Sales</button><button data-f="Team">Team</button><button data-f="Ops">Operations</button><button data-f="AI">AI &amp; platform</button><button data-f="Setup">Setup</button>
+  </div>
+  <div class="fg" id="fg"></div>
+</div></section>
+
+<!-- cta -->
+<section><div class="wrap"><div class="band rv">
+  <div class="eyebrow" style="background:var(--g-hot);-webkit-background-clip:text;background-clip:text;color:transparent">Ready</div>
+  <h2 style="margin:.2em 0">Tell it what you run. <span class="grad2">Watch it become yours.</span></h2>
+  <p class="sub" style="max-width:520px;margin:8px auto 22px">One engine a business can own. A workspace configured for how it operates. People and AI working the same verified records.</p>
+  <a class="btn btn-hot" href="/" style="font-size:16px;padding:14px 26px">Open the app →</a>
+</div></div></section>
+
+<footer><div class="wrap">
+  <div class="fcols">
+    <div><div class="brand" style="font-size:16px"><span class="m" style="width:26px;height:26px;font-size:14px">◎</span> Shuug</div><p class="mut" style="max-width:320px;font-size:14px;margin-top:12px">One engine a business can own. Paid help getting old, difficult data into an open system.</p><span class="badge" style="margin-top:10px">Prototype showcase</span></div>
+    <div><h6>Platform</h6><a href="/platform">State layer</a><a href="/handlers">AI Handlers</a><a href="/workorders">Work engine</a><a href="/developer">Build modules</a></div>
+    <div><h6>Business</h6><a href="/ledger">The books</a><a href="/timeclock">Time &amp; pay</a><a href="/integrations">Integrations</a><a href="/blueprint">My workspace</a></div>
+    <div><h6>Get started</h6><a href="/">Open the app</a><a href="#three">How it works</a><a href="#features">Everything</a></div>
+  </div>
+  <p class="mut" style="margin-top:26px;font-size:12px">The software is free; hosting, AI compute &amp; phone are supplied as you need them.</p>
+</div></footer>
+
+</div><!-- /content -->
+
+<script>
+  // hero word cycle
+  const words = ["mechanic shop","swim school","restaurant","home daycare","wholesaler","nonprofit","salon","school"];
+  let wi=0; const cyc=document.getElementById('cyc');
+  setInterval(()=>{ wi=(wi+1)%words.length; cyc.style.opacity=0; setTimeout(()=>{cyc.textContent=words[wi];cyc.style.opacity=1;},260); },2100);
+
+  // duplicate marquee for seamless loop
+  const m=document.getElementById('marq'); m.innerHTML+=m.innerHTML;
+
+  // reveal on scroll
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{rootMargin:'0px 0px -8% 0px'});
+  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+
+  // feature toolbox (embedded fallback → live /api/showcase)
+  const FEATURES=[
+    ["General ledger (double-entry)","Journal, trial balance, derived P&L & BS","Money","live"],["Profit & Loss","Income, COGS & opex + cost insight","Money","live"],["Balance Sheet","A = L + E, always balances","Money","live"],["Cash flow forecast","12-week runway + stress test","Money","live"],["Invoicing & collections","Aging, reminders, promises","Money","live"],["Reconciliation","Expose mismatches, not hide them","Money","live"],["Tuition billing","Recurring monthly, never double-billed","Money","live"],
+    ["CRM pipeline","Kanban deals, weighted forecast","Sales","live"],["Unified customer timeline","Every order, quote & message","Sales","live"],["Quotes → orders","Accept a quote, it becomes an order","Sales","live"],["Customer portal","Orders, receipts, pricing, rep","Sales","live"],["Documents & e-sign","DocuSign / PandaDoc, renewals","Sales","live"],["Products & tier pricing","Margin engine, volume tiers","Sales","live"],
+    ["Time clock & timesheets","Hours by job → payroll","Team","live"],["Staff scheduling & shifts","Rosters and attendance","Team","live"],["Performance ROI scorecards","Value vs salary","Team","live"],["Benchmark lab","Human vs AI, task-for-task","Team","live"],["Roles & access (RBAC)","Per-section permissions","Team","live"],
+    ["Work orders (guarded)","Lifecycle + audit + idempotent","Ops","live"],["Inventory","Levels, reorder, days-of-cover","Ops","live"],["Production & costing","Recipes/BOM, true cost/case","Ops","live"],["Restaurant","Reservations + kitchen board","Ops","live"],["Childcare & classes","Attendance, ratios, enrollment","Ops","live"],["Assessments & inspections","Scored, per-industry","Ops","live"],
+    ["AI Handlers","Describe a job → a worker","AI","live"],["AI copilot","Grounded business analyst","AI","live"],["Automation rules","When/then across the business","AI","live"],["Business state layer","Primitives + capability surface","AI","live"],["Ghost Bridge","Legacy → primitives migration","AI","partial"],
+    ["Industry self-configuration","Say what you run, it molds","Setup","live"],["White-label branding","Colors, logo, backgrounds","Setup","live"],["Integrations hub","Amazon, Shopify, GoDaddy, Slack…","Setup","live"],["Module SDK","Build your own, no core edits","Setup","live"],["Marketing hub & ROAS","Ads, campaigns","Setup","live"]
+  ];
+  const fg=document.getElementById('fg'); let data=FEATURES.slice(), cur='all';
+  const draw=f=>`<div class="fx"><h5>${f[0]} <span class="tag2 t-${f[3]}">${f[3]}</span></h5><p>${f[1]}</p></div>`;
+  const render=fl=>{cur=fl;fg.innerHTML=data.filter(f=>fl==='all'||f[2]===fl).map(draw).join('');};
+  render('all');
+  document.querySelectorAll('#filters button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#filters button').forEach(x=>x.classList.remove('on'));b.classList.add('on');render(b.dataset.f);});
+  fetch('/api/showcase').then(r=>r.ok?r.json():null).then(j=>{if(!j||!j.features?.length)return;data=j.features.map(f=>[f.label,f.sub,f.cat,f.status]);render(cur);const s=document.getElementById('fsub');if(s)s.innerHTML=`Every feature is connected to the same records and mapped to an API — <b style="color:#cdff9a">${j.liveCount} of ${j.count} live</b>. Filter by area.`;}).catch(()=>{});
+</script>
+</body>
+</html>

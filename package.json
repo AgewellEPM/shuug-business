@@ -3,24 +3,75 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "next dev --hostname 127.0.0.1",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:seed": "tsx prisma/seed.ts",
+    "mcp": "tsx scripts/mcp-server.ts",
+    "backend:setup": "tsx scripts/backend-setup.ts",
+    "backend:smoke": "tsx scripts/backend-smoke.ts",
+    "shopify:worker": "tsx scripts/shopify-worker.ts",
+    "shopify:configure": "tsx scripts/shopify-configure.ts",
+    "test:backend": "vitest run src/lib/backend src/lib/shopify-backend",
+    "workspace:setup": "tsx scripts/workspace-setup.ts",
+    "planning:smoke": "tsx scripts/planning-smoke.ts",
+    "workspace:backup": "tsx scripts/workspace-backup.ts",
+    "workspace:smoke": "tsx scripts/workspace-smoke.ts",
+    "test:workflows": "vitest run src/lib/workspace src/lib/planning src/lib/auth/owner-session.test.ts",
+    "release:source": "tsx scripts/release-source.ts",
+    "wordpress:package": "tsx scripts/package-wordpress.ts",
+    "wordpress:smoke": "tsx scripts/wordpress-smoke.ts",
+    "test:wordpress": "vitest run src/lib/wordpress",
+    "workflow:worker": "tsx scripts/workflow-worker.ts",
+    "test:setup": "vitest run src/lib/getting-started",
+    "website-payments:worker": "tsx scripts/website-payment-worker.ts",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.124.0",
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@prisma/adapter-pg": "^7.10.0",
+    "@prisma/client": "^7.10.0",
     "next": "16.3.4",
+    "pg": "^8.23.0",
     "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "react-dom": "19.2.8",
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz",
+    "zod": "^4.6.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "^24.13.4",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
+    "jsdom": "^30.0.1",
+    "prisma": "^7.10.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.23.13",
+    "typescript": "^5",
+    "vitest": "^4.1.11"
+  },
+  "engines": {
+    "node": ">=22.13.0"
+  },
+  "license": "MIT",
+  "overrides": {
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.2"
+    },
+    "prisma": {
+      "mysql2": "3.24.4"
+    }
   }
 }
