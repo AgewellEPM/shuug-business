@@ -26,19 +26,20 @@ const MEGA = `<div class="mega"><span class="mtrigger">Features ▾</span><div c
 
 const NAV = () => `<nav class="nav"><div class="wrap">
   <a class="brand" href="/welcome"><span class="m">◎</span> Shuug</a>
-  <div class="nlinks"><a href="/welcome">Home</a><a href="/welcome/platform">How it works</a>${MEGA}<a href="/welcome/industries">Industries</a><a href="/welcome/features">Solutions</a><a href="/welcome/builders">Builders</a></div>
+  <div class="nlinks">${MEGA}<a href="/welcome/platform">How it works</a><a href="/welcome/industries">Industries</a><a href="/welcome/features">Solutions</a><a href="/welcome/builders">Builders</a></div>
   <div class="right"><a class="ghchip" href="${GH}" target="_blank" rel="noopener">★ Open source</a><a class="btn btn-hot" href="/">Open the app →</a></div>
 </div></nav>`;
 
 const SCRIPT = `<script>(function(){
 var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+document.body.classList.add('js');
 var pb=document.createElement('div');pb.className='progress';document.body.appendChild(pb);
 var nav=document.querySelector('.nav');
 function sc(){var h=document.documentElement,s=h.scrollTop||document.body.scrollTop,mx=(h.scrollHeight-h.clientHeight)||1;pb.style.width=(s/mx*100)+'%';if(nav)nav.classList.toggle('scrolled',s>8);}
 document.addEventListener('scroll',sc,{passive:true});sc();
-if(rm){document.querySelectorAll('.rv,.stagger').forEach(function(e){e.classList.add('in');});return;}
+if(rm){document.querySelectorAll('.rv,.stagger,.term').forEach(function(e){e.classList.add('in');});return;}
 var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;el.classList.add('in');if(el.classList.contains('stagger')){var k=el.children,i;for(i=0;i<k.length;i++){k[i].style.transitionDelay=(i*55)+'ms';}}io.unobserve(el);});},{rootMargin:'0px 0px -8% 0px'});
-document.querySelectorAll('.rv,.stagger').forEach(function(e){io.observe(e);});
+document.querySelectorAll('.rv,.stagger,.term').forEach(function(e){io.observe(e);});
 document.querySelectorAll('.hstats b').forEach(function(el){var m=el.textContent.match(/^(\\D*)(\\d[\\d,]*)(.*)$/);if(!m)return;var pre=m[1],n=parseInt(m[2].replace(/,/g,''),10),suf=m[3];var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var t0=null;function st(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/1100,1),k=1-Math.pow(1-p,3);el.textContent=pre+Math.round(n*k).toLocaleString()+suf;if(p<1)requestAnimationFrame(st);}requestAnimationFrame(st);cio.unobserve(e.target);});},{rootMargin:'0px 0px -4% 0px'});cio.observe(el);});
 document.querySelectorAll('.btn-hot').forEach(function(b){b.addEventListener('pointermove',function(ev){var r=b.getBoundingClientRect();b.style.transform='translate('+(((ev.clientX-r.left-r.width/2)/r.width)*8-3)+'px,'+(((ev.clientY-r.top-r.height/2)/r.height)*8-3)+'px)';});b.addEventListener('pointerleave',function(){b.style.transform='';});});
 document.querySelectorAll('.fx.fxstatic,.layer,.tier,.ucc').forEach(function(el){el.classList.add('zoomable');});

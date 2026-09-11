@@ -176,7 +176,7 @@ const MEGA = `<div class="mega"><span class="mtrigger">Features ▾</span><div c
 </div></div>`;
 const NAV = active => `<nav class="nav"><div class="wrap">
   <a class="brand" href="/welcome"><span class="m">◎</span> Shuug</a>
-  <div class="nlinks"><a href="/welcome"${active==='home'?' class="on"':''}>Home</a><a href="/welcome/platform"${active==='how'?' class="on"':''}>How it works</a>${MEGA}<a href="/welcome/industries"${active==='ind'?' class="on"':''}>Industries</a><a href="/welcome/features"${active==='sol'?' class="on"':''}>Solutions</a><a href="/welcome/builders"${active==='build'?' class="on"':''}>Builders</a></div>
+  <div class="nlinks">${MEGA}<a href="/welcome/platform"${active==='how'?' class="on"':''}>How it works</a><a href="/welcome/industries"${active==='ind'?' class="on"':''}>Industries</a><a href="/welcome/features"${active==='sol'?' class="on"':''}>Solutions</a><a href="/welcome/builders"${active==='build'?' class="on"':''}>Builders</a></div>
   <div class="right"><a class="ghchip" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ Open source</a><a class="btn btn-hot" href="/">Open the app →</a></div>
 </div></nav>`;
 
@@ -238,17 +238,84 @@ const toolCards = keys => keys.map(k=>{
     </div></details>`;
 }).join("");
 
+// --- per-industry workflow graph: bucket the industry's real tools into stages ---
+const STAGE = {
+  channel:0, resv:0, appt:0, pos:0, portal:0, memberships:0, classes:0, crm:0, mkt:0,
+  stock:1, pricing:1, menu:1, prod:1, kds:1, wo:1, vehicles:1, jobs:1, routes:1, photos:1, assess:1, ratios:1, pets:1, programs:1, volunteers:1, docs:1,
+  time:2, pay:2,
+  inv:3, tax:3, recon:3, cash:3, tuition:3, donations:3,
+  books:4, pnl:4, exp:4, profit:4, integ:4, white:4,
+};
+const STAGE_META = [
+  ["Book &amp; intake","take the work in"],
+  ["Do the work","run the day-to-day"],
+  ["Your crew","hours &amp; pay"],
+  ["Get paid","money in"],
+  ["The books","it posts itself"],
+];
+function flowGraph(tools){
+  const active = STAGE_META.map((m,i)=>({m,items:tools.filter(k=>STAGE[k]===i)})).filter(g=>g.items.length);
+  return `<div class="wgraph rv">`+active.map((g,idx)=>
+    `<div class="wstage"><b>${g.m[0]}</b><span>${g.m[1]}</span><div class="wchips">${g.items.map(k=>`<div class="wc">${esc(TOOLS[k][0])}</div>`).join("")}</div></div>`+
+    (idx<active.length-1?`<div class="warrow">→</div>`:``)
+  ).join("")+`</div>`;
+}
+function overviewText(b){
+  const [,name,,,tools]=b;
+  const t0=TOOLS[tools[0]][0].toLowerCase(), t1=TOOLS[tools[1]][0].toLowerCase(), t2=(TOOLS[tools[2]]?.[0]||"the books").toLowerCase();
+  return `Running ${art(name)} ${esc(name)} means keeping ${esc(t0)}, ${esc(t1)} and ${esc(t2)} moving while the money and the books keep up behind them. Most owners stitch that together from a booking app, a spreadsheet, a card reader and a shoebox of receipts — then pay a bookkeeper to reconcile the mess at year end. <b>Shuug replaces the whole stack.</b> It's one free, open-source system where every part of your ${esc(name.toLowerCase())} — from the first booking to the final ledger entry — lives in one place and prices itself. No per-seat fees, no paywalled features, no data lost between apps, and real double-entry books that keep themselves as you work.`;
+}
+function faqFor(b){
+  const [,name,,,tools]=b;
+  const t1=TOOLS[tools[1]][0].toLowerCase(), first=TOOLS[tools[0]][0];
+  const n=name.toLowerCase();
+  return [
+    [`Is Shuug really free for ${n}s?`, `Yes — the software is 1000% free and open source (MIT-licensed). There are no per-seat fees and no locked "pro" tier; you only pay for hosting and any help importing old data. You can even self-host it yourself for free.`],
+    [`Do I need accounting knowledge to run the books?`, `No. Every sale, ${esc(t1)} and expense posts to real double-entry books automatically, so your P&amp;L, balance sheet and sales tax are always right. You run the ${n}; the bookkeeping keeps itself.`],
+    [`Can it replace my current ${first.toLowerCase()} tool?`, `Yes — ${esc(first)} is built in and wired to everything else, so there's nothing to sync. It also connects to Shopify, Amazon, Stripe, QuickBooks and 300+ apps if you'd rather keep a tool you already love.`],
+    [`What happens when I grow or add locations?`, `Shuug scales from a solo owner to multi-site and enterprise without switching systems — add staff, roles, locations and your own modules. Because it's open source you can white-label and extend it however you need, and your data is always yours to export.`],
+  ];
+}
+
+// --- unique, category-tailored hero visual per industry ---
+const CAT_MOCK = {
+  food:      { c:["🍽️ Covers","🔥 Kitchen"], rows:[["Covers today","84"],["Kitchen tickets","6 live",1],["Food cost","28%"]] },
+  auto:      { c:["🔧 Bays","🧾 Work orders"], rows:[["Bays busy","3/4"],["Work orders due","3",1],["Parts to order","2 ⚠"]] },
+  trades:    { c:["🏗️ Jobs","📋 Estimates"], rows:[["Jobs today","5"],["Estimates out","2",1],["Crew on site","4"]] },
+  beauty:    { c:["📅 Booked","💇 Chairs"], rows:[["Booked today","12"],["No-shows","0"],["Rebook rate","74%",1]] },
+  fitness:   { c:["🎟️ Members","🧘 Classes"], rows:[["Members","318"],["Classes today","6"],["Renewals due","9",1]] },
+  education: { c:["🎓 Enrolled","📅 Classes"], rows:[["Enrolled","142"],["Classes today","8"],["Tuition due","3 ⚠",1]] },
+  care:      { c:["🧸 Check-in","✅ Ratios"], rows:[["Checked in","28"],["Ratio","✓ ok"],["Pickups 3pm","11",1]] },
+  online:    { c:["📦 Orders","🛒 Channels"], rows:[["Orders today","46"],["Unshipped","7",1],["Low stock","2 ⚠"]] },
+  wholesale: { c:["🏭 Orders","🚚 Routes"], rows:[["Open orders","18"],["To pick","240 cs",1],["On account","$14k"]] },
+  pro:       { c:["📊 P&amp;L","💳 Get paid"], rows:[["Revenue (mo)","$48k"],["Unpaid","$6k",1],["Books","✓"]] },
+  nonprofit: { c:["💜 Gifts","📊 Programs"], rows:[["Donations (mo)","$22k"],["Grants open","3"],["Volunteers","41",1]] },
+  topic:     { c:["📊 P&amp;L","💳 Get paid"], rows:[["Revenue (mo)","$48k"],["Unpaid","$6k",1],["Books","✓"]] },
+};
+function heroArt(b){
+  const [slug,name,emoji,cat]=b;
+  const m = CAT_MOCK[cat] || CAT_MOCK.pro;
+  const rows = m.rows.map(r=>`<div class="frow${r[2]?" hot":""}"><span class="k">${esc(r[0])}</span><span class="v">${esc(r[1])}</span></div>`).join("");
+  return `<div class="heroart">
+    <div class="chip c1">${emoji} ${esc(name.split(" ")[0])}</div><div class="chip c2">${m.c[0]}</div><div class="chip c3">${m.c[1]}</div>
+    <div class="fscreen rv"><div class="sb"><i></i><i></i><i></i><b>shuug · ${slug}</b></div><div class="sbody">
+      ${rows}
+      <div class="chart" style="margin-top:8px;height:112px"><span style="height:44%"></span><span style="height:66%"></span><span style="height:52%"></span><span style="height:84%"></span><span style="height:70%"></span><span style="height:96%"></span><span style="height:60%"></span></div>
+    </div></div>
+  </div>`;
+}
+
 function businessPage(b){
   const [slug,name,emoji,cat,tools]=b;
   const t0=TOOLS[tools[0]][0], t1=TOOLS[tools[1]][0], t2=TOOLS[tools[2]]?.[0]||"";
   const isTopic = cat==="topic";
   const title = isTopic
-    ? `${name} for small business — free, real, no lock-in | Shuug`
-    : `${name} software — run staff, orders, money & everything | Shuug`;
+    ? `Free ${name} for small business — real, open, no lock-in | Shuug`
+    : `Free ${name} software — booking, staff, invoicing & books | Shuug`;
   const desc = isTopic
-    ? `${name} in Shuug — ${t0}, ${t1} and the rest of your business, run from one free place.`
-    : `Run your whole ${name} with Shuug — ${t0}, ${t1}, ${t2}, staff, scheduling and the books, all in one free system. Not just bookkeeping: everything.`;
-  const kw = `${name} software, ${name} management software, ${name} scheduling, ${name} staff, ${name} bookkeeping, ${CATS[cat].toLowerCase()}, ${tools.slice(0,4).map(k=>TOOLS[k][0].toLowerCase()).join(", ")}`;
+    ? `Free, open-source ${name} for small business — ${t0}, ${t1} and the rest of your operation in one place. No per-seat fees, no lock-in.`
+    : `Free, open-source ${name} software that runs the whole operation — ${t0}, ${t1}, ${t2}, staff & payroll, invoicing and real double-entry bookkeeping in one system. No per-seat fees. The all-in-one ${name} solution.`;
+  const kw = `free ${name} software, ${name} software, ${name} management software, ${name} POS, ${name} scheduling software, ${name} booking software, free ${name} solution, ${name} bookkeeping, ${name} invoicing software, open source ${name} software, ${name} app, ${CATS[cat].toLowerCase()}, ${tools.slice(0,4).map(k=>TOOLS[k][0].toLowerCase()).join(", ")}`;
   const sib = B.filter(x=>x[3]===cat&&x[0]!==slug).slice(0,6);
   const rel = [...sib, bySlug["bookkeeping"]].filter((v,i,a)=>a.findIndex(y=>y[0]===v[0])===i).slice(0,6);
 
@@ -261,13 +328,20 @@ function businessPage(b){
     <div class="hcta"><a class="btn btn-hot" href="/">Open the app →</a><a class="btn btn-line" href="/welcome/platform">See how it works</a></div>
     <div class="hstats"><div><b class="grad">$0</b><span>free to use</span></div><div><b class="grad2">${tools.length}</b><span>tools, one login</span></div><div><b style="color:var(--lime)">1</b><span>place to run it all</span></div></div>
   </div>
-  <div class="heroart">
-    <div class="chip c1">${emoji} ${esc(name.split(" ")[0])}</div><div class="chip c2">📊 P&amp;L</div><div class="chip c3">💳 Get paid</div>
-    <div class="win"><div class="bar"><i></i><i></i><i></i><b>shuug · ${slug}</b></div><div class="app"><div class="side"><span class="s act"></span><span class="s"></span><span class="s"></span><span class="s"></span><span class="s" style="width:70%"></span><span class="s" style="width:60%"></span></div><div class="main"><div class="kpis"><div class="kpi kc1"><u>Revenue</u><b>$48k</b></div><div class="kpi kc2"><u>Unpaid</u><b>$6k</b></div><div class="kpi kc3"><u>Books</u><b>✓</b></div></div><div class="chart"><span style="height:44%"></span><span style="height:64%"></span><span style="height:54%"></span><span style="height:82%"></span><span style="height:72%"></span><span style="height:96%"></span><span style="height:62%"></span></div></div></div></div>
-  </div>
+  ${heroArt(b)}
 </div></header>
 
-<section style="padding-top:30px"><div class="wrap">
+<section style="padding-top:26px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">The all-in-one, free &amp; open ${esc(name)} system</div><h2>Everything ${art(name)} <span class="grad">${esc(name)}</span> needs — in one place</h2></div>
+  <p class="overview rv">${overviewText(b)}</p>
+</div></section>
+
+<section style="padding-top:14px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">From booking to the books</div><h2>How a <span class="grad2">${esc(name)}</span> runs in Shuug</h2><p class="sub">Every stage of your day flows into the next — and posts itself to the books. Here's the exact path your work takes, using the tools built for your trade.</p></div>
+  ${flowGraph(tools)}
+</div></section>
+
+<section style="padding-top:16px"><div class="wrap">
   <div class="head rv"><div class="eyebrow">Your ${esc(name)} toolkit</div><h2>Everything to run ${art(name)} ${esc(name)}</h2><p class="sub">Click any tool to see what it does, how it works and how the built-in AI can run it for you. Turn on what you need — every part talks to every other part.</p></div>
   <div class="fg stagger">${toolCards(tools)}</div>
 </div></section>
@@ -296,6 +370,11 @@ function businessPage(b){
     <div class="fx fxstatic"><h5>Answer customers <span class="tag2 t-hand">Handler</span></h5><p>Handles order status, hours and FAQs across email, SMS and chat — you approve what it can say.</p></div>
   </div>
   <p class="sub rv" style="margin-top:16px;font-size:14px">Handlers are approval-gated by default and never act outside what you allow. Live phone/SMS/email needs a connected channel in <a href="/welcome/features" style="color:var(--cyan)">Integrations</a>.</p>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Questions</div><h2>Free, real, and <span class="grad">yours</span></h2><p class="sub">Straight answers about running ${art(name)} ${esc(name)} on a free, open platform.</p></div>
+  <div class="faq rv">${faqFor(b).map(q=>`<details><summary>${esc(q[0])}</summary><div class="fa">${q[1]}</div></details>`).join("")}</div>
 </div></section>
 
 <section style="padding-top:6px"><div class="wrap">
