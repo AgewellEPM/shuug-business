@@ -22,7 +22,7 @@ img,svg{image-rendering:pixelated}
 code,.mono{font-family:var(--px)}
 .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
 /* Press Start 2P only for small arcade accents — headings stay big & readable */
-.px,.eyebrow,.btn,.brand,.nlinks a,.tag,.tag2,.filters button,.kpi u,.ml,.mchip,.hstats span,.cnum span,.badge,.fcols h6,.dot,.pbtn,.mt,.layer b,.layer .pin,.kc p,.win .bar b{font-family:var(--px)}
+.px,.eyebrow,.btn,.brand,.nlinks a,.mtrigger,.tag,.tag2,.filters button,.kpi u,.ml,.mchip,.hstats span,.cnum span,.badge,.fcols h6,.dot,.pbtn,.mt,.layer b,.layer .pin,.kc p,.win .bar b{font-family:var(--px)}
 h1,h2,h3,h4,h5,h6{font-weight:850;line-height:1.12;margin:0;letter-spacing:-.02em}
 .eyebrow{font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--g-hot);-webkit-background-clip:text;background-clip:text;color:transparent}
 .grad{background:var(--g-hot);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -383,7 +383,9 @@ footer{border-top:3px solid var(--line2);padding:40px 0 60px;color:var(--mut2)}
 
 /* Zapier-style mega-menu drill-down */
 .mega{position:relative}
-.mega>.mtrigger{cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+/* match the rest of the nav links exactly */
+.mega>.mtrigger{cursor:pointer;display:inline-flex;align-items:center;gap:5px;padding:10px 13px;font-size:13px;color:var(--mut);border:2px solid transparent}
+.mega:hover>.mtrigger,.mega>.mtrigger:hover{color:#fff}
 .megapanel{position:absolute;top:calc(100% + 14px);left:0;z-index:80;width:min(720px,94vw);background:var(--panel2);border:3px solid #000;box-shadow:8px 8px 0 rgba(0,0,0,.6);padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:6px;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s var(--ease),transform .18s var(--ease),visibility .18s}
 .mega:hover .megapanel,.mega:focus-within .megapanel{opacity:1;visibility:visible;transform:none}
 .megapanel::before{content:"";position:absolute;top:-14px;left:0;right:0;height:14px}
