@@ -1,0 +1,32 @@
+# Generated for this client workspace. No app secret belongs in this file.
+client_id = "CLIENT_APP_ID"
+name = "Shuug Business"
+application_url = "https://client-backend.example.com/settings"
+embedded = false
+
+[access_scopes]
+scopes = "read_products,read_customers,read_orders,read_fulfillments,read_inventory,read_locations,write_app_proxy"
+optional_scopes = ["write_products","write_inventory"]
+use_legacy_install_flow = true
+
+[auth]
+redirect_urls = ["https://client-backend.example.com/api/shopify/callback"]
+
+[webhooks]
+api_version = "2026-07"
+
+[[webhooks.subscriptions]]
+topics = ["products/create","products/update","products/delete","customers/create","customers/update","customers/delete","orders/create","orders/updated","orders/paid","orders/cancelled","orders/delete","refunds/create","fulfillments/create","fulfillments/update","inventory_levels/update","inventory_levels/connect","inventory_levels/disconnect","app/uninstalled","app/scopes_update"]
+uri = "/api/shopify/webhooks"
+
+[[webhooks.subscriptions]]
+compliance_topics = ["customers/data_request", "customers/redact", "shop/redact"]
+uri = "/api/shopify/webhooks"
+
+[app_proxy]
+url = "https://client-backend.example.com/api/shopify/proxy"
+prefix = "apps"
+subpath = "shuug"
+
+[build]
+automatically_update_urls_on_dev = false

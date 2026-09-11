@@ -1,0 +1,8 @@
+import { escapeHtml as e } from "../auth/forms";
+import type { customerInspection } from "./inspection-state";
+export function inspectionReportsHtml(reports: ReturnType<typeof customerInspection>[], photoPath: string) {
+  if (!reports.length) return "";
+  const outcomes = { pass: "Pass recorded", attention: "Needs attention", unsafe: "Unsafe finding", not_applicable: "Not applicable", not_checked: "Not checked" };
+  const disposition = { repaired: "Repair recorded", customer_declined: "Customer decline recorded by shop", deferred: "Deferred follow-up recorded", referred: "Specialist referral recorded" };
+  return `<section><h2>Vehicle inspection reports</h2>${reports.map(r => `<article><h3>${e(r.title)}</h3><p>${e(r.vehicle)} · VIN ${e(r.vin)}<br>Odometer ${e(String(r.odometer))} ${e(r.odometerUnit)} · Reviewed ${e(r.reviewedAt ?? "")}</p><p>${e(r.summary)}</p>${r.points.map(p => `<div><h4>${e(p.group)} · ${e(p.label)} — ${e(outcomes[p.finding.outcome])}</h4>${p.finding.measurement ? `<p>Observed: ${e(p.finding.measurement)} ${e(p.unit)}</p>` : ""}<p>${e(p.finding.observation)}</p><p>${e(p.finding.recommendation)}</p>${p.disposition ? `<p>${e(disposition[p.disposition])}</p>` : ""}${p.photos.map(photo => `<a href="${e(photoPath + encodeURIComponent(photo.id))}" rel="noreferrer"><img src="${e(photoPath + encodeURIComponent(photo.id))}" alt="${e(photo.name)}" width="200" loading="lazy" style="max-width:100%;height:auto"></a>`).join("")}</div>`).join("")}<p><small>These are recorded inspection findings and shop-reviewed outcomes. A separate agreed proposal defines any chargeable repair work.</small></p></article>`).join("")}</section>`;
+}

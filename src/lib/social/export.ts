@@ -1,0 +1,12 @@
+import type { SocialCampaign } from "./model";
+const csv=(v:unknown)=>`"${String(v??"").trimStart().replace(/^[=+@\-]/,"'$&").replaceAll('"','""')}"`;
+export function campaignCsv(campaigns:SocialCampaign[]){return [["ID","Title","Date","Time","Timezone","Platform","Status","Product","Caption","Destination","Creative brief","Evidence","Live post"],...campaigns.map(c=>[c.id,c.fields.title,c.fields.date,c.fields.time,c.fields.timezone,c.fields.platform,c.status,c.fields.productName,c.fields.caption,c.fields.destination,c.fields.creativeBrief,c.fields.evidence.join(" | "),c.fields.publishedUrl])].map(row=>row.map(csv).join(",")).join("\r\n");}
+export function localToUtc(date:string,time:string,timezone:string) {
+  const target=Date.parse(`${date}T${time}:00Z`);let instant=target;
+  const formatter=new Intl.DateTimeFormat("sv-SE",{timeZone:timezone,year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hourCycle:"h23"});
+  for(let i=0;i<4;i++){const local=Date.parse(formatter.format(new Date(instant)).replace(" ","T")+"Z"),difference=target-local;if(!difference)return new Date(instant).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}Z$/,"Z");instant+=difference;}
+  throw new Error("A planned time does not exist due to daylight saving. Choose another time before exporting.");
+}
+function ics(s:string){return s.replaceAll("\\","\\\\").replace(/\r?\n/g,"\\n").replaceAll(",","\\,").replaceAll(";","\\;").replace(/\r/g,"");}
+function fold(line:string){const lines:string[]=[];let piece="",size=0;for(const char of line){const length=Buffer.byteLength(char);if(size+length>75){lines.push(piece);piece=" ";size=1;}piece+=char;size+=length;}lines.push(piece);return lines.join("\r\n");}
+export function campaignCalendar(campaigns:SocialCampaign[]) {return ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Shuug Business//Social Plan//EN","CALSCALE:GREGORIAN",...campaigns.filter(c=>c.status!=="archived").flatMap(c=>["BEGIN:VEVENT",`UID:${c.id}@shuug-business`,`DTSTAMP:${new Date(c.updatedAt).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}Z$/,"Z")}`,`DTSTART:${localToUtc(c.fields.date,c.fields.time,c.fields.timezone)}`,`SUMMARY:${ics(`${c.status==='published'?'Published':'Planned'}: ${c.fields.title}`)}`,`DESCRIPTION:${ics(`${c.fields.platform} · ${c.status}\n${c.fields.caption}\n${c.fields.destination}\nPlanned content does not publish automatically.`)}`,"END:VEVENT"]),"END:VCALENDAR"].map(fold).join("\r\n")+"\r\n";}

@@ -1,0 +1,113 @@
+import { beforeEach, afterEach, expect, it } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { saveBusinessRecord as save, transitionBusinessRecord, listBusinessRecords, recordHistory } from "./store";
+import { paymentTotal, type BusinessRecord, type FieldValue } from "./model";
+import { definitionsForModule } from "./catalog";
+import { specialistModules } from "../navigation/catalog";
+import { createPortalGrant, portalView, revokePortalGrant } from "./portal";
+import { acceptPortalRecord } from "./store";
+let dir: string; const previous = process.env.DEALDESK_DATA_DIR;
+beforeEach(() => { dir = mkdtempSync(path.join(tmpdir(), "shuug-workflows-")); process.env.DEALDESK_DATA_DIR = dir; });
+afterEach(() => { if (previous === undefined) delete process.env.DEALDESK_DATA_DIR; else process.env.DEALDESK_DATA_DIR = previous; rmSync(dir, { recursive: true, force: true }); });
+const create = (kind: string, fields: Record<string, FieldValue>, title = kind) => save({ kind, title, currency: "USD", fields }, "Test operator");
+const go = (r: BusinessRecord, target: string) => transitionBusinessRecord({ id: r.id, revision: r.revision, target, commandId: randomUUID() }, "Test operator");
+const edit = (r: BusinessRecord, fields: Record<string, FieldValue>) => save({ id: r.id, revision: r.revision, kind: r.kind, title: r.title, currency: r.currency, fields: { ...r.fields, ...fields } }, "Test operator");
+function donor() { return create("donor", { category: "individual", contactPreference: "email", email: "donor@example.test" }); }
+function serviceFixture() {
+  const client = create("client", { email: "client@example.test" });
+  const inquiry = go(create("inquiry", { client: client.id, scope: "Repair", source: "phone" }), "qualified");
+  let proposal = create("proposal", { client: client.id, inquiry: inquiry.id, scope: "Repair pump", exclusions: "Replacement excluded", amount: 50000, expires: "2099-01-01", evidence: "Signed customer offer", acceptedBy: "Customer" });
+  proposal = go(go(proposal, "sent"), "accepted");
+  const agreement = go(create("agreement", { client: client.id, proposal: proposal.id, terms: "On completion", deposit: 0, signedBy: "Customer", evidence: "Signed agreement" }), "signed");
+  let job = create("job", { client: client.id, agreement: agreement.id, instructions: "Repair pump", requiredChecks: "Pressure test", budget: 25000 });
+  const resource = go(create("resource", { category: "staff", weeklyHours: 40 }), "active");
+  const booking = go(create("booking", { job: job.id, resource: resource.id, start: "2026-09-11T10:00:00Z", end: "2026-09-11T12:00:00Z", buffer: 30 }), "scheduled");
+  job = go(go(job, "scheduled"), "in_progress");
+  return { client, inquiry, proposal, agreement, job, booking, resource };
+}
+it("has operational record forms for all forty specialist modules", () => {
+  for (const entry of specialistModules) expect(definitionsForModule(entry.id).length, entry.id).toBeGreaterThan(0);
+});
+it("retries record creation once and refuses reuse of its request ID for different data", () => {
+  const input = { requestId: randomUUID(), kind: "client", title: "Client", currency: "USD", fields: { email: "client@example.test" } };
+  const first = save(input, "Owner"), again = save(input, "Owner");
+  expect(again).toEqual(first); expect(listBusinessRecords(["client"])).toHaveLength(1);
+  expect(() => save({ ...input, title: "Different client" }, "Owner")).toThrow("different data");
+});
+it("runs donation → payment → reviewed acknowledgment → reconciliation with durable giving history", () => {
+  const d = donor(), pledge = go(create("pledge", { donor: d.id, amount: 10000, due: "2026-10-01" }), "committed");
+  const gift = go(create("donation", { donor: d.id, amount: 10000, giftType: "cash", pledge: pledge.id }), "recorded");
+  expect(paymentTotal(listBusinessRecords(), "gift_payment", "donation", gift.id)).toBe(0);
+  let receipt = create("gift_payment", { donation: gift.id, amount: 10000, direction: "receipt", reference: "bank-001", paidOn: "2026-09-10", evidence: "Bank deposit statement" });
+  receipt = go(receipt, "confirmed");
+  let ack = go(create("acknowledgment", { donation: gift.id, template: "Received your contribution. No goods or services were provided.", reviewer: "Organization reviewer", evidence: "Reviewed organization template" }), "reviewed");
+  expect(ack.computed?.donation).toMatchObject({ cashReceived: 10000 });
+  ack = edit(ack, { deliveryReference: "mail-log-123" }); ack = go(ack, "delivered");
+  receipt = go(receipt, "reconciled");
+  expect(listBusinessRecords(["gift_payment"])[0].status).toBe("reconciled");
+  expect(listBusinessRecords(["donation"])[0].fields.donor).toBe(d.id);
+  expect(recordHistory(receipt.id)).toHaveLength(3);
+  expect(() => edit(receipt, { amount: 20000 })).toThrow("locked");
+  const duplicate = create("gift_payment", { ...receipt.fields });
+  expect(() => go(duplicate, "confirmed")).toThrow("already recorded");
+});
+it("runs enrollment → session → attendance → reviewed costs → evidence-backed report", () => {
+  const program = go(create("program", { budget: 100000, capacity: 1 }), "active");
+  const participant = create("participant", { owner: "Program worker" });
+  let application = create("enrollment", { program: program.id, participant: participant.id, eligibility: "Reviewed requirements", reviewer: "Case worker", evidence: "Application documents" });
+  application = go(go(application, "reviewed"), "enrolled");
+  const duplicate = go(create("enrollment", { ...application.fields }), "reviewed");
+  expect(() => go(duplicate, "enrolled")).toThrow("already enrolled");
+  let session = go(create("session", { program: program.id, start: "2026-09-10T14:00:00Z", end: "2026-09-10T15:00:00Z", location: "Room A", capacity: 1 }), "scheduled");
+  go(create("attendance", { session: session.id, participant: participant.id }), "present");
+  session = go(session, "completed");
+  const cost = create("program_cost", { program: program.id, amount: 2000, costType: "direct", allocationMethod: "Direct session cost", reviewer: "Finance reviewer", evidence: "Receipt 1" });
+  const report = create("report", { program: program.id, periodStart: "2020-01-01", periodEnd: "2099-12-31", narrative: "Program progress", reviewer: "Program director" });
+  expect(() => go(report, "reviewed")).toThrow("Review every program cost");
+  go(cost, "approved");
+  go(create("outcome", { program: program.id, participant: participant.id, measure: "Reading level", baseline: "1", result: "2", measuredOn: "2026-09-10", reviewer: "Instructor", evidence: "Reviewed assessment" }), "reviewed");
+  let reviewed = go(report, "reviewed");
+  expect(reviewed.computed).toMatchObject({ reviewedCosts: 2000, sessionsDelivered: 1, attended: 1, reviewedOutcomes: 1 });
+  reviewed = edit(reviewed, { submissionReference: "Funder portal receipt 1" });
+  expect(go(reviewed, "submitted").status).toBe("submitted");
+});
+it("runs inquiry → approved scope → schedule → approved change → completion → invoice → payment", () => {
+  let { job } = serviceFixture();
+  expect(() => go(job, "completed")).toThrow("required checks");
+  const change = go(go(create("change", { job: job.id, scope: "Additional valve", amount: 7500, scheduleImpact: "One hour", acceptedBy: "Customer", evidence: "Approved change" }), "submitted"), "approved");
+  expect(change.status).toBe("approved");
+  job = edit(job, { completedChecks: "Pressure test", evidence: "Photo and test log", acceptedBy: "Customer" });
+  job = go(go(job, "completed"), "accepted");
+  let invoice = create("invoice", { job: job.id, method: "fixed", amount: 50000, description: "Repair" });
+  expect(() => go(invoice, "issued")).toThrow("575.00");
+  invoice = edit(invoice, { amount: 57500 }); invoice = go(invoice, "issued");
+  const duplicate = create("invoice", { ...invoice.fields }); expect(() => go(duplicate, "issued")).toThrow("already been invoiced");
+  let payment = go(create("service_payment", { invoice: invoice.id, amount: 57500, direction: "receipt", reference: "service-bank-1", paidOn: "2026-09-10", evidence: "Bank statement" }), "confirmed");
+  payment = go(payment, "reconciled"); expect(payment.status).toBe("reconciled");
+  expect(paymentTotal(listBusinessRecords(), "service_payment", "invoice", invoice.id)).toBe(57500);
+  expect(() => go(invoice, "void")).toThrow("posted entries");
+});
+it("rejects booking conflicts including buffers and stale edits; replays a command once", () => {
+  const { job, resource } = serviceFixture();
+  const collision = create("booking", { job: job.id, resource: resource.id, start: "2026-09-11T12:15:00Z", end: "2026-09-11T13:00:00Z" });
+  expect(() => go(collision, "scheduled")).toThrow("already booked");
+  const updated = edit(collision, { start: "2026-09-11T15:00:00Z", end: "2026-09-11T16:00:00Z" });
+  expect(() => edit(collision, {})).toThrow("changed");
+  const command = { id: updated.id, revision: updated.revision, target: "scheduled", commandId: randomUUID() };
+  expect(transitionBusinessRecord(command, "Test operator")).toEqual(transitionBusinessRecord(command, "Test operator"));
+  expect(recordHistory(updated.id)).toHaveLength(3);
+});
+it("scopes a private portal to one client and records acceptance without exposing internal notes", () => {
+  const one = create("client", { email: "one@example.test", notes: "Internal staff-only note" }), two = create("client", { email: "two@example.test" });
+  const proposal = go(create("proposal", { client: one.id, scope: "Agreed work", exclusions: "No materials", amount: 10000, expires: "2099-01-01" }), "sent");
+  const other = go(create("proposal", { client: two.id, scope: "Private client two", exclusions: "None", amount: 5000, expires: "2099-01-01" }), "sent");
+  const grant = createPortalGrant(one.id), view = portalView(grant.token);
+  expect(view.proposals).toHaveLength(1); expect(JSON.stringify(view)).not.toContain("Internal staff-only note");
+  expect(() => acceptPortalRecord(grant.token, { id: other.id, revision: other.revision, name: "Client One", accepted: true })).toThrow("changed");
+  expect(acceptPortalRecord(grant.token, { id: proposal.id, revision: proposal.revision, name: "Client One", accepted: true }).status).toBe("accepted");
+  expect(recordHistory(proposal.id)[0].actor).toBe("Client portal: Client One");
+  revokePortalGrant(grant.id); expect(() => portalView(grant.token)).toThrow("expired");
+});

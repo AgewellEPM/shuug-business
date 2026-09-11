@@ -1,0 +1,5 @@
+import { requireSectionAccess } from "@/lib/permissions/guard";
+import { requireWorkspaceAccess } from "@/lib/connections/access";
+import { readSocial } from "@/lib/social/store";
+import { campaignCalendar,campaignCsv } from "@/lib/social/export";
+export async function GET(request:Request){try{await requireWorkspaceAccess();await requireSectionAccess("marketing","view");}catch{return new Response("Owner access required",{status:403});}try{const format=new URL(request.url).searchParams.get("format")??"csv",state=readSocial(),body=format==="ics"?campaignCalendar(state.campaigns):format==="json"?JSON.stringify(state,null,2):campaignCsv(state.campaigns),mime=format==="ics"?"text/calendar":format==="json"?"application/json":"text/csv",extension=["ics","json"].includes(format)?format:"csv";return new Response(body,{headers:{"Content-Type":`${mime}; charset=utf-8`,"Content-Disposition":`attachment; filename="social-marketing.${extension}"`,"Cache-Control":"private, no-store","X-Content-Type-Options":"nosniff"}});}catch(e){return Response.json({error:e instanceof Error?e.message:"Export failed."},{status:400});}}

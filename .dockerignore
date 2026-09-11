@@ -1,0 +1,12 @@
+node_modules
+.next
+.git
+.data
+.env
+.env.*
+*.pem
+*.key
+*.log
+coverage
+.DS_Store
+dist

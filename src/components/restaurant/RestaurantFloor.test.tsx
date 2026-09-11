@@ -1,0 +1,25 @@
+import { afterEach, beforeEach, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { RestaurantHub } from "../RestaurantHub";
+import { loadRestaurant } from "@/lib/restaurant/load";
+import { executeDiningCommand, diningManagementData } from "@/lib/restaurant/dining";
+import { restaurantState } from "@/lib/restaurant/store";
+const navigation = vi.hoisted(() => ({ refresh: vi.fn(), push: vi.fn() }));
+vi.mock("next/navigation", () => ({ useRouter: () => navigation }));
+let directory: string;
+const saved = async () => ({ ok: true as const });
+const actions = { saveTableAction: saved, addReservationAction: saved, setReservationStatusAction: saved, assignTableAction: saved, addTicketAction: saved, setItemStatusAction: saved, advanceTicketAction: saved, clearServedAction: saved, parseBookingAction: async () => ({ ok: true as const, booking: { name: "Guest from AI", partySize: 3, dateISO: "2099-01-04", time: "18:30", phone: "", notes: "Guest request" } }) };
+beforeEach(() => { directory = mkdtempSync(`${tmpdir()}/shuug-floor-form-`); vi.stubEnv("DEALDESK_DATA_DIR", directory); navigation.push.mockClear(); });
+afterEach(() => { cleanup(); vi.unstubAllGlobals(); vi.unstubAllEnvs(); rmSync(directory, { recursive: true, force: true }); });
+it("retains reviewed AI date and guest details after a rejected save, then saves the retry and opens that date", async () => {
+  const requests: string[] = [];
+  vi.stubGlobal("fetch", vi.fn(async (_url: string, init?: RequestInit) => { const body = JSON.parse(String(init?.body)); requests.push(body.requestId); if (requests.length === 1) return { ok: false, json: async () => ({ error: "Synthetic conflict: try again" }) }; const result = executeDiningCommand(body, "Fixture host", true); return { ok: true, json: async () => ({ result, data: diningManagementData() }) }; }));
+  render(<RestaurantHub data={loadRestaurant("2099-01-01")} aiEnabled aiLabel="Fixture model" canEdit {...actions}/>);
+  fireEvent.change(screen.getByLabelText("Guest request"), { target: { value: "Next Monday, party of three" } }); fireEvent.click(screen.getByRole("button", { name: "Read request" })); await waitFor(() => expect(screen.getByLabelText("Visit date")).toHaveValue("2099-01-04"));
+  fireEvent.click(screen.getByRole("button", { name: "Save reservation" })); await screen.findByText("Synthetic conflict: try again"); expect(screen.getByLabelText("Guest name")).toHaveValue("Guest from AI");
+  await waitFor(() => expect(screen.getByRole("button", { name: "Save reservation" })).toBeEnabled());
+  fireEvent.click(screen.getByRole("button", { name: "Save reservation" })); await waitFor(() => expect(restaurantState.read().reservations).toHaveLength(1)); expect(restaurantState.read().reservations[0]).toMatchObject({ name: "Guest from AI", dateISO: "2099-01-04", time: "18:30" }); expect(requests[1]).toBe(requests[0]); expect(navigation.push).toHaveBeenCalledWith("/restaurant?date=2099-01-04");
+});
+it("disables staff mutations for someone with only viewing access", () => { render(<RestaurantHub data={loadRestaurant()} aiEnabled aiLabel="Fixture model" canEdit={false} {...actions}/>); expect(screen.getByRole("button", { name: "Save reservation" })).toBeDisabled(); expect(screen.getByRole("button", { name: "Add table" })).toBeDisabled(); expect(screen.getByLabelText("Walk-in arriving now")).toBeDisabled(); });

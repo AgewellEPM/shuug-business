@@ -1,0 +1,20 @@
+import { beforeEach, afterEach, expect, it } from "vitest";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { exportBusinessTemplate, importBusinessTemplate } from "./templates";
+import { saveBranding, getBranding } from "./store";
+import { saveSecrets } from "../connections/vault";
+let directory: string; const previous = process.env.DEALDESK_DATA_DIR;
+beforeEach(() => { directory = mkdtempSync(`${tmpdir()}/brand-template-`); process.env.DEALDESK_DATA_DIR = directory; });
+afterEach(() => { if (previous === undefined) delete process.env.DEALDESK_DATA_DIR; else process.env.DEALDESK_DATA_DIR = previous; rmSync(directory, { recursive: true, force: true }); });
+it("round-trips a hybrid white-label configuration without connection credentials or business records", () => {
+  saveBranding({ businessName: "Community Services", organizationTypes: ["service", "nonprofit"], hiddenSections: ["Marketing"], featureVisibility: { "sales-tax": false } });
+  saveSecrets({ STRIPE_SECRET_KEY: "private-test-key", WORKSPACE_OWNER_PASSWORD_HASH: "not-in-template" });
+  const template = exportBusinessTemplate();
+  expect(JSON.stringify(template)).not.toContain("private-test-key");
+  expect(JSON.stringify(template)).not.toContain("not-in-template");
+  saveBranding({ businessName: "Second organization", organizationTypes: ["product"] });
+  importBusinessTemplate(template); importBusinessTemplate(template);
+  expect(getBranding()).toMatchObject({ businessName: "Community Services", organizationTypes: ["service", "nonprofit"], hiddenSections: ["Marketing"], featureVisibility: { "sales-tax": false } });
+  expect(() => importBusinessTemplate({ ...template, secrets: {} })).toThrow();
+});

@@ -1,0 +1,33 @@
+import { fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, expect, it, vi } from "vitest";
+import { IndustrySetup } from "@/components/IndustrySetup";
+import { assembleIndustry } from "./model";
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
+afterEach(() => vi.unstubAllGlobals());
+it("searches the ten business types, asks meaningful questions, and requires a reviewed preview", async () => {
+  const applied = vi.fn();
+  vi.stubGlobal("fetch", vi.fn(async (_url, init) => { const body = JSON.parse(init.body); return { ok: true, json: async () => ({ ...assembleIndustry(body.input), shown: [{ id: "vehicles", label: "Vehicles", group: "Operations" }], hidden: [], currentDigest: "a".repeat(64), proposedDigest: "b".repeat(64) }) }; }));
+  render(<IndustrySetup onApplied={applied}/>);
+  expect(screen.getByRole("heading", { name: "What do you run?" })).toBeTruthy();
+  fireEvent.change(screen.getByRole("searchbox"), { target: { value: "mechanic" } });
+  expect(screen.queryByRole("button", { name: "Restaurant" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Auto repair shop" }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /Do you stock parts/ }));
+  fireEvent.click(screen.getByRole("checkbox", { name: /Do you use QuickBooks/ }));
+  expect(screen.queryByRole("button", { name: "Apply this workspace" })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Preview my workspace" }));
+  await screen.findByText("Vehicles");
+  expect(fetch).toHaveBeenCalledWith("/api/setup/industry", expect.objectContaining({ body: expect.stringContaining('"parts":false') }));
+  expect(screen.getByText(/Next connection: QuickBooks/)).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Reusable template name"), { target: { value: "" } });
+  expect(screen.queryByRole("button", { name: "Apply this workspace" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Preview my workspace" })).toBeDisabled();
+  expect(applied).not.toHaveBeenCalled();
+});
+it("preserves saved mixed capabilities when reopening industry setup", () => {
+  const initial = assembleIndustry({ industryId: "auto-repair", answers: {}, addedPacks: ["donations"], removedPacks: ["inventory"], templateName: "Mixed shop", revision: 3 }).setup;
+  render(<IndustrySetup initial={initial} onApplied={vi.fn()}/>);
+  expect(screen.getByLabelText("Donations & funding")).toBeChecked();
+  expect(screen.getByLabelText("Inventory")).not.toBeChecked();
+  expect(screen.getByLabelText("Template revision")).toHaveValue(3);
+});

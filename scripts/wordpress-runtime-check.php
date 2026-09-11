@@ -1,0 +1,143 @@
+<?php
+// Run only against the disposable fixture created by wordpress-smoke.ts.
+$fixture = json_decode(stream_get_contents(STDIN), true);
+if (!$fixture || !is_file(dirname($fixture['root']) . '/.shuug-wordpress-fixture')) { throw new RuntimeException('A disposable WordPress fixture is required.'); }
+$_SERVER['HTTP_HOST'] = 'localhost:8089'; $_SERVER['SERVER_PROTOCOL'] = 'HTTP/1.1'; $_SERVER['REQUEST_URI'] = '/'; $_SERVER['REQUEST_METHOD'] = 'POST'; $_SERVER['REMOTE_ADDR'] = '127.0.0.1';
+define('WP_INSTALLING', empty($fixture['resume']));
+require $fixture['root'] . '/wp-load.php';
+require_once ABSPATH . 'wp-admin/includes/upgrade.php';
+require_once ABSPATH . 'wp-admin/includes/plugin.php';
+add_filter('pre_wp_mail', '__return_false');
+if (!empty($fixture['resume'])) {
+    $checkpoint = json_decode(file_get_contents(dirname($fixture['root']) . '/checkpoint.json'), true);
+    wp_set_current_user($checkpoint['id']); $_COOKIE[LOGGED_IN_COOKIE] = $checkpoint['cookie'];
+    ensure(wp_validate_auth_cookie($checkpoint['cookie'], 'logged_in') === $checkpoint['id'], 'WordPress login was not valid after restart.');
+    ensure(class_exists('Shuug_Business'), 'WordPress did not reload the activated plugin.');
+    ensure(command('me')['tasks'][0]['status'] === 'done', 'Connected account or data did not survive a PHP restart.');
+    ensure(count(command('notes')) === 1 && count(command('planning')['roadmaps']) === 1, 'Personal records did not survive a PHP restart.');
+    echo wp_json_encode(array('ok' => true, 'checks' => array('plugin and encrypted connection survive restart', 'saved work persists'))); exit;
+}
+function ensure($condition, $message) { if (!$condition) { throw new RuntimeException($message); } }
+wp_install('Synthetic WordPress workspace', 'wp-owner', 'wp-owner@example.test', false, '', $fixture['password']);
+wp_installing(false);
+$admin = get_user_by('login', 'wp-owner');
+$alice_id = wp_create_user('wp-alice', $fixture['password'], 'wp-alice@example.test');
+$bob_id = wp_create_user('wp-bob', $fixture['password'], 'wp-bob@example.test');
+ensure(!is_wp_error($alice_id) && !is_wp_error($bob_id), 'WordPress users were not created.');
+function as_user($id) {
+    wp_set_current_user($id);
+    if (!$id) { unset($_COOKIE[LOGGED_IN_COOKIE]); return; }
+    $token = WP_Session_Tokens::get_instance($id)->create(time() + 3600);
+    $_COOKIE[LOGGED_IN_COOKIE] = wp_generate_auth_cookie($id, time() + 3600, 'logged_in', $token);
+}
+as_user($admin->ID);
+ensure(!is_wp_error(wp_authenticate('wp-owner', $fixture['password'])), 'WordPress password authentication failed.');
+$activation = activate_plugin('shuug-business/shuug-business.php');
+ensure(!is_wp_error($activation), 'Plugin activation failed.');
+do_action('admin_init');
+update_option('shuug_business_settings', array('backend_url' => $fixture['backend']));
+ensure(get_option('shuug_business_settings')['backend_url'] === $fixture['backend'], 'Backend settings did not persist.');
+function request_command($operation, $input = array(), $nonce = null) {
+    $request = new WP_REST_Request('POST', '/shuug-business/v1/command');
+    $request->set_header('Content-Type', 'application/json');
+    $request->set_header('X-WP-Nonce', $nonce ?? wp_create_nonce('wp_rest'));
+    $request->set_body(wp_json_encode(array('operation' => $operation, 'input' => (object) $input)));
+    return rest_do_request($request);
+}
+function command($operation, $input = array()) {
+    $result = request_command($operation, $input);
+    ensure($result->get_status() === 200, 'WordPress command failed: ' . $operation . ' (' . $result->get_status() . ') ' . ($result->get_data()['message'] ?? ''));
+    return $result->get_data()['data'];
+}
+ensure(request_command('me', array(), 'invalid-nonce')->get_status() === 403, 'Invalid WordPress nonce was accepted.');
+$login = command('session.login', array('email' => '', 'password' => $fixture['password']));
+ensure($login['user']['isOwner'] && !isset($login['token']), 'The owner connection failed or exposed its backend token.');
+$owner_session = Shuug_Backend::session();
+$html = do_shortcode('[shuug_workspace]');
+ensure(strpos($html, 'data-shuug-config') !== false && strpos($html, $owner_session['token']) === false, 'Shortcode missing or leaked a credential.');
+$state = command('workspace'); ensure(count($state['modules']) === 40, 'Not all service/nonprofit modules are available to the owner.');
+$client = command('record.save', array('kind' => 'client', 'title' => 'WordPress-created client', 'fields' => array('email' => 'client@example.test')));
+ensure(!empty($client['record']['id']), 'Business form did not persist a record.');
+command('team.task.save', array('title' => 'Alice WordPress assignment', 'assigneeId' => $fixture['aliceMember'], 'priority' => 'high', 'goal' => 'Run program', 'dueDate' => '2026-09-15'));
+command('team.task.save', array('title' => 'Bob confidential assignment', 'assigneeId' => $fixture['bobMember'], 'priority' => 'low', 'goal' => null, 'dueDate' => null));
+as_user($alice_id);
+ensure(request_command('session.login', array('email' => '', 'password' => $fixture['password']))->get_status() === 403, 'A WordPress subscriber connected as owner.');
+command('session.login', array('email' => $fixture['aliceEmail'], 'password' => $fixture['password']));
+$alice_cookie = $_COOKIE[LOGGED_IN_COOKIE];
+$personal = command('me'); ensure(count($personal['tasks']) === 1 && $personal['tasks'][0]['title'] === 'Alice WordPress assignment', 'Personal tasks are not isolated.');
+command('task.status', array('id' => $personal['tasks'][0]['id'], 'status' => 'done'));
+$note = command('note.save', array('note' => array('author' => 'Forged owner', 'body' => 'Alice private WordPress note', 'title' => 'My note', 'scope' => 'internal', 'pageKey' => 'internal', 'pageLabel' => 'Internal', 'profile' => 'all')));
+ensure($note['note']['ownerId'] === $fixture['aliceId'], 'Note owner was not bound to the authenticated employee.');
+$plan = command('planning.save', array('profile' => 'all', 'noteIds' => array($note['note']['id']), 'plan' => array('title' => 'My WordPress plan', 'outcome' => 'Complete my work', 'steps' => array(array('title' => 'Finish assignment', 'detail' => '', 'milestone' => 'Done', 'due' => '', 'status' => 'todo')))));
+ensure(!empty($plan['roadmap']['id']), 'Manual roadmap did not save.');
+ensure(request_command('employees')->get_status() !== 200, 'Employee accessed account administration.');
+ensure(count(command('records')['records']) === 0, 'Employee could read shared restricted business records.');
+$launch = command('session.launch'); ensure(strpos($launch['url'], $fixture['backend'] . '/api/wordpress/launch?ticket=') === 0, 'Full application launch ticket missing.');
+$confirmation = wp_remote_get($launch['url'], array('redirection' => 0));
+ensure(!is_wp_error($confirmation) && wp_remote_retrieve_response_code($confirmation) === 200, 'Application confirmation page did not open.');
+ensure(strpos(wp_remote_retrieve_body($confirmation), 'wordpress-alice') !== false, 'Launch confirmation did not identify the employee.');
+preg_match('/name="csrf" value="([a-f0-9]{64})"/', wp_remote_retrieve_body($confirmation), $csrf);
+parse_str(wp_parse_url($launch['url'], PHP_URL_QUERY), $query);
+ensure(!empty($csrf[1]) && !empty($query['ticket']), 'Launch confirmation did not include its security fields.');
+$launch_args = array('redirection' => 0, 'headers' => array('Origin' => $fixture['backend']), 'cookies' => wp_remote_retrieve_cookies($confirmation), 'body' => array('ticket' => $query['ticket'], 'csrf' => 'invalid'));
+$rejected = wp_remote_post($fixture['backend'] . '/api/wordpress/launch', $launch_args);
+ensure(!is_wp_error($rejected) && wp_remote_retrieve_response_code($rejected) === 400, 'Launch accepted an invalid confirmation token.');
+$launch_args['body']['csrf'] = $csrf[1];
+$opened = wp_remote_post($fixture['backend'] . '/api/wordpress/launch', $launch_args);
+ensure(!is_wp_error($opened) && wp_remote_retrieve_response_code($opened) === 303 && wp_remote_retrieve_header($opened, 'location') === $fixture['backend'] . '/me', 'Confirmed launch did not open the employee area.');
+$session_cookie = wp_remote_retrieve_cookie_value($opened, 'dd_session');
+ensure(is_string($session_cookie) && preg_match('/^[a-f0-9]{64}$/D', $session_cookie), 'Launch did not establish the application session.');
+$personal_page = wp_remote_get($fixture['backend'] . '/me', array('redirection' => 0, 'cookies' => array('dd_session' => $session_cookie)));
+ensure(!is_wp_error($personal_page) && wp_remote_retrieve_response_code($personal_page) === 200 && strpos(wp_remote_retrieve_body($personal_page), 'Alice WordPress assignment') !== false, 'Full application did not show the employee assignment.');
+$admin_page = wp_remote_get($fixture['backend'] . '/admin/users', array('redirection' => 0, 'cookies' => array('dd_session' => $session_cookie)));
+ensure(!is_wp_error($admin_page) && wp_remote_retrieve_response_code($admin_page) === 307 && wp_parse_url(wp_remote_retrieve_header($admin_page, 'location'), PHP_URL_PATH) === '/me', 'Employee administrator-route guard failed (status ' . wp_remote_retrieve_response_code($admin_page) . ', destination ' . wp_parse_url(wp_remote_retrieve_header($admin_page, 'location'), PHP_URL_PATH) . ').');
+$replayed = wp_remote_post($fixture['backend'] . '/api/wordpress/launch', $launch_args);
+ensure(!is_wp_error($replayed) && wp_remote_retrieve_response_code($replayed) === 400, 'Launch ticket could be reused.');
+as_user($bob_id);
+ensure(request_command('me')->get_status() === 401, 'A second WordPress user inherited the first user connection.');
+command('session.login', array('email' => $fixture['bobEmail'], 'password' => $fixture['password']));
+ensure(count(command('notes')) === 0 && count(command('planning')['roadmaps']) === 0, 'Private notes or roadmaps crossed WordPress accounts.');
+ensure(count(command('me')['tasks']) === 1 && command('me')['tasks'][0]['title'] === 'Bob confidential assignment', 'Bob received the wrong assignment.');
+command('session.logout'); ensure(request_command('me')->get_status() === 401, 'Disconnected WordPress session remained active.');
+wp_set_current_user($alice_id); $_COOKIE[LOGGED_IN_COOKIE] = $alice_cookie;
+ensure(command('me')['tasks'][0]['status'] === 'done', 'Alice connection or task update did not persist.');
+ensure(is_wp_error(Shuug_Backend::valid_url('http://169.254.169.254')), 'Metadata address accepted.');
+ensure(is_wp_error(Shuug_Backend::valid_url('https://example.org/api')), 'Backend path injection accepted.');
+$before = get_option('shuug_business_settings');
+ensure(Shuug_Business::sanitize_settings(array('backend_url' => 'https://attacker.example')) === $before, 'A subscriber changed the backend address.');
+file_put_contents(dirname($fixture['root']) . '/checkpoint.json', wp_json_encode(array('id' => $alice_id, 'cookie' => $alice_cookie))); chmod(dirname($fixture['root']) . '/checkpoint.json', 0600);
+as_user(0); ensure(request_command('me')->get_status() === 403, 'Anonymous WordPress request had employee access.');
+ensure(strpos(do_shortcode('[shuug_workspace]'), 'data-shuug-config') === false, 'Anonymous page received a workspace nonce or data.');
+as_user($admin->ID);
+$manifest = Shuug_Website::manifest(); ensure(!is_wp_error($manifest) && count($manifest['capabilities']) === 9, 'Website capability discovery failed.');
+ensure(strpos(wp_json_encode($manifest), $fixture['customerEmail']) === false, 'Public capability metadata exposed a customer email.');
+$website_settings = Shuug_Business::sanitize_settings(array('backend_url' => $fixture['backend'], 'website' => array('restaurant_booking' => '1', 'restaurant_ordering' => '1', 'pay_invoice' => '1', 'donations' => '1', 'book_service' => '1', 'customer_login' => '1', 'pricing' => '1', 'order_status' => '1', 'wholesale' => '1', 'contact' => $fixture['websiteFormId'])));
+update_option('shuug_business_settings', $website_settings);
+ob_start(); Shuug_Website::settings_fields($website_settings); $controls = ob_get_clean();
+ensure(strpos($controls, '[shuug_customer_login]') !== false && strpos($controls, 'WordPress contact') !== false, 'Website capability controls did not render.');
+ensure(Shuug_Website::sanitize(array('contact' => 'javascript:alert(1)', 'customer_login' => 'evil')) === array(), 'Unsafe website settings were accepted.');
+as_user(0);
+$customer_link = do_shortcode('[shuug_customer_login]');
+ensure(strpos($customer_link, $fixture['backend'] . '/api/website/customer') !== false && strpos($customer_link, 'password') === false, 'Anonymous customer entry link was missing or contained credentials.');
+ensure(strpos(do_shortcode('[shuug_pricing]'), '#pricing') !== false && strpos(do_shortcode('[shuug_order_status]'), '#orders') !== false, 'Customer capability links used incorrect destinations.');
+ensure(strpos(do_shortcode('[shuug_restaurant_booking]'), '/api/website/reservations') !== false, 'Restaurant reservation link used an incorrect destination.');
+$booking_page = wp_remote_get($fixture['backend'] . '/api/website/reservations'); ensure(wp_remote_retrieve_response_code($booking_page) === 200 && strpos(wp_remote_retrieve_body($booking_page), 'Find seating times') !== false, 'Restaurant booking link did not lead to the actual guest search.');
+ensure(strpos(do_shortcode('[shuug_restaurant_ordering]'), '/api/website/restaurant') !== false, 'Restaurant pickup link used an incorrect destination.');
+ensure(strpos(do_shortcode('[shuug_restaurant_ordering special="wp10"]'), '/api/website/restaurant?special=WP10') !== false, 'WordPress did not forward the reviewed special code to the backend menu.');
+ensure(do_shortcode('[shuug_restaurant_ordering special="javascript:alert(1)"]') === '', 'Unsafe special-code attributes were accepted.');
+$offer_page = wp_remote_get($fixture['backend'] . '/api/website/restaurant?special=WP10'); ensure(wp_remote_retrieve_response_code($offer_page) === 200 && strpos(wp_remote_retrieve_body($offer_page), 'WordPress rice bowl') !== false && strpos(wp_remote_retrieve_body($offer_page), 'value="WP10"') !== false, 'Restaurant special link did not lead to the actual prefilled pickup menu.');
+ensure(strpos(do_shortcode('[shuug_book_service]'), '#appointments') !== false, 'Confirmed booking link used an incorrect destination.');
+ensure(strpos(do_shortcode('[shuug_pay_invoice]'), '/api/website/customer#invoices') !== false && strpos(do_shortcode('[shuug_donations]'), '/api/website/donate') !== false, 'Payment links used incorrect backend destinations.');
+$donation_page = wp_remote_get($fixture['backend'] . '/api/website/donate'); ensure(wp_remote_retrieve_response_code($donation_page) === 200 && strpos(wp_remote_retrieve_body($donation_page), 'Test mode') !== false, 'The donation link did not lead to a working form with test-mode disclosure.');
+$contact_html = do_shortcode('[shuug_contact]'); ensure(strpos($contact_html, '/api/website/forms/' . $fixture['websiteFormId']) !== false, 'Public contact shortcode did not attach the selected form.');
+$contact = wp_remote_get($fixture['backend'] . '/api/website/forms/' . $fixture['websiteFormId']);
+ensure(!is_wp_error($contact) && preg_match('/name="proof" value="([^"]+)"/', wp_remote_retrieve_body($contact), $form_match), 'Hosted WordPress form did not load.');
+$contact_response = wp_remote_post($fixture['backend'] . '/api/website/forms/' . $fixture['websiteFormId'], array('headers' => array('Origin' => $fixture['backend']), 'body' => array('proof' => $form_match[1], 'name' => 'WordPress visitor', 'email' => 'public-visitor@example.test', 'message' => 'A real request from the WordPress surface.', 'consent' => 'yes', 'website' => '')));
+ensure(!is_wp_error($contact_response) && wp_remote_retrieve_response_code($contact_response) === 201, 'WordPress contact form did not save its backend request.');
+$customer_login = wp_remote_post($fixture['backend'] . '/api/website/customer', array('redirection' => 0, 'headers' => array('Origin' => $fixture['backend']), 'body' => array('action' => 'login', 'email' => $fixture['customerEmail'], 'password' => $fixture['password'])));
+ensure(!is_wp_error($customer_login) && wp_remote_retrieve_response_code($customer_login) === 303, 'Customer login through the attached backend failed.');
+$customer_cookies = wp_remote_retrieve_cookies($customer_login);
+$customer_page = wp_remote_get($fixture['backend'] . '/api/website/customer', array('cookies' => $customer_cookies));
+ensure(!is_wp_error($customer_page) && strpos(wp_remote_retrieve_body($customer_page), 'Signed in as WordPress customer') !== false && strpos(wp_remote_retrieve_body($customer_page), 'Alice WordPress assignment') === false, 'Website customer account was not isolated from employee work.');
+ensure(request_command('me')->get_status() === 403, 'Customer website access conferred WordPress employee access.');
+echo wp_json_encode(array('ok' => true, 'wordpress' => get_bloginfo('version'), 'checks' => array('plugin activation', 'WordPress password authentication', 'nonce and capability enforcement', 'private server-side sessions', '40 specialist modules', 'record creation', 'employee assignments', 'notes and manual roadmaps', 'confirmed one-use application launch', 'full application employee permissions', 'cross-user isolation', 'logout', 'backend settings protection', 'shortcode rendering', 'website capability discovery and selection', 'public contact submission', 'customer links and isolated sign-in')));

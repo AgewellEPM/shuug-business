@@ -1,0 +1,128 @@
+/**
+ * Handler templates — the pre-built AI capability packages. The owner never assembles
+ * one; the intent compiler picks the right template from their wish and Shuug fills in
+ * the real capabilities. Each is honest about what it does, what it must ask before,
+ * and where it hands off to a human.
+ */
+import type { HandlerTemplate } from "./model";
+
+export const HANDLER_TEMPLATES: HandlerTemplate[] = [
+  {
+    id: "appointment",
+    name: "Appointment Handler",
+    icon: "📅",
+    outcome: "Answer scheduling requests and keep the calendar full without you touching the phone.",
+    intents: ["appointment", "appointments", "booking", "book", "schedule", "scheduling", "phone", "calls", "reschedule", "calendar", "front desk", "reservations"],
+    capabilities: ["customers", "appointments", "products", "book-appointment", "add-note", "sms", "email", "phone"],
+    canDo: [
+      "Answer incoming calls and messages",
+      "Identify existing customers",
+      "Ask what service they need",
+      "Check available appointment slots",
+      "Book, reschedule and cancel appointments",
+      "Send confirmations and reminders",
+      "Add notes to the customer record",
+    ],
+    asksFirst: ["Quoting an unusual or high-cost job", "Booking outside normal hours", "Overriding a double-book"],
+    escalates: ["Complaints", "Anything it can't confidently identify", "Requests outside its services"],
+    baselineMinutesPerRequest: 7,
+    defaultMode: "ask",
+  },
+  {
+    id: "customer-service",
+    name: "Customer Service Handler",
+    icon: "💬",
+    outcome: "Answer \"where's my order?\" and status questions so you stop repeating yourself.",
+    intents: ["customer service", "support", "where is my order", "order status", "tracking", "questions", "answering customers", "wismo", "help desk"],
+    capabilities: ["customers", "orders", "shipping", "email", "sms", "add-note"],
+    canDo: [
+      "Identify the customer",
+      "Retrieve their order and shipment",
+      "Answer order status and delivery questions",
+      "Send tracking links",
+      "Log the interaction on the record",
+    ],
+    asksFirst: ["Offering a refund or credit", "Promising a delivery date the carrier hasn't confirmed"],
+    escalates: ["Damaged/lost shipments", "Angry customers", "Anything requiring a policy exception"],
+    baselineMinutesPerRequest: 5,
+    defaultMode: "ask",
+  },
+  {
+    id: "collections",
+    name: "Collections Handler",
+    icon: "⏰",
+    outcome: "Chase overdue invoices with approved reminders so you stop dreading it.",
+    intents: ["invoice", "invoices", "collections", "overdue", "chasing", "chase", "accounts receivable", "ar", "get paid", "past due", "billing"],
+    capabilities: ["invoices", "customers", "payments", "record-promise", "email", "sms", "add-note"],
+    canDo: [
+      "Watch for overdue invoices",
+      "Send approved payment reminders on a schedule",
+      "Answer basic billing questions",
+      "Record promises to pay and follow up",
+      "Report on what's been collected",
+    ],
+    asksFirst: ["Offering a discount or payment plan", "Escalating a large balance to a call"],
+    escalates: ["Disputed invoices", "Threats of non-payment", "Anything over the owner's set balance limit"],
+    baselineMinutesPerRequest: 8,
+    defaultMode: "ask",
+  },
+  {
+    id: "purchasing",
+    name: "Purchasing Handler",
+    icon: "📦",
+    outcome: "Never run out — watch stock, forecast shortages, and prep the reorder.",
+    intents: ["purchasing", "inventory", "reorder", "stock", "run out", "ingredients", "supplies", "supplier", "purchase order", "po", "restock"],
+    capabilities: ["inventory", "suppliers", "products", "prepare-po", "email", "add-note"],
+    canDo: [
+      "Watch inventory levels",
+      "Forecast shortages from sales velocity",
+      "Prepare purchase orders",
+      "Compare approved suppliers",
+      "Record incoming inventory",
+    ],
+    asksFirst: ["Placing any order (owner approves the PO)", "Adding a new supplier"],
+    escalates: ["Price spikes beyond a threshold", "A supplier being out of stock"],
+    baselineMinutesPerRequest: 12,
+    defaultMode: "ask",
+  },
+  {
+    id: "wholesale-sales",
+    name: "Wholesale Sales Handler",
+    icon: "🧾",
+    outcome: "Handle inbound wholesale inquiries and get a quote in their hands fast.",
+    intents: ["wholesale", "sales", "inquiry", "inquiries", "quote", "quotes", "buyer", "leads", "b2b", "pricing request", "new account"],
+    capabilities: ["customers", "products", "orders", "create-quote", "create-order", "email", "add-note"],
+    canDo: [
+      "Qualify the buyer",
+      "Retrieve the right pricing tier",
+      "Prepare a quote",
+      "Collect the information needed to open an account",
+      "Create the customer and order after you approve",
+    ],
+    asksFirst: ["Any pricing below the floor", "Opening a new account", "Creating the order"],
+    escalates: ["Custom terms", "Very large orders", "Anything off standard pricing"],
+    baselineMinutesPerRequest: 15,
+    defaultMode: "ask",
+  },
+  {
+    id: "marketing",
+    name: "Marketing Handler",
+    icon: "📣",
+    outcome: "Keep customers coming back with approved campaigns and follow-ups.",
+    intents: ["marketing", "campaign", "campaigns", "promotion", "email marketing", "social", "reviews", "win back", "loyalty", "newsletter"],
+    capabilities: ["customers", "orders", "products", "email", "sms"],
+    canDo: [
+      "Segment customers (lapsed, top spenders, first-time)",
+      "Draft campaigns for your approval",
+      "Send approved emails/texts",
+      "Report on opens and resulting orders",
+    ],
+    asksFirst: ["Sending any campaign", "Offering a discount"],
+    escalates: ["Negative replies", "Unsubscribe complaints"],
+    baselineMinutesPerRequest: 20,
+    defaultMode: "ask",
+  },
+];
+
+const byId = new Map(HANDLER_TEMPLATES.map((t) => [t.id, t]));
+export function templateById(id: string): HandlerTemplate | null { return byId.get(id) ?? null; }

@@ -1,0 +1,33 @@
+import { randomUUID } from "node:crypto";
+import type { restaurantManagementData } from "../src/lib/restaurant/management";
+import { restaurantBusinessSnapshot } from "../src/lib/restaurant/business";
+function assert(value: unknown, message: string): asserts value { if (!value) throw new Error(message); }
+export async function restaurantCreditHttpCheck(base: string, cookie: string, employeeCookie: string, fixture: { first: string; menu: string; onlineId: string; receiptToken: string }) {
+  assert(process.env.DEALDESK_DATA_DIR?.includes("shuug-http-check-"), "Guest credit acceptance requires disposable fixture data.");
+  const request = (path: string, body?: unknown, token = cookie) => fetch(base + path, { method: body === undefined ? "GET" : "POST", headers: { Cookie: token, Origin: base, "Content-Type": "application/json" }, ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(20000) });
+  const command = async (action: string, input: unknown, requestId = randomUUID()) => { const response = await request("/api/restaurant/business", { action, input, requestId }), result = await response.json(); assert(response.ok, result.error ?? `Guest credit ${action} failed`); return result.result as { id: string }; };
+  const read = async (): Promise<ReturnType<typeof restaurantManagementData>> => (await request("/api/restaurant/business")).json();
+  const check = async (id: string) => { const c = (await read()).financial!.checks.find(c => c.id === id); assert(c, "Check missing from finance projection"); return c; };
+  const first = await check(fixture.first), cash = first.tenders.find(t => t.method === "cash")!, card = first.tenders.find(t => t.method === "external_card")!;
+  const input = { id: first.id, revision: first.revision, reference: "HTTP-GUEST-CREDIT", lines: [{ menuId: fixture.menu, amount: 800 }], tips: 0, reason: "Synthetic manager review of guest issue", reviewed: true };
+  assert((await request("/api/restaurant/business", { action: "credit.issue", input, requestId: randomUUID() }, employeeCookie)).status === 403, "Restricted employee issued guest credit.");
+  const ids = [randomUUID(), randomUUID()], race = await Promise.all(ids.map(requestId => request("/api/restaurant/business", { action: "credit.issue", input, requestId })));
+  assert(race.filter(r => r.ok).length === 1 && race.filter(r => r.status === 400).length === 1, "Competing reviewers duplicated the credit."); await command("credit.issue", input, ids[race.findIndex(r => r.ok)]);
+  assert((await check(first.id)).balance.refundDue === 880, "The credit did not retain captured original tax.");
+  const refund = async (id: string, tenderId: string, amount: number, reference: string) => { const input = { id, revision: (await check(id)).revision, tenderId, amount, reference, evidence: "Synthetic verified refund receipt", returned: true }, requestId = randomUUID(); await command("refund.record", input, requestId); await command("refund.record", input, requestId); };
+  await refund(first.id, cash.id, 400, "HTTP-REFUND-CASH"); assert((await check(first.id)).balance.refundDue === 480, "Partial refund did not preserve the remaining liability."); await refund(first.id, card.id, 480, "HTTP-REFUND-CARD");
+  assert((await read()).financial!.processor === -480, "Already-settled card refund did not enter processor clearing."); await command("processor.settle", { amount: 480, direction: "out", fees: 0, reference: "HTTP-PROCESSOR-REFUND-DEBIT", evidence: "Synthetic verified processor bank debit", confirmed: true });
+  assert((await read()).financial!.processor === 0 && (await check(first.id)).balance.refundDue === 0, "Refund clearing or guest liability did not settle.");
+  const online = await check(fixture.onlineId); await command("credit.issue", { id: online.id, revision: online.revision, reference: "HTTP-PICKUP-CREDIT", lines: [{ menuId: fixture.menu, amount: 100 }], tips: 0, reason: "Private fixture manager evidence", reviewed: true });
+  const path = "/api/website/restaurant?receipt=" + encodeURIComponent(fixture.receiptToken), page = await fetch(base + path), html = await page.text();
+  assert(page.ok && html.includes("Refund owed to you USD 1.10") && html.includes("Amount still due USD 0.00") && !html.includes("Private fixture manager evidence"), "Private guest receipt did not show the correct credit balance.");
+  await refund(online.id, online.tenders[0].id, 110, "HTTP-PICKUP-REFUND"); const paidPage = await fetch(base + path), paidHtml = await paidPage.text(); assert(paidPage.ok && paidHtml.includes("Refunds recorded USD 1.10") && paidHtml.includes("Refund owed to you USD 0.00"), "Private receipt failed to reflect the verified refund.");
+  const cancelled = (await command("order.create", { ref: "HTTP-PAID-CANCEL", channel: "takeaway", guest: "", covers: 1, reservationId: null, server: "Fixture server", note: "", lines: [{ menuId: fixture.menu, qty: 1 }] })).id;
+  await command("order.fire", { id: cancelled, revision: 1, allergensReviewed: true }); const deposit = (await command("tender", { id: cancelled, revision: (await check(cancelled)).revision, method: "cash", amount: 200, tip: 0, reference: "HTTP-CANCEL-DEPOSIT", received: true })).id;
+  await command("credit.cancel", { id: cancelled, revision: (await check(cancelled)).revision, reference: "HTTP-CANCEL-CREDIT", tips: 0, reason: "Synthetic guest cancelled before cooking", reviewed: true }); await refund(cancelled, deposit, 200, "HTTP-CANCEL-REFUND");
+  assert((await check(cancelled)).status === "cancelled" && (await read()).ingredients[0].available === 110, "Paid cancellation did not release unchanged kitchen stock.");
+  for (const path of ["/restaurant/finance?tab=credits", "/restaurant/manage?tab=credits"]) { const response = await request(path), html = await response.text(); assert(response.ok && html.includes("Guest credits and refunds") && html.includes("HTTP-CANCEL-CREDIT"), "Installed credit/refund screen did not render saved evidence."); }
+  const ledger = await request("/ledger"); assert(ledger.ok && (await ledger.text()).includes("Guest credit:"), "Shared ledger is missing the guest credit entries.");
+  assert(restaurantBusinessSnapshot().refunds?.length === 4, "A second process cannot read the four recorded refunds exactly once.");
+  console.log(JSON.stringify({ ok: true, guestCredits: ["Money authority and competing reviewer rejection", "captured tax and exact retry", "split original cash/card refunds", "processor bank debit after settlement", "private pickup credit/refund receipt", "paid cancellation and stock release", "installed finance screen and ledger", "cross-process refund persistence"], payments: "Recorded synthetic receipts only; no funds were sent" }));
+}

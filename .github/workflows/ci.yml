@@ -1,0 +1,41 @@
+name: CI
+
+# Quality gate: every push/PR must pass typecheck, tests, lint and a production
+# build before merge. This is the enterprise "tests-gate-CI/CD" control.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Generate Prisma client
+        run: npm run db:generate
+      - name: Typecheck
+        run: npx tsc --noEmit
+      - name: Lint
+        run: npm run lint
+      - name: WordPress plugin syntax and ZIP
+        run: npm run wordpress:package
+      - name: Unit tests
+        run: npm run test
+      - name: Production build
+        run: npm run build
+        env:
+          # Build must succeed without provider credentials.
+          NODE_ENV: production
+      - name: Production HTTP acceptance workflows
+        run: npm run workspace:smoke

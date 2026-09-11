@@ -1,0 +1,48 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      WORKSPACE_ACCESS_TOKEN: ${WORKSPACE_ACCESS_TOKEN:-}
+      DEALDESK_DATA_DIR: /data
+    volumes:
+      - client-data:/data
+    restart: unless-stopped
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["npm", "run", "shopify:worker"]
+    environment:
+      DEALDESK_DATA_DIR: /data
+    volumes:
+      - client-data:/data
+    restart: unless-stopped
+  workflows:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["npm", "run", "workflow:worker"]
+    environment:
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      DEALDESK_DATA_DIR: /data
+    volumes:
+      - client-data:/data
+    restart: unless-stopped
+  website-payments:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    command: ["npm", "run", "website-payments:worker"]
+    environment:
+      APP_BASE_URL: ${APP_BASE_URL:-http://localhost:3000}
+      DEALDESK_DATA_DIR: /data
+    volumes:
+      - client-data:/data
+    restart: unless-stopped
+volumes:
+  client-data:

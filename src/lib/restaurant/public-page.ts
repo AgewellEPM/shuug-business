@@ -1,0 +1,10 @@
+import { escapeHtml } from "../auth/forms";
+import { appBaseUrl } from "../connections/vault";
+import { getBranding } from "../branding/store";
+import { securityHeaders } from "../security/headers";
+export function restaurantPublicPage(title: string, site: { name: string; origins: string[] }, content: string, status = 200) {
+  const headers = securityHeaders(appBaseUrl().startsWith("https:")); delete headers["X-Frame-Options"];
+  headers["Content-Security-Policy"] = `default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'self' ${site.origins.join(" ")}`;
+  const brand = getBranding(), color = /^#[a-f0-9]{6}$/i.test(brand.primaryColor) ? brand.primaryColor : "#2c4939", channels = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16) / 255).map(c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4), luminance = channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+  return new Response(`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${escapeHtml(site.name)} · ${escapeHtml(title)}</title><style>body{font:16px system-ui;color:#17231c;background:white;margin:0;padding:24px}main{max-width:760px;margin:auto}h1{font-size:1.7rem}h2{font-size:1.2rem}article{border:1px solid #ccd7cd;border-radius:10px;padding:18px;margin:12px 0}label{display:block;margin:14px 0}input:not([type=checkbox]),textarea,select,button{font:inherit;box-sizing:border-box;width:100%;padding:12px;border:1px solid #a3b5aa;border-radius:6px}input[type=number]{max-width:150px}button{background:${color};color:${luminance > .179 ? "#111" : "#fff"};cursor:pointer}a{color:#24543c}p{line-height:1.5}.trap{position:absolute;left:-10000px}input:focus-visible,button:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #456f9c;outline-offset:2px}</style></head><body><main><h1>${escapeHtml(site.name)}</h1>${content}</main></body></html>`, { status, headers: { ...headers, "Content-Type": "text/html; charset=utf-8", "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" } });
+}

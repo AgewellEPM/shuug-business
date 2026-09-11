@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Private campaign review receipts
+/.data/
+
+# Public setup template and local release artifacts
+!.env.example
+/dist/

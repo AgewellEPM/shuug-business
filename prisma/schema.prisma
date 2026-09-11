@@ -1,0 +1,138 @@
+// Deal desk — Postgres schema (Neon on Vercel).
+// Current commercial state is normalized (queryable); agreement history is an
+// append-only JSON snapshot log so "why are we selling this store sauce for
+// $38?" always has a dated, attributed answer.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Customer {
+  id                   String  @id
+  company              String
+  channel              String  @default("store")
+  buyerName            String
+  buyerEmail           String
+  website              String?
+  accountOwner         String  @default("Owner")
+  region               String  @default("")
+  billingAddress       String
+  shippingAddress      String
+  quickbooksCustomerId String?
+  requiresPO           Boolean @default(false)
+
+  agreement Agreement?
+  orders    Order[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Sku {
+  id                 String @id
+  name               String
+  unitsPerCase       Int    @default(12)
+  retailPriceCents   Int    @default(0)
+  costPerCaseCents   Int
+  standardPriceCents Int
+
+  lines PriceLine[]
+}
+
+model Agreement {
+  id                    String   @id
+  customerId            String   @unique
+  customer              Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  targetMarginFraction  Float
+  floorMarginFraction   Float?
+  paymentTerms          String
+  creditLimitCents      Int?
+  minCasesPerOrder      Int
+  minOrderDollarsCents  Int
+  freightKind           String
+  freightAmountCents    Int?
+  effectiveDate         DateTime
+  expirationDate        DateTime
+  approvedBy            String
+
+  lines    PriceLine[]
+  versions AgreementVersion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PriceLine {
+  id             String @id @default(cuid())
+  agreementId    String
+  agreement      Agreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  skuId          String
+  sku            Sku    @relation(fields: [skuId], references: [id])
+  unitPriceCents Int
+  minCasesPerSku Int    @default(0)
+
+  tiers PriceTier[]
+
+  @@unique([agreementId, skuId])
+}
+
+model PriceTier {
+  id             String  @id @default(cuid())
+  priceLineId    String
+  priceLine      PriceLine @relation(fields: [priceLineId], references: [id], onDelete: Cascade)
+  minQty         Int
+  maxQty         Int?    // null = open-ended top band
+  unitPriceCents Int
+
+  @@index([priceLineId])
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  status        String   @default("submitted")
+  poNumber      String?
+  note          String   @default("")
+  subtotalCents Int
+  freightCents  Int
+  totalCents    Int
+  createdAt     DateTime @default(now())
+
+  lines OrderLine[]
+
+  @@index([customerId, createdAt])
+}
+
+model OrderLine {
+  id             String @id @default(cuid())
+  orderId        String
+  order          Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  skuId          String
+  unit           String  @default("case")
+  quantity       Int     @default(0)
+  cases          Float // case-equivalent (fractional for bottle orders)
+  unitPriceCents Int
+  tierLabel      String
+  isOverride     Boolean @default(false)
+  lineTotalCents Int
+  costAtOrderCents Int? // historical total cost; null on legacy orders
+
+  @@index([orderId])
+}
+
+model AgreementVersion {
+  id          String   @id @default(cuid())
+  agreementId String
+  agreement   Agreement @relation(fields: [agreementId], references: [id], onDelete: Cascade)
+  version     Int
+  changedBy   String
+  note        String
+  snapshot    Json     // full PriceAgreement snapshot at this version
+  createdAt   DateTime @default(now())
+
+  @@unique([agreementId, version])
+}

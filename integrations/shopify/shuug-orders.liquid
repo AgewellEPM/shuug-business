@@ -1,0 +1,36 @@
+{% comment %}
+  Optional customer-account section for a Shopify Liquid theme. The browser
+  calls Shopify's signed app proxy; it never receives a backend or Admin token.
+  If a merchant changes the app-proxy prefix, update the data-endpoint below.
+{% endcomment %}
+<section id="shuug-orders-{{ section.id }}" data-endpoint="{{ routes.root_url }}apps/shuug?resource=orders">
+  <h2>Your orders</h2>
+  {% if customer %}
+    <p role="status">Loading your orders…</p>
+    <ul></ul>
+  {% else %}
+    <a href="{{ routes.account_login_url }}">Sign in to view your orders</a>
+  {% endif %}
+</section>
+{% if customer %}
+<script>
+(() => {
+  const section = document.getElementById({{ 'shuug-orders-' | append: section.id | json }});
+  if (!section) return;
+  fetch(section.dataset.endpoint, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
+    .then(async response => { if (!response.ok) throw new Error('Orders are temporarily unavailable.'); return response.json(); })
+    .then(({ orders }) => {
+      section.querySelector('[role="status"]').textContent = orders.length ? '' : 'No synchronized orders yet.';
+      for (const order of orders) {
+        const item = document.createElement('li');
+        item.textContent = [order.name, order.fulfillmentStatus].filter(Boolean).join(' — ');
+        section.querySelector('ul').appendChild(item);
+      }
+    })
+    .catch(() => { section.querySelector('[role="status"]').textContent = 'Orders are temporarily unavailable.'; });
+})();
+</script>
+{% endif %}
+{% schema %}
+{"name":"Shuug order status","settings":[],"presets":[{"name":"Shuug order status"}]}
+{% endschema %}
