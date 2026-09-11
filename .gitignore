@@ -46,3 +46,4 @@ next-env.d.ts
 # Public setup template and local release artifacts
 !.env.example
 /dist/
+.github/workflows/
