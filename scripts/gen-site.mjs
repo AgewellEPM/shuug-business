@@ -163,9 +163,20 @@ const POPULAR = ["shopify","amazon","restaurant","auto-repair","bookkeeping","wh
 const art = s => (/^[aeiouAEIOU]/.test(s)||/^(HVAC|SEO|MBA)/.test(s)) ? "an" : "a";
 const esc = s => s.replace(/&/g,"&amp;");
 
+const MEGA = `<div class="mega"><span class="mtrigger">Features ▾</span><div class="megapanel">
+  <a class="mi" href="/welcome/bookkeeping"><span class="ic">📚</span><span class="tx"><b>Bookkeeping</b><small>Real double-entry, keeps itself</small></span></a>
+  <a class="mi" href="/welcome/task-management"><span class="ic">✅</span><span class="tx"><b>Task management</b><small>Boards, jobs &amp; to-dos</small></span></a>
+  <a class="mi" href="/welcome/ai-employees"><span class="ic">🤖</span><span class="tx"><b>AI building</b><small>Build AI employees &amp; Handlers</small></span></a>
+  <a class="mi" href="/welcome/workflows"><span class="ic">⚡</span><span class="tx"><b>Flow</b><small>Workflows &amp; automation</small></span></a>
+  <a class="mi" href="/welcome/road-mapping"><span class="ic">🧭</span><span class="tx"><b>Road mapping</b><small>Plan work, map the week</small></span></a>
+  <a class="mi" href="/welcome/business-intelligence"><span class="ic">📊</span><span class="tx"><b>Business intelligence</b><small>Every number, one dashboard</small></span></a>
+  <a class="mi" href="/welcome/staff-payroll"><span class="ic">🕒</span><span class="tx"><b>Staff &amp; payroll</b><small>Time, shifts &amp; pay</small></span></a>
+  <a class="mi" href="/welcome/features"><span class="ic">🔌</span><span class="tx"><b>Integrations</b><small>Connect 300+ apps</small></span></a>
+  <a class="mi" href="/welcome/builders"><span class="ic">🧩</span><span class="tx"><b>Builders / MCP</b><small>Open core for developers</small></span></a>
+</div></div>`;
 const NAV = active => `<nav class="nav"><div class="wrap">
   <a class="brand" href="/welcome"><span class="m">◎</span> Shuug</a>
-  <div class="nlinks"><a href="/welcome"${active==='home'?' class="on"':''}>Home</a><a href="/welcome/platform"${active==='how'?' class="on"':''}>How it works</a><a href="/welcome/industries"${active==='ind'?' class="on"':''}>Industries</a><a href="/welcome/features"${active==='sol'?' class="on"':''}>Solutions</a><a href="/welcome/builders"${active==='build'?' class="on"':''}>Builders</a></div>
+  <div class="nlinks"><a href="/welcome"${active==='home'?' class="on"':''}>Home</a><a href="/welcome/platform"${active==='how'?' class="on"':''}>How it works</a>${MEGA}<a href="/welcome/industries"${active==='ind'?' class="on"':''}>Industries</a><a href="/welcome/features"${active==='sol'?' class="on"':''}>Solutions</a><a href="/welcome/builders"${active==='build'?' class="on"':''}>Builders</a></div>
   <div class="right"><a class="ghchip" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ Open source</a><a class="btn btn-hot" href="/">Open the app →</a></div>
 </div></nav>`;
 
@@ -336,7 +347,7 @@ for(const b of B){ writeFileSync(path.join(OUT,`${b[0]}.html`), businessPage(b))
 writeFileSync(path.join(OUT,"industries.html"), hubPage({slug:"industries",active:"ind",eyebrow:"45+ industries",h1:"The full suite for <span class=\"grad\">every business</span>",sub:"One dashboard for your entire company — operations, bookkeeping, AI employees, workflows and business intelligence, whatever you run. 1000% free and 100% customizable. Pick your industry and see the exact suite Shuug gives you."})); n++;
 writeFileSync(path.join(OUT,"features.html"), hubPage({slug:"features",active:"sol",eyebrow:"Pick your business",h1:"The whole suite <span class=\"grad\">your business</span> runs on",sub:"Don't shop for features — click your business type and we'll show you the whole suite: operations, bookkeeping, AI employees, workflows and BI, all funneled into one customizable dashboard. Stop jumping tool to tool."})); n++;
 
-const urls = ["/welcome","/welcome/platform","/welcome/industries","/welcome/features","/welcome/builders",...B.map(b=>`/welcome/${b[0]}`)];
+const urls = ["/welcome","/welcome/platform","/welcome/industries","/welcome/features","/welcome/builders","/welcome/ai-employees","/welcome/task-management","/welcome/workflows","/welcome/road-mapping","/welcome/business-intelligence","/welcome/staff-payroll","/welcome/operations",...B.map(b=>`/welcome/${b[0]}`)];
 writeFileSync(path.join(OUT,"..","sitemap.xml"),
 `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
 urls.map(u=>`  <url><loc>${BASE}${u}</loc></url>`).join("\n")+`\n</urlset>\n`);
