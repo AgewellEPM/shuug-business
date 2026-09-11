@@ -25,7 +25,7 @@
     <span class="tag">⚡ Automate · free &amp; open</span>
     <h1><span class="grad2">Flow</span> — automation without the extra app.</h1>
     <p class="lede">When this happens, do that. Route approvals, trigger reminders, move records and kick off jobs — built on guarded state transitions, so automation is auditable end to end. No separate automation tab open.</p>
-    <div class="hcta"><a class="btn btn-hot" href="/">Open the app →</a><a class="btn btn-line" href="/welcome/platform">See how it works</a></div>
+    <div class="hcta"><a class="btn btn-hot" href="/">Open the app →</a><a class="btn btn-line" href="#deep">Read the details</a></div>
     <div class="hstats"><div><b class="grad">If→Then</b><span>plain rules</span></div><div><b class="grad">Guarded</b><span>every transition audited</span></div><div><b class="grad">300+</b><span>apps to trigger</span></div></div>
   </div>
   <div class="fscreen rv"><div class="sb"><i></i><i></i><i></i><b>shuug · workflows</b></div><div class="sbody">
@@ -34,24 +34,44 @@
   </div></div>
 </div></div></header>
 
-<section style="padding-top:20px"><div class="wrap">
-  <div class="head rv"><div class="eyebrow">What it does</div><h2>Everything you need — <span class="grad2">nothing you don't</span></h2></div>
-  <div class="fg stagger"><div class="fx fxstatic"><h5>🔀 If-this-then-that</h5><p>Simple rules anyone can read: a trigger, then the steps that follow.</p></div><div class="fx fxstatic"><h5>🛡️ Guarded transitions</h5><p>Every step is a checked state change — nothing skips a gate or double-fires.</p></div><div class="fx fxstatic"><h5>🧾 Fully audited</h5><p>See exactly what ran, when, and what it changed — and undo it.</p></div><div class="fx fxstatic"><h5>🔌 Across your tools</h5><p>Trigger Slack, email, a sheet or any of 300+ connected apps.</p></div><div class="fx fxstatic"><h5>⏱️ On a schedule</h5><p>Run flows on time — every Monday, month-end, or on an event.</p></div><div class="fx fxstatic"><h5>🤖 AI in the loop</h5><p>Let an AI employee run a flow, or draft one from a sentence.</p></div></div>
+<section style="padding-top:14px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Overview</div><h2>What it is, <span class="grad2">and why it's different</span></h2></div>
+  <p class="overview rv">Automation usually means bolting a second product onto your business and hoping the two stay in sync. Flow is different because it lives <b>inside</b> the same core that runs your operations and books. A flow doesn't poke your data from the outside — it moves the real records through the same guarded state transitions a person would use. That's what makes it safe: an automated step can't do anything a human couldn't, can't skip a required gate, and can't silently double-fire. Every run is logged, attributable and reversible.</p>
 </div></section>
 
-<section style="padding-top:8px"><div class="wrap">
-  <div class="head rv"><div class="eyebrow">How it works</div><h2>From zero to <span class="grad">done</span>, in four steps</h2></div>
+<section style="padding-top:18px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Capabilities</div><h2>Everything it does — <span class="grad">in full</span></h2><p class="sub">Click any capability to blow it up. Every one is real and included — no paywalled tiers, no vaporware.</p></div>
+  <div class="fg stagger"><div class="fx fxstatic"><h5>🔀 If-this-then-that, readable</h5><p>A flow is a trigger and the steps that follow, written so anyone on the team can read it — no scripting, no node-graph spaghetti.</p></div><div class="fx fxstatic"><h5>🛡️ Guarded transitions</h5><p>Each step is a checked state change. The engine enforces the same rules as the app: no skipping approvals, no billing an order twice, no impossible jumps.</p></div><div class="fx fxstatic"><h5>🧾 Audited &amp; reversible</h5><p>See exactly what ran, when, what it changed and who (or what) triggered it. Because it moves real records, you can trace and undo it.</p></div><div class="fx fxstatic"><h5>🔌 Across your tools</h5><p>Trigger Slack messages, emails, a Google Sheet update, or any of 300+ connected apps via webhooks and Zapier — as steps in the same flow.</p></div><div class="fx fxstatic"><h5>⏱️ On events or a schedule</h5><p>Fire on a threshold (invoice 14 days overdue), on an event (new order), or on a clock (every Monday 9am, month-end).</p></div><div class="fx fxstatic"><h5>🤖 AI in the loop</h5><p>Let an AI employee run a flow, decide a branch, or draft a whole flow from a plain-English sentence — with your approval on anything that acts.</p></div></div>
+</div></section>
+
+<section id="deep" style="padding-top:22px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">In depth</div><h2>How it really works, <span class="grad2">no hand-waving</span></h2></div>
+  <div class="deep rv"><h3>What 'guarded state transition' actually means</h3><p>Everything important in your business is a state machine: an order is draft → reviewed → invoiced → paid; a work order is estimate → approved → done → billed. The engine only allows legal moves, and only when the preconditions are met (an order can't be invoiced twice; a refund keeps the original receipt).</p><p>Flow steps are just those same transitions, triggered automatically. So automation inherits every rule and guardrail your app already enforces — you can't automate your way into a broken ledger.</p></div><div class="deep rv"><h3>Automation you can trust because you can see it</h3><p>The failure mode of most automation is silent: a Zap misfires at 2am and you find out from an angry customer. Here, every flow run is a first-class record with a full trail.</p><ul><li><b>Attribution</b> — who or what started it, and when.</li><li><b>Change log</b> — the exact records touched and how.</li><li><b>Approvals</b> — steps you mark as needing a human wait for your yes.</li><li><b>Undo</b> — because it moved real records, you can reverse it.</li></ul></div>
+</div></section>
+
+<section style="padding-top:18px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Step by step</div><h2>From zero to <span class="grad">done</span></h2></div>
   <div class="stack rv">
-    <div class="layer"><b>1 · Pick a trigger</b><span>Choose what starts it — an event, a date, or a threshold.</span><span class="pin">step</span></div><div class="ar">↓</div><div class="layer"><b>2 · Add steps</b><span>Chain the actions: notify, update, create, assign.</span><span class="pin">step</span></div><div class="ar">↓</div><div class="layer"><b>3 · Set the guardrails</b><span>Decide what needs approval and what runs on its own.</span><span class="pin">step</span></div><div class="ar">↓</div><div class="layer hot"><b>4 · Turn it on</b><span>It runs itself — logged, auditable and reversible.</span><span class="pin">done</span></div>
+    <div class="layer"><b>1 · Pick a trigger</b><span>Choose what starts it — an event (new order), a threshold (overdue > 14 days), or a schedule (every Monday).</span><span class="pin">step</span></div><div class="ar">↓</div><div class="layer"><b>2 · Add steps</b><span>Chain the actions: notify, update a record, create a task, post a journal, message an app.</span><span class="pin">step</span></div><div class="ar">↓</div><div class="layer"><b>3 · Set the guardrails</b><span>Decide which steps run on their own and which pause for your approval.</span><span class="pin">step</span></div><div class="ar">↓</div><div class="layer hot"><b>4 · Turn it on</b><span>It runs itself — every execution logged, auditable and reversible.</span><span class="pin">done</span></div>
   </div>
 </div></section>
 
-<section style="padding-top:8px"><div class="wrap"><div class="whyband rv">
+<section style="padding-top:22px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Use cases</div><h2>What it looks like <span class="grad2">in a real business</span></h2></div>
+  <div class="uc stagger"><div class="ucc"><div class="who"><span class="e">💸</span> Collections on autopilot</div><p>When an invoice passes 14 days overdue: send a reminder, log the promise-to-pay, and create a follow-up task — every Monday, without you remembering.</p></div><div class="ucc"><div class="who"><span class="e">📦</span> Never stock out</div><p>When an item drops below its reorder point: draft a purchase order, ping the manager in Slack, and open a 'confirm reorder' task.</p></div><div class="ucc"><div class="who"><span class="e">🧾</span> Clean handoffs</div><p>When an order is marked reviewed: generate the invoice, email it, and post the journal entries — all as one auditable flow.</p></div></div>
+</div></section>
+
+<section style="padding-top:22px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Questions</div><h2>Straight <span class="grad">answers</span></h2></div>
+  <div class="faq rv"><details><summary>How is this different from Zapier?</summary><div class="fa">Zapier connects apps from the outside. Flow moves your own records from the inside through guarded transitions — and it can still call Zapier and 300+ apps as steps. You get safety plus reach.</div></details><details><summary>Can automation break my books?</summary><div class="fa">No. Automated steps use the same rules as the app: balanced entries, no double-billing, required approvals. If a person can't do it, a flow can't either.</div></details><details><summary>What if a flow does the wrong thing?</summary><div class="fa">Every run is logged and reversible, and any step you mark 'needs approval' waits for you. You're never handing over blind control.</div></details><details><summary>Do I need to code?</summary><div class="fa">No. Flows are plain triggers and steps. Developers can go deeper via the open backend API and MCP, but the builder itself is no-code.</div></details></div>
+</div></section>
+
+<section style="padding-top:14px"><div class="wrap"><div class="whyband rv">
   <div class="eyebrow" style="background:var(--g-cool);-webkit-background-clip:text;background-clip:text;color:transparent">Why it matters</div>
-  <h2 style="margin:.3em auto;max-width:760px">Automation that lives inside your business, not bolted on. Because the flow moves real records, it's safe by construction — and you can always see what it did.</h2>
+  <h2 style="margin:.3em auto;max-width:780px">Automation that lives inside your business, not bolted on. Because the flow moves real records through real guardrails, it's safe by construction — and you can always see exactly what it did.</h2>
 </div></div></section>
 
-<section style="padding-top:8px"><div class="wrap">
+<section style="padding-top:16px"><div class="wrap">
   <div class="head rv"><div class="eyebrow">More features</div><h2>Drill into the <span class="grad2">rest of the suite</span></h2></div>
   <div class="related stagger"><a href="/welcome/task-management"><span class="em">✅</span> Task management →</a><a href="/welcome/ai-employees"><span class="em">🤖</span> AI building →</a><a href="/welcome/business-intelligence"><span class="em">📊</span> Business intelligence →</a><a href="/welcome/features"><span class="em">🗂️</span> All features →</a></div>
 </div></section>
@@ -71,12 +91,11 @@ var nav=document.querySelector('.nav');
 function sc(){var h=document.documentElement,s=h.scrollTop||document.body.scrollTop,mx=(h.scrollHeight-h.clientHeight)||1;pb.style.width=(s/mx*100)+'%';if(nav)nav.classList.toggle('scrolled',s>8);}
 document.addEventListener('scroll',sc,{passive:true});sc();
 if(rm){document.querySelectorAll('.rv,.stagger').forEach(function(e){e.classList.add('in');});return;}
-var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;el.classList.add('in');if(el.classList.contains('stagger')){var k=el.children,i;for(i=0;i<k.length;i++){k[i].style.transitionDelay=(i*60)+'ms';}}io.unobserve(el);});},{rootMargin:'0px 0px -8% 0px'});
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;el.classList.add('in');if(el.classList.contains('stagger')){var k=el.children,i;for(i=0;i<k.length;i++){k[i].style.transitionDelay=(i*55)+'ms';}}io.unobserve(el);});},{rootMargin:'0px 0px -8% 0px'});
 document.querySelectorAll('.rv,.stagger').forEach(function(e){io.observe(e);});
 document.querySelectorAll('.hstats b').forEach(function(el){var m=el.textContent.match(/^(\D*)(\d[\d,]*)(.*)$/);if(!m)return;var pre=m[1],n=parseInt(m[2].replace(/,/g,''),10),suf=m[3];var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var t0=null;function st(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/1100,1),k=1-Math.pow(1-p,3);el.textContent=pre+Math.round(n*k).toLocaleString()+suf;if(p<1)requestAnimationFrame(st);}requestAnimationFrame(st);cio.unobserve(e.target);});},{rootMargin:'0px 0px -4% 0px'});cio.observe(el);});
-var art=document.querySelector('.heroart,.fscreen');
 document.querySelectorAll('.btn-hot').forEach(function(b){b.addEventListener('pointermove',function(ev){var r=b.getBoundingClientRect();b.style.transform='translate('+(((ev.clientX-r.left-r.width/2)/r.width)*8-3)+'px,'+(((ev.clientY-r.top-r.height/2)/r.height)*8-3)+'px)';});b.addEventListener('pointerleave',function(){b.style.transform='';});});
-document.querySelectorAll('.fx.fxstatic,.layer,.tier').forEach(function(el){el.classList.add('zoomable');});
+document.querySelectorAll('.fx.fxstatic,.layer,.tier,.ucc').forEach(function(el){el.classList.add('zoomable');});
 var lb=document.createElement('div');lb.className='lb';lb.innerHTML='<div class="lb-card"><button class="lb-x" aria-label="Close">✕</button><div class="lb-in"></div></div>';document.body.appendChild(lb);
 var inn=lb.querySelector('.lb-in');
 function lbO(el){inn.innerHTML=el.innerHTML;lb.classList.add('on');document.body.style.overflow='hidden';}
