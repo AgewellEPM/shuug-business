@@ -342,6 +342,13 @@ footer{border-top:3px solid var(--line2);padding:40px 0 60px;color:var(--mut2)}
 .oscap span{display:block;font-size:9px;color:var(--cyan);margin-top:5px;letter-spacing:.02em}
 .osband.hasface{padding-right:300px}
 @media(max-width:820px){.osfacebox{position:static;transform:none;margin:0 0 16px}.osface{width:120px;height:120px}.osband.hasface{padding-right:44px}}
+/* hero architecture flow: YOUR IDEA → agent → SHUUG → your app */
+.archviz{position:absolute;right:44px;top:50%;transform:translateY(-50%);width:236px;z-index:1}
+.archviz .an{border:3px solid #000;background:#160f30;padding:12px 13px;font-family:var(--px);font-size:8.5px;text-align:center;box-shadow:3px 3px 0 rgba(0,0,0,.5);line-height:1.5;color:var(--tx)}
+.archviz .an.hot{background:var(--lime);color:#0d0b1a}
+.archviz .aarr{text-align:center;color:var(--cyan);font-family:var(--px);font-size:13px;margin:6px 0}
+.osband.hasviz{padding-right:308px}
+@media(max-width:900px){.archviz{position:static;transform:none;width:100%;max-width:300px;margin:0 0 18px}.osband.hasviz{padding-right:44px}}
 
 /* featured integration cards */
 .featgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
