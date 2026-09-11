@@ -165,7 +165,7 @@ const esc = s => s.replace(/&/g,"&amp;");
 
 const NAV = active => `<nav class="nav"><div class="wrap">
   <a class="brand" href="/welcome"><span class="m">◎</span> Shuug</a>
-  <div class="nlinks"><a href="/welcome"${active==='home'?' class="on"':''}>Home</a><a href="/welcome/platform"${active==='how'?' class="on"':''}>How it works</a><a href="/welcome/industries"${active==='ind'?' class="on"':''}>Industries</a><a href="/welcome/features"${active==='sol'?' class="on"':''}>Solutions</a></div>
+  <div class="nlinks"><a href="/welcome"${active==='home'?' class="on"':''}>Home</a><a href="/welcome/platform"${active==='how'?' class="on"':''}>How it works</a><a href="/welcome/industries"${active==='ind'?' class="on"':''}>Industries</a><a href="/welcome/features"${active==='sol'?' class="on"':''}>Solutions</a><a href="/welcome/builders"${active==='build'?' class="on"':''}>Builders</a></div>
   <div class="right"><a class="ghchip" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ Open source</a><a class="btn btn-hot" href="/">Open the app →</a></div>
 </div></nav>`;
 
@@ -336,7 +336,7 @@ for(const b of B){ writeFileSync(path.join(OUT,`${b[0]}.html`), businessPage(b))
 writeFileSync(path.join(OUT,"industries.html"), hubPage({slug:"industries",active:"ind",eyebrow:"45+ industries",h1:"The full suite for <span class=\"grad\">every business</span>",sub:"One dashboard for your entire company — operations, bookkeeping, AI employees, workflows and business intelligence, whatever you run. 1000% free and 100% customizable. Pick your industry and see the exact suite Shuug gives you."})); n++;
 writeFileSync(path.join(OUT,"features.html"), hubPage({slug:"features",active:"sol",eyebrow:"Pick your business",h1:"The whole suite <span class=\"grad\">your business</span> runs on",sub:"Don't shop for features — click your business type and we'll show you the whole suite: operations, bookkeeping, AI employees, workflows and BI, all funneled into one customizable dashboard. Stop jumping tool to tool."})); n++;
 
-const urls = ["/welcome","/welcome/platform","/welcome/industries","/welcome/features",...B.map(b=>`/welcome/${b[0]}`)];
+const urls = ["/welcome","/welcome/platform","/welcome/industries","/welcome/features","/welcome/builders",...B.map(b=>`/welcome/${b[0]}`)];
 writeFileSync(path.join(OUT,"..","sitemap.xml"),
 `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`+
 urls.map(u=>`  <url><loc>${BASE}${u}</loc></url>`).join("\n")+`\n</urlset>\n`);

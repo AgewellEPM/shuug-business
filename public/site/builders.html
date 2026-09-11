@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Builders — the open, MCP-native business core | Shuug</title>
+<meta name="description" content="Build on Shuug's open core. An MCP server turns the whole business into typed, guarded AI tools; point any model (local Ollama or Claude) at it; extend every part with the module SDK. MIT-licensed — fork it, embed it, self-host it." />
+<meta name="keywords" content="MCP server, model context protocol business, open source business platform, self-hosted, module SDK, bring your own model, Ollama, Claude, developer platform, AI business automation" />
+<link rel="canonical" href="https://shuug.co/welcome/builders" />
+<link rel="stylesheet" href="/site/site.css" />
+</head>
+<body>
+<div class="aura"></div>
+<div class="content">
+
+<nav class="nav"><div class="wrap">
+  <a class="brand" href="/welcome"><span class="m">◎</span> Shuug</a>
+  <div class="nlinks"><a href="/welcome">Home</a><a href="/welcome/platform">How it works</a><a href="/welcome/industries">Industries</a><a href="/welcome/features">Solutions</a><a href="/welcome/builders" class="on">Builders</a></div>
+  <div class="right"><a class="ghchip" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ Open source</a><a class="btn btn-hot" href="/">Open the app →</a></div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div>
+    <span class="tag">★ Open source · MCP-native · bring your own model</span>
+    <h1>Build on the <span class="grad">core</span>.</h1>
+    <p class="lede">Shuug is an open, <b style="color:#fff">MCP-native</b> business engine. Point any AI at it, extend any part, and ship your own tools on top — self-hosted, MIT-licensed, no lock-in. The whole company runs on one typed core that developers and agents drive the same way.</p>
+    <div class="hcta"><a class="btn ghbtn" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ View the code on GitHub →</a><a class="btn btn-line" href="https://github.com/AgewellEPM/shuug-business/archive/refs/heads/main.zip">⬇ Download the repo</a></div>
+    <div class="hstats"><div><b class="grad">MCP</b><span>native tool server</span></div><div><b class="grad2">1</b><span>typed backend API</span></div><div><b style="color:var(--lime)">BYO</b><span>bring your own model</span></div></div>
+  </div>
+  <div class="heroart">
+    <div class="chip c1">🔌 MCP</div><div class="chip c2">🧩 SDK</div><div class="chip c3">⚙️ /api/backend</div>
+    <div class="win"><div class="bar"><i></i><i></i><i></i><b>shuug-business · mcp</b></div><div class="app"><div class="side"><span class="s act"></span><span class="s"></span><span class="s"></span><span class="s" style="width:70%"></span><span class="s" style="width:60%"></span><span class="s" style="width:80%"></span></div><div class="main"><div class="kpis"><div class="kpi kc1"><u>tools</u><b>30+</b></div><div class="kpi kc2"><u>guarded</u><b>✓</b></div><div class="kpi kc3"><u>model</u><b>yours</b></div></div><div class="chart"><span style="height:50%"></span><span style="height:70%"></span><span style="height:44%"></span><span style="height:86%"></span><span style="height:64%"></span><span style="height:92%"></span><span style="height:58%"></span></div></div></div></div>
+  </div>
+</div></header>
+
+<section id="opensource"><div class="wrap"><div class="osband rv">
+  <div class="eyebrow" style="background:var(--g-cool);-webkit-background-clip:text;background-clip:text;color:transparent">Open source</div>
+  <h2 style="margin:.25em 0">The first <span class="grad">fully open-source</span> business platform.</h2>
+  <p class="sub">Not a crippled "community edition." Every line of the whole platform is <b style="color:#fff">MIT-licensed</b> and public on GitHub — free to use, fork, redistribute, white-label and build on, forever. Fully free. Fully functional. Fully yours. No seats, no paywalled features, no lock-in.</p>
+  <div class="osstats stagger">
+    <div><b>MIT</b><span>licensed — reuse &amp; resell</span></div>
+    <div><b>0</b><span>features held back</span></div>
+    <div><b>∞</b><span>fork it, own it, forever</span></div>
+  </div>
+  <div class="hcta" style="justify-content:flex-start;position:relative">
+    <a class="btn ghbtn" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ View the code on GitHub →</a>
+    <a class="btn ghbtn" href="https://github.com/AgewellEPM/shuug-business/archive/refs/heads/main.zip">⬇ Download the repo</a>
+    <a class="btn btn-line" href="https://github.com/AgewellEPM/shuug-business/blob/main/LICENSE" target="_blank" rel="noopener">Read the MIT license</a>
+  </div>
+</div></div></section>
+
+<!-- MCP -->
+<section style="padding-top:30px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Model Context Protocol</div><h2>One command turns your business into <span class="grad2">AI tools</span></h2><p class="sub">Shuug ships a real MCP server. Any MCP client — Claude, your own agent — connects over stdio and gets typed, guarded tools for the whole operation. Every tool is annotated read-only vs destructive vs idempotent and runs through the same guarded transition engine as the app, so an agent can't do anything a person couldn't.</p></div>
+  <div class="term rv"><div class="tbar"><i></i><i></i><i></i><b>your terminal</b></div><pre><span class="c"># 1. mint a workspace token for this backend</span>
+npm run backend:setup
+
+<span class="c"># 2. start the shuug-business MCP server (stdio)</span>
+npm run mcp
+
+<span class="c"># then add it to your MCP client (Claude, an agent, an IDE)…</span>
+<span class="c"># the model now has typed, guarded tools for the whole business.</span></pre></div>
+  <div class="head rv" style="margin-top:34px"><div class="eyebrow">A few of the tools</div><h2 style="font-size:22px">Typed tools, real guardrails</h2></div>
+  <div class="fg stagger">
+    <div class="fx fxstatic"><h5>invoice_command <span class="tag2 t-hand">write</span></h5><p>Issue a reviewed, itemized invoice — parties, prices, tax, terms — posted atomically to the ledger.</p></div>
+    <div class="fx fxstatic"><h5>journal_command <span class="tag2 t-hand">write</span></h5><p>Record a balanced manual journal or dated reversal, integer cents, requestId-safe on retry.</p></div>
+    <div class="fx fxstatic"><h5>business_read <span class="tag2 t-live">read</span></h5><p>Read any part of the workspace — customers, orders, balances, revisions — before acting.</p></div>
+    <div class="fx fxstatic"><h5>schedule_command <span class="tag2 t-hand">write</span></h5><p>Build shifts and staff schedules that feed timesheets, job cost and payroll.</p></div>
+    <div class="fx fxstatic"><h5>tracker_create <span class="tag2 t-hand">write</span></h5><p>Spin up a brand-new no-code tool/tracker on the fly — fields, records, the works.</p></div>
+    <div class="fx fxstatic"><h5>capabilities <span class="tag2 t-live">read</span></h5><p>Ask the core what it can do right now — the capability surface every app is a view of.</p></div>
+  </div>
+</div></section>
+
+<!-- point the AI to a model -->
+<section style="padding-top:8px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Bring your own model</div><h2>Point it at your model and <span class="grad">hook it up</span></h2><p class="sub">No bundled AI, no per-token bill, no vendor lock. Run fully local with Ollama, or use Claude — it's one env change. That's the whole "AI setup": point Shuug at a model and it's wired.</p></div>
+  <div class="twocol rv">
+    <div class="term"><div class="tbar"><i></i><i></i><i></i><b>.env · fully local</b></div><pre><span class="c"># runs offline — nothing leaves your box</span>
+<span class="k">COPILOT_PROVIDER</span>=<span class="s">ollama</span>
+<span class="k">OLLAMA_HOST</span>=<span class="s">http://localhost:11434</span>
+<span class="k">OLLAMA_MODEL</span>=<span class="s">gemma3:4b</span></pre></div>
+    <div class="term"><div class="tbar"><i></i><i></i><i></i><b>.env · Claude</b></div><pre><span class="c"># or point it at a hosted model</span>
+<span class="k">COPILOT_PROVIDER</span>=<span class="s">anthropic</span>
+<span class="k">ANTHROPIC_API_KEY</span>=<span class="s">sk-ant-…</span>
+<span class="k">COPILOT_MODEL</span>=<span class="s">&lt;your-model&gt;</span></pre></div>
+  </div>
+</div></section>
+
+<!-- customizable -->
+<section style="padding-top:8px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Fully customizable</div><h2>Change any part. <span class="grad2">Build your own.</span></h2><p class="sub">Every part of Shuug is meant to be extended. Add a field, build a whole tool, define a workflow, or replace a view — the business is a capability surface and the apps are just views over it.</p></div>
+  <div class="fg stagger">
+    <div class="fx fxstatic"><h5>🧩 Module SDK</h5><p>Build a full custom module — UI, data and logic — that plugs into the same core, permissions and books.</p></div>
+    <div class="fx fxstatic"><h5>🛠️ No-code trackers</h5><p>Non-devs (and agents) spin up new tools with fields and records — no deploy, no code.</p></div>
+    <div class="fx fxstatic"><h5>⚡ Workflows</h5><p>Automate with rules and guarded state transitions: when this happens, do that — auditable end to end.</p></div>
+    <div class="fx fxstatic"><h5>📊 Capability surface</h5><p>Everything is exposed as typed capabilities (<code>capabilities</code>, <code>business_read</code>) so any client can reason about it.</p></div>
+    <div class="fx fxstatic"><h5>🏷️ White-label</h5><p>Your brand, your domain, your data. Re-skin and re-ship the whole thing under your own name.</p></div>
+    <div class="fx fxstatic"><h5>⚙️ Backend API</h5><p>One typed <code>/api/backend</code> operation endpoint — call the core from any language or service.</p></div>
+  </div>
+</div></section>
+
+<!-- use the core as a whole -->
+<section style="padding-top:8px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">The core</div><h2>One open core — <span class="grad">three ways in</span></h2><p class="sub">Whether you're an AI agent, a backend service or a front-end dev, you talk to the same guarded core. It's MIT — fork it, embed it, self-host it, resell it.</p></div>
+  <div class="tiers stagger">
+    <div class="tier"><div class="cap" style="background:linear-gradient(120deg,#0b2a3a,#124a5e)">🔌</div><div class="tc"><h4>Agents → MCP</h4><p>Point any MCP client at <code>npm run mcp</code>. The model gets typed, guarded tools for the entire business.</p></div></div>
+    <div class="tier"><div class="cap" style="background:linear-gradient(120deg,#2a1240,#3a1560)">⚙️</div><div class="tc"><h4>Services → API</h4><p>Call one typed <code>/api/backend</code> endpoint with a workspace token from anything that speaks HTTP.</p></div></div>
+    <div class="tier"><div class="cap" style="background:linear-gradient(120deg,#12331a,#1e5230)">🧩</div><div class="tc"><h4>Devs → SDK</h4><p>Ship modules and views on top of the same data, permissions and double-entry books.</p></div></div>
+  </div>
+</div></section>
+
+<!-- hook it up -->
+<section style="padding-top:8px"><div class="wrap">
+  <div class="head rv"><div class="eyebrow">Hook it up</div><h2>From clone to <span class="grad2">agent-driven</span>, in four steps</h2></div>
+  <div class="stack rv">
+    <div class="layer"><b>1 · Get the code</b><span>Clone or download the repo — the whole platform is yours (MIT)</span><span class="pin">open source</span></div>
+    <div class="ar">↓</div>
+    <div class="layer"><b>2 · Mint a token</b><span><code>npm run backend:setup</code> — authorizes this workspace</span><span class="pin">auth</span></div>
+    <div class="ar">↓</div>
+    <div class="layer"><b>3 · Point your model</b><span>One env change — local Ollama or Claude</span><span class="pin">your model</span></div>
+    <div class="ar">↓</div>
+    <div class="layer hot"><b>4 · Connect your AI</b><span><code>npm run mcp</code> → add it to your MCP client and it drives the business</span><span class="pin">go</span></div>
+  </div>
+</div></section>
+
+<section><div class="wrap"><div class="band rv"><div class="eyebrow" style="background:var(--g-hot);-webkit-background-clip:text;background-clip:text;color:transparent">Build</div><h2 style="margin:.3em 0">Build on Shuug. <span class="grad2">Own the whole core.</span></h2><div class="hcta" style="justify-content:center;margin-top:16px"><a class="btn ghbtn" href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ Code on GitHub →</a><a class="btn btn-line" href="/welcome/features">Explore the suite</a></div></div></div></section>
+
+<footer><div class="wrap">
+  <div class="fcols">
+    <div><div class="brand" style="font-size:16px"><span class="m" style="width:26px;height:26px;font-size:14px">◎</span> Shuug</div><p class="mut" style="max-width:320px;font-size:13px;margin-top:12px">The first fully open-source business platform. MIT-licensed — own it, host it, move it, resell it.</p><span class="badge" style="margin-top:12px">★ Open source · MIT</span></div>
+    <div><h6>Explore</h6><a href="/welcome">Home</a><a href="/welcome/platform">How it works</a><a href="/welcome/industries">Industries</a><a href="/welcome/features">Solutions</a></div>
+    <div><h6>Build</h6><a href="https://github.com/AgewellEPM/shuug-business" target="_blank" rel="noopener">★ Code on GitHub</a><a href="/docs/module-sdk">Module SDK docs</a><a href="/docs/state-layer">State layer docs</a></div>
+    <div><h6>Get started</h6><a href="/">Open the app</a><a href="https://github.com/AgewellEPM/shuug-business/archive/refs/heads/main.zip">⬇ Download the repo</a></div>
+  </div>
+</div></footer>
+
+</div>
+<script>(function(){
+var rm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var pb=document.createElement('div');pb.className='progress';document.body.appendChild(pb);
+var nav=document.querySelector('.nav');
+function sc(){var h=document.documentElement,s=h.scrollTop||document.body.scrollTop,mx=(h.scrollHeight-h.clientHeight)||1;pb.style.width=(s/mx*100)+'%';if(nav)nav.classList.toggle('scrolled',s>8);}
+document.addEventListener('scroll',sc,{passive:true});sc();
+if(rm){document.querySelectorAll('.rv,.stagger').forEach(function(e){e.classList.add('in');});return;}
+var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var el=e.target;el.classList.add('in');if(el.classList.contains('stagger')){var k=el.children,i;for(i=0;i<k.length;i++){k[i].style.transitionDelay=(i*60)+'ms';}}io.unobserve(el);});},{rootMargin:'0px 0px -8% 0px'});
+document.querySelectorAll('.rv,.stagger').forEach(function(e){io.observe(e);});
+document.querySelectorAll('.hstats b').forEach(function(el){var m=el.textContent.match(/^(\D*)(\d[\d,]*)(.*)$/);if(!m)return;var pre=m[1],n=parseInt(m[2].replace(/,/g,''),10),suf=m[3];var cio=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;var t0=null;function st(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/1100,1),k=1-Math.pow(1-p,3);el.textContent=pre+Math.round(n*k).toLocaleString()+suf;if(p<1)requestAnimationFrame(st);}requestAnimationFrame(st);cio.unobserve(e.target);});},{rootMargin:'0px 0px -4% 0px'});cio.observe(el);});
+var art=document.querySelector('.heroart');
+if(art){window.addEventListener('pointermove',function(ev){var x=(ev.clientX/innerWidth-.5),y=(ev.clientY/innerHeight-.5);art.style.transform='translate('+(x*14)+'px,'+(y*12)+'px)';},{passive:true});}
+document.querySelectorAll('.btn-hot,.ghbtn').forEach(function(b){b.addEventListener('pointermove',function(ev){var r=b.getBoundingClientRect();b.style.transform='translate('+(((ev.clientX-r.left-r.width/2)/r.width)*8-3)+'px,'+(((ev.clientY-r.top-r.height/2)/r.height)*8-3)+'px)';});b.addEventListener('pointerleave',function(){b.style.transform='';});});
+document.querySelectorAll('.layer,.fx.fxstatic,.tier').forEach(function(el){el.classList.add('zoomable');});
+var lb=document.createElement('div');lb.className='lb';lb.innerHTML='<div class="lb-card"><button class="lb-x" aria-label="Close">✕</button><div class="lb-in"></div></div>';document.body.appendChild(lb);
+var inn=lb.querySelector('.lb-in');
+function lbO(el){inn.innerHTML=el.innerHTML;lb.classList.add('on');document.body.style.overflow='hidden';}
+function lbC(){lb.classList.remove('on');document.body.style.overflow='';}
+document.addEventListener('click',function(e){var z=e.target.closest('.zoomable');if(z&&!e.target.closest('a,button,summary')){lbO(z);}});
+lb.addEventListener('click',function(e){if(e.target===lb||e.target.closest('.lb-x'))lbC();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')lbC();});
+})();</script>
+</body>
+</html>

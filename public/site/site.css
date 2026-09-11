@@ -369,3 +369,14 @@ footer{border-top:3px solid var(--line2);padding:40px 0 60px;color:var(--mut2)}
 /* github chip in nav */
 .ghchip{display:inline-flex;align-items:center;gap:7px;font-family:var(--px);font-size:10px;border:2px solid var(--lime);color:var(--lime);padding:8px 11px;background:#0d0b1a;text-decoration:none}
 .ghchip:hover{background:var(--lime);color:#0d0b1a}
+
+/* terminal / code block (builders page) */
+.term{border:3px solid #000;background:#0a0714;box-shadow:var(--sh2);overflow:hidden;margin-top:14px}
+.term .tbar{display:flex;gap:6px;align-items:center;padding:9px 12px;background:#160f30;border-bottom:3px solid #000}
+.term .tbar i{width:11px;height:11px;border:2px solid #000}
+.term .tbar i:nth-child(1){background:#ff6a5c}.term .tbar i:nth-child(2){background:#ffcf33}.term .tbar i:nth-child(3){background:#9bff3d}
+.term .tbar b{margin-left:8px;font-family:var(--px);font-size:8px;color:var(--mut2)}
+.term pre{margin:0;padding:16px;color:#cfe8ff;white-space:pre;overflow:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;line-height:1.75}
+.term .c{color:#7a6ca8}.term .k{color:#9bff3d}.term .s{color:#ffcf33}.term .p{color:#ff8ad0}
+.twocol{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:820px){.twocol{grid-template-columns:1fr}}
