@@ -292,8 +292,46 @@ const CAT_MOCK = {
   nonprofit: { c:["💜 Gifts","📊 Programs"], rows:[["Donations (mo)","$22k"],["Grants open","3"],["Volunteers","41",1]] },
   topic:     { c:["📊 P&amp;L","💳 Get paid"], rows:[["Revenue (mo)","$48k"],["Unpaid","$6k",1],["Books","✓"]] },
 };
+// bespoke open-ledger book hero for the bookkeeping page
+function bookHero(){
+  return `<div class="heroart">
+    <div class="chip c1">📚 Ledger</div><div class="chip c2">📊 P&amp;L</div><div class="chip c3">✓ Balanced</div>
+    <div class="fscreen rv"><div class="sb"><i></i><i></i><i></i><b>shuug · bookkeeping</b></div>
+    <div class="sbody" style="display:grid;place-items:center;padding:18px">
+      <svg viewBox="0 0 460 300" width="100%" style="max-width:430px" role="img" aria-label="Open accounting ledger book">
+        <defs>
+          <linearGradient id="cv" x1="0" x2="1"><stop offset="0" stop-color="#3a1560"/><stop offset="1" stop-color="#6a1f8f"/></linearGradient>
+          <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1c1440"/><stop offset="1" stop-color="#120c2c"/></linearGradient>
+        </defs>
+        <rect x="34" y="74" width="402" height="200" rx="10" fill="#000" opacity=".5"/>
+        <rect x="28" y="64" width="402" height="200" rx="10" fill="url(#cv)" stroke="#000" stroke-width="3"/>
+        <rect x="44" y="78" width="182" height="172" rx="3" fill="url(#pg)" stroke="#000" stroke-width="2"/>
+        <rect x="234" y="78" width="182" height="172" rx="3" fill="url(#pg)" stroke="#000" stroke-width="2"/>
+        <rect x="222" y="70" width="12" height="188" fill="#ff3ea5" stroke="#000" stroke-width="2"/>
+        <text x="60" y="104" fill="#22e0ff" font-family="monospace" font-size="11" font-weight="bold">GENERAL LEDGER</text>
+        <line x1="60" y1="112" x2="208" y2="112" stroke="#2c2450" stroke-width="2"/>
+        <text x="60" y="134" fill="#b3a8d0" font-family="monospace" font-size="10">1200 · A/R</text><text x="150" y="134" fill="#22e0ff" font-family="monospace" font-size="10">Dr 10,500</text>
+        <text x="60" y="156" fill="#b3a8d0" font-family="monospace" font-size="10">4000 · Income</text><text x="150" y="156" fill="#ff3ea5" font-family="monospace" font-size="10">Cr 10,000</text>
+        <text x="60" y="178" fill="#b3a8d0" font-family="monospace" font-size="10">2200 · Tax</text><text x="150" y="178" fill="#ff3ea5" font-family="monospace" font-size="10">Cr 500</text>
+        <line x1="60" y1="192" x2="208" y2="192" stroke="#2c2450" stroke-width="2"/>
+        <text x="60" y="214" fill="#fff" font-family="monospace" font-size="10" font-weight="bold">Trial balance</text><text x="150" y="214" fill="#9bff3d" font-family="monospace" font-size="10">21,000</text>
+        <text x="250" y="104" fill="#22e0ff" font-family="monospace" font-size="11" font-weight="bold">P&amp;L</text>
+        <line x1="250" y1="112" x2="400" y2="112" stroke="#2c2450" stroke-width="2"/>
+        <g stroke="#000" stroke-width="2">
+          <rect x="258" y="204" width="22" height="40" fill="#22e0ff"/>
+          <rect x="290" y="184" width="22" height="60" fill="#22e0ff"/>
+          <rect x="322" y="162" width="22" height="82" fill="#22e0ff"/>
+          <rect x="354" y="140" width="22" height="104" fill="#9bff3d"/>
+          <rect x="386" y="176" width="22" height="68" fill="#22e0ff"/>
+        </g>
+        <circle cx="398" cy="96" r="15" fill="#9bff3d" stroke="#000" stroke-width="2"/><text x="391" y="101" font-size="14">✓</text>
+      </svg>
+    </div></div>
+  </div>`;
+}
 function heroArt(b){
   const [slug,name,emoji,cat]=b;
+  if(slug==="bookkeeping") return bookHero();
   const m = CAT_MOCK[cat] || CAT_MOCK.pro;
   const rows = m.rows.map(r=>`<div class="frow${r[2]?" hot":""}"><span class="k">${esc(r[0])}</span><span class="v">${esc(r[1])}</span></div>`).join("");
   return `<div class="heroart">
