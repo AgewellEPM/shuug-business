@@ -43,6 +43,20 @@ installation preserves an existing owner password and branding; differing
 existing service configuration fails for review. The source drive must be mounted.
 It does not turn the public Vercel site into a hosted private customer backend.
 
+Install the macOS owner-access launcher after the workspace is installed:
+
+```sh
+npm run workspace:rideshare:launcher
+```
+
+Open `~/Applications/Rideshare Tax Pros Workspace.app` to check the workspace,
+open Shuug in Safari, or explicitly copy its owner password from macOS Keychain.
+Leave the sign-in email field blank for owner access. The password copy expires
+after 30 seconds while the launcher runs and clears on normal quit, provided
+another application has not replaced it. See
+`native/macos/WorkspaceLauncher/README.md` for behavior and verification limits.
+This helper is separate from the planned driver mileage app.
+
 Only the generated static site is uploaded. The private application, accounts,
 vault, records and local databases are not part of this deployment. Generated
 Vercel state is ignored by Git.
