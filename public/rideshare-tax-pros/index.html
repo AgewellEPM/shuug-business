@@ -15,7 +15,9 @@
   <link rel="canonical" href="https://rideshare-tax-pros.vercel.app/">
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./inner-pages.css">
   <script src="./app.js" defer></script>
+  <script src="./inner-pages.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
@@ -33,18 +35,18 @@
         <p>Mileage and expense records, rideshare income reporting, quarterly tax support and year-round guidance.</p>
       </div>
       <a class="hotspot brand-link" href="#main" aria-label="Rideshare Tax Pros home"></a>
-      <button class="hotspot contact-link solid-control" data-dialog="start">Get tax-ready <span aria-hidden="true">↗</span></button>
-      <button class="hotspot portal-top solid-control gradient" data-dialog="portal">Client Portal <small>Powered by Shuug</small></button>
+      <a class="hotspot contact-link solid-control" href="/get-started">Get tax-ready <span aria-hidden="true">↗</span></a>
+      <a class="hotspot portal-top solid-control gradient" href="/client-portal">Client Portal <small>Powered by Shuug</small></a>
       <button class="hotspot menu-link" data-menu aria-label="Open navigation" aria-expanded="false" aria-controls="navigation"></button>
-      <button class="hotspot file-link" data-dialog="start" aria-label="File my taxes"></button>
-      <button class="hotspot portal-main solid-control outlined" data-dialog="portal"><span aria-hidden="true">♙</span><span>Client Portal<small>Powered by Shuug</small></span><span aria-hidden="true">↗</span></button>
+      <a class="hotspot file-link" href="/get-started" aria-label="File my taxes"></a>
+      <a class="hotspot portal-main solid-control outlined" href="/client-portal"><span aria-hidden="true">♙</span><span>Client Portal<small>Powered by Shuug</small></span><span aria-hidden="true">↗</span></a>
       <span id="desktop-benefits" class="art-anchor benefits-anchor"></span>
       <span id="desktop-services" class="art-anchor services-anchor"></span>
-      <button class="hotspot service-one" data-dialog="filing" aria-label="Uber and Lyft tax filing"></button>
-      <button class="hotspot service-two" data-dialog="deductions" aria-label="Deductions and expenses"></button>
-      <button class="hotspot service-three" data-dialog="quarterly" aria-label="Quarterly tax support"></button>
-      <button class="hotspot service-four" data-dialog="support" aria-label="Year-round support"></button>
-      <button class="hotspot get-started-link" data-dialog="start" aria-label="Get started today"></button>
+      <a class="hotspot service-one" href="/tax-preparation" aria-label="Uber and Lyft tax filing"></a>
+      <a class="hotspot service-two" href="/mileage-and-expenses" aria-label="Deductions and expenses"></a>
+      <a class="hotspot service-three" href="/quarterly-taxes" aria-label="Quarterly tax support"></a>
+      <a class="hotspot service-four" href="/bookkeeping" aria-label="Year-round support"></a>
+      <a class="hotspot get-started-link" href="/get-started" aria-label="Get started today"></a>
       <div class="trust-strip" aria-label="Our service approach">
         <div><span aria-hidden="true">↗</span><strong>Built for drivers</strong><small>Uber, Lyft & gig work</small></div>
         <div><span aria-hidden="true">✓</span><strong>Clear next steps</strong><small>Know what comes next</small></div>
@@ -62,8 +64,8 @@
         <p class="lede">Specialized tax preparation, deductions, and year-round accounting for Uber, Lyft, and independent drivers.</p>
         <div class="driver-visual" role="img" aria-label="A rideshare driver on a city street at night"></div>
         <div class="hero-actions">
-          <button class="button primary" data-dialog="start"><span aria-hidden="true">↗</span> File My Taxes <span aria-hidden="true">→</span></button>
-          <button class="button secondary" data-dialog="portal">Client Portal <span class="shuug-label">Powered by Shuug ↗</span></button>
+          <a class="button primary" href="/get-started"><span aria-hidden="true">↗</span> File My Taxes <span aria-hidden="true">→</span></a>
+          <a class="button secondary" href="/client-portal">Client Portal <span class="shuug-label">Powered by Shuug ↗</span></a>
         </div>
       </section>
       <section class="benefits" aria-label="Our approach">
@@ -83,12 +85,12 @@
         </ul>
       </section>
       <section class="services" id="mobile-services" aria-label="Tax and accounting services">
-        <button class="service-card" data-dialog="filing"><span class="service-icon" aria-hidden="true">↗</span><h3>Uber & Lyft<br>Tax Filing</h3><p>Tax preparation built around rideshare drivers.</p></button>
-        <button class="service-card" data-dialog="deductions"><span class="service-icon" aria-hidden="true">▤</span><h3>Deductions &<br>Expenses</h3><p>Review your mileage, vehicle, phone and other business records.</p></button>
-        <button class="service-card" data-dialog="quarterly"><span class="service-icon" aria-hidden="true">▦</span><h3>Quarterly<br>Tax Support</h3><p>Plan ahead with a review of your income and records.</p></button>
-        <button class="service-card" data-dialog="support"><span class="service-icon" aria-hidden="true">▥</span><h3>Year-Round<br>Support</h3><p>Tax questions, income planning and business guidance.</p></button>
+        <a class="service-card" href="/tax-preparation"><span class="service-icon" aria-hidden="true">↗</span><h3>Uber & Lyft<br>Tax Filing</h3><p>Tax preparation built around rideshare drivers.</p></a>
+        <a class="service-card" href="/mileage-and-expenses"><span class="service-icon" aria-hidden="true">▤</span><h3>Deductions &<br>Expenses</h3><p>Review your mileage, vehicle, phone and other business records.</p></a>
+        <a class="service-card" href="/quarterly-taxes"><span class="service-icon" aria-hidden="true">▦</span><h3>Quarterly<br>Tax Support</h3><p>Plan ahead with a review of your income and records.</p></a>
+        <a class="service-card" href="/bookkeeping"><span class="service-icon" aria-hidden="true">▥</span><h3>Year-Round<br>Support</h3><p>Tax questions, income planning and business guidance.</p></a>
       </section>
-      <section class="start-band"><h2>New to rideshare taxes?</h2><p>We’ll walk you through it — step by step.</p><button class="button primary" data-dialog="start">Get Started Today <span aria-hidden="true">→</span></button></section>
+      <section class="start-band"><h2>New to rideshare taxes?</h2><p>We’ll walk you through it — step by step.</p><a class="button primary" href="/get-started">Get Started Today <span aria-hidden="true">→</span></a></section>
     </div>
 
     <section class="content-section split-section" id="approach" aria-labelledby="approach-title">
@@ -99,10 +101,10 @@
     <section class="content-section split-section" id="services" aria-labelledby="services-title">
       <div class="section-intro"><p class="eyebrow">MADE FOR THE WAY YOU EARN</p><h2 id="services-title">The right help.<br><em>All year long.</em></h2><p>Choose the support your business needs. Scope and fees are confirmed before an engagement begins.</p></div>
       <div class="service-details">
-        <details id="service-filing" open><summary><span class="detail-number">01</span><span>Uber & Lyft tax preparation</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>A preparation workflow for rideshare and independent-driver income, including work across more than one platform. Organize the information your tax professional needs and review the next steps together.</p><button class="text-link" data-dialog="filing">Explore tax preparation <span aria-hidden="true">↗</span></button></div></details>
-        <details id="service-records"><summary><span class="detail-number">02</span><span>Mileage & expense records</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>Keep mileage, vehicle and other business expense records ready for review. Your tax professional evaluates how the applicable rules apply to your circumstances.</p><button class="text-link" data-dialog="deductions">Explore records support <span aria-hidden="true">↗</span></button></div></details>
-        <details id="service-quarterly"><summary><span class="detail-number">03</span><span>Quarterly planning support</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>Make time to review changing income, follow up on missing records and discuss estimated-tax questions with your tax professional throughout the year.</p><button class="text-link" data-dialog="quarterly">Explore quarterly support <span aria-hidden="true">↗</span></button></div></details>
-        <details id="service-year-round"><summary><span class="detail-number">04</span><span>Year-round accounting support</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>Keep your business records and tax questions moving between filing seasons. Choose the bookkeeping, records and planning support covered by your engagement.</p><button class="text-link" data-dialog="support">Explore ongoing support <span aria-hidden="true">↗</span></button></div></details>
+        <details id="service-filing" open><summary><span class="detail-number">01</span><span>Uber & Lyft tax preparation</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>A preparation workflow for rideshare and independent-driver income, including work across more than one platform. Organize the information your tax professional needs and review the next steps together.</p><a class="text-link" href="/tax-preparation">Explore tax preparation <span aria-hidden="true">↗</span></a></div></details>
+        <details id="service-records"><summary><span class="detail-number">02</span><span>Mileage & expense records</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>Keep mileage, vehicle and other business expense records ready for review. Your tax professional evaluates how the applicable rules apply to your circumstances.</p><a class="text-link" href="/mileage-and-expenses">Explore records support <span aria-hidden="true">↗</span></a></div></details>
+        <details id="service-quarterly"><summary><span class="detail-number">03</span><span>Quarterly planning support</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>Make time to review changing income, follow up on missing records and discuss estimated-tax questions with your tax professional throughout the year.</p><a class="text-link" href="/quarterly-taxes">Explore quarterly support <span aria-hidden="true">↗</span></a></div></details>
+        <details id="service-year-round"><summary><span class="detail-number">04</span><span>Year-round accounting support</span><span class="detail-toggle" aria-hidden="true">+</span></summary><div><p>Keep your business records and tax questions moving between filing seasons. Choose the bookkeeping, records and planning support covered by your engagement.</p><a class="text-link" href="/bookkeeping">Explore ongoing support <span aria-hidden="true">↗</span></a></div></details>
       </div>
     </section>
 
@@ -131,27 +133,14 @@
 
     <section class="content-section contact-section" id="contact" aria-labelledby="contact-title">
       <div><p class="eyebrow">YOUR NEXT STEP</p><h2 id="contact-title">You’ve got places to go.<br><em>Let’s get you tax-ready.</em></h2><p>Choose your support and explore the process. New client onboarding is opening soon.</p></div>
-      <div class="contact-actions"><button class="button primary" data-dialog="start">Get Started <span aria-hidden="true">→</span></button><button class="button secondary" data-dialog="portal">Client Workspace <span aria-hidden="true">↗</span></button><div id="contact-details" class="contact-details" aria-live="polite"><p>Phone and email details will be posted here when available.</p></div></div>
+      <div class="contact-actions"><a class="button primary" href="/get-started">Get Started <span aria-hidden="true">→</span></a><a class="button secondary" href="/client-portal">Client Workspace <span aria-hidden="true">↗</span></a><div id="contact-details" class="contact-details" aria-live="polite"><p>Phone and email details will be posted here when available.</p></div></div>
     </section>
   </main>
-  <footer class="site-footer">
-    <div class="footer-main">
-      <div class="footer-brand"><a class="brand" href="#main"><span class="brand-symbol" aria-hidden="true"></span><span>Rideshare Tax Pros<sup>™</sup><small>TAX & ACCOUNTING</small></span></a><p>You drive.<br>We handle the taxes.</p><button class="platform-link" data-dialog="platform">Powered by <strong>Shuug</strong> <span aria-hidden="true">↗</span></button></div>
-      <nav aria-label="Footer services"><h2>Tax & accounting</h2><a href="#service-filing" data-open-details>Rideshare tax preparation</a><a href="#service-records" data-open-details>Mileage & expenses</a><a href="#service-quarterly" data-open-details>Quarterly planning</a><a href="#service-year-round" data-open-details>Year-round support</a></nav>
-      <nav aria-label="Footer company"><h2>Rideshare Tax Pros</h2><a href="#approach">Our approach</a><a href="#how-it-works">How it works</a><a href="#faq">Frequently asked questions</a><a href="#contact">Contact & availability</a></nav>
-      <nav aria-label="Footer resources"><h2>Client resources</h2><button data-dialog="portal">Client workspace <span aria-hidden="true">↗</span></button><a href="https://www.irs.gov/businesses/gig-economy-tax-center" target="_blank" rel="noopener noreferrer">IRS gig worker resources <span aria-hidden="true">↗</span></a><a href="https://www.irs.gov/taxtopics/tc254" target="_blank" rel="noopener noreferrer">Choosing a tax preparer <span aria-hidden="true">↗</span></a><a href="./accessibility.html">Accessibility</a></nav>
-    </div>
-    <div class="footer-bottom"><p>© <span data-year>2026</span> Rideshare Tax Pros. All rights reserved.</p><nav aria-label="Legal"><a href="./privacy.html">Privacy notice</a><a href="./terms.html">Website terms</a><a href="./accessibility.html">Accessibility</a><a href="#main">Back to top ↑</a></nav></div>
-    <p class="footer-disclaimer">Uber and Lyft are trademarks of their respective owners. Rideshare Tax Pros is an independent service and is not affiliated with or endorsed by either platform. Tax outcomes vary; no refund or tax saving is guaranteed.</p>
-  </footer>
+  <!-- SITE_FOOTER -->
 
-  <div class="mobile-action-bar" aria-label="Quick actions"><a class="button primary" href="#contact">Get Started <span aria-hidden="true">→</span></a><button class="button secondary" data-dialog="portal">Client Portal <span aria-hidden="true">↗</span></button></div>
+  <div class="mobile-action-bar" aria-label="Quick actions"><a class="button primary" href="/get-started">Get Started <span aria-hidden="true">→</span></a><a class="button secondary" href="/client-portal">Client Portal <span aria-hidden="true">↗</span></a></div>
 
-  <dialog id="navigation" class="navigation" aria-labelledby="navigation-title">
-    <div class="dialog-top"><strong id="navigation-title">Rideshare Tax Pros</strong><button class="close-button" data-close aria-label="Close navigation">×</button></div>
-    <nav aria-label="Main navigation"><a href="#main" data-nav="home">Home <span>↗</span></a><a href="#approach" data-nav="approach">Our approach <span>↗</span></a><a href="#services" data-nav="services">Our services <span>↗</span></a><a href="#how-it-works" data-nav="process">How it works <span>↗</span></a><a href="#faq" data-nav="faq">FAQs <span>↗</span></a><a href="#contact" data-nav="contact">Contact & availability <span>↗</span></a><button data-dialog="portal">Client portal <span>↗</span></button></nav>
-    <p class="navigation-note">You drive. We handle the taxes.</p>
-  </dialog>
+  <!-- SITE_NAVIGATION -->
   <dialog id="information" class="information" aria-labelledby="information-title" aria-describedby="information-description">
     <div class="dialog-top"><span class="eyebrow">RIDESHARE TAX PROS</span><button class="close-button" data-close aria-label="Close dialog">×</button></div>
     <h2 id="information-title"></h2><p id="information-description"></p><div id="information-extra"></div><div id="information-actions"></div>

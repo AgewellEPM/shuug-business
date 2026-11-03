@@ -1,7 +1,7 @@
 # Rideshare Tax Pros on Shuug
 
-The dedicated Vercel public site is built from `public/rideshare-tax-pros` in
-this repository. It uses the art director's supplied desktop artwork, replaces
+The dedicated Vercel public site is built from `public/rideshare-tax-pros` and
+`scripts/rideshare-site` in this repository. It uses the supplied desktop artwork, replaces
 the sample phone and Drake buttons with live controls, and includes a responsive
 HTML mobile layout. Navigation and service dialogs work without any backend.
 
@@ -11,6 +11,14 @@ availability, a four-column footer, privacy/terms/accessibility pages, a branded
 stays visible, and a safe-area-aware bottom bar keeps the primary actions within
 reach. Real-device visual acceptance still belongs to Luke.
 
+The build now publishes 19 pages: home, fifteen service/client-resource pages
+and the three policy pages. Shared navigation/footer/layout is in
+`scripts/rideshare-site/layout.mjs`; service content and research links are in
+`content.mjs`; page composition is in `pages.mjs`. The homepage contains explicit
+build markers for shared markup. Always build before serving or testing it.
+Planner/checklist preferences remain in the browser; no client documents or
+credentials are collected. See `docs/RIDESHARE-WEBSITE.md`.
+
 Build and deploy from the repository root:
 
 ```sh
@@ -19,6 +27,21 @@ vercel link --yes --project rideshare-tax-pros --cwd deployments/rideshare-tax-p
 vercel deploy --prebuilt --prod --cwd deployments/rideshare-tax-pros
 node scripts/verify-rideshare-site.mjs
 ```
+
+Private local Shuug installation on macOS:
+
+```sh
+npm run build
+npm run workspace:rideshare:install
+```
+
+This creates an authenticated loopback-only workspace at
+`http://127.0.0.1:3126`, uses the system Keychain for the generated owner password,
+and keeps its data in the user's private Application Support folder. It verifies
+sign-in and the Tax Firm screens after starting the LaunchAgent. Repeated
+installation preserves an existing owner password and branding; differing
+existing service configuration fails for review. The source drive must be mounted.
+It does not turn the public Vercel site into a hosted private customer backend.
 
 Only the generated static site is uploaded. The private application, accounts,
 vault, records and local databases are not part of this deployment. Generated

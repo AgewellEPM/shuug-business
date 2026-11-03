@@ -1,65 +1,73 @@
 // @vitest-environment node
-import { expect, it } from "vitest";
+import { expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
-
-const source = path.join(process.cwd(), "public/rideshare-tax-pros");
-function page(config = {}) {
-  const dom = new JSDOM(readFileSync(path.join(source, "index.html"), "utf8"), { url: "https://rideshare-tax-pros.vercel.app/", runScripts: "outside-only" });
-  const window = dom.window;
-  window.matchMedia = (() => ({ matches: true })) as never;
-  window.fetch = (async () => ({ ok: true, json: async () => config })) as never;
-  window.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
-  window.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new window.Event("close")); };
-  window.eval(readFileSync(path.join(source, "app.js"), "utf8"));
+const source = path.join(process.cwd(), "deployments/rideshare-tax-pros/.vercel/output/static");
+function page(slug = "", config = {}, hash = "") {
+  const dom = new JSDOM(readFileSync(path.join(source, slug ? `${slug}.html` : "index.html"), "utf8"), { url: `https://rideshare-tax-pros.vercel.app/${slug}${hash}`, runScripts: "outside-only" });
+  const w = dom.window;
+  w.matchMedia = (() => ({ matches: true })) as never;
+  w.fetch = (async () => ({ ok: true, json: async () => config })) as never;
+  w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
+  w.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new w.Event("close")); };
+  w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
   return dom;
 }
-it("opens each actual page control and shows honest availability while contact details are pending", () => {
-  const dom = page(), document = dom.window.document;
-  try {
-    const dialog = document.querySelector<HTMLDialogElement>("#information")!;
-    for (const button of document.querySelectorAll<HTMLElement>("[data-dialog]")) {
-      button.click(); expect(dialog.open).toBe(true);
-      expect(document.querySelector("#information-title")?.textContent).toBeTruthy();
-      dialog.close();
-    }
-    document.querySelector<HTMLElement>('[data-dialog="portal"]')!.click();
-    expect(document.querySelector("#information-extra")?.textContent).toContain("Client access is opening soon");
-    expect(document.querySelector('a[href^="tel:"]')).toBeNull();
-    document.querySelector<HTMLElement>("[data-menu]")!.click();
-    expect(document.querySelector("[data-menu]")?.getAttribute("aria-expanded")).toBe("true");
-    let scrolled = false;
-    document.querySelector<HTMLElement>("#services")!.scrollIntoView = () => { scrolled = true; };
-    document.querySelector<HTMLElement>('[data-nav="services"]')!.click();
-    expect(scrolled).toBe(true); expect(document.querySelector("[data-menu]")?.getAttribute("aria-expanded")).toBe("false");
-  } finally { dom.window.close(); }
+it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
+  const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
+  expect(manifest.aliases).toHaveLength(18);
+  for (const slug of ["", ...manifest.aliases]) {
+    const dom = page(slug); const d = dom.window.document;
+    try {
+      expect(d.querySelector('meta[name="viewport"]')).not.toBeNull();
+      if(slug) expect(d.querySelectorAll("h1")).toHaveLength(1);
+      expect(d.querySelector('input[type="password"]')).toBeNull();
+      for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
+        const url = new URL(a.href);
+        if(url.origin !== 'https://rideshare-tax-pros.vercel.app') continue;
+        if(url.pathname === `/${slug}` && url.hash) expect(d.getElementById(url.hash.slice(1)),`${slug}:${a.href}`).not.toBeNull();
+        else if(url.pathname !== '/') expect(manifest.aliases.includes(url.pathname.slice(1)) || existsSync(path.join(source,url.pathname.slice(1))),a.href).toBe(true);
+      }
+      expect(d.querySelectorAll('.mobile-action-bar a')).toHaveLength(2);
+    } finally { dom.window.close(); }
+  }
 });
-it("connects footer destinations, policy pages and native service details without dead links", () => {
-  const dom = page(), document = dom.window.document;
+it("takes a service choice into a filtered checklist and updates actual print/export progress", async () => {
+  const start = page('get-started'); const d = start.window.document;
+  d.querySelector<HTMLElement>('[data-plan]')!.click(); expect(d.querySelector<HTMLElement>('#planner-error')!.hidden).toBe(false);
+  d.querySelector<HTMLSelectElement>('#plan-year')!.value = '2025';
+  d.querySelector<HTMLInputElement>('input[value="quarterly"]')!.checked=true; d.querySelector<HTMLInputElement>('input[value="uber"]')!.checked=true;
+  d.querySelector<HTMLElement>('[data-plan]')!.click();
+  const href = new URL(d.querySelector<HTMLAnchorElement>('#plan-checklist')!.href); expect(href.hash).toContain('year=2025');
+  const checklist = page('document-checklist',{},href.hash); start.window.close();
   try {
-    for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')) {
-      const target = document.getElementById(link.hash.slice(1));
-      expect(target, `Missing destination for ${link.hash}`).not.toBeNull();
-    }
-    for (const filename of ["privacy.html", "terms.html", "accessibility.html"]) {
-      const policy = new JSDOM(readFileSync(path.join(source, filename), "utf8"));
-      try { expect(policy.window.document.querySelector('meta[name="viewport"]')).not.toBeNull(); expect(policy.window.document.querySelector('main h1')?.textContent).toBeTruthy(); }
-      finally { policy.window.close(); }
-    }
-    const details = document.querySelector<HTMLDetailsElement>("#service-quarterly")!;
-    expect(details.open).toBe(false);
-    document.querySelector<HTMLElement>('footer [href="#service-quarterly"]')!.click();
-    expect(details.open).toBe(true);
-    expect(document.querySelectorAll(".mobile-action-bar .button")).toHaveLength(2);
-  } finally { dom.window.close(); }
+    const doc=checklist.window.document;
+    expect(doc.querySelector<HTMLElement>('.record-item[data-platform="lyft"]')!.hidden).toBe(true);
+    const input=doc.querySelector<HTMLInputElement>('[data-record-item]')!; input.click();
+    expect(doc.querySelector('#checklist-count')!.textContent).toContain('1 of 13');
+    const print=vi.fn(); checklist.window.print=print; doc.querySelector<HTMLElement>('[data-print]')!.click(); expect(print).toHaveBeenCalledOnce();
+    let exported: Blob | undefined;
+    checklist.window.Blob=Blob as never;
+    checklist.window.URL.createObjectURL=((blob: Blob)=>{exported=blob;return 'blob:local-test';}) as never;
+    checklist.window.URL.revokeObjectURL=vi.fn();
+    checklist.window.HTMLAnchorElement.prototype.click=function(){};
+    doc.querySelector<HTMLElement>('[data-download]')!.click();
+    expect(await exported!.text()).toContain('[Ready] Uber'); expect(await exported!.text()).not.toContain('Lyft annual');
+    doc.querySelector<HTMLElement>('[data-reset]')!.click(); expect(doc.querySelector('#checklist-count')!.textContent).toContain('0 of 13');
+    expect(checklist.window.localStorage.length).toBe(0);
+  } finally { checklist.window.close(); }
 });
-it("connects a configured Shuug workspace and ignores unsafe portal destinations", async () => {
-  const dom = page({ workspaceUrl: "https://workspace.example.com/", drakePortalUrl: "javascript:alert(1)" });
+it("combines FAQ text search with topics and handles no matches", () => {
+  const dom=page('faq');const d=dom.window.document;
   try {
-    await new Promise(resolve => setTimeout(resolve, 0));
-    dom.window.document.querySelector<HTMLElement>('[data-dialog="portal"]')!.click();
-    const links = dom.window.document.querySelectorAll<HTMLAnchorElement>("#information-actions a");
-    expect(links).toHaveLength(1); expect(links[0].href).toBe("https://workspace.example.com/");
-  } finally { dom.window.close(); }
+    const search=d.querySelector<HTMLInputElement>('[data-search-input]')!; search.value='1099';search.dispatchEvent(new dom.window.Event('input'));
+    expect(d.querySelector('[data-search-count]')!.textContent).toContain('1 questions');
+    const category=d.querySelector<HTMLSelectElement>('[data-search-category]')!;category.value='Client access';category.dispatchEvent(new dom.window.Event('change'));
+    expect(d.querySelector<HTMLElement>('[data-search-empty]')!.hidden).toBe(false);
+  } finally {dom.window.close();}
+});
+it("offers a configured workspace without accepting unsafe external destinations", async () => {
+  const dom=page('client-portal',{workspaceUrl:'https://workspace.example.com/',drakePortalUrl:'javascript:alert(1)'});
+  try {await new Promise(resolve=>setTimeout(resolve,0));const links=dom.window.document.querySelectorAll<HTMLAnchorElement>('#client-access-links a');expect(links).toHaveLength(1);expect(links[0].href).toBe('https://workspace.example.com/');}finally{dom.window.close();}
 });

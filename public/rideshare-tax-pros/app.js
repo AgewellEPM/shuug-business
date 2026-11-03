@@ -94,9 +94,11 @@
   });
   navigation.addEventListener('close', () => document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'false')));
   for (const year of document.querySelectorAll('[data-year]')) year.textContent = String(new Date().getFullYear());
-  fetch('./site-config.json', { cache: 'no-store' }).then(response => response.ok ? response.json() : {}).then(value => {
+  const scriptUrl = document.currentScript?.src || document.querySelector('script[src$="app.js"]')?.src || location.href;
+  window.rtpSiteConfig = fetch(new URL('site-config.json', new URL('.', scriptUrl)), { cache: 'no-store' }).then(response => response.ok ? response.json() : {}).then(value => {
     if (value && typeof value === 'object') config = value;
     renderContact();
     if (currentPanel && information.open) renderPanel(currentPanel);
-  }).catch(() => {});
+    return config;
+  }).catch(() => ({}));
 })();

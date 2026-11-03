@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
-const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../public/rideshare-tax-pros');
+const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../deployments/rideshare-tax-pros/.vercel/output/static');
 const origin = 'https://rideshare-tax-pros.vercel.app';
 const files = (await readdir(source, { recursive: true, withFileTypes: true })).filter(entry => entry.isFile()).map(entry => path.relative(source, path.join(entry.parentPath, entry.name)));
 const checks = await Promise.all(files.map(async filename => {
@@ -16,7 +16,8 @@ const checks = await Promise.all(files.map(async filename => {
   if (route === '/') assert(response.headers.get('content-security-policy')?.includes("default-src 'self'"), 'Missing public security policy');
   return { route, status: response.status, sha256: createHash('sha256').update(bytes).digest('hex') };
 }));
-for (const slug of ['privacy', 'terms', 'accessibility']) {
+const manifest = JSON.parse(await readFile(path.join(source, 'site-manifest.json'), 'utf8'));
+for (const slug of manifest.aliases) {
   const response = await fetch(`${origin}/${slug}`, { cache: 'no-store', signal: AbortSignal.timeout(25000) });
   assert.equal(response.status, 200, `/${slug} alias failed`);
   assert.equal(await response.text(), await readFile(path.join(source, `${slug}.html`), 'utf8'));
