@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-03T05:34:44.155Z",
+  "scope": "Production HTTP with disposable synthetic client accounts",
+  "buildId": "bGkwUuezdOzgCUFSG7E7S",
+  "checks": [
+    "owner CSRF sign-in, real invitation activation and two separate customer sessions",
+    "unshared engagement and its shared child remain private",
+    "live staff share reaches the correct client without internal fields or forged client selection",
+    "client sessions cannot open staff tax APIs or owner administration",
+    "cross-origin customer actions are rejected",
+    "withdrawing a share removes the engagement and document requests immediately",
+    "account revocation invalidates an existing customer session",
+    "installed staff record editor exposes the sharing control"
+  ],
+  "diagnosticServerStopped": true,
+  "helperPid": 91695,
+  "realClientDataUsed": false,
+  "visualAcceptance": "Pending Luke screenshots"
+}

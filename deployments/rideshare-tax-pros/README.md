@@ -65,7 +65,9 @@ are excluded. See `docs/TAX-FIRM.md` for setup and sharing controls. Configure
 build rejects localhost, IP addresses and private-network names.
 
 When updating the installed backend, stop its owned service, preserve the prior
-build and take a private workspace backup before rebuilding. Then run the
+build outside the source checkout and take a private workspace backup before
+rebuilding. Keeping generated build types under the checkout can cause TypeScript
+to scan the archived output. Then run the
 production client check and workspace installer. An already-running service
 whose installation receipt names a different build is rejected by the installer.
 
