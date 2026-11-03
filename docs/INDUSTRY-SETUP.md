@@ -1,5 +1,11 @@
 # Set up around your business
 
+**Tax & accounting firm** adds a reusable [Tax Firm industry pack](TAX-FIRM.md),
+with optional rideshare records and quarterly review tracking. The first supplied
+white-label template is Rideshare Tax Pros; export it with `npm run tax:template`
+and use Branding's existing template preview/import flow in each firm's private
+installation.
+
 Open **Setup → Start with your business type**. Search the first screen, **What do you run?**, and choose Auto repair shop, Restaurant, HVAC company, Landscaper, Wholesale distributor, Marketing agency, Community nonprofit, Gym, Salon, or Construction company.
 
 Each template asks six or seven questions. Answers select reusable capability packs. For a mechanic, appointment scheduling, stocked parts, technician time, electronic estimates, fleet accounts and counter sales each change the tools shown. The QuickBooks answer adds connection guidance; account authorization is a separate step in Connect.

@@ -11,9 +11,11 @@ import type { AppModule } from "@/lib/sdk/types";
 import customerFeedback from "./customer-feedback";
 import equipmentLog from "./equipment-log";
 import { industryRecords } from "./industry-records";
+import { taxFirmModules } from "./tax-firm";
 
 export const registeredModules: AppModule[] = [
   customerFeedback,
   equipmentLog,
   ...industryRecords,
+  ...taxFirmModules,
 ];

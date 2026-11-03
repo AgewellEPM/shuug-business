@@ -1,0 +1,74 @@
+{
+  "version": 2,
+  "name": "Rideshare Tax Pros — Shuug Tax Firm v1",
+  "branding": {
+    "businessName": "Rideshare Tax Pros",
+    "tagline": "Tax & Accounting",
+    "logoText": "RTP",
+    "logoImageUrl": null,
+    "primaryColor": "#9425e8",
+    "accentColor": "#f51eea",
+    "backgroundColor": "#faf8fd",
+    "sidebarColor": "#f3edfa",
+    "headerColor": "#140c24",
+    "hiddenSections": [],
+    "organizationTypes": [
+      "service"
+    ],
+    "serviceTypes": [
+      "professional",
+      "managed"
+    ],
+    "featureVisibility": {},
+    "industrySetup": {
+      "industryId": "tax-firm",
+      "templateVersion": 1,
+      "answers": {
+        "appointments": true,
+        "portal": true,
+        "staff": true,
+        "quarterly": true,
+        "rideshare": true,
+        "quickbooks": false,
+        "marketing": false
+      },
+      "packs": [
+        "crm",
+        "jobs",
+        "accounting",
+        "tax_firm",
+        "appointments",
+        "portal",
+        "time",
+        "quarterly_tax",
+        "rideshare_tax"
+      ],
+      "templateName": "Rideshare Tax Pros — Shuug Tax Firm",
+      "revision": 1
+    }
+  },
+  "requiredModules": [
+    {
+      "id": "tax-engagements",
+      "version": "1.0.0"
+    },
+    {
+      "id": "tax-document-requests",
+      "version": "1.0.0"
+    },
+    {
+      "id": "tax-filing-handoffs",
+      "version": "1.0.0"
+    },
+    {
+      "id": "rideshare-tax-records",
+      "version": "1.0.0"
+    },
+    {
+      "id": "tax-quarterly-reviews",
+      "version": "1.0.0"
+    }
+  ],
+  "tools": [],
+  "enabledFeatures": []
+}

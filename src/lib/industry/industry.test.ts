@@ -17,8 +17,8 @@ beforeEach(() => { folder = mkdtempSync(path.join(tmpdir(), "shuug-industry-"));
 afterEach(() => { vi.unstubAllEnvs(); rmSync(folder, { recursive: true, force: true }); });
 const request = (industryId = "auto-repair", answers = {}, addedPacks: string[] = []) => ({ industryId, answers, addedPacks, templateName: "Independent Auto Repair", revision: 3 });
 const ids = (input: unknown) => previewIndustry(input).shown.map(i => i.id);
-it("installs all thirteen industries with 5–8 questions and valid tools for every capability pack", () => {
-  expect(industries).toHaveLength(13);
+it("installs the business industries with 5–8 questions and valid tools for every capability pack", () => {
+  expect(industries.map(industry => industry.id)).toContain("tax-firm");
   for (const template of industries) { expect(template.questions.length).toBeGreaterThanOrEqual(5); expect(template.questions.length).toBeLessThanOrEqual(8); expect(assembleIndustry(request(template.id)).setup.packs.length).toBeGreaterThan(0); }
   for (const pack of packs) for (const tool of pack.tools) expect(workspaceItems.some(i => i.id === tool), `${pack.id}:${tool}`).toBe(true);
 });

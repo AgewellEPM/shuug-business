@@ -26,6 +26,8 @@
     "release:source": "tsx scripts/release-source.ts",
     "wordpress:package": "tsx scripts/package-wordpress.ts",
     "wordpress:smoke": "tsx scripts/wordpress-smoke.ts",
+    "tax:template": "tsx scripts/export-tax-firm-template.ts",
+    "site:rideshare": "node scripts/build-rideshare-site.mjs",
     "test:wordpress": "vitest run src/lib/wordpress",
     "workflow:worker": "tsx scripts/workflow-worker.ts",
     "test:setup": "vitest run src/lib/getting-started",
