@@ -17,10 +17,8 @@
     support: ['A team for the whole year.', 'Get support with tax questions, business records and planning as your rideshare business grows.'],
     platform: ['Powered by Shuug.', 'One AI Business Operating System. Any Industry. Your Rules. Rideshare Tax Pros uses Shuug’s configurable Tax Firm industry pack.'],
   };
-  function safeUrl(value) {
-    if (!value) return null;
-    try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password ? url.href : null; } catch { return null; }
-  }
+  const safeUrl = window.rtpLinks.publicHttpsUrl;
+  let menuOpener = null;
   function link(label, href, primary = true) {
     const a = document.createElement('a');
     a.className = `button ${primary ? 'primary' : 'secondary'}`;
@@ -72,7 +70,9 @@
       return;
     }
     if (event.target.closest('[data-menu]')) {
-      navigation.showModal(); document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'true')); return;
+      menuOpener = event.target.closest('[data-menu]');
+      if (!navigation.open) navigation.showModal();
+      document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'true')); return;
     }
     const close = event.target.closest('[data-close]');
     if (close) { close.closest('dialog').close(); return; }
@@ -92,7 +92,10 @@
     const rect = dialog.getBoundingClientRect();
     if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
   });
-  navigation.addEventListener('close', () => document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'false')));
+  navigation.addEventListener('close', () => {
+    document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'false'));
+    menuOpener?.focus(); menuOpener = null;
+  });
   for (const year of document.querySelectorAll('[data-year]')) year.textContent = String(new Date().getFullYear());
   const scriptUrl = document.currentScript?.src || document.querySelector('script[src$="app.js"]')?.src || location.href;
   window.rtpSiteConfig = fetch(new URL('site-config.json', new URL('.', scriptUrl)), { cache: 'no-store' }).then(response => response.ok ? response.json() : {}).then(value => {

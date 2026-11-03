@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { renderedPages } from './rideshare-site/pages.mjs';
 import { renderHome, renderPage } from './rideshare-site/layout.mjs';
 import { origin } from './rideshare-site/content.mjs';
+import { createRequire } from 'node:module';
+const { publicHttpsUrl } = createRequire(import.meta.url)('../public/rideshare-tax-pros/links.js');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const destination = path.join(root, 'deployments/rideshare-tax-pros/.vercel/output');
 const source = path.join(root, 'public/rideshare-tax-pros');
@@ -12,8 +14,7 @@ if (new Set(pages.map(page => page.slug)).size !== pages.length) throw new Error
 const home = renderHome(readFileSync(path.join(source, 'index.html'), 'utf8'));
 const config = JSON.parse(readFileSync(path.join(source, 'site-config.json'), 'utf8'));
 for (const key of ['workspaceUrl', 'drakePortalUrl']) if (config[key] !== null) {
-  const url = new URL(config[key]);
-  if (url.protocol !== 'https:' || url.username || url.password) throw new Error(`${key} must be a public HTTPS URL.`);
+  if (!publicHttpsUrl(config[key])) throw new Error(`${key} must use a hosted HTTPS domain without embedded credentials.`);
 }
 const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
 const staticPath = path.join(destination, 'static');

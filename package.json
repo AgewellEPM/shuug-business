@@ -30,6 +30,7 @@
     "site:rideshare": "node scripts/build-rideshare-site.mjs",
     "workspace:rideshare:install": "node --import tsx scripts/install-rideshare-workspace.ts",
     "workspace:rideshare:launcher": "bash scripts/build-rideshare-launcher.sh --install",
+    "workspace:rideshare:smoke": "node --import tsx scripts/rideshare-client-smoke.ts",
     "test:wordpress": "vitest run src/lib/wordpress",
     "workflow:worker": "tsx scripts/workflow-worker.ts",
     "test:setup": "vitest run src/lib/getting-started",

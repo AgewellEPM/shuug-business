@@ -70,7 +70,7 @@
 
   const portal = document.querySelector('#client-access-links');
   if (portal) Promise.resolve(window.rtpSiteConfig || {}).then(config => {
-    const safe = value => { try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password ? url.href : null; } catch { return null; } };
+    const safe = window.rtpLinks.publicHttpsUrl;
     const workspace = safe(config.workspaceUrl); const external = safe(config.drakePortalUrl);
     for (const [label, href] of [['Open Shuug client workspace', workspace], ['External filing portal', external]]) {
       if (!href) continue;

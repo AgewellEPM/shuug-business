@@ -11,7 +11,7 @@ function page(slug = "", config = {}, hash = "") {
   w.fetch = (async () => ({ ok: true, json: async () => config })) as never;
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
   w.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new w.Event("close")); };
-  w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
+  w.eval(readFileSync(path.join(source,"links.js"),"utf8")); w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
   return dom;
 }
 it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
@@ -74,4 +74,22 @@ it("combines FAQ text search with topics and handles no matches", () => {
 it("offers a configured workspace without accepting unsafe external destinations", async () => {
   const dom=page('client-portal',{workspaceUrl:'https://workspace.example.com/',drakePortalUrl:'javascript:alert(1)'});
   try {await new Promise(resolve=>setTimeout(resolve,0));const links=dom.window.document.querySelectorAll<HTMLAnchorElement>('#client-access-links a');expect(links).toHaveLength(1);expect(links[0].href).toBe('https://workspace.example.com/');}finally{dom.window.close();}
+});
+it("keeps local machines, private addresses and embedded credentials out of public portal links", async () => {
+  for (const workspaceUrl of ['https://localhost:3126', 'https://127.0.0.1:3126', 'https://[::1]:3126', 'https://192.168.1.5', 'https://shuug.local', 'https://shuug.internal', 'https://owner:secret@workspace.example.com', 'http://workspace.example.com']) {
+    const dom=page('client-portal',{workspaceUrl,drakePortalUrl:workspaceUrl});
+    try { await new Promise(resolve=>setTimeout(resolve,0)); expect(dom.window.document.querySelectorAll('#client-access-links a'),workspaceUrl).toHaveLength(0); }
+    finally { dom.window.close(); }
+  }
+});
+it("returns keyboard focus to the navigation opener and exposes a focusable main target", () => {
+  const dom=page('services');const d=dom.window.document;
+  try {
+    const opener=d.querySelector<HTMLButtonElement>('[data-menu]')!;opener.focus();opener.click();
+    const dialog=d.querySelector<HTMLDialogElement>('#navigation')!;
+    expect(dialog.open).toBe(true);expect(opener.getAttribute('aria-expanded')).toBe('true');
+    dialog.querySelector<HTMLButtonElement>('[data-close]')!.click();
+    expect(dialog.open).toBe(false);expect(opener.getAttribute('aria-expanded')).toBe('false');expect(d.activeElement).toBe(opener);
+    expect(d.querySelector('#main')!.getAttribute('tabindex')).toBe('-1');
+  } finally {dom.window.close();}
 });

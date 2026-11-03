@@ -57,6 +57,18 @@ another application has not replaced it. See
 `native/macos/WorkspaceLauncher/README.md` for behavior and verification limits.
 This helper is separate from the planned driver mileage app.
 
+Invited clients use `/api/website/customer` on the private Shuug host. The Tax
+Firm client view shows only explicitly shared engagement, document-request,
+rideshare-record and quarterly-review updates. Staff notes and vault references
+are excluded. See `docs/TAX-FIRM.md` for setup and sharing controls. Configure
+`workspaceUrl` with the full hosted HTTPS client sign-in destination; the public
+build rejects localhost, IP addresses and private-network names.
+
+When updating the installed backend, stop its owned service, preserve the prior
+build and take a private workspace backup before rebuilding. Then run the
+production client check and workspace installer. An already-running service
+whose installation receipt names a different build is rejected by the installer.
+
 Only the generated static site is uploaded. The private application, accounts,
 vault, records and local databases are not part of this deployment. Generated
 Vercel state is ignored by Git.

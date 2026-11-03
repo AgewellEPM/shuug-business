@@ -9,6 +9,7 @@ const choice = (id: string, label: string, options: string[]) => field(id, label
 const client = text("client_id", "Service client ID", true);
 const year = field("tax_year", "Tax year", "number", true);
 const notes = field("notes", "Internal notes (no taxpayer IDs)", "notes");
+const clientSharing = [field("client_visible", "Share safe status with linked client", "checkbox"), text("client_message", "Client-facing message (shared)")];
 const active = (rows: ModuleRecord[]) => rows.filter(row => !row.archived);
 const count = (rows: ModuleRecord[], key: string, values: string[]) => String(active(rows).filter(row => values.includes(String(row.values[key]))).length);
 function module(id: string, label: string, capabilityPacks: string[], fields: Field[], description: string, panels?: AppModuleManifest["panels"]) {
@@ -21,7 +22,7 @@ export const taxFirmModules = [
     text("name", "Engagement name", true), client, year,
     choice("stage", "Workflow stage", ["Intake", "Awaiting documents", "Preparation", "Accountant review", "Client review", "External filing", "Closed", "On hold"]),
     text("accountant", "Assigned accountant"), date("due", "Staff deadline"),
-    text("agreement_id", "Service agreement ID"), text("job_id", "Service work order ID"), text("invoice_id", "Service invoice ID"), notes,
+    text("agreement_id", "Service agreement ID"), text("job_id", "Service work order ID"), text("invoice_id", "Service invoice ID"), notes, ...clientSharing,
   ], "Track client intake, assigned accountants, review stages and links to Shuug agreements, work orders and billing. Stage labels record staff progress; they do not prepare or file returns.", [{
     id: "pipeline", label: "Tax work queue", compute: rows => [
       { label: "Active engagements", value: String(active(rows).filter(row => row.values.stage !== "Closed").length) },
@@ -32,7 +33,7 @@ export const taxFirmModules = [
   module("tax-document-requests", "Tax document requests", ["tax_firm"], [
     text("name", "Requested document", true), text("engagement_id", "Tax engagement record ID", true), client,
     choice("status", "Request status", ["Requested", "Received externally", "Staff reviewed", "Needs replacement", "Not applicable"]),
-    date("due", "Requested by"), text("reviewer", "Reviewed by"), text("secure_reference", "Private document vault reference"), notes,
+    date("due", "Requested by"), text("reviewer", "Reviewed by"), text("secure_reference", "Private document vault reference"), notes, ...clientSharing,
   ], "Track requests and human review of documents held in your approved private vault. This record stores references, not uploaded tax documents or extracted taxpayer data."),
   module("tax-filing-handoffs", "External filing handoffs", ["tax_firm"], [
     text("name", "Handoff name", true), text("engagement_id", "Tax engagement record ID", true), client, year,
@@ -47,12 +48,12 @@ export const taxFirmModules = [
     choice("income_records", "Income statements", ["Not requested", "Requested", "Received externally", "Staff reviewed"]),
     choice("mileage_records", "Mileage records", ["Not requested", "Requested", "Received externally", "Staff reviewed", "Not applicable"]),
     choice("expense_records", "Expense records", ["Not requested", "Requested", "Received externally", "Staff reviewed"]),
-    text("accountant", "Reviewing accountant"), notes,
+    text("accountant", "Reviewing accountant"), notes, ...clientSharing,
   ], "Coordinate rideshare income, mileage and expense records for professional review. Shuug does not calculate deductible mileage, eligibility, a refund or a tax liability."),
   module("tax-quarterly-reviews", "Quarterly tax reviews", ["tax_firm", "quarterly_tax"], [
     text("name", "Review name", true), client, year,
     choice("quarter", "Review period", ["Q1", "Q2", "Q3", "Q4"]), date("due", "Staff review date", true),
     choice("status", "Review status", ["Scheduled", "Waiting for records", "Accountant review", "Advice delivered", "Closed"]),
-    text("accountant", "Assigned accountant"), text("advice_reference", "Reviewed advice reference"), notes,
+    text("accountant", "Assigned accountant"), text("advice_reference", "Reviewed advice reference"), notes, ...clientSharing,
   ], "Schedule staff reviews and record the reference to accountant-reviewed advice. Dates are staff-entered; no statutory deadline, estimated tax calculation or payment is generated."),
 ];

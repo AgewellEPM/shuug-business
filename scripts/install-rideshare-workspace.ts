@@ -39,11 +39,17 @@ async function main(){
   assert(!existing||existing===plist,'An existing service definition differs. Review it before replacement.');
   if(!existing)writeFileSync(plistPath,plist,{mode:0o600});
   const uid=process.getuid!(); const running=spawnSync('/bin/launchctl',['print',`gui/${uid}/${label}`],{encoding:'utf8'}).status===0;
+  const buildId=readFileSync(path.join(root,'.next/BUILD_ID'),'utf8').trim();
+  const previousInstall=path.join(data,'installation.json');
+  if(running && existsSync(previousInstall)){
+    const previous=JSON.parse(readFileSync(previousInstall,'utf8'));
+    assert(previous.buildId===buildId,'The installed service is running a previous build. Stop the owned workspace service before applying this update.');
+  }
   if(!running){
     try{await fetch(base,{signal:AbortSignal.timeout(500)});throw new Error('Port 3126 is occupied by another service.');}catch(error){if(error instanceof Error&&error.message.includes('occupied'))throw error;}
     execFileSync('/bin/launchctl',['bootstrap',`gui/${uid}`,plistPath],{stdio:'pipe'});
   }
-  const manifest={base,source:root,dataDirectory:data,keychainService:service,buildId:readFileSync(path.join(root,'.next/BUILD_ID'),'utf8').trim(),service:label,plistSha256:createHash('sha256').update(readFileSync(plistPath)).digest('hex')};
+  const manifest={base,source:root,dataDirectory:data,keychainService:service,buildId,service:label,plistSha256:createHash('sha256').update(readFileSync(plistPath)).digest('hex')};
   writeFileSync(path.join(data,'installation.json'),JSON.stringify(manifest,null,2),{mode:0o600});
   let ready=false;for(let i=0;i<40;i++){try{const response=await fetch(base+'/api/auth/login',{signal:AbortSignal.timeout(1000)});if(response.ok){ready=true;break;}}catch{}await new Promise(r=>setTimeout(r,250));}
   assert(ready,'Installed service has not become ready; inspect private service logs.');
