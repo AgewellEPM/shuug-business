@@ -35,6 +35,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+/deployments/rideshare-tax-pros/.cloudflare/
+/deployments/rideshare-tax-pros/free-host/host.env
+/.wrangler/
 
 # typescript
 *.tsbuildinfo

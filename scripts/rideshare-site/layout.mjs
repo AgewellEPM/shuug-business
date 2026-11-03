@@ -37,5 +37,5 @@ export function renderHome(html) {
     if (!html.includes(marker)) throw new Error(`Home template is missing ${marker}`);
     html = html.replace(marker, value);
   }
-  return html;
+  return html.replaceAll('https://rideshare-tax-pros.vercel.app', origin);
 }

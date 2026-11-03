@@ -3,9 +3,10 @@ import { expect, it, vi } from "vitest";
 import { JSDOM } from "jsdom";
 import { readFileSync, existsSync } from "node:fs";
 import path from "node:path";
-const source = path.join(process.cwd(), "deployments/rideshare-tax-pros/.vercel/output/static");
+const source = process.env.RIDESHARE_TEST_SITE_DIR || path.join(process.cwd(), "deployments/rideshare-tax-pros/.vercel/output/static");
+const origin = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8")).origin;
 function page(slug = "", config = {}, hash = "") {
-  const dom = new JSDOM(readFileSync(path.join(source, slug ? `${slug}.html` : "index.html"), "utf8"), { url: `https://rideshare-tax-pros.vercel.app/${slug}${hash}`, runScripts: "outside-only" });
+  const dom = new JSDOM(readFileSync(path.join(source, slug ? `${slug}.html` : "index.html"), "utf8"), { url: `${origin}/${slug}${hash}`, runScripts: "outside-only" });
   const w = dom.window;
   w.matchMedia = (() => ({ matches: true })) as never;
   w.fetch = (async () => ({ ok: true, json: async () => config })) as never;
@@ -25,7 +26,7 @@ it("connects the entire built site with valid internal links, unique page headin
       expect(d.querySelector('input[type="password"]')).toBeNull();
       for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
         const url = new URL(a.href);
-        if(url.origin !== 'https://rideshare-tax-pros.vercel.app') continue;
+        if(url.origin !== origin) continue;
         if(url.pathname === `/${slug}` && url.hash) expect(d.getElementById(url.hash.slice(1)),`${slug}:${a.href}`).not.toBeNull();
         else if(url.pathname !== '/') expect(manifest.aliases.includes(url.pathname.slice(1)) || existsSync(path.join(source,url.pathname.slice(1))),a.href).toBe(true);
       }

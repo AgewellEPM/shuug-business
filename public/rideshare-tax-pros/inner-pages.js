@@ -39,7 +39,7 @@
     document.querySelector('[data-reset]').addEventListener('click', () => { recordInputs.forEach(input => { input.checked = false; }); refresh(); });
     document.querySelector('[data-print]').addEventListener('click', () => window.print());
     document.querySelector('[data-download]').addEventListener('click', () => {
-      const lines = ['RIDESHARE TAX PROS — PREPARATION CHECKLIST', document.querySelector('#checklist-context').textContent, '', ...visible().map(input => `${input.checked ? '[Ready]' : '[To review]'} ${input.closest('.record-item').querySelector('span').textContent}`), '', 'An organization aid, not a tax calculation or a submission to the firm.', 'https://rideshare-tax-pros.vercel.app/document-checklist'];
+      const lines = ['RIDESHARE TAX PROS — PREPARATION CHECKLIST', document.querySelector('#checklist-context').textContent, '', ...visible().map(input => `${input.checked ? '[Ready]' : '[To review]'} ${input.closest('.record-item').querySelector('span').textContent}`), '', 'An organization aid, not a tax calculation or a submission to the firm.', `${location.origin}/document-checklist`];
       const url = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' }));
       const link = document.createElement('a'); link.href = url; link.download = 'rideshare-tax-preparation-checklist.txt'; document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     });

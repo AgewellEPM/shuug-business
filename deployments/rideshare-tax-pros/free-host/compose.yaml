@@ -1,0 +1,59 @@
+name: rideshare-tax-pros
+
+x-workspace: &workspace
+  build:
+    context: ../../..
+    dockerfile: Dockerfile.backend
+  image: rideshare-tax-pros-shuug:local
+  environment:
+    APP_BASE_URL: https://${SHUUG_PUBLIC_HOST:?Set SHUUG_PUBLIC_HOST in host.env}
+    DEALDESK_DATA_DIR: /data
+    AUTH_ENABLED: "true"
+    DEMO_DATA: "false"
+    NEXT_TELEMETRY_DISABLED: "1"
+  volumes:
+    - workspace:/data
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  initialize:
+    <<: *workspace
+    profiles: [setup]
+    command: [node, --import, tsx, scripts/setup-rideshare-server.ts]
+    network_mode: none
+    stdin_open: true
+    tty: true
+  web:
+    <<: *workspace
+    init: true
+    restart: unless-stopped
+    expose: ["3000"]
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/auth/login').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      SHUUG_PUBLIC_HOST: ${SHUUG_PUBLIC_HOST:?Set SHUUG_PUBLIC_HOST in host.env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  workspace:
+  caddy-data:
+  caddy-config:

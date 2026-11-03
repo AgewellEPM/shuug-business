@@ -10,3 +10,8 @@ node_modules
 coverage
 .DS_Store
 dist
+build
+**/.vercel
+**/.cloudflare
+**/host.env
+**/.wrangler

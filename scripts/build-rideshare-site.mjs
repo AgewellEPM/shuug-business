@@ -1,13 +1,16 @@
 import { cpSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { renderedPages } from './rideshare-site/pages.mjs';
-import { renderHome, renderPage } from './rideshare-site/layout.mjs';
-import { origin } from './rideshare-site/content.mjs';
 import { createRequire } from 'node:module';
 const { publicHttpsUrl } = createRequire(import.meta.url)('../public/rideshare-tax-pros/links.js');
+const cloudflare = process.argv.includes('--cloudflare');
+process.env.RIDESHARE_SITE_ORIGIN ||= cloudflare ? 'https://rideshare-tax-pros.pages.dev' : 'https://rideshare-tax-pros.vercel.app';
+if (!publicHttpsUrl(process.env.RIDESHARE_SITE_ORIGIN)) throw new Error('The public site must use a hosted HTTPS domain.');
+const { renderedPages } = await import('./rideshare-site/pages.mjs');
+const { renderHome, renderPage } = await import('./rideshare-site/layout.mjs');
+const { origin } = await import('./rideshare-site/content.mjs');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const destination = path.join(root, 'deployments/rideshare-tax-pros/.vercel/output');
+const destination = path.join(root, `deployments/rideshare-tax-pros/${cloudflare ? '.cloudflare' : '.vercel'}/output`);
 const source = path.join(root, 'public/rideshare-tax-pros');
 const pages = renderedPages();
 if (new Set(pages.map(page => page.slug)).size !== pages.length) throw new Error('Duplicate public page routes.');
@@ -17,7 +20,7 @@ for (const key of ['workspaceUrl', 'drakePortalUrl']) if (config[key] !== null) 
   if (!publicHttpsUrl(config[key])) throw new Error(`${key} must use a hosted HTTPS domain without embedded credentials.`);
 }
 const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
-const staticPath = path.join(destination, 'static');
+const staticPath = cloudflare ? destination : path.join(destination, 'static');
 rmSync(staticPath, { recursive: true, force: true });
 mkdirSync(staticPath, { recursive: true });
 cpSync(source, staticPath, { recursive: true });
@@ -34,8 +37,11 @@ for (const [slug, label] of [['privacy', 'Privacy notice'], ['terms', 'Website t
 }
 const aliases = [...pages.map(page => page.slug), 'privacy', 'terms', 'accessibility'];
 writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['', ...aliases].map(slug => `<url><loc>${origin}/${slug}</loc></url>`).join('')}</urlset>`);
+writeFileSync(path.join(staticPath, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 writeFileSync(path.join(staticPath, 'site-manifest.json'), JSON.stringify({ origin, aliases, pages: ['/', ...aliases.map(slug => `/${slug}`)] }, null, 2));
-writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3, routes: [
+if (cloudflare) {
+  writeFileSync(path.join(staticPath, '_headers'), `/*\n  Content-Security-Policy: ${csp}\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/site-config.json\n  Cache-Control: no-store\n`);
+} else writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3, routes: [
   { src: '/.*', headers: { 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }, continue: true },
   { src: '/site-config.json', headers: { 'Cache-Control': 'no-store' }, continue: true },
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },

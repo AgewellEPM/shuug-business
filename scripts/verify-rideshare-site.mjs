@@ -4,9 +4,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 
-const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../deployments/rideshare-tax-pros/.vercel/output/static');
-const origin = 'https://rideshare-tax-pros.vercel.app';
-const files = (await readdir(source, { recursive: true, withFileTypes: true })).filter(entry => entry.isFile()).map(entry => path.relative(source, path.join(entry.parentPath, entry.name)));
+const cloudflare = process.argv.includes('--cloudflare');
+const source = path.resolve(path.dirname(fileURLToPath(import.meta.url)), `../deployments/rideshare-tax-pros/${cloudflare ? '.cloudflare/output' : '.vercel/output/static'}`);
+const manifest = JSON.parse(await readFile(path.join(source, 'site-manifest.json'), 'utf8'));
+const origin = manifest.origin;
+const files = (await readdir(source, { recursive: true, withFileTypes: true })).filter(entry => entry.isFile()).map(entry => path.relative(source, path.join(entry.parentPath, entry.name))).filter(filename => !['_headers', '_redirects'].includes(filename));
 async function load(route) {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -29,7 +31,6 @@ for (let offset = 0; offset < files.length; offset += 4) {
   }));
   checks.push(...batch);
 }
-const manifest = JSON.parse(await readFile(path.join(source, 'site-manifest.json'), 'utf8'));
 for (const slug of manifest.aliases) {
   const { response, bytes } = await load(`/${slug}`);
   assert.equal(response.status, 200, `/${slug} alias failed`);
