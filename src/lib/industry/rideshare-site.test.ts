@@ -30,9 +30,28 @@ it("opens each actual page control and shows honest availability while contact d
     document.querySelector<HTMLElement>("[data-menu]")!.click();
     expect(document.querySelector("[data-menu]")?.getAttribute("aria-expanded")).toBe("true");
     let scrolled = false;
-    document.querySelector<HTMLElement>("#mobile-services")!.scrollIntoView = () => { scrolled = true; };
+    document.querySelector<HTMLElement>("#services")!.scrollIntoView = () => { scrolled = true; };
     document.querySelector<HTMLElement>('[data-nav="services"]')!.click();
     expect(scrolled).toBe(true); expect(document.querySelector("[data-menu]")?.getAttribute("aria-expanded")).toBe("false");
+  } finally { dom.window.close(); }
+});
+it("connects footer destinations, policy pages and native service details without dead links", () => {
+  const dom = page(), document = dom.window.document;
+  try {
+    for (const link of document.querySelectorAll<HTMLAnchorElement>('a[href^="#"]')) {
+      const target = document.getElementById(link.hash.slice(1));
+      expect(target, `Missing destination for ${link.hash}`).not.toBeNull();
+    }
+    for (const filename of ["privacy.html", "terms.html", "accessibility.html"]) {
+      const policy = new JSDOM(readFileSync(path.join(source, filename), "utf8"));
+      try { expect(policy.window.document.querySelector('meta[name="viewport"]')).not.toBeNull(); expect(policy.window.document.querySelector('main h1')?.textContent).toBeTruthy(); }
+      finally { policy.window.close(); }
+    }
+    const details = document.querySelector<HTMLDetailsElement>("#service-quarterly")!;
+    expect(details.open).toBe(false);
+    document.querySelector<HTMLElement>('footer [href="#service-quarterly"]')!.click();
+    expect(details.open).toBe(true);
+    expect(document.querySelectorAll(".mobile-action-bar .button")).toHaveLength(2);
   } finally { dom.window.close(); }
 });
 it("connects a configured Shuug workspace and ignores unsafe portal destinations", async () => {

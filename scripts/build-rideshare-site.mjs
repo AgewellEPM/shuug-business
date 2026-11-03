@@ -16,6 +16,8 @@ writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3
   { src: '/.*', headers: { 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }, continue: true },
   { src: '/site-config.json', headers: { 'Cache-Control': 'no-store' }, continue: true },
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
+  { src: '/(privacy|terms|accessibility)', dest: '/$1.html' },
   { handle: 'filesystem' },
+  { src: '/.*', dest: '/404.html', status: 404 },
 ] }, null, 2));
 console.log(`Rideshare Tax Pros static deployment prepared at ${destination}`);

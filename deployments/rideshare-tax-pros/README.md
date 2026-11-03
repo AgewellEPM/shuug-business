@@ -5,12 +5,19 @@ this repository. It uses the art director's supplied desktop artwork, replaces
 the sample phone and Drake buttons with live controls, and includes a responsive
 HTML mobile layout. Navigation and service dialogs work without any backend.
 
+The site also includes service details, the client process, FAQs, contact
+availability, a four-column footer, privacy/terms/accessibility pages, a branded
+404 page, canonical/social metadata, robots.txt and a sitemap. Mobile navigation
+stays visible, and a safe-area-aware bottom bar keeps the primary actions within
+reach. Real-device visual acceptance still belongs to Luke.
+
 Build and deploy from the repository root:
 
 ```sh
 node scripts/build-rideshare-site.mjs
 vercel link --yes --project rideshare-tax-pros --cwd deployments/rideshare-tax-pros
 vercel deploy --prebuilt --prod --cwd deployments/rideshare-tax-pros
+node scripts/verify-rideshare-site.mjs
 ```
 
 Only the generated static site is uploaded. The private application, accounts,
@@ -21,8 +28,10 @@ Edit `public/rideshare-tax-pros/site-config.json` and rebuild to connect the
 firm's HTTPS Shuug workspace, optional external Drake portal, real contact phone
 and email. Null values show honest opening-soon messages. The supplied 555 number
 is covered in the desktop design and is never used as a telephone destination.
-The artwork includes director-supplied social proof and illustrative financial
-figures; confirm these before treating this initial design as approved marketing.
+The artwork's unverified client counts and satisfaction statistics are covered
+by live HTML service commitments. The refund illustration is labeled as an
+example and the FAQ explains that outcomes are not guaranteed. Do not add
+credentials, pricing, testimonials, locations or success claims without evidence.
 
 The reusable workspace template is exported by
 `src/lib/industry/rideshare-tax-pros.ts`. Tax & accounting firm is selectable in

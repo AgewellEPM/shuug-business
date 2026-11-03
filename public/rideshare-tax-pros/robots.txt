@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://rideshare-tax-pros.vercel.app/sitemap.xml

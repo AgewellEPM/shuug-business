@@ -27,6 +27,21 @@
     a.textContent = label; a.href = href;
     actions.append(a);
   }
+  function contactOptions() {
+    const email = typeof config.contactEmail === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config.contactEmail) ? config.contactEmail : null;
+    const phone = typeof config.contactPhone === 'string' && /^\+?[\d ()-]{7,25}$/.test(config.contactPhone) ? config.contactPhone : null;
+    return { email, phone };
+  }
+  function renderContact() {
+    const destination = document.querySelector('#contact-details');
+    const { email, phone } = contactOptions();
+    if (!destination || (!email && !phone)) return;
+    destination.replaceChildren();
+    for (const [label, href] of [[phone, phone && `tel:${phone.replace(/[^+\d]/g, '')}`], [email, email && `mailto:${email}`]]) {
+      if (!label || !href) continue;
+      const a = document.createElement('a'); a.textContent = label; a.href = href; destination.append(a);
+    }
+  }
   function renderPanel(key) {
     if (!content[key]) return;
     currentPanel = key;
@@ -34,8 +49,7 @@
     extra.replaceChildren(); actions.replaceChildren();
     const workspace = safeUrl(config.workspaceUrl);
     const drake = safeUrl(config.drakePortalUrl);
-    const email = typeof config.contactEmail === 'string' && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(config.contactEmail) ? config.contactEmail : null;
-    const phone = typeof config.contactPhone === 'string' && /^\+?[\d ()-]{7,25}$/.test(config.contactPhone) ? config.contactPhone : null;
+    const { email, phone } = contactOptions();
     if (key === 'platform') {
       const p = document.createElement('p'); p.textContent = 'Your firm’s brand. A shared, modular business platform.'; extra.append(p);
       return;
@@ -62,13 +76,15 @@
     }
     const close = event.target.closest('[data-close]');
     if (close) { close.closest('dialog').close(); return; }
+    const detailLink = event.target.closest('[data-open-details]');
+    if (detailLink) {
+      const detail = document.querySelector(detailLink.getAttribute('href'));
+      if (detail instanceof HTMLDetailsElement) detail.open = true;
+    }
     const nav = event.target.closest('[data-nav]');
     if (nav) {
       event.preventDefault(); navigation.close();
-      const section = nav.dataset.nav;
-      const mobile = matchMedia('(max-width: 800px)').matches;
-      const target = section === 'home' ? '#main' : `#${mobile ? 'mobile' : 'desktop'}-${section}`;
-      document.querySelector(target)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+      document.querySelector(nav.getAttribute('href'))?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
     }
   });
   for (const dialog of [navigation, information]) dialog.addEventListener('click', event => {
@@ -77,8 +93,10 @@
     if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close();
   });
   navigation.addEventListener('close', () => document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'false')));
+  for (const year of document.querySelectorAll('[data-year]')) year.textContent = String(new Date().getFullYear());
   fetch('./site-config.json', { cache: 'no-store' }).then(response => response.ok ? response.json() : {}).then(value => {
     if (value && typeof value === 'object') config = value;
+    renderContact();
     if (currentPanel && information.open) renderPanel(currentPanel);
   }).catch(() => {});
 })();
