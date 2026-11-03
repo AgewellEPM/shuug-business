@@ -1,0 +1,84 @@
+{
+  "ok": true,
+  "origin": "https://rideshare-tax-pros.vercel.app",
+  "verifiedAt": "2026-11-03T00:51:00.993Z",
+  "checks": [
+    {
+      "route": "/404.html",
+      "status": 200,
+      "sha256": "b9508f067808c9eb8fd65378df52088ef303fbcadbb2c54dfc75faa3ff6c5562"
+    },
+    {
+      "route": "/accessibility.html",
+      "status": 200,
+      "sha256": "e9cb4e97f945f43ec7b7e5feaa6a33925e668b6413224fd5a966080048556598"
+    },
+    {
+      "route": "/app.js",
+      "status": 200,
+      "sha256": "564ce6c8da9ae4127d82b838800c7aa711cba509a87f7a0af54bca3938ef0033"
+    },
+    {
+      "route": "/favicon.svg",
+      "status": 200,
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "sha256": "5c3be2ac695f958d05c21bd3f23fd167f0b3995f2372f257cce07ab38d45b72a"
+    },
+    {
+      "route": "/privacy.html",
+      "status": 200,
+      "sha256": "3398244976ad780127dfed610aba58ebbee9f0c30713004058d206ae6b282d45"
+    },
+    {
+      "route": "/robots.txt",
+      "status": 200,
+      "sha256": "5fe79f4e066b71ac9ba3e604005a41a57b8e5d4a2098252ec3c16878d8948b0d"
+    },
+    {
+      "route": "/site-config.json",
+      "status": 200,
+      "sha256": "8bb9a16d867ae707fcd9aa9236601009223df89f6cedc591ed616e1f9b2a8308"
+    },
+    {
+      "route": "/sitemap.xml",
+      "status": 200,
+      "sha256": "9008073b3e25de130d242ba558dfd3353c86ed9163091c1a3e2aadfd71edc8e0"
+    },
+    {
+      "route": "/styles.css",
+      "status": 200,
+      "sha256": "5b6b545f13f2cfa95b7eb6055eb7f21cbb32f84d8fd181f8228645604dde1768"
+    },
+    {
+      "route": "/terms.html",
+      "status": 200,
+      "sha256": "6d92fc07fe12ed51f117aaf364d6cd3ccd40a92145dc36ff9e478fa65692d274"
+    },
+    {
+      "route": "/assets/artwork.png",
+      "status": 200,
+      "sha256": "c3297662e50f448c01622cd75ad9cd0f82e8d87a6b0c108d42334202bb43f042"
+    },
+    {
+      "route": "/privacy",
+      "status": 200
+    },
+    {
+      "route": "/terms",
+      "status": 200
+    },
+    {
+      "route": "/accessibility",
+      "status": 200
+    },
+    {
+      "route": "/__missing-page-check",
+      "status": 404
+    }
+  ],
+  "visualAcceptance": "Not established by HTTP checks; Luke’s screenshots are required."
+}
