@@ -1,4 +1,8 @@
 [hidden] { display: none !important; }
+.clear-search { align-self: flex-end; min-height: 50px; padding: 13px 18px; border: 1px solid #a161bb; border-radius: 10px; background: #21122d; font-size: 14px; white-space: nowrap; }
+.clear-search:disabled { opacity: .45; cursor: default; }
+.search-controls label { min-width: 0; }
+@media (max-width: 760px) { .search-controls { flex-wrap: wrap; } .search-controls label { flex-basis: 100%; } .clear-search { align-self: stretch; width: 100%; } }
 .services .service-card { display: block; text-decoration: none; color: inherit; }
 .inner-header { position: sticky; top: 0; z-index: 30; background: #05070ff5; border-bottom: 1px solid #8f4da737; backdrop-filter: blur(15px); }
 .inner-header-content { max-width: 1280px; margin: auto; padding: 20px 32px; display: flex; align-items: center; gap: 24px; justify-content: space-between; }

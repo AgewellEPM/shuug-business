@@ -48,6 +48,10 @@
   for (const library of document.querySelectorAll('[data-search-library]')) {
     const search = library.querySelector('[data-search-input]'); const category = library.querySelector('[data-search-category]');
     const entries = [...library.querySelectorAll('[data-search-card]')];
+    const clear = document.createElement('button');
+    clear.type = 'button'; clear.className = 'clear-search'; clear.dataset.clearSearch = '';
+    clear.textContent = category ? 'Clear filters' : 'Clear search';
+    library.querySelector('.search-controls').append(clear);
     const filter = () => {
       const words = search.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
       let count = 0;
@@ -55,9 +59,12 @@
         entry.hidden = !words.every(word => entry.dataset.searchText.toLowerCase().includes(word)) || Boolean(category && category.value !== 'all' && entry.dataset.category !== category.value);
         if (!entry.hidden) count++;
       }
-      library.querySelector('[data-search-count]').textContent = `${count} ${category ? 'questions' : 'resources'} found`;
+      const noun = category ? 'question' : 'resource';
+      library.querySelector('[data-search-count]').textContent = `${count} ${noun}${count === 1 ? '' : 's'} found`;
       library.querySelector('[data-search-empty]').hidden = count !== 0;
+      clear.disabled = !search.value && (!category || category.value === 'all');
     };
+    clear.addEventListener('click', () => { search.value = ''; if (category) category.value = 'all'; filter(); search.focus(); });
     search.addEventListener('input', filter); category?.addEventListener('change', filter); filter();
   }
 

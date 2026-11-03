@@ -62,9 +62,13 @@ it("combines FAQ text search with topics and handles no matches", () => {
   const dom=page('faq');const d=dom.window.document;
   try {
     const search=d.querySelector<HTMLInputElement>('[data-search-input]')!; search.value='1099';search.dispatchEvent(new dom.window.Event('input'));
-    expect(d.querySelector('[data-search-count]')!.textContent).toContain('1 questions');
+    expect(d.querySelector('[data-search-count]')!.textContent).toContain('1 question found');
     const category=d.querySelector<HTMLSelectElement>('[data-search-category]')!;category.value='Client access';category.dispatchEvent(new dom.window.Event('change'));
     expect(d.querySelector<HTMLElement>('[data-search-empty]')!.hidden).toBe(false);
+    const clear=d.querySelector<HTMLButtonElement>('[data-clear-search]')!; expect(clear.disabled).toBe(false); clear.click();
+    expect(search.value).toBe(''); expect(category.value).toBe('all');
+    expect(d.querySelector('[data-search-count]')!.textContent).toContain('20 questions found');
+    expect(d.activeElement).toBe(search);
   } finally {dom.window.close();}
 });
 it("offers a configured workspace without accepting unsafe external destinations", async () => {
