@@ -1,0 +1,239 @@
+{
+  "ok": true,
+  "origin": "https://rideshare-tax-pros.pages.dev",
+  "verifiedAt": "2026-11-05T00:48:21.903Z",
+  "checks": [
+    {
+      "route": "/404.html",
+      "status": 200,
+      "sha256": "b9508f067808c9eb8fd65378df52088ef303fbcadbb2c54dfc75faa3ff6c5562"
+    },
+    {
+      "route": "/about.html",
+      "status": 200,
+      "sha256": "beb6b4471385bd21a63c4ffc237113a1bd0d860c97bc251cbebfcd8b302661c2"
+    },
+    {
+      "route": "/accessibility.html",
+      "status": 200,
+      "sha256": "c9904c274dc52ec64ffd1ba08b10a7fe7941d2bba9d2b22185a97d79dba6189a"
+    },
+    {
+      "route": "/app.js",
+      "status": 200,
+      "sha256": "416d0c237e66036de671c94c9864288159a6f00f62b30d00cd034d24b03a56b5"
+    },
+    {
+      "route": "/bookkeeping.html",
+      "status": 200,
+      "sha256": "d308be34fa2ffa01acac8bc4bb87bc3d7aefd4fc6a629bc2cfea3dfcdbfeb3d5"
+    },
+    {
+      "route": "/client-portal.html",
+      "status": 200,
+      "sha256": "0969e2c2e37961bdf3b2c41c3f0eb0a884fb6563a315e5cf33871a11e88148c4"
+    },
+    {
+      "route": "/contact.html",
+      "status": 200,
+      "sha256": "2b76248e2d0fa0605e9abfe344c45a50be61c71597ecfd1ed37e9eab7d89d015"
+    },
+    {
+      "route": "/document-checklist.html",
+      "status": 200,
+      "sha256": "e184ae665d81608131e238236e2d68d6d5d87c45ddfb4f6a706f04cc2a8dab54"
+    },
+    {
+      "route": "/faq.html",
+      "status": 200,
+      "sha256": "a5fdb5ecac93c663c0d663d2130bad0fc0eaf96ccdcc5cbaa8ca4659c17c556a"
+    },
+    {
+      "route": "/favicon.svg",
+      "status": 200,
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "route": "/get-started.html",
+      "status": 200,
+      "sha256": "5739c37841d6138e27aae0a610257d5979208c2dbd40ee6554c529c4391e8aa8"
+    },
+    {
+      "route": "/how-it-works.html",
+      "status": 200,
+      "sha256": "3310d0cfa9f319180f9cc5a03496fffe7708c65e2893f36747badebfd7c5e76a"
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "sha256": "bd8f4ec37e2b7f51b367b2554de3400d9fc32877e8454b23d3220b95bd046344"
+    },
+    {
+      "route": "/inner-pages.css",
+      "status": 200,
+      "sha256": "99a6958a78881ee348dc6b40eb7b055c0cdd4bcc79fada43ef89e5c829bcfee4"
+    },
+    {
+      "route": "/inner-pages.js",
+      "status": 200,
+      "sha256": "e0cd01cd1147268b18471df314b1e341440047e3fa971567ae7a814503754a28"
+    },
+    {
+      "route": "/links.js",
+      "status": 200,
+      "sha256": "7351d2805e1b4b2ccd197a20eb312d22c2e9356a345bb370c3af87725a33e593"
+    },
+    {
+      "route": "/mileage-and-expenses.html",
+      "status": 200,
+      "sha256": "80939dd2cf8b28bdfd9aade7603949d6926d166603ae44cc458deffcee92dece"
+    },
+    {
+      "route": "/pricing.html",
+      "status": 200,
+      "sha256": "a00a0a85cdb4cefe684b26335911dc0f1f0feba777f39e4142539664dc1dd0ef"
+    },
+    {
+      "route": "/privacy.html",
+      "status": 200,
+      "sha256": "d9b1147d4bafe66a85e52708a47c48d9c99256512f5afa25710f6687dc0d9976"
+    },
+    {
+      "route": "/quarterly-taxes.html",
+      "status": 200,
+      "sha256": "bb63ae0a292be557b754ebad869fa517555ee5b00dcf41975ffcf1442d5b3b54"
+    },
+    {
+      "route": "/resources.html",
+      "status": 200,
+      "sha256": "6ea0f3c73cf66c4f059edc07da88f6b745bd17b485bb7ea5c5d404902c7a5e6b"
+    },
+    {
+      "route": "/robots.txt",
+      "status": 200,
+      "sha256": "da7818dcf5b2340efab1effeeb232e3d9e83ee84a321a9bb502f55b56de71a52"
+    },
+    {
+      "route": "/services.html",
+      "status": 200,
+      "sha256": "9cfd3fbc19c45fa4189666e7714870677cf3a18ce6ea35cff1f236da0373f421"
+    },
+    {
+      "route": "/site-config.json",
+      "status": 200,
+      "sha256": "8bb9a16d867ae707fcd9aa9236601009223df89f6cedc591ed616e1f9b2a8308"
+    },
+    {
+      "route": "/site-manifest.json",
+      "status": 200,
+      "sha256": "4dbec28092b6005a9d88ee48c81d71c404f38cdab5a71a61a6a38fb06bd5999a"
+    },
+    {
+      "route": "/sitemap.xml",
+      "status": 200,
+      "sha256": "a24efdbaac3e42194b47c2e32784c53ec028b579e7fb1c7aec71e6019bf84d48"
+    },
+    {
+      "route": "/styles.css",
+      "status": 200,
+      "sha256": "b2f5ad6a049a8b8dc8cb0c357c7a76c5f0042a6af189a8075db7f5c66577cc8f"
+    },
+    {
+      "route": "/tax-preparation.html",
+      "status": 200,
+      "sha256": "f8eea0fe048e77319701166c3ac977274f3230b5cf3237de2a66f494bd92df0a"
+    },
+    {
+      "route": "/terms.html",
+      "status": 200,
+      "sha256": "3b2a1446f9bb664c8a8747a632ff5e92fc2512ed45d8ca950068da5ac0d92100"
+    },
+    {
+      "route": "/guides/uber-lyft-tax-forms.html",
+      "status": 200,
+      "sha256": "e56521a70fc0c8199ca6fe3815e7ddc6a75486a39f94504cdbfd8518345af647"
+    },
+    {
+      "route": "/assets/artwork.png",
+      "status": 200,
+      "sha256": "c3297662e50f448c01622cd75ad9cd0f82e8d87a6b0c108d42334202bb43f042"
+    },
+    {
+      "route": "/services",
+      "status": 200
+    },
+    {
+      "route": "/tax-preparation",
+      "status": 200
+    },
+    {
+      "route": "/mileage-and-expenses",
+      "status": 200
+    },
+    {
+      "route": "/quarterly-taxes",
+      "status": 200
+    },
+    {
+      "route": "/bookkeeping",
+      "status": 200
+    },
+    {
+      "route": "/how-it-works",
+      "status": 200
+    },
+    {
+      "route": "/pricing",
+      "status": 200
+    },
+    {
+      "route": "/get-started",
+      "status": 200
+    },
+    {
+      "route": "/document-checklist",
+      "status": 200
+    },
+    {
+      "route": "/resources",
+      "status": 200
+    },
+    {
+      "route": "/guides/uber-lyft-tax-forms",
+      "status": 200
+    },
+    {
+      "route": "/faq",
+      "status": 200
+    },
+    {
+      "route": "/about",
+      "status": 200
+    },
+    {
+      "route": "/contact",
+      "status": 200
+    },
+    {
+      "route": "/client-portal",
+      "status": 200
+    },
+    {
+      "route": "/privacy",
+      "status": 200
+    },
+    {
+      "route": "/terms",
+      "status": 200
+    },
+    {
+      "route": "/accessibility",
+      "status": 200
+    },
+    {
+      "route": "/__missing-page-check",
+      "status": 404
+    }
+  ],
+  "visualAcceptance": "Not established by HTTP checks; Luke’s screenshots are required."
+}

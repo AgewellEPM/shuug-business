@@ -18,9 +18,14 @@ clean HTML routes, a custom 404, security headers, robots.txt and a sitemap for
 if Cloudflare assigns a different project hostname. The origin must be HTTPS.
 No Pages Functions or paid storage services are part of this build.
 
-Authorize Cloudflare using Wrangler's normal OAuth flow, then create or select
-the Pages project and publish the output directory. Check the actual account and
-project before writing. A built directory does not establish publication.
+The public site is live at https://rideshare-tax-pros.pages.dev. Its existing
+Pages project is `rideshare-tax-pros`, with production branch `main`. The initial
+publication and 50 real HTTP checks are recorded in
+[`CLOUDFLARE_PUBLICATION_20261104.md`](../../../docs/deployments/CLOUDFLARE_PUBLICATION_20261104.md).
+
+For an update, verify the authenticated Cloudflare account and existing project,
+then publish the newly built output directory. Reauthorize with Wrangler's
+normal OAuth flow if required. A built directory does not establish publication.
 
 ```sh
 npx --yes wrangler@4.156.2 pages deploy deployments/rideshare-tax-pros/.cloudflare/output --project-name rideshare-tax-pros --branch main

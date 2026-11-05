@@ -1,5 +1,9 @@
 # Free-hosting preparation
 
+> Update, November 4, 2026: the free Cloudflare website is now published and
+> verified. See [publication evidence](CLOUDFLARE_PUBLICATION_20261104.md). The
+> preparation state below is historical; public Shuug hosting still needs Oracle.
+
 Luke explicitly selected free hosting, a Cloudflare `.pages.dev` public site,
 and Oracle Always Free for a persistent Shuug backend. He still needs to create
 his Oracle account. The existing Vercel website remains the last published site;
