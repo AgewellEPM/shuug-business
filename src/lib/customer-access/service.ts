@@ -14,10 +14,17 @@ import { priceOrder, validateOrder } from "../pricing";
 import type { CreateOrderInput } from "../data/store";
 import { listShipments } from "../ops/store";
 import { clientTaxSummary } from "./tax";
+import type { DatabaseSync } from "node:sqlite";
 
 export const customerSettingsSchema = z.object({ enabled: z.boolean(), pricing: z.boolean(), ordering: z.boolean(), orderStatus: z.boolean(), servicePortal: z.boolean(), booking: z.boolean().default(false) }).strict();
-const settings = persistentState("customer-portal-settings", () => ({ enabled: false, pricing: true, ordering: false, orderStatus: true, servicePortal: true, booking: false }));
+const initialCustomerSettings = () => ({ enabled: false, pricing: true, ordering: false, orderStatus: true, servicePortal: true, booking: false });
+const settings = persistentState("customer-portal-settings", initialCustomerSettings);
 export const customerSettings = () => customerSettingsSchema.parse(settings.read());
+/** Read inside an existing write transaction without opening a second writer. */
+export function customerSettingsFromDatabase(db: DatabaseSync) {
+  const row = db.prepare("SELECT body FROM documents WHERE id='state:customer-portal-settings' AND kind='state'").get() as { body: string } | undefined;
+  return customerSettingsSchema.parse(row ? JSON.parse(row.body) : initialCustomerSettings());
+}
 export function saveCustomerSettings(raw: unknown) { const input = customerSettingsSchema.parse(raw); return settings.change(s => Object.assign(s, input)); }
 export async function createLinkedCustomer(raw: unknown) {
   const input = customerInput.parse(raw), store = await getDealStore();

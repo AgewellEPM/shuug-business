@@ -42,6 +42,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+**/xcuserdata/
+**/.swiftpm/
+/native/ios/RideshareTaxPros/DriverCore/.build/
 
 # Private campaign review receipts
 /.data/

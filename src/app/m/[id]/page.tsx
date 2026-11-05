@@ -44,6 +44,7 @@ export default async function ModulePage({ params }: { params: Promise<{ id: str
       </header>
       {(id === "staff-shifts" || getBranding().industrySetup?.packs.includes("restaurant")) && restaurantWorkspaceLink(id) && <p className="mb-5 rounded-lg border bg-amber-50 p-4 text-sm">These earlier reference records remain available here. <Link className="underline" href={restaurantWorkspaceLink(id)!}>Open the connected workflow</Link> to manage the live operation.</p>}
 
+      {id === "rideshare-tax-records" && <p className="mb-5 rounded-lg border bg-purple-50 p-4 text-sm"><Link className="underline" href="/rideshare">Open synced driver trips, expenses & receipts</Link> from the Rideshare Tax Pros iPhone app.</p>}
       {id === "vehicles" && <VehicleVinLookup records={records} clients={vehicleClientOptions()} canEdit={canEdit}/>}
       {getBranding().industrySetup?.packs.includes("auto_repair") && ["labor-rates", "parts-markups"].includes(id) && <AutoRepairWorkbench initial={repairWorkspace()} canEdit={canEdit} mode="rules"/>}
       {id === "vehicle-inspections" && getBranding().industrySetup?.packs.includes("auto_repair") && <InspectionWorkspace initial={inspectionWorkspace(await requireIdentity(), true)} canEdit={canEdit}/>}
