@@ -73,4 +73,21 @@ final class DriverCoreTests: XCTestCase {
         let fractional = Data("\"2026-11-05T00:48:21.903Z\"".utf8)
         XCTAssertNoThrow(try WireJSON.decoder().decode(Date.self, from: fractional))
     }
+    func testTripDateStaysInItsRecordedTimeZoneAcrossSyncAndTravel() throws {
+        let instant = ISO8601DateFormatter().date(from: "2026-11-05T02:30:00Z")!
+        let trip = Trip(startedAt: instant, timeZone: TimeZone(identifier: "America/New_York")!)
+        let record = DriverRecord(payload: .trip(trip))
+        XCTAssertEqual(record.dateLabel, "2026-11-04")
+        XCTAssertEqual(DriverRecord.day(instant, timeZone: TimeZone(identifier: "Asia/Tokyo")!), "2026-11-05")
+        let data = try WireJSON.encoder().encode(record)
+        let synced = try WireJSON.decoder().decode(DriverRecord.self, from: data)
+        XCTAssertEqual(synced, record)
+        XCTAssertTrue(JournalExport.csv([synced]).contains("2026-11-04"))
+        var legacy = try JSONSerialization.jsonObject(with: data) as! [String: Any]
+        var body = legacy["body"] as! [String: Any]
+        body.removeValue(forKey: "localDate"); body.removeValue(forKey: "timeZoneId")
+        legacy["body"] = body
+        let restored = try WireJSON.decoder().decode(DriverRecord.self, from: JSONSerialization.data(withJSONObject: legacy))
+        XCTAssertEqual(restored.dateLabel, "2026-11-05", "Legacy trips consistently use UTC when their original zone was not recorded.")
+    }
 }

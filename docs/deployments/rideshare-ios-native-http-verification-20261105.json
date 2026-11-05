@@ -1,12 +1,12 @@
 {
   "ok": true,
   "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server",
-  "verifiedAt": "2026-11-05T05:36:55.507Z",
-  "buildId": "z3A2yTIkccHOG-B__OX57",
-  "backendCommit": "af47db8c17d20c640395da4638d6406c674b5e32",
+  "verifiedAt": "2026-11-05T07:44:29.051Z",
+  "buildId": "Tob2dYKkfiNYI1USmAZEp",
   "checks": [
     "real invited-client login and brand",
     "Swift JSON optional fields",
+    "recorded local date and time zone round trip",
     "idempotent native retry",
     "stale-write conflict decoding",
     "client isolation",
@@ -22,7 +22,7 @@
     "immediate account revocation"
   ],
   "realClientDataUsed": false,
-  "helperPid": 33119,
+  "helperPid": 2006,
   "diagnosticServerStopped": true,
   "physicalIPhone": "Not established by this loopback transport proof; Luke deferred phone testing."
 }

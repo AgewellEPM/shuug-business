@@ -10,6 +10,7 @@ const money = { amountCents: z.number().int().min(1).max(100_000_000), currency:
 const base = { id: driverId, revision: z.number().int().min(0).max(1_000_000_000), deleted: z.boolean() };
 const trip = z.object({
   startedAt: instant, endedAt: instant.nullable().default(null), distanceMeters: z.number().finite().min(0).max(10_000_000),
+  localDate: day.optional(), timeZoneId: z.string().min(1).max(100).optional(),
   classification, purpose: z.string().trim().max(240), notes,
   source: z.enum(["gps", "manual"]), hasGaps: z.boolean(), sampleCount: z.number().int().min(0).max(10_000_000),
 }).strict().refine(v => !v.endedAt || Date.parse(v.endedAt) >= Date.parse(v.startedAt), "Trip ends before it starts.");

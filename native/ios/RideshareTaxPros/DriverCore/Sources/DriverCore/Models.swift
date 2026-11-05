@@ -12,8 +12,12 @@ public enum ExpenseCategory: String, Codable, CaseIterable, Identifiable, Sendab
 public struct Trip: Codable, Equatable, Sendable {
     public var startedAt: Date, endedAt: Date?, distanceMeters: Double, classification: TripClassification
     public var purpose: String, notes: String, source: String, hasGaps: Bool, sampleCount: Int
-    public init(startedAt: Date = Date(), endedAt: Date? = nil, distanceMeters: Double = 0, classification: TripClassification = .unclassified, purpose: String = "", notes: String = "", source: String = "gps", hasGaps: Bool = false, sampleCount: Int = 0) {
+    public var localDate: String?, timeZoneId: String?
+    public var recordedTimeZone: TimeZone { timeZoneId.flatMap(TimeZone.init(identifier:)) ?? TimeZone(secondsFromGMT: 0)! }
+    public var recordedDate: String { localDate ?? DriverRecord.day(startedAt, timeZone: recordedTimeZone) }
+    public init(startedAt: Date = Date(), endedAt: Date? = nil, distanceMeters: Double = 0, classification: TripClassification = .unclassified, purpose: String = "", notes: String = "", source: String = "gps", hasGaps: Bool = false, sampleCount: Int = 0, timeZone: TimeZone = .current) {
         self.startedAt = startedAt; self.endedAt = endedAt; self.distanceMeters = distanceMeters; self.classification = classification; self.purpose = purpose; self.notes = notes; self.source = source; self.hasGaps = hasGaps; self.sampleCount = sampleCount
+        self.localDate = DriverRecord.day(startedAt, timeZone: timeZone); self.timeZoneId = timeZone.identifier
     }
 }
 public struct Expense: Codable, Equatable, Sendable {
@@ -35,9 +39,9 @@ public struct DriverRecord: Codable, Equatable, Identifiable, Sendable {
     public init(id: UUID = UUID(), revision: Int = 0, deleted: Bool = false, payload: RecordPayload) { self.id = id; self.revision = revision; self.deleted = deleted; self.payload = payload }
     public var kind: String { switch payload { case .trip: "trip"; case .expense: "expense"; case .income: "income" } }
     public var title: String { switch payload { case .trip(let t): t.purpose.isEmpty ? "Driving trip" : t.purpose; case .expense(let e): e.merchant; case .income(let i): i.description } }
-    public var dateLabel: String { switch payload { case .trip(let t): Self.day(t.startedAt); case .expense(let e): e.date; case .income(let i): i.date } }
+    public var dateLabel: String { switch payload { case .trip(let t): t.recordedDate; case .expense(let e): e.date; case .income(let i): i.date } }
     public var receiptId: UUID? { if case .expense(let e) = payload { return e.receiptId }; return nil }
-    public static func day(_ date: Date) -> String { let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"; return f.string(from: date) }
+    public static func day(_ date: Date, timeZone: TimeZone = .current) -> String { let f = DateFormatter(); f.locale = Locale(identifier: "en_US_POSIX"); f.calendar = Calendar(identifier: .gregorian); f.timeZone = timeZone; f.dateFormat = "yyyy-MM-dd"; return f.string(from: date) }
     private enum CodingKeys: String, CodingKey { case id, revision, deleted, kind, body }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)

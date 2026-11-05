@@ -67,6 +67,15 @@ it("makes retry idempotent, refuses stale overwrites, and delivers edits and del
   expect(staffDriverRecords(alpha.clientId)).toEqual([]);
   expect(() => readDriverRecords(alpha.token, NaN)).toThrow("cursor");
 });
+it("retains a late-night trip's recorded local date and time zone while accepting legacy trips", () => {
+  const record = trip();
+  const body = { ...record.body, startedAt: "2026-11-05T02:30:00Z", endedAt: "2026-11-05T03:00:00Z", localDate: "2026-11-04", timeZoneId: "America/New_York" };
+  const saved = saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: { ...record, body } });
+  expect(saved.record.body).toMatchObject({ localDate: "2026-11-04", timeZoneId: "America/New_York" });
+  expect(readDriverRecords(alpha.token).records[0]).toEqual(saved);
+  expect(saveDriverRecord(alpha.token, mutation()).record.body).not.toHaveProperty("localDate");
+  expect(() => saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: { ...trip(), body: { ...body, localDate: "2026-02-31" } } })).toThrow();
+});
 it("honors disabled accounts, service settings and hidden rideshare modules on every operation", () => {
   saveDriverRecord(alpha.token, mutation());
   saveCustomerSettings({ ...customerSettings(), servicePortal: false }); expect(() => readDriverRecords(alpha.token)).toThrow("not enabled");

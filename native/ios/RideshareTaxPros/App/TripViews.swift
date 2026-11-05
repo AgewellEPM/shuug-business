@@ -102,12 +102,23 @@ struct TripDetail: View {
             RecordStatus(entry: entry)
           }
           Section("Drive details") {
-            LabeledContent("Started", value: trip.startedAt.formatted())
+            LabeledContent("Journal date", value: trip.recordedDate)
+            LabeledContent(
+              "Started",
+              value: trip.startedAt.formatted(
+                Date.FormatStyle(
+                  date: .abbreviated, time: .shortened, timeZone: trip.recordedTimeZone)))
             if let ended = trip.endedAt {
-              LabeledContent("Ended", value: ended.formatted())
+              LabeledContent(
+                "Ended",
+                value: ended.formatted(
+                  Date.FormatStyle(
+                    date: .abbreviated, time: .shortened, timeZone: trip.recordedTimeZone)))
             } else {
               Text("Drive in progress")
             }
+            Text("Times use \(trip.recordedTimeZone.identifier).").font(.caption).foregroundStyle(
+              .secondary)
             LabeledContent(
               "Source", value: trip.source == "gps" ? "Recorded GPS" : "Manual entry / correction")
             Text(trip.purpose)
@@ -171,11 +182,15 @@ struct TripEditor: View {
   @State private var notes = ""
   @State private var classification = TripClassification.unclassified
   @State private var validation: String?
+  private var tripTimeZone: TimeZone {
+    if let existing, case .trip(let trip) = existing.payload { return trip.recordedTimeZone }
+    return .current
+  }
   var body: some View {
     Form {
       Section("Trip") {
-        DatePicker("Start", selection: $started)
-        DatePicker("End", selection: $ended)
+        DatePicker("Start", selection: $started).environment(\.timeZone, tripTimeZone)
+        DatePicker("End", selection: $ended).environment(\.timeZone, tripTimeZone)
         TextField("Miles", text: $miles).keyboardType(.decimalPad)
         Picker("Classification", selection: $classification) {
           ForEach(TripClassification.allCases) { Text($0.label).tag($0) }
@@ -184,6 +199,7 @@ struct TripEditor: View {
         TextField("Notes", text: $notes, axis: .vertical)
       }
       Section {
+        Text("Times use \(tripTimeZone.identifier).")
         Text(
           "Enter observed mileage from your own records. A changed GPS distance is recorded as a manual correction for review."
         ).font(.footnote)
@@ -213,7 +229,8 @@ struct TripEditor: View {
     }
     var trip = Trip(
       startedAt: started, endedAt: ended, distanceMeters: distance * 1609.344,
-      classification: classification, purpose: purpose, notes: notes, source: "manual")
+      classification: classification, purpose: purpose, notes: notes, source: "manual",
+      timeZone: tripTimeZone)
     if let existing, case .trip(let previous) = existing.payload {
       trip.sampleCount = previous.sampleCount
       trip.hasGaps = previous.hasGaps
