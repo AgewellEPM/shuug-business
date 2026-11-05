@@ -8,14 +8,18 @@
 
 /* Begin PBXBuildFile section */
 		0907C0BC171CE9E88B2AF60F /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = F7C8E6E2D7DED8B7DB7DD107 /* DriverCore */; };
+		0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */; };
 		0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8E943BF195B750291F3E94 /* LocationTracker.swift */; };
 		2D657A4931BB9FCB6DBE4A4B /* DriverModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C42B736A4CB4413818634 /* DriverModel.swift */; };
+		30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */; };
 		405D64B7ED25565373F8FED5 /* WorkspaceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF479D04A51EC78525B6315D /* WorkspaceClient.swift */; };
 		4291BB6A85A97AA3BDEB0D87 /* RideshareTaxProsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */; };
 		825CDE76D1E5BC422AF0AA33 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F775980FE08AC5338DF6598A /* ConnectionView.swift */; };
 		A3918B8396A9380C72424824 /* TripViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A24C2D320EB0630D00C88 /* TripViews.swift */; };
 		BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */; };
 		BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */; };
+		C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */; };
+		CDB3C1386471C6C7F440146C /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E515B079F485E403FF64B2AD /* Brand.swift */; };
 		CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */; };
 		D666D4CF2B72C07F0CF9E3BE /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EC96DE14A63112C9339895 /* RootView.swift */; };
 		E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B02495B4D78249A890D1EF7 /* Assets.xcassets */; };
@@ -23,12 +27,25 @@
 		F9E43C8E7F8F60AE86EE6523 /* DriverPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		981093743D24A2C985B64794 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4B3AF7C7B95D9C8812F4763D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F3FD7DA7C221AA039279ACF0;
+			remoteInfo = RideshareTaxPros;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		1B02495B4D78249A890D1EF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideshareTaxProsApp.swift; sourceTree = "<group>"; };
 		4A8E943BF195B750291F3E94 /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
 		50EC96DE14A63112C9339895 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseEditor.swift; sourceTree = "<group>"; };
 		6B3F0AFF0E782EBA2D598469 /* DriverCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DriverCore; path = DriverCore; sourceTree = SOURCE_ROOT; };
+		76E341EBA8DC5E1736069D52 /* RideshareTaxProsUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = RideshareTaxProsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseReviewView.swift; sourceTree = "<group>"; };
 		79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCapture.swift; sourceTree = "<group>"; };
 		806A24C2D320EB0630D00C88 /* TripViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripViews.swift; sourceTree = "<group>"; };
 		94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyViews.swift; sourceTree = "<group>"; };
@@ -37,6 +54,8 @@
 		AB62B3A50F636C82218CF62B /* SessionKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionKeychain.swift; sourceTree = "<group>"; };
 		AF479D04A51EC78525B6315D /* WorkspaceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceClient.swift; sourceTree = "<group>"; };
 		CA8C42B736A4CB4413818634 /* DriverModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverModel.swift; sourceTree = "<group>"; };
+		DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverFlows.swift; sourceTree = "<group>"; };
+		E515B079F485E403FF64B2AD /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
 		F775980FE08AC5338DF6598A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -57,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				97D7931F53D492CCB053BFDF /* RideshareTaxPros.app */,
+				76E341EBA8DC5E1736069D52 /* RideshareTaxProsUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -67,6 +87,7 @@
 				716B5728CE99BA75EAACF592 /* App */,
 				CDC3128E557FDCC7CF64C62C /* Packages */,
 				856DA67112F659ED797445A6 /* Resources */,
+				79481E0073D429B5F220BB56 /* UITests */,
 				01B65C3335AF0546F60AD27D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -74,9 +95,12 @@
 		716B5728CE99BA75EAACF592 /* App */ = {
 			isa = PBXGroup;
 			children = (
+				E515B079F485E403FF64B2AD /* Brand.swift */,
 				F775980FE08AC5338DF6598A /* ConnectionView.swift */,
 				CA8C42B736A4CB4413818634 /* DriverModel.swift */,
 				9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */,
+				5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */,
+				7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */,
 				4A8E943BF195B750291F3E94 /* LocationTracker.swift */,
 				94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */,
 				79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */,
@@ -87,6 +111,14 @@
 				AF479D04A51EC78525B6315D /* WorkspaceClient.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		79481E0073D429B5F220BB56 /* UITests */ = {
+			isa = PBXGroup;
+			children = (
+				DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */,
+			);
+			path = UITests;
 			sourceTree = "<group>";
 		};
 		856DA67112F659ED797445A6 /* Resources */ = {
@@ -109,6 +141,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		3E9D63A0302BB915F027D416 /* RideshareTaxProsUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 27392DE2DA06874846A0476A /* Build configuration list for PBXNativeTarget "RideshareTaxProsUITests" */;
+			buildPhases = (
+				54FE5E784704EE83B57BBED4 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9ADB1BFDD998889C373033AD /* PBXTargetDependency */,
+			);
+			name = RideshareTaxProsUITests;
+			packageProductDependencies = (
+			);
+			productName = RideshareTaxProsUITests;
+			productReference = 76E341EBA8DC5E1736069D52 /* RideshareTaxProsUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
 		F3FD7DA7C221AA039279ACF0 /* RideshareTaxPros */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 27C8B7FA413E9CFD2273B263 /* Build configuration list for PBXNativeTarget "RideshareTaxPros" */;
@@ -138,6 +188,10 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					3E9D63A0302BB915F027D416 = {
+						ProvisioningStyle = Automatic;
+						TestTargetID = F3FD7DA7C221AA039279ACF0;
+					};
 					F3FD7DA7C221AA039279ACF0 = {
 						ProvisioningStyle = Automatic;
 					};
@@ -161,6 +215,7 @@
 			projectRoot = "";
 			targets = (
 				F3FD7DA7C221AA039279ACF0 /* RideshareTaxPros */,
+				3E9D63A0302BB915F027D416 /* RideshareTaxProsUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -178,13 +233,24 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		54FE5E784704EE83B57BBED4 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6F01C11B55CE699BCDDFA9FC /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CDB3C1386471C6C7F440146C /* Brand.swift in Sources */,
 				825CDE76D1E5BC422AF0AA33 /* ConnectionView.swift in Sources */,
 				2D657A4931BB9FCB6DBE4A4B /* DriverModel.swift in Sources */,
 				F9E43C8E7F8F60AE86EE6523 /* DriverPrivacyView.swift in Sources */,
+				C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */,
+				30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */,
 				0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */,
 				BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */,
 				CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */,
@@ -198,7 +264,32 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		9ADB1BFDD998889C373033AD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F3FD7DA7C221AA039279ACF0 /* RideshareTaxPros */;
+			targetProxy = 981093743D24A2C985B64794 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		2197A0FA7C2512684FB6D946 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ridesharetaxpros.driver.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = RideshareTaxPros;
+			};
+			name = Release;
+		};
 		238B1C7043C198F43AF77B5E /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -284,6 +375,23 @@
 			};
 			name = Debug;
 		};
+		CC9236A3DDF6711782149512 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ridesharetaxpros.driver.uitests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = RideshareTaxPros;
+			};
+			name = Debug;
+		};
 		DB5A34CDD5707EACD8E0C9DC /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -365,6 +473,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		27392DE2DA06874846A0476A /* Build configuration list for PBXNativeTarget "RideshareTaxProsUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC9236A3DDF6711782149512 /* Debug */,
+				2197A0FA7C2512684FB6D946 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		27C8B7FA413E9CFD2273B263 /* Build configuration list for PBXNativeTarget "RideshareTaxPros" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireSectionAccess } from "@/lib/permissions/guard";
 import { driverAvailable } from "@/lib/rideshare-driver/policy";
 import { staffDriverRecords } from "@/lib/rideshare-driver/store";
+import { expenseCategoryLabels } from "@/lib/rideshare-driver/model";
 import { listBusinessRecords } from "@/lib/workspace/store";
 
 export const dynamic = "force-dynamic";
@@ -24,7 +25,16 @@ export default async function DriverJournal({ searchParams }: { searchParams: Pr
     <form className="flex flex-wrap gap-3"><label>Service client <select name="client" defaultValue={filter ?? ""} className="rounded border p-2"><option value="">All clients</option>{clients.map(c => <option key={c.id} value={c.id}>{c.title}</option>)}</select></label><button className="rounded border px-4">Filter records</button></form>
     <div className="grid gap-3 sm:grid-cols-3">{[["Recorded business miles", (totals.meters / 1609.344).toFixed(2)], ["Recorded expenses · all classifications", usd(totals.expenses)], ["Recorded income", usd(totals.income)]].map(([label, value]) => <div key={label} className="rounded-xl border bg-white p-4"><p className="text-sm text-slate-500">{label}</p><strong className="text-xl">{value}</strong></div>)}</div>
     <div className="overflow-x-auto rounded-xl border bg-white"><table className="w-full text-left text-sm"><thead><tr>{["Client", "Record", "Date", "Distance / amount", "Review / receipt"].map(label => <th key={label} className="border-b p-3">{label}</th>)}</tr></thead><tbody>{rows.map(({ record: r, clientId, accountId }) => <tr key={`${accountId}:${r.id}`}>
-      <td className="border-b p-3">{clients.find(c => c.id === clientId)?.title ?? "Linked client"}</td><td className="border-b p-3">{r.kind === "trip" ? r.body.purpose || "Driving trip" : r.kind === "expense" ? `${r.body.merchant} · ${r.body.category}` : `${r.body.platform} · ${r.body.description}`}</td>
+      <td className="border-b p-3">{clients.find(c => c.id === clientId)?.title ?? "Linked client"}</td><td className="border-b p-3">{r.kind === "trip" ? r.body.purpose || "Driving trip" : r.kind === "expense" ? `${r.body.merchant} · ${expenseCategoryLabels[r.body.category]}` : `${r.body.platform} · ${r.body.description}`}
+      {r.kind === "expense" && <div className="mt-1 space-y-1 text-xs text-slate-600">
+        {r.body.businessPurpose && <p>Purpose: {r.body.businessPurpose}</p>}
+        {r.body.businessUsePercent != null && <p>Recorded business use: {r.body.businessUsePercent}% · requires review</p>}
+        {r.body.mealContext && <p>Meal / travel context: {r.body.mealContext}</p>}
+        {r.body.vehicle && <p>Vehicle: {r.body.vehicle}</p>}
+        {r.body.odometerMiles != null && <p>Odometer: {r.body.odometerMiles.toLocaleString("en-US")} mi</p>}
+        {r.body.paymentMethod && <p>Paid using: {r.body.paymentMethod === "platform" ? "Deducted from payout" : r.body.paymentMethod}</p>}
+        {r.body.place && <p>Place: {r.body.place}</p>}
+      </div>}</td>
       <td className="border-b p-3">{r.kind === "trip" ? r.body.localDate ?? r.body.startedAt.slice(0, 10) : r.body.date}</td><td className="border-b p-3">{r.kind === "trip" ? `${(r.body.distanceMeters / 1609.344).toFixed(2)} mi` : usd(r.body.amountCents)}</td>
       <td className="border-b p-3">{r.kind === "trip" ? `${r.body.classification} · ${r.body.source}${r.body.hasGaps ? " · location gaps: review mileage" : ""}${!r.body.endedAt ? " · in progress" : ""}` : r.kind === "expense" ? <>{r.body.classification}{r.body.receiptId && <> · <a className="underline" href={`/api/rideshare/receipts/${accountId}/${r.body.receiptId}`}>Private receipt</a></>}</> : "Client-entered income"}<p className="mt-1 text-xs text-slate-500">{r.body.notes}</p></td>
     </tr>)}</tbody></table>{!rows.length && <p className="p-6 text-slate-500">No driver records have synced for this selection. The iPhone app can record offline while its workspace connection is being configured.</p>}</div>

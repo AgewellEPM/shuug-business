@@ -5,10 +5,6 @@ public enum TripClassification: String, Codable, CaseIterable, Identifiable, Sen
     public var id: String { rawValue }
     public var label: String { self == .unclassified ? "Review later" : rawValue.capitalized }
 }
-public enum ExpenseCategory: String, Codable, CaseIterable, Identifiable, Sendable {
-    case fuel, maintenance, insurance, tolls, parking, supplies, phone, fees, other
-    public var id: String { rawValue }
-}
 public struct Trip: Codable, Equatable, Sendable {
     public var startedAt: Date, endedAt: Date?, distanceMeters: Double, classification: TripClassification
     public var purpose: String, notes: String, source: String, hasGaps: Bool, sampleCount: Int
@@ -18,13 +14,6 @@ public struct Trip: Codable, Equatable, Sendable {
     public init(startedAt: Date = Date(), endedAt: Date? = nil, distanceMeters: Double = 0, classification: TripClassification = .unclassified, purpose: String = "", notes: String = "", source: String = "gps", hasGaps: Bool = false, sampleCount: Int = 0, timeZone: TimeZone = .current) {
         self.startedAt = startedAt; self.endedAt = endedAt; self.distanceMeters = distanceMeters; self.classification = classification; self.purpose = purpose; self.notes = notes; self.source = source; self.hasGaps = hasGaps; self.sampleCount = sampleCount
         self.localDate = DriverRecord.day(startedAt, timeZone: timeZone); self.timeZoneId = timeZone.identifier
-    }
-}
-public struct Expense: Codable, Equatable, Sendable {
-    public var date: String, merchant: String, category: ExpenseCategory, amountCents: Int, currency: String
-    public var classification: TripClassification, notes: String, receiptId: UUID?
-    public init(date: String, merchant: String, category: ExpenseCategory, amountCents: Int, classification: TripClassification = .unclassified, notes: String = "", receiptId: UUID? = nil) {
-        self.date = date; self.merchant = merchant; self.category = category; self.amountCents = amountCents; self.currency = "USD"; self.classification = classification; self.notes = notes; self.receiptId = receiptId
     }
 }
 public struct Income: Codable, Equatable, Sendable {

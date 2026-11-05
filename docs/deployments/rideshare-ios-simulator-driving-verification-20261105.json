@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "scope": "Apple iPhone Simulator with synthetic GPS",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": false,
+  "cloudSyncVerified": false,
+  "tests": [
+    "native Start/End drive with Core Location simulation",
+    "background/foreground UI lifecycle",
+    "expense entry through the actual form",
+    "saved records after app termination/relaunch",
+    "actual app-container journal persistence"
+  ],
+  "injectedGPSFixes": 7,
+  "recordedDistanceMeters": 333.58524070043643,
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-sez05rii",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-sez05rii/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-05T07:55:43Z"
+}

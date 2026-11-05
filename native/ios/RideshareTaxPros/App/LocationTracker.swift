@@ -25,8 +25,19 @@ import DriverCore
     }
   }
   func start(classification: TripClassification, purpose: String) {
+    Task { [weak self] in
+      let servicesEnabled = await Task.detached {
+        CLLocationManager.locationServicesEnabled()
+      }.value
+      self?.startAfterServiceCheck(
+        classification: classification, purpose: purpose, servicesEnabled: servicesEnabled)
+    }
+  }
+  private func startAfterServiceCheck(
+    classification: TripClassification, purpose: String, servicesEnabled: Bool
+  ) {
     guard let model, model.storageHealthy, model.journal.activeTripId == nil else { return }
-    guard CLLocationManager.locationServicesEnabled() else {
+    guard servicesEnabled else {
       model.message =
         "Turn on Location Services in Settings to record a drive, or enter a trip manually."
       return

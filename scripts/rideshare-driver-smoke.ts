@@ -46,13 +46,14 @@ async function main() {
     }
     assert(ready, "The compiled fixture server did not become ready.");
     const native = await promisify(execFile)(binary, [base], { timeout: 90_000 });
-    const proof = JSON.parse(native.stdout.trim()); assert(proof.ok && proof.checks.length === 12);
+    const proof = JSON.parse(native.stdout.trim()); assert(proof.ok && proof.checks.length === 14);
     const form = await fetch(base + "/api/auth/login"), html = await form.text();
     const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)?.[1]; assert(csrf);
     const owner = await fetch(base + "/api/auth/login", { method: "POST", redirect: "manual", headers: { Origin: base, "Content-Type": "application/x-www-form-urlencoded", cookie: form.headers.getSetCookie().map(c => c.split(";")[0]).join("; ") }, body: new URLSearchParams({ csrf, password: ownerPassword }) });
     assert.equal(owner.status, 303); const cookie = owner.headers.getSetCookie().find(c => c.startsWith("dd_session="))?.split(";")[0]; assert(cookie);
     const staff = await fetch(base + "/rideshare", { headers: { cookie } });
     assert.equal(staff.status, 200); const staffHtml = await staff.text(); assert(staffHtml.includes("Native fixture fuel") && staffHtml.includes("Native fixture payout") && staffHtml.includes("Private receipt"));
+    assert(staffHtml.includes("Native fixture participants") && staffHtml.includes("Native fixture vehicle") && staffHtml.includes("12,345.6") && staffHtml.includes("Meals &amp; food"));
     const receiptPath = staffHtml.match(/href="(\/api\/rideshare\/receipts\/[^\"]+)"/)?.[1]; assert(receiptPath);
     const staffReceipt = await fetch(base + receiptPath, { headers: { cookie } }); assert.equal(staffReceipt.status, 200); assert.equal(staffReceipt.headers.get("content-type"), "image/png");
     const anonymous = await fetch(base + "/rideshare", { redirect: "manual" }); assert([303, 307].includes(anonymous.status));

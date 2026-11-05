@@ -90,4 +90,36 @@ final class DriverCoreTests: XCTestCase {
         let restored = try WireJSON.decoder().decode(DriverRecord.self, from: JSONSerialization.data(withJSONObject: legacy))
         XCTAssertEqual(restored.dateLabel, "2026-11-05", "Legacy trips consistently use UTC when their original zone was not recorded.")
     }
+    func testExpenseDetailsSurviveSyncAndExportAndLegacyRecordsStillOpen() throws {
+        let legacy = Data(#"{"date":"2026-11-05","merchant":"Fuel","category":"fuel","amountCents":1234,"currency":"USD","classification":"business","notes":"","receiptId":null}"#.utf8)
+        let old = try WireJSON.decoder().decode(Expense.self, from: legacy)
+        XCTAssertNil(old.businessPurpose); XCTAssertEqual(old.category, .fuel)
+        let expense = Expense(date: "2026-11-05", merchant: "Fixture Cafe", category: .meals, amountCents: 2450, classification: .business, receiptId: UUID(), businessPurpose: "=SYNTHETIC()", businessUsePercent: 100, mealContext: "Two driver partners; route planning", paymentMethod: .card, place: "Fixture City")
+        let record = DriverRecord(payload: .expense(expense))
+        XCTAssertEqual(try WireJSON.decoder().decode(DriverRecord.self, from: WireJSON.encoder().encode(record)), record)
+        XCTAssertTrue(expense.reviewNotes.isEmpty)
+        let csv = JournalExport.csv([record])
+        XCTAssertTrue(csv.contains("Meals & food")); XCTAssertTrue(csv.contains("'=SYNTHETIC()")); XCTAssertTrue(csv.contains("Two driver partners; route planning"))
+        var incomplete = expense; incomplete.mealContext = nil
+        XCTAssertTrue(incomplete.reviewNotes.contains("Add meal participants or travel context"))
+    }
+    func testExpenseSummaryAndDuplicateWarningDoNotCountDeletedOrUnrelatedRecords() {
+        let now = ISO8601DateFormatter().date(from: "2026-11-15T12:00:00Z")!
+        let meal = Expense(date: "2026-11-05", merchant: "Cafe", category: .meals, amountCents: 1234)
+        let first = DriverRecord(payload: .expense(meal))
+        let repair = DriverRecord(payload: .expense(Expense(date: "2026-11-04", merchant: "Garage", category: .repairs, amountCents: 24567, classification: .personal, vehicle: "Fixture car", odometerMiles: 12345.6)))
+        let prior = DriverRecord(payload: .expense(Expense(date: "2026-10-31", merchant: "Fuel", category: .fuel, amountCents: 9999)))
+        var removed = repair; removed.id = UUID(); removed.deleted = true
+        let income = DriverRecord(payload: .income(Income(date: "2026-11-05", platform: "uber", description: "Payout", amountCents: 90000)))
+        let records = [first, repair, prior, removed, income]
+        let summary = ExpenseSummary(records: records, period: .month, now: now)
+        XCTAssertEqual(summary.totalCents, 25801); XCTAssertEqual(summary.records.count, 2)
+        XCTAssertEqual(summary.categoryTotals.first?.category, .repairs); XCTAssertEqual(summary.needsReview.map(\.id), [first.id])
+        XCTAssertEqual(ExpenseSummary(records: records, period: .year, now: now).totalCents, 35800)
+        var duplicate = meal; duplicate.merchant = "  CAFÉ  "
+        XCTAssertTrue(ExpenseSummary.hasPossibleDuplicate(duplicate, records: records))
+        XCTAssertFalse(ExpenseSummary.hasPossibleDuplicate(duplicate, records: records, excluding: first.id))
+        duplicate.amountCents += 1
+        XCTAssertFalse(ExpenseSummary.hasPossibleDuplicate(duplicate, records: records))
+    }
 }

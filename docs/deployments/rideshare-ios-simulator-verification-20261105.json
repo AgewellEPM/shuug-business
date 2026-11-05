@@ -1,0 +1,30 @@
+{
+  "ok": true,
+  "scope": "Apple iPhone Simulator with synthetic GPS and receipt fixture and meal/repair records",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": true,
+  "cloudSyncVerified": false,
+  "appExecutableSHA256": "0baababd9e563ac32e180037ee6c23e5737fe9c552fb4ca4fdd5343490096ec0",
+  "injectedGPSFixes": 7,
+  "recordedDistanceMeters": 333.58524070043643,
+  "tests": [
+    "native Start/End drive with Core Location simulation",
+    "background/foreground UI lifecycle",
+    "expense entry through the actual form",
+    "saved records after app termination/relaunch",
+    "actual app-container journal persistence",
+    "system photo picker receipt import",
+    "on-device Vision recognition with explicit amount review",
+    "private receipt view and persistence",
+    "business meal purpose and participants saved through the actual form",
+    "repair vehicle, odometer and business-use details persist after relaunch",
+    "spending review displays meal and repair categories",
+    "similar-payment warning prevents an unconfirmed duplicate"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-yrhquavj",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-yrhquavj/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-05T22:46:16Z"
+}

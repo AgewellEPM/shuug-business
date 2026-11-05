@@ -37,6 +37,6 @@ struct DriverPrivacyView: View {
           "This app includes no advertising SDK, bank feed, remote receipt-recognition service or automatic tax-filing connection. It can retrieve the firm’s public workspace address from the Rideshare Tax Pros website when you choose Find my firm’s workspace."
         )
       }
-    }.navigationTitle("App privacy & data").navigationBarTitleDisplayMode(.inline)
+    }.driverScreen().navigationTitle("App privacy & data").navigationBarTitleDisplayMode(.inline)
   }
 }

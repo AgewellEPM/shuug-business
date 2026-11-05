@@ -76,6 +76,19 @@ it("retains a late-night trip's recorded local date and time zone while acceptin
   expect(saveDriverRecord(alpha.token, mutation()).record.body).not.toHaveProperty("localDate");
   expect(() => saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: { ...trip(), body: { ...body, localDate: "2026-02-31" } } })).toThrow();
 });
+it("preserves meal, shared-use and repair details and rejects invalid percentages or odometers", () => {
+  const body = { date: "2026-11-05", merchant: "Fixture meal", category: "meals", amountCents: 2450, currency: "USD", classification: "business", notes: "", businessPurpose: "Driver planning", businessUsePercent: 100, mealContext: "Two business participants", paymentMethod: "card", place: "Fixture City" };
+  const record = { id: randomUUID(), revision: 0, deleted: false, kind: "expense", body };
+  const saved = saveDriverRecord(alpha.token, { mutationId: randomUUID(), record });
+  expect(saved.record.body).toMatchObject(body);
+  const repair = { ...record, id: randomUUID(), body: { ...body, category: "repairs", merchant: "Fixture garage", vehicle: "Driver car", odometerMiles: 12345.6, businessUsePercent: 75 } };
+  saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: repair });
+  expect(staffDriverRecords(alpha.clientId).some(row => row.record.kind === "expense" && row.record.body.odometerMiles === 12345.6)).toBe(true);
+  for (const invalid of [{ businessUsePercent: 101 }, { businessUsePercent: -1 }, { odometerMiles: -1 }]) {
+    expect(() => saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: { ...record, id: randomUUID(), body: { ...body, ...invalid } } })).toThrow();
+  }
+  expect(readDriverRecords(alpha.token).records).toHaveLength(2);
+});
 it("honors disabled accounts, service settings and hidden rideshare modules on every operation", () => {
   saveDriverRecord(alpha.token, mutation());
   saveCustomerSettings({ ...customerSettings(), servicePortal: false }); expect(() => readDriverRecords(alpha.token)).toThrow("not enabled");

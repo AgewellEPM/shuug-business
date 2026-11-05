@@ -33,6 +33,12 @@ enum ProofFailure: Error { case failed(String) }
         catch WorkspaceError.server(let status, _, _) { try check(status == 404, "A cross-client receipt request did not fail closed.") }
         let noReceipt = DriverRecord(payload: .expense(Expense(date: DriverRecord.day(Date()), merchant: "Native fixture parking", category: .parking, amountCents: 650)))
         _ = try await alpha.save(DriverMutation(mutationId: UUID(), record: noReceipt))
+        for category in ExpenseCategory.allCases {
+            let detail = Expense(date: "2026-11-05", merchant: "Native category fixture · " + category.label, category: category, amountCents: 2450, classification: .business, businessPurpose: "Native fixture business purpose", businessUsePercent: 75, mealContext: "Native fixture participants", vehicle: "Native fixture vehicle", odometerMiles: 12345.6, paymentMethod: .platform, place: "Native fixture city")
+            let result = try await alpha.save(DriverMutation(mutationId: UUID(), record: DriverRecord(payload: .expense(detail))))
+            guard case .expense(let restored) = result.record.payload else { throw ProofFailure.failed("Expense changed kind during sync.") }
+            try check(restored == detail, "A native expense category or its review details changed during sync.")
+        }
         _ = try await alpha.save(DriverMutation(mutationId: UUID(), record: DriverRecord(payload: .income(Income(date: DriverRecord.day(Date()), platform: "uber", description: "Native fixture payout", amountCents: 20123)))))
         var deleted = saved.record; deleted.deleted = true
         let tombstone = try await alpha.save(DriverMutation(mutationId: UUID(), record: deleted))
@@ -41,7 +47,7 @@ enum ProofFailure: Error { case failed(String) }
         try await alpha.logout()
         do { _ = try await alpha.records(after: 0); throw ProofFailure.failed("The native session remained valid after logout.") }
         catch WorkspaceError.server(let status, _, _) { try check(status == 401, "Native logout was not enforced.") }
-        let checks = ["real invited-client login and brand", "Swift JSON optional fields", "recorded local date and time zone round trip", "idempotent native retry", "stale-write conflict decoding", "client isolation", "private receipt byte round trip", "cross-client receipt denial", "expense without receipt", "income cents", "incremental deletion", "native session revocation"]
+        let checks = ["real invited-client login and brand", "Swift JSON optional fields", "recorded local date and time zone round trip", "idempotent native retry", "stale-write conflict decoding", "client isolation", "private receipt byte round trip", "cross-client receipt denial", "expense without receipt", "all 23 expense categories", "meal and vehicle review details round trip", "income cents", "incremental deletion", "native session revocation"]
         let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks, "realClientDataUsed": false]
         print(String(decoding: try JSONSerialization.data(withJSONObject: result, options: [.sortedKeys]), as: UTF8.self))
     }

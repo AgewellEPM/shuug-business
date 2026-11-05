@@ -13,9 +13,9 @@ struct ConnectionView: View {
   var body: some View {
     Form {
       Section {
-        Label("Rideshare Tax Pros", systemImage: "car.fill").font(.headline)
+        BrandHeader()
         Text("Your driving records, connected to your firm’s private Shuug workspace.")
-      }
+      }.listRowBackground(Brand.surface)
       if let connection = model.connection, !signingIn {
         Section("Your client account") {
           Text(connection.session.account.name).font(.headline)
@@ -127,7 +127,7 @@ struct ConnectionView: View {
         }
         Text("Driver app · Version 0.1.0").font(.caption).foregroundStyle(.secondary)
       }
-    }.navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
+    }.driverScreen().navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
       .confirmationDialog(
         "Sign out? Your account’s unsynced records will stay on this iPhone and return when you reconnect to that same account.",
         isPresented: $signingOut, titleVisibility: .visible

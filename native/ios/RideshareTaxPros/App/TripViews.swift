@@ -14,13 +14,13 @@ struct StartDriveView: View {
           ForEach(TripClassification.allCases) { Text($0.label).tag($0) }
         }
         TextField("Purpose (optional)", text: $purpose)
-      }
+      }.listRowBackground(Brand.surface)
       Section {
         Text(
           "Location is used only during a drive you start. iPhone shows its background location indicator while recording. End the drive to stop GPS. Review missing sections if the app stops or the signal is lost."
         ).font(.footnote)
       }
-    }.navigationTitle("Start a drive").toolbar {
+    }.driverScreen().navigationTitle("Start a drive").toolbar {
       ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
       ToolbarItem(placement: .confirmationAction) {
         Button("Start") {
@@ -65,7 +65,7 @@ struct TripsView: View {
           }.padding(.vertical, 4)
         }
       }
-    }.navigationTitle("Trips").toolbar {
+    }.driverScreen().navigationTitle("Trips").toolbar {
       Button {
         manual = true
       } label: {
@@ -155,7 +155,7 @@ struct TripDetail: View {
       } else {
         ContentUnavailableView("Trip unavailable", systemImage: "car")
       }
-    }.navigationTitle("Trip").navigationBarTitleDisplayMode(.inline)
+    }.driverScreen().navigationTitle("Trip").navigationBarTitleDisplayMode(.inline)
       .task { points = (try? model.disk.route(id)) ?? [] }
       .sheet(isPresented: $editing) {
         if let entry { NavigationStack { TripEditor(existing: entry.record) } }
@@ -197,7 +197,7 @@ struct TripEditor: View {
         }
         TextField("Purpose", text: $purpose)
         TextField("Notes", text: $notes, axis: .vertical)
-      }
+      }.listRowBackground(Brand.surface)
       Section {
         Text("Times use \(tripTimeZone.identifier).")
         Text(
@@ -205,7 +205,7 @@ struct TripEditor: View {
         ).font(.footnote)
       }
       if let validation { Section { Text(validation).foregroundStyle(.red) } }
-    }.navigationTitle(existing == nil ? "Manual trip" : "Edit trip").toolbar {
+    }.driverScreen().navigationTitle(existing == nil ? "Manual trip" : "Edit trip").toolbar {
       ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
       ToolbarItem(placement: .confirmationAction) { Button("Save", action: save) }
     }.onAppear {

@@ -7,6 +7,7 @@ import SwiftUI
   var body: some Scene {
     WindowGroup {
       RootView().environmentObject(model).environmentObject(location)
+        .preferredColorScheme(.dark)
         .task {
           location.attach(model)
           await model.sync()

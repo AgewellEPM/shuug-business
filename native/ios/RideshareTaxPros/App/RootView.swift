@@ -2,17 +2,6 @@ import DriverCore
 import SwiftUI
 import UniformTypeIdentifiers
 
-enum Brand {
-  static let purple = Color(red: 148 / 255, green: 37 / 255, blue: 232 / 255)
-  static let ink = Color(red: 20 / 255, green: 12 / 255, blue: 36 / 255)
-  static let pink = Color(red: 245 / 255, green: 30 / 255, blue: 234 / 255)
-  static func usd(_ cents: Int) -> String {
-    (Double(cents) / 100).formatted(.currency(code: "USD"))
-  }
-  static func miles(_ meters: Double) -> String {
-    (meters / 1609.344).formatted(.number.precision(.fractionLength(2)))
-  }
-}
 struct RootView: View {
   @EnvironmentObject private var model: DriverModel
   var body: some View {
@@ -23,7 +12,7 @@ struct RootView: View {
       NavigationStack { ConnectionView() }.tabItem {
         Label("Account", systemImage: "person.crop.circle")
       }
-    }.tint(Brand.purple)
+    }.tint(Brand.link)
       .alert(
         "Rideshare Tax Pros",
         isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
@@ -85,15 +74,10 @@ struct TodayView: View {
   var body: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 22) {
-        HStack(spacing: 12) {
-          Image(systemName: "car.side.hill.up.fill").font(.title).foregroundStyle(.white).padding(
-            14
-          ).background(Brand.purple.gradient, in: RoundedRectangle(cornerRadius: 16))
-            .accessibilityHidden(true)
-          VStack(alignment: .leading) {
-            Text("RIDESHARE TAX PROS").font(.headline)
-            Text("You drive. We handle the taxes.").font(.subheadline).foregroundStyle(.secondary)
-          }
+        VStack(alignment: .leading, spacing: 12) {
+          BrandHeader()
+          Text("You drive. We handle the taxes.").font(.subheadline)
+            .foregroundStyle(Brand.muted)
         }
         VStack(alignment: .leading, spacing: 14) {
           Label(
@@ -116,10 +100,8 @@ struct TodayView: View {
               ).font(.caption)
             }
             Button(action: location.stop) {
-              Label("End drive & save", systemImage: "stop.circle.fill").font(.headline).frame(
-                maxWidth: .infinity
-              ).padding(.vertical, 8)
-            }.buttonStyle(.borderedProminent).tint(.white).foregroundStyle(Brand.ink)
+              Label("End drive & save", systemImage: "stop.circle.fill")
+            }.buttonStyle(BrandActionStyle(primary: false))
           } else {
             Text("Mileage saved as you drive.").font(.title2.bold())
             Text(
@@ -128,17 +110,15 @@ struct TodayView: View {
             Button {
               starting = true
             } label: {
-              Label("Start a drive", systemImage: "play.circle.fill").font(.headline).frame(
-                maxWidth: .infinity
-              ).padding(.vertical, 8)
-            }.buttonStyle(.borderedProminent).tint(.white).foregroundStyle(Brand.ink).disabled(
+              Label("Start a drive", systemImage: "play.circle.fill")
+            }.buttonStyle(BrandActionStyle()).disabled(
               !model.storageHealthy)
           }
         }.padding(22).foregroundStyle(.white).frame(maxWidth: .infinity, alignment: .leading)
-          .background(
-            LinearGradient(
-              colors: [Brand.ink, Brand.purple], startPoint: .topLeading, endPoint: .bottomTrailing),
-            in: RoundedRectangle(cornerRadius: 24))
+          .background(Brand.panel, in: RoundedRectangle(cornerRadius: 24))
+          .overlay {
+            RoundedRectangle(cornerRadius: 24).strokeBorder(Brand.border, lineWidth: 1)
+          }
         HStack {
           Label(model.syncStatus, systemImage: model.connection == nil ? "iphone" : "icloud").font(
             .caption)
@@ -154,19 +134,17 @@ struct TodayView: View {
           Button {
             addingExpense = true
           } label: {
-            Label("Add expense", systemImage: "plus.circle.fill").frame(
-              maxWidth: .infinity, minHeight: 48)
+            Label("Add expense", systemImage: "plus.circle.fill")
           }
           Button {
             addingIncome = true
           } label: {
-            Label("Add income", systemImage: "plus.circle").frame(
-              maxWidth: .infinity, minHeight: 48)
+            Label("Add income", systemImage: "plus.circle")
           }
-        }.buttonStyle(.bordered).disabled(!model.storageHealthy)
+        }.buttonStyle(BrandActionStyle(primary: false)).disabled(!model.storageHealthy)
         if model.connection == nil {
           Text(
-            "Your records stay on this iPhone until you connect your invited client account. A website preparation plan is separate from these records."
+            "Your records stay on this iPhone until you connect your invited client account."
           ).font(.footnote).foregroundStyle(.secondary)
         }
         Text(
@@ -178,7 +156,7 @@ struct TodayView: View {
           Label("Export my records as CSV", systemImage: "square.and.arrow.up")
         }.disabled(!model.storageHealthy)
       }.padding()
-    }.background(Color(.systemGroupedBackground)).navigationTitle("Your driving day")
+    }.driverScreen().navigationTitle("Your driving day")
       .navigationBarTitleDisplayMode(.inline)
       .sheet(isPresented: $starting) { NavigationStack { StartDriveView() } }
       .sheet(isPresented: $addingExpense) { NavigationStack { ExpenseEditor() } }
@@ -193,10 +171,14 @@ struct TodayView: View {
   }
   private func metric(_ title: String, _ value: String, _ icon: String) -> some View {
     VStack(alignment: .leading, spacing: 8) {
-      Label(title, systemImage: icon).font(.caption).foregroundStyle(.secondary)
+      Label(title, systemImage: icon).font(.caption).foregroundStyle(Brand.muted)
       Text(value).font(.title2.bold()).minimumScaleFactor(0.6).lineLimit(1)
     }.padding().frame(maxWidth: .infinity, alignment: .leading).background(
-      Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+      Brand.panel, in: RoundedRectangle(cornerRadius: 16)
+    )
+    .overlay {
+      RoundedRectangle(cornerRadius: 16).strokeBorder(Brand.border.opacity(0.5), lineWidth: 1)
+    }
   }
 }
 struct DriverCSV: FileDocument {
