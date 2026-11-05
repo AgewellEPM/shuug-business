@@ -73,6 +73,13 @@ disposable synthetic clients: actual owner/invitation/customer HTTP sign-in,
 sharing/isolation, forbidden staff APIs, cross-origin denial and revocation.
 It stops its owned server and deletes its disposable workspace on completion.
 
+The [Rideshare Tax Pros iPhone app](RIDESHARE-DRIVER.md) records local trips,
+income, expenses and receipts and syncs through invited client accounts. Staff
+review synced submissions at `/rideshare`, under Money view permission, linked
+from Rideshare tax records. Those client-submitted records are separate from
+the explicitly shared staff status trackers above. Public live sync still needs
+the persistent hosted workspace; phone acceptance remains pending.
+
 The public Rideshare Tax Pros website has its own Vercel deployment from the same
 repository. A static site on Vercel can launch before the private workspace is
 hosted. Never place the SQLite database or vault on an ephemeral serverless

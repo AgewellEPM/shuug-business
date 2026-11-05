@@ -2,8 +2,10 @@
 
 Luke's sequence: install and verify Shuug, finish the website for review, then
 build the included driver app for mileage, income, expenses and receipts. Do not
-describe the preparation planner as that app. Native background tracking versus
-foreground web tracking is still an unresolved future platform choice.
+describe the preparation planner as that app. On November 5 Luke activated the
+native iPhone app goal and deferred physical phone testing. See
+[the iPhone driver app](RIDESHARE-DRIVER.md) for its implementation and actual
+verification boundaries; Oracle authentication still blocks public cloud sync.
 
 ## Research and design decisions
 

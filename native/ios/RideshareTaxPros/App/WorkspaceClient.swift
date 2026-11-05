@@ -1,0 +1,165 @@
+import DriverCore
+import Foundation
+
+struct ClientAccount: Codable {
+  var id: UUID
+  var name: String
+  var email: String
+}
+struct WorkspaceBrand: Codable {
+  var name: String
+  var primaryColor: String
+  var accentColor: String
+}
+struct LoginReply: Codable {
+  var apiVersion: Int
+  var token: String
+  var expiresAt: Date
+  var account: ClientAccount
+  var branding: WorkspaceBrand
+}
+struct ConnectionProfile: Codable {
+  var origin: URL
+  var session: LoginReply
+}
+enum WorkspaceError: LocalizedError {
+  case message(String)
+  case server(Int, String, ServerRecord?)
+  var errorDescription: String? {
+    switch self {
+    case .message(let message), .server(_, let message, _): message
+    }
+  }
+}
+enum WorkspaceAddress {
+  static func parse(_ text: String) throws -> URL {
+    guard var c = URLComponents(string: text.trimmingCharacters(in: .whitespacesAndNewlines)),
+      c.scheme?.lowercased() == "https", let host = c.host?.lowercased(), host.contains("."),
+      c.user == nil, c.password == nil, c.query == nil, c.fragment == nil,
+      c.port == nil || c.port == 443,
+      ["", "/", "/api/website/customer", "/api/website/customer/"].contains(c.path),
+      !host.hasSuffix(".local"), !host.hasSuffix(".internal"), !host.hasSuffix(".localhost"),
+      !host.contains(":"), !host.allSatisfy({ $0.isNumber || $0 == "." })
+    else {
+      throw WorkspaceError.message(
+        "Use your firm’s public HTTPS workspace address or client sign-in link.")
+    }
+    c.scheme = "https"
+    c.host = host
+    c.path = ""
+    c.port = nil
+    guard let result = c.url else { throw WorkspaceError.message("Check the workspace address.") }
+    return result
+  }
+}
+private final class SameOriginRedirects: NSObject, URLSessionTaskDelegate {
+  let origin: URL
+  init(_ origin: URL) { self.origin = origin }
+  func urlSession(
+    _ session: URLSession, task: URLSessionTask,
+    willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest,
+    completionHandler: @escaping (URLRequest?) -> Void
+  ) {
+    guard request.url?.scheme == origin.scheme, request.url?.host == origin.host,
+      (request.url?.port ?? 443) == (origin.port ?? 443)
+    else {
+      completionHandler(nil)
+      return
+    }
+    completionHandler(request)
+  }
+}
+final class WorkspaceClient {
+  let origin: URL, token: String?
+  private let session: URLSession
+  init(origin: URL, token: String? = nil) {
+    self.origin = origin
+    self.token = token
+    let c = URLSessionConfiguration.ephemeral
+    c.httpShouldSetCookies = false
+    c.httpCookieStorage = nil
+    c.urlCache = nil
+    c.requestCachePolicy = .reloadIgnoringLocalCacheData
+    c.timeoutIntervalForRequest = 25
+    c.timeoutIntervalForResource = 60
+    session = URLSession(
+      configuration: c, delegate: SameOriginRedirects(origin), delegateQueue: nil)
+  }
+  deinit { session.invalidateAndCancel() }
+  private struct Failure: Decodable {
+    var error: String?
+    var current: ServerRecord?
+  }
+  private func send(
+    _ path: String, method: String = "GET", query: [URLQueryItem] = [], body: Data? = nil,
+    mime: String = "application/json"
+  ) async throws -> (Data, HTTPURLResponse) {
+    var c = URLComponents(url: origin, resolvingAgainstBaseURL: false)!
+    c.path = "/api/website/customer/driver/" + path
+    c.queryItems = query.isEmpty ? nil : query
+    var request = URLRequest(url: c.url!)
+    request.httpMethod = method
+    request.httpBody = body
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if body != nil { request.setValue(mime, forHTTPHeaderField: "Content-Type") }
+    if let token { request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
+    let (data, raw) = try await session.data(for: request)
+    guard let response = raw as? HTTPURLResponse, data.count <= 8 * 1024 * 1024 else {
+      throw WorkspaceError.message("The workspace returned an unexpected response.")
+    }
+    guard (200...299).contains(response.statusCode) else {
+      let failure = try? WireJSON.decoder().decode(Failure.self, from: data)
+      throw WorkspaceError.server(
+        response.statusCode,
+        failure?.error ?? "The workspace could not complete this request (\(response.statusCode)).",
+        failure?.current)
+    }
+    return (data, response)
+  }
+  func login(email: String, password: String) async throws -> LoginReply {
+    struct Input: Encodable {
+      let email: String
+      let password: String
+    }
+    let (data, _) = try await send(
+      "session", method: "POST",
+      body: WireJSON.encoder().encode(Input(email: email, password: password)))
+    let reply = try WireJSON.decoder().decode(LoginReply.self, from: data)
+    guard reply.apiVersion == 1,
+      reply.token.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil
+    else { throw WorkspaceError.message("This workspace uses an unsupported driver connection.") }
+    return reply
+  }
+  func logout() async throws { _ = try await send("session", method: "DELETE") }
+  func save(_ mutation: DriverMutation) async throws -> ServerRecord {
+    let (data, _) = try await send(
+      "records", method: "POST", body: WireJSON.encoder().encode(mutation))
+    return try WireJSON.decoder().decode(ServerRecord.self, from: data)
+  }
+  func records(after: Int) async throws -> SyncPage {
+    let (data, _) = try await send(
+      "records", query: [URLQueryItem(name: "after", value: String(after))])
+    return try WireJSON.decoder().decode(SyncPage.self, from: data)
+  }
+  func upload(_ receipt: LocalReceipt, data: Data) async throws {
+    _ = try await send(
+      "receipts/" + receipt.id.uuidString.lowercased(), method: "PUT", body: data,
+      mime: receipt.mime)
+  }
+  func receipt(_ id: UUID) async throws -> (Data, String) {
+    let (data, response) = try await send("receipts/" + id.uuidString.lowercased())
+    return (data, response.mimeType ?? "application/octet-stream")
+  }
+  static func discover() async throws -> URL? {
+    struct Config: Decodable { var workspaceUrl: String? }
+    let (data, response) = try await URLSession.shared.data(
+      from: URL(string: "https://rideshare-tax-pros.pages.dev/site-config.json")!)
+    guard (response as? HTTPURLResponse)?.statusCode == 200, data.count < 32_000 else {
+      throw WorkspaceError.message("The firm’s connection information is unavailable.")
+    }
+    guard let text = try JSONDecoder().decode(Config.self, from: data).workspaceUrl else {
+      return nil
+    }
+    return try WorkspaceAddress.parse(text)
+  }
+}

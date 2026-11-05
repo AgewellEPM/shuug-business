@@ -1,0 +1,246 @@
+import Combine
+import CryptoKit
+import DriverCore
+import Foundation
+import Network
+
+@MainActor final class DriverModel: ObservableObject {
+  @Published private(set) var journal = Journal()
+  @Published private(set) var connection: ConnectionProfile?
+  @Published var message: String?
+  @Published private(set) var syncing = false
+  @Published private(set) var syncStatus = "Saved on this iPhone"
+  @Published private(set) var syncDetail: String?
+  @Published private(set) var storageHealthy = true
+  private(set) var disk: JournalDiskStore!
+  private var namespace = "guest", lastAttempt = Date.distantPast
+  private let monitor = NWPathMonitor()
+  private var root: URL {
+    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+      .appendingPathComponent("RideshareTaxPros", isDirectory: true)
+  }
+  var guest: Bool { namespace == "guest" }
+  var active: LocalEntry? { journal.entries.first { $0.id == journal.activeTripId } }
+  var pendingCount: Int {
+    journal.entries.filter { $0.pendingMutationId != nil }.count + journal.pendingReceipts.count
+  }
+  init() {
+    do {
+      connection = try SessionKeychain.read()
+      namespace = connection.map(Self.scope) ?? "guest"
+      disk = try JournalDiskStore(directory: root.appendingPathComponent(namespace))
+      journal = try disk.load()
+    } catch {
+      storageHealthy = false
+      message =
+        "Your saved journal could not be opened. Keep this installation and its data; do not reinstall. \(error.localizedDescription)"
+    }
+    monitor.pathUpdateHandler = { [weak self] path in
+      if path.status == .satisfied { Task { @MainActor in await self?.sync() } }
+    }
+    monitor.start(queue: DispatchQueue(label: "com.ridesharetaxpros.driver.network"))
+  }
+  deinit { monitor.cancel() }
+  private static func scope(_ profile: ConnectionProfile) -> String {
+    SHA256.hash(
+      data: Data(
+        (profile.origin.absoluteString + "|" + profile.session.account.id.uuidString.lowercased())
+          .utf8)
+    ).map { String(format: "%02x", $0) }.joined()
+  }
+  @discardableResult func commit(_ change: (inout Journal) -> Void) -> Bool {
+    guard storageHealthy, disk != nil else { return false }
+    var next = journal
+    change(&next)
+    do {
+      try disk.save(next)
+      journal = next
+      return true
+    } catch {
+      message = "Your phone could not save this change. \(error.localizedDescription)"
+      return false
+    }
+  }
+  func save(
+    _ record: DriverRecord, receipt: Data? = nil, receiptId: UUID? = nil,
+    mime: String = "image/jpeg"
+  ) -> Bool {
+    guard storageHealthy, disk != nil else { return false }
+    do { if let receipt, let receiptId { try disk.saveReceipt(receipt, id: receiptId) } } catch {
+      message = "Receipt could not be saved on this iPhone. \(error.localizedDescription)"
+      return false
+    }
+    let saved = commit { j in
+      if let receiptId, receipt != nil, !j.receipts.contains(where: { $0.id == receiptId }) {
+        j.receipts.append(LocalReceipt(id: receiptId, mime: mime))
+      }
+      j.upsert(record)
+    }
+    if saved { Task { await sync() } }
+    return saved
+  }
+  func remove(_ id: UUID) { if commit({ $0.delete(id) }) { Task { await sync() } } }
+  func location(_ fix: LocationFix) {
+    let previous = active?.locations.last?.timestamp
+    if commit({ $0.addLocation(fix) }) {
+      if let id = journal.activeTripId, let point = active?.locations.last,
+        point.timestamp != previous
+      {
+        do { try disk.appendRoute(point, tripId: id) } catch {
+          message =
+            "Mileage was saved, but the route preview could not be saved. \(error.localizedDescription)"
+        }
+      }
+      if Date().timeIntervalSince(lastAttempt) >= 15 { Task { await sync() } }
+    }
+  }
+  func finishTrip() { if commit({ $0.finishTrip() }) { Task { await sync() } } }
+  func connect(origin: URL, email: String, password: String, includeOffline: Bool) async throws {
+    guard journal.activeTripId == nil else {
+      throw WorkspaceError.message(
+        "Finish your current drive before changing the workspace connection.")
+    }
+    let reply = try await WorkspaceClient(origin: origin).login(email: email, password: password)
+    let profile = ConnectionProfile(origin: origin, session: reply)
+    let nextScope = Self.scope(profile)
+    let nextDisk = try JournalDiskStore(directory: root.appendingPathComponent(nextScope))
+    var nextJournal = try nextDisk.load()
+    if guest && includeOffline {
+      for entry in journal.entries {
+        guard !nextJournal.entries.contains(where: { $0.id == entry.id }) else {
+          throw WorkspaceError.message(
+            "A phone record already exists in this account’s saved journal. Connect without moving the offline journal, then review it separately."
+          )
+        }
+        var copied = entry
+        copied.record.revision = 0
+        copied.pendingMutationId = UUID()
+        copied.conflict = nil
+        nextJournal.entries.append(copied)
+        try nextDisk.copyRoute(entry.id, from: disk)
+      }
+      for receipt in journal.receipts {
+        try nextDisk.saveReceipt(disk.receipt(receipt.id), id: receipt.id)
+        nextJournal.receipts.append(LocalReceipt(id: receipt.id, mime: receipt.mime))
+      }
+    }
+    try nextDisk.save(nextJournal)
+    try SessionKeychain.save(profile)
+    if guest && includeOffline { try disk.save(Journal()) }
+    disk = nextDisk
+    journal = nextJournal
+    namespace = nextScope
+    connection = profile
+    storageHealthy = true
+    syncStatus = "Connected to \(reply.branding.name)"
+    await sync()
+  }
+  func disconnect() async {
+    guard journal.activeTripId == nil else {
+      message = "Finish your current drive before signing out."
+      return
+    }
+    let previous = connection
+    do {
+      let guestDisk = try JournalDiskStore(directory: root.appendingPathComponent("guest"))
+      let guestJournal = try guestDisk.load()
+      try SessionKeychain.remove()
+      connection = nil
+      namespace = "guest"
+      disk = guestDisk
+      journal = guestJournal
+      syncStatus = "Saved on this iPhone"
+      if let previous {
+        try? await WorkspaceClient(origin: previous.origin, token: previous.session.token).logout()
+      }
+    } catch { message = error.localizedDescription }
+  }
+  func sync() async {
+    guard !syncing, storageHealthy, let connection else { return }
+    let scope = namespace
+    let client = WorkspaceClient(origin: connection.origin, token: connection.session.token)
+    let capturedDisk = disk!
+    syncing = true
+    lastAttempt = Date()
+    syncDetail = nil
+    syncStatus = "Syncing with your firm…"
+    var continueSync = false
+    defer {
+      syncing = false
+      if continueSync && scope == namespace { Task { await sync() } }
+    }
+    do {
+      for receipt in journal.pendingReceipts {
+        try await client.upload(receipt, data: capturedDisk.receipt(receipt.id))
+        guard scope == namespace else { return }
+        guard
+          commit({ j in
+            if let i = j.receipts.firstIndex(where: { $0.id == receipt.id }) {
+              j.receipts[i].uploaded = true
+            }
+          })
+        else { return }
+      }
+      for mutation in journal.pending {
+        do {
+          let reply = try await client.save(mutation)
+          guard scope == namespace else { return }
+          guard commit({ $0.acknowledge(mutation, result: reply) }) else { return }
+        } catch WorkspaceError.server(let status, _, let current)
+          where status == 409 && current != nil
+        {
+          guard scope == namespace else { return }
+          _ = commit { $0.merge(current!) }
+        }
+      }
+      var morePages = false
+      for _ in 0..<25 {
+        let page = try await client.records(after: journal.cursor)
+        guard scope == namespace else { return }
+        guard
+          commit({ j in
+            for row in page.records { j.merge(row) }
+            j.cursor = page.cursor
+          })
+        else { return }
+        morePages = page.hasMore
+        if !morePages { break }
+      }
+      guard commit({ $0.lastSyncAt = Date() }) else { return }
+      syncStatus =
+        journal.entries.contains(where: { $0.conflict != nil })
+        ? "Records need your review"
+        : pendingCount == 0 && !morePages ? "Synced with your firm" : "More records waiting to sync"
+      // Flush edits made during this successful upload pass. Network failures
+      // keep their queue and wait for a reconnect or explicit retry.
+      continueSync = morePages || !journal.pending.isEmpty || !journal.pendingReceipts.isEmpty
+    } catch {
+      guard scope == namespace else { return }
+      if case WorkspaceError.server(let status, _, _) = error, status == 401 || status == 403 {
+        syncStatus = "Sign in again to continue syncing"
+      } else {
+        syncStatus = "Saved on this iPhone · Sync pending"
+      }
+      syncDetail = error.localizedDescription
+    }
+  }
+  func receiptURL(_ id: UUID) async throws -> URL {
+    if FileManager.default.fileExists(atPath: disk.receiptURL(id).path) {
+      return disk.receiptURL(id)
+    }
+    guard let connection else {
+      throw WorkspaceError.message("Connect to the workspace to download this receipt.")
+    }
+    let scope = namespace
+    let capturedDisk = disk!
+    let (data, mime) = try await WorkspaceClient(
+      origin: connection.origin, token: connection.session.token
+    ).receipt(id)
+    guard scope == namespace else { throw CancellationError() }
+    guard ["image/jpeg", "image/png", "application/pdf"].contains(mime) else {
+      throw WorkspaceError.message("Unsupported receipt format.")
+    }
+    try capturedDisk.saveReceipt(data, id: id)
+    return capturedDisk.receiptURL(id)
+  }
+}
