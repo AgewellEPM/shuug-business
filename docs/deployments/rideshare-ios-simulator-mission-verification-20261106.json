@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "scope": "Native iPhone Simulator mission and manually entered offer; synthetic data",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": false,
+  "cloudSyncVerified": false,
+  "appExecutableSHA256": "4cd1461b1df437002db0778cf1f29f6c5a6af7ddfe7756d784de52f92c328f7f",
+  "tests": [
+    "mission saved and restored after app relaunch",
+    "manual offer shows $12 estimated net from $20 payout, $3 fees, 10 miles at $0.50/mile",
+    "hourly target and vehicle cost persist"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-sxlt0xv4",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-sxlt0xv4/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-06T02:32:30Z"
+}
