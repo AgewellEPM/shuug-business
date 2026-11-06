@@ -121,6 +121,10 @@ import Network
       nextJournal.bankTransactions = BankInbox.merging(journal.bankTransactions ?? [], into: nextJournal.bankTransactions ?? [])
       nextJournal.placePrompts = journal.placePrompts
       nextJournal.assistance = journal.assistance
+      nextJournal.mission = nextJournal.mission ?? journal.mission
+      nextJournal.reserveSettings = nextJournal.reserveSettings ?? journal.reserveSettings
+      nextJournal.missionOffers = nextJournal.missionOffers ?? journal.missionOffers
+      nextJournal.pickupWaits = (nextJournal.pickupWaits ?? []) + (journal.pickupWaits ?? [])
       for entry in journal.entries {
         guard !nextJournal.entries.contains(where: { $0.id == entry.id }) else {
           throw WorkspaceError.message(

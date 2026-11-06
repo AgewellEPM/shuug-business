@@ -23,6 +23,7 @@ import XCTest
     let done = app.buttons["expense.dismissKeyboard"]
     if done.waitForExistence(timeout: 1) { done.tap() }
     else if app.buttons["entry.dismissKeyboard"].exists { app.buttons["entry.dismissKeyboard"].tap() }
+    else if app.buttons["mission.dismissKeyboard"].exists { app.buttons["mission.dismissKeyboard"].tap() }
   }
   private func newExpense(_ merchant: String, amount: String, in app: XCUIApplication) {
     app.tabBars.buttons["Today"].tap()
@@ -221,5 +222,28 @@ import XCTest
     app.terminate(); app.launch()
     app.tabBars.buttons["Money"].tap()
     XCTAssertTrue(app.staticTexts["Fixture Shell"].waitForExistence(timeout: 10), app.debugDescription)
+  }
+  func test05MissionAndOffer() throws {
+    let app = open()
+    app.tabBars.buttons["Insights"].tap(); app.buttons["insights.goals"].tap()
+    enter("25", into: app.textFields["goals.hourly"], in: app)
+    enter("0.50", into: app.textFields["goals.cost"], in: app)
+    app.navigationBars["Driving goals"].buttons["Save"].tap()
+    app.tabBars.buttons["Today"].tap()
+    let mission = app.buttons["Create today's mission"]
+    reveal(mission, in: app); mission.tap()
+    let save = app.buttons["mission.save"]
+    reveal(save, in: app); save.tap()
+    enter("20", into: app.textFields["mission.payout"], in: app)
+    enter("3", into: app.textFields["mission.fees"], in: app)
+    enter("10", into: app.textFields["mission.miles"], in: app)
+    enter("20", into: app.textFields["mission.minutes"], in: app)
+    enter("10", into: app.textFields["mission.wait"], in: app)
+    let result = app.staticTexts["mission.result"]
+    reveal(result, in: app); XCTAssertTrue(result.label.contains("$12.00"), app.debugDescription)
+    app.terminate(); app.launch(); app.tabBars.buttons["Today"].tap()
+    let saved = app.buttons["Open your shift mission"]
+    reveal(saved, in: app); saved.tap()
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Earn $100.00")).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
   }
 }

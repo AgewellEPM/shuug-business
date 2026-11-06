@@ -12,11 +12,13 @@
 		0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8E943BF195B750291F3E94 /* LocationTracker.swift */; };
 		229E01E931D65683CB416F1D /* LinkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 81B72326462F9C7E5E8F5B50 /* LinkKit */; };
 		2D657A4931BB9FCB6DBE4A4B /* DriverModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C42B736A4CB4413818634 /* DriverModel.swift */; };
+		2D9FEE1E193828A2294DB012 /* MissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0BE3FABE19BBD6459733E82 /* MissionView.swift */; };
 		30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */; };
 		31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282961514CC8F1169E8346AA /* InsightsView.swift */; };
 		3D04DCC18C29A95D718D3FEE /* DrivingAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A275B806AE67181728CC33 /* DrivingAssistant.swift */; };
 		405D64B7ED25565373F8FED5 /* WorkspaceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF479D04A51EC78525B6315D /* WorkspaceClient.swift */; };
 		4291BB6A85A97AA3BDEB0D87 /* RideshareTaxProsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */; };
+		56D498BB7423905FE8A79253 /* ReserveAndHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */; };
 		5FDA77B4EFC4131F5F87E030 /* BankImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99DB6310D01A30734F776EC /* BankImportView.swift */; };
 		76B621DF2FF4A35CEBC4897D /* BankWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EBF8357067B181E7571C8CB /* BankWire.swift */; };
 		825CDE76D1E5BC422AF0AA33 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F775980FE08AC5338DF6598A /* ConnectionView.swift */; };
@@ -77,6 +79,8 @@
 		CBC5760D5BC82B4A89C9EFB5 /* RideProfitDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideProfitDetails.swift; sourceTree = "<group>"; };
 		D34AC156EB56DF0359A34459 /* ReferralWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralWire.swift; sourceTree = "<group>"; };
 		DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverFlows.swift; sourceTree = "<group>"; };
+		E0BE3FABE19BBD6459733E82 /* MissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionView.swift; sourceTree = "<group>"; };
+		E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReserveAndHistoryView.swift; sourceTree = "<group>"; };
 		E515B079F485E403FF64B2AD /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
 		EB5F2A2D07756ADE2F52486C /* AssistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistanceView.swift; sourceTree = "<group>"; };
 		F775980FE08AC5338DF6598A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
@@ -134,10 +138,12 @@
 				7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */,
 				282961514CC8F1169E8346AA /* InsightsView.swift */,
 				4A8E943BF195B750291F3E94 /* LocationTracker.swift */,
+				E0BE3FABE19BBD6459733E82 /* MissionView.swift */,
 				94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */,
 				79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */,
 				5E868C7975E7DB0DC484E4DB /* ReferralView.swift */,
 				D34AC156EB56DF0359A34459 /* ReferralWire.swift */,
+				E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */,
 				CBC5760D5BC82B4A89C9EFB5 /* RideProfitDetails.swift */,
 				32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */,
 				50EC96DE14A63112C9339895 /* RootView.swift */,
@@ -297,10 +303,12 @@
 				30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */,
 				31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */,
 				0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */,
+				2D9FEE1E193828A2294DB012 /* MissionView.swift in Sources */,
 				BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */,
 				CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */,
 				A81F7028AE6AD54E9C6F6D4E /* ReferralView.swift in Sources */,
 				82DA92E995B6DC573995FEAF /* ReferralWire.swift in Sources */,
+				56D498BB7423905FE8A79253 /* ReserveAndHistoryView.swift in Sources */,
 				90AD684EB74444D190614B24 /* RideProfitDetails.swift in Sources */,
 				4291BB6A85A97AA3BDEB0D87 /* RideshareTaxProsApp.swift in Sources */,
 				D666D4CF2B72C07F0CF9E3BE /* RootView.swift in Sources */,

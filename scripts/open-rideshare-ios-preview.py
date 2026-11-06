@@ -7,7 +7,7 @@ import signal
 import subprocess
 import time
 
-APP = Path('/private/tmp/rideshare-ios-simulator-build/Build/Products/Debug-iphonesimulator/RideshareTaxPros.app')
+APP = Path(os.environ.get('RIDESHARE_IOS_TEST_DERIVED', '/private/tmp/rideshare-ios-simulator-build')) / 'Build/Products/Debug-iphonesimulator/RideshareTaxPros.app'
 BUNDLE = 'com.ridesharetaxpros.driver'
 NAME = 'Rideshare Tax Pros Preview'
 RECEIPT = Path('/private/tmp/rideshare-ios-preview.json')

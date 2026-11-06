@@ -2,6 +2,7 @@
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import signal
 import subprocess
@@ -9,7 +10,7 @@ import tempfile
 import time
 
 ROOT = Path(__file__).resolve().parent.parent
-DERIVED = Path('/private/tmp/rideshare-ios-simulator-build')
+DERIVED = Path(os.environ.get('RIDESHARE_IOS_TEST_DERIVED', '/private/tmp/rideshare-ios-simulator-build'))
 BUNDLE = 'com.ridesharetaxpros.driver'
 ARTIFACTS = Path(tempfile.mkdtemp(prefix='rtp-ios-ui-'))
 REPORT = ROOT / 'docs/deployments/rideshare-ios-simulator-verification-20261105.json'
@@ -19,11 +20,12 @@ flows.add_argument('--driving-only', action='store_true', help='Check the drivin
 flows.add_argument('--receipts-only', action='store_true', help='Check receipt import and reading without repeating the driving flow.')
 flows.add_argument('--expenses-only', action='store_true', help='Check meal/repair details, review totals and duplicate warnings.')
 flows.add_argument('--insights-only', action='store_true', help='Check goals, fare profitability and real bank statement import.')
+flows.add_argument('--mission-only', action='store_true', help='Check the native mission and offer calculation.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-driving = not (options.receipts_only or options.expenses_only or options.insights_only)
-receipts = not (options.driving_only or options.expenses_only or options.insights_only)
-expense_details = not (options.driving_only or options.receipts_only or options.insights_only)
+driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only)
+receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only)
+expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only)
 insights = options.insights_only
 if options.driving_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-driving-verification-20261105.json')
@@ -33,6 +35,8 @@ elif options.expenses_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-expenses-verification-20261105.json')
 elif options.insights_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-insights-verification-20261105.json')
+elif options.mission_only:
+    REPORT = REPORT.with_name('rideshare-ios-simulator-mission-verification-20261106.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -139,10 +143,12 @@ try:
         if options.receipts_only: selection += '/DriverFlows/test02PhotoReceiptAndOnDeviceRecognition'
         if options.expenses_only: selection += '/DriverFlows/test03MealRepairDetailsAndDuplicateReview'
         if options.insights_only: selection += '/DriverFlows/test04InsightsAndBankImport'
-        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only):
+        if options.mission_only: selection += '/DriverFlows/test05MissionAndOffer'
+        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only):
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
         if not insights: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test04InsightsAndBankImport']
+        if not options.mission_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test05MissionAndOffer']
         test = subprocess.Popen(['xcodebuild', '-quiet', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 600
         last_fix = last_update = last_container_check = 0.0
@@ -217,6 +223,11 @@ try:
         assert sum(1 for r in journal['bankTransactions'] if r.get('reviewedRecordId'))==1
         verified_tests += ['goal forms persist exact cents', 'trip fare/fee/area input produces $12 estimated net from 10 miles at $0.50/mile', 'goal progress displays the recorded estimate', 'system document picker imports OFX into review inbox', 'bank review prefills and saves an expense with original source reference', 'journal and inbox preserve links after relaunch']
         report['scope'] = 'Native iPhone Simulator goals/profit and OFX import; synthetic financial records'
+    if options.mission_only:
+        assert journal['mission']['targetCents'] == 10000 and journal['mission']['destination'] == 'Home', 'Mission did not survive app relaunch.'
+        assert journal['goals']['targetHourlyCents'] == 2500 and journal['goals']['vehicleCostCentsPerMile'] == 50
+        verified_tests += ['mission saved and restored after app relaunch', 'manual offer shows $12 estimated net from $20 payout, $3 fees, 10 miles at $0.50/mile', 'hourly target and vehicle cost persist']
+        report['scope'] = 'Native iPhone Simulator mission and manually entered offer; synthetic data'
     report.update(ok=True, tests=verified_tests, artifactDirectory=str(ARTIFACTS), resultBundle=str(result_bundle))
     success = True
 except BaseException as error:

@@ -28,7 +28,7 @@ const expense = z.object({
   mealContext: z.string().trim().max(500).optional(), vehicle: z.string().trim().max(80).optional(),
   odometerMiles: z.number().finite().min(0).max(2_000_000).optional(), paymentMethod: z.enum(["cash", "card", "bank", "platform", "other"]).optional(), place: z.string().trim().max(240).optional(),
 }).strict();
-const income = z.object({ date: day, platform: z.enum(["uber", "lyft", "other"]), description: z.string().trim().min(1).max(160), ...money, notes, bankReference }).strict();
+const income = z.object({ date: day, platform: z.enum(["uber", "lyft", "doordash", "instacart", "spark", "other"]), description: z.string().trim().min(1).max(160), ...money, notes, bankReference }).strict();
 export const driverRecord = z.discriminatedUnion("kind", [
   z.object({ ...base, kind: z.literal("trip"), body: trip }).strict(),
   z.object({ ...base, kind: z.literal("expense"), body: expense }).strict(),

@@ -46,7 +46,7 @@ async function main() {
     }
     assert(ready, "The compiled fixture server did not become ready.");
     const native = await promisify(execFile)(binary, [base], { timeout: 90_000 });
-    const proof = JSON.parse(native.stdout.trim()); assert(proof.ok && proof.checks.length === 20);
+    const proof = JSON.parse(native.stdout.trim()); assert(proof.ok && proof.checks.length === 21);
     const form = await fetch(base + "/api/auth/login"), html = await form.text();
     const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)?.[1]; assert(csrf);
     const owner = await fetch(base + "/api/auth/login", { method: "POST", redirect: "manual", headers: { Origin: base, "Content-Type": "application/x-www-form-urlencoded", cookie: form.headers.getSetCookie().map(c => c.split(";")[0]).join("; ") }, body: new URLSearchParams({ csrf, password: ownerPassword }) });

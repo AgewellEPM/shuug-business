@@ -57,6 +57,12 @@ enum ProofFailure: Error { case failed(String) }
             try check(restored == detail, "A native expense category or its review details changed during sync.")
         }
         _ = try await alpha.save(DriverMutation(mutationId: UUID(), record: DriverRecord(payload: .income(Income(date: DriverRecord.day(Date()), platform: "uber", description: "Native fixture payout", amountCents: 20123)))))
+        for platform in ["doordash", "instacart", "spark"] {
+            let incoming = DriverRecord(payload: .income(Income(date: DriverRecord.day(Date()), platform: platform, description: "Synthetic gig payout", amountCents: 2000)))
+            let returned = try await alpha.save(DriverMutation(mutationId: UUID(), record: incoming))
+            guard case .income(let income) = returned.record.payload else { throw ProofFailure.failed("Gig payout changed record type.") }
+            try check(income.platform == platform, "Gig platform did not survive actual native sync.")
+        }
         var deleted = saved.record; deleted.deleted = true
         let tombstone = try await alpha.save(DriverMutation(mutationId: UUID(), record: deleted))
         let delta = try await alpha.records(after: saved.sequence)
@@ -65,7 +71,7 @@ enum ProofFailure: Error { case failed(String) }
         do { _ = try await alpha.records(after: 0); throw ProofFailure.failed("The native session remained valid after logout.") }
         catch WorkspaceError.server(let status, _, _) { try check(status == 401, "Native logout was not enforced.") }
         let checks = ["real invited-client login and brand", "Swift JSON optional fields", "recorded local date and time zone round trip", "idempotent native retry", "stale-write conflict decoding", "client isolation", "private receipt byte round trip", "cross-client receipt denial", "expense without receipt", "all 23 expense categories", "meal and vehicle review details round trip", "income cents", "incremental deletion", "native session revocation"]
-        let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks + ["fare/fees/platform/area and detection fields", "unconfigured bank status and isolated feed", "statement reference round trip and duplicate rejection", "native referral terms and points", "native referral claim round trip", "pending referral cannot issue reward"], "realClientDataUsed": false]
+        let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks + ["fare/fees/platform/area and detection fields", "unconfigured bank status and isolated feed", "statement reference round trip and duplicate rejection", "native referral terms and points", "native referral claim round trip", "pending referral cannot issue reward", "DoorDash, Instacart and Spark income round trips"], "realClientDataUsed": false]
         print(String(decoding: try JSONSerialization.data(withJSONObject: result, options: [.sortedKeys]), as: UTF8.self))
     }
 }

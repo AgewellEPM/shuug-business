@@ -56,6 +56,26 @@ it("persists and projects only the caller's records, and binds staff review to t
   expect(sectionForPath("/rideshare")).toBe("money");
   expect(() => readDriverRecords("forged")).toThrow("Sign in");
 });
+it("round-trips gig income platforms through the driver API and staff journal without exposing another client's records", async () => {
+  const route = "/api/website/customer/driver/records";
+  const platforms = ["uber", "lyft", "doordash", "instacart", "spark", "other"];
+  for (const platform of platforms) {
+    const record = { id: randomUUID(), revision: 0, deleted: false, kind: "income", body: {
+      date: "2026-11-05", platform, description: "Synthetic gig income", amountCents: 2000, currency: "USD", notes: ""
+    } };
+    const response = await POST(request(route, alpha.token, { mutationId: randomUUID(), record }));
+    expect(response.status).toBe(200);
+    expect((await response.json()).record.body.platform).toBe(platform);
+  }
+  const restored = await (await GET(request(route, alpha.token))).json();
+  expect(restored.records.map((row: { record: { body: { platform: string } } }) => row.record.body.platform)).toEqual(platforms);
+  expect(staffDriverRecords(alpha.clientId).map(row => row.record.kind === "income" ? row.record.body.platform : "").sort()).toEqual([...platforms].sort());
+  expect((await (await GET(request(route, beta.token))).json()).records).toEqual([]);
+  const invalid = { id: randomUUID(), revision: 0, deleted: false, kind: "income", body: {
+    date: "2026-11-05", platform: "forged-platform", description: "Invalid", amountCents: 100, currency: "USD", notes: ""
+  } };
+  expect((await POST(request(route, alpha.token, { mutationId: randomUUID(), record: invalid }))).status).toBe(400);
+});
 it("makes retry idempotent, refuses stale overwrites, and delivers edits and deletions through the incremental cursor", () => {
   const input = mutation(), first = saveDriverRecord(alpha.token, input);
   expect(saveDriverRecord(alpha.token, input)).toEqual(first);

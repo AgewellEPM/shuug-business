@@ -4,6 +4,8 @@ The native SwiftUI app is in `native/ios/RideshareTaxPros`. It uses the firm's
 dark background, purple/pink actions, panels and logo from the published website,
 and existing Shuug invited-client accounts. Minimum iOS:17.
 This is the driver app; the existing macOS owner launcher remains separate.
+The Android companion is in `native/android` (minimum Android 8/API 26). Its
+debug build is a development artifact and has not yet passed device acceptance.
 
 ## Recorded work
 
@@ -160,6 +162,29 @@ cash or apply invoice credits automatically. Referrers never see friends' tax
 documents or identities. Qualified rewards cannot be casually deleted or reversed;
 an audited adjustment workflow is not included in this version.
 
+## Shift Mission and offer decisions
+
+The driver can set a net earnings target, finish time and destination label, then
+evaluate an offer using amounts, miles and times they enter. The estimate uses the
+driver's own operating cost and hourly target. Pickup time, wait and any entered
+onward travel are estimates; the app cannot see live marketplace offers or promise
+an arrival time. A missed or missing destination ETA must not be treated as an
+on-time guarantee. Enter and review information only while safely parked.
+
+Unpaid repositioning trips contribute to the dead-mile summary. Drivers can save
+observed restaurant waits on their phone; averages describe their own samples,
+not a current wait or a network-wide prediction. Recorded trip history can be
+compared by platform and work area, with active-trip hours identified separately
+from a complete shift including waiting. DoorDash, Instacart and Spark payouts
+can be entered alongside Uber, Lyft and Other; these are manual records, not
+automatic platform connections.
+
+Mission and wait-history data stay on the device and are not shared with the
+firm or other drivers. Estimates are limited by the completeness of the driver's
+records. Vehicle maintenance and tax reserve figures are planning estimates,
+not actual account transfers or a determination of deductible expenses or tax
+liability. No network-level predictions or subscription billing are enabled.
+
 ## Build and verification
 
 With Xcode and XcodeGen installed, run:
@@ -167,6 +192,20 @@ With Xcode and XcodeGen installed, run:
 ```sh
 bash scripts/build-rideshare-ios.sh
 ```
+
+For the Android development APK and focused tests, with Android SDK 36 and a
+Java 17+ installation available:
+
+```sh
+cd native/android
+./gradlew :app:assembleDebug :app:testDebugUnitTest
+```
+
+The APK is written to `app/build/outputs/apk/debug/app-debug.apk`. Android uses
+an encrypted private journal and a user-started foreground location service.
+Optional nearby-stop lookup sends location to OpenStreetMap Overpass and depends
+on its coverage; Android and physical-device behavior require real device or
+emulator verification. Plaid is present but is not activated for a live account.
 
 The default build is unsigned for an actual iPhone architecture. Set
 `RIDESHARE_IOS_SDK=iphonesimulator` for a Simulator build. The generated Xcode
@@ -195,6 +234,8 @@ the default runs all three. `--visible` shows the owned Simulator on the normal
 desktop. The checks exercise background mileage, saving/relaunch, system photo
 import, reviewed Vision recognition, meal/repair metadata and duplicate warnings.
 No Simulator mode establishes physical camera capture or visual acceptance.
+`--mission-only` runs the separate mission and offer flow. Set
+`RIDESHARE_IOS_TEST_DERIVED` to use a different previously built test runner.
 
 After diagnostics have finished, `python3 scripts/open-rideshare-ios-preview.py`
 opens a separate named review device on the normal desktop and leaves the app

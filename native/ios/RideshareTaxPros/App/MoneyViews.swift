@@ -194,6 +194,9 @@ struct IncomeEditor: View {
         Picker("Platform", selection: $platform) {
           Text("Uber / Uber Eats").tag("uber")
           Text("Lyft").tag("lyft")
+          Text("DoorDash").tag("doordash")
+          Text("Instacart").tag("instacart")
+          Text("Spark").tag("spark")
           Text("Other gig work").tag("other")
         }
         TextField("Notes", text: $notes, axis: .vertical)

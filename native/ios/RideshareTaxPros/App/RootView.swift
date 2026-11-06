@@ -132,6 +132,9 @@ struct TodayView: View {
           metric("Expenses today", Brand.usd(expenses), "receipt")
           metric("Income today", Brand.usd(income), "dollarsign.circle")
         }
+        NavigationLink { MissionView() } label: {
+          Label(model.journal.mission == nil ? "Create today's mission" : "Open your shift mission", systemImage: "location.north.circle.fill")
+        }.buttonStyle(BrandActionStyle())
         if !(model.journal.placePrompts ?? []).filter({ !$0.dismissed }).isEmpty {
           StopPromptsView()
         }
