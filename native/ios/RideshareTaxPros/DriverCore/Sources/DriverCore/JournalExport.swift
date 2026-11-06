@@ -31,8 +31,16 @@ public enum JournalExport {
                     e.place ?? "", e.reviewNotes.joined(separator: "; ")]
                 row.append(contentsOf: details)
             } else { row += Array(repeating: "", count: 9) }
+            if case .trip(let t) = record.payload {
+                row += [t.earningsCents.map { String(format: "%.2f", Double($0)/100) } ?? "",
+                        t.platformFeesCents.map { String(format: "%.2f", Double($0)/100) } ?? "",
+                        t.rideRole?.rawValue ?? "", t.platform ?? "", t.workArea ?? "",
+                        t.automaticallyDetected == true ? "Detected; review" : ""]
+            } else { row += Array(repeating: "", count: 6) }
+            row += [record.bankReference?.provider ?? "", record.bankReference?.accountLabel ?? "", record.bankReference?.transactionId ?? ""]
             rows.append(row)
         }
+        rows[0] += ["Fare and tips USD", "Platform fees USD", "Drive role", "Platform", "Work area", "Automatic detection", "Bank source", "Bank account label", "Bank transaction reference"]
         return rows.map { $0.map(field).joined(separator: ",") }.joined(separator: "\r\n") + "\r\n"
     }
 }

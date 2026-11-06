@@ -7,6 +7,9 @@ options:
 packages:
   DriverCore:
     path: DriverCore
+  LinkKit:
+    url: https://github.com/plaid/plaid-link-ios-spm
+    exactVersion: 7.3.1
 settings:
   base:
     SWIFT_VERSION: '5.0'
@@ -28,10 +31,15 @@ targets:
         CFBundleVersion: '1'
         UILaunchScreen: {}
         UIUserInterfaceStyle: Dark
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        RTPBankLinkDomain: $(RTP_BANK_LINK_DOMAIN)
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         'UISupportedInterfaceOrientations~ipad': [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         NSCameraUsageDescription: Scan receipts you choose to attach to your expense records.
-        NSLocationWhenInUseUsageDescription: Record mileage during drives you start. Location updates continue in the background during that drive and stop when you end it.
+        NSLocationWhenInUseUsageDescription: Record driving mileage and, if you enable assistance, detect drives and remind you to log purchases near a stop.
+        NSLocationAlwaysAndWhenInUseUsageDescription: With optional assistance enabled, detect driving and stops near fuel, food and auto businesses even while this app is in the background. You control both options in Account.
+        NSMotionUsageDescription: Use movement activity to help distinguish driving from walking when you enable automatic assistance.
         NSLocationTemporaryUsageDescriptionDictionary:
           TripMileage: Precise location improves the mileage recorded during your drive.
         UIBackgroundModes: [location]
@@ -41,8 +49,12 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_USER_SCRIPT_SANDBOXING: YES
+        CODE_SIGN_ENTITLEMENTS: RideshareTaxPros.entitlements
+        RTP_BANK_LINK_DOMAIN: rideshare-tax-pros.pages.dev
     dependencies:
       - package: DriverCore
+      - package: LinkKit
+        product: LinkKit
   RideshareTaxProsUITests:
     type: bundle.ui-testing
     platform: iOS

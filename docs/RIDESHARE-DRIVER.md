@@ -10,8 +10,9 @@ This is the driver app; the existing macOS owner launcher remains separate.
 Start a drive to request location permission and record GPS mileage. The iOS
 background-location mode supports continued user-started recording in the
 background; physical locked-phone acceptance is still pending. End the drive to
-stop GPS. There is no claim of automatic trip discovery
-or continued tracking after a force quit. Poor fixes, old fixes, duplicate
+stop GPS. Optional driving assistance can detect sustained movement and create
+an unclassified drive for review; it cannot identify a paid ride or continue
+reliably after a force quit. Poor fixes, old fixes, duplicate
 timestamps and impossible jumps are rejected; signal gaps are flagged and never
 filled with assumed straight-line miles. Trips can be classified and reviewed,
 or entered and corrected manually.
@@ -25,7 +26,8 @@ Income and expense entries save immediately on the phone. Receipt capture uses
 Apple's document scanner or the photo picker; single-page receipts become JPEGs,
 and multi-page scans become PDFs. On-device Vision can suggest text and an
 amount from the first page. Suggestions require the user's explicit review.
-No bank feed, payment collection, filing or tax calculation is included.
+Optional bank linking and statement imports feed a review inbox. No payment
+collection, filing or automatic tax calculation is included.
 
 ### Expense coverage and review
 
@@ -98,10 +100,65 @@ Driver endpoints under `/api/website/customer/driver`:
 | `POST /records` | Validated mutation ID, expected revision and trip/expense/income record. |
 | `PUT /receipts/{id}` | Private JPEG/PNG/PDF upload; 5MB each, 512MB per account. |
 | `GET /receipts/{id}` | Account-scoped receipt download with private response headers. |
+| `GET/POST /banks` | Connection status, secure link, exchange, incremental transactions and disconnect. |
+| `GET/POST /referrals` | Personal code, points, claim submission and owned reward redemption requests. |
 
 Native requests use Bearer authentication and JSON. Cross-origin browser requests
 are rejected. Receipt IDs are immutable, files are integrity checked and no
 client/account ownership fields are accepted from an upload body.
+
+## Assistance, bank review and profitability
+
+Account → Driving assistance offers opt-in drive detection and purchase reminders.
+The iPhone uses motion/location and Apple Maps nearby searches after a stop. Gas,
+charging, food, auto-parts, repair and dealership matches can prompt an expense
+draft. Cooldowns limit notifications; neither a place nor a bank match proves a
+business purchase. Physical background/battery and real-place acceptance remain
+unverified. GPS routes remain phone-only; Apple Maps requests share location
+with Apple as explained in the app.
+
+CSV column mapping and OFX/QFX parsing work without a bank-provider account.
+Amounts use integer cents; imports have file/row limits, stable source IDs,
+currency checks and a review inbox. Repeated files deduplicate; overlapping files
+without source IDs need manual review. An explicit match can attach a bank source
+to an existing journal entry and retain its receipt. Pending and sandbox entries
+cannot be posted; bank corrections flag an already-reviewed entry instead of
+silently changing it. Non-USD entries are retained for review, not converted.
+
+Plaid uses the official native SDK (iOS 7.3.1) and server-only access tokens sealed
+with the workspace vault. Configuration: `PLAID_ENV`, `PLAID_CLIENT_ID`,
+`PLAID_SECRET`, and `PLAID_IOS_REDIRECT_URI`. Production additionally requires
+`PLAID_LIVE_ENABLED=true`. No provider account or live activation is configured.
+For iOS OAuth, configure the real signing team, matching associated-domain AASA,
+`RTP_BANK_LINK_DOMAIN`, and the registered HTTPS redirect. Do not invent a team ID.
+Android Link uses the server-validated `platform: "android"` option and requires
+`PLAID_ANDROID_PACKAGE_NAME=com.ridesharetaxpros.driver` registered with Plaid.
+Credentials never belong in the apps, source, or chat. Bank coverage and update
+timing vary; no direct connection is promised for every bank.
+
+Insights separates recorded cashflow from ride estimates. Per-ride net is fare
+plus tips minus explicit platform fees and a user-entered vehicle cost per mile.
+Unknown inputs stay unknown. Daily/calendar-week goals, gas charts, unpaid miles,
+platform/area/start-hour comparisons and missing-data prompts use those records.
+Current Apple Maps route alternatives are estimates, not historical evidence of
+a better route. No Uber account, paid-fare feed or live dispatch integration exists.
+
+## Driver Rewards
+
+After staff verifies that the referrer uses the firm's tax-prep service and the
+new client's first paid tax preparation is complete, the referrer earns one $20
+reward (choose cash **or** tax-prep credit) and 100 points. Every 500 lifetime
+points adds an extra $20 tax-prep credit. Points do not expire or have cash value.
+The five-referral milestone therefore produces five base rewards plus one credit.
+
+Clients share a stable code, submit a referring code, view anonymous claim status
+and request a reward in the app. The shared workspace ledger prevents self and
+duplicate client referrals, repeated awards and cross-account redemption.
+Staff use `/rideshare/referrals` with Money edit access to verify eligibility and
+record an invoice/payout reference. This tracks fulfillment; it does not send
+cash or apply invoice credits automatically. Referrers never see friends' tax
+documents or identities. Qualified rewards cannot be casually deleted or reversed;
+an audited adjustment workflow is not included in this version.
 
 ## Build and verification
 
@@ -133,7 +190,7 @@ they require no paid signing identity. The helper refuses to start beside an
 active guest, injects synthetic GPS and a receipt fixture, checks actual saved
 app data, then shuts down and deletes its own device. XCTest may reinstall the
 app, so the helper resolves the current data container while the test runs.
-`--driving-only`, `--receipts-only` and `--expenses-only` isolate individual flows;
+`--driving-only`, `--receipts-only`, `--expenses-only` and `--insights-only` isolate individual flows;
 the default runs all three. `--visible` shows the owned Simulator on the normal
 desktop. The checks exercise background mileage, saving/relaunch, system photo
 import, reviewed Vision recognition, meal/repair metadata and duplicate warnings.
@@ -157,6 +214,9 @@ with disposable synthetic clients. It checks sign-in/branding, optional JSON
 fields, retry/conflict handling, client/receipt isolation, receipt byte transport,
 all 23 expense categories and their meal/vehicle fields, income, deletion,
 revocation, and the staff review/receipt surfaces.
+It also exercises fares/fees, bank availability and source deduplication, native
+referral claims and the authenticated staff rewards page. Provider network
+behavior is covered by synthetic bank mocks, not by a real linked bank.
 The owned server and temporary data are cleaned up. The loopback proof uses
 HTTP only inside that isolated fixture; the app's connection UI requires HTTPS.
 

@@ -34,10 +34,19 @@ export default async function DriverJournal({ searchParams }: { searchParams: Pr
         {r.body.odometerMiles != null && <p>Odometer: {r.body.odometerMiles.toLocaleString("en-US")} mi</p>}
         {r.body.paymentMethod && <p>Paid using: {r.body.paymentMethod === "platform" ? "Deducted from payout" : r.body.paymentMethod}</p>}
         {r.body.place && <p>Place: {r.body.place}</p>}
-      </div>}</td>
+      </div>}
+      {r.kind === "trip" && <div className="mt-1 space-y-1 text-xs text-slate-600">
+        {r.body.earningsCents != null && <p>Fare and tips: {usd(r.body.earningsCents)}</p>}
+        {r.body.platformFeesCents != null && <p>Platform fees: {usd(r.body.platformFeesCents)}</p>}
+        {r.body.rideRole && <p>Drive type: {r.body.rideRole}</p>}
+        {r.body.platform && <p>Platform: {r.body.platform}</p>}
+        {r.body.workArea && <p>Work area: {r.body.workArea}</p>}
+        {r.body.automaticallyDetected && <p>Automatically detected; review start/end and business use</p>}
+      </div>}
+      {r.kind !== "trip" && r.body.bankReference && <p className="mt-1 text-xs text-slate-600">Bank source: {r.body.bankReference.accountLabel} · {r.body.bankReference.provider} · reference {r.body.bankReference.transactionId}</p>}</td>
       <td className="border-b p-3">{r.kind === "trip" ? r.body.localDate ?? r.body.startedAt.slice(0, 10) : r.body.date}</td><td className="border-b p-3">{r.kind === "trip" ? `${(r.body.distanceMeters / 1609.344).toFixed(2)} mi` : usd(r.body.amountCents)}</td>
       <td className="border-b p-3">{r.kind === "trip" ? `${r.body.classification} · ${r.body.source}${r.body.hasGaps ? " · location gaps: review mileage" : ""}${!r.body.endedAt ? " · in progress" : ""}` : r.kind === "expense" ? <>{r.body.classification}{r.body.receiptId && <> · <a className="underline" href={`/api/rideshare/receipts/${accountId}/${r.body.receiptId}`}>Private receipt</a></>}</> : "Client-entered income"}<p className="mt-1 text-xs text-slate-500">{r.body.notes}</p></td>
     </tr>)}</tbody></table>{!rows.length && <p className="p-6 text-slate-500">No driver records have synced for this selection. The iPhone app can record offline while its workspace connection is being configured.</p>}</div>
-    <p><Link className="underline" href="/m/rideshare-tax-records">Return to rideshare record review</Link></p>
+    <p className="flex gap-4"><Link className="underline" href="/m/rideshare-tax-records">Return to rideshare record review</Link><Link className="underline" href="/rideshare/referrals">Driver Rewards approvals & payouts</Link></p>
   </div>;
 }

@@ -9,10 +9,12 @@ struct RootView: View {
       NavigationStack { TodayView() }.tabItem { Label("Today", systemImage: "speedometer") }
       NavigationStack { TripsView() }.tabItem { Label("Trips", systemImage: "car.fill") }
       NavigationStack { MoneyView() }.tabItem { Label("Money", systemImage: "receipt") }
+      NavigationStack { InsightsView() }.tabItem { Label("Insights", systemImage: "chart.xyaxis.line") }
       NavigationStack { ConnectionView() }.tabItem {
         Label("Account", systemImage: "person.crop.circle")
       }
     }.tint(Brand.link)
+      .sheet(item: $model.requestedPrompt) { prompt in NavigationStack { ExpenseEditor(placePrompt: prompt) } }
       .alert(
         "Rideshare Tax Pros",
         isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
@@ -99,7 +101,7 @@ struct TodayView: View {
                 systemImage: "exclamationmark.triangle"
               ).font(.caption)
             }
-            Button(action: location.stop) {
+            Button { location.stop() } label: {
               Label("End drive & save", systemImage: "stop.circle.fill")
             }.buttonStyle(BrandActionStyle(primary: false))
           } else {
@@ -130,6 +132,9 @@ struct TodayView: View {
           metric("Expenses today", Brand.usd(expenses), "receipt")
           metric("Income today", Brand.usd(income), "dollarsign.circle")
         }
+        if !(model.journal.placePrompts ?? []).filter({ !$0.dismissed }).isEmpty {
+          StopPromptsView()
+        }
         HStack {
           Button {
             addingExpense = true
@@ -142,13 +147,16 @@ struct TodayView: View {
             Label("Add income", systemImage: "plus.circle")
           }
         }.buttonStyle(BrandActionStyle(primary: false)).disabled(!model.storageHealthy)
+        NavigationLink { ReferralView() } label: {
+          Label("Earn $20 + points · Refer a tax-prep client", systemImage: "gift.fill")
+        }.buttonStyle(BrandActionStyle(primary: false))
         if model.connection == nil {
           Text(
             "Your records stay on this iPhone until you connect your invited client account."
           ).font(.footnote).foregroundStyle(.secondary)
         }
         Text(
-          "Review trip classifications and receipt details. Recorded mileage is not a calculated tax deduction, and expense entry does not connect to a bank."
+          "Review trip classifications and receipt details. Insights uses your recorded fares and costs; recorded mileage is not a calculated tax deduction."
         ).font(.footnote).foregroundStyle(.secondary)
         Button {
           exporting = true

@@ -17,7 +17,7 @@ struct StartDriveView: View {
       }.listRowBackground(Brand.surface)
       Section {
         Text(
-          "Location is used only during a drive you start. iPhone shows its background location indicator while recording. End the drive to stop GPS. Review missing sections if the app stops or the signal is lost."
+          "iPhone shows its location indicator while recording. End the drive to save it. Optional automatic assistance is controlled separately in Account. Review missing sections if the app stops or the signal is lost."
         ).font(.footnote)
       }
     }.driverScreen().navigationTitle("Start a drive").toolbar {
@@ -132,6 +132,9 @@ struct TripDetail: View {
               ).foregroundStyle(.orange)
             }
           }
+          if let profit = RideProfit(record: entry.record, goals: model.journal.goals ?? DriverGoals()) {
+            Section("Ride profitability") { RideProfitDetails(profit: profit) }
+          }
           if !points.isEmpty {
             Section("Route preview · Kept on your phone") {
               Map {
@@ -142,6 +145,8 @@ struct TripDetail: View {
               Text(
                 "Route points are not uploaded to the firm. Gaps are shown as separate sections."
               ).font(.caption).foregroundStyle(.secondary)
+              RouteOptionsView(points: points, distanceMeters: trip.distanceMeters,
+                costCentsPerMile: model.journal.goals?.vehicleCostCentsPerMile)
             }
           }
           if entry.conflict != nil { ConflictActions(entry: entry) }
@@ -182,6 +187,12 @@ struct TripEditor: View {
   @State private var notes = ""
   @State private var classification = TripClassification.unclassified
   @State private var validation: String?
+  @State private var fare = ""
+  @State private var fees = ""
+  @State private var platform = ""
+  @State private var workArea = ""
+  @State private var role = RideRole.other
+  @FocusState private var typing: Bool
   private var tripTimeZone: TimeZone {
     if let existing, case .trip(let trip) = existing.payload { return trip.recordedTimeZone }
     return .current
@@ -191,12 +202,27 @@ struct TripEditor: View {
       Section("Trip") {
         DatePicker("Start", selection: $started).environment(\.timeZone, tripTimeZone)
         DatePicker("End", selection: $ended).environment(\.timeZone, tripTimeZone)
-        TextField("Miles", text: $miles).keyboardType(.decimalPad)
+        TextField("Miles", text: $miles).keyboardType(.decimalPad).focused($typing)
         Picker("Classification", selection: $classification) {
           ForEach(TripClassification.allCases) { Text($0.label).tag($0) }
-        }
-        TextField("Purpose", text: $purpose)
-        TextField("Notes", text: $notes, axis: .vertical)
+        }.pickerStyle(.navigationLink).accessibilityIdentifier("trip.classification")
+        TextField("Purpose", text: $purpose).focused($typing)
+        TextField("Notes", text: $notes, axis: .vertical).focused($typing)
+      }.listRowBackground(Brand.surface)
+      Section("Ride earnings · optional") {
+        Picker("Drive type", selection: $role) {
+          ForEach(RideRole.allCases) { Text($0.label).tag($0) }
+        }.pickerStyle(.navigationLink).accessibilityIdentifier("trip.role")
+        TextField("Fare + tips before fees · USD", text: $fare).keyboardType(.decimalPad).focused($typing)
+          .accessibilityIdentifier("trip.fare")
+        TextField("Platform fees · USD (0 if none)", text: $fees).keyboardType(.decimalPad).focused($typing)
+          .accessibilityIdentifier("trip.fees")
+        TextField("Platform (Uber, Lyft…)", text: $platform).focused($typing)
+          .accessibilityIdentifier("trip.platform")
+        TextField("Work area / neighborhood", text: $workArea).focused($typing)
+          .accessibilityIdentifier("trip.area")
+        Text("Use the actual ride breakdown. If you enter take-home pay after fees, enter 0 for fees so they are not subtracted twice. A bank payout is not an individual ride fare. Leave unknown values blank.").font(.footnote)
+        Text("To analyze pickup and unpaid travel, save those legs as Driving without a paid ride. Automatically detected drives may contain multiple rides; split or correct them using your platform records.").font(.footnote)
       }.listRowBackground(Brand.surface)
       Section {
         Text("Times use \(tripTimeZone.identifier).")
@@ -208,6 +234,7 @@ struct TripEditor: View {
     }.driverScreen().navigationTitle(existing == nil ? "Manual trip" : "Edit trip").toolbar {
       ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
       ToolbarItem(placement: .confirmationAction) { Button("Save", action: save) }
+      ToolbarItem(placement: .keyboard) { Button("Done") { typing = false }.accessibilityIdentifier("entry.dismissKeyboard") }
     }.onAppear {
       if let existing, case .trip(let t) = existing.payload {
         started = t.startedAt
@@ -216,6 +243,9 @@ struct TripEditor: View {
         purpose = t.purpose
         notes = t.notes
         classification = t.classification
+        fare = t.earningsCents.map { String(format: "%.2f", Double($0)/100) } ?? ""
+        fees = t.platformFeesCents.map { String(format: "%.2f", Double($0)/100) } ?? ""
+        platform = t.platform ?? ""; workArea = t.workArea ?? ""; role = t.rideRole ?? .other
       }
     }
   }
@@ -231,9 +261,17 @@ struct TripEditor: View {
       startedAt: started, endedAt: ended, distanceMeters: distance * 1609.344,
       classification: classification, purpose: purpose, notes: notes, source: "manual",
       timeZone: tripTimeZone)
+    guard [fare, fees].allSatisfy({ $0.isEmpty || StatementImport.signedCents($0).map { $0 >= 0 } == true }),
+      platform.count <= 80, workArea.count <= 120 else {
+      validation = "Use positive dollars and cents for fares/fees, or leave them blank. Keep platform under 80 and area under 120 characters."; return
+    }
+    trip.earningsCents = role == .reposition ? 0 : StatementImport.signedCents(fare)
+    trip.platformFeesCents = role == .reposition ? 0 : StatementImport.signedCents(fees)
+    trip.rideRole = role; trip.platform = platform; trip.workArea = workArea
     if let existing, case .trip(let previous) = existing.payload {
       trip.sampleCount = previous.sampleCount
       trip.hasGaps = previous.hasGaps
+      trip.automaticallyDetected = previous.automaticallyDetected
       if abs(trip.distanceMeters - previous.distanceMeters) < 1 { trip.source = previous.source }
     }
     if model.save(

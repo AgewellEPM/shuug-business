@@ -67,6 +67,7 @@ public struct Expense: Codable, Equatable, Sendable {
   public var date: String, merchant: String, category: ExpenseCategory, amountCents: Int,
     currency: String
   public var classification: TripClassification, notes: String, receiptId: UUID?
+  public var bankReference: BankReference?
   // Optional fields keep existing saved journals and earlier API payloads readable.
   public var businessPurpose: String?, businessUsePercent: Int?, mealContext: String?
   public var vehicle: String?, odometerMiles: Double?, paymentMethod: ExpensePayment?,

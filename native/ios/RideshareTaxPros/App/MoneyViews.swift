@@ -8,6 +8,9 @@ struct MoneyView: View {
   @State private var adding = false
   var body: some View {
     List {
+      NavigationLink { BankReviewView() } label: {
+        Label("Banks & statement imports", systemImage: "building.columns")
+      }.listRowBackground(Brand.surface)
       Picker("Records", selection: $kind) {
         Text("Expenses").tag("expense")
         Text("Income").tag("income")
@@ -26,7 +29,7 @@ struct MoneyView: View {
           description: Text(
             kind == "expense"
               ? "Add an expense and attach a scanned receipt or photo. Works offline."
-              : "Enter amounts from your platform or payment records. This app does not connect to your bank."
+              : "Enter amounts from platform records or review transactions in Banks & statement imports."
           ))
       }
       ForEach(model.journal.visible.filter { $0.record.kind == kind }) { entry in
@@ -51,6 +54,10 @@ struct MoneyView: View {
               Label("Receipt attached", systemImage: "paperclip").font(.caption)
             }
             RecordStatus(entry: entry)
+            if let bank = entry.record.bankReference {
+              LabeledContent("Bank source", value: bank.accountLabel)
+              Text("Linked transaction: \(bank.transactionId)").font(.caption).textSelection(.enabled)
+            }
           }.padding(.vertical, 4)
         }.listRowBackground(Brand.surface)
       }
@@ -171,6 +178,7 @@ struct IncomeEditor: View {
   @EnvironmentObject private var model: DriverModel
   @Environment(\.dismiss) private var dismiss
   var existing: DriverRecord?
+  var bankTransaction: BankTransaction?
   @State private var date = Date()
   @State private var platform = "uber"
   @State private var description = ""
@@ -211,6 +219,10 @@ struct IncomeEditor: View {
           description = i.description
           amount = String(format: "%.2f", Double(i.amountCents) / 100)
           notes = i.notes
+        } else if let bankTransaction {
+          date = Brand.parseDay(bankTransaction.date); platform = "other"
+          description = bankTransaction.merchant
+          amount = String(format: "%.2f", Double(abs(bankTransaction.amountCents))/100)
         }
       }
   }
@@ -223,13 +235,9 @@ struct IncomeEditor: View {
         "Enter a description, dollars and cents (12.34), and notes under 2,000 characters."
       return
     }
-    if model.save(
-      DriverRecord(
-        id: existing?.id ?? UUID(), revision: existing?.revision ?? 0,
-        payload: .income(
-          Income(
-            date: DriverRecord.day(date), platform: platform, description: title,
-            amountCents: cents, notes: notes))))
+    var income = Income(date: DriverRecord.day(date), platform: platform, description: title, amountCents: cents, notes: notes)
+    income.bankReference = bankTransaction?.reference ?? existing?.bankReference
+    if model.save(DriverRecord(id: existing?.id ?? UUID(), revision: existing?.revision ?? 0, payload: .income(income)))
     {
       dismiss()
     }

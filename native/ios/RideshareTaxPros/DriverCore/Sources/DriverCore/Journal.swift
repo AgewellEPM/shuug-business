@@ -18,6 +18,9 @@ public struct Journal: Codable, Sendable {
     public var version = 1, cursor = 0
     public var entries: [LocalEntry] = [], receipts: [LocalReceipt] = []
     public var activeTripId: UUID?, tracker: TripAccumulator?, lastSyncAt: Date?
+    public var goals: DriverGoals?, bankTransactions: [BankTransaction]?, placePrompts: [ExpensePrompt]?
+    public var assistance: AssistanceSettings?
+    public var bankCursor: Int?, bankUpdatedAt: Date?
     public init() {}
     public var visible: [LocalEntry] { entries.filter { !$0.record.deleted }.sorted { $0.record.dateLabel > $1.record.dateLabel } }
     public var pending: [DriverMutation] { entries.filter { $0.conflict == nil }.compactMap(\.mutation) }
@@ -27,6 +30,9 @@ public struct Journal: Codable, Sendable {
             var value = record; value.revision = entries[i].record.revision
             entries[i].record = value; entries[i].pendingMutationId = UUID()
         } else { entries.append(LocalEntry(record: record)) }
+        if let bank = record.bankReference, let index = bankTransactions?.firstIndex(where: { $0.id == bank.transactionId }) {
+            bankTransactions?[index].reviewedRecordId = record.id
+        }
     }
     public mutating func delete(_ id: UUID) {
         guard id != activeTripId, let i = entries.firstIndex(where: { $0.id == id }) else { return }

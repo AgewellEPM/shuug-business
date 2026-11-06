@@ -8,6 +8,10 @@ import Network
   @Published private(set) var journal = Journal()
   @Published private(set) var connection: ConnectionProfile?
   @Published var message: String?
+  @Published var requestedPrompt: ExpensePrompt?
+  @Published var bankStatus: BankStatusReply?
+  @Published var bankError: String?
+  @Published var bankSyncing = false
   @Published private(set) var syncing = false
   @Published private(set) var syncStatus = "Saved on this iPhone"
   @Published private(set) var syncDetail: String?
@@ -20,6 +24,7 @@ import Network
       .appendingPathComponent("RideshareTaxPros", isDirectory: true)
   }
   var guest: Bool { namespace == "guest" }
+  var journalScope: String { namespace }
   var active: LocalEntry? { journal.entries.first { $0.id == journal.activeTripId } }
   var pendingCount: Int {
     journal.entries.filter { $0.pendingMutationId != nil }.count + journal.pendingReceipts.count
@@ -66,6 +71,12 @@ import Network
     mime: String = "image/jpeg"
   ) -> Bool {
     guard storageHealthy, disk != nil else { return false }
+    if let reference = record.bankReference, journal.visible.contains(where: {
+      $0.id != record.id && $0.record.bankReference?.transactionId == reference.transactionId
+    }) {
+      message = "This bank transaction is already linked to another record. Open that record instead of saving it twice."
+      return false
+    }
     do { if let receipt, let receiptId { try disk.saveReceipt(receipt, id: receiptId) } } catch {
       message = "Receipt could not be saved on this iPhone. \(error.localizedDescription)"
       return false
@@ -80,9 +91,9 @@ import Network
     return saved
   }
   func remove(_ id: UUID) { if commit({ $0.delete(id) }) { Task { await sync() } } }
-  func location(_ fix: LocationFix) {
+  func location(_ fix: LocationFix, now: Date = Date()) {
     let previous = active?.locations.last?.timestamp
-    if commit({ $0.addLocation(fix) }) {
+    if commit({ $0.addLocation(fix, now: now) }) {
       if let id = journal.activeTripId, let point = active?.locations.last,
         point.timestamp != previous
       {
@@ -106,6 +117,10 @@ import Network
     let nextDisk = try JournalDiskStore(directory: root.appendingPathComponent(nextScope))
     var nextJournal = try nextDisk.load()
     if guest && includeOffline {
+      nextJournal.goals = nextJournal.goals ?? journal.goals
+      nextJournal.bankTransactions = BankInbox.merging(journal.bankTransactions ?? [], into: nextJournal.bankTransactions ?? [])
+      nextJournal.placePrompts = journal.placePrompts
+      nextJournal.assistance = journal.assistance
       for entry in journal.entries {
         guard !nextJournal.entries.contains(where: { $0.id == entry.id }) else {
           throw WorkspaceError.message(
@@ -131,6 +146,7 @@ import Network
     journal = nextJournal
     namespace = nextScope
     connection = profile
+    bankStatus = nil; bankError = nil
     storageHealthy = true
     syncStatus = "Connected to \(reply.branding.name)"
     await sync()
@@ -146,6 +162,7 @@ import Network
       let guestJournal = try guestDisk.load()
       try SessionKeychain.remove()
       connection = nil
+      bankStatus = nil; bankError = nil
       namespace = "guest"
       disk = guestDisk
       journal = guestJournal
@@ -214,6 +231,7 @@ import Network
       // Flush edits made during this successful upload pass. Network failures
       // keep their queue and wait for a reconnect or explicit retry.
       continueSync = morePages || !journal.pending.isEmpty || !journal.pendingReceipts.isEmpty
+      await refreshBanks()
     } catch {
       guard scope == namespace else { return }
       if case WorkspaceError.server(let status, _, _) = error, status == 401 || status == 403 {

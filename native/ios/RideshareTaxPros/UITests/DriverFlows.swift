@@ -21,7 +21,8 @@ import XCTest
     field.tap()
     field.typeText(value)
     let done = app.buttons["expense.dismissKeyboard"]
-    if done.waitForExistence(timeout: 2) { done.tap() }
+    if done.waitForExistence(timeout: 1) { done.tap() }
+    else if app.buttons["entry.dismissKeyboard"].exists { app.buttons["entry.dismissKeyboard"].tap() }
   }
   private func newExpense(_ merchant: String, amount: String, in app: XCUIApplication) {
     app.tabBars.buttons["Today"].tap()
@@ -162,5 +163,63 @@ import XCTest
     app.launch()
     app.tabBars.buttons["Money"].tap()
     XCTAssertTrue(app.staticTexts["Native UI garage"].waitForExistence(timeout: 10))
+  }
+  func test04InsightsAndBankImport() throws {
+    let app = open()
+    app.tabBars.buttons["Insights"].tap()
+    app.buttons["insights.goals"].tap()
+    enter("100", into: app.textFields["goals.daily"], in: app)
+    enter("500", into: app.textFields["goals.weekly"], in: app)
+    enter("25", into: app.textFields["goals.hourly"], in: app)
+    enter("0.50", into: app.textFields["goals.cost"], in: app)
+    app.navigationBars["Driving goals"].buttons["Save"].tap()
+    app.tabBars.buttons["Trips"].tap()
+    app.buttons["Add manual trip"].tap()
+    enter("10", into: app.textFields["Miles"], in: app)
+    choose("Business", picker: "trip.classification", in: app)
+    enter("Profit UI ride", into: app.textFields["Purpose"], in: app)
+    choose("Passenger ride", picker: "trip.role", in: app)
+    enter("20", into: app.textFields["trip.fare"], in: app)
+    enter("3", into: app.textFields["trip.fees"], in: app)
+    enter("Uber", into: app.textFields["trip.platform"], in: app)
+    enter("Fixture downtown", into: app.textFields["trip.area"], in: app)
+    app.navigationBars["Manual trip"].buttons["Save"].tap()
+    app.staticTexts["Profit UI ride"].tap()
+    let net = app.staticTexts["trip.estimatedNet"]
+    reveal(net, in: app)
+    XCTAssertTrue(net.label.contains("$12.00"), app.debugDescription)
+    app.tabBars.buttons["Insights"].tap()
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "$12.00 / $100.00")).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+
+    app.tabBars.buttons["Money"].tap()
+    app.buttons["Banks & statement imports"].tap()
+    app.buttons["Import a bank statement"].tap()
+    enter("Fixture checking", into: app.textFields["bank.accountLabel"], in: app)
+    app.buttons["Choose statement file"].tap()
+    let fixture = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "RTPBankFixture")).firstMatch
+    if !fixture.waitForExistence(timeout: 5) {
+      if app.buttons["Browse"].exists { app.buttons["Browse"].firstMatch.tap() }
+      let onPhone = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "On My iPhone")).firstMatch
+      if onPhone.waitForExistence(timeout: 5) { onPhone.tap() }
+      let folder = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Rideshare Tax Pros")).firstMatch
+      if folder.waitForExistence(timeout: 5) { folder.tap() }
+    }
+    XCTAssertTrue(fixture.waitForExistence(timeout: 15), app.debugDescription)
+    fixture.tap()
+    let preview = app.buttons["bank.preview"]
+    XCTAssertTrue(preview.waitForExistence(timeout: 10), app.debugDescription); preview.tap()
+    let importing = app.buttons["bank.import"]
+    reveal(importing, in: app); importing.tap()
+    let fuel = app.staticTexts["Fixture Shell"]
+    XCTAssertTrue(fuel.waitForExistence(timeout: 10), app.debugDescription); fuel.tap()
+    app.buttons["Create expense from this transaction"].tap()
+    XCTAssertEqual(app.textFields["Merchant"].value as? String, "Fixture Shell")
+    XCTAssertEqual(app.textFields["Amount · USD (12.34)"].value as? String, "17.35")
+    choose("Business", picker: "expense.classification", in: app)
+    app.navigationBars["Add expense"].buttons["Save"].tap()
+    XCTAssertTrue(app.buttons["Open saved record"].waitForExistence(timeout: 10), app.debugDescription)
+    app.terminate(); app.launch()
+    app.tabBars.buttons["Money"].tap()
+    XCTAssertTrue(app.staticTexts["Fixture Shell"].waitForExistence(timeout: 10), app.debugDescription)
   }
 }

@@ -7,6 +7,8 @@ struct ExpenseEditor: View {
   @EnvironmentObject private var model: DriverModel
   @Environment(\.dismiss) private var dismiss
   var existing: DriverRecord?
+  var bankTransaction: BankTransaction?
+  var placePrompt: ExpensePrompt?
   @State private var date = Date()
   @State private var merchant = ""
   @State private var amount = ""
@@ -193,6 +195,13 @@ struct ExpenseEditor: View {
         odometer = e.odometerMiles.map { String(format: "%.1f", $0) } ?? ""
         payment = e.paymentMethod
         place = e.place ?? ""
+      } else if let bankTransaction {
+        merchant = bankTransaction.merchant; date = Brand.parseDay(bankTransaction.date)
+        amount = String(format: "%.2f", Double(bankTransaction.amountCents)/100)
+        category = bankTransaction.suggestedCategory ?? .other; payment = .bank
+      } else if let placePrompt {
+        merchant = placePrompt.merchant; date = placePrompt.detectedAt
+        category = placePrompt.category; place = placePrompt.address
       }
     }
   }
@@ -234,13 +243,14 @@ struct ExpenseEditor: View {
       return
     }
     let receiptId = capture?.id ?? oldReceipt
-    let expense = Expense(
+    var expense = Expense(
       date: DriverRecord.day(date), merchant: name, category: category, amountCents: cents,
       classification: classification, notes: notes, receiptId: receiptId,
       businessPurpose: optional(businessPurpose),
       businessUsePercent: classification == .personal ? 0 : share,
       mealContext: optional(mealContext), vehicle: optional(vehicle), odometerMiles: reading,
       paymentMethod: payment, place: optional(place))
+    expense.bankReference = bankTransaction?.reference ?? existing?.bankReference
     if !allowDuplicate
       && ExpenseSummary.hasPossibleDuplicate(
         expense, records: model.journal.visible.map(\.record), excluding: existing?.id)
@@ -253,6 +263,9 @@ struct ExpenseEditor: View {
         id: existing?.id ?? UUID(), revision: existing?.revision ?? 0, payload: .expense(expense)),
       receipt: capture?.data, receiptId: capture?.id, mime: capture?.mime ?? "image/jpeg")
     {
+      if let placePrompt { _ = model.commit { j in
+        if let i = j.placePrompts?.firstIndex(where: { $0.id == placePrompt.id }) { j.placePrompts?[i].dismissed = true }
+      } }
       dismiss()
     }
   }

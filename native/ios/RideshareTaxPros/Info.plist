@@ -22,19 +22,29 @@
 	<string>1</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>LSSupportsOpeningDocumentsInPlace</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Scan receipts you choose to attach to your expense records.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>With optional assistance enabled, detect driving and stops near fuel, food and auto businesses even while this app is in the background. You control both options in Account.</string>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict>
 		<key>TripMileage</key>
 		<string>Precise location improves the mileage recorded during your drive.</string>
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Record mileage during drives you start. Location updates continue in the background during that drive and stop when you end it.</string>
+	<string>Record driving mileage and, if you enable assistance, detect drives and remind you to log purchases near a stop.</string>
+	<key>NSMotionUsageDescription</key>
+	<string>Use movement activity to help distinguish driving from walking when you enable automatic assistance.</string>
+	<key>RTPBankLinkDomain</key>
+	<string>$(RTP_BANK_LINK_DOMAIN)</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>location</string>
 	</array>
+	<key>UIFileSharingEnabled</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

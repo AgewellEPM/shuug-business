@@ -150,6 +150,22 @@ final class WorkspaceClient {
     let (data, response) = try await send("receipts/" + id.uuidString.lowercased())
     return (data, response.mimeType ?? "application/octet-stream")
   }
+  func banks() async throws -> BankStatusReply {
+    let (data, _) = try await send("banks")
+    return try WireJSON.decoder().decode(BankStatusReply.self, from: data)
+  }
+  func referrals(_ action: [String: String]? = nil) async throws -> ReferralSummary {
+    let (data, _) = try await send("referrals", method: action == nil ? "GET" : "POST", body: try action.map { try JSONEncoder().encode($0) })
+    return try WireJSON.decoder().decode(ReferralSummary.self, from: data)
+  }
+  func bankAction<T: Decodable>(_ body: [String: String], as type: T.Type) async throws -> T {
+    let (data, _) = try await send("banks", method: "POST", body: JSONEncoder().encode(body))
+    return try WireJSON.decoder().decode(type, from: data)
+  }
+  func bankFeed(after: Int) async throws -> BankFeedReply {
+    let (data, _) = try await send("banks", query: [URLQueryItem(name: "after", value: String(after))])
+    return try WireJSON.decoder().decode(BankFeedReply.self, from: data)
+  }
   static func discover() async throws -> URL? {
     struct Config: Decodable { var workspaceUrl: String? }
     let (data, response) = try await URLSession.shared.data(

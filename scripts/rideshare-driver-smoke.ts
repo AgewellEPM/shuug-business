@@ -24,7 +24,7 @@ async function main() {
     const listener = createServer(); await new Promise<void>(resolve => listener.listen(0, "127.0.0.1", resolve));
     const port = (listener.address() as { port: number }).port; await new Promise<void>(resolve => listener.close(() => resolve()));
     const base = `http://127.0.0.1:${port}`;
-    Object.assign(process.env, { DEALDESK_DATA_DIR: directory, APP_BASE_URL: base, AUTH_ENABLED: "true", DEMO_DATA: "false", DATABASE_URL: "", NEXT_TELEMETRY_DISABLED: "1" });
+    Object.assign(process.env, { DEALDESK_DATA_DIR: directory, APP_BASE_URL: base, AUTH_ENABLED: "true", DEMO_DATA: "false", DATABASE_URL: "", NEXT_TELEMETRY_DISABLED: "1", PLAID_CLIENT_ID: "", PLAID_SECRET: "", PLAID_LIVE_ENABLED: "false" });
     const ownerPassword = "Synthetic-native-owner-password";
     configureOwnerPassword(ownerPassword); importBusinessTemplate(rideshareTaxProsTemplate);
     saveCustomerSettings({ enabled: true, pricing: false, ordering: false, orderStatus: false, servicePortal: true, booking: false });
@@ -46,7 +46,7 @@ async function main() {
     }
     assert(ready, "The compiled fixture server did not become ready.");
     const native = await promisify(execFile)(binary, [base], { timeout: 90_000 });
-    const proof = JSON.parse(native.stdout.trim()); assert(proof.ok && proof.checks.length === 14);
+    const proof = JSON.parse(native.stdout.trim()); assert(proof.ok && proof.checks.length === 20);
     const form = await fetch(base + "/api/auth/login"), html = await form.text();
     const csrf = html.match(/name="csrf" value="([a-f0-9]+)"/)?.[1]; assert(csrf);
     const owner = await fetch(base + "/api/auth/login", { method: "POST", redirect: "manual", headers: { Origin: base, "Content-Type": "application/x-www-form-urlencoded", cookie: form.headers.getSetCookie().map(c => c.split(";")[0]).join("; ") }, body: new URLSearchParams({ csrf, password: ownerPassword }) });
@@ -57,6 +57,9 @@ async function main() {
     const receiptPath = staffHtml.match(/href="(\/api\/rideshare\/receipts\/[^\"]+)"/)?.[1]; assert(receiptPath);
     const staffReceipt = await fetch(base + receiptPath, { headers: { cookie } }); assert.equal(staffReceipt.status, 200); assert.equal(staffReceipt.headers.get("content-type"), "image/png");
     const anonymous = await fetch(base + "/rideshare", { redirect: "manual" }); assert([303, 307].includes(anonymous.status));
+    const rewardPage = await fetch(base + "/rideshare/referrals", { headers: { cookie } });
+    assert.equal(rewardPage.status, 200); const rewardHtml = await rewardPage.text();
+    assert(rewardHtml.includes("pending") && rewardHtml.includes("first paid"));
     const noSession = await fetch(base + "/api/website/customer/driver/records"); assert.equal(noSession.status, 401);
     const crossOrigin = await fetch(base + "/api/website/customer/driver/session", { method: "POST", headers: { Origin: "https://unrelated.example", "Content-Type": "application/json" }, body: JSON.stringify({ email: "ios.alpha@example.com", password: "Synthetic-native-driver-password" }) }); assert.equal(crossOrigin.status, 403);
     const renewed = await fetch(base + "/api/website/customer/driver/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: "ios.alpha@example.com", password: "Synthetic-native-driver-password" }) }); assert.equal(renewed.status, 200); const session = await renewed.json();

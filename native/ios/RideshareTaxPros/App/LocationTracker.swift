@@ -8,6 +8,8 @@ import DriverCore
   private let manager = CLLocationManager()
   private weak var model: DriverModel?
   private var pendingStart: (TripClassification, String)?
+  var onObservation: (([CLLocation]) -> Void)?
+  var onManualStop: (() -> Void)?
   override init() {
     super.init()
     manager.delegate = self
@@ -73,12 +75,13 @@ import DriverCore
     recording = true
     status = "Waiting for a reliable GPS fix…"
   }
-  func stop() {
+  func stop(automatic: Bool = false) {
     manager.stopUpdatingLocation()
     manager.allowsBackgroundLocationUpdates = false
     recording = false
     status = "Drive saved on this iPhone"
     model?.finishTrip()
+    if !automatic { onManualStop?() }
   }
   nonisolated func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
     Task { @MainActor [weak self] in self?.authorizationChanged() }
@@ -106,7 +109,10 @@ import DriverCore
         latitude: $0.coordinate.latitude, longitude: $0.coordinate.longitude,
         accuracy: $0.horizontalAccuracy, timestamp: $0.timestamp)
     }
-    Task { @MainActor [weak self] in self?.accept(fixes) }
+    Task { @MainActor [weak self] in
+      self?.accept(fixes)
+      self?.onObservation?(locations)
+    }
   }
   private func accept(_ fixes: [LocationFix]) {
     guard model?.journal.activeTripId != nil else { return }

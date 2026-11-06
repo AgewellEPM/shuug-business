@@ -1,0 +1,33 @@
+{
+  "checks": [
+    "real invited-client login and brand",
+    "Swift JSON optional fields",
+    "recorded local date and time zone round trip",
+    "idempotent native retry",
+    "stale-write conflict decoding",
+    "client isolation",
+    "private receipt byte round trip",
+    "cross-client receipt denial",
+    "expense without receipt",
+    "all 23 expense categories",
+    "meal and vehicle review details round trip",
+    "income cents",
+    "incremental deletion",
+    "native session revocation",
+    "fare/fees/platform/area and detection fields",
+    "unconfigured bank status and isolated feed",
+    "statement reference round trip and duplicate rejection",
+    "compiled staff review and private receipt",
+    "anonymous staff denial",
+    "compiled API origin enforcement",
+    "immediate account revocation"
+  ],
+  "ok": true,
+  "realClientDataUsed": false,
+  "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server",
+  "verifiedAt": "2026-11-06T00:09:02.300Z",
+  "buildId": "G1O7FS3x-lAkevSqwUFRV",
+  "helperPid": 66775,
+  "diagnosticServerStopped": true,
+  "physicalIPhone": "Not established by this loopback transport proof; Luke deferred phone testing."
+}

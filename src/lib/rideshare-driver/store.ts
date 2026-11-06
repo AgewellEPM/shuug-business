@@ -3,6 +3,7 @@ import type { DatabaseSync } from "node:sqlite";
 import { workspaceDatabase } from "../workspace/database";
 import { driverAccount } from "./policy";
 import { driverMutation, driverRecord, DriverError, type DriverRecord } from "./model";
+import { validateBankReference } from "./bank-store";
 
 export function initDriver(db: DatabaseSync) {
   db.exec(`CREATE TABLE IF NOT EXISTS driver_records (
@@ -44,6 +45,16 @@ export function saveDriverRecord(token: string | undefined, raw: unknown): Drive
       if (count.n >= 100_000) throw new DriverError(413, "This journal needs a records-capacity review.");
     }
     if (input.record.kind === "expense" && input.record.body.receiptId && !db.prepare("SELECT id FROM driver_receipts WHERE accountId=? AND id=?").get(account.id, input.record.body.receiptId)) throw new DriverError(422, "Upload this receipt before syncing its expense.");
+    if (input.record.kind !== "trip" && !input.record.deleted && input.record.body.bankReference) {
+      if (input.record.body.bankReference.provider === "plaid") {
+        const previous = existing ? driverRecord.parse(JSON.parse(existing.body)) : undefined;
+        validateBankReference(db, account.id, account.clientId, input.record.body.bankReference.transactionId,
+          previous?.kind !== "trip" && previous?.body.bankReference?.transactionId === input.record.body.bankReference.transactionId);
+      }
+      const duplicate = db.prepare("SELECT id FROM driver_records WHERE accountId=? AND id<>? AND json_extract(body,'$.deleted')=0 AND json_extract(body,'$.body.bankReference.transactionId')=? LIMIT 1")
+        .get(account.id, input.record.id, input.record.body.bankReference.transactionId);
+      if (duplicate) throw new DriverError(409, "This bank transaction is already linked to another journal record. Review that record before syncing another copy.");
+    }
     const record = { ...input.record, revision: input.record.revision + 1 } as DriverRecord;
     db.prepare("UPDATE driver_clock SET sequence=sequence+1 WHERE id=1").run();
     const sequence = (db.prepare("SELECT sequence FROM driver_clock WHERE id=1").get() as { sequence: number }).sequence;

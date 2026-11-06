@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "scope": "Native iPhone Simulator goals/profit and OFX import; synthetic financial records",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": false,
+  "cloudSyncVerified": false,
+  "appExecutableSHA256": "a23ba9c7da34a6e04165fb4cc42cc3f34c317a400fc68eb954cba9d88697f0ba",
+  "tests": [
+    "goal forms persist exact cents",
+    "trip fare/fee/area input produces $12 estimated net from 10 miles at $0.50/mile",
+    "goal progress displays the recorded estimate",
+    "system document picker imports OFX into review inbox",
+    "bank review prefills and saves an expense with original source reference",
+    "journal and inbox preserve links after relaunch"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-c8idsy5v",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-c8idsy5v/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-06T00:16:39Z"
+}

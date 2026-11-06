@@ -104,6 +104,8 @@ struct ConnectionView: View {
         }
       }
       if let notice { Section { Text(notice).font(.footnote) } }
+      Section { NavigationLink("Driving & expense reminders") { AssistanceView() } }
+      Section { NavigationLink("Driver Rewards · Referrals & points") { ReferralView() } }
       Section("On your iPhone") {
         Text(
           "Records save locally before syncing. Signing out keeps each account’s journal separate; reconnect to the same account to see its saved records."
@@ -112,7 +114,7 @@ struct ConnectionView: View {
           "GPS route points are not shared with your firm. Trip details, recorded mileage, expenses, income and the receipts you attach are shared when you connect and sync."
         )
         Text(
-          "No bank feed or automatic tax filing is connected. Receipt recognition runs on this iPhone and needs your review."
+          "Bank imports and receipt suggestions need your review. There is no automatic tax filing. Direct bank linking requires your firm's configured provider."
         )
       }.font(.footnote)
       Section {

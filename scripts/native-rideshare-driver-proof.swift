@@ -11,12 +11,24 @@ enum ProofFailure: Error { case failed(String) }
         let second = try await loginClient.login(email: "ios.beta@example.com", password: "Synthetic-native-driver-password")
         let alpha = WorkspaceClient(origin: origin, token: first.token), beta = WorkspaceClient(origin: origin, token: second.token)
         try check(first.branding.name == "Rideshare Tax Pros", "Native sign-in did not receive the firm brand.")
-        let trip = DriverRecord(payload: .trip(Trip(startedAt: ISO8601DateFormatter().date(from: "2026-11-05T02:30:00Z")!, classification: .business, purpose: "Native Swift fixture drive", timeZone: TimeZone(identifier: "America/New_York")!)))
+        var tripBody = Trip(startedAt: ISO8601DateFormatter().date(from: "2026-11-05T02:30:00Z")!, classification: .business, purpose: "Native Swift fixture drive", timeZone: TimeZone(identifier: "America/New_York")!)
+        tripBody.earningsCents = 2000; tripBody.platformFeesCents = 300; tripBody.rideRole = .ride
+        tripBody.platform = "Uber"; tripBody.workArea = "Fixture area"; tripBody.automaticallyDetected = true
+        let trip = DriverRecord(payload: .trip(tripBody))
         let mutation = DriverMutation(mutationId: UUID(), record: trip)
         let saved = try await alpha.save(mutation), duplicate = try await alpha.save(mutation)
         try check(saved == duplicate && saved.record.revision == 1, "An actual native retry was not idempotent.")
         try check(saved.record.dateLabel == "2026-11-04", "The server shifted a late-night drive to the next UTC date.")
-        if case .trip(let value) = saved.record.payload { try check(value.timeZoneId == "America/New_York", "The trip lost its original time zone.") }
+        if case .trip(let value) = saved.record.payload { try check(value == tripBody, "The trip lost its time zone, earnings or assistance fields.") }
+        let bankStatus = try await alpha.banks()
+        try check(!bankStatus.ready && bankStatus.items.isEmpty, "An unconfigured provider was shown as connected.")
+        try check(try await alpha.bankFeed(after: 0).transactions.isEmpty, "An unconfigured account received bank transactions.")
+        let referral = try await alpha.referrals()
+        try check(referral.points == 0 && referral.program.pointsPerReferral == 100 && referral.program.referralBonusCents == 2000, "The native reward program terms did not match.")
+        let claimed = try await beta.referrals(["action": "claim", "code": referral.code])
+        try check(claimed.referredBy?.status == "pending", "The native referral was not recorded for staff review.")
+        let referrer = try await alpha.referrals()
+        try check(referrer.claims.count == 1 && referrer.claims.first?.status == "pending" && referrer.rewards.isEmpty, "A referral was rewarded before paid-prep verification.")
         try check(try await beta.records(after: 0).records.isEmpty, "Another client received the driver's private trip.")
         do { _ = try await alpha.save(DriverMutation(mutationId: UUID(), record: trip)); throw ProofFailure.failed("A stale native update overwrote server data.") }
         catch WorkspaceError.server(let status, _, let current) { try check(status == 409 && current?.record.revision == 1, "The native client could not decode the conflict.") }
@@ -31,8 +43,13 @@ enum ProofFailure: Error { case failed(String) }
         try check(downloaded == image && mime == "image/png", "The receipt did not survive actual native upload/download.")
         do { _ = try await beta.receipt(receipt.id); throw ProofFailure.failed("Another client downloaded the receipt.") }
         catch WorkspaceError.server(let status, _, _) { try check(status == 404, "A cross-client receipt request did not fail closed.") }
-        let noReceipt = DriverRecord(payload: .expense(Expense(date: DriverRecord.day(Date()), merchant: "Native fixture parking", category: .parking, amountCents: 650)))
-        _ = try await alpha.save(DriverMutation(mutationId: UUID(), record: noReceipt))
+        var sourceExpense = Expense(date: DriverRecord.day(Date()), merchant: "Native fixture parking", category: .parking, amountCents: 650)
+        sourceExpense.bankReference = BankReference(transactionId: "file:" + String(repeating: "a", count: 64), provider: "statement", accountLabel: "Fixture checking")
+        let noReceipt = DriverRecord(payload: .expense(sourceExpense))
+        let imported = try await alpha.save(DriverMutation(mutationId: UUID(), record: noReceipt))
+        try check(imported.record.bankReference == sourceExpense.bankReference, "The statement source reference was lost.")
+        do { _ = try await alpha.save(DriverMutation(mutationId: UUID(), record: DriverRecord(payload: .expense(sourceExpense)))); throw ProofFailure.failed("Duplicate bank reference accepted.") }
+        catch WorkspaceError.server(let status, _, _) { try check(status == 409, "Duplicate source was not rejected.") }
         for category in ExpenseCategory.allCases {
             let detail = Expense(date: "2026-11-05", merchant: "Native category fixture · " + category.label, category: category, amountCents: 2450, classification: .business, businessPurpose: "Native fixture business purpose", businessUsePercent: 75, mealContext: "Native fixture participants", vehicle: "Native fixture vehicle", odometerMiles: 12345.6, paymentMethod: .platform, place: "Native fixture city")
             let result = try await alpha.save(DriverMutation(mutationId: UUID(), record: DriverRecord(payload: .expense(detail))))
@@ -48,7 +65,7 @@ enum ProofFailure: Error { case failed(String) }
         do { _ = try await alpha.records(after: 0); throw ProofFailure.failed("The native session remained valid after logout.") }
         catch WorkspaceError.server(let status, _, _) { try check(status == 401, "Native logout was not enforced.") }
         let checks = ["real invited-client login and brand", "Swift JSON optional fields", "recorded local date and time zone round trip", "idempotent native retry", "stale-write conflict decoding", "client isolation", "private receipt byte round trip", "cross-client receipt denial", "expense without receipt", "all 23 expense categories", "meal and vehicle review details round trip", "income cents", "incremental deletion", "native session revocation"]
-        let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks, "realClientDataUsed": false]
+        let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks + ["fare/fees/platform/area and detection fields", "unconfigured bank status and isolated feed", "statement reference round trip and duplicate rejection", "native referral terms and points", "native referral claim round trip", "pending referral cannot issue reward"], "realClientDataUsed": false]
         print(String(decoding: try JSONSerialization.data(withJSONObject: result, options: [.sortedKeys]), as: UTF8.self))
     }
 }

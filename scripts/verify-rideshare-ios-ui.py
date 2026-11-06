@@ -18,17 +18,21 @@ flows = parser.add_mutually_exclusive_group()
 flows.add_argument('--driving-only', action='store_true', help='Check the driving/expense flow without claiming receipt verification.')
 flows.add_argument('--receipts-only', action='store_true', help='Check receipt import and reading without repeating the driving flow.')
 flows.add_argument('--expenses-only', action='store_true', help='Check meal/repair details, review totals and duplicate warnings.')
+flows.add_argument('--insights-only', action='store_true', help='Check goals, fare profitability and real bank statement import.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-driving = not (options.receipts_only or options.expenses_only)
-receipts = not (options.driving_only or options.expenses_only)
-expense_details = not (options.driving_only or options.receipts_only)
+driving = not (options.receipts_only or options.expenses_only or options.insights_only)
+receipts = not (options.driving_only or options.expenses_only or options.insights_only)
+expense_details = not (options.driving_only or options.receipts_only or options.insights_only)
+insights = options.insights_only
 if options.driving_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-driving-verification-20261105.json')
 elif options.receipts_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-receipts-verification-20261105.json')
 elif options.expenses_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-expenses-verification-20261105.json')
+elif options.insights_only:
+    REPORT = REPORT.with_name('rideshare-ios-simulator-insights-verification-20261105.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -106,6 +110,15 @@ try:
     print('Owned Simulator booted; installing the app.', flush=True)
     stage = 'installation'
     call('xcrun', 'simctl', 'install', simulator, str(app))
+    def seed_statement(container):
+        documents = container/'Documents'
+        documents.mkdir(parents=True, exist_ok=True)
+        day = time.strftime('%Y%m%d')
+        (documents/'RTPBankFixture.ofx').write_text('<OFX><CURDEF>USD<BANKTRANLIST>'
+            '<STMTTRN><DTPOSTED>'+day+'<TRNAMT>-17.35<FITID>fixture-fuel<NAME>Fixture Shell</STMTTRN>'
+            '<STMTTRN><DTPOSTED>'+day+'<TRNAMT>-24.50<FITID>fixture-meal<NAME>Fixture Cafe</STMTTRN></BANKTRANLIST></OFX>')
+    if insights:
+        seed_statement(Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip()))
     call('xcrun', 'simctl', 'privacy', simulator, 'grant', 'location-always', BUNDLE)
     if receipts:
         receipt = ARTIFACTS/'receipt-fixture.png'
@@ -125,7 +138,12 @@ try:
         if options.driving_only: selection += '/DriverFlows/test01DriveExpenseAndRelaunch'
         if options.receipts_only: selection += '/DriverFlows/test02PhotoReceiptAndOnDeviceRecognition'
         if options.expenses_only: selection += '/DriverFlows/test03MealRepairDetailsAndDuplicateReview'
-        test = subprocess.Popen(['xcodebuild', '-quiet', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO', '-only-testing:'+selection, 'CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
+        if options.insights_only: selection += '/DriverFlows/test04InsightsAndBankImport'
+        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only):
+            selection = 'RideshareTaxProsUITests/DriverFlows'
+        test_selection = ['-only-testing:'+selection]
+        if not insights: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test04InsightsAndBankImport']
+        test = subprocess.Popen(['xcodebuild', '-quiet', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 600
         last_fix = last_update = last_container_check = 0.0
         fixes = 0
@@ -140,6 +158,7 @@ try:
                 current = call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data', check=False, timeout=15)
                 if current.returncode == 0:
                     container = Path(current.stdout.strip())
+                    if insights: seed_statement(container)
                     journal_path = next(container.rglob('journal.json'), None)
                 last_container_check = now
             if journal_path and journal_path.exists():
@@ -187,6 +206,17 @@ try:
         repair = repairs[0]
         assert repair['amountCents']==24567 and repair['category']=='repairs' and repair['businessUsePercent']==75 and repair['vehicle']=='Driver car' and repair['odometerMiles']==12345.6 and repair['businessPurpose']=='Brake repair', 'Vehicle repair details did not survive the actual UI save/relaunch.'
         verified_tests += ['business meal purpose and participants saved through the actual form', 'repair vehicle, odometer and business-use details persist after relaunch', 'spending review displays meal and repair categories', 'similar-payment warning prevents an unconfirmed duplicate']
+    if insights:
+        ride = next(r['body'] for r in trips if r['body']['purpose']=='Profit UI ride')
+        assert ride['earningsCents']==2000 and ride['platformFeesCents']==300 and ride['rideRole']=='ride' and ride['classification']=='business'
+        assert abs(ride['distanceMeters']-16093.44)<1 and ride['workArea']=='Fixture downtown'
+        assert journal['goals']=={'dailyNetCents':10000, 'weeklyNetCents':50000, 'targetHourlyCents':2500, 'vehicleCostCentsPerMile':50}
+        assert len(journal['bankTransactions'])==2
+        imported = next(r['body'] for r in expenses if r['body']['merchant']=='Fixture Shell')
+        assert imported['amountCents']==1735 and imported['category']=='fuel' and imported['bankReference']['provider']=='statement'
+        assert sum(1 for r in journal['bankTransactions'] if r.get('reviewedRecordId'))==1
+        verified_tests += ['goal forms persist exact cents', 'trip fare/fee/area input produces $12 estimated net from 10 miles at $0.50/mile', 'goal progress displays the recorded estimate', 'system document picker imports OFX into review inbox', 'bank review prefills and saves an expense with original source reference', 'journal and inbox preserve links after relaunch']
+        report['scope'] = 'Native iPhone Simulator goals/profit and OFX import; synthetic financial records'
     report.update(ok=True, tests=verified_tests, artifactDirectory=str(ARTIFACTS), resultBundle=str(result_bundle))
     success = True
 except BaseException as error:

@@ -45,6 +45,11 @@ next-env.d.ts
 **/xcuserdata/
 **/.swiftpm/
 /native/ios/RideshareTaxPros/DriverCore/.build/
+/native/android/.gradle/
+/native/android/.kotlin/
+/native/android/.idea/
+/native/android/**/build/
+/native/android/local.properties
 
 # Private campaign review receipts
 /.data/
