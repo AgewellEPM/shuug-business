@@ -27,6 +27,32 @@ class DriverCoreTest {
         assertTrue(tracker.hasGaps);assertFalse(tracker.consume(fix(40.002,20),start.plusSeconds(70)))
         assertTrue(tracker.consume(fix(40.05,130),start.plusSeconds(130)));assertEquals(distance,tracker.distanceMeters,0.0)
     }
+    @Test fun interruptionPreventsConnectingDistanceAcrossAPausedSession() {
+        val start=Instant.parse("2026-11-05T10:00:00Z")
+        val tracker=TripAccumulator(); val first=LocationFix(40.0,-73.0,5.0,start.toString())
+        val beforePause=LocationFix(40.001,-73.0,5.0,start.plusSeconds(10).toString())
+        assertTrue(tracker.consume(first,start)); assertTrue(tracker.consume(beforePause,start.plusSeconds(10)))
+        val trip=DriverRecord.trip(Trip.local(start.toString()).copy(distanceMeters=tracker.distanceMeters,sampleCount=tracker.sampleCount))
+        val journal=Journal().upsert(trip).copy(activeTripId=trip.id,tracker=tracker)
+        val paused=journal.markTrackingInterrupted()
+        assertTrue(paused.active!!.record.trip().hasGaps); assertTrue(paused.tracker!!.hasGaps); assertNull(paused.tracker!!.anchor)
+        val resumed=paused.tracker!!.copy(); val traveled=tracker.distanceMeters
+        assertTrue(resumed.consume(LocationFix(40.002,-73.0,5.0,start.plusSeconds(20).toString()),start.plusSeconds(20)))
+        assertEquals(traveled,resumed.distanceMeters,0.0)
+        assertTrue(resumed.consume(LocationFix(40.003,-73.0,5.0,start.plusSeconds(30).toString()),start.plusSeconds(30)))
+        assertTrue(resumed.distanceMeters>traveled)
+    }
+    @Test fun legacyTripDateRemainsUTCWhileNewTripsKeepRecordedLocalDate() {
+        val prior=java.util.TimeZone.getDefault()
+        try {
+            java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("America/New_York"))
+            val legacy=Wire.decodeFromString<Trip>("""{"startedAt":"2026-11-05T02:30:00Z"}""")
+            assertNull(legacy.localDate); assertNull(legacy.timeZoneId); assertEquals("2026-11-05",legacy.recordedDate)
+            val fresh=Trip.local("2026-11-05T02:30:00Z")
+            assertEquals("America/New_York",fresh.timeZoneId); assertEquals("2026-11-04",fresh.recordedDate)
+            assertEquals(fresh,Wire.decodeFromString<Trip>(Wire.encodeToString(fresh)))
+        } finally { java.util.TimeZone.setDefault(prior) }
+    }
     @Test fun importsQuotedCRLFCentsCurrencyAndStableReferences() {
         val csv="Date,Description,Amount,ID\r\n2026-11-05,\"Fuel, stop\",17.35,abc\r\n2026-11-05,Income,-25.10,def\r\n2026-11-05,Bad,12.345,ghi\r\n"
         val preview=StatementImport.previewCSV(csv,"Checking",ColumnMap(reference=3),true)

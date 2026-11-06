@@ -68,6 +68,10 @@ import UserNotifications
       if requestPermission { manager.requestWhenInUseAuthorization() }
       return
     case .denied, .restricted:
+      manager.stopMonitoringVisits(); manager.stopMonitoringSignificantLocationChanges()
+      manager.stopUpdatingLocation(); manager.allowsBackgroundLocationUpdates = false
+      motion.stopActivityUpdates(); motionRunning = false; burstEnd?.cancel()
+      window = MovementWindow(); buffer = []
       status = "Location is off. Enable it in iPhone Settings for assistance."; return
     default: break
     }
@@ -125,10 +129,13 @@ import UserNotifications
                             accuracy: location.horizontalAccuracy, timestamp: location.timestamp)
       buffer.append(fix); buffer.removeAll { location.timestamp.timeIntervalSince($0.timestamp) > 90 }
       let decision = window.observe(fix, speed: location.speed)
-      if decision.beganDriving, settings.automaticDrives, model.journal.activeTripId == nil,
-        Date() >= autoSuspendedUntil,
-        !(automotive == false && Date().timeIntervalSince(motionAt) < 120) {
-        beginDetected(buffer)
+      if decision.beganDriving {
+        if settings.automaticDrives, model.journal.activeTripId == nil,
+          Date() >= autoSuspendedUntil,
+          !(automotive == false && Date().timeIntervalSince(motionAt) < 120) {
+          beginDetected(buffer)
+        }
+        if model.journal.activeTripId == nil { window.reconsiderDrivingStart() }
       }
       if decision.arrivedAtStop, settings.placeReminders { Task { await searchPlaces(at: location) } }
       if decision.parkedLongEnough, case .trip(let trip) = model.active?.record.payload,

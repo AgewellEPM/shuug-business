@@ -41,7 +41,7 @@ import kotlin.math.abs
     var fees by remember { mutableStateOf(trip?.platformFeesCents?.let { "%.2f".format(java.util.Locale.US,it/100.0) } ?: "") }
     var role by remember { mutableStateOf(trip?.rideRole ?: "ride") }; var platform by remember { mutableStateOf(trip?.platform ?: income?.platform ?: if(kind=="income") "other" else "") }
     var area by remember { mutableStateOf(trip?.workArea ?: "") }
-    val zone=trip?.timeZoneId?.let(ZoneId::of) ?: ZoneId.systemDefault()
+    val zone=trip?.timeZoneId?.let(ZoneId::of) ?: if(trip!=null) ZoneOffset.UTC else ZoneId.systemDefault()
     fun time(value: String?)=value?.let { Instant.parse(it).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm")) } ?: ""
     var start by remember { mutableStateOf(time(trip?.startedAt)) }; var end by remember { mutableStateOf(time(trip?.endedAt)) }
     var endDate by remember { mutableStateOf(trip?.endedAt?.let { day(it,zone.id) } ?: date) }

@@ -20,10 +20,16 @@ fun day(instant: String, zone: String = "UTC"): String = Instant.parse(instant).
 @Serializable data class Trip(
     val startedAt: String = now(), val endedAt: String? = null, val distanceMeters: Double = 0.0,
     val classification: String = "unclassified", val purpose: String = "", val notes: String = "", val source: String = "gps",
-    val hasGaps: Boolean = false, val sampleCount: Int = 0, val localDate: String? = day(startedAt, ZoneId.systemDefault().id),
-    val timeZoneId: String? = ZoneId.systemDefault().id, val earningsCents: Int? = null, val platformFeesCents: Int? = null,
+    val hasGaps: Boolean = false, val sampleCount: Int = 0, val localDate: String? = null,
+    val timeZoneId: String? = null, val earningsCents: Int? = null, val platformFeesCents: Int? = null,
     val rideRole: String? = null, val automaticallyDetected: Boolean? = null, val platform: String? = null, val workArea: String? = null
-) { val recordedDate get() = localDate ?: day(startedAt, timeZoneId ?: "UTC") }
+) {
+    val recordedDate get() = localDate ?: day(startedAt, timeZoneId ?: "UTC")
+    companion object {
+        fun local(startedAt: String = now(), zone: ZoneId = ZoneId.systemDefault()): Trip =
+            Trip(startedAt=startedAt,localDate=day(startedAt,zone.id),timeZoneId=zone.id)
+    }
+}
 @Serializable data class Expense(
     val date: String = today(), val merchant: String, val category: String = "other", val amountCents: Int,
     val currency: String = "USD", val classification: String = "unclassified", val notes: String = "", val receiptId: String? = null,
@@ -72,6 +78,14 @@ fun day(instant: String, zone: String = "UTC"): String = Instant.parse(instant).
     val vehicleReservePercent: Double? = null, val taxReservePercent: Double? = null) {
     val visible get() = entries.filter { !it.record.deleted }.sortedByDescending { it.record.date }
     val active get() = entries.firstOrNull { it.record.id == activeTripId }
+    /** A paused or interrupted GPS session must never connect its next fix to the old route. */
+    fun markTrackingInterrupted(): Journal {
+        val entry=active ?: return this
+        val oldTracker=tracker ?: TripAccumulator()
+        val nextTracker=oldTracker.copy(anchor=null,hasGaps=true)
+        val nextTrip=entry.record.trip().copy(hasGaps=true)
+        return upsert(DriverRecord.trip(nextTrip,entry.record.id,entry.record.revision)).copy(tracker=nextTracker)
+    }
     fun upsert(record: DriverRecord): Journal {
         require(record.bankReference == null || visible.none { it.record.id != record.id && it.record.bankReference?.transactionId == record.bankReference?.transactionId }) { "This bank transaction is already linked to a journal record." }
         val prior = entries.firstOrNull { it.record.id == record.id }

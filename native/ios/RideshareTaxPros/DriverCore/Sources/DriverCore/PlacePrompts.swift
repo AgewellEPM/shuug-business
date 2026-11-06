@@ -48,6 +48,9 @@ public struct MovementWindow: Sendable {
   private var last: LocationFix?, anchor: LocationFix?, movingSince: Date?, stoppedSince: Date?
   private var movingMeters = 0.0, announcedDrive = false, announcedStop = false, announcedPark = false
   public init() {}
+  /// The caller can decline a tentative start (for example, motion still says
+  /// walking). Keep watching so a later automotive update can start the drive.
+  public mutating func reconsiderDrivingStart() { announcedDrive = false }
   public mutating func observe(_ fix: LocationFix, speed reportedSpeed: Double, now: Date = Date()) -> MovementDecision {
     var decision = MovementDecision()
     guard fix.accuracy >= 0, fix.accuracy <= 50,
@@ -55,12 +58,16 @@ public struct MovementWindow: Sendable {
           abs(now.timeIntervalSince(fix.timestamp)) <= 30,
           last.map({ fix.timestamp > $0.timestamp }) ?? true else { return decision }
     let previous = last
-    last = fix
     let elapsed = previous.map { fix.timestamp.timeIntervalSince($0.timestamp) } ?? 0
-    if elapsed > 90 { movingSince = nil; stoppedSince = nil; movingMeters = 0; anchor = nil }
-    let moved = previous.map { Self.distance($0, fix) } ?? 0
+    let gap = elapsed > 90
+    let moved = gap ? 0 : (previous.map { Self.distance($0, fix) } ?? 0)
     let speed = reportedSpeed >= 0 ? reportedSpeed : (elapsed > 0 ? moved / elapsed : 0)
-    guard speed.isFinite, speed < 65 else { return decision }
+    guard speed.isFinite, speed < 65, elapsed <= 0 || moved / elapsed < 65 else { return decision }
+    last = fix
+    if gap {
+      movingSince = nil; stoppedSince = nil; movingMeters = 0; anchor = nil
+      announcedDrive = false; announcedStop = false; announcedPark = false
+    }
     if speed >= 3.5 {
       movingSince = movingSince ?? fix.timestamp
       movingMeters += moved

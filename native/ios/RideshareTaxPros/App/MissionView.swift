@@ -33,7 +33,7 @@ struct MissionView: View {
     List {
       Section {
         Text("Make more. Waste fewer miles. Get home on your schedule.").font(.headline)
-        Text("Plan using your own numbers. Enter offers and route estimates while parked; no live offers or traffic are connected.").font(.footnote).foregroundStyle(Brand.muted)
+        Text("Plan using your own numbers. Enter offers and check routes while parked; no live offers are connected.").font(.footnote).foregroundStyle(Brand.muted)
       }
       if let mission = model.journal.mission {
         let progress = mission.progress(records: model.journal.visible.map(\.record), goals: model.journal.goals ?? DriverGoals())
@@ -88,6 +88,8 @@ struct MissionView: View {
           Text("Enter payout, known fees, miles, minutes and wait. Set your own hourly target and vehicle cost in Insights → Set goals.").font(.footnote).foregroundStyle(Brand.muted)
         }
       }
+      MissionRouteSection(deadline: model.journal.mission?.deadline, waitMinutes: Double(wait))
+        .id(model.journalScope)
       if let offers = model.journal.missionOffers, !offers.isEmpty {
         Section("Compare your entered offers") {
           ForEach(offers) { offer in

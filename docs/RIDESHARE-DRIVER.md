@@ -171,6 +171,15 @@ onward travel are estimates; the app cannot see live marketplace offers or promi
 an arrival time. A missed or missing destination ETA must not be treated as an
 on-time guarantee. Enter and review information only while safely parked.
 
+On iPhone, **Get paid going home** can optionally compare Apple Maps road routes
+from the driver's current location directly to a chosen destination and via a
+chosen offer drop-off. The driver starts the lookup and selects the search
+results; the app shows distance, travel time and a deadline estimate when a wait
+is supplied. The route to the drop-off does not include an unknown pickup or
+other stops. Estimates may become stale and never guarantee arrival. Apple Maps
+receives the search terms and route endpoints; they are not saved in the journal
+or sent to the firm. Android currently uses user-entered route estimates.
+
 Unpaid repositioning trips contribute to the dead-mile summary. Drivers can save
 observed restaurant waits on their phone; averages describe their own samples,
 not a current wait or a network-wide prediction. Recorded trip history can be

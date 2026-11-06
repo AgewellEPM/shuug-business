@@ -95,5 +95,10 @@ class DriveService: Service(),LocationListener {
         } catch(_: Exception) { repo.trackingStatus="Tracking active · nearby places temporarily unavailable" } finally { lookupBusy=false } }
     }
     override fun onProviderDisabled(provider: String) { repo.trackingStatus="GPS is off. The trip may have gaps." }
-    override fun onDestroy() { locations.removeUpdates(this); jobs.cancel(); repo.trackingStatus=if(repo.journal.activeTripId!=null) "Tracking paused. Resume or end the drive." else "Tracking is off"; super.onDestroy() }
+    override fun onDestroy() {
+        locations.removeUpdates(this); jobs.cancel()
+        try { repo.pauseDrive() } catch(_: Exception) { /* update() already reports storage failure */ }
+        repo.trackingStatus=if(repo.journal.activeTripId!=null) "Tracking paused. Resume or end the drive." else "Tracking is off"
+        super.onDestroy()
+    }
 }

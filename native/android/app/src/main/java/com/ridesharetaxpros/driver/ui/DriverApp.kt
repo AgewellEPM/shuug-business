@@ -78,7 +78,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                         Button(onClick={page="Driver Rewards"},Modifier.fillMaxWidth()) { Text("Invite a friend · earn $20 + points") }
                     }
                     "Trips" -> {
-                        Button(onClick={edit(DriverRecord.trip(Trip(endedAt=now(),source="manual")))}) { Text("Add manual trip") }
+                        Button(onClick={edit(DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual")))}) { Text("Add manual trip") }
                         repo.journal.visible.filter { it.record.kind=="trip" }.forEach { entry-> val record=entry.record; Panel(record.title) {
                             Text("${record.date} · %.2f mi · ${classifications[record.trip().classification]}".format(record.trip().distanceMeters/1609.344))
                             TextButton(onClick={editing=record;page="Trip"}) { Text("Review trip") }

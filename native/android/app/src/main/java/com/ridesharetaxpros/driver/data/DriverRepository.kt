@@ -25,7 +25,7 @@ class DriverRepository(val app: Application) {
     init { try {
         connection=store.read("session","connection.json")?.let { Wire.decodeFromString<Connection>(it.toString(Charsets.UTF_8)) }
         journal=store.journal(scope); storageReady=true
-        if(journal.activeTripId!=null) trackingStatus="A drive was interrupted. Resume tracking or end it below."
+        if(journal.activeTripId!=null) { update { it.markTrackingInterrupted() }; trackingStatus="A drive was interrupted. Resume tracking or end it below." }
     } catch(_: Exception) { failure="Saved data could not be opened. Keep this installation for recovery; recording is disabled." } }
     fun update(transform: (Journal)->Journal) {
         check(storageReady) { "Storage is unavailable." }; val next=transform(journal)
@@ -110,7 +110,7 @@ class DriverRepository(val app: Application) {
         }
     }
     fun startDrive(automatic: Boolean=false,startedAt: String=now()) {
-        check(journal.activeTripId==null); val record=DriverRecord.trip(Trip(startedAt=startedAt,automaticallyDetected=automatic))
+        check(journal.activeTripId==null); val record=DriverRecord.trip(Trip.local(startedAt).copy(automaticallyDetected=automatic))
         update { it.upsert(record).copy(activeTripId=record.id,tracker=TripAccumulator()) }
     }
     fun observe(fix: LocationFix,clock: java.time.Instant=java.time.Instant.now()) {
@@ -123,6 +123,7 @@ class DriverRepository(val app: Application) {
     fun endDrive() { val active=journal.active ?: return
         update { it.upsert(DriverRecord.trip(active.record.trip().copy(endedAt=now()),active.record.id,active.record.revision)).copy(activeTripId=null,tracker=null) }
     }
+    fun pauseDrive() { if(storageReady && journal.activeTripId!=null) update { it.markTrackingInterrupted() } }
     fun resolve(id: String,keepLocal: Boolean) { update { state -> state.copy(entries=state.entries.map { entry ->
         if(entry.record.id!=id || entry.conflict==null) entry else if(keepLocal) LocalEntry(entry.record.copy(revision=entry.conflict.record.revision)) else LocalEntry(entry.conflict.record,pendingMutationId=null)
     }) } }

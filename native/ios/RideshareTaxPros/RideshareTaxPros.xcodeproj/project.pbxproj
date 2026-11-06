@@ -35,6 +35,7 @@
 		CDB3C1386471C6C7F440146C /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E515B079F485E403FF64B2AD /* Brand.swift */; };
 		CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */; };
 		D666D4CF2B72C07F0CF9E3BE /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EC96DE14A63112C9339895 /* RootView.swift */; };
+		DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */; };
 		E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B02495B4D78249A890D1EF7 /* Assets.xcassets */; };
 		F6A44B888EE96AE36F3ACAEC /* BankConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E96FB385BB01D09AF2EBF2B /* BankConnectionView.swift */; };
 		F81CB1D2DA225515D901F6E0 /* SessionKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB62B3A50F636C82218CF62B /* SessionKeychain.swift */; };
@@ -54,6 +55,7 @@
 /* Begin PBXFileReference section */
 		0A9694A18C3AD1D2F4CCC487 /* BankClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankClient.swift; sourceTree = "<group>"; };
 		1B02495B4D78249A890D1EF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionRouteSection.swift; sourceTree = "<group>"; };
 		282961514CC8F1169E8346AA /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankReviewView.swift; sourceTree = "<group>"; };
 		32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideshareTaxProsApp.swift; sourceTree = "<group>"; };
@@ -138,6 +140,7 @@
 				7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */,
 				282961514CC8F1169E8346AA /* InsightsView.swift */,
 				4A8E943BF195B750291F3E94 /* LocationTracker.swift */,
+				1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */,
 				E0BE3FABE19BBD6459733E82 /* MissionView.swift */,
 				94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */,
 				79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */,
@@ -303,6 +306,7 @@
 				30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */,
 				31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */,
 				0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */,
+				DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */,
 				2D9FEE1E193828A2294DB012 /* MissionView.swift in Sources */,
 				BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */,
 				CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */,

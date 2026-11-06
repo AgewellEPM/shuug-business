@@ -2,6 +2,22 @@ import XCTest
 @testable import DriverCore
 
 final class ShiftMissionTests: XCTestCase {
+  func testRoadComparisonIncludesBothLegsAndRequiresWaitForDeadline() {
+    let now = Date(timeIntervalSince1970: 1000), deadline = now.addingTimeInterval(3600)
+    let comparison = DestinationRouteComparison(directMeters: 20_000, directSeconds: 1200,
+      toDropoffMeters: 8_000, toDropoffSeconds: 600, onwardMeters: 15_000, onwardSeconds: 900,
+      waitSeconds: 300, deadline: deadline, now: now)!
+    XCTAssertEqual(comparison.distanceChangeMeters, 5_000)
+    XCTAssertEqual(comparison.extraTravelSeconds, 300)
+    XCTAssertEqual(comparison.deadlineBufferSeconds, 1800)
+    let missing = DestinationRouteComparison(directMeters: 20_000, directSeconds: 1200,
+      toDropoffMeters: 8_000, toDropoffSeconds: 600, onwardMeters: 15_000, onwardSeconds: 900,
+      waitSeconds: nil, deadline: deadline, now: now)!
+    XCTAssertNil(missing.deadlineBufferSeconds)
+    XCTAssertNil(DestinationRouteComparison(directMeters: .nan, directSeconds: 0,
+      toDropoffMeters: 0, toDropoffSeconds: 0, onwardMeters: 0, onwardSeconds: 0,
+      waitSeconds: 0, deadline: deadline, now: now))
+  }
   func testOfferRequiresCostAndTimeAndReportsDeadline() {
     let now = Date(timeIntervalSince1970: 1_000)
     let missing = OfferEstimate(payoutCents: 2000, feesCents: 300, miles: 10, minutes: 20, waitMinutes: 10, homeMinutes: nil, vehicleCostCentsPerMile: nil, hourlyTargetCents: 2500, deadline: now.addingTimeInterval(3600), now: now)

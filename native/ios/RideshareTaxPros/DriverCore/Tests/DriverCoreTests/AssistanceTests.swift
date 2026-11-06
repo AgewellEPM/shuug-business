@@ -59,6 +59,26 @@ final class AssistanceTests: XCTestCase {
     let recent = ExpensePrompt(placeId: "station", merchant: place.name, address: place.address, category: .fuel, detectedAt: start)
     XCTAssertNil(PlaceReminderPolicy.choose([place], history: [recent], now: start.addingTimeInterval(7200)))
   }
+  func testMovementCanRetryADeclinedStartAndRejectsGPSJumps() {
+    let start = Date(timeIntervalSince1970: 1_800_000_000)
+    var window = MovementWindow()
+    func fix(_ latitude: Double, _ seconds: Double) -> LocationFix {
+      LocationFix(latitude: latitude, longitude: -73.9, accuracy: 8, timestamp: start.addingTimeInterval(seconds))
+    }
+    for index in 0..<3 {
+      let sample = fix(40 + Double(index) * 0.00135, Double(index) * 15)
+      XCTAssertFalse(window.observe(sample, speed: 10, now: sample.timestamp).beganDriving)
+    }
+    let first = fix(40.00405, 45)
+    XCTAssertTrue(window.observe(first, speed: 10, now: first.timestamp).beganDriving)
+    window.reconsiderDrivingStart()
+    let bad = fix(41, 46)
+    XCTAssertFalse(window.observe(bad, speed: 10, now: bad.timestamp).beganDriving)
+    let retry = fix(40.0054, 60)
+    XCTAssertTrue(window.observe(retry, speed: 10, now: retry.timestamp).beganDriving)
+    let gap = fix(40.1, 180)
+    XCTAssertFalse(window.observe(gap, speed: 10, now: gap.timestamp).beganDriving)
+  }
   func testRideProfitShowsUnknownFaresAndKeepsCashFlowSeparateFromRideEstimates() throws {
     let start = Date(timeIntervalSince1970: 1_800_000_000)
     var trip = Trip(startedAt: start, endedAt: start.addingTimeInterval(3600), distanceMeters: 16093.44, classification: .business)

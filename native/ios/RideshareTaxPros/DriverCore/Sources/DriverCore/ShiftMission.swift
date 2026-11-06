@@ -1,5 +1,23 @@
 import Foundation
 
+/// Road routes are estimates at query time, not a prediction of a completed gig.
+public struct DestinationRouteComparison: Sendable {
+  public let distanceChangeMeters: Double, extraTravelSeconds: Double
+  public let deadlineBufferSeconds: Double?
+  public init?(directMeters: Double, directSeconds: Double, toDropoffMeters: Double,
+               toDropoffSeconds: Double, onwardMeters: Double, onwardSeconds: Double,
+               waitSeconds: Double?, deadline: Date?, now: Date) {
+    let values = [directMeters, directSeconds, toDropoffMeters, toDropoffSeconds, onwardMeters, onwardSeconds]
+    guard values.allSatisfy({ $0.isFinite && $0 >= 0 && $0 <= 100_000_000 }),
+      waitSeconds.map({ $0.isFinite && (0...14_400).contains($0) }) ?? true else { return nil }
+    distanceChangeMeters = directMeters - onwardMeters
+    extraTravelSeconds = toDropoffSeconds + onwardSeconds - directSeconds
+    if let deadline, let waitSeconds {
+      deadlineBufferSeconds = deadline.timeIntervalSince(now) - toDropoffSeconds - onwardSeconds - waitSeconds
+    } else { deadlineBufferSeconds = nil }
+  }
+}
+
 public struct ReserveSettings: Codable, Sendable, Equatable {
   public var taxPercent: Double, vehiclePercent: Double
   public init(taxPercent: Double, vehiclePercent: Double) { self.taxPercent = taxPercent; self.vehiclePercent = vehiclePercent }
