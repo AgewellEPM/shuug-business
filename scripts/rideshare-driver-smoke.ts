@@ -63,6 +63,20 @@ async function main() {
     const noSession = await fetch(base + "/api/website/customer/driver/records"); assert.equal(noSession.status, 401);
     const crossOrigin = await fetch(base + "/api/website/customer/driver/session", { method: "POST", headers: { Origin: "https://unrelated.example", "Content-Type": "application/json" }, body: JSON.stringify({ email: "ios.alpha@example.com", password: "Synthetic-native-driver-password" }) }); assert.equal(crossOrigin.status, 403);
     const renewed = await fetch(base + "/api/website/customer/driver/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: "ios.alpha@example.com", password: "Synthetic-native-driver-password" }) }); assert.equal(renewed.status, 200); const session = await renewed.json();
+    // Remove only the synthetic fixture file, leaving its database row intact,
+    // then exercise the actual HTTP retry and the staff download path.
+    const receiptId = receiptPath.split("/").at(-1)!;
+    assert.match(receiptId, /^[a-f0-9-]{36}$/); assert.match(session.account.id, /^[a-f0-9-]{36}$/);
+    const fixtureReceipt = path.join(directory, "driver-receipts", session.account.id, receiptId);
+    assert(existsSync(fixtureReceipt)); const originalReceipt = readFileSync(fixtureReceipt);
+    rmSync(fixtureReceipt);
+    const retry = await fetch(base + `/api/website/customer/driver/receipts/${receiptId}`, {
+      method: "PUT", headers: { Authorization: `Bearer ${session.token}`, "Content-Type": "image/png" }, body: originalReceipt,
+    });
+    assert.equal(retry.status, 200);
+    const restored = await fetch(base + receiptPath, { headers: { cookie } });
+    assert.equal(restored.status, 200); assert.deepEqual(Buffer.from(await restored.arrayBuffer()), originalReceipt);
+    proof.checks.push("receipt retry restores missing file and staff receives original bytes");
     setCustomerEnabled(session.account.id, false);
     const revoked = await fetch(base + "/api/website/customer/driver/records", { headers: { Authorization: `Bearer ${session.token}` } }); assert.equal(revoked.status, 401);
     proof.checks.push("compiled staff review and private receipt", "anonymous staff denial", "compiled API origin enforcement", "immediate account revocation");

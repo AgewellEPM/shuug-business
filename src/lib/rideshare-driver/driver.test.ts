@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { randomUUID } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, unlinkSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { importBusinessTemplate } from "../branding/templates";
 import { saveBranding } from "../branding/store";
@@ -128,6 +129,21 @@ it("keeps receipts private and immutable, requires an uploaded receipt for an ex
   saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: expense });
   expect(staffDriverReceipt(alpha.id, id).bytes).toEqual(bytes);
   expect(() => saveDriverReceipt(alpha.token, randomUUID(), Buffer.from("<html>bad</html>"))).toThrow("JPEG");
+});
+it("restores a missing or corrupted receipt on an identical upload retry without accepting different bytes", () => {
+  const id = randomUUID(), bytes = Buffer.from("ffd8ffe000104a4649460001", "hex");
+  saveDriverReceipt(alpha.token, id, bytes);
+  const file = join(directory, "driver-receipts", alpha.id, id);
+  unlinkSync(file);
+  expect(() => driverReceipt(alpha.token, id)).toThrow("unavailable");
+  expect(() => saveDriverReceipt(alpha.token, id, Buffer.concat([bytes, Buffer.from("different")]))).toThrow("different file");
+  expect(saveDriverReceipt(alpha.token, id, bytes)).toMatchObject({ id, size: bytes.length });
+  expect(driverReceipt(alpha.token, id).bytes).toEqual(bytes);
+  writeFileSync(file, Buffer.from("damaged"));
+  expect(() => driverReceipt(alpha.token, id)).toThrow("integrity");
+  saveDriverReceipt(alpha.token, id, bytes);
+  expect(driverReceipt(alpha.token, id).bytes).toEqual(bytes);
+  expect(() => driverReceipt(beta.token, id)).toThrow("unavailable");
 });
 it("enforces JSON and origin restrictions on the real handlers and refuses unauthenticated receipt uploads", async () => {
   const route = "/api/website/customer/driver/records";

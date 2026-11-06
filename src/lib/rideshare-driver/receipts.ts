@@ -26,15 +26,29 @@ export function saveDriverReceipt(token: string | undefined, rawId: string, byte
     return workspaceDatabase(db => {
       const account = driverAccount(db, token); initDriver(db);
       const prior = db.prepare("SELECT * FROM driver_receipts WHERE accountId=? AND id=?").get(account.id, id) as Receipt | undefined;
-      if (prior) { if (prior.digest !== digest) throw new DriverError(409, "This receipt ID already contains a different file."); return { id, mime: prior.mime, size: prior.size }; }
-      const usage = db.prepare("SELECT coalesce(sum(size),0) AS bytes FROM driver_receipts WHERE accountId=?").get(account.id) as { bytes: number };
-      if (usage.bytes + bytes.length > 512 * 1024 * 1024) throw new DriverError(413, "Your receipt storage needs a capacity review. Keep the phone copy and contact the firm.");
+      if (prior) {
+        if (prior.digest !== digest) throw new DriverError(409, "This receipt ID already contains a different file.");
+        // A database backup can outlive its receipt file, or the file may be
+        // damaged. An identical retry must actually restore the stored bytes.
+        try {
+          const existing = readFileSync(filename(account.id, id));
+          if (existing.length === prior.size && createHash("sha256").update(existing).digest("hex") === prior.digest) {
+            return { id, mime: prior.mime, size: prior.size };
+          }
+        } catch { /* Missing/unreadable files are repaired from matching bytes below. */ }
+      } else {
+        const usage = db.prepare("SELECT coalesce(sum(size),0) AS bytes FROM driver_receipts WHERE accountId=?").get(account.id) as { bytes: number };
+        if (usage.bytes + bytes.length > 512 * 1024 * 1024) throw new DriverError(413, "Your receipt storage needs a capacity review. Keep the phone copy and contact the firm.");
+      }
       mkdirSync(directory(account.id), { recursive: true, mode: 0o700 });
       const target = filename(account.id, id), temporary = path.join(directory(account.id), `upload-${randomUUID()}`);
       // The write transaction serializes this account's duplicate IDs. Atomic
       // rename also lets a retry repair an orphan after an interrupted DB commit.
-      try { writeFileSync(temporary, bytes, { mode: 0o600, flag: "wx" }); renameSync(temporary, target); owned = target; }
+      try { writeFileSync(temporary, bytes, { mode: 0o600, flag: "wx" }); renameSync(temporary, target); if (!prior) owned = target; }
       finally { rmSync(temporary, { force: true }); }
+      // The pre-existing metadata remains valid even if a later commit fails;
+      // do not remove an identical repaired file on that path.
+      if (prior) return { id, mime: prior.mime, size: prior.size };
       db.prepare("INSERT INTO driver_receipts VALUES(?,?,?,?,?,?)").run(account.id, id, mime, bytes.length, digest, new Date().toISOString());
       return { id, mime, size: bytes.length };
     }, true);

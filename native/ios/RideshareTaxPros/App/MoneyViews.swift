@@ -252,6 +252,8 @@ struct ReceiptPreview: View {
   let id: UUID
   @State private var data: Data?
   @State private var error: String?
+  @State private var resending = false
+  @State private var resent = false
   var body: some View {
     Group {
       if let data, let image = UIImage(data: data) {
@@ -269,7 +271,20 @@ struct ReceiptPreview: View {
     }.driverScreen().navigationTitle("Private receipt").navigationBarTitleDisplayMode(.inline)
       .toolbar {
         Button("Done") { dismiss() }
+        if model.connection != nil, data != nil {
+          Button(resending ? "Sending…" : "Send again") {
+            resending = true
+            Task {
+              defer { resending = false }
+              do { try await model.resendReceipt(id); resent = true }
+              catch { model.message = error.localizedDescription }
+            }
+          }.disabled(resending)
+        }
       }
+      .alert("Receipt sent", isPresented: $resent) {
+        Button("OK", role: .cancel) {}
+      } message: { Text("Your firm received the same receipt again.") }
       .task {
         do {
           let url = try await model.receiptURL(id)

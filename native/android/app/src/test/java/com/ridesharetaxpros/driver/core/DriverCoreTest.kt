@@ -86,4 +86,18 @@ class DriverCoreTest {
         assertEquals(1,acknowledged.entries.single().record.revision)
         assertEquals(acknowledged,Wire.decodeFromString<Journal>(Wire.encodeToString(acknowledged)))
     }
+    @Test fun cancelledReceiptsDoNotBlockUploadsAndNewAttachmentsWaitForTheirReceipt() {
+        val orphan=LocalReceipt(mime="image/jpeg")
+        val attached=LocalReceipt(mime="image/png")
+        val pending=DriverRecord.expense(Expense(merchant="Fuel",amountCents=1250,receiptId=attached.id))
+        val journal=Journal(receipts=listOf(orphan,attached)).upsert(pending)
+        assertEquals(listOf(attached.id),journal.pendingReceipts.map {it.id})
+        assertFalse(journal.receiptReady(pending))
+        val uploaded=journal.copy(receipts=journal.receipts.map {if(it.id==attached.id) it.copy(uploaded=true) else it})
+        assertTrue(uploaded.pendingReceipts.isEmpty()); assertTrue(uploaded.receiptReady(pending))
+        val deleted=journal.upsert(pending.copy(deleted=true))
+        assertTrue(deleted.pendingReceipts.isEmpty()); assertTrue(deleted.receiptReady(pending.copy(deleted=true)))
+        val remoteReference=DriverRecord.expense(Expense(merchant="Remote",amountCents=300,receiptId=uuid()))
+        assertTrue(journal.receiptReady(remoteReference)) // other-device receipt already belongs to workspace
+    }
 }

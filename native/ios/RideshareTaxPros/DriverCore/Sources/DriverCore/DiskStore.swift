@@ -1,5 +1,10 @@
 import Foundation
 
+public struct RouteReadResult: Sendable {
+    public let points: [LocationFix]
+    public let hasDamagedRecords: Bool
+}
+
 public final class JournalDiskStore {
     public let directory: URL
     public var journalURL: URL { directory.appendingPathComponent("journal.json") }
@@ -27,9 +32,26 @@ public final class JournalDiskStore {
         try file.write(contentsOf: data); try file.synchronize()
     }
     public func route(_ id: UUID) throws -> [LocationFix] {
-        let url = routeURL(id); guard FileManager.default.fileExists(atPath: url.path) else { return [] }
+        try readRoute(id).points
+    }
+    /// Preserve readable samples around a damaged append without drawing an
+    /// invented straight segment across the missing data. The source stays intact.
+    public func readRoute(_ id: UUID) throws -> RouteReadResult {
+        let url = routeURL(id); guard FileManager.default.fileExists(atPath: url.path) else { return RouteReadResult(points: [], hasDamagedRecords: false) }
         let decoder = JSONDecoder(); decoder.dateDecodingStrategy = .millisecondsSince1970
-        return try Data(contentsOf: url).split(separator: 0x0a).compactMap { try? decoder.decode(LocationFix.self, from: Data($0)) }
+        let data = try Data(contentsOf: url)
+        var points: [LocationFix] = [], damaged = false, breakBeforeNext = false
+        for line in data.split(separator: 0x0a) {
+            guard var point = try? decoder.decode(LocationFix.self, from: Data(line)),
+                  point.latitude.isFinite, (-90...90).contains(point.latitude),
+                  point.longitude.isFinite, (-180...180).contains(point.longitude),
+                  point.accuracy.isFinite, (0...50).contains(point.accuracy) else {
+                damaged = true; breakBeforeNext = true; continue
+            }
+            if breakBeforeNext { point.startsSegment = true; breakBeforeNext = false }
+            points.append(point)
+        }
+        return RouteReadResult(points: points, hasDamagedRecords: damaged)
     }
     public func copyRoute(_ id: UUID, from other: JournalDiskStore) throws {
         let source = other.routeURL(id); guard FileManager.default.fileExists(atPath: source.path) else { return }

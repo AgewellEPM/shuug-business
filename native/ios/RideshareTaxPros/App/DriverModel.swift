@@ -111,41 +111,22 @@ import Network
       throw WorkspaceError.message(
         "Finish your current drive before changing the workspace connection.")
     }
+    let originalScope = namespace
     let reply = try await WorkspaceClient(origin: origin).login(email: email, password: password)
+    guard namespace == originalScope, journal.activeTripId == nil, storageHealthy else {
+      throw WorkspaceError.message("Your account or drive changed while signing in. Finish the drive and try again.")
+    }
     let profile = ConnectionProfile(origin: origin, session: reply)
     let nextScope = Self.scope(profile)
     let nextDisk = try JournalDiskStore(directory: root.appendingPathComponent(nextScope))
     var nextJournal = try nextDisk.load()
     if guest && includeOffline {
-      nextJournal.goals = nextJournal.goals ?? journal.goals
-      nextJournal.bankTransactions = BankInbox.merging(journal.bankTransactions ?? [], into: nextJournal.bankTransactions ?? [])
-      nextJournal.placePrompts = journal.placePrompts
-      nextJournal.assistance = journal.assistance
-      nextJournal.mission = nextJournal.mission ?? journal.mission
-      nextJournal.reserveSettings = nextJournal.reserveSettings ?? journal.reserveSettings
-      nextJournal.missionOffers = nextJournal.missionOffers ?? journal.missionOffers
-      nextJournal.pickupWaits = (nextJournal.pickupWaits ?? []) + (journal.pickupWaits ?? [])
-      for entry in journal.entries {
-        guard !nextJournal.entries.contains(where: { $0.id == entry.id }) else {
-          throw WorkspaceError.message(
-            "A phone record already exists in this account’s saved journal. Connect without moving the offline journal, then review it separately."
-          )
-        }
-        var copied = entry
-        copied.record.revision = 0
-        copied.pendingMutationId = UUID()
-        copied.conflict = nil
-        nextJournal.entries.append(copied)
-        try nextDisk.copyRoute(entry.id, from: disk)
-      }
-      for receipt in journal.receipts {
-        try nextDisk.saveReceipt(disk.receipt(receipt.id), id: receipt.id)
-        nextJournal.receipts.append(LocalReceipt(id: receipt.id, mime: receipt.mime))
-      }
+      let plan = try GuestTransferPlan.prepare(source: journal, destination: nextJournal)
+      try plan.copyFiles(source: disk, destination: nextDisk)
+      nextJournal = plan.journal
     }
     try nextDisk.save(nextJournal)
     try SessionKeychain.save(profile)
-    if guest && includeOffline { try disk.save(Journal()) }
     disk = nextDisk
     journal = nextJournal
     namespace = nextScope
@@ -264,5 +245,25 @@ import Network
     }
     try capturedDisk.saveReceipt(data, id: id)
     return capturedDisk.receiptURL(id)
+  }
+  /// The firm can request a fresh copy after a server-side file loss. Reuse the
+  /// immutable receipt ID so the workspace can verify the existing digest.
+  func resendReceipt(_ id: UUID) async throws {
+    guard let connection else { throw WorkspaceError.message("Connect to the workspace first.") }
+    let scope = namespace, capturedDisk = disk!
+    let data = try capturedDisk.receipt(id)
+    let mime: String
+    if data.starts(with: Data([0xff, 0xd8, 0xff])) { mime = "image/jpeg" }
+    else if data.starts(with: Data([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) { mime = "image/png" }
+    else if data.starts(with: Data("%PDF-".utf8)) { mime = "application/pdf" }
+    else { throw WorkspaceError.message("The local receipt format is not supported.") }
+    try await WorkspaceClient(origin: connection.origin, token: connection.session.token)
+      .upload(LocalReceipt(id: id, mime: mime), data: data)
+    guard scope == namespace else { throw CancellationError() }
+    if journal.receipts.contains(where: { $0.id == id && !$0.uploaded }) {
+      guard commit({ j in
+        if let index = j.receipts.firstIndex(where: { $0.id == id }) { j.receipts[index].uploaded = true }
+      }) else { throw WorkspaceError.message("The receipt was sent, but this phone could not update its sync status.") }
+    }
   }
 }

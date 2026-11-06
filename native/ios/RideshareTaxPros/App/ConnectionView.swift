@@ -79,8 +79,12 @@ struct ConnectionView: View {
           SecureField("Client password", text: $password).textContentType(.password)
           if model.guest && !model.journal.visible.isEmpty {
             Toggle(
-              "Move my \(model.journal.visible.count) offline records to this client account",
+              "Copy my \(model.journal.visible.count) offline records to this client account",
               isOn: $includeOffline)
+            if includeOffline {
+              Text("Your offline source stays on this iPhone. Existing account records are kept; copied records sync with your firm.")
+                .font(.footnote).foregroundStyle(.secondary)
+            }
           }
           Button {
             Task { await connect() }

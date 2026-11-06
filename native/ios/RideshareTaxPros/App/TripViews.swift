@@ -82,6 +82,7 @@ struct TripDetail: View {
   @State private var editing = false
   @State private var deleting = false
   @State private var points: [LocationFix] = []
+  @State private var routeWarning: String?
   private var entry: LocalEntry? { model.journal.entries.first { $0.id == id } }
   private var segments: [[CLLocationCoordinate2D]] {
     var result: [[CLLocationCoordinate2D]] = []
@@ -135,6 +136,11 @@ struct TripDetail: View {
           if let profit = RideProfit(record: entry.record, goals: model.journal.goals ?? DriverGoals()) {
             Section("Ride profitability") { RideProfitDetails(profit: profit) }
           }
+          if let routeWarning {
+            Section("Route needs review") {
+              Label(routeWarning, systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+            }
+          }
           if !points.isEmpty {
             Section("Route preview · Kept on your phone") {
               Map {
@@ -145,8 +151,10 @@ struct TripDetail: View {
               Text(
                 "Route points are not uploaded to the firm. Gaps are shown as separate sections."
               ).font(.caption).foregroundStyle(.secondary)
-              RouteOptionsView(points: points, distanceMeters: trip.distanceMeters,
-                costCentsPerMile: model.journal.goals?.vehicleCostCentsPerMile)
+              if routeWarning == nil {
+                RouteOptionsView(points: points, distanceMeters: trip.distanceMeters,
+                  costCentsPerMile: model.journal.goals?.vehicleCostCentsPerMile)
+              }
             }
           }
           if entry.conflict != nil { ConflictActions(entry: entry) }
@@ -161,7 +169,16 @@ struct TripDetail: View {
         ContentUnavailableView("Trip unavailable", systemImage: "car")
       }
     }.driverScreen().navigationTitle("Trip").navigationBarTitleDisplayMode(.inline)
-      .task { points = (try? model.disk.route(id)) ?? [] }
+      .task {
+        do {
+          let result = try model.disk.readRoute(id)
+          points = result.points
+          routeWarning = result.hasDamagedRecords ? "Some saved route points could not be read. The route is broken at missing sections; review the recorded mileage." : nil
+        } catch {
+          points = []
+          routeWarning = "The saved route could not be opened. Your mileage record is still available for review."
+        }
+      }
       .sheet(isPresented: $editing) {
         if let entry { NavigationStack { TripEditor(existing: entry.record) } }
       }

@@ -31,7 +31,10 @@ class DriverRepository(val app: Application) {
         check(storageReady) { "Storage is unavailable." }; val next=transform(journal)
         try { store.save(scope,next); journal=next } catch(error: Exception) { storageReady=false; failure="Could not save your records. Recording has stopped; keep this installation for recovery."; throw error }
     }
-    fun save(record: DriverRecord) = update { it.upsert(record) }
+    fun save(record: DriverRecord) {
+        update { it.upsert(record) }
+        if(connection!=null) run { sync() }
+    }
     fun run(block: suspend ()->Unit) { jobs.launch { try { block() } catch(error: Exception) { failure=error.message ?: "The operation could not finish. Your records are kept." } } }
     suspend fun connect(address: String,email: String,password: String) {
         check(journal.activeTripId==null) { "End your current drive before switching accounts." }; check(storageReady)
@@ -67,19 +70,29 @@ class DriverRepository(val app: Application) {
         val active=connection ?: return; if(busy) return; val namespace=scope; busy=true
         try {
             val client=WorkspaceClient(active)
-            for(receipt in journal.receipts.filterNot { it.uploaded }) {
-                client.send("receipts/"+receipt.id,"PUT",store.receipt(namespace,receipt.id),receipt.mime)
-                if(scope!=namespace) return
-                update { it.copy(receipts=it.receipts.map { item->if(item.id==receipt.id) item.copy(uploaded=true) else item }) }
-            }
-            for(entry in journal.entries.filter { it.pendingMutationId!=null && it.conflict==null && it.record.id!=journal.activeTripId }) {
-                val mutation=Mutation(entry.pendingMutationId!!,entry.record)
-                try { val remote=client.save(mutation); if(scope!=namespace) return; update { it.acknowledge(mutation,remote) } }
-                catch(error: WorkspaceError) { if(error.status==409 && error.current!=null) { if(scope!=namespace) return; update { it.merge(error.current) } } else throw error }
-            }
-            do { val page=client.records(journal.cursor); if(scope!=namespace) return
-                update { current->page.records.fold(current) { state,row->state.merge(row) }.copy(cursor=page.cursor) }
-            } while(page.hasMore)
+            var passes=0
+            do {
+                passes++
+                for(receipt in journal.pendingReceipts) {
+                    client.send("receipts/"+receipt.id,"PUT",store.receipt(namespace,receipt.id),receipt.mime)
+                    if(scope!=namespace) return
+                    update { it.copy(receipts=it.receipts.map { item->if(item.id==receipt.id) item.copy(uploaded=true) else item }) }
+                }
+                for(entry in journal.pendingRecords) {
+                    // A new edit can arrive while a request is in flight. Never post a stale
+                    // snapshot or an expense whose newly attached receipt is still queued.
+                    val current=journal.entries.firstOrNull { it.record.id==entry.record.id } ?: continue
+                    if(current.pendingMutationId!=entry.pendingMutationId || current.conflict!=null || !journal.receiptReady(current.record)) continue
+                    val mutation=Mutation(current.pendingMutationId!!,current.record)
+                    try { val remote=client.save(mutation); if(scope!=namespace) return; update { it.acknowledge(mutation,remote) } }
+                    catch(error: WorkspaceError) { if(error.status==409 && error.current!=null) { if(scope!=namespace) return; update { it.merge(error.current) } } else throw error }
+                }
+                do { val page=client.records(journal.cursor); if(scope!=namespace) return
+                    update { current->page.records.fold(current) { state,row->state.merge(row) }.copy(cursor=page.cursor) }
+                } while(page.hasMore)
+                // Bounded passes flush edits made during network waits without an endless
+                // retry loop. Failed requests leave the durable queue intact.
+            } while(passes<20 && (journal.pendingReceipts.isNotEmpty() || journal.pendingRecords.isNotEmpty()))
             update { it.copy(lastSyncAt=now()) }
         } finally { busy=false }
     }

@@ -47,6 +47,7 @@ import kotlin.math.abs
     var endDate by remember { mutableStateOf(trip?.endedAt?.let { day(it,zone.id) } ?: date) }
     var duplicateConfirmed by remember { mutableStateOf(false) }; var showDelete by remember { mutableStateOf(false) }
     var receiptBytes by remember { mutableStateOf<ByteArray?>(null) }; var ocr by remember { mutableStateOf("") }; var scanning by remember { mutableStateOf(false) }
+    var receiptResent by remember { mutableStateOf(false) }
     fun attach(uri: Uri) { repo.run {
         val mime=repo.app.contentResolver.getType(uri) ?: "image/jpeg"; require(mime in listOf("image/jpeg","image/png","application/pdf")) { "Choose a JPEG, PNG or PDF receipt." }
         val bytes=repo.app.contentResolver.openInputStream(uri)!!.use { boundedRead(it,5*1024*1024) }
@@ -99,6 +100,22 @@ import kotlin.math.abs
                 Regex("(?:\\$\\s*)?([0-9]{1,6}\\.[0-9]{2})").findAll(ocr).map {it.groupValues[1]}.distinct().take(8).forEach { suggestion->TextButton(onClick={amount=suggestion}) {Text("Use amount: $$suggestion")} }
             }
             OutlinedButton(onClick={repo.run { shareBytes(repo,bytes,if(bitmap==null) "application/pdf" else "image/jpeg",if(bitmap==null) "receipt.pdf" else "receipt.jpg") }}) {Text("Open or share receipt")}
+            if(repo.connection!=null && original?.kind=="expense" && original.expense().receiptId==receiptId) {
+                OutlinedButton(onClick={repo.run {
+                    val connection=repo.connection ?: error("Connect to the workspace first."); val namespace=repo.scope
+                    val mime=when {
+                        bytes.size>=8 && bytes.copyOfRange(0,8).contentEquals(byteArrayOf(0x89.toByte(),0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a))->"image/png"
+                        bytes.size>=3 && bytes[0]==0xff.toByte() && bytes[1]==0xd8.toByte() && bytes[2]==0xff.toByte()->"image/jpeg"
+                        bytes.size>=5 && bytes.copyOfRange(0,5).toString(Charsets.US_ASCII)=="%PDF-"->"application/pdf"
+                        else->error("The local receipt format is not supported.")
+                    }
+                    WorkspaceClient(connection).send("receipts/$receiptId","PUT",bytes,mime)
+                    check(repo.scope==namespace) {"Your account changed. Open the correct account to check the receipt."}
+                    repo.update {it.copy(receipts=it.receipts.map {row->if(row.id==receiptId) row.copy(uploaded=true) else row})}
+                    receiptResent=true
+                }}) {Text("Send receipt to firm again")}
+                if(receiptResent) Text("Your firm received the same receipt again.",color=Muted)
+            }
         }
     }
     Toggle("I checked any similar existing entry",duplicateConfirmed) {duplicateConfirmed=it}

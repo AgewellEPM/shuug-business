@@ -78,6 +78,16 @@ fun day(instant: String, zone: String = "UTC"): String = Instant.parse(instant).
     val vehicleReservePercent: Double? = null, val taxReservePercent: Double? = null) {
     val visible get() = entries.filter { !it.record.deleted }.sortedByDescending { it.record.date }
     val active get() = entries.firstOrNull { it.record.id == activeTripId }
+    // A receipt selected in an editor is not yet an expense. If the editor is
+    // cancelled, its orphaned file must not block unrelated record uploads.
+    val pendingReceipts get() = receipts.filter { receipt -> !receipt.uploaded && visible.any {
+        it.record.kind == "expense" && it.record.expense().receiptId == receipt.id
+    } }
+    val pendingRecords get() = entries.filter { it.pendingMutationId != null && it.conflict == null && it.record.id != activeTripId }
+    fun receiptReady(record: DriverRecord): Boolean {
+        val id = if (record.kind == "expense" && !record.deleted) record.expense().receiptId else null
+        return id == null || receipts.none { it.id == id && !it.uploaded }
+    }
     /** A paused or interrupted GPS session must never connect its next fix to the old route. */
     fun markTrackingInterrupted(): Journal {
         val entry=active ?: return this

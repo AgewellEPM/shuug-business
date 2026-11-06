@@ -77,12 +77,18 @@ service access, Tax Firm setup and visible rideshare records are checked on each
 driver request. Owner/staff credentials do not grant native driver access.
 
 Each signed-in account has its own phone journal. Moving previously unconnected
-records to a client account is an explicit toggle during connection. Receipts
+records to a client account is an explicit copy during connection; the guest
+source remains recoverable and existing account records are kept. Receipts
 upload before their expense references. Stable mutation IDs make retries
 idempotent; expected revisions prevent an old device from overwriting a newer
 record. Conflicts show both versions for a user choice. Cursor-based downloads
 include deletion markers. Network errors retain the queue and report pending
 sync; records are not described as delivered merely because a request was sent.
+Cancelled Android receipt selections do not block unrelated uploads. If the firm
+loses a receipt file, the client can open the saved receipt and choose to send it
+again. The server accepts the retry only when its bytes match the existing digest.
+Damaged local route records are displayed as separate segments with a warning;
+the original file and the recorded mileage are retained for review.
 
 Staff open **Rideshare tax records → Open synced driver trips, expenses &
 receipts**, or `/rideshare`. The page enforces Money view access, filters the real
