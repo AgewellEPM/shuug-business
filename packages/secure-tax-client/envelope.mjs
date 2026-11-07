@@ -1,0 +1,111 @@
+import { Aes256Gcm, CipherSuite, DhkemP256HkdfSha256, HkdfSha256 } from '@hpke/core';
+
+// Client-only primitives. This module never fetches keys, contacts the API,
+// persists private keys or treats keys supplied by the storage host as trusted.
+const hpke = new CipherSuite({kem:new DhkemP256HkdfSha256(),kdf:new HkdfSha256(),aead:new Aes256Gcm()});
+const utf8 = new TextEncoder();
+export const SUITE = 'HPKE-P256-SHA256-A256GCM';
+export const CONTENT_ALGORITHM = 'AES-256-GCM';
+export const MAX_CIPHERTEXT_BYTES = 16*1024*1024;
+export const DOMAINS = Object.freeze(['tax-document','tax-identity','driver-record','driver-receipt','driver-state','driver-route','provider-record']);
+const roles = ['client','firm-recovery'];
+const info = utf8.encode('shuug/secure-tax-envelope/v1');
+const fail = () => {throw new Error('Protected item or trusted context is invalid.');};
+const exactKeys = (object,keys) => {
+  if (!object || typeof object!=='object' || Array.isArray(object) || Object.keys(object).sort().join('|')!==[...keys].sort().join('|')) fail();
+};
+export function encode64(bytes) {
+  let text='';
+  for(let i=0;i<bytes.length;i+=16384) text+=String.fromCharCode(...bytes.subarray(i,i+16384));
+  return btoa(text).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+}
+export function decode64(value,min,max=min) {
+  if(typeof value!=='string'||value.length>Math.ceil(max*4/3)||!/^[A-Za-z0-9_-]+$/.test(value))fail();
+  let decoded;
+  try {decoded=Uint8Array.from(atob(value.replaceAll('-','+').replaceAll('_','/')),c=>c.charCodeAt(0));}catch{fail();}
+  if(decoded.length<min||decoded.length>max||encode64(decoded)!==value)fail();
+  return decoded;
+}
+const identifier = value => {
+  if(typeof value!=='string'||value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]!==value)fail();
+};
+export function validateContext(context) {
+  exactKeys(context,['workspaceId','accountId','objectId','revision','domain']);
+  for(const key of ['workspaceId','accountId','objectId'])identifier(context[key]);
+  if(!Number.isInteger(context.revision)||context.revision<1||context.revision>1e9||!DOMAINS.includes(context.domain))fail();
+}
+export async function publicKeyId(publicKey) {
+  const bytes=decode64(publicKey,65);if(bytes[0]!==4)fail();
+  await hpke.kem.deserializePublicKey(bytes);
+  return encode64(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)));
+}
+export async function trustedRecipientIds(trusted) {
+  exactKeys(trusted,['clientPublicKey','firmRecoveryPublicKey']);
+  const client=await publicKeyId(trusted.clientPublicKey),firm=await publicKeyId(trusted.firmRecoveryPublicKey);
+  if(client===firm)fail();return [client,firm];
+}
+const aad = (context,ids) => utf8.encode(JSON.stringify([1,'shuug/secure-tax-envelope',context.domain,context.workspaceId,context.accountId,context.objectId,context.revision,CONTENT_ALGORITHM,SUITE,['client',ids[0]],['firm-recovery',ids[1]]]));
+export async function sealEnvelope(plaintext,context,trusted) {
+  validateContext(context);
+  if(!(plaintext instanceof Uint8Array)||plaintext.length>MAX_CIPHERTEXT_BYTES-16)fail();
+  const ids=await trustedRecipientIds(trusted),auth=aad(context,ids);
+  const contentBytes=crypto.getRandomValues(new Uint8Array(32));
+  try {
+    const contentKey=await crypto.subtle.importKey('raw',contentBytes,'AES-GCM',false,['encrypt']);
+    const nonce=crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:auth,tagLength:128},contentKey,plaintext));
+    const recipients=[];
+    for(let i=0;i<2;i++){
+      const publicKey=i===0?trusted.clientPublicKey:trusted.firmRecoveryPublicKey;
+      const sender=await hpke.createSenderContext({recipientPublicKey:await hpke.kem.deserializePublicKey(decode64(publicKey,65)),info});
+      // A fresh sender context seals exactly one content key, never a stream.
+      recipients.push({role:roles[i],keyId:ids[i],publicKey,encapsulatedKey:encode64(new Uint8Array(sender.enc)),wrappedKey:encode64(new Uint8Array(await sender.seal(contentBytes,auth)))});
+    }
+    return {version:1,suite:SUITE,contentAlgorithm:CONTENT_ALGORITHM,context:{...context},nonce:encode64(nonce),ciphertext:encode64(ciphertext),recipients};
+  }finally{contentBytes.fill(0);}
+}
+export async function openEnvelope(envelope,expectedContext,trusted,role,privateKey) {
+  validateContext(expectedContext);
+  exactKeys(envelope,['version','suite','contentAlgorithm','context','nonce','ciphertext','recipients']);
+  validateContext(envelope.context);
+  if(envelope.version!==1||envelope.suite!==SUITE||envelope.contentAlgorithm!==CONTENT_ALGORITHM||!roles.includes(role))fail();
+  const ids=await trustedRecipientIds(trusted),auth=aad(expectedContext,ids);
+  if(JSON.stringify([...aad(envelope.context,ids)])!==JSON.stringify([...auth]))fail();
+  if(!Array.isArray(envelope.recipients)||envelope.recipients.length!==2)fail();
+  for(let i=0;i<2;i++){
+    const slot=envelope.recipients[i];exactKeys(slot,['role','keyId','publicKey','encapsulatedKey','wrappedKey']);
+    if(slot.role!==roles[i]||slot.keyId!==ids[i]||slot.publicKey!==(i===0?trusted.clientPublicKey:trusted.firmRecoveryPublicKey))fail();
+    decode64(slot.encapsulatedKey,65);decode64(slot.wrappedKey,48);
+  }
+  const slot=envelope.recipients[roles.indexOf(role)];
+  const publicKey=await hpke.kem.deserializePublicKey(decode64(slot.publicKey,65));
+  const recipient=await hpke.createRecipientContext({recipientKey:{privateKey,publicKey},enc:decode64(slot.encapsulatedKey,65),info});
+  const raw=new Uint8Array(await recipient.open(decode64(slot.wrappedKey,48),auth));
+  try {
+    if(raw.length!==32)fail();
+    const contentKey=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
+    return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:decode64(envelope.nonce,12),additionalData:auth,tagLength:128},contentKey,decode64(envelope.ciphertext,16,MAX_CIPHERTEXT_BYTES)));
+  }finally{raw.fill(0);}
+}
+export async function generateRecipientKeyPair(){
+  // Private CryptoKey is nonextractable. Persisting/recovery custody is a
+  // separate trusted-client workflow and is not implemented by this primitive.
+  const pair=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},false,['deriveBits']);
+  return {privateKey:pair.privateKey,publicKey:encode64(new Uint8Array(await crypto.subtle.exportKey('raw',pair.publicKey)))};
+}
+export async function verifyEnrollmentManifest(manifest,expected,pins,now=Date.now()) {
+  exactKeys(manifest,['version','manifestId','workspaceId','accountId','clientId','epoch','client','firmRecovery','issuedAt','expiresAt','signature']);
+  exactKeys(manifest.client,['keyId','publicKey']);exactKeys(manifest.firmRecovery,['keyId','publicKey']);exactKeys(manifest.signature,['algorithm','signerKeyId','value']);
+  for(const key of ['manifestId','workspaceId','accountId','clientId'])identifier(manifest[key]);
+  if(manifest.version!==1||!Number.isInteger(manifest.epoch)||manifest.epoch<1||manifest.epoch>1e9||manifest.epoch<(expected.minimumEpoch??1))fail();
+  if(manifest.workspaceId!==pins.workspaceId||manifest.accountId!==expected.accountId||manifest.clientId!==expected.clientId||manifest.firmRecovery.publicKey!==pins.firmRecoveryPublicKey)fail();
+  const ids=await trustedRecipientIds({clientPublicKey:manifest.client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey});
+  const signerId=await publicKeyId(pins.signerPublicKey);
+  if(signerId===ids[0]||signerId===ids[1]||manifest.client.keyId!==ids[0]||manifest.firmRecovery.keyId!==ids[1]||manifest.signature.signerKeyId!==signerId||manifest.signature.algorithm!=='ES256-P1363')fail();
+  const issued=Date.parse(manifest.issuedAt),expires=Date.parse(manifest.expiresAt);
+  if(!Number.isFinite(issued)||!Number.isFinite(expires)||!manifest.issuedAt.endsWith('Z')||!manifest.expiresAt.endsWith('Z')||issued>now+300000||expires<=now||expires<=issued)fail();
+  const canonical=[1,'shuug/secure-tax-manifest',manifest.manifestId,manifest.workspaceId,manifest.accountId,manifest.clientId,manifest.epoch,manifest.client.keyId,manifest.client.publicKey,manifest.firmRecovery.keyId,manifest.firmRecovery.publicKey,manifest.issuedAt,manifest.expiresAt];
+  const key=await crypto.subtle.importKey('raw',decode64(pins.signerPublicKey,65),{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
+  if(!await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,decode64(manifest.signature.value,64),utf8.encode(JSON.stringify(canonical))))fail();
+  return {manifestId:manifest.manifestId,epoch:manifest.epoch,recipients:{clientPublicKey:manifest.client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey}};
+}
