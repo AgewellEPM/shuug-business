@@ -28,9 +28,10 @@ flows.add_argument('--capture-only', action='store_true', help='Check per-platfo
 flows.add_argument('--coach-only', action='store_true', help='Check saved-job chat, confirmed intake persistence and branded confirmation cancellation.')
 flows.add_argument('--foreground-only', action='store_true', help='Check the actual branded foreground alert without repeating saved-job entry.')
 flows.add_argument('--gig-apps-only', action='store_true', help='Check the swipeable gig-app row, configurable shopping work and branded foreground alert.')
+flows.add_argument('--reputation-only', action='store_true', help='Check manual rating/review history, guidance, shared chat routing, relaunch and explicit deletion.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps'] if getattr(options, name + '_only')), None)
+selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps', 'reputation'] if getattr(options, name + '_only')), None)
 driving = selected_flow in (None, 'driving')
 receipts = selected_flow in (None, 'receipts')
 expense_details = selected_flow in (None, 'expenses')
@@ -57,6 +58,8 @@ elif options.foreground_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-foreground-verification-20261107.json')
 elif options.gig_apps_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-gig-apps-verification-20261107.json')
+elif options.reputation_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-reputation-verification-20261107.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -173,6 +176,7 @@ try:
         if options.coach_only: selection += '/DriverFlows/test12CoachUsesSavedJobsAndKeepsConfirmedIntake'
         if options.foreground_only: selection += '/DriverFlows/test13ForegroundAlertUsesBrandedCard'
         if options.gig_apps_only: selection += '/DriverFlows/test14GigAppsSwipeAndShoppingProfilePersists'
+        if options.reputation_only: selection += '/DriverFlows/test15RatingsReviewsGuideAndDeletionPersist'
         if selected_flow is None:
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
@@ -192,6 +196,7 @@ try:
         elif options.foreground_only: pass
         else: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test13ForegroundAlertUsesBrandedCard']
         if not options.gig_apps_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test14GigAppsSwipeAndShoppingProfilePersists']
+        if not options.reputation_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test15RatingsReviewsGuideAndDeletionPersist']
         test = subprocess.Popen(['xcodebuild', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 600
         last_fix = last_update = last_container_check = 0.0
@@ -244,6 +249,27 @@ try:
     trips = [r for r in records if r['kind']=='trip']
     expenses = [r for r in records if r['kind']=='expense']
     verified_tests = []
+    if options.reputation_only:
+        reputation = journal.get('reputationState', {})
+        assert not records and sorted(row['score'] for row in reputation['ratings']) == [4.6, 4.8]
+        assert sorted((row['score'], row['reviewCount']) for row in reputation['ratings']) == [(4.6, 100), (4.8, 105)], 'Each saved score must retain its entered review count.'
+        assert all(row['platformID'] == 'lyft-driver' and row['scale'] == 5 and not row['deleted'] for row in reputation['ratings'])
+        assert len(reputation['reviews']) == 1 and reputation['reviews'][0]['deleted'] is True
+        review = reputation['reviews'][0]
+        assert review['text'] == 'Customer requested clearer arrival updates.', 'The exact entered review text must survive deletion and relaunch.'
+        assert review['sentiment'] == 'negative' and review['topics'] == ['communication']
+        outbox = journal['reputationOutbox']
+        assert [change['action'] for change in outbox] == ['addRating', 'addRating', 'addReview', 'deleteReview'], 'Offline changes must retain add-before-delete order and operation types.'
+        assert len({change['mutationId'] for change in outbox}) == 4, 'Each persisted operation needs its own retry identity.'
+        assert len({row['id'] for row in reputation['ratings']}) == 2
+        assert [change['rating'] for change in outbox[:2]] == reputation['ratings'], 'Queued rating IDs and payloads must match both saved snapshots.'
+        assert all(change.get('review') is None and change.get('id') is None for change in outbox[:2])
+        assert outbox[2]['review'] == dict(review, deleted=False), 'The queued review add must preserve the original body and the tombstone ID.'
+        assert outbox[2].get('rating') is None and outbox[2].get('id') is None
+        assert outbox[3]['id'] == review['id'] and outbox[3].get('rating') is None and outbox[3].get('review') is None, 'The queued delete must target only the saved review.'
+        assert len(journal.get('coachMessages', [])) == 2 and 'Lyft Driver' in journal['coachMessages'][-1]['text']
+        verified_tests += ['actual native rating forms persist two same-platform star snapshots and review counts', 'review text plus user-selected negative tone and communication tag persist', 'guidance cites the saved app and tagged review topic', 'unified conversation answers rating questions using saved reputation history', 'ratings and conversations survive app relaunch', 'explicit branded deletion persists review tombstone while retaining ratings and offline sync operations']
+        report['scope'] = 'Native iPhone Simulator manual ratings/reviews, guidance and offline retry queue; no live provider import or public cloud sync'
     if options.gig_apps_only:
         assert len(trips) == 1 and not expenses, 'Only the explicitly entered shopping job should be recorded.'
         job = trips[0]['body']

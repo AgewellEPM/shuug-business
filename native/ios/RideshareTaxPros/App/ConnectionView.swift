@@ -7,6 +7,7 @@ struct ConnectionView: View {
   @State private var password = ""
   @State private var includeOffline = false
   @State private var includeCoach = false
+  @State private var includeReputation = false
   @State private var discovering = false
   @State private var connecting = false
   @State private var checkedDiscovery = false
@@ -56,12 +57,16 @@ struct ConnectionView: View {
           }
           LabeledContent("Firm", value: connection.session.branding.name)
           Text(connection.origin.host ?? "").font(.caption).foregroundStyle(.secondary)
-          Label(model.syncStatus, systemImage: "icloud")
+          Label("Trips & money: \(model.syncStatus)", systemImage: "icloud")
             .accessibilityIdentifier("account.syncStatus")
+          Label("Chat: \(model.coachStatus)", systemImage: "bubble.left.and.bubble.right")
+            .font(.footnote).accessibilityIdentifier("account.coachStatus")
+          Label("Ratings & reviews: \(model.reputationStatus)", systemImage: "star.bubble")
+            .font(.footnote).accessibilityIdentifier("account.reputationStatus")
           if let date = model.journal.lastSyncAt {
-            LabeledContent("Last successful sync", value: date.formatted())
+            LabeledContent("Last trips & money sync", value: date.formatted())
           } else {
-            Text("This account has not completed a sync on this phone yet.")
+            Text("Trips and money have not completed a sync for this account on this phone yet.")
               .font(.footnote).foregroundStyle(.secondary)
           }
           if model.pendingCount > 0 {
@@ -71,11 +76,11 @@ struct ConnectionView: View {
             Text(detail).font(.footnote).foregroundStyle(.secondary)
           }
           Button {
-            Task { await model.sync() }
+            Task { await model.syncAll() }
           } label: {
-            if model.syncing { ProgressView("Syncing…") }
+            if model.syncing || model.coachSyncing || model.reputationSyncing { ProgressView("Syncing…") }
             else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") }
-          }.disabled(model.syncing).accessibilityIdentifier("account.sync")
+          }.disabled(model.syncing || model.coachSyncing || model.reputationSyncing).accessibilityIdentifier("account.sync")
           Link("Open my client portal", destination: connection.portalURL)
           NavigationLink("My tax documents & progress") { TaxWorkspaceView() }
           NavigationLink("Protected data · Key setup & status") { SecureTaxConnectionView() }
@@ -118,7 +123,7 @@ struct ConnectionView: View {
       }
     }.driverScreen().navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
       .task {
-        if model.connection != nil { await model.sync(); profileName = model.connection?.session.account.name ?? "" }
+        if model.connection != nil { await model.syncAll(); profileName = model.connection?.session.account.name ?? "" }
         else if !checkedDiscovery { await findWorkspace() }
       }
       .onChange(of: model.connection?.session.account.name) { _, name in
@@ -190,6 +195,14 @@ struct ConnectionView: View {
           : "Your phone-only conversation and tax details stay separate unless you choose to copy them.")
           .font(.footnote).foregroundStyle(Brand.muted)
       }
+      if model.guest && (model.journal.reputationState != nil || !(model.journal.reputationOutbox ?? []).isEmpty) {
+        Toggle("Copy my phone-only ratings and reviews to this client account", isOn: $includeReputation)
+          .disabled(connecting).accessibilityIdentifier("account.copyReputation")
+        Text(includeReputation
+          ? "Your personal entries will be shared with this account’s tax team. Existing account entries are kept, and your phone-only source remains on this iPhone."
+          : "Phone-only ratings and reviews stay separate unless you choose to copy them.")
+          .font(.footnote).foregroundStyle(Brand.muted)
+      }
       Button {
         Task { await connect() }
       } label: {
@@ -224,10 +237,11 @@ struct ConnectionView: View {
     notice = nil
     defer { connecting = false; password = "" }
     do {
-      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach)
+      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach, includeReputation: includeReputation)
       signingIn = false
       includeOffline = false
       includeCoach = false
+      includeReputation = false
     } catch { notice = error.localizedDescription }
   }
 }

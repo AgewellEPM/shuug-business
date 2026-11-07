@@ -7,6 +7,8 @@ import { driverRecord, DriverError, type DriverRecord } from "../rideshare-drive
 import { initDriver } from "../rideshare-driver/store";
 import { workspaceDatabase } from "../workspace/database";
 import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
+import { readReputation } from "../driver-reputation/store";
+import { isReputationQuestion, reputationAnswer } from "../driver-reputation/guide";
 import { analyzeCoach, coachMilestones } from "./analysis";
 import { answerCoach } from "./answers";
 import { attestFinancialFacts, peelCoachAvailable } from "./peel";
@@ -90,7 +92,8 @@ export async function updateCoach(token: string | undefined, raw: unknown): Prom
   let verified = false;
   // The optional local worker receives scoped record IDs and financial figures.
   // Protected clients must fail before this call; chat, documents and intake are excluded.
-  if (command.action === "message" && peelCoachAvailable() && analysis.priced.length > 0 && analysis.priced.length <= 5000) {
+  const reputationQuestion = command.action === "message" && isReputationQuestion(command.text);
+  if (command.action === "message" && !reputationQuestion && peelCoachAvailable() && analysis.priced.length > 0 && analysis.priced.length <= 5000) {
     workspaceDatabase(db => sameAccount(db, token, account, true));
     try {
       const receipt = await attestFinancialFacts({ rows: analysis.priced.map(job => ({ id: job.id, grossCents: job.grossCents!,
@@ -103,7 +106,7 @@ export async function updateCoach(token: string | undefined, raw: unknown): Prom
   // Access and shared tax visibility are checked after the optional asynchronous operation.
   workspaceDatabase(db => sameAccount(db, token, account, true));
   const tax = clientTaxSummary(account.clientId, token), milestones = coachMilestones(analysis, preferences, intake, tax);
-  const answer = command.action === "message" ? answerCoach(command.text, analysis, preferences, intake, milestones, tax)
+  const answer = command.action === "message" ? reputationQuestion ? reputationAnswer(readReputation(token), command.text) : answerCoach(command.text, analysis, preferences, intake, milestones, tax)
     : { text: command.action === "intake" ? "Your explicitly confirmed tax context is saved with this client account. Your preparer still needs to review it; no filing or tax treatment was changed."
       : "Your operating cost and goals are saved with this client account. Future profit estimates use this explicit snapshot; it is not a tax mileage rate.", sources: [], recordIds: [] };
   const createdAt = new Date().toISOString();
