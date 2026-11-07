@@ -1,6 +1,7 @@
 import { HttpError, STATES, STAGES, digest, secret, text, email, state, https, seal, unseal, visible, metadata, officeInput, termsValid, outreach } from './model.mjs';
 import { agreement } from './terms.mjs';
 import { payments } from './payments.mjs';
+import { listingInput, supportInput } from './directory.mjs';
 
 export function service(env, db, payment = payments(env)) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -114,6 +115,20 @@ export function service(env, db, payment = payments(env)) {
       return { enrollmentId: enrollment.id, link: `${env.GIGTAX_SALES_ORIGIN}/office-signup#${new URLSearchParams({ id: enrollment.id, token })}`, expiresInDays: 14 };
     }
     if (user.role !== 'owner') throw new HttpError(403, 'Only the workspace owner can manage sales-agent access.');
+    if (action === 'directory-settings') return { support: await db.support() };
+    if (action === 'save-directory-support') {
+      const support = supportInput(b);
+      await db.setSupport(support);
+      await audit(user, 'directory', 'public_support_updated', support);
+      return { support };
+    }
+    if (action === 'save-office-listing') {
+      const before = await leadFor(user, b.id), clean = listingInput(b);
+      const listing = clean.enabled ? clean : { ...metadata(before).publicListing, enabled: false };
+      const office = await db.patch('offices', before.id, { notes: JSON.stringify({ ...metadata(before), publicListing: listing }) });
+      await audit(user, before.id, 'public_listing_updated', listing);
+      return { office };
+    }
     if (action === 'publish-terms') {
       const terms = agreement(b);
       await db.setTerms(terms);

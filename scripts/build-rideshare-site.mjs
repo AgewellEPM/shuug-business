@@ -54,6 +54,7 @@ if (cloudflare) {
   { src: '/bank-return', headers: { 'Referrer-Policy': 'no-referrer' }, dest: '/bank-return.html' },
   { src: '/pricing(?:\\.html)?', status: 308, headers: { Location: '/free' } },
   { src: '/api/sales', dest: '/api/sales' },
+  { src: '/api/offices', dest: '/api/offices' },
   { src: '/api/sales-webhook', dest: '/api/sales-webhook' },
   ...aliases.map(slug => ({ src: `/${slug}`, dest: `/${slug}.html` })),
   { handle: 'filesystem' },
