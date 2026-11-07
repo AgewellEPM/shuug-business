@@ -1,4 +1,4 @@
-const configuredOrigin = new URL(process.env.RIDESHARE_SITE_ORIGIN || 'https://rideshare-tax-pros.vercel.app');
+const configuredOrigin = new URL(process.env.RIDESHARE_SITE_ORIGIN || 'https://gigtax.pro');
 if (configuredOrigin.protocol !== 'https:' || configuredOrigin.pathname !== '/' || configuredOrigin.search || configuredOrigin.hash || configuredOrigin.username || configuredOrigin.password) throw new Error('The public site origin must be an HTTPS origin without a path or credentials.');
 export const origin = configuredOrigin.origin;
 export const reviewed = 'November 2, 2026';
