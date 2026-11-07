@@ -283,7 +283,7 @@ import XCTest
         let card = springboard.descendants(matching: .any).matching(NSPredicate(
           format: "identifier == 'NotificationShortLookView' AND label CONTAINS %@", title)).firstMatch
         XCTAssertTrue(card.waitForExistence(timeout: 5), springboard.debugDescription)
-        card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).press(forDuration: 2.5)
+        card.press(forDuration: 2.5)
         _ = button.waitForExistence(timeout: 5)
       }
       XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
@@ -442,5 +442,66 @@ import XCTest
     app.descendants(matching: .any).matching(NSPredicate(format: "identifier BEGINSWITH %@", "capture.platform.Uber")).firstMatch.tap()
     XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "None saved")).firstMatch.exists,
       "A DoorDash capture must not establish Uber detection.\n" + app.debugDescription)
+  }
+  func test12CoachUsesSavedJobsAndKeepsConfirmedIntake() throws {
+    let app = open()
+    navigate("Insights", in: app); app.buttons["insights.goals"].tap()
+    enter("0.50", into: app.textFields["goals.cost"], in: app)
+    app.navigationBars["Driving goals"].buttons["Save"].tap()
+    for (title, fare, fees) in [("Coach loss job", "3", "1"), ("Coach best job", "20", "3")] {
+      navigate("Trips", in: app); app.buttons["Add manual trip"].tap()
+      enter("10", into: app.textFields["Miles"], in: app)
+      choose("Business", picker: "trip.classification", in: app)
+      enter(title, into: app.textFields["Purpose"], in: app)
+      choose("Delivery", picker: "trip.role", in: app)
+      enter(fare, into: app.textFields["trip.fare"], in: app)
+      enter(fees, into: app.textFields["trip.fees"], in: app)
+      app.navigationBars["Manual trip"].buttons["Save"].tap()
+    }
+    navigate("Today", in: app); app.buttons["dashboard.coach"].tap()
+    XCTAssertTrue(app.navigationBars["Tax & Goals"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["Which jobs lose money?"].tap()
+    let loss = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "Coach loss job", "3.00")).firstMatch
+    XCTAssertTrue(loss.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertFalse(loss.label.contains("Coach best job"), "Loss guidance must reference the actual loss job")
+    let question = multiline("coach.question", in: app)
+    question.tap(); question.typeText("Which jobs make the most money?")
+    app.buttons["coach.send"].tap()
+    let best = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "Coach best job", "12.00")).firstMatch
+    XCTAssertTrue(best.waitForExistence(timeout: 10), app.debugDescription)
+    app.terminate(); app.launch(); app.buttons["dashboard.coach"].tap()
+    reveal(best, in: app)
+    // Scroll to the fixed context controls after the long saved answer.
+    for _ in 0..<6 { if app.buttons["coach.intake"].isHittable { break }; app.swipeDown() }
+    app.buttons["coach.intake"].tap()
+    app.textFields["coach.taxYear"].tap(); app.textFields["coach.taxYear"].typeText("2026")
+    app.textFields["coach.jurisdiction"].tap(); app.textFields["coach.jurisdiction"].typeText("New York")
+    app.buttons["coach.saveIntake"].tap()
+    XCTAssertTrue(app.navigationBars["Tax & Goals"].waitForExistence(timeout: 10), app.debugDescription)
+    app.terminate(); app.launch(); app.buttons["dashboard.coach"].tap()
+    app.buttons["coach.intake"].tap()
+    XCTAssertEqual(app.textFields["coach.taxYear"].value as? String, "2026")
+    XCTAssertEqual(app.textFields["coach.jurisdiction"].value as? String, "New York")
+    app.navigationBars["Tax details"].buttons["Cancel"].tap()
+    app.buttons["tools.close"].tap()
+    app.buttons["quick.trips"].tap(); app.staticTexts["Coach loss job"].tap()
+    let deletion = app.buttons["Delete trip"]
+    reveal(deletion, in: app); deletion.tap()
+    XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "brandedDialog").firstMatch.waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["Cancel"].tap()
+    XCTAssertTrue(app.navigationBars["Trip"].waitForExistence(timeout: 10), app.debugDescription)
+  }
+  func test13ForegroundAlertUsesBrandedCard() throws {
+    let app = open()
+    app.buttons["quick.alerts"].tap()
+    app.buttons["assistance.tripAlert"].tap()
+    let allow = XCUIApplication(bundleIdentifier: "com.apple.springboard").alerts.buttons["Allow"]
+    if allow.waitForExistence(timeout: 4) { allow.tap() }
+    let banner = app.descendants(matching: .any).matching(identifier: "notice.foreground").firstMatch
+    XCTAssertTrue(banner.waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertTrue(app.staticTexts["Start a new trip?"].firstMatch.exists, app.debugDescription)
+    app.buttons["notice.dismiss"].tap()
+    XCTAssertFalse(banner.exists, app.debugDescription)
+    XCTAssertTrue(app.navigationBars["Alerts & reminders"].exists, "Dismissing a notification must preserve the current page")
   }
 }

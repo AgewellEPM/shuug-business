@@ -14,6 +14,8 @@ import Network
   @Published var bankStatus: BankStatusReply?
   @Published var bankError: String?
   @Published var bankSyncing = false
+  @Published var coachSyncing = false
+  @Published var coachStatus = "Saved on this iPhone"
   @Published private(set) var syncing = false
   @Published private(set) var syncStatus = "Saved on this iPhone"
   @Published private(set) var syncDetail: String?
@@ -109,7 +111,7 @@ import Network
     }
   }
   func finishTrip() { if commit({ $0.finishTrip() }) { Task { await sync() } } }
-  func connect(origin: URL, email: String, password: String, includeOffline: Bool) async throws {
+  func connect(origin: URL, email: String, password: String, includeOffline: Bool, includeCoach: Bool = false) async throws {
     guard !syncing else {
       throw WorkspaceError.message("Wait for the current sync to finish before reconnecting an account.")
     }
@@ -126,8 +128,9 @@ import Network
     let nextScope = Self.scope(profile)
     let nextDisk = try JournalDiskStore(directory: root.appendingPathComponent(nextScope))
     var nextJournal = try nextDisk.load()
-    if guest && includeOffline {
-      let plan = try GuestTransferPlan.prepare(source: journal, destination: nextJournal)
+    if guest && (includeOffline || includeCoach) {
+      let plan = try GuestTransferPlan.prepare(source: journal, destination: nextJournal,
+        includeRecords: includeOffline, includeCoach: includeCoach)
       try plan.copyFiles(source: disk, destination: nextDisk)
       nextJournal = plan.journal
     }
@@ -143,6 +146,10 @@ import Network
     storageHealthy = true
     syncStatus = "Connected to \(reply.branding.name)"
     await sync()
+    if includeCoach {
+      let day = DriverRecord.day(Date())
+      await syncCoach(from: String(day.prefix(4)) + "-01-01", through: day)
+    }
   }
   func disconnect() async {
     guard !syncing else {

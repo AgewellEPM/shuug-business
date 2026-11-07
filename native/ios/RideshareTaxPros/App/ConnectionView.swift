@@ -6,6 +6,7 @@ struct ConnectionView: View {
   @State private var email = ""
   @State private var password = ""
   @State private var includeOffline = false
+  @State private var includeCoach = false
   @State private var discovering = false
   @State private var connecting = false
   @State private var checkedDiscovery = false
@@ -93,10 +94,11 @@ struct ConnectionView: View {
         if model.connection != nil { await model.sync() }
         else if !checkedDiscovery { await findWorkspace() }
       }
-      .confirmationDialog(
-        "Sign out? Your account’s unsynced records stay on this iPhone and return when you reconnect to that same account.",
-        isPresented: $signingOut, titleVisibility: .visible
-      ) { Button("Sign out", role: .destructive) { Task { await model.disconnect() } } }
+      .brandedDialog("Sign out?", isPresented: $signingOut,
+        message: "Your account’s unsynced records stay on this iPhone and return when you reconnect to that same account.",
+        icon: "rectangle.portrait.and.arrow.right", accent: Brand.danger) {
+        [BrandedDialogAction("Sign out", role: .destructive) { Task { await model.disconnect() } }]
+      }
   }
   @ViewBuilder private var connectionSteps: some View {
     Section("1 · Open your client account") {
@@ -150,6 +152,14 @@ struct ConnectionView: View {
         Text("This account’s trips, income, expenses and attached receipts stay together across the app, portal and your tax team’s workspace.")
           .font(.footnote).foregroundStyle(.secondary)
       }
+      if model.guest && (!(model.journal.coachMessages ?? []).isEmpty || model.journal.coachIntake != nil) {
+        Toggle("Copy my phone-only chat and confirmed tax details to this client account", isOn: $includeCoach)
+          .disabled(connecting).accessibilityIdentifier("account.copyCoach")
+        Text(includeCoach
+          ? "Your saved questions will be shared and answered using this account’s synced records. Existing account tax details are kept. The phone-only source remains on this iPhone."
+          : "Your phone-only conversation and tax details stay separate unless you choose to copy them.")
+          .font(.footnote).foregroundStyle(Brand.muted)
+      }
       Button {
         Task { await connect() }
       } label: {
@@ -184,9 +194,10 @@ struct ConnectionView: View {
     notice = nil
     defer { connecting = false; password = "" }
     do {
-      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline)
+      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach)
       signingIn = false
       includeOffline = false
+      includeCoach = false
     } catch { notice = error.localizedDescription }
   }
 }

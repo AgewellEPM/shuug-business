@@ -6,6 +6,7 @@ enum DriverTab: Hashable { case home, offers, goHome, position, earnings }
 enum DriverTool: String, Identifiable {
   case trips = "Trips", money = "Money", account = "Account", alerts = "Alerts & reminders"
   case diagnostics = "Offer Capture Diagnostics"
+  case coach = "Tax & Goals"
   var id: String { rawValue }
 }
 struct RootView: View {
@@ -34,6 +35,7 @@ struct RootView: View {
             case .account: ConnectionView()
             case .alerts: DriverAlertsView()
             case .diagnostics: OfferCaptureDiagnosticsView()
+            case .coach: TaxCoachView()
             }
           }.toolbar { ToolbarItem(placement: .topBarTrailing) {
             Button("Done") { tool = nil }.accessibilityIdentifier("tools.close")
@@ -50,14 +52,6 @@ struct RootView: View {
         }
       }
       .onChange(of: model.journalScope) { _, _ in model.requestedOffer = nil }
-      .alert(
-        "Gig Tax Pros",
-        isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
-      ) {
-        Button("OK") { model.message = nil }
-      } message: {
-        Text(model.message ?? "")
-      }
   }
 }
 struct RecordStatus: View {
@@ -71,7 +65,7 @@ struct RecordStatus: View {
         ? "exclamationmark.triangle"
         : entry.pendingMutationId != nil ? "iphone" : "checkmark.icloud"
     )
-    .font(.caption).foregroundStyle(entry.conflict != nil ? .orange : .secondary)
+    .font(.caption).foregroundStyle(entry.conflict != nil ? Brand.danger : entry.pendingMutationId != nil ? Brand.caution : Brand.positive)
   }
 }
 struct TodayView: View {
@@ -122,10 +116,14 @@ struct TodayView: View {
               Button("Account", systemImage: "person.crop.circle") { showTool(.account) }
               Button("Alerts & reminders", systemImage: "bell") { showTool(.alerts) }
               Button("Offer Capture Diagnostics", systemImage: "waveform.path.ecg") { showTool(.diagnostics) }
+              Button("Tax & Goals chat", systemImage: "bubble.left.and.text.bubble.right.fill") { showTool(.coach) }
               Button("Explore a sample shift", systemImage: "sparkles") { showingSample = true }
             } label: { Image(systemName: "line.3.horizontal").font(.title3).frame(width: 28, height: 44) }
               .accessibilityIdentifier("dashboard.menu").accessibilityLabel("More tools")
             BrandHeader(compact: true).frame(maxWidth: .infinity, alignment: .leading)
+            Button { showTool(.coach) } label: {
+              Image(systemName: "bubble.left.and.text.bubble.right.fill").font(.title3).foregroundStyle(Brand.route).frame(width: 30, height: 44)
+            }.accessibilityLabel("Tax & Goals chat").accessibilityIdentifier("dashboard.coach")
             Button { showTool(.alerts) } label: {
               Image(systemName: (model.journal.driverAlerts ?? []).contains(where: { $0.handledAt == nil && $0.expiresAt > Date() }) ? "bell.badge" : "bell")
                 .font(.title3).frame(width: 30, height: 44)

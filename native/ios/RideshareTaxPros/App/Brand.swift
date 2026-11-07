@@ -44,7 +44,6 @@ enum Brand {
     return formatter.date(from: text) ?? Date()
   }
 }
-
 struct BrandHeader: View {
   var compact = false
   var body: some View {
@@ -84,29 +83,5 @@ struct BrandActionStyle: ButtonStyle {
       .opacity(enabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
       .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
       .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: configuration.isPressed)
-  }
-}
-
-private struct DriverScreen: ViewModifier {
-  var compactNavigation: Bool
-  func body(content: Content) -> some View {
-    Group {
-      if compactNavigation {
-        content.navigationBarTitleDisplayMode(.inline)
-          .contentMargins(.top, 8, for: .scrollContent)
-      } else {
-        content
-      }
-    }.scrollContentBackground(.hidden)
-      .background(Brand.background.ignoresSafeArea())
-      .toolbar(.visible, for: .navigationBar)
-      .toolbarBackground(Brand.background, for: .navigationBar, .tabBar)
-      .toolbarBackground(.visible, for: .navigationBar, .tabBar)
-      .toolbarColorScheme(.dark, for: .navigationBar, .tabBar)
-  }
-}
-extension View {
-  func driverScreen(compactNavigation: Bool = true) -> some View {
-    modifier(DriverScreen(compactNavigation: compactNavigation))
   }
 }

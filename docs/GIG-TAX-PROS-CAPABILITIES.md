@@ -6,6 +6,7 @@ deferred at the owner's request. Production readiness is not claimed.
 | Input or action | Implemented capability | Verification boundary |
 | --- | --- | --- |
 | Saved trips and costs | Native charts, goals, unpaid-mile cost and platform comparisons | Actual local journal; incomplete records identified |
+| Tax & Goals conversation | Saved-job loss/best comparisons, record-preparation guidance, confirmed tax context and milestones | Phone answers work offline; connected accounts share persistent browser/native history and client-visible tax requests |
 | Sample shift | Thirty days of example records and five normalized offers ranked against a home deadline | Explicitly simulated and paused; never saved into the actual journal |
 | Screenshot | Share Extension or Photos picker → Apple Vision → normalized offer | Synthetic raster OCR proof; real provider screenshots need validation |
 | Shared text | Native Share Extension → normalizer → local inbox | Extension compiled; physical share-sheet delivery remains unverified |
@@ -98,8 +99,40 @@ the app. A small presentation-only Notification Content Extension covers trip,
 classification, earnings, expense, offer and status categories. Original system
 actions continue to the existing account/trip/expiry-guarded app handler. Long
 content supports scrolling and Dynamic Type. In-app alert cards use the same
-brand styling. The compact banner and system action controls remain managed by
-iOS; see [Apple's notification appearance documentation](https://developer.apple.com/documentation/usernotificationsui/customizing-the-appearance-of-notifications).
+brand styling. Foreground delivery uses a branded in-app card on the current
+page. App-controlled confirmations also use the shared neon dialog, including
+destructive actions, duplicate expenses and account sign-out. Outside the app,
+the compact banner and system action controls remain managed by iOS; see
+[Apple's notification appearance documentation](https://developer.apple.com/documentation/usernotificationsui/customizing-the-appearance-of-notifications).
+
+## Shared Tax & Goals
+
+The Home chat button opens **Tax & Goals**. Questions can identify recorded loss
+jobs, highest-net jobs, platform/area/start-hour comparisons, expenses, operating
+goals and missing preparation records. Answers cite the relevant saved jobs;
+unknown fees, vehicle cost, GPS gaps and unrecorded waiting/idle time remain
+visible limits. Payout income and trip fares are separate views, so neither
+payouts nor vehicle costs are counted twice. Partial goal progress and unknown
+hourly measurements are identified rather than converted to zero.
+
+Phone-only questions and answers persist in the account-specific journal. A
+stable-ID outbox retries them after records sync. The authenticated workspace
+stores the same client account's browser/native conversation and explicitly
+confirmed preparation facts; authorized staff can review it at `/rideshare/coach`.
+Tax year, jurisdiction and business structure require a confirmation form. Chat
+does not silently change intake, classify a deduction, file a return or pay tax.
+Existing private document-request uploads remain the place for tax forms.
+
+Guidance uses deterministic record rules. An optional, administrator-configured
+private Peel worker can verify numeric job totals through the existing symbolic
+runtime. Only a matching actual response adds a Peel-verified arithmetic label;
+missing or failed verification leaves the ordinary record-rule answer. No
+general-purpose model, proprietary runtime, secret or admission code is bundled
+in the app or public repository. This does not establish tax-law computation.
+
+Public website discovery still needs a verified persistent HTTPS workspace.
+Until that host exists, local and disposable HTTP proofs do not establish public
+`gigtax.pro` synchronization.
 
 Build using `scripts/build-rideshare-ios.sh` with the Simulator build-for-testing
 options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
@@ -111,11 +144,14 @@ options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
 - `--alerts-only --visible` checks real system notification actions.
 - `--capture-only --visible` checks the per-platform diagnostics and synthetic
   screenshot path without repeating the sample-shift checks.
+- `--coach-only --visible` checks actual saved-job questions, relaunch, confirmed
+  intake, cancellation of a branded deletion dialog and a foreground alert.
 - Swift core tests cover malformed OCR, duplicates, expiration, unknown
   destinations, negative margins, uncertain tips, hard deadlines, commitments,
   rapidly changing provider inputs and simulated ranking.
 
-Successful receipts identify the installed executable hash. Failed runs retain
+Successful receipts identify the installed app bundle hash, including the debug
+dylib and resources rather than only Xcode's launcher executable. Failed runs retain
 artifacts without writing a success receipt. The named user preview is preserved
 and restored after diagnostic runs. Simulator checks are not physical-phone or
 visual acceptance.

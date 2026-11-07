@@ -8,6 +8,7 @@ import { customerPage, customerInvite, customerLogin, customerDashboard, custome
 import { escapeHtml } from "@/lib/auth/forms";
 import { acceptCustomerRecord, bookCustomerAppointment, cancelCustomerAppointment } from "@/lib/workspace/store";
 import { authorizeInvoicePayment, paymentNotice, refreshWebsitePayment, reserveInvoicePayment } from "@/lib/website-payments/service";
+import { readCoach } from "@/lib/driver-coach/store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function redirect(token?: string) { const response = NextResponse.redirect(new URL(CUSTOMER_PATH, appBaseUrl()), 303); response.headers.set("Cache-Control", "private, no-store"); response.headers.set("Referrer-Policy", "no-referrer"); if (token !== undefined) response.headers.set("Set-Cookie", customerCookie(token, appBaseUrl().startsWith("https:"))); return response; }
@@ -18,7 +19,11 @@ export async function GET(request: Request) {
   const query = new URL(request.url).searchParams;
   const year = /^\d{4}$/.test(query.get("year") ?? "") ? Number(query.get("year")) : undefined;
   const page = /^\d{1,5}$/.test(query.get("page") ?? "") ? Number(query.get("page")) : undefined;
-  try { return customerDashboard(await customerView(token, { year, page })); } catch { return customerLogin("Sign in again to view your customer account."); }
+  try {
+    const data = await customerView(token, { year, page });
+    const period = data.driver ? { from: `${data.driver.year}-01-01`, through: `${data.driver.year}-12-31` } : undefined;
+    return customerDashboard(data, "", period ? { state: readCoach(token, period), period } : undefined);
+  } catch { return customerLogin("Sign in again to view your customer account."); }
 }
 export async function POST(request: Request) {
   if (request.headers.get("origin") !== new URL(appBaseUrl()).origin) return customerPage("Origin not permitted", "<p>Return to the customer account to continue.</p>", 403);

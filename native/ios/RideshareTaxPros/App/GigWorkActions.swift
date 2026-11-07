@@ -25,13 +25,12 @@ struct GigWorkActions: View {
       Text("Your report reserves this time in the planner. Complete or cancel the job here when finished. Record actual earnings and mileage separately.")
         .font(.caption).foregroundStyle(Brand.muted)
     }.buttonStyle(BrandActionStyle(primary: false)).gigCard()
-      .confirmationDialog("Confirm your job status", isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } })) {
-        if let pending {
-          Button("Confirm") { model.decide(pending, offer: offer); self.pending = nil }
-        }
-        Button("Cancel", role: .cancel) { pending = nil }
-      } message: {
-        Text("This saves your report on this iPhone. Make any acceptance or cancellation in the provider app first.")
+      .brandedDialog("Confirm your job status",
+        isPresented: Binding(get: { pending != nil }, set: { if !$0 { pending = nil } }),
+        message: "This saves your report on this iPhone. Make any acceptance or cancellation in the provider app first.",
+        icon: "briefcase.fill", accent: Brand.route) {
+        guard let choice = pending else { return [] }
+        return [BrandedDialogAction("Confirm") { model.decide(choice, offer: offer) }]
       }
   }
   private func status(_ state: GigCommitmentState) -> String {

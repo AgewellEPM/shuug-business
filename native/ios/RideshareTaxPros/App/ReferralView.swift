@@ -57,12 +57,21 @@ struct ReferralView: View {
     }.driverScreen().navigationTitle("Driver Rewards")
       .task { await refresh() }
       .refreshable { await refresh() }
-      .confirmationDialog("Choose how to receive this $20 reward", isPresented: Binding(get: { redeeming != nil }, set: { if !$0 { redeeming = nil } })) {
-        if let reward = redeeming {
-          Button("Request tax-prep credit") { Task { await perform(["action": "redeem", "rewardId": reward.id, "method": "credit"]) }; redeeming = nil }
-          if reward.kind == "referral" { Button("Request cash reward") { Task { await perform(["action": "redeem", "rewardId": reward.id, "method": "cash"]) }; redeeming = nil } }
+      .brandedDialog("Choose your reward",
+        isPresented: Binding(get: { redeeming != nil }, set: { if !$0 { redeeming = nil } }),
+        message: "Choose how to receive this $20 reward. The firm confirms fulfillment. Each reward can be redeemed once.",
+        icon: "gift.fill", accent: Brand.income) {
+        guard let reward = redeeming else { return [] }
+        var actions = [BrandedDialogAction("Request tax-prep credit") {
+          Task { await perform(["action": "redeem", "rewardId": reward.id, "method": "credit"]) }
+        }]
+        if reward.kind == "referral" {
+          actions.append(BrandedDialogAction("Request cash reward") {
+            Task { await perform(["action": "redeem", "rewardId": reward.id, "method": "cash"]) }
+          })
         }
-      } message: { Text("The firm confirms fulfillment. Each reward can be redeemed once.") }
+        return actions
+      }
   }
   @MainActor private func refresh() async { await perform(nil) }
   @MainActor private func perform(_ action: [String: String]?) async {

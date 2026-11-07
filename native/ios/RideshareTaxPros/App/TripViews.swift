@@ -182,14 +182,13 @@ struct TripDetail: View {
       .sheet(isPresented: $editing) {
         if let entry { NavigationStack { TripEditor(existing: entry.record) } }
       }
-      .confirmationDialog(
-        "Delete this trip from your journal and sync that deletion to your firm?",
-        isPresented: $deleting, titleVisibility: .visible
-      ) {
-        Button("Delete trip", role: .destructive) {
+      .brandedDialog("Delete this trip?", isPresented: $deleting,
+        message: "This deletes the trip from your journal and syncs that deletion to your firm.",
+        icon: "trash.fill", accent: Brand.danger) {
+        [BrandedDialogAction("Delete trip", role: .destructive) {
           model.remove(id)
           dismiss()
-        }
+        }]
       }
   }
 }

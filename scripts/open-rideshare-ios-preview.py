@@ -6,6 +6,7 @@ from pathlib import Path
 import signal
 import subprocess
 import time
+from ios_app_fingerprint import verify_installed_app
 
 APP = Path(os.environ.get('RIDESHARE_IOS_TEST_DERIVED', '/private/tmp/rideshare-ios-simulator-build')) / 'Build/Products/Debug-iphonesimulator/RideshareTaxPros.app'
 BUNDLE = 'com.ridesharetaxpros.driver'
@@ -76,13 +77,13 @@ try:
     call('xcrun', 'simctl', 'install', identifier, str(APP))
     installed = Path(call('xcrun', 'simctl', 'get_app_container', identifier, BUNDLE, 'app').stdout.strip())
     fingerprint = hashlib.sha256((APP/'RideshareTaxPros').read_bytes()).hexdigest()
-    assert hashlib.sha256((installed/'RideshareTaxPros').read_bytes()).hexdigest() == fingerprint, 'Installed preview does not match the compiled app.'
+    bundle_fingerprint = verify_installed_app(APP, installed)
     launched = call('xcrun', 'simctl', 'launch', identifier, BUNDLE).stdout.strip()
     pid = int(launched.rsplit(':', 1)[1].strip())
     call('open', '-a', 'Simulator', '--args', '-CurrentDeviceUDID', identifier)
     time.sleep(2)
     os.kill(pid, 0)
-    report = dict(simulator=identifier, name=preview_name, appPid=pid, appExecutableSHA256=fingerprint, userReviewLeftOpen=True, diagnosticSession=False, openedAt=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
+    report = dict(simulator=identifier, name=preview_name, appPid=pid, appExecutableSHA256=fingerprint, appBundleSHA256=bundle_fingerprint, userReviewLeftOpen=True, diagnosticSession=False, openedAt=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime()))
     RECEIPT.write_text(json.dumps(report, indent=2)+'\n')
     ready = True
     print(json.dumps(report, indent=2), flush=True)

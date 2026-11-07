@@ -260,7 +260,8 @@ After diagnostics have finished, `python3 scripts/open-rideshare-ios-preview.py`
 opens a separate named review device on the normal desktop and leaves the app
 open for the user. It reuses that device and preserves its records on later runs,
 refuses other active guests, and verifies the installed executable matches the
-built app. This is the user preview; close it before another diagnostic run.
+built app, including its debug dylib and bundled resources. This is the user preview;
+close it before another diagnostic run.
 The device is named **Gig Tax Pros Preview**. An existing **Rideshare Tax Pros
 Preview** is renamed and reused in place, preserving its device ID and saved data.
 Set `RIDESHARE_IOS_PREVIEW_DEVICE` to an existing Simulator UDID to review on that
