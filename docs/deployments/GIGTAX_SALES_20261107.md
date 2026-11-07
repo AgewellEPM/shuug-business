@@ -1,5 +1,26 @@
 # GigTax office sales and enrollment
 
+## Current homepage selected by Luke
+
+In the current November 7 session, Luke explicitly selected the homepage with
+“An office nearby. An expert to talk to.” and the larger U.S. map. This supersedes
+the earlier small-bottom-map-only selection. Do not promote the small-map build
+`dpl_Cp9LUKadHWmfqa2QBpsj1TwycyXt` over this selected page.
+
+The selected build `dpl_HVSxKeSXWGLDA5ELkAJatwAfYjJG` was restored to production.
+Both `https://gigtax.pro` and `https://www.gigtax.pro` return the exact selected
+homepage, SHA-256
+`857b2b50dcb082748b826b817e12d3573fd1a4961e5ea7051f5bc8e2c38d7c73`.
+All 60 public static/alias checks and six customer interaction checks pass.
+Live owner sign-in, protected sessions, retained sales data and both business
+pages were verified. No payment, enrollment or outreach was performed.
+
+Evidence: `gigtax-confirmed-homepage-http-20261107.json` and
+`gigtax-confirmed-homepage-business-20261107.json` in this directory.
+HTTP and DOM checks do not establish Luke's visual acceptance.
+
+## Saved implementation
+
 Canonical integrated source: `/Users/lukekist/Worktrees/GigTaxProsSalesIntegrated-20261107`,
 branch `feat/gig-tax-pros-sales-integrated`, implementation `16240c6`.
 It starts from the approved free customer-site baseline `7e3244d`.

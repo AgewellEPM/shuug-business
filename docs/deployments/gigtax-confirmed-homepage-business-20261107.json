@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T22:47:04.210Z",
+  "deploymentId": "dpl_HVSxKeSXWGLDA5ELkAJatwAfYjJG",
+  "checks": {
+    "anonymousDenied": 401,
+    "ownerLogin": 200,
+    "protectedCookie": true,
+    "authenticatedBackend": 200,
+    "foreignOriginDenied": 403,
+    "unsignedWebhookDenied": 400,
+    "existingSalesDataPreserved": true
+  },
+  "offices": 0,
+  "agents": 0,
+  "termsTitle": "Office membership · $300/month for 12 months + $200 enrollment",
+  "paymentsConfigured": false,
+  "routes": [
+    {
+      "route": "/sales",
+      "status": 200
+    },
+    {
+      "route": "/office-signup",
+      "status": 200
+    }
+  ],
+  "payment": "No checkout or charge performed. Paid activation remains unfinished."
+}
