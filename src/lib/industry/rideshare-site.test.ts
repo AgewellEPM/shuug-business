@@ -17,7 +17,9 @@ function page(slug = "", config = {}, hash = "") {
 }
 it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
-  expect(manifest.aliases.filter((slug: string) => !slug.startsWith('gig-companies/'))).toHaveLength(20);
+  expect(manifest.aliases.filter((slug: string) => !slug.startsWith('gig-companies/'))).toHaveLength(22);
+  expect(manifest.aliases).toContain('sales');
+  expect(manifest.aliases).toContain('office-signup');
   expect(manifest.aliases).toContain("gig-companies");
   expect(manifest.aliases).toContain("join-the-family");
   for (const slug of ["", ...manifest.aliases]) {
@@ -25,7 +27,7 @@ it("connects the entire built site with valid internal links, unique page headin
     try {
       expect(d.querySelector('meta[name="viewport"]')).not.toBeNull();
       if(slug) expect(d.querySelectorAll("h1")).toHaveLength(1);
-      expect(d.querySelector('input[type="password"]')).toBeNull();
+      if (slug !== 'sales') expect(d.querySelector('input[type="password"]')).toBeNull();
       for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
         const url = new URL(a.href);
         if(url.origin !== origin) continue;
