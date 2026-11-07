@@ -44,9 +44,9 @@ struct OfferCaptureDiagnosticsView: View {
                 GigPlatformWordmark(platform: platform, width: 100, height: 22)
                 Text("Provider: \(connectionLabel(report.connection))").font(.caption).foregroundStyle(Brand.muted)
                 Text(report.latestCapture == nil ? "No captured offer saved" : "Offer detected · \(report.capturedOfferCount) saved captures")
-                  .font(.caption).foregroundStyle(report.latestCapture == nil ? Brand.muted : Brand.link)
+                  .font(.caption).foregroundStyle(report.latestCapture == nil ? Brand.muted : Brand.route)
                 Text(report.sufficientForRecommendation ? "Shuug: enough evidence for advice" : "Shuug: more evidence needed")
-                  .font(.caption2).foregroundStyle(report.sufficientForRecommendation ? .green : .orange)
+                  .font(.caption2).foregroundStyle(report.sufficientForRecommendation ? Brand.positive : Brand.caution)
               }
             }.padding(.vertical, 5)
           }.accessibilityIdentifier("capture.platform.\(platform.rawValue)")
@@ -116,14 +116,14 @@ private struct CapturePlatformDiagnostics: View {
           .accessibilityIdentifier("capture.recommendation")
         if let financial = report.financial {
           LabeledContent("Estimated cash after reserve", value: moneyRange(financial.availableCash))
-          ForEach(financial.issues, id: \.rawValue) { Text(issueLabel($0)).font(.caption).foregroundStyle(.orange) }
+          ForEach(financial.issues, id: \.rawValue) { Text(issueLabel($0)).font(.caption).foregroundStyle(Brand.caution) }
         }
         NavigationLink("Review vehicle cost & hourly target") { GoalsEditor() }
         ForEach(Array(report.blockers.enumerated()), id: \.offset) { _, reason in
-          Label(reason, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.orange)
+          Label(reason, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(Brand.caution)
         }
         if report.sufficientForRecommendation, let row = report.recommendation {
-          Text(recommendationTitle(row.kind)).font(.headline).foregroundStyle(Brand.link)
+          Text(recommendationTitle(row.kind)).font(.headline).foregroundStyle(row.kind == .skip ? Brand.danger : Brand.positive)
           ForEach(row.reasons, id: \.self) { Text($0).font(.footnote) }
         }
         if let offer = report.reviewedOffer, model.journal.gigOffers?.contains(where: { $0.id == offer.id }) == true {

@@ -1,0 +1,12 @@
+{
+  "ok": true,
+  "scope": "Only test14GigAppsSwipeAndShoppingProfilePersists passed in a suite with a separate foreground-notification failure",
+  "test": "test14GigAppsSwipeAndShoppingProfilePersists",
+  "suiteResult": "failed",
+  "actualSavedJournalAudited": true,
+  "physicalIPhoneVerified": false,
+  "thirdPartyAppLaunchVerified": false,
+  "artifacts": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-1m0e7qya",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true
+}

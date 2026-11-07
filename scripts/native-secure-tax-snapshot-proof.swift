@@ -86,6 +86,21 @@ import Foundation
     var ingestion = OfferIngestionService(); try ingestion.ingest(offer, now: sample.now)
     journal.gigOffers = ingestion.offers; journal.gigOfferLogs = ingestion.logs
     try journal.recordGigDecision(.acceptedInProvider, offerId: offer.id, now: sample.now)
+    let userMessage = CoachMessage(role: "user", text: "Synthetic private goals question", createdAt: now)
+    let reply = CoachMessage(role: "assistant", text: "Synthetic recorded-data reply", createdAt: now, engine: "local-record-rules")
+    journal.coachMessages = [userMessage, reply]
+    journal.coachOutbox = [.init(id: userMessage.id, text: userMessage.text, from: "2026-01-01", through: "2026-11-07",
+      preferences: .init(goals: sample.goals), localReplyId: reply.id)]
+    journal.coachIntake = .init(taxYear: 2026, jurisdiction: "Synthetic jurisdiction", businessType: "sole-proprietor")
+    journal.coachIntakeMutationId = UUID()
+    journal.coachMilestones = [.init(id: "synthetic-record-review", title: "Synthetic milestone", detail: "Review synthetic records", recordIds: [journal.entries[0].id])]
+    journal.coachEngine = .init()
+    journal.universalGigSettings = .init(delivery: .init(workLabel: "Synthetic delivery", appURL: "https://delivery.invalid"),
+      shopping: .init(workLabel: "Synthetic shopping", appURL: "https://shopping.invalid"))
+    var shopping = Trip(startedAt: now.addingTimeInterval(-3600), endedAt: now.addingTimeInterval(-1800),
+      classification: .business, purpose: "Synthetic shopping work", source: "manual")
+    shopping.rideRole = .shopping; shopping.earningsCents = 2500; shopping.platformFeesCents = 0
+    journal.upsert(DriverRecord(payload: .trip(shopping)))
     _ = journal.beginTrip(classification: .business, purpose: "Synthetic interrupted drive", now: now)
     journal.addLocation(.init(latitude: 41.7, longitude: -72.7, accuracy: 5, timestamp: now), now: now)
     var remote = journal.entries[0].record; remote.revision = 2
@@ -111,8 +126,8 @@ import Foundation
     }
     var checks: [String] = []
     let payload = try JSONSerialization.jsonObject(with: snapshot.encoded()) as! [String: Any], encodedJournal = payload["journal"] as! [String: Any]
-    try require(encodedJournal.count == 23 && encodedJournal["lastSyncAt"] is NSNumber && encodedJournal["gigCommitments"] != nil && encodedJournal["tracker"] != nil, "Full native fixture did not populate every Journal Codable field")
-    checks.append("all23 actual Journal Codable fields and milliseconds dates are in the encrypted payload")
+    try require(encodedJournal.count == 30 && encodedJournal["lastSyncAt"] is NSNumber && encodedJournal["gigCommitments"] != nil && encodedJournal["tracker"] != nil && encodedJournal["coachOutbox"] != nil && encodedJournal["universalGigSettings"] != nil, "Full native fixture did not populate every Journal Codable field")
+    checks.append("all30 committed Journal Codable fields including coach and universal shopping settings use milliseconds dates in the encrypted payload")
     let opened = try SecureTaxJournalSnapshot.open(envelope, scope: scope, objectId: snapshot.binding.objectId, revision: 1, trustedRecipients: trusted, privateKey: client)
     let recovered = try SecureTaxJournalSnapshot.open(envelope, scope: scope, objectId: snapshot.binding.objectId, revision: 1, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm)
     let originalBytes = try SecureTaxJournalSnapshot.encoder().encode(journal)

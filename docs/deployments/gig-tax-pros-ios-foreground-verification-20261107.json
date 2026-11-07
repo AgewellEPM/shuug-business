@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "scope": "Native iPhone Simulator foreground notification after first permission grant",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": false,
+  "cloudSyncVerified": false,
+  "appExecutableSHA256": "6722a2db4aea4bd2d2301636a484aeea14197784f9fc15d3ca0dce103a90aa0a",
+  "appBundleSHA256": "4e1cf310e9802ca30cf60657640e744059c2d3b1293d973a4e702507ddf696b6",
+  "tests": [
+    "actual foreground trip notification displays the branded in-app card",
+    "notice dismisses without navigating or creating financial records"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-dvwzy0w9",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-dvwzy0w9/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-07T06:47:34Z"
+}

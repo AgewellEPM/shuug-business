@@ -70,17 +70,18 @@ struct UnifiedOfferCard: View {
       }
       HStack(alignment: .firstTextBaseline) {
         Text(row.offer.payoutCents.map(Brand.usd) ?? "Unknown payout").font(.system(size: 35, weight: .bold, design: .rounded)).minimumScaleFactor(0.6).lineLimit(1)
+          .foregroundStyle(row.offer.payoutCents == nil ? Brand.caution : Brand.income)
         Spacer()
         Image(systemName: "chevron.right").foregroundStyle(Brand.pink)
       }
       HStack {
-        DashboardMetric(title: "Cash after reserve", value: moneyRange(row.financial.availableCash), icon: "dollarsign.circle")
-        DashboardMetric(title: "Per working hour", value: moneyRange(row.financial.effectiveHourly), icon: "clock")
+        DashboardMetric(title: "Cash after reserve", value: moneyRange(row.financial.availableCash), icon: "dollarsign.circle", tint: gigMoneyTint(row.financial.availableCash))
+        DashboardMetric(title: "Per working hour", value: moneyRange(row.financial.effectiveHourly), icon: "clock", tint: gigMoneyTint(row.financial.effectiveHourly))
       }
       Label(recommendationTitle(row.kind), systemImage: row.kind == .recommended ? "checkmark.circle.fill" : "info.circle")
-        .font(.subheadline.bold()).foregroundStyle(row.kind == .recommended ? .green : Brand.link)
+        .font(.subheadline.bold()).foregroundStyle(gigRecommendationTint(row.kind))
       if let reason = row.reasons.first { Text(reason).font(.caption).foregroundStyle(Brand.muted) }
-    }.gigCard(highlight: row.kind == .recommended).foregroundStyle(.white)
+    }.gigCard(highlight: row.kind == .recommended, accent: gigRecommendationTint(row.kind)).foregroundStyle(.white)
       .accessibilityIdentifier("offer.card.\(row.offer.platform.rawValue)")
   }
 }
@@ -91,6 +92,21 @@ func moneyRange(_ range: GigMoneyRange?) -> String {
 }
 func recommendationTitle(_ kind: GigRecommendationKind) -> String {
   switch kind { case .recommended: "Fits your trip home"; case .tradeoff: "Profitable, with a route tradeoff"; case .needsReview: "Review before deciding"; case .skip: "Skip this opportunity" }
+}
+
+func gigRecommendationTint(_ kind: GigRecommendationKind) -> Color {
+  switch kind {
+  case .recommended: Brand.income
+  case .tradeoff: Brand.expense
+  case .needsReview: Brand.caution
+  case .skip: Brand.danger
+  }
+}
+
+func gigMoneyTint(_ range: GigMoneyRange?) -> Color {
+  guard let range else { return Brand.caution }
+  if range.upperCents < 0 { return Brand.danger }
+  return range.lowerCents > 0 ? Brand.income : Brand.caution
 }
 
 struct GigOfferDetailView: View {
@@ -112,21 +128,22 @@ struct GigOfferDetailView: View {
         Text(offer.source == .simulation ? "SIMULATED OFFER · PAUSED SCENARIO" : "OBSERVED OFFER · RECHECK AVAILABILITY")
           .font(.caption.bold()).foregroundStyle(Brand.link)
         Text(offer.payoutCents.map(Brand.usd) ?? "Payout unknown").font(.system(size: 47, weight: .bold, design: .rounded))
+          .foregroundStyle(offer.payoutCents == nil ? Brand.caution : Brand.income)
         VStack(spacing: 12) {
-          line("Vehicle operating cost", moneyRange(financial.vehicleCost))
-          line("Additional costs", offer.additionalCostsCents.map(Brand.usd) ?? "Unknown")
+          line("Vehicle operating cost", moneyRange(financial.vehicleCost), tint: financial.vehicleCost == nil ? Brand.caution : Brand.expense)
+          line("Additional costs", offer.additionalCostsCents.map(Brand.usd) ?? "Unknown", tint: offer.additionalCostsCents == nil ? Brand.caution : Brand.expense)
           Divider()
-          line("Profit before reserve", moneyRange(financial.profitBeforeReserve))
-          line("Planning reserve (\(profile.taxReserveBasisPoints / 100)%)", moneyRange(financial.reserve))
-          line("Estimated available cash", moneyRange(financial.availableCash)).foregroundStyle(Brand.pink)
-          line("Effective hourly earnings", moneyRange(financial.effectiveHourly))
+          line("Profit before reserve", moneyRange(financial.profitBeforeReserve), tint: gigMoneyTint(financial.profitBeforeReserve))
+          line("Planning reserve (\(profile.taxReserveBasisPoints / 100)%)", moneyRange(financial.reserve), tint: financial.reserve == nil ? Brand.caution : Brand.expense)
+          line("Estimated available cash", moneyRange(financial.availableCash), tint: gigMoneyTint(financial.availableCash))
+          line("Effective hourly earnings", moneyRange(financial.effectiveHourly), tint: gigMoneyTint(financial.effectiveHourly))
           Text("Vehicle costs are counted once. A reserve is money set aside, not a tax calculation. Ranges reflect entered uncertainty.").font(.caption2).foregroundStyle(Brand.muted)
-        }.gigCard(highlight: true)
+        }.gigCard(highlight: true, accent: gigMoneyTint(financial.availableCash))
         if !financial.issues.isEmpty {
           VStack(alignment: .leading, spacing: 8) {
-            Text("What needs review").font(.headline)
+            Text("What needs review").font(.headline).foregroundStyle(Brand.caution)
             ForEach(financial.issues, id: \.rawValue) { issue in Text(issueLabel(issue)).font(.caption) }
-          }.gigCard()
+          }.gigCard(accent: Brand.caution)
         }
         if offer.source == .simulation {
           journeyCard
@@ -141,7 +158,7 @@ struct GigOfferDetailView: View {
           }.buttonStyle(BrandActionStyle(primary: false))
           GigWorkActions(offer: offer)
         }
-        if let notice { Text(notice).font(.footnote).foregroundStyle(Brand.link) }
+        if let notice { Text(notice).font(.footnote).foregroundStyle(Brand.positive) }
       }.padding(16)
     }.driverScreen().navigationTitle(offer.platform.rawValue)
       .sheet(isPresented: $editing) { NavigationStack { GigOfferEditor(offer: offer) } }
@@ -149,16 +166,16 @@ struct GigOfferDetailView: View {
   private var journeyCard: some View {
     let result = recommendation.destination
     return VStack(alignment: .leading, spacing: 12) {
-      Label(recommendationTitle(recommendation.kind), systemImage: "house.fill").font(.headline).foregroundStyle(Brand.pink)
-      if let value = result.additionalMiles { line("Miles versus going directly", String(format: "%+.1f to %+.1f mi", value.lower, value.upper)) }
-      if let value = result.additionalMinutes { line("Additional travel time", String(format: "%+.0f to %+.0f min", value.lower, value.upper)) }
-      line("Extra cash versus going directly", moneyRange(result.incrementalAvailableCash))
-      if let arrival = result.latestArrival { line("Latest estimated arrival", arrival.formatted(date: .omitted, time: .shortened)) }
+      Label(recommendationTitle(recommendation.kind), systemImage: "house.fill").font(.headline).foregroundStyle(gigRecommendationTint(recommendation.kind))
+      if let value = result.additionalMiles { line("Miles versus going directly", String(format: "%+.1f to %+.1f mi", value.lower, value.upper), tint: Brand.route) }
+      if let value = result.additionalMinutes { line("Additional travel time", String(format: "%+.0f to %+.0f min", value.lower, value.upper), tint: Brand.route) }
+      line("Extra cash versus going directly", moneyRange(result.incrementalAvailableCash), tint: gigMoneyTint(result.incrementalAvailableCash))
+      if let arrival = result.latestArrival { line("Latest estimated arrival", arrival.formatted(date: .omitted, time: .shortened), tint: Brand.route) }
       ForEach(result.reasons, id: \.self) { Text($0).font(.caption).foregroundStyle(Brand.muted) }
-    }.gigCard()
+    }.gigCard(accent: Brand.route)
   }
-  private func line(_ title: String, _ value: String) -> some View {
-    HStack(alignment: .firstTextBaseline) { Text(title).font(.subheadline); Spacer(); Text(value).font(.subheadline.weight(.semibold)).multilineTextAlignment(.trailing) }
+  private func line(_ title: String, _ value: String, tint: Color = .white) -> some View {
+    HStack(alignment: .firstTextBaseline) { Text(title).font(.subheadline); Spacer(); Text(value).font(.subheadline.weight(.semibold)).foregroundStyle(tint).multilineTextAlignment(.trailing) }
   }
 }
 

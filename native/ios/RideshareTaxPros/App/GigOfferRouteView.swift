@@ -33,7 +33,7 @@ struct GigOfferRouteView: View {
   var body: some View {
     Form {
       Section {
-        Label("Earn on your way home", systemImage: "house.fill").font(.title2.bold()).foregroundStyle(Brand.pink)
+        Label("Earn on your way home", systemImage: "house.fill").font(.title2.bold()).foregroundStyle(Brand.route)
         Text("Compare going directly with completing this entire job first. Confirm the pickup and drop-off from the original offer while parked.").font(.footnote)
         Text("Apple Maps receives the places you search and the endpoints of routes you request. Selected places stay in this screen.").font(.caption).foregroundStyle(Brand.muted)
       }
@@ -41,8 +41,8 @@ struct GigOfferRouteView: View {
         Button(planner.current == nil ? "Use my current location" : "Update my current location") { planner.locate() }
           .disabled(planner.locating || planner.loading)
         if planner.locating { ProgressView("Finding current location…") }
-        if let fix = planner.current { Text("Location measured \(fix.timestamp.formatted(date: .omitted, time: .shortened))").font(.caption) }
-        if let error = planner.locationError { Text(error).font(.caption).foregroundStyle(.orange) }
+        if let fix = planner.current { Text("Location measured \(fix.timestamp.formatted(date: .omitted, time: .shortened))").font(.caption).foregroundStyle(Brand.route) }
+        if let error = planner.locationError { Text(error).font(.caption).foregroundStyle(Brand.caution) }
         RoutePlaceSearch(planner: planner, query: $destinationQuery, kind: .destination, title: "Destination")
         DatePicker("Must arrive by", selection: $deadline, displayedComponents: [.date, .hourAndMinute])
           .accessibilityIdentifier("offerRoute.deadline")
@@ -55,7 +55,7 @@ struct GigOfferRouteView: View {
         Text("Include loading, shopping and hand-off time in service wait. Enter an extra delay allowance, including 0 only when you choose to assume no extra delay. The allowance expands the upper travel-time estimate.").font(.caption)
         Toggle("Pickup, drop-off and home cover all remaining stops", isOn: $completeRouteConfirmed)
         if let reposition = currentOffer.repositionMiles, reposition > 0 {
-          Text("This offer includes additional repositioning. Its extra stops must be routed before a complete recommendation is possible.").font(.caption).foregroundStyle(.orange)
+          Text("This offer includes additional repositioning. Its extra stops must be routed before a complete recommendation is possible.").font(.caption).foregroundStyle(Brand.caution)
         }
       }
       Section("Your limits") {
@@ -79,7 +79,7 @@ struct GigOfferRouteView: View {
           .disabled(planner.current == nil || planner.destination == nil || planner.pickup == nil || planner.dropoff == nil || planner.loading || planner.searching != nil)
           .accessibilityIdentifier("offerRoute.compare")
         if planner.loading { ProgressView("Checking all four road legs…"); Button("Cancel lookup") { planner.cancel() } }
-        if let error = planner.error { Text(error).font(.caption).foregroundStyle(.orange) }
+        if let error = planner.error { Text(error).font(.caption).foregroundStyle(Brand.caution) }
         if let routes = planner.routes {
           MissionRouteMap(routes: routes)
           TimelineView(.periodic(from: .now, by: 2)) { context in results(routes, now: context.date) }
@@ -116,19 +116,19 @@ struct GigOfferRouteView: View {
       let journey = recommendation.destination
       VStack(alignment: .leading, spacing: 12) {
         Label(title(recommendation.kind), systemImage: recommendation.kind == .recommended ? "checkmark.circle.fill" : "info.circle")
-          .font(.headline).foregroundStyle(recommendation.kind == .recommended ? .green : Brand.link)
+          .font(.headline).foregroundStyle(gigRecommendationTint(recommendation.kind))
         ForEach(recommendation.reasons, id: \.self) { Text($0).font(.footnote) }
-        LabeledContent("Go directly", value: "\(Brand.miles(routes.direct.distance)) mi · \(Int((routes.direct.expectedTravelTime / 60).rounded(.up))) min")
-        if let miles = journey.additionalMiles { LabeledContent("Extra miles via this job", value: bounds(miles, unit: "mi")) }
-        if let minutes = journey.additionalMinutes { LabeledContent("Extra time via this job", value: bounds(minutes, unit: "min")) }
-        if let latest = journey.latestArrival { LabeledContent("Latest estimated arrival", value: latest.formatted(date: .omitted, time: .shortened)) }
-        if let buffer = journey.remainingMinutes { LabeledContent("Deadline buffer", value: String(format: "%.0f min", floor(buffer))) }
-        if let profit = journey.routeProfit?.availableCash { LabeledContent("Job cash after reserve", value: money(profit)) }
-        if let incremental = journey.incrementalAvailableCash { LabeledContent("Extra cash vs going directly", value: money(incremental)) }
+        LabeledContent("Go directly", value: "\(Brand.miles(routes.direct.distance)) mi · \(Int((routes.direct.expectedTravelTime / 60).rounded(.up))) min").foregroundStyle(Brand.route)
+        if let miles = journey.additionalMiles { LabeledContent("Extra miles via this job", value: bounds(miles, unit: "mi")).foregroundStyle(Brand.route) }
+        if let minutes = journey.additionalMinutes { LabeledContent("Extra time via this job", value: bounds(minutes, unit: "min")).foregroundStyle(Brand.route) }
+        if let latest = journey.latestArrival { LabeledContent("Latest estimated arrival", value: latest.formatted(date: .omitted, time: .shortened)).foregroundStyle(Brand.route) }
+        if let buffer = journey.remainingMinutes { LabeledContent("Deadline buffer", value: String(format: "%.0f min", floor(buffer))).foregroundStyle(buffer > 0 ? Brand.route : Brand.danger) }
+        if let profit = journey.routeProfit?.availableCash { LabeledContent("Job cash after reserve", value: money(profit)).foregroundStyle(gigMoneyTint(profit)) }
+        if let incremental = journey.incrementalAvailableCash { LabeledContent("Extra cash vs going directly", value: money(incremental)).foregroundStyle(gigMoneyTint(incremental)) }
         Text("Operating costs and your configured reserve are included. Reserve is a planning allocation. Traffic, service delays and availability can change; verify the actual offer in \(currentOffer.platform.rawValue) before accepting.")
           .font(.caption).foregroundStyle(Brand.muted)
         if !currentOffer.validForComparison(now: now) {
-          Text("This observation is stale or expired. Review the current offer again before using a recommendation.").font(.caption).foregroundStyle(.orange)
+          Text("This observation is stale or expired. Review the current offer again before using a recommendation.").font(.caption).foregroundStyle(Brand.danger)
         }
       }.font(.subheadline)
         .task(id: try? WireJSON.encoder().encode(evidence)) {
@@ -136,7 +136,7 @@ struct GigOfferRouteView: View {
         }
     } else {
       Text("Enter wait, delay allowance and travel limits, then confirm that the selected stops cover the entire job. Unknown stops or repositioning prevent a deadline recommendation.")
-        .font(.footnote).foregroundStyle(Brand.muted)
+        .font(.footnote).foregroundStyle(Brand.caution)
     }
   }
   private func routedOffer(waitMinutes: Double, routes: MissionRoutes) -> UniversalGigOffer {
@@ -181,7 +181,7 @@ struct RoutePlaceSearch: View {
       }
     Button("Search \(title.lowercased())") { Task { await planner.search(query, for: kind) } }
       .disabled(planner.loading || query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-    if let selected { Text("\(title): \(planner.display(selected))").font(.footnote) }
+    if let selected { Text("\(title): \(planner.display(selected))").font(.footnote).foregroundStyle(Brand.route) }
     if planner.searching == kind { ProgressView("Searching…") }
     if planner.resultKind == kind {
       VStack(alignment: .leading, spacing: 8) {
@@ -202,11 +202,11 @@ struct MissionRouteMap: View {
         MapPolyline(routes.direct.polyline).stroke(Brand.purple.opacity(0.55), lineWidth: 4)
         MapPolyline(routes.toPickup.polyline).stroke(Brand.pink, lineWidth: 5)
         MapPolyline(routes.delivery.polyline).stroke(Brand.pink, lineWidth: 5)
-        MapPolyline(routes.onward.polyline).stroke(Brand.link, lineWidth: 5)
-        Marker("Current", coordinate: routes.origin.coordinate)
+        MapPolyline(routes.onward.polyline).stroke(Brand.route, lineWidth: 5)
+        Marker("Current", coordinate: routes.origin.coordinate).tint(Brand.route)
         Marker("Pickup", systemImage: "bag.fill", coordinate: routes.pickup.placemark.coordinate).tint(Brand.pink)
         Marker("Drop-off", coordinate: routes.dropoff.placemark.coordinate).tint(Brand.pink)
-        Marker("Destination", systemImage: "house.fill", coordinate: routes.destination.placemark.coordinate).tint(Brand.link)
+        Marker("Destination", systemImage: "house.fill", coordinate: routes.destination.placemark.coordinate).tint(Brand.route)
       }.mapStyle(.standard(elevation: .flat, pointsOfInterest: .excludingAll)).environment(\.colorScheme, .dark)
         .frame(height: 220).clipShape(RoundedRectangle(cornerRadius: 16))
       Text("Purple: direct · Pink: pickup & delivery · Light: onward").font(.caption2).foregroundStyle(Brand.muted)

@@ -65,10 +65,11 @@ local journal blocks this UI rather than uploading an empty replacement.
 
 The inner payload is `{version:1,type:'driver-journal',binding,capturedAt,journal}`.
 `binding` contains workspace/account/client/object IDs. Dates use the native
-milliseconds-since-1970 representation. All 23 current Journal Codable fields are
+milliseconds-since-1970 representation. All 30 committed Journal Codable fields are
 included: records and pending/conflict state, receipt metadata, active/tracker
 state, goals, bank review state, prompts, assistance, mission/waits/reserves,
-offers, decisions, commitments and alert/ingestion history. Unknown Journal fields
+offers, decisions, commitments, alert/ingestion history, coach conversation/outbox,
+confirmed intake/milestones/engine and universal delivery/shopping settings. Unknown Journal fields
 and unsupported schema/type are rejected before a potentially lossy import.
 Historical routes are independent JSONL files and LocalEntry excludes its
 in-memory locations. Receipt contents are also separate. Neither attachment type,

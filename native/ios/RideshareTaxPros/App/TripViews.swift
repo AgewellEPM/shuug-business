@@ -182,14 +182,13 @@ struct TripDetail: View {
       .sheet(isPresented: $editing) {
         if let entry { NavigationStack { TripEditor(existing: entry.record) } }
       }
-      .confirmationDialog(
-        "Delete this trip from your journal and sync that deletion to your firm?",
-        isPresented: $deleting, titleVisibility: .visible
-      ) {
-        Button("Delete trip", role: .destructive) {
+      .brandedDialog("Delete this trip?", isPresented: $deleting,
+        message: "This deletes the trip from your journal and syncs that deletion to your firm.",
+        icon: "trash.fill", accent: Brand.danger) {
+        [BrandedDialogAction("Delete trip", role: .destructive) {
           model.remove(id)
           dismiss()
-        }
+        }]
       }
   }
 }
@@ -197,6 +196,7 @@ struct TripEditor: View {
   @EnvironmentObject private var model: DriverModel
   @Environment(\.dismiss) private var dismiss
   var existing: DriverRecord?
+  var workType: UniversalGigWorkType?
   @State private var started = Date()
   @State private var ended = Date()
   @State private var miles = ""
@@ -216,7 +216,7 @@ struct TripEditor: View {
   }
   var body: some View {
     Form {
-      Section("Trip") {
+      Section(workType == nil ? "Trip" : "Completed job") {
         DatePicker("Start", selection: $started).environment(\.timeZone, tripTimeZone)
         DatePicker("End", selection: $ended).environment(\.timeZone, tripTimeZone)
         TextField("Miles", text: $miles).keyboardType(.decimalPad).focused($typing)
@@ -225,6 +225,10 @@ struct TripEditor: View {
         }.pickerStyle(.navigationLink).accessibilityIdentifier("trip.classification")
         TextField("Purpose", text: $purpose).focused($typing)
         TextField("Notes", text: $notes, axis: .vertical).focused($typing)
+        if workType == .shopping {
+          Text("Use the actual job start and end times. Enter 0 driving miles for in-store work without driving. This entry does not start GPS tracking.")
+            .font(.footnote).foregroundStyle(Brand.muted)
+        }
       }.listRowBackground(Brand.surface)
       Section("Ride earnings · optional") {
         Picker("Drive type", selection: $role) {
@@ -248,7 +252,7 @@ struct TripEditor: View {
         ).font(.footnote)
       }
       if let validation { Section { Text(validation).foregroundStyle(.red) } }
-    }.driverScreen().navigationTitle(existing == nil ? "Manual trip" : "Edit trip").toolbar {
+    }.driverScreen().navigationTitle(existing == nil ? (workType == .shopping ? "Log shopping job" : workType == .delivery ? "Log delivery job" : "Manual trip") : "Edit trip").toolbar {
       ToolbarItem(placement: .cancellationAction) { Button("Cancel") { dismiss() } }
       ToolbarItem(placement: .confirmationAction) { Button("Save", action: save) }
       ToolbarItem(placement: .keyboard) { Button("Done") { typing = false }.accessibilityIdentifier("entry.dismissKeyboard") }
@@ -263,6 +267,13 @@ struct TripEditor: View {
         fare = t.earningsCents.map { String(format: "%.2f", Double($0)/100) } ?? ""
         fees = t.platformFeesCents.map { String(format: "%.2f", Double($0)/100) } ?? ""
         platform = t.platform ?? ""; workArea = t.workArea ?? ""; role = t.rideRole ?? .other
+      } else if let workType {
+        let profile = (model.journal.universalGigSettings ?? .init()).profile(for: workType)
+        classification = .business
+        platform = profile.workLabel
+        purpose = profile.workLabel + (workType == .shopping ? " shopping job" : " delivery job")
+        role = workType == .shopping ? .shopping : .delivery
+        if workType == .shopping { miles = "0" }
       }
     }
   }

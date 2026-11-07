@@ -32,6 +32,7 @@ import Foundation
     try blocked("bank token exchange stopped before transport", path: "banks", input: ["action": "exchange", "publicToken": "synthetic"])
     try blocked("bank provider sync stopped before transport", path: "banks", input: ["action": "sync", "itemId": "synthetic"])
     try blocked("referral payout mutation stopped before transport", path: "referrals", input: ["action": "redeem"])
+    try blocked("merged Tax and Goals coach message or intake stopped before transport", path: "coach", input: ["action": "message", "text": "synthetic private context"])
     try blocked("unknown future mutation fails closed", path: "future-feature")
     try blocked("disconnect cannot smuggle sensitive extra fields", path: "banks", input: ["action": "disconnect", "itemId": "synthetic", "publicToken": "forbidden"])
     for (action, field) in [("disconnect", "itemId"), ("cancel", "sessionId")] {

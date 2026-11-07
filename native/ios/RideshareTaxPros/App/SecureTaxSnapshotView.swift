@@ -69,6 +69,10 @@ struct SecureTaxSnapshotView: View {
           LabeledContent("Records", value: String(preview.journal.entries.count))
           LabeledContent("Offers / decisions / work", value: "\(preview.journal.gigOffers?.count ?? 0) / \(preview.journal.gigDecisions?.count ?? 0) / \(preview.journal.gigCommitments?.count ?? 0)")
           LabeledContent("Bank review rows", value: String(preview.journal.bankTransactions?.count ?? 0))
+          LabeledContent("Coach history / pending", value: "\(preview.journal.coachMessages?.count ?? 0) / \(preview.journal.coachOutbox?.count ?? 0)")
+          if let settings = preview.journal.universalGigSettings {
+            LabeledContent("Delivery / shopping", value: settings.delivery.workLabel + " / " + settings.shopping.workLabel)
+          }
           if preview.journal.activeTripId != nil { Text("Source includes an interrupted or active drive. It will not be started on this device.").font(.footnote) }
           DisclosureGroup("Record preview") {
             ForEach(Array(preview.journal.visible.prefix(20))) { entry in

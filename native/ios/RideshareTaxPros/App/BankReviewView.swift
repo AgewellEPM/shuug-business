@@ -103,18 +103,20 @@ struct BankTransactionView: View {
           if row.amountCents > 0 { ExpenseEditor(bankTransaction: row) } else { IncomeEditor(bankTransaction: row) }
         } }
       }
-      .confirmationDialog("Link this bank transaction to the existing record?", isPresented: Binding(get: { match != nil }, set: { if !$0 { match = nil } })) {
-        Button("Confirm match") {
-          if var record = match, let row {
-            switch record.payload {
-            case .expense(var e): e.bankReference = row.reference; record.payload = .expense(e)
-            case .income(var i): i.bankReference = row.reference; record.payload = .income(i)
-            case .trip: break
-            }
-            _ = model.save(record)
+      .brandedDialog("Link this bank transaction?",
+        isPresented: Binding(get: { match != nil }, set: { if !$0 { match = nil } }),
+        message: "Confirm that this transaction belongs to the existing record. Its saved receipt is kept and another entry is not created.",
+        icon: "link", accent: Brand.route) {
+        guard let existing = match, let row else { return [] }
+        return [BrandedDialogAction("Confirm match") {
+          var record = existing
+          switch record.payload {
+          case .expense(var e): e.bankReference = row.reference; record.payload = .expense(e)
+          case .income(var i): i.bankReference = row.reference; record.payload = .income(i)
+          case .trip: break
           }
-          match = nil
-        }
+          _ = model.save(record)
+        }]
       }
   }
   private func update(_ change: (inout BankTransaction) -> Void) {

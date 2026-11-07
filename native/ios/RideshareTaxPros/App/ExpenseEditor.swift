@@ -161,12 +161,10 @@ struct ExpenseEditor: View {
         }
       }
     }
-    .confirmationDialog(
-      "A similar expense already exists for this merchant, date and amount. Check that this is a separate payment.",
-      isPresented: $duplicateConfirmation, titleVisibility: .visible
-    ) {
-      Button("Save another expense") { persist(allowDuplicate: true) }
-      Button("Cancel", role: .cancel) {}
+    .brandedDialog("Check this expense", isPresented: $duplicateConfirmation,
+      message: "A similar expense already exists for this merchant, date and amount. Check that this is a separate payment.",
+      icon: "doc.on.doc.fill", accent: Brand.expense) {
+      [BrandedDialogAction("Save another expense") { persist(allowDuplicate: true) }]
     }
     .onChange(of: photo) { _, item in
       Task {

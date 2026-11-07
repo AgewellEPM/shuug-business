@@ -8,6 +8,7 @@ import signal
 import subprocess
 import tempfile
 import time
+from ios_app_fingerprint import app_fingerprint, verify_installed_app
 
 ROOT = Path(__file__).resolve().parent.parent
 DERIVED = Path(os.environ.get('RIDESHARE_IOS_TEST_DERIVED', '/private/tmp/rideshare-ios-simulator-build'))
@@ -24,11 +25,15 @@ flows.add_argument('--mission-only', action='store_true', help='Check the native
 flows.add_argument('--alerts-only', action='store_true', help='Check real system Start/End actions after terminating the app.')
 flows.add_argument('--dashboard-only', action='store_true', help='Check dashboard navigation, sample charts and ranked sample offers without saving sample records.')
 flows.add_argument('--capture-only', action='store_true', help='Check per-platform diagnostics and a chosen screenshot through the real photo picker and Vision.')
+flows.add_argument('--coach-only', action='store_true', help='Check saved-job chat, confirmed intake persistence and branded confirmation cancellation.')
+flows.add_argument('--foreground-only', action='store_true', help='Check the actual branded foreground alert without repeating saved-job entry.')
+flows.add_argument('--gig-apps-only', action='store_true', help='Check the swipeable gig-app row, configurable shopping work and branded foreground alert.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only)
-receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only)
-expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only)
+selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps'] if getattr(options, name + '_only')), None)
+driving = selected_flow in (None, 'driving')
+receipts = selected_flow in (None, 'receipts')
+expense_details = selected_flow in (None, 'expenses')
 insights = options.insights_only
 if options.driving_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-driving-verification-20261105.json')
@@ -46,6 +51,12 @@ elif options.dashboard_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-dashboard-verification-20261107.json')
 elif options.capture_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-capture-diagnostics-verification-20261107.json')
+elif options.coach_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-coach-popups-verification-20261107.json')
+elif options.foreground_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-foreground-verification-20261107.json')
+elif options.gig_apps_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-gig-apps-verification-20261107.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -103,6 +114,7 @@ try:
     signature = call('codesign', '-dv', str(app)).stderr
     assert 'Identifier='+BUNDLE in signature and 'linker-signed' not in signature, 'Use the normal locally signed Simulator build; an unsigned app cannot exercise Keychain correctly.'
     app_hash = hashlib.sha256((app/'RideshareTaxPros').read_bytes()).hexdigest()
+    _, bundle_hash = app_fingerprint(app)
     running = call('pgrep', '-fl', 'qemu-system|VirtualBoxVM|vmware-vmx|prl_vm_app|IsolatedTester.app/Contents/MacOS/IsolatedTester', check=False)
     assert running.returncode == 1, 'Existing VM/isolated process found; refusing another guest: ' + running.stdout
     assert not any(d['state'] in ('Booted', 'Booting', 'Shutting Down') for rows in devices().values() for d in rows), 'An existing Simulator session is active; refusing a duplicate.'
@@ -158,7 +170,10 @@ try:
         if options.alerts_only: selection += '/DriverFlows/test06ColdStartTripNotificationActions'
         if options.dashboard_only: selection += '/DriverFlows/test07ModernDashboardAndExistingTools'
         if options.capture_only: selection += '/DriverFlows/test10CaptureDiagnosticsKeepsPlatformsSeparate'
-        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only):
+        if options.coach_only: selection += '/DriverFlows/test12CoachUsesSavedJobsAndKeepsConfirmedIntake'
+        if options.foreground_only: selection += '/DriverFlows/test13ForegroundAlertUsesBrandedCard'
+        if options.gig_apps_only: selection += '/DriverFlows/test14GigAppsSwipeAndShoppingProfilePersists'
+        if selected_flow is None:
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
         if options.alerts_only: test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/test07ModernDashboardAndExistingTools']
@@ -172,6 +187,11 @@ try:
         if not insights: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test04InsightsAndBankImport']
         if not options.mission_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test05MissionAndOffer']
         if not options.alerts_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test06ColdStartTripNotificationActions']
+        if not options.coach_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test12CoachUsesSavedJobsAndKeepsConfirmedIntake']
+        if options.coach_only or options.gig_apps_only: test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/test13ForegroundAlertUsesBrandedCard']
+        elif options.foreground_only: pass
+        else: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test13ForegroundAlertUsesBrandedCard']
+        if not options.gig_apps_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test14GigAppsSwipeAndShoppingProfilePersists']
         test = subprocess.Popen(['xcodebuild', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 600
         last_fix = last_update = last_container_check = 0.0
@@ -212,8 +232,9 @@ try:
             time.sleep(1)
         assert test.returncode == 0, 'Native UI tests failed; inspect ' + str(ARTIFACTS/'ui-test.log')
     installed = Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'app').stdout.strip())
-    assert hashlib.sha256((installed/'RideshareTaxPros').read_bytes()).hexdigest() == app_hash, 'The exercised app differs from the compiled app.'
+    assert verify_installed_app(app, installed) == bundle_hash, 'The exercised bundle changed during verification.'
     report['appExecutableSHA256'] = app_hash
+    report['appBundleSHA256'] = bundle_hash
     container = Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip())
     journal_path = next(container.rglob('journal.json'), None)
     if not options.dashboard_only:
@@ -223,6 +244,30 @@ try:
     trips = [r for r in records if r['kind']=='trip']
     expenses = [r for r in records if r['kind']=='expense']
     verified_tests = []
+    if options.gig_apps_only:
+        assert len(trips) == 1 and not expenses, 'Only the explicitly entered shopping job should be recorded.'
+        job = trips[0]['body']
+        assert job['rideRole'] == 'shopping' and job['distanceMeters'] == 0 and job['earningsCents'] == 1800 and job['platformFeesCents'] == 200
+        assert job['platform'] == 'Local shopper' and job['source'] == 'manual' and not journal.get('activeTripId')
+        assert journal['universalGigSettings']['shopping'] == {'workLabel': 'Local shopper', 'appURL': 'https://www.instacart.com/shopper'}
+        verified_tests += ['horizontal gig-app row reaches universal delivery and in-store shopping configuration', 'custom shopping profile and public app link persist across app relaunch', 'explicit shopping job records zero driving miles and actual entered earnings/fees without starting GPS', 'branded foreground trip notification displays after permission grant and dismisses on the same page']
+        report['scope'] = 'Native iPhone Simulator gig-app row and configurable in-store work; third-party app launching requires a physical iPhone'
+        report['thirdPartyAppLaunchVerified'] = False
+    if options.foreground_only:
+        assert not records, 'Displaying and dismissing a foreground notice must not create financial records.'
+        assert len(journal.get('driverAlerts', [])) == 1, 'The actual trip prompt was not persisted.'
+        verified_tests += ['actual foreground trip notification displays the branded in-app card', 'notice dismisses without navigating or creating financial records']
+        report['scope'] = 'Native iPhone Simulator foreground notification after first permission grant'
+    if options.coach_only:
+        assert len(trips) == 2 and not expenses, 'Coach or canceled deletion changed the saved financial records.'
+        messages = journal.get('coachMessages', [])
+        assert len(messages) == 4 and len(journal.get('coachOutbox', [])) == 2, 'Offline chat did not preserve both questions and local replies.'
+        assert any(row['role'] == 'assistant' and 'Coach loss job' in row['text'] and '3.00' in row['text'] for row in messages)
+        assert any(row['role'] == 'assistant' and 'Coach best job' in row['text'] and '12.00' in row['text'] for row in messages)
+        assert journal['coachIntake'] == {'taxYear': 2026, 'jurisdiction': 'New York', 'businessType': 'unsure'}
+        assert journal.get('coachIntakeMutationId'), 'Explicit tax details should remain queued until a workspace acknowledges them.'
+        verified_tests += ['actual native manual jobs and vehicle-cost form feed chat', 'loss and highest-net answers reference saved jobs', 'questions and local answers survive app relaunch', 'confirmed tax context survives app relaunch and remains queued offline', 'branded deletion dialog displays and cancellation preserves the trip', 'actual foreground notification displays branded in-app card and dismisses without navigating']
+        report['scope'] = 'Native iPhone Simulator saved-job chat and branded app dialogs; synthetic records, offline account'
     if driving:
         assert len(trips)==1 and trips[0]['body'].get('endedAt') and trips[0]['body']['distanceMeters']>50 and not journal.get('activeTripId'), 'The app did not persist the completed simulated drive.'
         assert any(r['body']['merchant']=='Native UI fuel' and r['body']['amountCents']==1735 for r in expenses), 'The actual expense entry/relaunch path failed.'

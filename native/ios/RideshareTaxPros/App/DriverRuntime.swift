@@ -14,7 +14,10 @@ import UIKit
     notifications.attach(model, tracker: location)
     assistant.attach(model, tracker: location, notifications: notifications)
     notifications.onDriveAction = { [weak self] in self?.assistant.didHandleDriveAlert() }
-    connections = model.$connection.dropFirst().sink { _ in OfferCaptureStore.deactivate() }
+    connections = model.$connection.dropFirst().sink { [weak self] _ in
+      OfferCaptureStore.deactivate()
+      self?.notifications.foregroundNotice = nil
+    }
   }
 }
 

@@ -234,6 +234,31 @@ final class WorkspaceClient {
     guard try TaxUploadFile(name: document.name, bytes: data).mime == document.mime else { throw WorkspaceError.message("The document contents do not match their saved format.") }
     return data
   }
+  func coach(from: String, through: String) async throws -> CoachState {
+    let (data, _) = try await send("coach", query: [URLQueryItem(name: "from", value: from), URLQueryItem(name: "through", value: through)])
+    return try WireJSON.decoder().decode(CoachState.self, from: data)
+  }
+  func coachMessage(_ message: CoachPendingMessage) async throws -> CoachState {
+    struct Input: Encodable {
+      let action = "message"
+      let mutationId: UUID, messageId: UUID, text: String, from: String, through: String
+      let preferences: CoachPreferences
+    }
+    let input = Input(mutationId: message.id, messageId: message.id, text: message.text,
+      from: message.from, through: message.through, preferences: message.preferences)
+    let (data, _) = try await send("coach", method: "POST", body: WireJSON.encoder().encode(input))
+    return try WireJSON.decoder().decode(CoachState.self, from: data)
+  }
+  func coachIntake(_ intake: CoachIntake, mutationId: UUID) async throws -> CoachState {
+    struct Input: Encodable {
+      let action = "intake"
+      let mutationId: UUID
+      let answers: CoachIntake
+      let confirmed = true
+    }
+    let (data, _) = try await send("coach", method: "POST", body: WireJSON.encoder().encode(Input(mutationId: mutationId, answers: intake)))
+    return try WireJSON.decoder().decode(CoachState.self, from: data)
+  }
   static func discover() async throws -> URL? {
     let client = WorkspaceClient(origin: websiteURL)
     var request = URLRequest(url: discoveryURL)

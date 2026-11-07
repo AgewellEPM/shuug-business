@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T06:42:37.571Z",
+  "scope": "Compiled authenticated coach endpoint -> installed local real Peel symbolic worker -> persisted shared reply",
+  "buildId": "Hu8paYxeBx3V7F1u5pTiW",
+  "helperPid": 68936,
+  "diagnosticServerStopped": true,
+  "checks": [
+    "real bearer-authenticated compiled coach POST",
+    "actual installed Peel arithmetic matched recorded totals",
+    "positive and negative jobs retained",
+    "two priced and one unpriced job disclosed",
+    "numeric facts only sent to the worker",
+    "Peel verification stays attached to the persisted cookie-visible reply",
+    "connected question retry is idempotent",
+    "foreign account history stays empty"
+  ],
+  "observed": {
+    "engine": "record-rules \u00b7 Peel-verified arithmetic",
+    "peelAvailable": true,
+    "pricedCount": 2,
+    "unpricedCount": 1,
+    "estimatedNetCents": 900,
+    "bestJobNetCents": 1200,
+    "lossJobNetCents": -300
+  },
+  "realClientDataUsed": false,
+  "externalModelCalls": 0,
+  "credentialsIncluded": false,
+  "existingWorkspaceServerTouched": false,
+  "persistentWorkerStopped": false
+}

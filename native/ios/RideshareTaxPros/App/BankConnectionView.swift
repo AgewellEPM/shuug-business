@@ -56,11 +56,13 @@ struct BankConnectionView: View {
           linkAttempt = UUID(); link = nil; busy = false
         }
       }
-      .confirmationDialog("Disconnect this bank and stop future access? Saved records remain.", isPresented: Binding(get: { disconnecting != nil }, set: { if !$0 { disconnecting = nil } })) {
-        Button("Disconnect bank", role: .destructive) {
-          if let item = disconnecting { Task { await disconnect(item) } }
-          disconnecting = nil
-        }
+      .brandedDialog("Disconnect this bank?",
+        isPresented: Binding(get: { disconnecting != nil }, set: { if !$0 { disconnecting = nil } }),
+        message: "Disconnecting stops future access. Saved records remain.", icon: "building.columns.fill", accent: Brand.danger) {
+        guard let item = disconnecting else { return [] }
+        return [BrandedDialogAction("Disconnect bank", role: .destructive) {
+          Task { await disconnect(item) }
+        }]
       }
   }
   @MainActor private func openLink(itemId: String? = nil) async {

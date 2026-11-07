@@ -4,13 +4,36 @@ import DriverCore
 import UIKit
 import UserNotifications
 
+struct ForegroundDriverNotice: Identifiable, Sendable {
+  let id: String
+  let title: String
+  let body: String
+  let category: String
+  let alertID: UUID?
+  let offerID: UUID?
+  let scope: String?
+}
+
 @MainActor final class DriverNotifications: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
   @Published private(set) var status = "Enable notifications to answer trip alerts."
+  @Published var foregroundNotice: ForegroundDriverNotice?
+  @Published private(set) var foregroundHostID: UUID?
+  private var foregroundHosts: [UUID] = []
   private weak var model: DriverModel?
   private weak var tracker: LocationTracker?
   private let center = UNUserNotificationCenter.current()
   private var posted = Set<UUID>()
   var onDriveAction: (() -> Void)?
+
+  func activateForegroundHost(_ id: UUID) {
+    foregroundHosts.removeAll { $0 == id }
+    foregroundHosts.append(id)
+    foregroundHostID = id
+  }
+  func deactivateForegroundHost(_ id: UUID) {
+    foregroundHosts.removeAll { $0 == id }
+    foregroundHostID = foregroundHosts.last
+  }
 
   func attach(_ model: DriverModel, tracker: LocationTracker) {
     self.model = model; self.tracker = tracker
@@ -91,6 +114,10 @@ import UserNotifications
     Task {
       do {
         try await center.add(UNNotificationRequest(identifier: alert.id.uuidString, content: content, trigger: nil))
+        if self.model?.journalScope == scope {
+          foregroundNotice = ForegroundDriverNotice(id: alert.id.uuidString, title: title, body: body,
+            category: kind.rawValue, alertID: alert.id, offerID: nil, scope: scope)
+        }
         status = "Trip and expense alerts are ready. Expand an alert to answer."
       } catch { posted.remove(alert.id); status = "This alert could not be delivered. Open the app to check notification access." }
     }
@@ -109,6 +136,7 @@ import UserNotifications
     let result = try next.applyDriverAlert(id, action: action, scope: scope, text: text)
     if result == .alreadyHandled { return result }
     guard model.commit({ $0 = next }) else { throw DriverAlertError.unavailable }
+    if foregroundNotice?.alertID == id { foregroundNotice = nil }
     center.removeDeliveredNotifications(withIdentifiers: [id.uuidString])
     switch result {
     case .started:
@@ -138,6 +166,7 @@ import UserNotifications
   private func sendStatus(_ title: String, _ body: String) {
     let content = UNMutableNotificationContent(); content.title = title; content.body = body
     content.categoryIdentifier = "gig.status"; content.threadIdentifier = "gig-tax-pros"
+    if let model { content.userInfo = ["scope": model.journalScope] }
     Task { try? await center.add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) }
   }
   func confirmObservedOffer(_ id: UUID, sessionId: UUID, scope: String) throws {
@@ -153,11 +182,28 @@ import UserNotifications
       var observations = journal.observedOffers ?? []; observations.removeAll { $0.id == id }; observations.append(observed)
       journal.observedOffers = Array(observations.suffix(100))
     }) else { throw DriverAlertError.unavailable }
+    if foregroundNotice?.offerID == id { foregroundNotice = nil }
     sendStatus("Comparison saved", "This is an offer estimate. No gig was accepted and no earnings were posted. Check the destination route before deciding.")
   }
   nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-    completionHandler([.banner, .list, .sound])
+    let content = notification.request.content
+    let notice = ForegroundDriverNotice(id: notification.request.identifier,
+      title: String(content.title.prefix(160)), body: String(content.body.prefix(600)),
+      category: content.categoryIdentifier,
+      alertID: (content.userInfo["driverAlert"] as? String).flatMap(UUID.init(uuidString:)),
+      offerID: (content.userInfo["observedOffer"] as? String).flatMap(UUID.init(uuidString:)),
+      scope: content.userInfo["scope"] as? String)
+    Task { @MainActor [weak self] in
+      guard let self else { completionHandler([.banner, .list, .sound]); return }
+      guard notice.scope == nil || notice.scope == self.model?.journalScope else { completionHandler([]); return }
+      // Permission sheets briefly make the app inactive while its page remains
+      // visible. Those notices still belong in the branded foreground surface.
+      if UIApplication.shared.applicationState != .background {
+        self.foregroundNotice = notice
+        completionHandler([.list, .sound])
+      } else { completionHandler([.banner, .list, .sound]) }
+    }
   }
   nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void) {

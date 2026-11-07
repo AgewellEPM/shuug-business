@@ -1,0 +1,726 @@
+{
+  "schemaVersion": 1,
+  "verifiedAt": "2026-11-07",
+  "storefront": "US",
+  "purpose": "Gig-job app launcher only; no offer capture, provider connection or endorsement implied",
+  "artworkPolicy": "Original Apple-hosted publisher icons saved unchanged; existing five original icons reused",
+  "apps": [
+    {
+      "id": "lyft-driver",
+      "name": "Lyft Driver",
+      "appName": "Lyft Driver",
+      "publisher": "Lyft, Inc.",
+      "bundleID": "com.lyft.ios.driver",
+      "appStoreID": 1203077485,
+      "appStoreURL": "https://apps.apple.com/us/app/lyft-driver/id1203077485",
+      "iconAsset": "PlatformLyftIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/51/ed/ff/51edff9a-a0e6-6066-a8ff-cad12258e27e/DriverRelease-0-0-1x_U007ephone-0-1-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformLyftIcon.imageset/icon.jpg",
+      "iconSHA256": "dda059764c3b51fcc63558401774e833a503c2d20d8440652ed2744a8080005a",
+      "appURL": null,
+      "universalLink": "https://www.lyft.com/driver-stats",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.lyft.ios.driver",
+        "matchedPath": "/driver-stats",
+        "association": {
+          "appID": "45SNFQQ3JX.com.lyft.ios.driver",
+          "paths": [
+            "/dd/*",
+            "/authchallenge/driver/*",
+            "/recover",
+            "/driver-stats",
+            "/driver_documents",
+            "/email-driver/verify",
+            "/driver/insurance/*/quote",
+            "/driver/setup-paypal/*",
+            "/hc/*/driver/*"
+          ]
+        },
+        "associationSHA256": "5e4ca4672f27cee872e89e9dcc77f67cca85689e9e59dcaaee4f134cfaa8e41c"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/lyft-driver/id1203077485",
+        "https://itunes.apple.com/lookup?id=1203077485&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/www.lyft.com"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "uber-driver",
+      "name": "Uber Driver",
+      "appName": "Uber - Driver: Drive & Deliver",
+      "publisher": "Uber Technologies, Inc.",
+      "bundleID": "com.ubercab.UberPartner",
+      "appStoreID": 1131342792,
+      "appStoreURL": "https://apps.apple.com/us/app/uber-driver-drive-deliver/id1131342792",
+      "iconAsset": "PlatformUberIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/14/25/97/14259773-9482-5ffe-3040-de0ccfdb53ac/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformUberIcon.imageset/icon.jpg",
+      "iconSHA256": "df322e2fc95f5926e9cf8d98e2608b3e1ca33266e512402c0a3404370959502d",
+      "appURL": "uberdriver://",
+      "universalLink": "https://drivers.uber.com/open-mobile-app/partner",
+      "openingSupport": "verified-scheme-and-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.ubercab.UberPartner",
+        "matchedPath": "/open-mobile-app/partner",
+        "association": {
+          "appID": "5F83KRY2FH.com.ubercab.UberPartner",
+          "paths": [
+            "/open-mobile-app/partner",
+            "/open-mobile-app",
+            "/apple-app-site-association",
+            "/drive-now",
+            "/beacon",
+            "/open-mobile-app/signin",
+            "/open-mobile-app/tap-to-pay/*"
+          ]
+        },
+        "associationSHA256": "f134b12dffcc413481b5858e600a1e9afeb7b46f68e7302330177044896e385a"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/uber-driver-drive-deliver/id1131342792",
+        "https://itunes.apple.com/lookup?id=1131342792&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/drivers.uber.com",
+        "https://help.uber.com/prs-AF/driving-and-delivering/article/preguntas-frecuentes-sobre-las-regulaciones-de-los-repartidores-en-bicicleta-de-la-ciudad-de-nueva%25C2%25A0york?nodeId=8112cc07-285a-47e2-8eed-da6129a67f5f"
+      ],
+      "actualDeviceLaunchVerified": false,
+      "schemeEvidence": {
+        "kind": "publisher-help-documentation",
+        "publishedExample": "uberdriver://account_documents",
+        "sourceURL": "https://help.uber.com/prs-AF/driving-and-delivering/article/preguntas-frecuentes-sobre-las-regulaciones-de-los-repartidores-en-bicicleta-de-la-ciudad-de-nueva%25C2%25A0york?nodeId=8112cc07-285a-47e2-8eed-da6129a67f5f",
+        "sourceRetrieval": "Official Uber Help text was returned by the web search index, crawled four days earlier. Direct page retrieval returned404; current installed scheme handling is not established. The independently retrieved publisher AASA supplies the universal-link alternative."
+      }
+    },
+    {
+      "id": "doordash-dasher",
+      "name": "Dasher",
+      "appName": "DoorDash - Dasher",
+      "publisher": "DoorDash, Inc.",
+      "bundleID": "com.doordash.dasher",
+      "appStoreID": 1451754591,
+      "appStoreURL": "https://apps.apple.com/us/app/doordash-dasher/id1451754591",
+      "iconAsset": "PlatformDoorDashIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/95/54/97/955497a1-1378-e059-3fa7-379028fb3dd9/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformDoorDashIcon.imageset/icon.jpg",
+      "iconSHA256": "185442359a466a0b91d48b3aa70dd40e09ce3f623e9d361bb798e35976d5800d",
+      "appURL": null,
+      "universalLink": "https://driver.doordash.com/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.doordash.dasher",
+        "matchedPath": "*",
+        "association": {
+          "appID": "W44ZWC57TC.com.doordash.dasher",
+          "paths": [
+            "*"
+          ]
+        },
+        "associationSHA256": "2754006ca7b54b1dff6d82f3044df6ed65fbeeeb1568561bc8aa74d345d0ad90"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/doordash-dasher/id1451754591",
+        "https://itunes.apple.com/lookup?id=1451754591&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/driver.doordash.com"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "spark-driver",
+      "name": "Spark Driver",
+      "appName": "Spark Driver",
+      "publisher": "Walmart",
+      "bundleID": "com.walmart.sparkdriver",
+      "appStoreID": 1483998235,
+      "appStoreURL": "https://apps.apple.com/us/app/spark-driver/id1483998235",
+      "iconAsset": "PlatformSparkIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/87/5d/ad/875dad92-4671-921f-bfc2-163244855e7b/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformSparkIcon.imageset/icon.jpg",
+      "iconSHA256": "8c73b0bc5e8463d1a6d7405ee859b912de66a02b19b570fc0bf03b851a96f784",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/spark-driver/id1483998235",
+        "https://itunes.apple.com/lookup?id=1483998235&country=us",
+        "https://www.sparkdriverapp.com/en_us",
+        "https://www.sparkdriverapp.com/en_us/navigationlink"
+      ],
+      "actualDeviceLaunchVerified": false,
+      "launchResearch": {
+        "status": "No usable verified general iOS launch URL located",
+        "checkedURLs": [
+          "https://www.sparkdriverapp.com/en_us",
+          "https://app-site-association.cdn-apple.com/a/v1/sparkdriverapp.com",
+          "https://app-site-association.cdn-apple.com/a/v1/www.sparkdriverapp.com",
+          "https://www.sparkdriverapp.com/en_us/navigationlink"
+        ],
+        "findings": "Published association content contains a trailing comma and fails strict JSON parsing. It names navigationlink paths, but malformed association content is not used as launch authority. The official download page points to the correct App Store app. The official navigationlink page sends iOS visitors without category directly to the App Store. Its category parameter forwards an arbitrary supplied URL; it does not document an actual Spark scheme. Neither official client JavaScript bundle publishes a general Spark URI."
+      }
+    },
+    {
+      "id": "instacart-shopper",
+      "name": "Instacart Shopper",
+      "appName": "Instacart Shopper: Earn money",
+      "publisher": "Maplebear Inc",
+      "bundleID": "com.instacart.shopper",
+      "appStoreID": 1454056744,
+      "appStoreURL": "https://apps.apple.com/us/app/instacart-shopper-earn-money/id1454056744",
+      "iconAsset": "PlatformInstacartIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/f1/e0/97/f1e0972f-cc97-e94e-e14c-330ca8ceac17/AppIcon.com.instacart.shopper-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformInstacartIcon.imageset/icon.jpg",
+      "iconSHA256": "f6fd0892e1ba3f40c5cb972bd43915b42906dbb4aa5b6f01edb22eb741228fad",
+      "appURL": null,
+      "universalLink": "https://instashopper.app.link/appdownload",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-download-link-and-app-site-association",
+        "matchedBundleID": "com.instacart.shopper",
+        "matchedPath": "*",
+        "association": {
+          "appIDs": [
+            "UJ49CFXMDQ.com.instacart.shopper"
+          ],
+          "components": [
+            {
+              "/": "*",
+              "?": {
+                "$web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '$web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "?": {
+                "%24web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '%24web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "/e/*",
+              "exclude": true,
+              "comment": "Matches any URL whose path is /e/* and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "comment": "Matches any URL whose path is * and instructs the system to open it as a Universal link"
+            },
+            {
+              "/": "/",
+              "comment": "Matches any URL whose path is / and instructs the system to open it as a Universal link"
+            }
+          ]
+        },
+        "associationSHA256": "b0205d2467e81f91e3d78080b1aeac631e1558f068a84638d159a17e4f3d732c"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/instacart-shopper-earn-money/id1454056744",
+        "https://itunes.apple.com/lookup?id=1454056744&country=us",
+        "https://shoppers.instacart.com/",
+        "https://shoppers.instacart.com/packs/applicants/js/shoppers-4cf0ed7ecec01b713677.chunk.js",
+        "https://app-site-association.cdn-apple.com/a/v1/instashopper.app.link"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "amazon-flex",
+      "name": "Amazon Flex",
+      "appName": "Amazon Flex",
+      "publisher": "AMZN Mobile LLC",
+      "bundleID": "com.amazon.flex.irabbit",
+      "appStoreID": 1454725763,
+      "appStoreURL": "https://apps.apple.com/us/app/amazon-flex/id1454725763",
+      "iconAsset": "GigAppAmazonFlexIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/13/a0/38/13a03823-5cb8-73a3-f791-1e404bd079b7/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppAmazonFlexIcon.imageset/icon.jpg",
+      "iconSHA256": "1ed3d2ec61254337194416e774a95abb77eeb4d403a8ccd9a4f3abfb5e48a49d",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/amazon-flex/id1454725763",
+        "https://itunes.apple.com/lookup?id=1454725763&country=us",
+        "https://flex.amazon.com/download-app"
+      ],
+      "actualDeviceLaunchVerified": false,
+      "launchResearch": {
+        "status": "No officially verified general iOS launch URL located",
+        "checkedURLs": [
+          "https://flex.amazon.com/download-app",
+          "https://flex.amazon.com/.well-known/apple-app-site-association",
+          "https://flex.amazon.com/apple-app-site-association",
+          "https://app-site-association.cdn-apple.com/a/v1/flex.amazon.com"
+        ],
+        "findings": "Official download HTML and four app-specific JavaScript bundles expose the correct iOS App Store destination but no custom iOS launch scheme or usable universal-link declaration. Browser execution, app installation and IPA inspection were not performed."
+      }
+    },
+    {
+      "id": "grubhub-driver",
+      "name": "Grubhub Driver",
+      "appName": "Grubhub for Drivers",
+      "publisher": "GrubHub Inc",
+      "bundleID": "com.grubhub.delivery",
+      "appStoreID": 1452071632,
+      "appStoreURL": "https://apps.apple.com/us/app/grubhub-for-drivers/id1452071632",
+      "iconAsset": "GigAppGrubhubDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/57/19/cb/5719cb3d-f0f4-a9e0-cb28-0345beca3513/AppIcon-0-0-1x_U007emarketing-0-6-0-sRGB-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppGrubhubDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "54b7feb3354df9488229eae380ff2a23c6f7037d482d00be0ca105b336d55dd0",
+      "appURL": null,
+      "universalLink": "https://driver.grubhub.com/launch/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.grubhub.delivery",
+        "matchedPath": "/launch/*",
+        "association": {
+          "appID": "R8P2F5WUB5.com.grubhub.delivery",
+          "paths": [
+            "/launch/*",
+            "/uni/*"
+          ]
+        },
+        "associationSHA256": "462b4868b0acca80c00135b2b42c3c3fb71219179f66e130c065c8bbc5b1b9c0"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/grubhub-for-drivers/id1452071632",
+        "https://itunes.apple.com/lookup?id=1452071632&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/driver.grubhub.com"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "roadie-driver",
+      "name": "Roadie Driver",
+      "appName": "Roadie Driver",
+      "publisher": "Roadie, Inc.",
+      "bundleID": "com.roadie.roadie-driver",
+      "appStoreID": 1436325695,
+      "appStoreURL": "https://apps.apple.com/us/app/roadie-driver/id1436325695",
+      "iconAsset": "GigAppRoadieDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/91/41/88/9141882d-fd3f-e404-d504-77abeebb344c/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppRoadieDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "ba87e201861ebab03288ca9af5b7418781c95c1db0d139141e08a1713550fe7c",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/roadie-driver/id1436325695",
+        "https://itunes.apple.com/lookup?id=1436325695&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "shipt-shopper",
+      "name": "Shipt Shopper",
+      "appName": "Drive and Shop with Shipt",
+      "publisher": "Shipt LLC",
+      "bundleID": "com.shipt.shopper",
+      "appStoreID": 976353472,
+      "appStoreURL": "https://apps.apple.com/us/app/drive-and-shop-with-shipt/id976353472",
+      "iconAsset": "GigAppShiptShopperIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1e/37/11/1e3711fd-24c2-fc80-a5a2-0ce29bd077a5/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppShiptShopperIcon.imageset/icon.jpg",
+      "iconSHA256": "b3612f0cad0b3b8ce321e7649caefdf1a3a06f29a998fb3fe8e14c2156ce4075",
+      "appURL": null,
+      "universalLink": "https://shiptshopper.app.link/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.shipt.shopper",
+        "matchedPath": "*",
+        "association": {
+          "appIDs": [
+            "K5347WZV83.com.shipt.shopper"
+          ],
+          "components": [
+            {
+              "/": "*",
+              "?": {
+                "$web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '$web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "?": {
+                "%24web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '%24web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "/e/*",
+              "exclude": true,
+              "comment": "Matches any URL whose path is /e/* and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "comment": "Matches any URL whose path is * and instructs the system to open it as a Universal link"
+            },
+            {
+              "/": "/",
+              "comment": "Matches any URL whose path is / and instructs the system to open it as a Universal link"
+            }
+          ]
+        },
+        "associationSHA256": "2a00efc926c995e6dd347e74952782ad045efe84af7b8733688f3df9bcb495d8"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/drive-and-shop-with-shipt/id976353472",
+        "https://itunes.apple.com/lookup?id=976353472&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/shiptshopper.app.link"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "gopuff-driver",
+      "name": "Gopuff Driver",
+      "appName": "Gopuff Driver",
+      "publisher": "GoPuff LLC",
+      "bundleID": "com.gopuff.godrive2.live",
+      "appStoreID": 1600718400,
+      "appStoreURL": "https://apps.apple.com/us/app/gopuff-driver/id1600718400",
+      "iconAsset": "GigAppGopuffDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bf/28/c6/bf28c6e9-1ee1-72ba-bf58-0dff1ac7840a/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppGopuffDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "8b5a8e5b5efc51a503a1c56f3c70aa7190b887854a83d55fa3acd72b81f7a473",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/gopuff-driver/id1600718400",
+        "https://itunes.apple.com/lookup?id=1600718400&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "taskrabbit-tasker",
+      "name": "Tasker",
+      "appName": "Tasker by Taskrabbit",
+      "publisher": "TaskRabbit Inc",
+      "bundleID": "com.taskrabbit.tasker",
+      "appStoreID": 1455415833,
+      "appStoreURL": "https://apps.apple.com/us/app/tasker-by-taskrabbit/id1455415833",
+      "iconAsset": "GigAppTaskrabbitTaskerIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/08/5c/59/085c590c-8528-97c7-734d-940a61fc2ef0/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppTaskrabbitTaskerIcon.imageset/icon.jpg",
+      "iconSHA256": "910794cf65dec3cf9dfb59db2ac1b114f3cd4b34273d4a7645f1d1586b0edb97",
+      "appURL": null,
+      "universalLink": "https://taskrabbit.com/tasker/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.taskrabbit.tasker",
+        "matchedPath": "/tasker/*",
+        "association": {
+          "appID": "65742EK7UT.com.taskrabbit.tasker",
+          "paths": [
+            "/tasker/*"
+          ]
+        },
+        "associationSHA256": "160e894a9661e5f76a19a1fd0557a00b6648f4288abe75c033b4630755ad4d88"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/tasker-by-taskrabbit/id1455415833",
+        "https://itunes.apple.com/lookup?id=1455415833&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/taskrabbit.com"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "rover",
+      "name": "Rover",
+      "appName": "Rover – Pet Sitters",
+      "publisher": "A Place for Rover, Inc.",
+      "bundleID": "com.rover.Rover-com",
+      "appStoreID": 547320928,
+      "appStoreURL": "https://apps.apple.com/us/app/rover-pet-sitters/id547320928",
+      "iconAsset": "GigAppRoverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/70/5f/56/705f56c6-800a-9353-daee-19b2931bea16/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppRoverIcon.imageset/icon.jpg",
+      "iconSHA256": "e31a930eef1fe0f2aa472a287e9e4da6f5cf026cb6a325917d7c65c5e263f69b",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/rover-pet-sitters/id547320928",
+        "https://itunes.apple.com/lookup?id=547320928&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "wag-caregiver",
+      "name": "Wag! Caregiver",
+      "appName": "Wag! Pet Caregiver",
+      "publisher": "Wag Labs, Inc",
+      "bundleID": "com.wagwalking.walker",
+      "appStoreID": 940738731,
+      "appStoreURL": "https://apps.apple.com/us/app/wag-pet-caregiver/id940738731",
+      "iconAsset": "GigAppWagCaregiverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/23/fa/d0/23fad00a-84bd-5624-9fff-63d6abc85d78/AppIcon-0-0-1x_U007ephone-0-1-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppWagCaregiverIcon.imageset/icon.jpg",
+      "iconSHA256": "7e362669fdbebbe9ca6adc85e88f134dac6a4971618f0f2ebe7b72eb00ef3890",
+      "appURL": null,
+      "universalLink": "https://wagwalker.app.link/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.wagwalking.walker",
+        "matchedPath": "*",
+        "association": {
+          "appIDs": [
+            "YU5J7XN7D7.com.wagwalking.walker"
+          ],
+          "components": [
+            {
+              "/": "*",
+              "?": {
+                "$web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '$web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "?": {
+                "%24web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '%24web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "/e/*",
+              "exclude": true,
+              "comment": "Matches any URL whose path is /e/* and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "comment": "Matches any URL whose path is * and instructs the system to open it as a Universal link"
+            },
+            {
+              "/": "/",
+              "comment": "Matches any URL whose path is / and instructs the system to open it as a Universal link"
+            }
+          ]
+        },
+        "associationSHA256": "e52306d6f0dddccfc8714cfbc709089d2618b881d61b27977aa77c9d33262901"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/wag-pet-caregiver/id940738731",
+        "https://itunes.apple.com/lookup?id=940738731&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/wagwalker.app.link"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "favor-runner",
+      "name": "Favor Runner",
+      "appName": "Favor Runner: Deliver & Earn",
+      "publisher": "NeighborFavor Inc.",
+      "bundleID": "com.favordelivery.runnerapp",
+      "appStoreID": 1295308505,
+      "appStoreURL": "https://apps.apple.com/us/app/favor-runner-deliver-earn/id1295308505",
+      "iconAsset": "GigAppFavorRunnerIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/de/08/76/de0876fd-3d4c-8758-bc3b-59fef15d915c/AppIcon-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppFavorRunnerIcon.imageset/icon.jpg",
+      "iconSHA256": "491aca170b6168726790ba3b92f7ea409916be5ffd22e5d4c713e03e0071d531",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/favor-runner-deliver-earn/id1295308505",
+        "https://itunes.apple.com/lookup?id=1295308505&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "curri-driver",
+      "name": "Curri Driver",
+      "appName": "Curri Driver",
+      "publisher": "Curri Inc.",
+      "bundleID": "com.Curri.Driver",
+      "appStoreID": 1480866255,
+      "appStoreURL": "https://apps.apple.com/us/app/curri-driver/id1480866255",
+      "iconAsset": "GigAppCurriDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/d9/a2/83/d9a2837b-9891-c373-d7e9-ca16bb197c31/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppCurriDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "ad477797646f513d6cdf637f672e0663df028c3cb1a7050975079506166c5270",
+      "appURL": null,
+      "universalLink": "https://curri.app.link/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.Curri.Driver",
+        "matchedPath": "*",
+        "association": {
+          "appIDs": [
+            "93V4WDB7JQ.com.Curri.Driver"
+          ],
+          "components": [
+            {
+              "/": "*",
+              "?": {
+                "$web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '$web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "?": {
+                "%24web_only": "true"
+              },
+              "exclude": true,
+              "comment": "Matches any URL whose path is * and which has a query item with name '%24web_only' and value 'true' and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "/e/*",
+              "exclude": true,
+              "comment": "Matches any URL whose path is /e/* and instructs the system NOT to open it as a Universal link"
+            },
+            {
+              "/": "*",
+              "comment": "Matches any URL whose path is * and instructs the system to open it as a Universal link"
+            },
+            {
+              "/": "/",
+              "comment": "Matches any URL whose path is / and instructs the system to open it as a Universal link"
+            }
+          ]
+        },
+        "associationSHA256": "e793be608ee1361147575706e854663d62f8c4f18eed0e011de26dd6c1f89d62"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/curri-driver/id1480866255",
+        "https://itunes.apple.com/lookup?id=1480866255&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/curri.app.link"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "goshare-driver",
+      "name": "GoShare Driver",
+      "appName": "GoShare: Drive, Deliver, Earn",
+      "publisher": "GoShare Inc.",
+      "bundleID": "com.driver.goShare",
+      "appStoreID": 978279500,
+      "appStoreURL": "https://apps.apple.com/us/app/goshare-drive-deliver-earn/id978279500",
+      "iconAsset": "GigAppGoShareDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/3d/50/4a/3d504ac1-09bf-5eaa-0b33-a58d1527fe0c/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppGoShareDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "ca37ce058241080398810810402e304e781be3673e648e8130afbcbc7fd5da90",
+      "appURL": null,
+      "universalLink": "https://goshare.co/app/n/",
+      "openingSupport": "publisher-declared-universal-link",
+      "launchEvidence": {
+        "kind": "publisher-app-site-association",
+        "matchedBundleID": "com.driver.goShare",
+        "matchedPath": "/app/n/*",
+        "association": {
+          "appID": "5YHBV84733.com.driver.goShare",
+          "paths": [
+            "/app/n/*"
+          ]
+        },
+        "associationSHA256": "1d32365c3e5ad8b12cfcd3b3543f33a0442cb5d96e232ca4397a453e60e26567"
+      },
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/goshare-drive-deliver-earn/id978279500",
+        "https://itunes.apple.com/lookup?id=978279500&country=us",
+        "https://app-site-association.cdn-apple.com/a/v1/goshare.co"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "veho-driver",
+      "name": "Veho Driver",
+      "appName": "Veho Driver",
+      "publisher": "Veho tech, Inc.",
+      "bundleID": "com.vehotechnologies.Driver",
+      "appStoreID": 1457078986,
+      "appStoreURL": "https://apps.apple.com/us/app/veho-driver/id1457078986",
+      "iconAsset": "GigAppVehoDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/32/e7/d5/32e7d52b-a06c-8fe8-d43e-fd8f0634f368/AppIcon-0-0-1x_U007ephone-0-1-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppVehoDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "7a12f77901e9a23b116272d23ad24a7ff8420c7e9efb74840187939e2c52f6a3",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/veho-driver/id1457078986",
+        "https://itunes.apple.com/lookup?id=1457078986&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "dispatch-driver",
+      "name": "Dispatch",
+      "appName": "Dispatch: Deliver More",
+      "publisher": "DispatchIt, Inc.",
+      "bundleID": "com.dispatchwithus.Dispatch",
+      "appStoreID": 1175097181,
+      "appStoreURL": "https://apps.apple.com/us/app/dispatch-deliver-more/id1175097181",
+      "iconAsset": "GigAppDispatchDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/25/c6/f6/25c6f6be-0552-0989-54c0-de333a5e8db1/AppIcon-0-0-1x_U007emarketing-0-11-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppDispatchDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "cca0eb99f34c7710a9d9e130484e9f32eab678161fc75551079f3c55df4af3a5",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/dispatch-deliver-more/id1175097181",
+        "https://itunes.apple.com/lookup?id=1175097181&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    },
+    {
+      "id": "skipcart-driver",
+      "name": "Skipcart",
+      "appName": "Skipcart Delivery Driver",
+      "publisher": "Skipcart Corporation",
+      "bundleID": "com.skipcart.prod",
+      "appStoreID": 1514854357,
+      "appStoreURL": "https://apps.apple.com/us/app/skipcart-delivery-driver/id1514854357",
+      "iconAsset": "GigAppSkipcartDriverIcon",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/c1/ce/0e/c1ce0e7e-bcac-4bcf-ee26-46b291fac08e/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "iconPath": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/GigAppSkipcartDriverIcon.imageset/icon.jpg",
+      "iconSHA256": "ea9656117fd22daaba6b0a8b29050b2cbac36aece1223a084e3c284a6c9f1a12",
+      "appURL": null,
+      "universalLink": null,
+      "openingSupport": "app-store-only",
+      "launchEvidence": null,
+      "officialSourceURLs": [
+        "https://apps.apple.com/us/app/skipcart-delivery-driver/id1514854357",
+        "https://itunes.apple.com/lookup?id=1514854357&country=us"
+      ],
+      "actualDeviceLaunchVerified": false
+    }
+  ],
+  "excluded": [
+    {
+      "name": "Point Pickup Driver",
+      "reason": "Original Point Pickup publisher listing was not returned by current US Apple search; unrelated Pickup apps are not substitutes",
+      "officialSourceURL": "https://itunes.apple.com/search?term=Point%20Pickup%20Driver&entity=software&country=us&limit=8"
+    }
+  ],
+  "limits": [
+    "Publisher universal-link declarations do not establish a successful launch on an actual device.",
+    "Apps without an officially verified launch URL use their actual App Store listing.",
+    "User must install and sign in through each provider; no provider app was installed during this work."
+  ]
+}

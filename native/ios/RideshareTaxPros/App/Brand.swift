@@ -11,6 +11,13 @@ enum Brand {
   static let link = color(0xE3A0FF)
   static let border = color(0x9053B7)
   static let panelTop = color(0x1D122C)
+  // Semantic accents keep money, routes and attention distinct on dark surfaces.
+  static let income = color(0x42F5B0)
+  static let positive = income
+  static let expense = color(0xFFC857)
+  static let route = color(0x36DFFD)
+  static let caution = color(0xFFE66D)
+  static let danger = color(0xFF5D87)
   static let action = LinearGradient(
     colors: [color(0x9129FF), color(0xF306E5)],
     startPoint: .leading, endPoint: .trailing)
@@ -37,7 +44,6 @@ enum Brand {
     return formatter.date(from: text) ?? Date()
   }
 }
-
 struct BrandHeader: View {
   var compact = false
   var body: some View {
@@ -77,29 +83,5 @@ struct BrandActionStyle: ButtonStyle {
       .opacity(enabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
       .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
       .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: configuration.isPressed)
-  }
-}
-
-private struct DriverScreen: ViewModifier {
-  var compactNavigation: Bool
-  func body(content: Content) -> some View {
-    Group {
-      if compactNavigation {
-        content.navigationBarTitleDisplayMode(.inline)
-          .contentMargins(.top, 8, for: .scrollContent)
-      } else {
-        content
-      }
-    }.scrollContentBackground(.hidden)
-      .background(Brand.background.ignoresSafeArea())
-      .toolbar(.visible, for: .navigationBar)
-      .toolbarBackground(Brand.background, for: .navigationBar, .tabBar)
-      .toolbarBackground(.visible, for: .navigationBar, .tabBar)
-      .toolbarColorScheme(.dark, for: .navigationBar, .tabBar)
-  }
-}
-extension View {
-  func driverScreen(compactNavigation: Bool = true) -> some View {
-    modifier(DriverScreen(compactNavigation: compactNavigation))
   }
 }

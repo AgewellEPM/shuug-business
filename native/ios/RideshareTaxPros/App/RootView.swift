@@ -6,6 +6,7 @@ enum DriverTab: Hashable { case home, offers, goHome, position, earnings }
 enum DriverTool: String, Identifiable {
   case trips = "Trips", money = "Money", account = "Account", alerts = "Alerts & reminders"
   case diagnostics = "Offer Capture Diagnostics"
+  case coach = "Tax & Goals"
   var id: String { rawValue }
 }
 struct RootView: View {
@@ -34,6 +35,7 @@ struct RootView: View {
             case .account: ConnectionView()
             case .alerts: DriverAlertsView()
             case .diagnostics: OfferCaptureDiagnosticsView()
+            case .coach: TaxCoachView()
             }
           }.toolbar { ToolbarItem(placement: .topBarTrailing) {
             Button("Done") { tool = nil }.accessibilityIdentifier("tools.close")
@@ -50,14 +52,6 @@ struct RootView: View {
         }
       }
       .onChange(of: model.journalScope) { _, _ in model.requestedOffer = nil }
-      .alert(
-        "Gig Tax Pros",
-        isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
-      ) {
-        Button("OK") { model.message = nil }
-      } message: {
-        Text(model.message ?? "")
-      }
   }
 }
 struct RecordStatus: View {
@@ -71,7 +65,7 @@ struct RecordStatus: View {
         ? "exclamationmark.triangle"
         : entry.pendingMutationId != nil ? "iphone" : "checkmark.icloud"
     )
-    .font(.caption).foregroundStyle(entry.conflict != nil ? .orange : .secondary)
+    .font(.caption).foregroundStyle(entry.conflict != nil ? Brand.danger : entry.pendingMutationId != nil ? Brand.caution : Brand.positive)
   }
 }
 struct TodayView: View {
@@ -122,10 +116,14 @@ struct TodayView: View {
               Button("Account", systemImage: "person.crop.circle") { showTool(.account) }
               Button("Alerts & reminders", systemImage: "bell") { showTool(.alerts) }
               Button("Offer Capture Diagnostics", systemImage: "waveform.path.ecg") { showTool(.diagnostics) }
+              Button("Tax & Goals chat", systemImage: "bubble.left.and.text.bubble.right.fill") { showTool(.coach) }
               Button("Explore a sample shift", systemImage: "sparkles") { showingSample = true }
             } label: { Image(systemName: "line.3.horizontal").font(.title3).frame(width: 28, height: 44) }
               .accessibilityIdentifier("dashboard.menu").accessibilityLabel("More tools")
             BrandHeader(compact: true).frame(maxWidth: .infinity, alignment: .leading)
+            Button { showTool(.coach) } label: {
+              Image(systemName: "bubble.left.and.text.bubble.right.fill").font(.title3).foregroundStyle(Brand.route).frame(width: 30, height: 44)
+            }.accessibilityLabel("Tax & Goals chat").accessibilityIdentifier("dashboard.coach")
             Button { showTool(.alerts) } label: {
               Image(systemName: (model.journal.driverAlerts ?? []).contains(where: { $0.handledAt == nil && $0.expiresAt > Date() }) ? "bell.badge" : "bell")
                 .font(.title3).frame(width: 30, height: 44)
@@ -135,15 +133,15 @@ struct TodayView: View {
             .font(.system(size: 12, weight: .medium)).foregroundStyle(Brand.muted)
         }
         HStack(spacing: 10) {
-          DashboardQuickAction(title: "Trips", icon: "car.fill") { showTool(.trips) }
+          DashboardQuickAction(title: "Trips", icon: "car.fill", tint: Brand.route) { showTool(.trips) }
             .accessibilityIdentifier("quick.trips")
-          DashboardQuickAction(title: "Expense", icon: "receipt.fill") { addingExpense = true }
+          DashboardQuickAction(title: "Expense", icon: "receipt.fill", tint: Brand.expense) { addingExpense = true }
             .accessibilityLabel("Quick add expense").accessibilityIdentifier("quick.expense")
-          DashboardQuickAction(title: "Income", icon: "dollarsign.circle.fill") { addingIncome = true }
+          DashboardQuickAction(title: "Income", icon: "dollarsign.circle.fill", tint: Brand.income) { addingIncome = true }
             .accessibilityLabel("Quick add income").accessibilityIdentifier("quick.income")
           DashboardQuickAction(title: "Alerts", icon: "bell.fill", count: (model.journal.driverAlerts ?? []).filter {
             $0.scope == model.journalScope && $0.handledAt == nil && $0.expiresAt > Date()
-          }.count) { showTool(.alerts) }
+          }.count, tint: Brand.caution) { showTool(.alerts) }
             .accessibilityIdentifier("quick.alerts")
         }
         ShiftDashboardCard()
@@ -196,9 +194,9 @@ struct TodayView: View {
           if model.syncing { ProgressView() }
         }.foregroundStyle(.secondary)
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 145))], spacing: 12) {
-          metric("Business miles today", Brand.miles(businessMeters), "car")
-          metric("Expenses today", Brand.usd(expenses), "receipt")
-          metric("Income today", Brand.usd(income), "dollarsign.circle")
+          metric("Business miles today", Brand.miles(businessMeters), "car", Brand.route)
+          metric("Expenses today", Brand.usd(expenses), "receipt", Brand.expense)
+          metric("Income today", Brand.usd(income), "dollarsign.circle", income < 0 ? Brand.danger : Brand.income)
         }
         if !(model.journal.placePrompts ?? []).filter({ !$0.dismissed }).isEmpty {
           StopPromptsView()
@@ -253,10 +251,10 @@ struct TodayView: View {
         if case .failure(let error) = result { model.message = error.localizedDescription }
       }
   }
-  private func metric(_ title: String, _ value: String, _ icon: String) -> some View {
+  private func metric(_ title: String, _ value: String, _ icon: String, _ tint: Color) -> some View {
     VStack(alignment: .leading, spacing: 8) {
-      Label(title, systemImage: icon).font(.caption).foregroundStyle(Brand.muted)
-      Text(value).font(.title2.bold()).minimumScaleFactor(0.6).lineLimit(1)
+      Label { Text(title).foregroundStyle(Brand.muted) } icon: { Image(systemName: icon).foregroundStyle(tint) }.font(.caption)
+      Text(value).font(.title2.bold()).foregroundStyle(tint).minimumScaleFactor(0.6).lineLimit(1)
     }.padding().frame(maxWidth: .infinity, alignment: .leading).background(
       Brand.panel, in: RoundedRectangle(cornerRadius: 16)
     )

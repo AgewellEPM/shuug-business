@@ -163,14 +163,13 @@ struct MoneyDetail: View {
         }
       }
       .sheet(item: $receipt) { item in NavigationStack { ReceiptPreview(id: item.id) } }
-      .confirmationDialog(
-        "Delete this record from your journal and sync that deletion to your firm?",
-        isPresented: $deleting, titleVisibility: .visible
-      ) {
-        Button("Delete record", role: .destructive) {
+      .brandedDialog("Delete this record?", isPresented: $deleting,
+        message: "This deletes the record from your journal and syncs that deletion to your firm.",
+        icon: "trash.fill", accent: Brand.danger) {
+        [BrandedDialogAction("Delete record", role: .destructive) {
           model.remove(id)
           dismiss()
-        }
+        }]
       }
   }
 }
@@ -282,9 +281,11 @@ struct ReceiptPreview: View {
           }.disabled(resending)
         }
       }
-      .alert("Receipt sent", isPresented: $resent) {
-        Button("OK", role: .cancel) {}
-      } message: { Text("Your firm received the same receipt again.") }
+      .brandedDialog("Receipt sent", isPresented: $resent,
+        message: "Your firm received the same receipt again.", icon: "checkmark.seal.fill",
+        accent: Brand.income, cancelTitle: nil, allowsBackdropDismiss: false) {
+        [BrandedDialogAction("OK", role: .cancel)]
+      }
       .task {
         do {
           let url = try await model.receiptURL(id)

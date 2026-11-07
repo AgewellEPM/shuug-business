@@ -2,6 +2,7 @@ import Foundation
 
 public enum GuestTransferError: LocalizedError {
   case duplicateBankTransaction, missingReceipt, incompatibleReceipt, conflictingReceipt
+  case coachOutboxCapacity
   public var errorDescription: String? {
     switch self {
     case .duplicateBankTransaction:
@@ -12,6 +13,8 @@ public enum GuestTransferError: LocalizedError {
       return "A receipt identifier is already used for a different format in this account. Keep the offline journal and contact the firm before copying."
     case .conflictingReceipt:
       return "A receipt with this identifier has different contents in this account. Both copies were kept; contact the firm before copying."
+    case .coachOutboxCapacity:
+      return "These journals have more than 50 coach questions waiting to share. Sync saved questions before copying coach history again. Both journals were kept unchanged."
     }
   }
 }
@@ -34,10 +37,11 @@ public struct GuestTransferPlan {
     for id in newRecordIDs { try destination.copyRoute(id, from: source) }
   }
 
-  public static func prepare(source: Journal, destination: Journal) throws -> Self {
+  public static func prepare(source: Journal, destination: Journal, includeRecords: Bool = true,
+                             includeCoach: Bool = false) throws -> Self {
     var result = destination
     let existingIDs = Set(destination.entries.map(\.id))
-    let additions = source.entries.filter { !$0.record.deleted && !existingIDs.contains($0.id) }
+    let additions = includeRecords ? source.entries.filter { !$0.record.deleted && !existingIDs.contains($0.id) } : []
     var bankOwners: [String: UUID] = [:]
     for entry in destination.entries where !entry.record.deleted {
       if let bank = entry.record.bankReference { bankOwners[bank.transactionId] = entry.id }
@@ -58,21 +62,47 @@ public struct GuestTransferPlan {
       if let original, let existing, original.mime != existing.mime { throw GuestTransferError.incompatibleReceipt }
       if existing == nil, let original { result.receipts.append(LocalReceipt(id: id, mime: original.mime)) }
     }
-    result.goals = result.goals ?? source.goals
-    result.assistance = result.assistance ?? source.assistance
-    result.mission = result.mission ?? source.mission
-    result.reserveSettings = result.reserveSettings ?? source.reserveSettings
-    result.missionOffers = result.missionOffers ?? source.missionOffers
+    if includeRecords {
+      result.goals = result.goals ?? source.goals
+    result.universalGigSettings = result.universalGigSettings ?? source.universalGigSettings
+      result.assistance = result.assistance ?? source.assistance
+      result.mission = result.mission ?? source.mission
+      result.reserveSettings = result.reserveSettings ?? source.reserveSettings
+      result.missionOffers = result.missionOffers ?? source.missionOffers
 
-    let accountBankIDs = Set((result.bankTransactions ?? []).map(\.id))
-    let newBankRows = (source.bankTransactions ?? []).filter { !accountBankIDs.contains($0.id) }
-    if !newBankRows.isEmpty { result.bankTransactions = (result.bankTransactions ?? []) + newBankRows }
-    let promptIDs = Set((result.placePrompts ?? []).map(\.id))
-    let newPrompts = (source.placePrompts ?? []).filter { !promptIDs.contains($0.id) }
-    if !newPrompts.isEmpty { result.placePrompts = Array(((result.placePrompts ?? []) + newPrompts).prefix(100)) }
-    let waitIDs = Set((result.pickupWaits ?? []).map(\.id))
-    let newWaits = (source.pickupWaits ?? []).filter { !waitIDs.contains($0.id) }
-    if !newWaits.isEmpty { result.pickupWaits = Array(((result.pickupWaits ?? []) + newWaits).prefix(500)) }
+      let accountBankIDs = Set((result.bankTransactions ?? []).map(\.id))
+      let newBankRows = (source.bankTransactions ?? []).filter { !accountBankIDs.contains($0.id) }
+      if !newBankRows.isEmpty { result.bankTransactions = (result.bankTransactions ?? []) + newBankRows }
+      let promptIDs = Set((result.placePrompts ?? []).map(\.id))
+      let newPrompts = (source.placePrompts ?? []).filter { !promptIDs.contains($0.id) }
+      if !newPrompts.isEmpty { result.placePrompts = Array(((result.placePrompts ?? []) + newPrompts).prefix(100)) }
+      let waitIDs = Set((result.pickupWaits ?? []).map(\.id))
+      let newWaits = (source.pickupWaits ?? []).filter { !waitIDs.contains($0.id) }
+      if !newWaits.isEmpty { result.pickupWaits = Array(((result.pickupWaits ?? []) + newWaits).prefix(500)) }
+    }
+    if includeCoach {
+      var messages = destination.coachMessages ?? []
+      var messageIDs = Set(messages.map(\.id))
+      for message in source.coachMessages ?? [] where messageIDs.insert(message.id).inserted {
+        messages.append(message)
+      }
+      var outbox = destination.coachOutbox ?? []
+      var pendingIDs = Set(outbox.map(\.id))
+      for pending in source.coachOutbox ?? [] where pendingIDs.insert(pending.id).inserted {
+        // Historical user messages also exist before sync. Their presence cannot
+        // establish acknowledgement; preserve pending IDs for an idempotent retry.
+        outbox.append(pending)
+      }
+      guard outbox.count <= 50 else { throw GuestTransferError.coachOutboxCapacity }
+      if !messages.isEmpty { result.coachMessages = messages }
+      if !outbox.isEmpty { result.coachOutbox = outbox }
+      if result.coachIntake == nil, let intake = source.coachIntake {
+        result.coachIntake = intake
+        result.coachIntakeMutationId = UUID()
+      }
+      // Milestones and engine receipts describe another record/account scope.
+      // Keep the destination values until its own analysis or sync recomputes them.
+    }
     return Self(journal: result, newRecordIDs: additions.map(\.id), requiredReceiptIDs: requiredReceiptIDs)
   }
 }
