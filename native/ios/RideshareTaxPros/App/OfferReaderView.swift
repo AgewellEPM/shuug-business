@@ -4,6 +4,7 @@ import ReplayKit
 import SwiftUI
 
 struct OfferReaderView: View {
+  var startingPlatform: GigPlatform? = nil
   @EnvironmentObject private var model: DriverModel
   @State private var platform: GigPlatform = .doorDash
   @State private var fees = ""
@@ -20,6 +21,7 @@ struct OfferReaderView: View {
         Text("Read a visible offer, check its estimated profit, then make the actual decision in your gig app.").font(.headline)
         Text("Payout − fees − total miles × your vehicle cost. Pickup, waiting and unpaid travel matter. Home direction stays unknown until the drop-off and route are checked.").font(.footnote)
         NavigationLink("Set hourly target & vehicle cost") { InsightsView() }
+        NavigationLink("Offer Capture Diagnostics") { OfferCaptureDiagnosticsView() }
       }
       Section("Your offer assumptions") {
         Picker("Gig app", selection: $platform) { ForEach(GigPlatform.allCases) { Text($0.rawValue).tag($0) } }
@@ -68,10 +70,10 @@ struct OfferReaderView: View {
       .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false } } }
       .onAppear {
         if let session = OfferCaptureStore.session(), session.scope == model.journalScope {
-          active = true; platform = session.platform
+          active = true; platform = startingPlatform ?? session.platform
           fees = session.feesCents.map { String(format: "%.2f", Double($0) / 100) } ?? ""
           wait = session.waitMinutes.map { String($0) } ?? ""
-        }
+        } else if let startingPlatform { platform = startingPlatform }
         refresh()
       }
       .task {
@@ -90,10 +92,9 @@ struct OfferReaderView: View {
               let bytes = try await value.loadTransferable(type: Data.self) else { throw DriverAlertError.unavailable }
             let parsed = try await Task.detached {
               let image = try OfferOCR.image(from: bytes)
-              return OfferTextReader.read(try OfferOCR.text(in: image), platform: session.platform, source: .sharedScreenshot)
+              return try ParsedOfferCapture.read(OfferOCR.text(in: image), platform: session.platform, source: .sharedScreenshot)
             }.value
-            guard let parsed else { notice = "No unambiguous offer details were found. Enter or review the offer in Shift Mission."; return }
-            try OfferCaptureStore.save(parsed, session: session)
+            try OfferCaptureStore.save(parsed.observation, session: session, normalized: parsed.normalized)
             notice = "Screenshot read. Check the extracted fields and the offer’s availability before confirming."
             refresh()
           } catch { notice = error.localizedDescription }
@@ -119,7 +120,9 @@ struct OfferReaderView: View {
   }
   private func refresh() {
     observations = OfferCaptureStore.offers(scope: model.journalScope)
-    if let status = OfferCaptureStore.status(), Date().timeIntervalSince(status.updatedAt) < 15 { notice = status.message }
+    if let session = OfferCaptureStore.session(), session.scope == model.journalScope,
+      let status = OfferCaptureStore.status(), status.sessionId == session.id,
+      status.scope == model.journalScope, Date().timeIntervalSince(status.updatedAt) < 15 { notice = status.message }
     active = OfferCaptureStore.session()?.scope == model.journalScope
   }
 }

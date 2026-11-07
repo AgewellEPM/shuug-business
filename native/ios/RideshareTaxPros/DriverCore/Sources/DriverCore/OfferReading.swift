@@ -6,7 +6,7 @@ public enum GigPlatform: String, Codable, CaseIterable, Identifiable, Sendable {
   public var id: String { rawValue }
 }
 public enum OfferObservationSource: String, Codable, Sendable {
-  case screenShare, sharedScreenshot, notification, accessibility
+  case screenShare, sharedScreenshot, sharedText, notification, accessibility
 }
 public struct OfferReaderSession: Codable, Sendable {
   public var id: UUID, scope: String, platform: GigPlatform, expiresAt: Date

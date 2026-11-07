@@ -32,9 +32,19 @@ struct MissionView: View {
   var body: some View {
     List {
       Section {
-        Text("Make more. Waste fewer miles. Get home on your schedule.").font(.headline)
-        Text("Set your destination, plan where to wait, and compare visible offers using your costs. Review and respond while parked.").font(.footnote).foregroundStyle(Brand.muted)
-        NavigationLink("Read an incoming offer") { OfferReaderView() }
+        VStack(alignment: .leading, spacing: 13) {
+          HStack(spacing: 14) {
+            Image(systemName: "house.fill").font(.system(size: 30)).foregroundStyle(Brand.pink)
+            VStack(alignment: .leading, spacing: 5) {
+              Text("Get paid on the way.").font(.title2.bold())
+              Text("Your destination. Your finish time.").font(.subheadline).foregroundStyle(Brand.muted)
+            }
+          }
+          Text("Set a mission, find a historical waiting-area match, and check each offer’s real costs and road route.")
+            .font(.footnote).foregroundStyle(Brand.muted)
+          NavigationLink("Read an incoming offer") { OfferInboxView() }.font(.footnote.bold())
+        }.gigCard(highlight: true)
+          .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
       }
       if let mission = model.journal.mission {
         let progress = mission.progress(records: model.journal.visible.map(\.record), goals: model.journal.goals ?? DriverGoals())
@@ -137,7 +147,7 @@ struct MissionView: View {
         Text("Only your recorded completed drives are compared. Idle time, demand and platform availability may differ.").font(.footnote).foregroundStyle(Brand.muted)
       }
       ReserveAndHistoryView()
-    }.driverScreen().navigationTitle("Shift Mission")
+    }.driverScreen().navigationTitle("Go Home")
       .toolbar { ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("Done") { editing = false }.accessibilityIdentifier("mission.dismissKeyboard") } }
   }
   private func field(_ title: String, _ value: Binding<String>) -> some View { TextField(title, text: value).keyboardType(.decimalPad).focused($editing) }

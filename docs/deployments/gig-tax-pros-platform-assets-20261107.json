@@ -1,0 +1,118 @@
+{
+  "retrievedAt": "2026-11-07",
+  "purpose": "Identify the supported gig platforms; no provider connection or endorsement is implied",
+  "appIcons": "Original publisher artwork from Apple public lookup metadata, saved unchanged",
+  "brandAssets": [
+    {
+      "platform": "DoorDash",
+      "appStoreID": 1451754591,
+      "appName": "DoorDash - Dasher",
+      "publisher": "DoorDash, Inc.",
+      "appStoreURL": "https://apps.apple.com/us/app/doordash-dasher/id1451754591?uo=4",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/95/54/97/955497a1-1378-e059-3fa7-379028fb3dd9/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/512x512bb.jpg",
+      "logoSource": {
+        "page": "https://about.doordash.com/en-us/company",
+        "asset": "Inline wordmark SVG, viewBox 0 0 361.1 42; website CSS red #eb1700 resolved; path geometry unchanged"
+      },
+      "files": [
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformDoorDashIcon.imageset/icon.jpg",
+          "sha256": "185442359a466a0b91d48b3aa70dd40e09ce3f623e9d361bb798e35976d5800d"
+        },
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformDoorDashLogo.imageset/logo.svg",
+          "sha256": "b7db14fd696583b9e0451ae837753fe6208dbbae5c84344cecd71f897244c8de"
+        }
+      ]
+    },
+    {
+      "platform": "Uber",
+      "appStoreID": 1131342792,
+      "appName": "Uber - Driver: Drive & Deliver",
+      "publisher": "Uber Technologies, Inc.",
+      "appStoreURL": "https://apps.apple.com/us/app/uber-driver-drive-deliver/id1131342792?uo=4",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/14/25/97/14259773-9482-5ffe-3040-de0ccfdb53ac/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "logoSource": {
+        "page": "https://www.uber.com/global/nl/sign-in/",
+        "asset": "https://tb-static.uber.com/prod/udam-assets/d450b3e3-3cb9-47e8-abe8-7cbdbb5156ad.png"
+      },
+      "files": [
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformUberIcon.imageset/icon.jpg",
+          "sha256": "df322e2fc95f5926e9cf8d98e2608b3e1ca33266e512402c0a3404370959502d"
+        },
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformUberLogo.imageset/logo.png",
+          "sha256": "e7982995674f7b92c5b92fba38e8e3ae83c6242d13cec2f644d37843ca011383"
+        }
+      ]
+    },
+    {
+      "platform": "Lyft",
+      "appStoreID": 1203077485,
+      "appName": "Lyft Driver",
+      "publisher": "Lyft, Inc.",
+      "appStoreURL": "https://apps.apple.com/us/app/lyft-driver/id1203077485?uo=4",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/51/ed/ff/51edff9a-a0e6-6066-a8ff-cad12258e27e/DriverRelease-0-0-1x_U007ephone-0-1-85-220.png/512x512bb.jpg",
+      "logoSource": {
+        "page": "https://www.lyft.com/press/media-kit",
+        "asset": "https://images.ctfassets.net/q8mvene1wzq4/LmeffgED6BZsndKorypoL/bc6028e9a0924cb5545f21367c2e5568/Lyft_Logo_White_RGB.png"
+      },
+      "files": [
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformLyftIcon.imageset/icon.jpg",
+          "sha256": "dda059764c3b51fcc63558401774e833a503c2d20d8440652ed2744a8080005a"
+        },
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformLyftLogo.imageset/logo.png",
+          "sha256": "009be0d8047fc529b30b606fcd551a3a6ab30be00b418e2a4548021ce815828d"
+        }
+      ]
+    },
+    {
+      "platform": "Instacart",
+      "appStoreID": 1454056744,
+      "appName": "Instacart Shopper: Earn money",
+      "publisher": "Maplebear Inc",
+      "appStoreURL": "https://apps.apple.com/us/app/instacart-shopper-earn-money/id1454056744?uo=4",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/f1/e0/97/f1e0972f-cc97-e94e-e14c-330ca8ceac17/AppIcon.com.instacart.shopper-0-0-1x_U007ephone-0-1-0-sRGB-85-220.png/512x512bb.jpg",
+      "logoSource": {
+        "page": "https://docs.instacart.com/developer_platform_api/guide/concepts/design/logos/",
+        "asset": "https://docs.instacart.com/assets/files/Instacart_logos-57199d80485c89007384e11523992fe8.zip",
+        "member": "Full Logo/RGB/SVG/Instacart_Logo_AllWhite.svg"
+      },
+      "files": [
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformInstacartIcon.imageset/icon.jpg",
+          "sha256": "f6fd0892e1ba3f40c5cb972bd43915b42906dbb4aa5b6f01edb22eb741228fad"
+        },
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformInstacartLogo.imageset/logo.svg",
+          "sha256": "49213a467707e0f1f40af1086da270d36979f2ca2460b37bdc781e267d1358be"
+        }
+      ]
+    },
+    {
+      "platform": "Spark",
+      "appStoreID": 1483998235,
+      "appName": "Spark Driver",
+      "publisher": "Walmart",
+      "appStoreURL": "https://apps.apple.com/us/app/spark-driver/id1483998235?uo=4",
+      "iconURL": "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/87/5d/ad/875dad92-4671-921f-bfc2-163244855e7b/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/512x512bb.jpg",
+      "logoSource": {
+        "page": "https://www.sparkdriverapp.com/en_us",
+        "asset": "https://www.sparkdriverapp.com/content/dam/sparkdriverapp/images/spark-driver-logo.svg"
+      },
+      "files": [
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformSparkIcon.imageset/icon.jpg",
+          "sha256": "8c73b0bc5e8463d1a6d7405ee859b912de66a02b19b570fc0bf03b851a96f784"
+        },
+        {
+          "path": "native/ios/RideshareTaxPros/Resources/Assets.xcassets/PlatformSparkLogo.imageset/logo.svg",
+          "sha256": "0daab4c76742a83b74107465d1d563a8d8745672c64ff7a0bc7fe7a644922a36"
+        }
+      ]
+    }
+  ]
+}

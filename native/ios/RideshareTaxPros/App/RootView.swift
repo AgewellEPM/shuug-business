@@ -2,19 +2,54 @@ import DriverCore
 import SwiftUI
 import UniformTypeIdentifiers
 
+enum DriverTab: Hashable { case home, offers, goHome, position, earnings }
+enum DriverTool: String, Identifiable {
+  case trips = "Trips", money = "Money", account = "Account", alerts = "Alerts & reminders"
+  case diagnostics = "Offer Capture Diagnostics"
+  var id: String { rawValue }
+}
 struct RootView: View {
   @EnvironmentObject private var model: DriverModel
+  @State private var tab: DriverTab = .home
+  @State private var tool: DriverTool?
   var body: some View {
-    TabView {
-      NavigationStack { TodayView() }.tabItem { Label("Today", systemImage: "speedometer") }
-      NavigationStack { TripsView() }.tabItem { Label("Trips", systemImage: "car.fill") }
-      NavigationStack { MoneyView() }.tabItem { Label("Money", systemImage: "receipt") }
-      NavigationStack { InsightsView() }.tabItem { Label("Insights", systemImage: "chart.xyaxis.line") }
-      NavigationStack { ConnectionView() }.tabItem {
-        Label("Account", systemImage: "person.crop.circle")
+    TabView(selection: $tab) {
+      NavigationStack { TodayView(tab: $tab, showTool: { tool = $0 }) }
+        .tabItem { Label("Home", systemImage: "house.fill") }.tag(DriverTab.home)
+      NavigationStack { OfferInboxView() }
+        .tabItem { Label("Offers", systemImage: "bolt.fill") }.tag(DriverTab.offers)
+      NavigationStack { MissionView() }
+        .tabItem { Label("Go Home", systemImage: "location.north.fill") }.tag(DriverTab.goHome)
+      NavigationStack { PositioningView() }
+        .tabItem { Label("Position", systemImage: "scope") }.tag(DriverTab.position)
+      NavigationStack { InsightsView() }
+        .tabItem { Label("Earnings", systemImage: "chart.bar.fill") }.tag(DriverTab.earnings)
+    }.tint(Brand.pink)
+      .sheet(item: $tool) { selected in
+        NavigationStack {
+          Group {
+            switch selected {
+            case .trips: TripsView()
+            case .money: MoneyView()
+            case .account: ConnectionView()
+            case .alerts: DriverAlertsView()
+            case .diagnostics: OfferCaptureDiagnosticsView()
+            }
+          }.toolbar { ToolbarItem(placement: .topBarTrailing) {
+            Button("Done") { tool = nil }.accessibilityIdentifier("tools.close")
+          } }
+        }
       }
-    }.tint(Brand.link)
       .sheet(item: $model.requestedPrompt) { prompt in NavigationStack { ExpenseEditor(placePrompt: prompt) } }
+      .sheet(item: $model.requestedOffer) { offer in
+        NavigationStack {
+          let row = DispatchPlanner.rank([offer], profile: model.offerProfitProfile, preferences: nil,
+            routes: [:], commitments: model.journal.gigCommitments ?? []).first!
+          GigOfferDetailView(recommendation: row, profile: model.offerProfitProfile)
+            .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("Done") { model.requestedOffer = nil } } }
+        }
+      }
+      .onChange(of: model.journalScope) { _, _ in model.requestedOffer = nil }
       .alert(
         "Gig Tax Pros",
         isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
@@ -40,12 +75,16 @@ struct RecordStatus: View {
   }
 }
 struct TodayView: View {
+  @Binding var tab: DriverTab
+  let showTool: (DriverTool) -> Void
   @EnvironmentObject private var model: DriverModel
   @EnvironmentObject private var location: LocationTracker
   @State private var starting = false
   @State private var addingExpense = false
   @State private var addingIncome = false
   @State private var exporting = false
+  @State private var offerCount = 0
+  @State private var showingSample = false
   private var today: [DriverRecord] {
     model.journal.visible.map(\.record).filter { $0.dateLabel == DriverRecord.day(Date()) }
   }
@@ -75,24 +114,40 @@ struct TodayView: View {
   }
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 22) {
-        VStack(alignment: .leading, spacing: 12) {
-          BrandHeader()
-          Text("Make more. Waste fewer miles. Get home on your schedule.").font(.subheadline)
-            .foregroundStyle(Brand.muted)
+      VStack(alignment: .leading, spacing: 14) {
+        VStack(spacing: 8) {
+          HStack(spacing: 12) {
+            Menu {
+              Button("Trips", systemImage: "car.fill") { showTool(.trips) }
+              Button("Money", systemImage: "receipt") { showTool(.money) }
+              Button("Account", systemImage: "person.crop.circle") { showTool(.account) }
+              Button("Alerts & reminders", systemImage: "bell") { showTool(.alerts) }
+              Button("Offer Capture Diagnostics", systemImage: "waveform.path.ecg") { showTool(.diagnostics) }
+              Button("Explore a sample shift", systemImage: "sparkles") { showingSample = true }
+            } label: { Image(systemName: "line.3.horizontal").font(.title3).frame(width: 28, height: 44) }
+              .accessibilityIdentifier("dashboard.menu").accessibilityLabel("More tools")
+            BrandHeader(compact: true).frame(maxWidth: .infinity, alignment: .leading)
+            Button { showTool(.alerts) } label: {
+              Image(systemName: (model.journal.driverAlerts ?? []).contains(where: { $0.handledAt == nil && $0.expiresAt > Date() }) ? "bell.badge" : "bell")
+                .font(.title3).frame(width: 30, height: 44)
+            }.accessibilityLabel("Alerts and reminders")
+          }.foregroundStyle(.white)
+          Text("Drive smarter · Earn more · Get home paid")
+            .font(.system(size: 12, weight: .medium)).foregroundStyle(Brand.muted)
         }
-        VStack(alignment: .leading, spacing: 12) {
-          Text("Earn your way home").font(.title2.bold())
-          if let mission = model.journal.mission {
-            Text("\(Brand.usd(mission.targetCents)) net target · \(mission.destination) by \(mission.deadline.formatted(date: .omitted, time: .shortened))")
-          } else { Text("Set your destination and finish time, then compare the offers that could get you there.").foregroundStyle(Brand.muted) }
-          NavigationLink { MissionView() } label: {
-            Label(model.journal.mission == nil ? "Create today's mission" : "Open your shift mission", systemImage: "location.north.circle.fill")
-          }.buttonStyle(BrandActionStyle())
-          NavigationLink { OfferReaderView() } label: {
-            Label("Should I take this job? · Read an offer", systemImage: "viewfinder")
-          }.buttonStyle(BrandActionStyle(primary: false))
-        }.insightPanel()
+        HStack(spacing: 10) {
+          DashboardQuickAction(title: "Offers", icon: "bolt", count: offerCount) { tab = .offers }
+          DashboardQuickAction(title: "Go Home", icon: "location.north") { tab = .goHome }
+          DashboardQuickAction(title: "Position", icon: "scope") { tab = .position }
+          DashboardQuickAction(title: "Earnings", icon: "dollarsign.circle") { tab = .earnings }
+        }
+        ShiftDashboardCard()
+        GoHomeDashboardCard(destination: model.journal.mission?.destination) { tab = .goHome }
+        PlatformReadersRow(scope: model.journalScope)
+        EarningsPulseCard(records: model.journal.visible.map(\.record), goals: model.journal.goals ?? DriverGoals(), compact: true)
+        Button { showingSample = true } label: {
+          Label("Explore charts & offers with sample data", systemImage: "sparkles").font(.footnote.weight(.semibold))
+        }.accessibilityIdentifier("dashboard.sample")
         VStack(alignment: .leading, spacing: 14) {
           Label(
             liveTrip == nil ? "Ready for your next drive" : "Drive in progress",
@@ -128,11 +183,7 @@ struct TodayView: View {
             }.buttonStyle(BrandActionStyle()).disabled(
               !model.storageHealthy)
           }
-        }.padding(22).foregroundStyle(.white).frame(maxWidth: .infinity, alignment: .leading)
-          .background(Brand.panel, in: RoundedRectangle(cornerRadius: 24))
-          .overlay {
-            RoundedRectangle(cornerRadius: 24).strokeBorder(Brand.border, lineWidth: 1)
-          }
+        }.gigCard().foregroundStyle(.white)
         HStack {
           Label(model.syncStatus, systemImage: model.connection == nil ? "iphone" : "icloud").font(
             .caption)
@@ -175,12 +226,21 @@ struct TodayView: View {
         } label: {
           Label("Export my records as CSV", systemImage: "square.and.arrow.up")
         }.disabled(!model.storageHealthy)
-      }.padding()
-    }.driverScreen().navigationTitle("Your driving day")
+      }.padding(.horizontal, 16).padding(.vertical, 10)
+    }.driverScreen().navigationTitle("")
       .navigationBarTitleDisplayMode(.inline)
+      .toolbar(.hidden, for: .navigationBar)
+      .task {
+        while !Task.isCancelled {
+          model.refreshCapturedOffers()
+          offerCount = (model.journal.gigOffers ?? []).filter { $0.validForComparison() }.count
+          do { try await Task.sleep(for: .seconds(3)) } catch { break }
+        }
+      }
       .sheet(isPresented: $starting) { NavigationStack { StartDriveView() } }
       .sheet(isPresented: $addingExpense) { NavigationStack { ExpenseEditor() } }
       .sheet(isPresented: $addingIncome) { NavigationStack { IncomeEditor() } }
+      .sheet(isPresented: $showingSample) { SampleShiftView() }
       .fileExporter(
         isPresented: $exporting, document: DriverCSV(records: model.journal.visible.map(\.record)),
         contentType: .commaSeparatedText,

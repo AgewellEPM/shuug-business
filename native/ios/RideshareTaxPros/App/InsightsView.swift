@@ -3,16 +3,18 @@ import DriverCore
 import SwiftUI
 
 struct InsightsView: View {
+  var sample: GigSampleShift? = nil
   @EnvironmentObject private var model: DriverModel
   @State private var period = 7
   @State private var editingGoals = false
   @State private var selectedDate: Date?
-  private var goals: DriverGoals { model.journal.goals ?? DriverGoals() }
+  private var records: [DriverRecord] { sample?.records ?? model.journal.visible.map(\.record) }
+  private var goals: DriverGoals { sample?.goals ?? model.journal.goals ?? DriverGoals() }
   private var first: String {
     DriverRecord.day(Calendar.current.date(byAdding: .day, value: -(period-1), to: Date())!)
   }
   private var summary: DrivingInsights {
-    DrivingInsights(records: model.journal.visible.map(\.record), goals: goals,
+    DrivingInsights(records: records, goals: goals,
                     from: first, through: DriverRecord.day(Date()))
   }
   private var days: [DrivingDay] {
@@ -29,15 +31,18 @@ struct InsightsView: View {
   }
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 24) {
+      VStack(alignment: .leading, spacing: 16) {
         HStack {
           Text("Know what your driving earns.").font(.title2.bold())
           Spacer()
-          Button("Goals") { editingGoals = true }.accessibilityIdentifier("insights.goals")
+          if sample == nil { Button("Goals") { editingGoals = true }.accessibilityIdentifier("insights.goals") }
         }
         Picker("Period", selection: $period) {
           Text("7 days").tag(7); Text("30 days").tag(30); Text("90 days").tag(90)
         }.pickerStyle(.segmented)
+        EarningsPulseCard(records: records, goals: goals, days: period)
+        EarningsEfficiencyCard(summary: summary)
+        MileageMixCard(summary: summary, goals: goals)
         goalsCard
         if summary.days.isEmpty {
           ContentUnavailableView("Your numbers, as you drive", systemImage: "chart.bar.xaxis",
@@ -93,22 +98,26 @@ struct InsightsView: View {
           VStack(alignment: .leading, spacing: 12) {
             Text("Rides below your goal").font(.headline)
             ForEach(Array(lowRides.prefix(8))) { ride in
-              NavigationLink { TripDetail(id: ride.id) } label: {
+              Group {
+                if sample == nil { NavigationLink { TripDetail(id: ride.id) } label: { rideLabel(ride) } }
+                else { rideLabel(ride) }
+              }
+            }
+          }.insightPanel()
+        }
+      }.padding(.horizontal, 16).padding(.vertical, 10)
+    }.driverScreen().navigationTitle(sample == nil ? "Earnings" : "Sample earnings")
+      .sheet(isPresented: $editingGoals) { NavigationStack { GoalsEditor() } }
+  }
+  private func rideLabel(_ ride: RideProfit) -> some View {
                 VStack(alignment: .leading, spacing: 4) {
                   Text(ride.title)
                   Text("\(Brand.usd(ride.estimatedNetCents ?? 0)) estimated net · \(ride.hourlyCents.map { Brand.usd(Int($0.rounded())) + "/hr" } ?? "Time unavailable")")
                     .font(.caption).foregroundStyle(.orange)
                 }
-              }
-            }
-          }.insightPanel()
-        }
-      }.padding()
-    }.driverScreen().navigationTitle("Insights & goals")
-      .sheet(isPresented: $editingGoals) { NavigationStack { GoalsEditor() } }
   }
   private var goalsCard: some View {
-    let records = model.journal.visible.map(\.record)
+    let records = self.records
     let today = DriverRecord.day(Date())
     let week = Calendar.current.dateInterval(of: .weekOfYear, for: Date())!.start
     let weekly = DrivingInsights(records: records, goals: goals, from: DriverRecord.day(week), through: today)
@@ -227,14 +236,19 @@ struct GoalsEditor: View {
     }
     let goals = DriverGoals(dailyNetCents: StatementImport.signedCents(values[0]), weeklyNetCents: StatementImport.signedCents(values[1]),
                             targetHourlyCents: StatementImport.signedCents(values[2]), vehicleCostCentsPerMile: StatementImport.signedCents(values[3]).map(Double.init))
-    if model.commit({ $0.goals = goals }) { dismiss() }
+    if model.commit({ $0.goals = goals }) {
+      if var session = OfferCaptureStore.session(), session.scope == model.journalScope {
+        session.goals = goals
+        do { try OfferCaptureStore.activate(session) }
+        catch { OfferCaptureStore.deactivate(); model.message = "Goals saved. Enable offer reading again to use the updated costs." }
+      }
+      dismiss()
+    }
   }
 }
 
 extension View {
   func insightPanel() -> some View {
-    padding().frame(maxWidth: .infinity, alignment: .leading)
-      .background(Brand.panel, in: RoundedRectangle(cornerRadius: 18))
-      .overlay { RoundedRectangle(cornerRadius: 18).strokeBorder(Brand.border.opacity(0.5), lineWidth: 1) }
+    gigCard()
   }
 }

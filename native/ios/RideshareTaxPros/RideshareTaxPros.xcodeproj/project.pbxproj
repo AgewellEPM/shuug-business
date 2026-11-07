@@ -10,44 +10,62 @@
 		01158979D3ACBC81E565FCE8 /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
 		05B9380512FA1970AE263016 /* DriverRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21B80AD735307B52D4FFE7B8 /* DriverRuntime.swift */; };
 		0907C0BC171CE9E88B2AF60F /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = F7C8E6E2D7DED8B7DB7DD107 /* DriverCore */; };
+		0CB229725BC8BCBDB9D46DE1 /* SampleShiftView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 281ABD87FE40F0B6D54E513E /* SampleShiftView.swift */; };
 		0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */; };
 		0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8E943BF195B750291F3E94 /* LocationTracker.swift */; };
 		15087537926F94E2BFF2B70F /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
+		1EAAB4E1C132A0195200418F /* GigPlatformBrand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ECD5CA6EC984CAB70F96FE5 /* GigPlatformBrand.swift */; };
 		1FCFCD6F7B59E64FA68C9C19 /* DriverNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D7B0C11AEBC9185FC2B326 /* DriverNotifications.swift */; };
 		229E01E931D65683CB416F1D /* LinkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 81B72326462F9C7E5E8F5B50 /* LinkKit */; };
 		2D657A4931BB9FCB6DBE4A4B /* DriverModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C42B736A4CB4413818634 /* DriverModel.swift */; };
 		2D9FEE1E193828A2294DB012 /* MissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0BE3FABE19BBD6459733E82 /* MissionView.swift */; };
 		30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */; };
+		30F1ED43691D6039BFF34F50 /* GigOfferRouteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FB0347BAC4DEAA503ADEE84 /* GigOfferRouteView.swift */; };
 		31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282961514CC8F1169E8346AA /* InsightsView.swift */; };
 		35C70F8A9D7C074824944EFB /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3F11F2CFCE48457C84C93872 /* DriverCore */; };
 		3D04DCC18C29A95D718D3FEE /* DrivingAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A275B806AE67181728CC33 /* DrivingAssistant.swift */; };
 		405D64B7ED25565373F8FED5 /* WorkspaceClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AF479D04A51EC78525B6315D /* WorkspaceClient.swift */; };
 		4291BB6A85A97AA3BDEB0D87 /* RideshareTaxProsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */; };
+		481DFD5EEFA11331B2CD119A /* OfferInboxView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 10862B0857E270A68C743697 /* OfferInboxView.swift */; };
 		4E528B045A700BA058B8AD57 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D63407C2CADA02A6D862C8 /* ShareViewController.swift */; };
 		56D498BB7423905FE8A79253 /* ReserveAndHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */; };
 		5FDA77B4EFC4131F5F87E030 /* BankImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99DB6310D01A30734F776EC /* BankImportView.swift */; };
 		65A72F59A943AF82BF11FD8E /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		6B6D751EDE40989BB97238B4 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
+		6F21419FB4AFB5DD2655EA56 /* OfferCaptureDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */; };
 		726D6091F84ABB9D8E423F15 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		73ED0120CE9C85FFEF2413AC /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
 		76B621DF2FF4A35CEBC4897D /* BankWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EBF8357067B181E7571C8CB /* BankWire.swift */; };
+		787524F53EE337DB78C13C5B /* OfferCaptureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */; };
 		7CBAD3E48126F10088450950 /* OfferReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E7D02A168B67576890FDE8 /* OfferReaderView.swift */; };
+		7DCF551DEE981E7B2A1B51C0 /* OfferCaptureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */; };
 		7DE3FF0BF4F1F81ACF97FAFE /* GigOfferBroadcast.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 42CDEAEC3D706F1D06551110 /* GigOfferBroadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		825CDE76D1E5BC422AF0AA33 /* ConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F775980FE08AC5338DF6598A /* ConnectionView.swift */; };
 		82DA92E995B6DC573995FEAF /* ReferralWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34AC156EB56DF0359A34459 /* ReferralWire.swift */; };
+		832743508EE851F8C59C8BB7 /* GigConnectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */; };
+		83374FA02D9AEF1D3008C4C9 /* HomeDashboardPanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E57576534AE23D3836BDD688 /* HomeDashboardPanels.swift */; };
+		8A37631442C4F9D959E4E2ED /* WaitingAreaPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AACCE76C8CCDFBB25D5716B /* WaitingAreaPlanner.swift */; };
 		90AD684EB74444D190614B24 /* RideProfitDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBC5760D5BC82B4A89C9EFB5 /* RideProfitDetails.swift */; };
+		949FD6C853FBF760B7BF4C65 /* EarningsCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4506E9DC067D656DC8DA17 /* EarningsCharts.swift */; };
 		9569AC01F3234B9850361D73 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6E5E3D526067D4F7777505 /* SampleHandler.swift */; };
+		9D4341571DF02C1875A0A859 /* GigOfferEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */; };
 		A3918B8396A9380C72424824 /* TripViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A24C2D320EB0630D00C88 /* TripViews.swift */; };
 		A81F7028AE6AD54E9C6F6D4E /* ReferralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E868C7975E7DB0DC484E4DB /* ReferralView.swift */; };
+		AC8E09FE3DE7F979EDCB7A86 /* PositioningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */; };
 		ADFD38391684A663691AC63B /* AssistanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB5F2A2D07756ADE2F52486C /* AssistanceView.swift */; };
+		B02A0C8C56030EDBBCB9BEF9 /* GigWorkActions.swift in Sources */ = {isa = PBXBuildFile; fileRef = F880BEDA123EC1DCBD7E8E6A /* GigWorkActions.swift */; };
 		B03A07A99B0BED4F7CBBA18A /* BankClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0A9694A18C3AD1D2F4CCC487 /* BankClient.swift */; };
+		B663857379DD2464561F6A25 /* OfferCaptureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */; };
 		BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */; };
 		BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */; };
 		BE522AC9C8616E658E5FDBED /* BankReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */; };
 		C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */; };
+		C50A807ACBCE183C061DAC81 /* OfferWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3412DE64829798B06F79D /* OfferWorkspace.swift */; };
+		C553446C32D892BDB19618A1 /* DriverAlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9313626D28517F34001ABB2C /* DriverAlertsView.swift */; };
 		CDB3C1386471C6C7F440146C /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E515B079F485E403FF64B2AD /* Brand.swift */; };
 		CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */; };
 		D666D4CF2B72C07F0CF9E3BE /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EC96DE14A63112C9339895 /* RootView.swift */; };
+		DBC446023CEEE744D8A12CE9 /* DashboardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0969F8A93383D28325852E /* DashboardStyle.swift */; };
 		DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */; };
 		E88EB7D984CCE264B38D6D5E /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = ED9E3503FF4FE8A2BA514E80 /* DriverCore */; };
 		E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B02495B4D78249A890D1EF7 /* Assets.xcassets */; };
@@ -99,22 +117,29 @@
 /* Begin PBXFileReference section */
 		07D7B0C11AEBC9185FC2B326 /* DriverNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverNotifications.swift; sourceTree = "<group>"; };
 		0A9694A18C3AD1D2F4CCC487 /* BankClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankClient.swift; sourceTree = "<group>"; };
+		0E0969F8A93383D28325852E /* DashboardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardStyle.swift; sourceTree = "<group>"; };
+		10862B0857E270A68C743697 /* OfferInboxView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferInboxView.swift; sourceTree = "<group>"; };
 		15FDA7CD65B534F29AF763BE /* OfferBroadcast.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OfferBroadcast.entitlements; sourceTree = "<group>"; };
 		1B02495B4D78249A890D1EF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionRouteSection.swift; sourceTree = "<group>"; };
 		21B80AD735307B52D4FFE7B8 /* DriverRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverRuntime.swift; sourceTree = "<group>"; };
+		281ABD87FE40F0B6D54E513E /* SampleShiftView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleShiftView.swift; sourceTree = "<group>"; };
 		282961514CC8F1169E8346AA /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankReviewView.swift; sourceTree = "<group>"; };
 		32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideshareTaxProsApp.swift; sourceTree = "<group>"; };
 		35344D692A017690B3711641 /* OfferOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferOCR.swift; sourceTree = "<group>"; };
+		35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCaptureDiagnosticsView.swift; sourceTree = "<group>"; };
 		3EBF8357067B181E7571C8CB /* BankWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankWire.swift; sourceTree = "<group>"; };
 		42CDEAEC3D706F1D06551110 /* GigOfferBroadcast.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigOfferBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4A8E943BF195B750291F3E94 /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
+		4AACCE76C8CCDFBB25D5716B /* WaitingAreaPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitingAreaPlanner.swift; sourceTree = "<group>"; };
 		4E96FB385BB01D09AF2EBF2B /* BankConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankConnectionView.swift; sourceTree = "<group>"; };
+		4FB0347BAC4DEAA503ADEE84 /* GigOfferRouteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigOfferRouteView.swift; sourceTree = "<group>"; };
 		50EC96DE14A63112C9339895 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseEditor.swift; sourceTree = "<group>"; };
 		5E868C7975E7DB0DC484E4DB /* ReferralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralView.swift; sourceTree = "<group>"; };
 		646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCaptureStore.swift; sourceTree = "<group>"; };
+		682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCaptureParser.swift; sourceTree = "<group>"; };
 		68A275B806AE67181728CC33 /* DrivingAssistant.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DrivingAssistant.swift; sourceTree = "<group>"; };
 		6B3F0AFF0E782EBA2D598469 /* DriverCore */ = {isa = PBXFileReference; lastKnownFileType = folder; name = DriverCore; path = DriverCore; sourceTree = SOURCE_ROOT; };
 		76E341EBA8DC5E1736069D52 /* RideshareTaxProsUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = RideshareTaxProsUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -124,12 +149,18 @@
 		7A6E5E3D526067D4F7777505 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		806A24C2D320EB0630D00C88 /* TripViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripViews.swift; sourceTree = "<group>"; };
 		892D31B4A1DBDDF69F0E96A0 /* GigOfferShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigOfferShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		8ECD5CA6EC984CAB70F96FE5 /* GigPlatformBrand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigPlatformBrand.swift; sourceTree = "<group>"; };
+		9313626D28517F34001ABB2C /* DriverAlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverAlertsView.swift; sourceTree = "<group>"; };
 		94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyViews.swift; sourceTree = "<group>"; };
 		95628BD560766164B798CEEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		97D7931F53D492CCB053BFDF /* RideshareTaxPros.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RideshareTaxPros.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9D4506E9DC067D656DC8DA17 /* EarningsCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsCharts.swift; sourceTree = "<group>"; };
 		9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverPrivacyView.swift; sourceTree = "<group>"; };
 		AB62B3A50F636C82218CF62B /* SessionKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionKeychain.swift; sourceTree = "<group>"; };
 		AF479D04A51EC78525B6315D /* WorkspaceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceClient.swift; sourceTree = "<group>"; };
+		B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigConnectionsView.swift; sourceTree = "<group>"; };
+		BCE3412DE64829798B06F79D /* OfferWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferWorkspace.swift; sourceTree = "<group>"; };
+		C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigOfferEditor.swift; sourceTree = "<group>"; };
 		C3D63407C2CADA02A6D862C8 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		C99DB6310D01A30734F776EC /* BankImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankImportView.swift; sourceTree = "<group>"; };
 		CA8C42B736A4CB4413818634 /* DriverModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverModel.swift; sourceTree = "<group>"; };
@@ -139,9 +170,12 @@
 		E0BE3FABE19BBD6459733E82 /* MissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionView.swift; sourceTree = "<group>"; };
 		E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReserveAndHistoryView.swift; sourceTree = "<group>"; };
 		E515B079F485E403FF64B2AD /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
+		E57576534AE23D3836BDD688 /* HomeDashboardPanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardPanels.swift; sourceTree = "<group>"; };
+		E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositioningView.swift; sourceTree = "<group>"; };
 		EB5F2A2D07756ADE2F52486C /* AssistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistanceView.swift; sourceTree = "<group>"; };
 		F0E7D02A168B67576890FDE8 /* OfferReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferReaderView.swift; sourceTree = "<group>"; };
 		F775980FE08AC5338DF6598A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
+		F880BEDA123EC1DCBD7E8E6A /* GigWorkActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigWorkActions.swift; sourceTree = "<group>"; };
 		FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -229,19 +263,32 @@
 				3EBF8357067B181E7571C8CB /* BankWire.swift */,
 				E515B079F485E403FF64B2AD /* Brand.swift */,
 				F775980FE08AC5338DF6598A /* ConnectionView.swift */,
+				0E0969F8A93383D28325852E /* DashboardStyle.swift */,
+				9313626D28517F34001ABB2C /* DriverAlertsView.swift */,
 				CA8C42B736A4CB4413818634 /* DriverModel.swift */,
 				07D7B0C11AEBC9185FC2B326 /* DriverNotifications.swift */,
 				9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */,
 				21B80AD735307B52D4FFE7B8 /* DriverRuntime.swift */,
 				68A275B806AE67181728CC33 /* DrivingAssistant.swift */,
+				9D4506E9DC067D656DC8DA17 /* EarningsCharts.swift */,
 				5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */,
 				7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */,
+				B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */,
+				C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */,
+				4FB0347BAC4DEAA503ADEE84 /* GigOfferRouteView.swift */,
+				8ECD5CA6EC984CAB70F96FE5 /* GigPlatformBrand.swift */,
+				F880BEDA123EC1DCBD7E8E6A /* GigWorkActions.swift */,
+				E57576534AE23D3836BDD688 /* HomeDashboardPanels.swift */,
 				282961514CC8F1169E8346AA /* InsightsView.swift */,
 				4A8E943BF195B750291F3E94 /* LocationTracker.swift */,
 				1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */,
 				E0BE3FABE19BBD6459733E82 /* MissionView.swift */,
 				94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */,
+				35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */,
+				10862B0857E270A68C743697 /* OfferInboxView.swift */,
 				F0E7D02A168B67576890FDE8 /* OfferReaderView.swift */,
+				BCE3412DE64829798B06F79D /* OfferWorkspace.swift */,
+				E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */,
 				79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */,
 				5E868C7975E7DB0DC484E4DB /* ReferralView.swift */,
 				D34AC156EB56DF0359A34459 /* ReferralWire.swift */,
@@ -249,8 +296,10 @@
 				CBC5760D5BC82B4A89C9EFB5 /* RideProfitDetails.swift */,
 				32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */,
 				50EC96DE14A63112C9339895 /* RootView.swift */,
+				281ABD87FE40F0B6D54E513E /* SampleShiftView.swift */,
 				AB62B3A50F636C82218CF62B /* SessionKeychain.swift */,
 				806A24C2D320EB0630D00C88 /* TripViews.swift */,
+				4AACCE76C8CCDFBB25D5716B /* WaitingAreaPlanner.swift */,
 				AF479D04A51EC78525B6315D /* WorkspaceClient.swift */,
 			);
 			path = App;
@@ -284,6 +333,7 @@
 		CDC88F27BB09C811125718F7 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */,
 				646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */,
 				35344D692A017690B3711641 /* OfferOCR.swift */,
 			);
@@ -456,21 +506,35 @@
 				76B621DF2FF4A35CEBC4897D /* BankWire.swift in Sources */,
 				CDB3C1386471C6C7F440146C /* Brand.swift in Sources */,
 				825CDE76D1E5BC422AF0AA33 /* ConnectionView.swift in Sources */,
+				DBC446023CEEE744D8A12CE9 /* DashboardStyle.swift in Sources */,
+				C553446C32D892BDB19618A1 /* DriverAlertsView.swift in Sources */,
 				2D657A4931BB9FCB6DBE4A4B /* DriverModel.swift in Sources */,
 				1FCFCD6F7B59E64FA68C9C19 /* DriverNotifications.swift in Sources */,
 				F9E43C8E7F8F60AE86EE6523 /* DriverPrivacyView.swift in Sources */,
 				05B9380512FA1970AE263016 /* DriverRuntime.swift in Sources */,
 				3D04DCC18C29A95D718D3FEE /* DrivingAssistant.swift in Sources */,
+				949FD6C853FBF760B7BF4C65 /* EarningsCharts.swift in Sources */,
 				C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */,
 				30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */,
+				832743508EE851F8C59C8BB7 /* GigConnectionsView.swift in Sources */,
+				9D4341571DF02C1875A0A859 /* GigOfferEditor.swift in Sources */,
+				30F1ED43691D6039BFF34F50 /* GigOfferRouteView.swift in Sources */,
+				1EAAB4E1C132A0195200418F /* GigPlatformBrand.swift in Sources */,
+				B02A0C8C56030EDBBCB9BEF9 /* GigWorkActions.swift in Sources */,
+				83374FA02D9AEF1D3008C4C9 /* HomeDashboardPanels.swift in Sources */,
 				31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */,
 				0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */,
 				DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */,
 				2D9FEE1E193828A2294DB012 /* MissionView.swift in Sources */,
 				BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */,
+				6F21419FB4AFB5DD2655EA56 /* OfferCaptureDiagnosticsView.swift in Sources */,
+				7DCF551DEE981E7B2A1B51C0 /* OfferCaptureParser.swift in Sources */,
 				6B6D751EDE40989BB97238B4 /* OfferCaptureStore.swift in Sources */,
+				481DFD5EEFA11331B2CD119A /* OfferInboxView.swift in Sources */,
 				73ED0120CE9C85FFEF2413AC /* OfferOCR.swift in Sources */,
 				7CBAD3E48126F10088450950 /* OfferReaderView.swift in Sources */,
+				C50A807ACBCE183C061DAC81 /* OfferWorkspace.swift in Sources */,
+				AC8E09FE3DE7F979EDCB7A86 /* PositioningView.swift in Sources */,
 				CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */,
 				A81F7028AE6AD54E9C6F6D4E /* ReferralView.swift in Sources */,
 				82DA92E995B6DC573995FEAF /* ReferralWire.swift in Sources */,
@@ -478,8 +542,10 @@
 				90AD684EB74444D190614B24 /* RideProfitDetails.swift in Sources */,
 				4291BB6A85A97AA3BDEB0D87 /* RideshareTaxProsApp.swift in Sources */,
 				D666D4CF2B72C07F0CF9E3BE /* RootView.swift in Sources */,
+				0CB229725BC8BCBDB9D46DE1 /* SampleShiftView.swift in Sources */,
 				F81CB1D2DA225515D901F6E0 /* SessionKeychain.swift in Sources */,
 				A3918B8396A9380C72424824 /* TripViews.swift in Sources */,
+				8A37631442C4F9D959E4E2ED /* WaitingAreaPlanner.swift in Sources */,
 				405D64B7ED25565373F8FED5 /* WorkspaceClient.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -488,6 +554,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B663857379DD2464561F6A25 /* OfferCaptureParser.swift in Sources */,
 				65A72F59A943AF82BF11FD8E /* OfferCaptureStore.swift in Sources */,
 				01158979D3ACBC81E565FCE8 /* OfferOCR.swift in Sources */,
 				9569AC01F3234B9850361D73 /* SampleHandler.swift in Sources */,
@@ -498,6 +565,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				787524F53EE337DB78C13C5B /* OfferCaptureParser.swift in Sources */,
 				726D6091F84ABB9D8E423F15 /* OfferCaptureStore.swift in Sources */,
 				15087537926F94E2BFF2B70F /* OfferOCR.swift in Sources */,
 				4E528B045A700BA058B8AD57 /* ShareViewController.swift in Sources */,

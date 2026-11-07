@@ -1,0 +1,14 @@
+{
+  "crossAppCaptureVerified" : false,
+  "elapsedMilliseconds" : 79.623416706454009,
+  "estimatedNetCents" : 1650,
+  "fixtureSHA256" : "942b4179c82429d7420f8cccdbc7fbe461d1e85ba45d19d9884c6c607e97f0b1",
+  "liveGigOfferVerified" : false,
+  "minutes" : 30,
+  "ok" : true,
+  "payoutCents" : 1950,
+  "physicalIPhoneVerified" : false,
+  "scope" : "macOS Apple Vision using the shared iPhone OCR source and a synthetic image",
+  "totalMiles" : 6,
+  "verifiedAt" : "2026-11-07T04:01:36Z"
+}

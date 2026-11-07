@@ -76,6 +76,7 @@ targets:
           NSExtensionAttributes:
             NSExtensionActivationRule:
               NSExtensionActivationSupportsImageWithMaxCount: 1
+              NSExtensionActivationSupportsText: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver.offershare

@@ -56,15 +56,16 @@ final class SampleHandler: RPBroadcastSampleHandler {
           let small = input.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
           guard let image = context.createCGImage(small, from: small.extent) else { return }
           let text = try OfferOCR.text(in: image)
-          OfferCaptureStore.status("running", "Reading shared screen. Screen images and unrelated text are not saved.")
+          OfferCaptureStore.status("running", "Reading shared screen. Screen images and unrelated text are not saved.", frameReceived: true)
           guard let offer = OfferTextReader.read(text, platform: session.platform, source: .screenShare),
             OfferCaptureStore.session()?.id == session.id else { return }
           seen = seen.filter { Date().timeIntervalSince($0.value) < 120 }
           guard seen[offer.fingerprint] == nil else { return }
-          try OfferCaptureStore.save(offer, session: session)
+          let normalized = try? OfferNormalizer.normalize(text, platform: session.platform, source: .screenShare, now: offer.observedAt)
+          try OfferCaptureStore.save(offer, session: session, normalized: normalized)
           seen[offer.fingerprint] = Date()
           OfferCaptureStore.notify(offer, session: session)
-        } catch { OfferCaptureStore.status("attention", "Visible text could not be read. Use a shared screenshot or enter the offer.") }
+        } catch { OfferCaptureStore.status("attention", "Visible text could not be read. Use a shared screenshot or enter the offer.", frameReceived: true) }
       }
     }
   }

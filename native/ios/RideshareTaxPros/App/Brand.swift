@@ -38,16 +38,17 @@ enum Brand {
 }
 
 struct BrandHeader: View {
+  var compact = false
   var body: some View {
     HStack(spacing: 12) {
-      Image("BrandMark").resizable().scaledToFit().frame(width: 52, height: 52)
+      Image("BrandMark").resizable().scaledToFit().frame(width: compact ? 42 : 52, height: compact ? 42 : 52)
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 5) {
         Text("Gig Tax Pros")
-          .font(.custom("Arial-BoldMT", size: 22, relativeTo: .headline))
+          .font(.custom("Arial-BoldMT", size: compact ? 20 : 22, relativeTo: .headline))
           .tracking(-0.6).lineLimit(1).minimumScaleFactor(0.7)
-        Text("TAX & ACCOUNTING").font(.system(size: 10, weight: .medium))
-          .tracking(2).foregroundStyle(Brand.muted)
+        Text("POWERED BY SHUUG").font(.system(size: 9, weight: .medium))
+          .tracking(1.3).foregroundStyle(Brand.link)
       }
     }.foregroundStyle(.white).accessibilityElement(children: .combine)
   }
@@ -55,6 +56,7 @@ struct BrandHeader: View {
 
 struct BrandActionStyle: ButtonStyle {
   @Environment(\.isEnabled) private var enabled
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
   var primary = true
   func makeBody(configuration: Configuration) -> some View {
     configuration.label.font(.headline).foregroundStyle(.white)
@@ -72,7 +74,8 @@ struct BrandActionStyle: ButtonStyle {
           .strokeBorder(primary ? Brand.pink.opacity(0.35) : Brand.border, lineWidth: 1)
       }
       .opacity(enabled ? (configuration.isPressed ? 0.75 : 1) : 0.4)
-      .scaleEffect(configuration.isPressed ? 0.98 : 1)
+      .scaleEffect(configuration.isPressed && !reduceMotion ? 0.98 : 1)
+      .animation(reduceMotion ? nil : .easeOut(duration: 0.18), value: configuration.isPressed)
   }
 }
 
@@ -80,6 +83,7 @@ private struct DriverScreen: ViewModifier {
   func body(content: Content) -> some View {
     content.scrollContentBackground(.hidden)
       .background(Brand.background.ignoresSafeArea())
+      .toolbar(.visible, for: .navigationBar)
       .toolbarBackground(Brand.background, for: .navigationBar, .tabBar)
       .toolbarBackground(.visible, for: .navigationBar, .tabBar)
       .toolbarColorScheme(.dark, for: .navigationBar, .tabBar)

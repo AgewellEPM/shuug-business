@@ -22,11 +22,12 @@ flows.add_argument('--expenses-only', action='store_true', help='Check meal/repa
 flows.add_argument('--insights-only', action='store_true', help='Check goals, fare profitability and real bank statement import.')
 flows.add_argument('--mission-only', action='store_true', help='Check the native mission and offer calculation.')
 flows.add_argument('--alerts-only', action='store_true', help='Check real system Start/End actions after terminating the app.')
+flows.add_argument('--dashboard-only', action='store_true', help='Check dashboard navigation, sample charts and ranked sample offers without saving sample records.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only)
-receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only)
-expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only or options.alerts_only)
+driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only)
+receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only)
+expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only)
 insights = options.insights_only
 if options.driving_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-driving-verification-20261105.json')
@@ -40,6 +41,8 @@ elif options.mission_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-mission-verification-20261106.json')
 elif options.alerts_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-notification-verification-20261106.json')
+elif options.dashboard_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-dashboard-verification-20261107.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -127,16 +130,17 @@ try:
     if insights:
         seed_statement(Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip()))
     call('xcrun', 'simctl', 'privacy', simulator, 'grant', 'location-always', BUNDLE)
-    if receipts:
-        receipt = ARTIFACTS/'receipt-fixture.png'
-        call('swift', str(ROOT/'scripts/generate-rideshare-receipt-fixture.swift'), str(receipt))
+    if receipts or options.dashboard_only:
+        receipt = ARTIFACTS/('offer-fixture.png' if options.dashboard_only else 'receipt-fixture.png')
+        generator = 'generate-gig-offer-fixture.swift' if options.dashboard_only else 'generate-rideshare-receipt-fixture.swift'
+        call('swift', str(ROOT/'scripts'/generator), str(receipt))
         # The first photo-library creation can outlast a normal simctl operation.
         # Launch its system app first and observe one bounded import, without retries.
         stage = 'photo-library'
         owned_step(['xcrun', 'simctl', 'launch', simulator, 'com.apple.mobileslideshow'], 'photos-startup')
         owned_step(['xcrun', 'simctl', 'addmedia', simulator, str(receipt)], 'photo-import')
         call('xcrun', 'simctl', 'terminate', simulator, 'com.apple.mobileslideshow', check=False)
-        print('Receipt fixture imported; starting native app flows.', flush=True)
+        print('Image fixture imported; starting native app flows.', flush=True)
     stage = 'native-ui-tests'
     call('xcrun', 'simctl', 'location', simulator, 'set', '40.0000,-73.9000')
     result_bundle = ARTIFACTS/'DriverFlows.xcresult'
@@ -148,9 +152,16 @@ try:
         if options.insights_only: selection += '/DriverFlows/test04InsightsAndBankImport'
         if options.mission_only: selection += '/DriverFlows/test05MissionAndOffer'
         if options.alerts_only: selection += '/DriverFlows/test06ColdStartTripNotificationActions'
-        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only or options.alerts_only):
+        if options.dashboard_only: selection += '/DriverFlows/test07ModernDashboardAndExistingTools'
+        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only or options.alerts_only or options.dashboard_only):
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
+        if options.alerts_only: test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/test07ModernDashboardAndExistingTools']
+        elif not options.dashboard_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test07ModernDashboardAndExistingTools']
+        if options.dashboard_only:
+            test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/'+name for name in ['test08SampleChartsAndRankedOffers', 'test09ReportedJobSurvivesRelaunchAndCompletes', 'test10CaptureDiagnosticsKeepsPlatformsSeparate', 'test11ChosenScreenshotAppearsInOnlyItsPlatformDiagnostics']]
+        else:
+            test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/'+name for name in ['test08SampleChartsAndRankedOffers', 'test09ReportedJobSurvivesRelaunchAndCompletes', 'test10CaptureDiagnosticsKeepsPlatformsSeparate', 'test11ChosenScreenshotAppearsInOnlyItsPlatformDiagnostics']]
         if not insights: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test04InsightsAndBankImport']
         if not options.mission_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test05MissionAndOffer']
         if not options.alerts_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test06ColdStartTripNotificationActions']
@@ -163,11 +174,17 @@ try:
             now = time.monotonic()
             if now > deadline:
                 raise RuntimeError('The owned UI test exceeded its diagnostic window; inspect ui-test.log.')
-            if (journal_path is None or not journal_path.exists()) and now-last_container_check >= 3:
+            if (driving or insights) and (journal_path is None or not journal_path.exists()) and now-last_container_check >= 3:
                 # XCTest may reinstall the app and replace its data container.
                 # Resolve the currently installed app, never a cached pre-test path.
-                current = call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data', check=False, timeout=15)
-                if current.returncode == 0:
+                try:
+                    current = call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data', check=False, timeout=15)
+                except subprocess.TimeoutExpired:
+                    # XCTest's initial app installation temporarily holds the
+                    # container service. Keep the bounded test running and
+                    # resolve its new container on the next observation.
+                    current = None
+                if current and current.returncode == 0:
                     container = Path(current.stdout.strip())
                     if insights: seed_statement(container)
                     journal_path = next(container.rglob('journal.json'), None)
@@ -192,8 +209,9 @@ try:
     report['appExecutableSHA256'] = app_hash
     container = Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip())
     journal_path = next(container.rglob('journal.json'), None)
-    assert journal_path and journal_path.exists(), 'The actual app did not save a journal.'
-    journal = json.loads(journal_path.read_text())
+    if not options.dashboard_only:
+        assert journal_path and journal_path.exists(), 'The actual app did not save a journal.'
+    journal = json.loads(journal_path.read_text()) if journal_path and journal_path.exists() else {'entries': []}
     records = [entry['record'] for entry in journal['entries'] if not entry['record']['deleted']]
     trips = [r for r in records if r['kind']=='trip']
     expenses = [r for r in records if r['kind']=='expense']
@@ -237,15 +255,33 @@ try:
         assert len(trips)==1 and trips[0]['body'].get('endedAt') and not journal.get('activeTripId'), 'System alert buttons did not persist one completed trip.'
         handled = [row for row in journal.get('driverAlerts', []) if row.get('handledAt')]
         assert any(row['kind']=='startTrip' for row in handled) and any(row['kind']=='endTrip' for row in handled)
-        verified_tests += ['actual system Start trip action after app termination', 'actual system End trip action after app termination', 'actions preserve background UI state', 'completed trip and handled-action IDs persisted in app journal']
+        verified_tests += ['actual system Start trip action after app termination', 'actual system End trip action after app termination', 'actions preserve background UI state', 'completed trip and handled-action IDs persisted in app journal', 'modern Home/Offers/Go Home/Position/Earnings navigation', 'existing Trips/Money/Account open through the home menu']
         report['scope'] = 'Actual iPhone Simulator system notification actions and cold background launches; physical location and cross-app screen sharing unverified'
+    if options.dashboard_only:
+        assert not journal['entries'] and not journal.get('missionOffers'), 'Exploring offers created financial records in the real journal.'
+        offers = journal.get('gigOffers', [])
+        manual = [o for o in offers if o['source'] == 'manual']
+        captured = [o for o in offers if o['source'] == 'sharedScreenshot']
+        assert len(offers) == 2 and len(manual) == 1 and manual[0]['payoutCents'] == 3000, 'Only the manually entered test job and chosen-image capture should be saved; sample offers must remain separate.'
+        assert len(captured) == 1 and captured[0]['platform'] == 'DoorDash' and captured[0]['payoutCents'] == 1950 and captured[0]['pickupMiles'] == 2 and captured[0]['deliveryMiles'] == 4, 'The actual photo-picker → Vision → per-platform diagnostics path did not preserve the fixture values.'
+        work = journal.get('gigCommitments', [])
+        assert len(work) == 1 and work[0]['offerId'] == manual[0]['offerId'] and work[0]['state'] == 'completed', 'Reported work did not survive relaunch and completion.'
+        assert {d['choice'] for d in journal.get('gigDecisions', [])} == {'acceptedInProvider', 'completed'}
+        verified_tests += ['modern Home/Offers/Go Home/Position/Earnings navigation', 'existing Trips/Money/Account open through the home menu', 'sample earnings chart renders in the installed app', 'sample Uber and DoorDash offers appear in calculated rank order', 'sample offer detail explains destination compatibility', 'sample records and offers stay out of the actual journal', 'sample mode closes and stays closed after app relaunch']
+        report.update(scope='Native iPhone Simulator dashboard and explicitly simulated shift; no live marketplace data', sampleJournalIsolationVerified=True)
+        verified_tests += ['manually entered offer persists', 'driver-reported accepted job survives app relaunch', 'completion clears active work and survives relaunch without booking estimated earnings']
+        report['offerScreenshotImportVerified'] = True
+        verified_tests += ['all five platforms expose independent connection/detection/recommendation diagnostics', 'manual and sample offers do not count as captures', 'real system photo picker and Apple Vision extract a synthetic DoorDash offer', 'captured payout and miles appear in platform diagnostics and survive relaunch', 'DoorDash capture does not establish Uber capture or trustworthy advice']
     report.update(ok=True, tests=verified_tests, artifactDirectory=str(ARTIFACTS), resultBundle=str(result_bundle))
     success = True
 except BaseException as error:
     report.update(failedStage=stage, failure=str(error))
     if simulator:
-        current = call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data', check=False, timeout=15)
-        if current.returncode == 0:
+        try:
+            current = call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data', check=False, timeout=15)
+        except subprocess.TimeoutExpired:
+            current = None
+        if current and current.returncode == 0:
             journals = list(Path(current.stdout.strip()).rglob('journal.json'))
             report['savedJournalCount'] = len(journals)
             for index, path in enumerate(journals):

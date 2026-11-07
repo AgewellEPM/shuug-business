@@ -175,6 +175,12 @@ import UserNotifications
         if response.actionIdentifier == "confirmOffer" {
           do { try self.confirmObservedOffer(observed, sessionId: readerSession, scope: scope) }
           catch { self.sendStatus("Offer needs review", error.localizedDescription) }
+        } else if response.actionIdentifier == UNNotificationDefaultActionIdentifier || response.actionIdentifier == "openApp" {
+          guard let model = self.model, scope == model.journalScope,
+            let envelope = try? OfferCaptureStore.offer(observed),
+            envelope.scope == scope, envelope.sessionId == readerSession else { return }
+          model.refreshCapturedOffers()
+          model.requestedOffer = model.journal.gigOffers?.offer(capturedAs: observed)
         }
         return
       }

@@ -302,7 +302,8 @@ The iPhone offer reader uses Apple's `RPSystemBroadcastPickerView` and an embedd
 ReplayKit Broadcast Upload Extension. The user starts screen sharing explicitly;
 there is no silent capture or automatic restart. At most one frame per second is
 processed with on-device Vision. A share-sheet extension and the in-app photo
-picker accept chosen offer screenshots. Images and full transcripts are not
+picker accept chosen offer screenshots; the Share Extension also accepts text.
+Images and full transcripts are not
 persisted or uploaded. Parsed observations remain local and are not income entries.
 
 Select the gig platform and supply known fees/wait estimates plus the existing
@@ -332,4 +333,5 @@ approval or a live connection to any gig platform.
 
 Android offer-reading and alert work is checkpointed, with further development
 deferred at the user's request to focus on iPhone. No Android runtime acceptance
-is claimed.
+is claimed. See [the iPhone capability report](GIG-TAX-PROS-CAPABILITIES.md) for
+the unified offer pipeline, sample-data boundaries and current verification scope.

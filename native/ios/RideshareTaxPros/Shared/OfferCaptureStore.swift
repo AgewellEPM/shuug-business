@@ -4,9 +4,15 @@ import UserNotifications
 
 struct CapturedOfferEnvelope: Codable {
   var sessionId: UUID, scope: String, offer: ObservedOffer
+  var normalized: UniversalGigOffer? = nil
+  var normalizedOffer: UniversalGigOffer { normalized ?? UniversalGigOffer.observation(offer) }
 }
 struct OfferCaptureStatus: Codable {
   var phase: String, updatedAt: Date, message: String
+  var sessionId: UUID? = nil
+  var scope: String? = nil
+  var platform: GigPlatform? = nil
+  var lastFrameAt: Date? = nil
 }
 enum OfferCaptureStore {
   static let group = "group.com.ridesharetaxpros.driver"
@@ -38,12 +44,17 @@ enum OfferCaptureStore {
     if let url = try? root().appendingPathComponent("session.json") { try? FileManager.default.removeItem(at: url) }
   }
   static func status() -> OfferCaptureStatus? { try? read(OfferCaptureStatus.self, name: "status.json") }
-  static func status(_ phase: String, _ message: String) {
-    try? write(OfferCaptureStatus(phase: phase, updatedAt: Date(), message: message), name: "status.json")
+  static func status(_ phase: String, _ message: String, frameReceived: Bool = false) {
+    let session = session()
+    try? write(OfferCaptureStatus(phase: phase, updatedAt: Date(), message: message,
+      sessionId: session?.id, scope: session?.scope, platform: session?.platform,
+      lastFrameAt: frameReceived ? Date() : nil), name: "status.json")
   }
-  static func save(_ offer: ObservedOffer, session: OfferReaderSession) throws {
+  static func save(_ offer: ObservedOffer, session: OfferReaderSession, normalized: UniversalGigOffer? = nil) throws {
     guard self.session()?.id == session.id else { throw DriverAlertError.expired }
-    let envelope = CapturedOfferEnvelope(sessionId: session.id, scope: session.scope, offer: offer)
+    var universal = normalized ?? UniversalGigOffer.observation(offer)
+    universal.offerId = offer.id
+    let envelope = CapturedOfferEnvelope(sessionId: session.id, scope: session.scope, offer: offer, normalized: universal)
     try write(envelope, name: offer.id.uuidString + ".json")
     // These are transient, unconfirmed observations, not journal entries.
     let root = try root()
@@ -66,9 +77,16 @@ enum OfferCaptureStore {
   static func notify(_ offer: ObservedOffer, session: OfferReaderSession) {
     let content = UNMutableNotificationContent()
     content.title = "Review \(offer.platform.rawValue) offer: \(offer.payoutCents.map(usd) ?? "payout unreadable")"
-    if let estimate = offer.estimate(session: session) {
-      content.body = "\(usd(estimate.netCents)) estimated net · \(usd(Int(estimate.hourlyCents.rounded())))/active hour. Confirm \(offer.displayedMiles ?? 0) total mi, \(offer.displayedMinutes ?? 0) min, \(usd(session.feesCents ?? 0)) fees and \(session.waitMinutes ?? 0) min wait. Home impact unknown."
-      content.categoryIdentifier = "gig.offer"
+    var normalized = (try? self.offer(offer.id))?.normalizedOffer ?? UniversalGigOffer.observation(offer)
+    normalized.additionalCostsCents = normalized.additionalCostsCents ?? session.feesCents
+    normalized.waitMinutes = normalized.waitMinutes ?? session.waitMinutes
+    let profile = GigProfitProfile(vehicleCostCentsPerMile: session.goals.vehicleCostCentsPerMile.flatMap(GigMoneyMath.decimal),
+      minimumNetHourlyCents: session.goals.targetHourlyCents ?? 0)
+    let estimate = OfferProfitabilityEngine.assess(normalized, profile: profile)
+    if let net = estimate.profitBeforeReserve {
+      let range = net.isPoint ? usd(net.lowerCents) : "\(usd(net.lowerCents)) to \(usd(net.upperCents))"
+      content.body = "\(range) estimated profit before reserve. Review extracted fields, current availability and the full route home before deciding."
+      content.categoryIdentifier = "gig.offer.review"
     } else {
       content.body = "Some payout, total miles, time or cost settings are missing. Review the visible offer before calculating."
       content.categoryIdentifier = "gig.offer.review"

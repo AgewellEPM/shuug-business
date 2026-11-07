@@ -9,6 +9,8 @@ import Network
   @Published private(set) var connection: ConnectionProfile?
   @Published var message: String?
   @Published var requestedPrompt: ExpensePrompt?
+  @Published var requestedOffer: UniversalGigOffer?
+  @Published var offerRouteEvidence: [UUID: GigOfferRouteEvidence] = [:]
   @Published var bankStatus: BankStatusReply?
   @Published var bankError: String?
   @Published var bankSyncing = false
@@ -19,6 +21,7 @@ import Network
   private(set) var disk: JournalDiskStore!
   private var namespace = "guest", lastAttempt = Date.distantPast
   private let monitor = NWPathMonitor()
+  var importedCaptureIDs = Set<String>()
   private var root: URL {
     FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
       .appendingPathComponent("RideshareTaxPros", isDirectory: true)
@@ -130,6 +133,7 @@ import Network
     disk = nextDisk
     journal = nextJournal
     namespace = nextScope
+    offerRouteEvidence = [:]
     connection = profile
     bankStatus = nil; bankError = nil
     storageHealthy = true
@@ -149,6 +153,7 @@ import Network
       connection = nil
       bankStatus = nil; bankError = nil
       namespace = "guest"
+      offerRouteEvidence = [:]
       disk = guestDisk
       journal = guestJournal
       syncStatus = "Saved on this iPhone"

@@ -7,14 +7,17 @@ import SwiftUI
 struct MissionRouteSection: View {
   let deadline: Date?
   let waitMinutes: Double?
+  var positioningOnly = false
   @StateObject private var planner = MissionRoutePlanner()
   @State private var destinationQuery = ""
+  @State private var pickupQuery = ""
   @State private var dropoffQuery = ""
+  @State private var completeRouteConfirmed = false
   var body: some View {
-    Section("Get paid going home") {
-      Text("While parked, select a destination and an offer's drop-off to compare actual road routes. The offer is still entered by you; no marketplace offers are fetched.")
+    Section(positioningOnly ? "Your destination" : "Get paid going home") {
+      Text("While parked, select your destination. Find matching job-start areas from your history, or choose an offer’s pickup and drop-off to compare the full route.")
         .font(.footnote)
-      Text("When you search or compare, Apple Maps receives your search terms and, for the route, your current location and selected endpoints. The app does not save these details in your journal or send them to the firm.")
+      Text("Apple Maps receives your search terms and route endpoints. Finding waiting areas also sends the historical job starts/drop-offs needed for road comparisons. These lookups are not saved to your journal or sent to the firm.")
         .font(.caption).foregroundStyle(Brand.muted)
       Button(planner.current == nil ? "Use my current location" : "Update my current location") { planner.locate() }
         .disabled(planner.locating || planner.loading)
@@ -30,6 +33,13 @@ struct MissionRouteSection: View {
       if planner.searching == .destination { ProgressView("Searching destinations…") }
       if planner.resultKind == .destination { candidates }
 
+      if let origin = planner.current, let destination = planner.destination {
+        DestinationPositioningSection(origin: origin, destination: destination, deadline: deadline)
+          .id("\(origin.timestamp.timeIntervalSince1970)|\(destination.placemark.coordinate.latitude)|\(destination.placemark.coordinate.longitude)")
+      }
+
+      if !positioningOnly {
+      RoutePlaceSearch(planner: planner, query: $pickupQuery, kind: .pickup, title: "Offer pickup")
       TextField("Offer drop-off address or place", text: $dropoffQuery).textInputAutocapitalization(.words).autocorrectionDisabled()
         .onChange(of: dropoffQuery) { _, _ in planner.clearDropoff() }
       Button("Search offer drop-off") { Task { await planner.search(dropoffQuery, for: .dropoff) } }
@@ -39,16 +49,19 @@ struct MissionRouteSection: View {
       if planner.resultKind == .dropoff { candidates }
       if let error = planner.error { Text(error).font(.caption).foregroundStyle(.orange) }
 
+      Toggle("Pickup, drop-off and home cover the entire route", isOn: $completeRouteConfirmed)
+      Text("Confirm only when there are no other delivery stops or required repositioning. Add all pickup/service wait in the offer above.").font(.caption)
       Button("Compare road routes") { Task { await planner.compare() } }
-        .disabled(planner.current == nil || planner.destination == nil || planner.dropoff == nil || planner.loading || planner.searching != nil)
+        .disabled(planner.current == nil || planner.destination == nil || planner.pickup == nil || planner.dropoff == nil || planner.loading || planner.searching != nil)
       if planner.loading { ProgressView("Calculating routes with Apple Maps…"); Button("Cancel route lookup") { planner.cancel() } }
       if let routes = planner.routes {
         TimelineView(.periodic(from: .now, by: 60)) { context in
           routeResults(routes, now: context.date)
         }
       }
-      Text("The route to the drop-off starts at your current position and does not include an unknown pickup or other stops. Add those and restaurant wait yourself; they can change the deadline and cost. Road routes and traffic can change. Never interact with the app while driving.")
+      Text("The comparison includes travel to pickup, delivery and onward to your destination. Extra stops require a new route. Road routes and traffic can change. Use these controls while parked.")
         .font(.caption).foregroundStyle(Brand.muted)
+      }
     }.onDisappear { planner.cancel() }
   }
   private var candidates: some View {
@@ -61,37 +74,29 @@ struct MissionRouteSection: View {
   }
   @ViewBuilder private func routeResults(_ routes: MissionRoutes, now: Date) -> some View {
     let age = now.timeIntervalSince(routes.calculatedAt)
-    let wait = waitMinutes.flatMap { $0.isFinite && (0...240).contains($0) ? $0 * 60 : nil }
+    let wait = completeRouteConfirmed ? waitMinutes.flatMap { $0.isFinite && (0...240).contains($0) ? $0 * 60 : nil } : nil
     let comparison = DestinationRouteComparison(directMeters: routes.direct.distance, directSeconds: routes.direct.expectedTravelTime,
-      toDropoffMeters: routes.toDropoff.distance, toDropoffSeconds: routes.toDropoff.expectedTravelTime,
+      toDropoffMeters: routes.toPickup.distance + routes.delivery.distance, toDropoffSeconds: routes.toPickup.expectedTravelTime + routes.delivery.expectedTravelTime,
       onwardMeters: routes.onward.distance, onwardSeconds: routes.onward.expectedTravelTime,
       waitSeconds: wait, deadline: deadline, now: now)
     VStack(alignment: .leading, spacing: 8) {
-      Map(initialPosition: .automatic) {
-        MapPolyline(routes.direct.polyline).stroke(.purple.opacity(0.65), lineWidth: 4)
-        MapPolyline(routes.toDropoff.polyline).stroke(.pink, lineWidth: 5)
-        MapPolyline(routes.onward.polyline).stroke(.cyan, lineWidth: 5)
-        Marker("Current", coordinate: routes.origin.coordinate)
-        Marker("Drop-off", coordinate: routes.dropoff.placemark.coordinate)
-        Marker("Destination", coordinate: routes.destination.placemark.coordinate)
-      }.frame(height: 220).clipShape(RoundedRectangle(cornerRadius: 14))
-      Text("Purple: direct · Pink: to drop-off · Blue: onward").font(.caption)
+      MissionRouteMap(routes: routes)
       Text("Direct: \(Brand.miles(routes.direct.distance)) mi · \(minutes(routes.direct.expectedTravelTime)) min")
-      Text("Via drop-off: \(Brand.miles(routes.toDropoff.distance + routes.onward.distance)) mi · \(minutes(routes.toDropoff.expectedTravelTime + routes.onward.expectedTravelTime)) min driving")
+      Text("Via pickup and drop-off: \(Brand.miles(routes.jobDistance + routes.onward.distance)) mi · \(minutes(routes.jobTravelTime + routes.onward.expectedTravelTime)) min driving")
       if let comparison {
         let change = comparison.distanceChangeMeters
         Text(abs(change) < 160.9344 ? "Drop-off is about the same road distance from your destination." :
           "Drop-off is \(Brand.miles(abs(change))) mi \(change > 0 ? "closer to" : "farther from") your destination by road.")
         let extra = comparison.extraTravelSeconds
-        Text("Via drop-off: \(minutes(abs(extra))) min \(extra >= 0 ? "longer" : "shorter") than driving directly, before wait and omitted stops.")
-        if age > 300 || now.timeIntervalSince(routes.origin.timestamp) > 120 {
+        Text("Via the job: \(minutes(abs(extra))) min \(extra >= 0 ? "longer" : "shorter") than driving directly, before wait.")
+        if !(0...300).contains(age) || !(0...120).contains(now.timeIntervalSince(routes.origin.timestamp)) {
           Text("Your location or route estimate is old. Update your location and compare again before using a deadline estimate.").foregroundStyle(.orange)
         }
         else if let buffer = comparison.deadlineBufferSeconds {
-          Text(buffer >= 0 ? "Estimated \(minutes(buffer)) min before your deadline" : "Estimated \(minutes(-buffer)) min after your deadline").foregroundStyle(buffer >= 0 ? .green : .orange)
-          Text("Includes your entered wait; unknown pickup and other stops are excluded. Arrival is not guaranteed.").font(.caption)
+          Text(buffer >= 0 ? "Estimated \(minutes(buffer)) min before your deadline" : "Estimated \(minutes(-buffer)) min after your deadline").foregroundStyle(buffer >= 0 ? Brand.link : .orange)
+          Text("Includes your entered wait and confirmed stops. This point estimate is not a recommendation; use an offer’s full analysis to include delay ranges and pay.").font(.caption)
         } else if deadline == nil { Text("Save a mission deadline to compare arrival time.").font(.caption) }
-        else { Text("Enter a pickup wait above, including 0 when known, to see a deadline estimate.").font(.caption) }
+        else { Text("Confirm the complete route and enter pickup/service wait above, including 0 when known, to compare the deadline.").font(.caption) }
       }
       Text("Road estimates requested \(routes.calculatedAt.formatted(date: .omitted, time: .shortened)); compare again after conditions change.")
         .font(.caption).foregroundStyle(Brand.muted)
@@ -101,15 +106,28 @@ struct MissionRouteSection: View {
 }
 
 struct MissionRoutes {
-  let direct: MKRoute, toDropoff: MKRoute, onward: MKRoute
-  let origin: CLLocation, dropoff: MKMapItem, destination: MKMapItem
+  let direct: MKRoute, toPickup: MKRoute, delivery: MKRoute, onward: MKRoute
+  let origin: CLLocation, pickup: MKMapItem, dropoff: MKMapItem, destination: MKMapItem
   let calculatedAt: Date
+  var jobDistance: Double { toPickup.distance + delivery.distance }
+  var jobTravelTime: Double { toPickup.expectedTravelTime + delivery.expectedTravelTime }
+  func plan(offerId: UUID, delayBufferMinutes: Double) -> GigDestinationRoutePlan {
+    func leg(_ route: MKRoute, buffer: Double) -> GigRoadLeg {
+      let miles = route.distance / 1609.344, minutes = route.expectedTravelTime / 60
+      return GigRoadLeg(miles: GigNumericBounds(miles, miles), minutes: GigNumericBounds(minutes, minutes + buffer), measuredAt: calculatedAt, source: .appleMaps)
+    }
+    let destination = GigOfferLocation(label: self.destination.name ?? "Destination", latitude: self.destination.placemark.coordinate.latitude, longitude: self.destination.placemark.coordinate.longitude)
+    return GigDestinationRoutePlan(offerId: offerId, destination: destination, originCapturedAt: origin.timestamp,
+      direct: leg(direct, buffer: 0), toPickup: leg(toPickup, buffer: delayBufferMinutes / 3),
+      delivery: leg(delivery, buffer: delayBufferMinutes / 3), onward: leg(onward, buffer: delayBufferMinutes / 3))
+  }
 }
 
 @MainActor final class MissionRoutePlanner: NSObject, ObservableObject, CLLocationManagerDelegate {
-  enum Kind { case destination, dropoff }
+  enum Kind { case destination, pickup, dropoff }
   @Published private(set) var current: CLLocation?
   @Published private(set) var destination: MKMapItem?
+  @Published private(set) var pickup: MKMapItem?
   @Published private(set) var dropoff: MKMapItem?
   @Published private(set) var locating = false
   @Published private(set) var loading = false
@@ -164,12 +182,14 @@ struct MissionRoutes {
     return name.isEmpty ? title : "\(name) · \(title)"
   }
   func clearDestination() { destination = nil; clearSearch(); invalidate() }
+  func clearPickup() { pickup = nil; clearSearch(); invalidate() }
   func clearDropoff() { dropoff = nil; clearSearch(); invalidate() }
+  func clearAll() { cancel(); current = nil; destination = nil; pickup = nil; dropoff = nil }
   private func clearSearch() { searchRequest?.cancel(); searchRequest = nil; searching = nil; candidates = []; resultKind = nil }
   private func invalidate() { generation += 1; directions?.cancel(); directions = nil; routes = nil; loading = false; error = nil }
   func cancel() { invalidate(); clearSearch(); wantsLocation = false; locating = false; location.stopUpdatingLocation() }
   func choose(_ item: MKMapItem) {
-    if resultKind == .destination { destination = item } else if resultKind == .dropoff { dropoff = item }
+    if resultKind == .destination { destination = item } else if resultKind == .pickup { pickup = item } else if resultKind == .dropoff { dropoff = item }
     candidates = []; resultKind = nil; invalidate()
   }
   func search(_ query: String, for kind: Kind) async {
@@ -189,18 +209,19 @@ struct MissionRoutes {
     if run == generation { searching = nil; searchRequest = nil }
   }
   func compare() async {
-    guard let origin = current, let destination, let dropoff else { return }
+    guard let origin = current, let destination, let pickup, let dropoff else { return }
     guard abs(origin.timestamp.timeIntervalSinceNow) <= 120 else { locationError = "Your current location is old. Update it before comparing routes."; current = nil; return }
     invalidate(); let run = generation; loading = true
     defer { if run == generation { loading = false; directions = nil } }
     let start = MKMapItem(placemark: MKPlacemark(coordinate: origin.coordinate))
     do {
       let direct = try await route(from: start, to: destination); guard generation == run else { return }
-      let toDropoff = try await route(from: start, to: dropoff); guard generation == run else { return }
+      let toPickup = try await route(from: start, to: pickup); guard generation == run else { return }
+      let delivery = try await route(from: pickup, to: dropoff); guard generation == run else { return }
       let onward = try await route(from: dropoff, to: destination); guard generation == run else { return }
-      routes = MissionRoutes(direct: direct, toDropoff: toDropoff, onward: onward, origin: origin,
-                             dropoff: dropoff, destination: destination, calculatedAt: Date())
-    } catch { if run == generation { self.error = "Apple Maps could not calculate all three routes. Check the locations and connection, then try again." } }
+      routes = MissionRoutes(direct: direct, toPickup: toPickup, delivery: delivery, onward: onward, origin: origin,
+                             pickup: pickup, dropoff: dropoff, destination: destination, calculatedAt: Date())
+    } catch { if run == generation { self.error = "Apple Maps could not calculate all four route legs. Check the locations and connection, then try again." } }
   }
   private func route(from: MKMapItem, to: MKMapItem) async throws -> MKRoute {
     let request = MKDirections.Request(); request.source = from; request.destination = to; request.transportType = .automobile
