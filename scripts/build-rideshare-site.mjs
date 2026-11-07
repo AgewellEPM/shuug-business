@@ -43,6 +43,7 @@ writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encodin
 writeFileSync(path.join(staticPath, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 writeFileSync(path.join(staticPath, 'site-manifest.json'), JSON.stringify({ origin, aliases, pages: ['/', ...aliases.map(slug => `/${slug}`)] }, null, 2));
 if (cloudflare) {
+  writeFileSync(path.join(staticPath, '_redirects'), '/pricing /free 301\n/pricing.html /free 301\n');
   writeFileSync(path.join(staticPath, '_headers'), `/*\n  Content-Security-Policy: ${csp}\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/site-config.json\n  Cache-Control: no-store\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n  Cache-Control: public, max-age=300\n/bank-return\n  Referrer-Policy: no-referrer\n`);
 } else writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3, routes: [
   { src: '/.*', headers: { 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }, continue: true },
@@ -50,6 +51,7 @@ if (cloudflare) {
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
   { src: '/\\.well-known/apple-app-site-association', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' }, continue: true },
   { src: '/bank-return', headers: { 'Referrer-Policy': 'no-referrer' }, dest: '/bank-return.html' },
+  { src: '/pricing(?:\\.html)?', status: 308, headers: { Location: '/free' } },
   ...aliases.map(slug => ({ src: `/${slug}`, dest: `/${slug}.html` })),
   { handle: 'filesystem' },
   { src: '/.*', dest: '/404.html', status: 404 },

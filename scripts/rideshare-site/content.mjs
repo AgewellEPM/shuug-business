@@ -24,11 +24,11 @@ export const services = [
     points: [
       ['Map the work you did', 'Identify the platforms, tax years and other income your preparer needs to understand. A side gig belongs in the conversation alongside your regular job.'],
       ['Bring the records together', 'Use a practical checklist for platform statements, tax forms, business records and prior-year information. Mark what is ready and what still needs attention.'],
-      ['Review the scope before starting', 'Confirm who will prepare the return, which years and jurisdictions are included, what the fee covers and how questions will be handled.'],
+      ['Review the scope before starting', 'Confirm who will prepare the return, which years and jurisdictions are included, what help is included and how questions will be handled.'],
     ],
     prepare: ['Platform annual summaries and any tax forms received', 'Income and expense records for the relevant year', 'Mileage and vehicle records for professional review', 'Prior-year return and records of tax payments, where relevant'],
-    questions: ['Does the quoted scope include my other income?', 'Which federal and state returns are included?', 'How will I review the return and authorize any filing?'],
-    related: ['document-checklist', 'guides/uber-lyft-tax-forms', 'pricing'], sourceKeys: ['documents'],
+    questions: ['Can I include my other income?', 'Which federal and state returns are included?', 'How will I review the return and authorize any filing?'],
+    related: ['document-checklist', 'guides/uber-lyft-tax-forms', 'free'], sourceKeys: ['documents'],
   },
   {
     slug: 'mileage-and-expenses', number: '02', label: 'Mileage & expenses', short: 'Turn scattered records into a useful review.',
@@ -70,7 +70,7 @@ export const services = [
     ],
     prepare: ['The months or years you want organized', 'Platform and other income records', 'Available statements, receipts and existing spreadsheets', 'A list of missing records or questions to resolve'],
     questions: ['How often will the records be reviewed?', 'Is historical cleanup included?', 'What information will I receive after each review?'],
-    related: ['quarterly-taxes', 'pricing', 'document-checklist'], sourceKeys: ['records'],
+    related: ['quarterly-taxes', 'free', 'document-checklist'], sourceKeys: ['records'],
   },
 ];
 
@@ -96,7 +96,7 @@ export const checklistGroups = [
     ['previous-return', 'Prior-year return, if you filed one', 'all'],
     ['tax-payments', 'Records of estimated payments or relevant withholding', 'all'],
     ['other-forms', 'Other tax forms and records requested by your preparer', 'all'],
-    ['questions', 'Your questions about the year, service scope and fees', 'all'],
+    ['questions', 'Your questions about the year and the help you need', 'all'],
   ] },
 ];
 
@@ -110,15 +110,15 @@ export const faqs = [
   ['Platforms & records', 'What if I did not receive a 1099?', 'A missing information form does not by itself remove the responsibility to report income. Bring your other records and ask your preparer what is needed.'],
   ['Platforms & records', 'Why can a platform total be higher than my bank deposits?', 'Some platform figures describe gross customer payments before fees and other adjustments. Gather the summary and payout records together for review rather than assuming they describe the same number.'],
   ['Platforms & records', 'Does the checklist upload my documents?', 'No. It marks record categories as ready in this tab. It has no file upload, no financial entry and no connection to a client account.'],
-  ['Costs & scope', 'What does tax preparation cost?', 'Fees are being finalized. The pricing page explains the information needed to define a quote. No price, discount or package is implied by using the planner.'],
-  ['Costs & scope', 'Are federal and state returns both included?', 'That must be stated in the engagement and quote. Ask about each tax year, state or other jurisdiction that may be involved.'],
-  ['Costs & scope', 'Is bookkeeping included with filing?', 'Do not assume that it is. Ongoing records work, historical cleanup, quarterly reviews and return preparation should each be identified in the agreed scope.'],
+  ['Free access', 'Is Gig Tax Pros free to use?', 'Yes. Gig Tax Pros is free to use. There are no paid plans or subscription charges.'],
+  ['Free access', 'How do I check which returns I need?', 'Tell your preparer which tax years and states are involved so you can review the right records together.'],
+  ['Free access', 'Can I organize records throughout the year?', 'Yes. Use the records checklist and bookkeeping guidance throughout the year, and confirm the next review with your preparer.'],
   ['Quarterly & mileage', 'Can this website calculate what I should pay?', 'No. It helps organize records and questions. Your payment amount needs a review of your circumstances and the applicable instructions.'],
   ['Quarterly & mileage', 'Which mileage rate should I use?', 'Use the official rules for the tax year and dates involved with your tax professional. The mileage guide links to the IRS rather than applying one fixed rate to every trip.'],
   ['Quarterly & mileage', 'What if I have a rental, lease or more than one vehicle?', 'Collect the relevant vehicle records and explain the changes to your preparer. Eligibility and prior vehicle choices can affect how expenses are treated.'],
   ['Client access', 'Can I sign in to Shuug today?', 'The firm’s private client workspace is not connected to this public site yet. The Client Portal page shows its current availability; it does not accept passwords.'],
   ['Client access', 'Is Drake required?', 'No. Shuug is the business workspace. If the firm uses an external filing engine such as Drake, that is a separate service and will be clearly identified.'],
   ['Client access', 'Can I send sensitive documents by ordinary email?', 'Wait for verified instructions from your tax professional and use the approved private channel. General contact messages should not include taxpayer IDs, bank details or tax documents.'],
-  ['Client access', 'Do you guarantee a refund?', 'No. Outcomes depend on your facts and applicable rules. Financial illustrations are not a quote or promise of a result.'],
+  ['Client access', 'Do you guarantee a refund?', 'No. Outcomes depend on your facts and applicable rules. Financial illustrations are not a promise of a result.'],
   ['Client access', 'How do I verify the person preparing my return?', 'Ask about the preparer’s qualifications, contact details, engagement terms and review process. Our resources link to the IRS guide to choosing a preparer.'],
 ];
