@@ -3,26 +3,8 @@
 .services-sheet { position: relative; width: 100%; max-width: 1440px; margin: 0 auto; }
 .services-reference { display: block; width: 100%; height: auto; }
 .services-readable { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; }
-.services-mobile-header, .services-mobile-art, .services-page .mobile-action-bar { display: none; }
+.services-mobile-art, .services-page .mobile-action-bar { display: none; }
 .services-hit { position: absolute; display: block; color: #fff; text-decoration: none; border: 0; border-radius: 12px; background: transparent; }
-.services-hit:hover { background: #ffffff08; box-shadow: 0 0 20px #ee1ae550; }
-.services-hit:focus-visible, .services-nav-menu summary:focus-visible { outline: 3px solid #fff; outline-offset: 3px; background: #ffffff0a; }
-.services-desktop-header .services-hit, .services-nav-menu { top: .2%; height: 3%; z-index: 5; }
-.services-nav-brand { left: 3%; width: 22%; }
-.services-nav-home { left: 27.6%; width: 5.4%; }
-.services-nav-drivers { left: 42.4%; width: 5.4%; }
-.services-nav-offices { left: 48.6%; width: 5.6%; }
-.services-nav-resources { left: 55%; width: 7%; }
-.services-nav-about { left: 63.3%; width: 5%; }
-.services-nav-portal { left: 70%; width: 13%; }
-.services-nav-ready { left: 84.4%; width: 14.2%; }
-.services-nav-menu { position: absolute; left: 34%; width: 7%; }
-.services-nav-menu summary { height: 100%; cursor: pointer; list-style: none; border-radius: 8px; }
-.services-nav-menu summary::-webkit-details-marker { display: none; }
-.services-nav-menu[open] { z-index: 50; }
-.services-nav-menu nav { position: absolute; top: 100%; left: 0; width: 265px; display: grid; padding: 10px; border: 1px solid #cf46e4; border-radius: 14px; background: #0b0714fa; box-shadow: 0 16px 50px #000b; }
-.services-nav-menu nav a { display: block; padding: 12px; min-height: 44px; font-size: 15px; text-decoration: none; border-radius: 7px; }
-.services-nav-menu nav a:hover { background: #e32de51c; }
 .services-hero { position: absolute; top: 3.25%; left: 0; width: 100%; height: 20.1%; }
 .services-hero-start { left: 2.8%; top: 80%; width: 19.5%; height: 13.7%; }
 .services-hero-watch { left: 23.6%; top: 80%; width: 18%; height: 13.7%; }
@@ -38,18 +20,15 @@
 .services-cta { position: absolute; top: 83.8%; left: 0; width: 100%; height: 14.3%; }
 .services-create-account { left: 39.1%; top: 59.7%; width: 26%; height: 24%; }
 .services-find-office { left: 67.2%; top: 59.7%; width: 27.5%; height: 24%; }
-@media (max-width: 800px) {
+@media (max-width: 1023px) {
   .services-page { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
   .services-sheet { max-width: 640px; }
-  .services-reference, .services-desktop-header { display: none; }
+  .services-reference { display: none; }
   .services-readable { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip-path: none; border: 0; }
-  .services-mobile-header { display: flex; position: sticky; top: 0; z-index: 30; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #d62be33b; background: #06030bf5; backdrop-filter: blur(12px); }
-  .services-mobile-header .brand { font-size: clamp(18px, 4.7vw, 25px); }
-  .services-mobile-header .brand-symbol { flex-basis: 40px; height: 38px; }
   .services-hero, .services-how, .services-cta { position: static; width: auto; height: auto; }
   .services-hero { padding: 26px 22px 0; background: radial-gradient(ellipse at top right, #bd16ce24, transparent 70%); }
   .services-eyebrow { color: #fa30eb; font-weight: 800; font-size: 13px; letter-spacing: 1.4px; margin-bottom: 10px; }
-  .services-page h1 { font-size: clamp(35px, 7.5vw, 53px); line-height: 1.04; font-weight: 900; font-style: italic; letter-spacing: -1.3px; margin: 0 0 18px; }
+  .services-sheet h1 { font-size: clamp(35px, 7.5vw, 53px); line-height: 1.04; font-weight: 900; font-style: italic; letter-spacing: -1.3px; margin: 0 0 18px; }
   .services-page em { color: #ef1ee9; }
   .services-lede { font-size: 16px; line-height: 1.5; max-width: 480px; }
   .services-mobile-art { display: block; width: 100%; height: auto; overflow: hidden; }
@@ -62,7 +41,7 @@
   .services-platforms li { display: flex; align-items: center; justify-content: center; min-height: 38px; padding: 8px 13px; font-size: 14px; font-weight: 700; border: 1px solid #9c48a6; border-radius: 10px; background: #0a0610; }
   .services-platforms li:nth-child(2) { color: #ed21e5; }
   .services-catalog, .services-how, .services-benefits, .services-cta { padding: 26px 20px; border-top: 1px solid #9d42a64f; }
-  .services-page h2 { font-size: clamp(28px, 6vw, 39px); line-height: 1.07; font-weight: 900; font-style: italic; letter-spacing: -.8px; margin: 0 0 12px; }
+  .services-sheet h2 { font-size: clamp(28px, 6vw, 39px); line-height: 1.07; font-weight: 900; font-style: italic; letter-spacing: -.8px; margin: 0 0 12px; }
   .services-section-intro, .services-how-copy > p { margin: 0 0 22px; font-size: 15px; line-height: 1.5; color: #f0e9f4; }
   .services-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
   .services-card { display: block; width: auto; height: auto; text-align: left; padding: 14px; background: linear-gradient(135deg, #1c1027, #09060f 75%); border: 1px solid #a251b0; border-radius: 16px; }
@@ -90,7 +69,7 @@
 @media (max-width: 479px) {
   .services-hero-actions { grid-template-columns: 1fr; }
   .services-card-grid { grid-template-columns: 1fr; }
-  .services-card-copy { display: grid !important; grid-template-columns: 90px minmax(0, 1fr); gap: 7px 14px; }
+  .services-hit .services-card-copy { display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 7px 14px; }
   .services-card-icon { width: 90px; height: 80px; grid-row: span 2; margin: 0; align-self: center; }
   .services-card h3 { margin: 0; padding-right: 18px; }
   .services-card p { grid-column: 2; }

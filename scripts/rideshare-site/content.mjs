@@ -110,7 +110,7 @@ export const faqs = [
   ['Platforms & records', 'What if I did not receive a 1099?', 'A missing information form does not by itself remove the responsibility to report income. Bring your other records and ask your preparer what is needed.'],
   ['Platforms & records', 'Why can a platform total be higher than my bank deposits?', 'Some platform figures describe gross customer payments before fees and other adjustments. Gather the summary and payout records together for review rather than assuming they describe the same number.'],
   ['Platforms & records', 'Does the checklist upload my documents?', 'No. It marks record categories as ready in this tab. It has no file upload, no financial entry and no connection to a client account.'],
-  ['Free access', 'Is Gig Tax Pros free to use?', 'Yes. Gig Tax Pros is free to use. There are no paid plans or subscription charges.'],
+  ['Free access', 'Is Gig Tax Pros free to use?', 'Yes. Use the app and tools for free, with no subscription. You pay only when you choose and approve a professional service, with the price shown before work begins.'],
   ['Free access', 'How do I check which returns I need?', 'Tell your preparer which tax years and states are involved so you can review the right records together.'],
   ['Free access', 'Can I organize records throughout the year?', 'Yes. Use the records checklist and bookkeeping guidance throughout the year, and confirm the next review with your preparer.'],
   ['Quarterly & mileage', 'Can this website calculate what I should pay?', 'No. It helps organize records and questions. Your payment amount needs a review of your circumstances and the applicable instructions.'],

@@ -1,5 +1,6 @@
 import { origin } from './content.mjs';
-import { brand, dialogs, escape as e, quickActions } from './layout.mjs';
+import { brand, dialogs, escape as e, footer, quickActions } from './layout.mjs';
+import { publicHeader, publicNavigation } from './public-navigation.mjs';
 
 const artwork = '/assets/services-reference.png';
 const offerings = [
@@ -12,33 +13,12 @@ const offerings = [
   ['Year-Round Support', 'Not just tax season. Get answers, updates, and planning help all year long.', '/bookkeeping', [582, 685, 114, 82]],
   ['Local Office Support', 'Work with a real person at a nearby Gig Tax Pros location in your community.', '/contact', [815, 686, 115, 82]],
 ];
-const navigationLinks = [
-  ['Home', '/', 'home'], ['Drivers', '/get-started', 'drivers'],
-  ['Offices', '/contact', 'offices'], ['Resources', '/resources', 'resources'],
-  ['About', '/about', 'about'], ['Client Portal', '/client-portal', 'portal'],
-  ['Get Tax-Ready', '/get-started', 'ready'],
-];
 
 // The supplied artwork stays unchanged. SVG viewports reuse its illustrations
 // for the mobile layout without making additional raster copies.
 const crop = (box, className = '') => `<svg class="services-mobile-art ${className}" viewBox="${box.join(' ')}" aria-hidden="true" focusable="false"><image href="${artwork}" width="1024" height="1536"/></svg>`;
 const label = text => `<span class="services-readable">${e(text)}</span>`;
 const action = (text, href, className) => `<a class="services-hit ${className}" href="${href}">${label(text)}</a>`;
-
-function header() {
-  return `<header class="services-desktop-header">
-    ${action('Gig Tax Pros home', '/', 'services-nav-brand')}
-    <nav aria-label="Primary">${navigationLinks.map(([text, href, key]) => action(text, href, `services-nav-${key}`)).join('')}
-      <details class="services-nav-menu"><summary aria-label="Open services menu">${label('Services')}</summary>
-        <nav aria-label="Service details"><a href="/services" aria-current="page">All services</a>${offerings.map(([text, , href]) => `<a href="${href}">${e(text)}</a>`).join('')}</nav>
-      </details>
-    </nav>
-  </header><header class="services-mobile-header">${brand()}<button class="menu-button" data-menu aria-label="Open navigation" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button></header>`;
-}
-
-function mobileNavigation() {
-  return `<dialog id="navigation" class="navigation" aria-labelledby="navigation-title"><div class="dialog-top"><strong id="navigation-title">Find your next step</strong><button class="close-button" data-close aria-label="Close navigation">×</button></div><nav aria-label="Main navigation"><a href="/services" aria-current="page">Services<span aria-hidden="true">↗</span></a>${navigationLinks.map(([text, href]) => `<a href="${href}">${e(text)}<span aria-hidden="true">↗</span></a>`).join('')}</nav></dialog>`;
-}
 
 function main() {
   return `<main id="main" tabindex="-1">
@@ -84,6 +64,6 @@ export function servicesPage() {
   const description = 'Everything you need for your gig work, taxes and business. Tax preparation, deductions, quarterly support and local office support.';
   return {
     slug: 'services', label: 'Services', file: 'services.html',
-    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>Services | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/services"><meta property="og:title" content="Services | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/services"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/services.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="services-page"><a class="skip-link" href="#main">Skip to content</a><div class="services-sheet">${header()}${main()}</div>${quickActions()}${mobileNavigation()}${dialogs()}</body></html>`,
+    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>Services | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/services"><meta property="og:title" content="Services | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/services"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/services.css"><link rel="stylesheet" href="/navigation.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="services-page"><a class="skip-link" href="#main">Skip to content</a><div class="services-sheet">${publicHeader('/services', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/services')}${dialogs()}</body></html>`,
   };
 }

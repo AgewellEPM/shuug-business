@@ -58,6 +58,9 @@
     }
   }
   document.addEventListener('click', event => {
+    for (const menu of document.querySelectorAll('.public-services[open]')) {
+      if (!menu.contains(event.target)) menu.open = false;
+    }
     const trigger = event.target.closest('[data-dialog]');
     if (trigger) {
       navigation.close(); renderPanel(trigger.dataset.dialog);
@@ -90,6 +93,11 @@
   navigation.addEventListener('close', () => {
     document.querySelectorAll('[data-menu]').forEach(button => button.setAttribute('aria-expanded', 'false'));
     menuOpener?.focus(); menuOpener = null;
+  });
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || navigation.open || information.open) return;
+    const menu = document.querySelector('.public-services[open]');
+    if (menu) { menu.open = false; menu.querySelector('summary').focus(); }
   });
   for (const year of document.querySelectorAll('[data-year]')) year.textContent = String(new Date().getFullYear());
   const scriptUrl = document.currentScript?.src || document.querySelector('script[src$="app.js"]')?.src || location.href;

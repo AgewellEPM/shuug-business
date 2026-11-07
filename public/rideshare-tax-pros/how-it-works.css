@@ -1,0 +1,57 @@
+@charset "UTF-8";
+.how-hero { position: absolute; top: 3.25%; left: 0; width: 100%; height: 18.5%; }
+.how-action-start { left: 3.5%; top: 81%; width: 17.5%; height: 15%; }
+.how-action-free { left: 22.6%; top: 81%; width: 19.5%; height: 15%; }
+.how-process { position: absolute; top: 25.7%; left: 0; width: 100%; height: 17.7%; scroll-margin-top: 20px; }
+.how-step { top: 27.5%; width: 21.4%; height: 70.5%; border-radius: 20px; }
+.how-step-1 { left: 3.3%; }
+.how-step-2 { left: 28.25%; width: 20.8%; }
+.how-step-3 { left: 52.45%; width: 20.8%; }
+.how-step-4 { left: 76.65%; width: 20.8%; }
+.how-pricing { position: absolute; top: 44.4%; left: 0; width: 100%; height: 20%; }
+.how-payment { position: absolute; top: 64.6%; left: 0; width: 100%; height: 14.9%; scroll-margin-top: 20px; }
+.how-cta { position: absolute; top: 86.8%; left: 0; width: 100%; height: 12.3%; }
+.how-create-account { left: 38.3%; top: 62.3%; width: 28.7%; height: 25%; }
+.how-find-office { left: 69%; top: 62.3%; width: 28.3%; height: 25%; }
+@media (max-width: 1023px) {
+  .how-hero, .how-process, .how-pricing, .how-payment, .how-cta { position: static; width: auto; height: auto; }
+  .how-hero { padding: 26px 22px 0; background: radial-gradient(ellipse at top right, #bd16ce24, transparent 70%); }
+  .how-hero-art { width: 100%; margin: 20px 0; border-radius: 16px; }
+  .how-hero-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .how-action-start, .how-create-account { background: linear-gradient(110deg, #cf04e9, #fa00d7); border-color: #f065ee; box-shadow: 0 0 20px #ed13e83b; }
+  .how-process, .how-pricing, .how-payment { padding: 28px 20px; border-top: 1px solid #9d42a64f; scroll-margin-top: 88px; }
+  .how-section-intro { font-size: 16px; line-height: 1.5; margin: 0 0 24px; }
+  .how-step-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .how-step { display: block; width: auto; height: auto; padding: 20px 16px; background: linear-gradient(135deg, #25102c, #09060f 75%); border: 1px solid #bc62c7; }
+  .how-step-copy { position: relative; }
+  .how-step-number { display: grid; place-items: center; width: 34px; height: 34px; margin: 0 0 12px; border: 1px solid #ff81ef; border-radius: 50%; color: #200922; background: linear-gradient(135deg, #f9b7fa, #f327e5); box-shadow: 0 0 18px #f327e54d; font-size: 22px; font-weight: 900; }
+  .how-step-icon { width: 135px; height: 100px; max-width: 100%; margin: 0 auto 12px; }
+  .how-step h3, .how-payment h3 { font-size: 20px; line-height: 1.2; margin: 0 0 10px; }
+  .how-step p, .how-payment p { font-size: 16px; line-height: 1.5; font-weight: 400; margin: 0; }
+  .how-pricing-intro > p:last-child { font-size: 16px; line-height: 1.55; margin: 0 0 24px; }
+  .how-plan { padding: 24px 20px; border: 2px solid #ef41e9; border-radius: 22px; background: linear-gradient(135deg, #1b0920, #08050c); box-shadow: inset 0 0 25px #ee15de1c, 0 0 14px #ee15de38; }
+  .how-plan + .how-plan { margin-top: 22px; }
+  .how-plan h3 { margin: 0 0 18px; font-size: 25px; line-height: 1.2; }
+  .how-plan ul { list-style: none; margin: 0; padding: 0; }
+  .how-plan li { position: relative; padding: 9px 0 9px 28px; font-size: 16px; line-height: 1.4; }
+  .how-plan li::before { content: "✓"; position: absolute; left: 0; top: 9px; color: #f833e7; font-weight: 900; }
+  .how-free { border-color: #5aff22; background: linear-gradient(135deg, #071b08, #050b07); box-shadow: inset 0 0 25px #44fd151a, 0 0 14px #44fd1538; }
+  .how-free em, .how-free li::before { color: #4dff18; }
+  .how-price { display: flex; align-items: center; gap: 16px; margin: 20px 0 0; padding: 16px; border: 1px solid #ed39e7; border-radius: 14px; font-size: 17px; font-weight: 700; line-height: 1.4; }
+  .how-price strong { font-size: 42px; line-height: 1; }
+  .how-free .how-price { border-color: #5aff22; box-shadow: inset 0 0 20px #44fd152a; }
+  .how-payment-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 20px; list-style: none; margin: 22px 0 0; padding: 0; }
+  .how-payment-steps li { min-width: 0; }
+  .how-benefits li { min-width: 0; }
+  .how-cta { margin: 0 18px 28px; padding: 0 18px 22px; border: 1px solid #f273ed; border-radius: 22px; box-shadow: 0 0 20px #df0dda55, inset 0 0 30px #d11ae820; overflow: hidden; }
+  .how-office-art { width: calc(100% + 36px); max-height: 250px; margin: 0 -18px 24px; }
+  .how-cta > p { font-size: 16px; line-height: 1.5; margin: 0 0 22px; }
+  .how-create-account, .how-find-office { margin-top: 12px; }
+}
+@media (max-width: 599px) {
+  .how-step-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 479px) {
+  .how-hero-actions { grid-template-columns: 1fr; }
+  .how-payment-steps, .how-benefits ul { grid-template-columns: 1fr; }
+}

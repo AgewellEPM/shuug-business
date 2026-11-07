@@ -1,5 +1,6 @@
 import { salesPages } from './sales.mjs';
 import { servicesPage } from './services.mjs';
+import { howItWorksPage } from './how-it-works.mjs';
 import { services, faqs, checklistGroups } from './content.mjs';
 import { escape as e, button, textLink, cards, callout, sourceLinks, renderPage } from './layout.mjs';
 
@@ -62,8 +63,7 @@ const resources=[
 export function innerPages() {
   return [
     ...servicePages(),
-    page('how-it-works','How it works','Know what happens.','Know what comes next.','A preparation path with room for your records, questions and a clear agreement before work begins.',`${steps([['Find your starting point','Choose the service, years and platforms you want to discuss. Explore without providing personal details.'],['Gather what is available','Use the checklist to organize records and note missing information. Follow verified instructions before sending documents.'],['Confirm the engagement','Confirm the preparer, requested help, timing, included returns and communication. A website plan is not an accepted engagement.'],['Review and authorize','Review prepared work with your professional and ask questions before signing or authorizing filing.'],['Plan the next review','If ongoing support is included, confirm what to provide and when the next review happens.']])}${intro('Where Shuug fits','Shuug is the configurable business workspace behind the firm’s Tax Firm workflow. Private access will be connected separately. A public preparation checklist is not a client account or a tax submission.')}${callout()}`),
-    page('free','Free to use','Made for drivers.','Free to use.','Gig Tax Pros is free to use. No paid plans or subscription charges.',`${intro('Free means free','Use Gig Tax Pros without a subscription or a paid tier. Start with the tools you need and keep your records organized.')}${cards(services)}${callout('Ready when you are.','Choose where to start and build your free preparation checklist.')}`),
+    page('free','Free to use','Free tools.','Services when you choose.','Use the tools for free, with no subscription. Pay only for professional services you choose and approve.',`${intro('Free tools, all year','Use Gig Tax Pros to organize your work and records without a subscription.')}${intro('Professional services are your choice','You pay when you ask us to prepare, process, file, or handle documents as a professional service. Review the price upfront and authorize the work before it begins.')}${textLink('See how it works','/how-it-works')}${cards(services)}${callout('Ready when you are.','Choose where to start and build your free preparation checklist.')}`),
     page('get-started','Get started','Let’s find your','starting point.','Build a preparation plan around your work and the help you want.',planner(),{eyebrow:'YOUR FIRST STEP'}),
     page('document-checklist','Document checklist','A clearer list.','A calmer start.','Organize the record categories you want to discuss with your tax professional.',checklist(),{eyebrow:'PRINTABLE PREPARATION TOOL'}),
     page('resources','Driver resources','Useful answers.','Fewer loose ends.','Find records, understand document questions and prepare for your next conversation.',`<section data-search-library><div class="search-controls"><label for="resource-search">Find a resource<input id="resource-search" type="search" data-search-input placeholder="Search forms, mileage, quarterly or first year"></label></div><p class="search-result-count" data-search-count role="status" aria-live="polite">${resources.length} resources</p>${cards(resources)}<p class="empty-results" data-search-empty hidden>No matching resources. Try a broader term.</p></section>${sourceLinks(['gig','documents','car','estimated','preparer'])}${callout()}`),
@@ -75,4 +75,4 @@ export function innerPages() {
   ];
 }
 
-export function renderedPages() { return [servicesPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
+export function renderedPages() { return [servicesPage(), howItWorksPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
