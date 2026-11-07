@@ -24,7 +24,11 @@ export function payments(env,fetcher=fetch) {
   async function create(row,info,returnToken) {
     const fragment=new URLSearchParams({id:row.id,token:returnToken});
     const params={mode:'subscription',customer_email:row.contact_email,client_reference_id:String(row.id),success_url:`${env.GIGTAX_SALES_ORIGIN}/office-signup#${fragment}&payment=return`,cancel_url:`${env.GIGTAX_SALES_ORIGIN}/office-signup#${fragment}&payment=cancelled`,'metadata[gigtax_enrollment]':String(row.id),'metadata[terms_hash]':info.terms.hash,'subscription_data[metadata][gigtax_enrollment]':String(row.id),'subscription_data[metadata][terms_hash]':info.terms.hash,'payment_method_types[0]':'card','line_items[0][price_data][currency]':'usd','line_items[0][price_data][unit_amount]':'30000','line_items[0][price_data][recurring][interval]':'month','line_items[0][price_data][product_data][name]':'Gig Tax Pros · office membership (12 months)','line_items[0][quantity]':'1','line_items[1][price_data][currency]':'usd','line_items[1][price_data][unit_amount]':'20000','line_items[1][price_data][product_data][name]':'Gig Tax Pros · one-time office enrollment','line_items[1][quantity]':'1',expires_at:String(Math.floor(Date.now()/1000)+1800)};
-    params.expires_at=String(Math.floor(new Date(info.acceptedAt).getTime()/1000)+1800);
+    // Stripe requires at least 30 minutes from the API request; using one hour
+    // leaves room for the consent save and network round trips. Keep retries
+    // byte-identical for the same provider idempotency key.
+    params.expires_at=String(Math.floor(new Date(info.acceptedAt).getTime()/1000)+3600);
+    if(info.checkoutId){const existing=await stripe(`/checkout/sessions/${info.checkoutId}`);validateSession(existing,row,info,false);if(existing.status==='expired')throw new HttpError(409,'This checkout expired. Ask the workspace owner to review and renew the invitation.');return existing;}
     const session=await stripe('/checkout/sessions','POST',params,`gigtax-office-${info.leadId}-${info.terms.hash}`);
     validateSession(session,row,info,false);
     if(session.status==='expired')throw new HttpError(409,'This checkout expired. Ask the workspace owner to review and renew the invitation.');

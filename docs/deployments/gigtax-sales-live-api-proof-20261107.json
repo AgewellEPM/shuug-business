@@ -1,0 +1,40 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T08:42:00.815Z",
+  "origin": "https://gigtax.pro",
+  "deployment": "dpl_9Vno6QhyyUBEqTJ4yBgL6qnmLzr8",
+  "checks": [
+    {
+      "check": "anonymous denial",
+      "status": 401
+    },
+    {
+      "check": "owner sign-in and protected cookie",
+      "status": 200
+    },
+    {
+      "check": "authenticated live backend",
+      "status": 200,
+      "offices": 0,
+      "agents": 0,
+      "paymentsConfigured": false,
+      "termsPublished": false
+    },
+    {
+      "check": "real IRS discovery through live website",
+      "status": 200,
+      "total": 162,
+      "shown": 50
+    },
+    {
+      "check": "cross-site request denied",
+      "status": 403
+    },
+    {
+      "check": "unsigned webhook denied",
+      "status": 400
+    }
+  ],
+  "payments": "No live payment account connected; no actual payment made.",
+  "visual": "Not visually accepted; no automated browser used."
+}
