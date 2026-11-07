@@ -7,6 +7,7 @@ import { appPages } from './app-pages.mjs';
 import { appFeatures } from './app-features.mjs';
 import { appScreens } from './app-screens.mjs';
 import { renderPage } from './layout.mjs';
+import { featuresPage } from './features-page.mjs';
 
 function hub(script = true) {
   const dom = new JSDOM(renderPage(appPages()[0]), { url: 'https://gigtax.pro/app', runScripts: 'outside-only' });
@@ -63,5 +64,44 @@ test('feature search reaches detailed guides and can recover from no matches', (
       for (const item of feature.features) assert.ok(page.body.includes(item.text.replaceAll('&', '&amp;').replaceAll("'", '&#39;')));
     }
     for (const screen of appScreens) assert.ok(existsSync(`public/rideshare-tax-pros${screen.src}`));
+  } finally { dom.window.close(); }
+});
+
+test('the Features page explains every feature inline without requiring scripts or opening a guide', () => {
+  const dom = new JSDOM(renderPage(featuresPage())); const d = dom.window.document;
+  try {
+    assert.equal(d.querySelector('h1').textContent, 'App features, explained.');
+    assert.equal(d.querySelectorAll('[data-feature-group]').length, 8);
+    assert.equal(d.querySelectorAll('[data-feature-entry]').length, 61);
+    for (const entry of d.querySelectorAll('[data-feature-entry]')) {
+      assert.equal(entry.hidden, false);
+      assert.ok(entry.querySelector('h3').textContent.length > 5);
+      assert.match(entry.textContent, /What it does/); assert.match(entry.textContent, /Why it helps you/);
+    }
+    for (const group of d.querySelectorAll('[data-feature-group]')) {
+      assert.equal(group.querySelectorAll('.feature-explanation ol li').length, 4);
+      assert.match(group.textContent, /Where to find it/); assert.match(group.textContent, /A working-day example/);
+    }
+    for (const link of d.querySelectorAll('.features-index nav a')) assert.ok(d.getElementById(link.hash.slice(1)));
+    assert.equal(d.querySelector('.features-search').hidden, true);
+    assert.equal(d.querySelector('.desktop-links a').getAttribute('href'), '/features');
+  } finally { dom.window.close(); }
+});
+
+test('individual feature search hides empty topics and topic navigation restores the full explanations', () => {
+  const dom = new JSDOM(renderPage(featuresPage()), { url: 'https://gigtax.pro/features', runScripts: 'outside-only' }); const d = dom.window.document;
+  try {
+    dom.window.eval(readFileSync('public/rideshare-tax-pros/features.js', 'utf8'));
+    const query = d.querySelector('[data-feature-query]');
+    const visibleEntries = () => [...d.querySelectorAll('[data-feature-entry]')].filter(entry => !entry.hidden);
+    const visibleGroups = () => [...d.querySelectorAll('[data-feature-group]')].filter(group => !group.hidden);
+    const search = value => { query.value = value; query.dispatchEvent(new dom.window.Event('input')); };
+    assert.equal(d.querySelector('.features-search').hidden, false);
+    search('twenty-three'); assert.equal(visibleEntries().length, 1); assert.deepEqual(visibleGroups().map(group => group.id), ['money']);
+    search('unfindable test 123'); assert.equal(visibleGroups().length, 0); assert.equal(d.querySelector('[data-feature-empty]').hidden, false);
+    d.querySelector('[data-feature-clear]').click(); assert.equal(visibleEntries().length, 61); assert.equal(d.activeElement, query);
+    search('receipt'); assert.ok(visibleEntries().length < 61);
+    d.querySelector('.features-index a[href="#routes"]').click(); assert.equal(query.value, ''); assert.equal(visibleEntries().length, 61);
+    assert.equal(visibleGroups().length, 8); assert.equal(dom.window.localStorage.length, 0);
   } finally { dom.window.close(); }
 });

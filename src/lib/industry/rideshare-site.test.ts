@@ -17,7 +17,7 @@ function page(slug = "", config = {}, hash = "") {
 }
 it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
-  expect(manifest.aliases.filter((slug: string) => !slug.startsWith('gig-companies/'))).toHaveLength(29);
+  expect(manifest.aliases.filter((slug: string) => !slug.startsWith('gig-companies/'))).toHaveLength(30);
   expect(manifest.aliases).toContain("gig-companies");
   expect(manifest.aliases).toContain("join-the-family");
   for (const slug of ["", ...manifest.aliases]) {

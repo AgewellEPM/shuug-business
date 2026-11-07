@@ -1,5 +1,6 @@
 import { appFeatures } from './app-features.mjs';
 import { appScreens } from './app-screens.mjs';
+import { featuresPage } from './features-page.mjs';
 import { escape as e, button, textLink } from './layout.mjs';
 
 const route = feature => `app/${typeof feature === 'string' ? feature : feature.id}`;
@@ -75,7 +76,7 @@ function hubPage() {
     seoTitle: 'Gig Tax Pros App: Offers, Mileage, Earnings & Records',
     eyebrow: 'GIG TAX PROS · IPHONE APP PREVIEW',
     description: 'Explore the Gig Tax Pros app: review offers, plan your way home, record mileage and costs, understand earnings and prepare useful records for your tax team.',
-    heroActions: `<div class="hero-actions-row">${button(appScreens.length ? 'Explore the real app screens' : 'Explore the app features', appScreens.length ? '#app-tour' : '#app-features')}${button('Find the feature I need', '#app-features', false)}</div>`,
+    heroActions: `<div class="hero-actions-row">${button('Read all app features', '/features')}${button('Explore real app screens', '#app-tour', false)}</div>`,
     body: `<section class="app-hub-intro app-feature-hero"><div><p class="eyebrow">MORE THAN A TAX-SEASON CHECKLIST</p><h2>Useful through<br>the working day.</h2><p>Bring your work decisions and records into one routine. Set your own costs and goals, review a job, record the work you completed and use those records to understand the numbers.</p><p>Follow a feature below for the actual steps, the details it keeps and the setup it needs.</p>${textLink('Read availability and setup notes', '#app-availability')}</div>${firstScreen ? screenFigure(firstScreen, 'intro') : ''}</section>
     <section class="article-section app-journey" id="app-how-it-works"><p class="eyebrow">HOW IT FITS YOUR SHIFT</p><h2>From the next job<br>to your next review.</h2><ol class="app-feature-steps">${journey.map(([title, text, id], index) => `<li><span class="step-number" aria-hidden="true">0${index + 1}</span><div><h3>${e(title)}</h3><p>${e(text)}</p>${textLink('See how it works', `/${route(id)}`)}</div></li>`).join('')}</ol></section>
     <section class="article-section app-feature-finder" id="app-features" data-search-library data-search-noun="feature area" data-search-plural="feature areas" aria-labelledby="app-features-title"><p class="eyebrow">EXPLORE EVERY PART</p><h2 id="app-features-title">What do you want<br>to do next?</h2><div class="search-controls"><label for="app-feature-search">Find an app feature<input id="app-feature-search" type="search" data-search-input placeholder="Try receipts, offers, shopping or goals"></label></div><p class="search-result-count" data-search-count role="status" aria-live="polite">${appFeatures.length} feature areas</p><div class="app-feature-grid">${appFeatures.map(featureCard).join('')}</div><p class="empty-results" data-search-empty hidden>No matching feature. Clear your search or try a broader word.</p><noscript><p>All feature guides are listed here without using search.</p></noscript></section>
@@ -93,7 +94,7 @@ function featurePage(feature) {
     parent: { slug: 'app', label: 'Gig Tax Pros app' },
     title: feature.title, eyebrow: `IPHONE APP PREVIEW · ${feature.kicker}`,
     seoTitle: `${feature.label} | Gig Tax Pros App`, description: feature.description,
-    heroActions: `<div class="hero-actions-row">${button('See the steps', '#app-steps')}${button('Explore all app features', '/app#app-features', false)}</div>`,
+    heroActions: `<div class="hero-actions-row">${button('See the steps', '#app-steps')}${button('Explore all app features', '/features', false)}</div>`,
     body: `<section class="app-feature-intro"><p>${e(feature.intro)}</p></section>
     <section class="article-section" id="app-steps"><p class="eyebrow">YOUR NEXT STEPS</p><h2>How to use it.</h2><ol class="app-feature-steps">${feature.steps.map((step, index) => `<li><span class="step-number" aria-hidden="true">0${index + 1}</span><div><h3>${e(step.title)}</h3><p>${e(step.text)}</p></div></li>`).join('')}</ol></section>
     <section class="article-section" id="app-details"><p class="eyebrow">THE DETAILS THAT HELP</p><h2>What is included.</h2><div class="app-feature-details">${feature.features.map((item, index) => `<section id="${e(feature.id)}-feature-${index + 1}"><h3>${e(item.title)}</h3><p>${e(item.text)}</p></section>`).join('')}</div></section>
@@ -105,5 +106,5 @@ function featurePage(feature) {
 
 export function appPages() {
   checkCatalog();
-  return [hubPage(), ...appFeatures.map(featurePage)];
+  return [hubPage(), featuresPage(), ...appFeatures.map(featurePage)];
 }
