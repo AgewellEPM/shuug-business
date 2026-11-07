@@ -20,3 +20,10 @@ Validation: exact source comparison with `2083c37`, static build, six existing
 website interaction checks and generated 19-page manifest. Publication evidence
 is recorded separately after public HTTP verification. No new visual design is
 introduced by this change; browser appearance still belongs to Luke's acceptance.
+
+Publication completed at `https://gigtax.pro` and `https://www.gigtax.pro`.
+Deployment: `dpl_fpGAQ7eStrXSHyudy9Uciqa4nixh`, Ready. All 52 public HTTP checks
+passed with exact file comparisons. Independent apex and www homepage requests
+matched the restored build byte for byte. Added `/gig-companies`, a company
+guide, `/app` and `/join-the-family` routes return HTTP 404. The detailed receipt
+is `gig-tax-pros-original-restoration-verification-20261107.json`.
