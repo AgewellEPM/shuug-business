@@ -135,15 +135,15 @@ struct TodayView: View {
             .font(.system(size: 12, weight: .medium)).foregroundStyle(Brand.muted)
         }
         HStack(spacing: 10) {
-          DashboardQuickAction(title: "Trips", icon: "car.fill") { showTool(.trips) }
+          DashboardQuickAction(title: "Trips", icon: "car.fill", tint: Brand.route) { showTool(.trips) }
             .accessibilityIdentifier("quick.trips")
-          DashboardQuickAction(title: "Expense", icon: "receipt.fill") { addingExpense = true }
+          DashboardQuickAction(title: "Expense", icon: "receipt.fill", tint: Brand.expense) { addingExpense = true }
             .accessibilityLabel("Quick add expense").accessibilityIdentifier("quick.expense")
-          DashboardQuickAction(title: "Income", icon: "dollarsign.circle.fill") { addingIncome = true }
+          DashboardQuickAction(title: "Income", icon: "dollarsign.circle.fill", tint: Brand.income) { addingIncome = true }
             .accessibilityLabel("Quick add income").accessibilityIdentifier("quick.income")
           DashboardQuickAction(title: "Alerts", icon: "bell.fill", count: (model.journal.driverAlerts ?? []).filter {
             $0.scope == model.journalScope && $0.handledAt == nil && $0.expiresAt > Date()
-          }.count) { showTool(.alerts) }
+          }.count, tint: Brand.caution) { showTool(.alerts) }
             .accessibilityIdentifier("quick.alerts")
         }
         ShiftDashboardCard()
@@ -196,9 +196,9 @@ struct TodayView: View {
           if model.syncing { ProgressView() }
         }.foregroundStyle(.secondary)
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 145))], spacing: 12) {
-          metric("Business miles today", Brand.miles(businessMeters), "car")
-          metric("Expenses today", Brand.usd(expenses), "receipt")
-          metric("Income today", Brand.usd(income), "dollarsign.circle")
+          metric("Business miles today", Brand.miles(businessMeters), "car", Brand.route)
+          metric("Expenses today", Brand.usd(expenses), "receipt", Brand.expense)
+          metric("Income today", Brand.usd(income), "dollarsign.circle", income < 0 ? Brand.danger : Brand.income)
         }
         if !(model.journal.placePrompts ?? []).filter({ !$0.dismissed }).isEmpty {
           StopPromptsView()
@@ -253,10 +253,10 @@ struct TodayView: View {
         if case .failure(let error) = result { model.message = error.localizedDescription }
       }
   }
-  private func metric(_ title: String, _ value: String, _ icon: String) -> some View {
+  private func metric(_ title: String, _ value: String, _ icon: String, _ tint: Color) -> some View {
     VStack(alignment: .leading, spacing: 8) {
-      Label(title, systemImage: icon).font(.caption).foregroundStyle(Brand.muted)
-      Text(value).font(.title2.bold()).minimumScaleFactor(0.6).lineLimit(1)
+      Label { Text(title).foregroundStyle(Brand.muted) } icon: { Image(systemName: icon).foregroundStyle(tint) }.font(.caption)
+      Text(value).font(.title2.bold()).foregroundStyle(tint).minimumScaleFactor(0.6).lineLimit(1)
     }.padding().frame(maxWidth: .infinity, alignment: .leading).background(
       Brand.panel, in: RoundedRectangle(cornerRadius: 16)
     )

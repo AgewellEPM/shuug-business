@@ -1,25 +1,26 @@
 import SwiftUI
 
 extension View {
-  func gigCard(highlight: Bool = false, inset: CGFloat = 16) -> some View {
+  func gigCard(highlight: Bool = false, inset: CGFloat = 16, accent: Color? = nil) -> some View {
     padding(inset).frame(maxWidth: .infinity, alignment: .leading)
       .background(Brand.panel, in: RoundedRectangle(cornerRadius: 22))
       .overlay {
         RoundedRectangle(cornerRadius: 22).strokeBorder(
-          LinearGradient(colors: [Brand.pink.opacity(highlight ? 0.95 : 0.55), Brand.purple.opacity(0.35), Brand.border.opacity(0.35)],
+          LinearGradient(colors: [(accent ?? Brand.pink).opacity(highlight ? 0.95 : 0.55), Brand.purple.opacity(0.35), Brand.border.opacity(0.35)],
             startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: highlight ? 1.4 : 0.8)
       }
-      .shadow(color: Brand.purple.opacity(highlight ? 0.16 : 0.05), radius: 16, y: 5)
+      .shadow(color: (accent ?? Brand.purple).opacity(highlight ? 0.16 : 0.05), radius: 16, y: 5)
   }
 }
 
 struct DashboardMetric: View {
   let title: String, value: String, icon: String
+  var tint: Color = Brand.link
   var body: some View {
     HStack(spacing: 8) {
-      Image(systemName: icon).font(.system(size: 21, weight: .medium)).foregroundStyle(Brand.pink)
+      Image(systemName: icon).font(.system(size: 21, weight: .medium)).foregroundStyle(tint)
       VStack(alignment: .leading, spacing: 4) {
-        Text(value).font(.system(.headline, design: .rounded)).lineLimit(1).minimumScaleFactor(0.65)
+        Text(value).font(.system(.headline, design: .rounded)).foregroundStyle(tint).lineLimit(1).minimumScaleFactor(0.65)
         Text(title).font(.system(size: 10, weight: .medium)).foregroundStyle(Brand.muted).lineLimit(2)
       }
     }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
@@ -29,20 +30,21 @@ struct DashboardMetric: View {
 struct DashboardQuickAction: View {
   let title: String, icon: String
   var count = 0
+  var tint: Color = Brand.link
   let action: () -> Void
   var body: some View {
     Button(action: action) {
       VStack(spacing: 8) {
-        Image(systemName: icon).font(.system(size: 27, weight: .semibold)).foregroundStyle(Brand.action)
-          .shadow(color: Brand.pink.opacity(0.3), radius: 8)
+        Image(systemName: icon).font(.system(size: 27, weight: .semibold)).foregroundStyle(tint)
+          .shadow(color: tint.opacity(0.3), radius: 8)
         Text(title).font(.system(size: 12, weight: .semibold)).foregroundStyle(.white).lineLimit(1).minimumScaleFactor(0.8)
       }.frame(maxWidth: .infinity).frame(height: 72)
         .background(Brand.panel, in: RoundedRectangle(cornerRadius: 17))
         .overlay { RoundedRectangle(cornerRadius: 17).strokeBorder(Brand.border.opacity(0.6), lineWidth: 0.8) }
         .overlay(alignment: .topTrailing) {
           if count > 0 {
-            Text("\(min(count, 99))").font(.caption2.bold()).foregroundStyle(.white).padding(5)
-              .background(Brand.action, in: Circle()).offset(x: 3, y: -3)
+            Text("\(min(count, 99))").font(.caption2.bold()).foregroundStyle(Brand.ink).padding(5)
+              .background(tint, in: Circle()).offset(x: 3, y: -3)
           }
         }
     }.buttonStyle(.plain)

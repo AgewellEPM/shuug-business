@@ -11,6 +11,13 @@ enum Brand {
   static let link = color(0xE3A0FF)
   static let border = color(0x9053B7)
   static let panelTop = color(0x1D122C)
+  // Semantic accents keep money, routes and attention distinct on dark surfaces.
+  static let income = color(0x42F5B0)
+  static let positive = income
+  static let expense = color(0xFFC857)
+  static let route = color(0x36DFFD)
+  static let caution = color(0xFFE66D)
+  static let danger = color(0xFF5D87)
   static let action = LinearGradient(
     colors: [color(0x9129FF), color(0xF306E5)],
     startPoint: .leading, endPoint: .trailing)

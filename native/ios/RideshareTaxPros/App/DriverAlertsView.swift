@@ -33,10 +33,17 @@ private struct DriverAlertRow: View {
   let alert: DriverAlert
   @State private var reply = ""
   @State private var error: String?
+  private var accent: Color {
+    switch alert.kind {
+    case .startTrip, .endTrip, .classifyTrip: Brand.route
+    case .tripFare: Brand.income
+    case .expense: Brand.expense
+    }
+  }
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
       Label("GIG TAX PROS · ACTION NEEDED", systemImage: "bell.badge.fill")
-        .font(.caption2.bold()).foregroundStyle(Brand.link)
+        .font(.caption2.bold()).foregroundStyle(accent)
       switch alert.kind {
       case .startTrip:
         Text("Start a new trip?").font(.headline)
@@ -57,8 +64,8 @@ private struct DriverAlertRow: View {
         Button("Save amount for review") { answer(.logExpense) }
       }
       Button("Dismiss") { answer(.dismiss) }.font(.caption).tint(Brand.link)
-      if let error { Text(error).font(.footnote).foregroundStyle(.orange) }
-    }.buttonStyle(BrandActionStyle(primary: false)).gigCard(highlight: true)
+      if let error { Text(error).font(.footnote).foregroundStyle(Brand.danger) }
+    }.buttonStyle(BrandActionStyle(primary: false)).gigCard(highlight: true, accent: accent)
   }
   private func answer(_ action: DriverAlertAction) {
     Task {

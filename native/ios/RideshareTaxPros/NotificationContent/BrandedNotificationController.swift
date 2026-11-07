@@ -61,6 +61,8 @@ import UserNotificationsUI
     let content = notification.request.content
     let kind = presentation(content.categoryIdentifier)
     heading.text = kind.0; symbol.image = UIImage(systemName: kind.1)
+    let accent = content.title == "Action needs attention" ? Brand.danger : kind.2
+    heading.textColor = UIColor(accent); symbol.tintColor = UIColor(accent)
     titleLabel.text = String(content.title.prefix(160))
     messageLabel.text = String(content.body.prefix(600)); messageLabel.isHidden = content.body.isEmpty
     footer.isHidden = content.categoryIdentifier == "gig.status"
@@ -85,15 +87,15 @@ import UserNotificationsUI
   private func label(_ text: String, style: UIFont.TextStyle, color: UIColor) -> UILabel {
     let label = UILabel(); configure(label, style: style, color: color); label.text = text; return label
   }
-  private func presentation(_ category: String) -> (String, String) {
+  private func presentation(_ category: String) -> (String, String, Color) {
     switch category {
-    case "startTrip": ("DRIVE DETECTED", "car.fill")
-    case "endTrip": ("TRIP CHECK-IN", "flag.checkered")
-    case "classifyTrip": ("TRIP REVIEW", "tag.fill")
-    case "tripFare": ("DRIVE EARNINGS", "dollarsign.circle.fill")
-    case "expense": ("EXPENSE REMINDER", "receipt.fill")
-    case "gig.offer", "gig.offer.review": ("OFFER REVIEW", "bolt.fill")
-    default: ("YOUR DRIVING ASSISTANT", "bell.fill")
+    case "startTrip": ("DRIVE DETECTED", "car.fill", Brand.route)
+    case "endTrip": ("TRIP CHECK-IN", "flag.checkered", Brand.route)
+    case "classifyTrip": ("TRIP REVIEW", "tag.fill", Brand.caution)
+    case "tripFare": ("DRIVE EARNINGS", "dollarsign.circle.fill", Brand.income)
+    case "expense": ("EXPENSE REMINDER", "receipt.fill", Brand.expense)
+    case "gig.offer", "gig.offer.review": ("OFFER REVIEW", "bolt.fill", Brand.caution)
+    default: ("YOUR DRIVING ASSISTANT", "bell.fill", Brand.link)
     }
   }
 }

@@ -294,6 +294,17 @@ import XCTest
       XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
       button.tap()
       XCTAssertNotEqual(app.state, .runningForeground, "A background notification action opened the app UI")
+      // app.launch() terminates an existing background process. Wait for the
+      // app's post-commit notification before restarting it for persistence.
+      let savedTitle = action == "Yes, start trip" ? "Trip recording started" : "Drive saved. Business or personal?"
+      let saved = springboard.descendants(matching: .any).matching(NSPredicate(
+        format: "identifier == 'NotificationShortLookView' AND label CONTAINS %@", savedTitle)).firstMatch
+      if !saved.waitForExistence(timeout: 10) {
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.001))
+          .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.7)))
+      }
+      XCTAssertTrue(saved.waitForExistence(timeout: 15),
+        "The background action did not report a committed result.\n" + springboard.debugDescription)
     }
     sendTripAlert()
     answer("Start a new trip?", action: "Yes, start trip")
