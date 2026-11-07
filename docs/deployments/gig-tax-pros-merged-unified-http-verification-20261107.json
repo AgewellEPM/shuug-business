@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T07:10:22.348Z",
+  "buildId": "xtzsZGU1OhB3bPvIdqXQl",
+  "scope": "Compiled production HTTP with disposable synthetic accounts and real restart/restore",
+  "checks": [
+    "two invitation activations sign in directly; web and native sessions share the exact client identity",
+    "native profile edits appear in the same portal account; client binding is immutable and native tax requests stay isolated",
+    "native API stores trips, expenses, income and receipt; retry is idempotent and stale overwrite is rejected",
+    "client portal shows own exact synced records; forged client selection and foreign receipt access cannot cross accounts",
+    "authorized tax staff sees those same records; client cannot administer accounts",
+    "provider setup is owner-only and reports unavailable credentials without exposing secrets or claiming live connections",
+    "client submits a requested private tax document, foreign account is denied, authorized staff downloads identical bytes and records review",
+    "client account, session and shared journal persist across a real server restart",
+    "verified full-volume backup restores account, web/native sessions, journal, receipt and requested tax-document bytes",
+    "revoking one account immediately removes app and portal access after recovery"
+  ],
+  "backupFiles": 6,
+  "receiptSha256": "942fe3d5d8ccf0fd68d4223ec65c56e07d324eee766aae2d806123d12ce8d5fc",
+  "diagnosticServersStopped": true,
+  "realClientDataUsed": false,
+  "publicHostingVerified": false,
+  "visualAcceptance": "Pending Luke screenshots"
+}

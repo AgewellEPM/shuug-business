@@ -24,6 +24,7 @@ import { UBER_DRIVER_SCOPES } from "../gig-connections/uber-provider";
 import { POST as recordPost } from "@/app/api/website/customer/driver/records/route";
 import { PUT as receiptPut } from "@/app/api/website/customer/driver/receipts/[id]/route";
 import { POST as documentPost } from "@/app/api/website/customer/documents/route";
+import { PATCH as profilePatch } from "@/app/api/website/customer/driver/profile/route";
 
 type Account = { id: string; clientId: string; token: string };
 let directory: string, alpha: Account, beta: Account;
@@ -135,6 +136,8 @@ it("rejects the legacy HTTP body before parsing or reading it for an enrolled cl
   expect((await receiptPut(receiptRequest, { params: Promise.resolve({ id: randomUUID() }) })).status).toBe(409); expect(receiptRequest.bodyUsed).toBe(false);
   const documentRequest = new Request(base + "/api/website/customer/documents", { method: "POST", headers: headers(), body: "not multipart" });
   expect((await documentPost(documentRequest)).status).toBe(409); expect(documentRequest.bodyUsed).toBe(false);
+  const profileRequest = new Request(base + "/api/website/customer/driver/profile", { method: "PATCH", headers: headers(), body: "not JSON" });
+  expect((await profilePatch(profileRequest)).status).toBe(409); expect(profileRequest.bodyUsed).toBe(false);
   expect(recordResponse.headers.get("cache-control")).toBe("private, no-store");
 });
 

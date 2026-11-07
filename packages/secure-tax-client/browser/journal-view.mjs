@@ -5,6 +5,8 @@ const object=value=>value&&typeof value==='object'&&!Array.isArray(value)?value:
 const cents=(value,currency='USD')=>Number.isSafeInteger(value)?`${currency} ${(value/100).toFixed(2)}`:'Not recorded';
 const row=(heading,details,summary='')=>({heading,details,summary});
 const section=(id,label,rows,note='')=>({id,label,rows,note});
+// Fields supported by this committed native snapshot format.
+export const JOURNAL_FIELDS=Object.freeze(['version','cursor','entries','receipts','activeTripId','tracker','lastSyncAt','goals','bankTransactions','placePrompts','assistance','bankCursor','bankUpdatedAt','mission','pickupWaits','reserveSettings','missionOffers','driverAlerts','observedOffers','gigOffers','gigDecisions','gigCommitments','gigOfferLogs','coachMessages','coachOutbox','coachIntake','coachIntakeMutationId','coachMilestones','coachEngine','universalGigSettings']);
 export function fieldLabel(key){return String(key).replace(/([a-z0-9])([A-Z])/g,'$1 $2').replaceAll('_',' ').replace(/^./,letter=>letter.toUpperCase());}
 export function journalSections(payload,expected){
   if(payload?.version!==1||payload?.type!=='driver-journal'||!object(payload.journal))return null;
@@ -23,8 +25,11 @@ export function journalSections(payload,expected){
   for(const [currency,total] of incomeTotals)earnings.push(row(`Entered income · ${currency}`,{currency,amountCents:total},cents(total,currency)));
   const arrayRows=(key,names)=>list(journal[key]).map((item,index)=>row(names.map(name=>item?.[name]).find(value=>typeof value==='string'&&value)||`${fieldLabel(key)} ${index+1}`,item));
   const settingRows=keys=>keys.filter(key=>journal[key]!=null).map(key=>row(fieldLabel(key),journal[key]));
+  const accountRows=[row('Encrypted account binding',payload.binding),row('Captured on device',{capturedAt:payload.capturedAt,lastSyncAt:journal.lastSyncAt,version:journal.version,cursor:journal.cursor})];
+  const unknown=Object.fromEntries(Object.entries(journal).filter(([key])=>!JOURNAL_FIELDS.includes(key)));
+  if(Object.keys(unknown).length)accountRows.push(row('Additional saved fields',unknown,'This client does not have a dedicated workflow for these fields.'));
   return [
-    section('account','Account & snapshot',[row('Encrypted account binding',payload.binding),row('Captured on device',{capturedAt:payload.capturedAt,lastSyncAt:journal.lastSyncAt,version:journal.version,cursor:journal.cursor})],'Read-only snapshot. Profile changes and device controls are not restored or replayed.'),
+    section('account','Account & snapshot',accountRows,'Read-only snapshot. Profile changes and device controls are not restored or replayed.'),
     section('trips','Trips',recordRows(trips,'trip'),'Classification, timezone, gaps, platform and source remain in each detail. Recorded fares stay separate from entered income.'),
     section('routes','Historical routes',[],'Journal Codable excludes route points. Route file bytes need a separate encrypted driver-route object.'),
     section('expenses','Expenses',recordRows(expenses,'expense'),'Full recorded amounts, not business-use deductions or tax calculations. Receipt bytes are separate encrypted objects.'),
@@ -32,6 +37,9 @@ export function journalSections(payload,expected){
     section('income','Entered income',recordRows(incomes,'income'),'May duplicate platform payouts, deposits or trip fares. These figures are not combined.'),
     section('review','Earnings & review',earnings,'Recorded counts and entered-income totals only. Native profitability, charts and review actions still need equivalent browser workflows.'),
     section('goals','Goals',settingRows(['goals']),'Vehicle cost per mile is a user planning estimate, not a tax mileage rate.'),
+    section('coach-history','Tax & Goals conversation',[...list(journal.coachMessages).map(message=>row(message.role==='user'?'Your saved question':message.role==='assistant'?'Saved coach reply':'Saved message',message,typeof message.text==='string'?message.text.slice(0,4000):'')),...list(journal.coachOutbox).map(message=>row('Pending question',message,'Saved outbox entry; not sent or replayed by this view.'))],'Saved conversation and source/record references only. This browser does not run coach inference or send queued questions. Keep credentials, verification codes and full taxpayer IDs out of chat.'),
+    section('coach-preparation','Tax & Goals preparation',[...settingRows(['coachIntake','coachIntakeMutationId']),...arrayRows('coachMilestones',['title']),...settingRows(['coachEngine'])],'Tax year, jurisdiction and business arrangement are recorded confirmations. Milestone todo/done means record preparation, never filing or deductibility. Engine fields describe saved metadata, not current service availability.'),
+    section('work-settings','Delivery & shopping preferences',journal.universalGigSettings?['delivery','shopping'].filter(key=>journal.universalGigSettings[key]).map(key=>row(key==='delivery'?'Universal delivery':'In-store shopping',journal.universalGigSettings[key])):[],'Account-scoped work labels and optional links only. No app opens automatically; a saved URL is not provider authorization or an account connection.'),
     section('reserves','Planning reserves',settingRows(['reserveSettings']),'Planning percentages, not liabilities, balances or actual transfers.'),
     section('mission','Go Home mission & pickup waits',[...settingRows(['mission','activeTripId','tracker']),...arrayRows('pickupWaits',['name'])],'No tracking or mission action starts from this view.'),
     section('positioning','Positioning & route evidence',[],'In-memory searches and offerRouteEvidence are not in Journal Codable. This view does not provide a synchronized route optimizer or map.'),

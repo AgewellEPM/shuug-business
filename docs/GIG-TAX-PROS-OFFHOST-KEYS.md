@@ -72,6 +72,24 @@ custody or a completed recovery drill. Real keys and public pins remain absent.
 Native setup stages public enrollment approvals and deliberately cannot activate
 legacy write guards until the encrypted synchronization path is complete.
 
+The native Account screen now connects explicit protected Journal archive
+upload/list/preview/import-review/delete, with bounded versioned payloads,
+account binding, exact retry ciphertext and revision checks. All30 committed
+Journal fields from native9cfa62e are represented; separate route/receipt files
+and uncommitted reputation work are not. Independently bundled workspace pins
+stop legacy native mutations before networking, even before API enrollment.
+The trusted static browser has corresponding decrypted views and ordinary forms,
+with client-only keys, encrypted backup and memory-only sessions. Snapshot
+views are read-only; separate web edits do not automatically merge with the phone.
+
+Legacy coach writes now fail before body parsing, before/after optional Peel
+work and inside the final transaction when encryption is required. Existing
+coach rows and other retained plaintext are reported as unresolved exposure.
+The offline copied-backup exporter supports records/linked receipts/submitted
+documents only; it never uploads or erases original data. These implemented
+paths have synthetic verification and app compilation, not live account
+activation, actual physical key custody or full multi-view feature acceptance.
+
 ## Migration and feature coverage
 
 The current plaintext journal, raw receipt files, generic SDK tax fields,

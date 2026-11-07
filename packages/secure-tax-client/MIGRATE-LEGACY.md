@@ -99,6 +99,11 @@ into the client recipient. In particular, SDK internal/private fields must not b
 shared merely because their `client_id` matches. Reviewer identities/review audit
 rows are also omitted from exported document payloads.
 
+Coach profile preferences and confirmed intake, plaintext conversation bodies,
+and coach mutation metadata are counted for the selected account or linked client
+and remain unsupported. No coach text or preparation facts are copied into this
+export; existing coach reads and retained legacy copies remain exposure.
+
 Audit and command snapshots are reported as unscoped workspace-wide presence;
 their client ownership is not inferred by searching free text. Account identity
 profiles, service-client profiles, bank transactions/credentials, Uber profiles,

@@ -34,6 +34,9 @@ async function fixture(){
    CREATE TABLE driver_records(accountId TEXT,id TEXT,clientId TEXT,revision INTEGER,body TEXT,sequence INTEGER,updatedAt TEXT);
    CREATE TABLE driver_receipts(accountId TEXT,id TEXT,mime TEXT,size INTEGER,digest TEXT,createdAt TEXT);
    CREATE TABLE driver_mutations(accountId TEXT,id TEXT,result TEXT);
+   CREATE TABLE driver_coach_profiles(accountId TEXT,clientId TEXT,preferences TEXT,intake TEXT,updatedAt TEXT);
+   CREATE TABLE driver_coach_messages(sequence INTEGER PRIMARY KEY,accountId TEXT,clientId TEXT,id TEXT,body TEXT);
+   CREATE TABLE driver_coach_mutations(accountId TEXT,clientId TEXT,id TEXT,digest TEXT,createdAt TEXT);
    CREATE TABLE tax_client_documents(id TEXT,accountId TEXT,clientId TEXT,requestId TEXT,engagementId TEXT,name TEXT,mime TEXT,size INTEGER,digest TEXT,createdAt TEXT,status TEXT,reviewedAt TEXT,reviewedBy TEXT);
    CREATE TABLE records(id TEXT,kind TEXT,body TEXT);
    CREATE TABLE documents(id TEXT,kind TEXT,body TEXT);
@@ -48,6 +51,11 @@ async function fixture(){
   db.prepare('INSERT INTO driver_records VALUES(?,?,?,?,?,?,?)').run(otherAccount,foreign.id,otherClient,1,JSON.stringify(foreign),4,new Date().toISOString());
   for(const id of [receiptId,orphanId])db.prepare('INSERT INTO driver_receipts VALUES(?,?,?,?,?,?)').run(accountId,id,'image/png',receipt.length,hash(receipt),new Date().toISOString());
   db.prepare('INSERT INTO driver_mutations VALUES(?,?,?)').run(accountId,randomUUID(),'Unsupported old plaintext mutation cache');
+  for(const [coachAccount,coachClient] of [[accountId,clientId],[randomUUID(),clientId],[otherAccount,otherClient]]){
+   db.prepare('INSERT INTO driver_coach_profiles VALUES(?,?,?,?,?)').run(coachAccount,coachClient,JSON.stringify({dailyNetCents:12345}),JSON.stringify({jurisdiction:'COACH INTAKE MUST NOT COPY'}),new Date().toISOString());
+   db.prepare('INSERT INTO driver_coach_messages(accountId,clientId,id,body) VALUES(?,?,?,?)').run(coachAccount,coachClient,randomUUID(),JSON.stringify({text:'COACH CONVERSATION MUST NOT COPY'}));
+   db.prepare('INSERT INTO driver_coach_mutations VALUES(?,?,?,?,?)').run(coachAccount,coachClient,randomUUID(),'synthetic-coach-digest',new Date().toISOString());
+  }
   db.prepare('INSERT INTO tax_client_documents VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)').run(documentId,accountId,clientId,requestId,engagementId,'Synthetic tax statement 000-12-3456.pdf','application/pdf',pdf.length,hash(pdf),new Date().toISOString(),'received',null,null);
   db.prepare('INSERT INTO records VALUES(?,?,?)').run(clientId,'client',JSON.stringify({title:'Synthetic target identity'}));
   db.prepare('INSERT INTO documents VALUES(?,?,?)').run('state:module-records','state',JSON.stringify({'tax-engagements':[{id:engagementId,values:{client_id:clientId,notes:'DO NOT SHARE STAFF NOTE',client_visible:false}}]}));
@@ -89,8 +97,9 @@ test('verified copied backup exports exact driver/receipt/document bytes for bot
   assert.deepEqual(receipt.payload.links.driverRecordObjectIds,[expense.entry.objectId]);assert.deepEqual(Buffer.from(receipt.payload.file.bytesBase64url,'base64url'),value.receipt);
   assert.deepEqual(Buffer.from(document.payload.file.bytesBase64url,'base64url'),value.pdf);assert.equal(document.payload.legacy.documentId,value.documentId);assert.equal(document.payload.legacy.requestId,value.requestId);
   assert.equal(report.unsupported.counts.sdkTaxRows,1);assert.equal(report.unsupported.counts.bankAuthorizations,1);assert.equal(report.unsupported.counts.driverMutationCaches,1);assert.equal(report.unsupported.counts.unreferencedDriverReceipts,1);assert.equal(report.unsupported.workspaceWideUnscoped.auditSnapshotsPresent,true);
+  for(const category of ['coachProfiles','coachMessages','coachMutationCaches'])assert.equal(report.unsupported.counts[category],2);
   const disk=filesIn(value.options.outputDirectory).map(file=>readFileSync(path.join(value.options.outputDirectory,file),'utf8')).join('\n');
-  for(const text of ['000-12-3456','Synthetic tax notes','Synthetic tax statement','FORBIDDEN FOREIGN','DO NOT SHARE STAFF NOTE','HOST_TOKEN_MUST_NOT_COPY','OTHER LEGACY FILE MUST NOT COPY',value.legacyKey.toString('base64'),...value.recordIds,value.receiptId,value.documentId,value.requestId,value.engagementId])assert(!disk.includes(text));
+  for(const text of ['000-12-3456','Synthetic tax notes','Synthetic tax statement','FORBIDDEN FOREIGN','DO NOT SHARE STAFF NOTE','HOST_TOKEN_MUST_NOT_COPY','COACH INTAKE MUST NOT COPY','COACH CONVERSATION MUST NOT COPY','OTHER LEGACY FILE MUST NOT COPY',value.legacyKey.toString('base64'),...value.recordIds,value.receiptId,value.documentId,value.requestId,value.engagementId])assert(!disk.includes(text));
   assert.equal(statSync(value.options.outputDirectory).mode&0o777,0o700);for(const file of filesIn(value.options.outputDirectory))assert.equal(statSync(path.join(value.options.outputDirectory,file)).mode&0o777,0o600);
   await assert.rejects(()=>prepareLegacyMigration(value.options),/new export directory/);
  }finally{rmSync(value.directory,{recursive:true,force:true});}

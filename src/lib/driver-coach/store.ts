@@ -6,6 +6,7 @@ import { driverAccount, driverAvailable } from "../rideshare-driver/policy";
 import { driverRecord, DriverError, type DriverRecord } from "../rideshare-driver/model";
 import { initDriver } from "../rideshare-driver/store";
 import { workspaceDatabase } from "../workspace/database";
+import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
 import { analyzeCoach, coachMilestones } from "./analysis";
 import { answerCoach } from "./answers";
 import { attestFinancialFacts, peelCoachAvailable } from "./peel";
@@ -44,14 +45,17 @@ function recordVersion(db: DatabaseSync, account: Identity) {
   return (db.prepare("SELECT coalesce(max(sequence),0) AS sequence FROM driver_records WHERE accountId=? AND clientId=?")
     .get(account.id, account.clientId) as { sequence: number }).sequence;
 }
-function sameAccount(db: DatabaseSync, token: string | undefined, expected: Identity) {
+function sameAccount(db: DatabaseSync, token: string | undefined, expected: Identity, plaintextWrite = false) {
   const current = driverAccount(db, token);
   if (current.id !== expected.id || current.clientId !== expected.clientId) throw new DriverError(403, "Your client account changed. Sign in again.");
+  if (plaintextWrite) assertPlaintextTaxAllowed({ accountId: current.id, clientId: current.clientId }, db);
   return current;
 }
-function context(token: string | undefined) {
+function context(token: string | undefined, plaintextWrite = false) {
   return workspaceDatabase(db => {
-    const account = driverAccount(db, token); initCoach(db); initDriver(db);
+    const account = driverAccount(db, token);
+    if (plaintextWrite) assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db);
+    initCoach(db); initDriver(db);
     const rows = db.prepare("SELECT body FROM driver_records WHERE accountId=? AND clientId=? AND json_extract(body,'$.deleted')=0 ORDER BY sequence")
       .all(account.id, account.clientId) as { body: string }[];
     return { account, profile: profile(db, account), records: rows.map(row => driverRecord.parse(JSON.parse(row.body))) as DriverRecord[],
@@ -75,17 +79,19 @@ function previousMutation(db: DatabaseSync, account: Identity, id: string, expec
   return Boolean(prior);
 }
 export async function updateCoach(token: string | undefined, raw: unknown): Promise<CoachState> {
-  const command = coachMutation.parse(raw), period = coachPeriod(command), inputDigest = digest(command), snapshot = context(token);
+  const command = coachMutation.parse(raw), period = coachPeriod(command), inputDigest = digest(command), snapshot = context(token, true);
   const account = snapshot.account;
-  const duplicate = workspaceDatabase(db => { sameAccount(db, token, account); return previousMutation(db, account, command.mutationId, inputDigest); });
+  const duplicate = workspaceDatabase(db => { sameAccount(db, token, account, true); return previousMutation(db, account, command.mutationId, inputDigest); });
   if (duplicate) return readCoach(token, period);
   const preferences = command.action === "intake" ? snapshot.profile.preferences : command.preferences ?? snapshot.profile.preferences;
   // Confirmed phone and browser forms submit a full snapshot; omitted fields explicitly become unknown.
   const intake = command.action === "intake" ? command.answers : snapshot.profile.intake;
   const analysis = analyzeCoach(snapshot.records, preferences, period);
   let verified = false;
-  // The optional adapter sends numerical rows only. No conversation, documents or taxpayer facts leave this service.
+  // The optional local worker receives scoped record IDs and financial figures.
+  // Protected clients must fail before this call; chat, documents and intake are excluded.
   if (command.action === "message" && peelCoachAvailable() && analysis.priced.length > 0 && analysis.priced.length <= 5000) {
+    workspaceDatabase(db => sameAccount(db, token, account, true));
     try {
       const receipt = await attestFinancialFacts({ rows: analysis.priced.map(job => ({ id: job.id, grossCents: job.grossCents!,
         feesCents: job.feesCents!, vehicleCents: job.vehicleCents!, netCents: job.netCents! })), unpricedCount: analysis.jobs.length - analysis.priced.length });
@@ -95,7 +101,7 @@ export async function updateCoach(token: string | undefined, raw: unknown): Prom
     } catch { /* Optional verification cannot turn a recorded-data answer into a provider dependency. */ }
   }
   // Access and shared tax visibility are checked after the optional asynchronous operation.
-  workspaceDatabase(db => sameAccount(db, token, account));
+  workspaceDatabase(db => sameAccount(db, token, account, true));
   const tax = clientTaxSummary(account.clientId, token), milestones = coachMilestones(analysis, preferences, intake, tax);
   const answer = command.action === "message" ? answerCoach(command.text, analysis, preferences, intake, milestones, tax)
     : { text: command.action === "intake" ? "Your explicitly confirmed tax context is saved with this client account. Your preparer still needs to review it; no filing or tax treatment was changed."
@@ -104,7 +110,7 @@ export async function updateCoach(token: string | undefined, raw: unknown): Prom
   const reply: CoachMessage = { id: randomUUID(), role: "assistant", text: answer.text + (verified ? "\n\nConnected Peel verified the priced-job arithmetic. The explanation uses recorded-data rules." : ""),
     createdAt, engine: verified ? "record-rules · Peel-verified arithmetic" : "record-rules", sources: answer.sources, recordIds: answer.recordIds };
   workspaceDatabase(db => {
-    sameAccount(db, token, account); initCoach(db);
+    sameAccount(db, token, account, true); initCoach(db);
     if (previousMutation(db, account, command.mutationId, inputDigest)) return;
     if (digest(profile(db, account)) !== digest(snapshot.profile)) throw new DriverError(409, "Your saved goals or tax context changed while the coach was answering. Retry your saved message to use the latest information.");
     if (recordVersion(db, account) !== snapshot.recordVersion) throw new DriverError(409, "Your records changed while the coach was answering. Retry your saved message to use the latest records.");

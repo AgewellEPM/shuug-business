@@ -157,11 +157,13 @@ async function main() {
     assert.equal((await request(`/api/website/customer/driver/receipts/${randomUUID()}`, { method: "PUT", headers: bearer(tokens[0]), body: Buffer.from("89504e470d0a1a0a", "hex") })).status, 409);
     const upload = new FormData(); upload.set("requestId", taxRequest.id); upload.set("file", new Blob(["%PDF-1.4\nSynthetic legacy write rejection\n%%EOF"], { type: "application/pdf" }), "synthetic-request.pdf");
     assert.equal((await request("/api/website/customer/documents", { method: "POST", headers: { Authorization: `Bearer ${tokens[0]}`, Accept: "application/json" }, body: upload })).status, 409);
+    assert.equal((await request("/api/website/customer/driver/coach", { method: "POST", headers: bearer(tokens[0]), body: "not-json" })).status, 409);
+    assert.equal((await request("/api/website/customer/driver/profile", { method: "PATCH", headers: bearer(tokens[0]), body: "not-json" })).status, 409);
     const bank = await request("/api/website/customer/driver/banks", { headers: bearer(tokens[0]) }); assert.equal(bank.status, 200);
     const bankStatus = await bank.json(); assert.equal(bankStatus.ready, false); assert.equal(bankStatus.secureTaxRequired, true);
     const uber = await request("/api/website/customer/connections/uber", { headers: bearer(tokens[0]) }); assert.equal(uber.status, 200);
     const uberStatus = await uber.json(); assert.equal(uberStatus.ready, false); assert.equal(uberStatus.secureTaxRequired, true);
-    checks.push("enrolled clients reject legacy journal, receipt and requested-document uploads; host provider availability stays disabled");
+    checks.push("enrolled clients reject legacy journal, receipt, requested-document, coach and profile mutations before parsing their bodies; host provider availability stays disabled");
     const objectId = randomUUID(), deletedId = randomUUID();
     const payload = Buffer.from(JSON.stringify({ syntheticOnly: true, ssn: "000-12-3456", label: "SECURE_HTTP_SYNTHETIC_PAYLOAD", documentName: "synthetic-private-tax.pdf", amountCents: 123456 }));
     const context = (id: string, revision: number): SecureTaxEnvelope["context"] => ({ workspaceId, accountId: accounts[0].id, objectId: id, revision, domain: "tax-identity" });

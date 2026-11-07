@@ -9,6 +9,9 @@ export function legacySecureTaxData(db: DatabaseSync, account: { id: string; cli
   const counts = {
     driverRecords: count("driver_records", "SELECT count(*) AS n FROM driver_records WHERE accountId=? OR clientId=?", account.id, account.clientId),
     driverMutationCaches: count("driver_mutations", `SELECT count(*) AS n FROM driver_mutations WHERE accountId IN (${accounts})`, account.id, account.clientId),
+    coachProfiles: count("driver_coach_profiles", "SELECT count(*) AS n FROM driver_coach_profiles WHERE accountId=? OR clientId=?", account.id, account.clientId),
+    coachMessages: count("driver_coach_messages", "SELECT count(*) AS n FROM driver_coach_messages WHERE accountId=? OR clientId=?", account.id, account.clientId),
+    coachMutationCaches: count("driver_coach_mutations", "SELECT count(*) AS n FROM driver_coach_mutations WHERE accountId=? OR clientId=?", account.id, account.clientId),
     receiptFiles: count("driver_receipts", `SELECT count(*) AS n FROM driver_receipts WHERE accountId IN (${accounts})`, account.id, account.clientId),
     taxDocuments: count("tax_client_documents", "SELECT count(*) AS n FROM tax_client_documents WHERE accountId=? OR clientId=?", account.id, account.clientId),
     bankProviderAuthorizations: count("driver_bank_items", "SELECT count(*) AS n FROM driver_bank_items WHERE (accountId=? OR clientId=?) AND length(secret)>0", account.id, account.clientId),

@@ -18,6 +18,8 @@ import { GET, POST } from "@/app/api/website/customer/driver/coach/route";
 import { GET as portal } from "@/app/api/website/customer/route";
 import { POST as saveNativeRecord, GET as receivedRecords } from "@/app/api/website/customer/driver/records/route";
 import { initCoach, readCoach, staffCoachThreads, updateCoach } from "./store";
+import { SecureTaxRequiredError } from "../secure-tax/policy";
+import { legacySecureTaxData } from "../secure-tax/legacy";
 
 const peel = vi.hoisted(() => ({ available: false, attest: vi.fn() }));
 vi.mock("./peel", () => ({ peelCoachAvailable: () => peel.available, attestFinancialFacts: peel.attest }));
@@ -33,6 +35,16 @@ const job = (purpose = "My best recorded job") => ({ id: randomUUID(), revision:
   classification: "business", purpose, distanceMeters: 16093.44, source: "gps", hasGaps: false, sampleCount: 20, notes: "",
   earningsCents: 3000, platformFeesCents: 500, platform: "Uber", workArea: "Downtown", rideRole: "ride",
 } });
+function enrollProtectedClient() {
+  // Explicit policy fixture. Cryptographic enrollment is tested separately.
+  workspaceDatabase(db => {
+    db.exec(`CREATE TABLE IF NOT EXISTS secure_tax_enrollments(accountId TEXT PRIMARY KEY,clientId TEXT NOT NULL,
+      workspaceId TEXT NOT NULL,manifestId TEXT NOT NULL,epoch INTEGER NOT NULL,clientRecipientId TEXT NOT NULL,
+      firmRecipientId TEXT NOT NULL,manifest TEXT NOT NULL,enrolledAt TEXT NOT NULL,status TEXT NOT NULL)`);
+    db.prepare("INSERT INTO secure_tax_enrollments VALUES(?,?,?,?,?,?,?,?,?,'active')")
+      .run(alpha.id, alpha.clientId, "synthetic-workspace", "synthetic-manifest", 1, "client-public", "firm-public", "{}", new Date().toISOString());
+  }, true);
+}
 beforeEach(async () => {
   directory = mkdtempSync(`${tmpdir()}/shuug-coach-`);
   for (const [key, value] of Object.entries({ DEALDESK_DATA_DIR: directory, APP_BASE_URL: base, DATABASE_URL: "", DEMO_DATA: "false" })) vi.stubEnv(key, value);
@@ -162,4 +174,59 @@ it("preserves older history at capacity and limits reads without silently prunin
   expect(readCoach(alpha.token, dates).messages).toHaveLength(100);
   expect((await POST(request(alpha.token, question()))).status).toBe(413);
   expect(workspaceDatabase(db => (db.prepare("SELECT count(*) AS n FROM driver_coach_messages WHERE accountId=?").get(alpha.id) as { n: number }).n)).toBe(2000);
+});
+
+it("blocks protected coach writes and retries across linked accounts without altering retained history or calling Peel", async () => {
+  saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: job() });
+  const command = question(), prior = await updateCoach(alpha.token, command);
+  const alias = await createLinkedCustomer({ name: "Second invited account", email: "second-coach@example.test", clientId: alpha.clientId, customerId: null });
+  acceptCustomerInvitation(issueCustomerInvitation(alias.id), "Synthetic-coach-password-only");
+  const aliasToken = signInCustomer(alias.email, "Synthetic-coach-password-only");
+  enrollProtectedClient(); peel.available = true;
+  for (const input of [command, question(), { action: "preferences", mutationId: randomUUID(), preferences: { dailyNetCents: 10000 } },
+    { action: "intake", mutationId: randomUUID(), answers: { taxYear: 2026 }, confirmed: true }]) {
+    await expect(updateCoach(alpha.token, input)).rejects.toThrow(SecureTaxRequiredError);
+    await expect(updateCoach(aliasToken, input)).rejects.toThrow(SecureTaxRequiredError);
+  }
+  expect(peel.attest).not.toHaveBeenCalled();
+  expect(readCoach(alpha.token, dates)).toEqual(prior);
+  expect(staffCoachThreads().find(row => row.accountId === alpha.id)?.messages).toEqual(prior.messages);
+  expect((await updateCoach(beta.token, question())).messages).toHaveLength(2);
+});
+
+it("rejects protected JSON and browser form bodies before reading them", async () => {
+  enrollProtectedClient();
+  const json = new Request(base + path, { method: "POST", headers: { Authorization: `Bearer ${alpha.token}`, "Content-Type": "application/json" }, body: "not JSON" });
+  const denied = await POST(json); expect(denied.status).toBe(409); expect(json.bodyUsed).toBe(false);
+  const form = new Request(base + path, { method: "POST", headers: { Cookie: `shuug_customer=${alpha.token}`, Origin: base, Accept: "text/html", "Content-Type": "application/x-www-form-urlencoded" }, body: "text=Never-read-private-draft" });
+  const browser = await POST(form); expect(browser.status).toBe(409); expect(form.bodyUsed).toBe(false);
+  const html = await browser.text(); expect(html).toContain("offhost encrypted"); expect(html).not.toContain("Never-read-private-draft");
+  expect(denied.headers.get("cache-control")).toBe("private, no-store");
+});
+
+it("rechecks secure enrollment after optional Peel awaits without persisting a profile, message or mutation", async () => {
+  saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: job() }); peel.available = true;
+  peel.attest.mockImplementation(async () => { enrollProtectedClient(); return { available: false, verified: false }; });
+  await expect(updateCoach(alpha.token, question())).rejects.toThrow(SecureTaxRequiredError);
+  expect(peel.attest).toHaveBeenCalledTimes(1);
+  workspaceDatabase(db => {
+    for (const table of ["driver_coach_profiles", "driver_coach_messages", "driver_coach_mutations"]) {
+      expect((db.prepare(`SELECT count(*) AS n FROM ${table} WHERE accountId=?`).get(alpha.id) as { n: number }).n).toBe(0);
+    }
+  });
+});
+
+it("reports retained coach profiles, conversation bodies and mutation metadata as unresolved linked-client exposure", async () => {
+  await updateCoach(alpha.token, question("RETAINED-COACH-PRIVATE-FIXTURE"));
+  await updateCoach(beta.token, question("FOREIGN-COACH-PRIVATE-FIXTURE"));
+  workspaceDatabase(db => {
+    const alias = randomUUID();
+    db.prepare("INSERT INTO driver_coach_profiles VALUES(?,?,?,?,?)").run(alias, alpha.clientId, "{}", "{}", new Date().toISOString());
+    db.prepare("INSERT INTO driver_coach_messages(accountId,clientId,id,body) VALUES(?,?,?,?)").run(alias, alpha.clientId, randomUUID(), JSON.stringify({ text: "LINKED-COACH-PRIVATE-FIXTURE" }));
+    db.prepare("INSERT INTO driver_coach_mutations VALUES(?,?,?,?,?)").run(alias, alpha.clientId, randomUUID(), "synthetic-digest", new Date().toISOString());
+    const report = legacySecureTaxData(db, alpha);
+    expect(report.legacyCounts).toMatchObject({ coachProfiles: 2, coachMessages: 3, coachMutationCaches: 2 });
+    expect(report).toMatchObject({ legacyMigrationRequired: true, plaintextMigrationPerformed: false, hostCompromiseProtectionVerified: false });
+    expect(JSON.stringify(report)).not.toMatch(/RETAINED-COACH|FOREIGN-COACH|LINKED-COACH/);
+  }, true);
 });

@@ -67,21 +67,33 @@ not claimed. Keep backup/passphrase outside this device for device-loss recovery
 
 ## Encrypted workspace and limits
 
-Seven coarse domains have grouped readable views. Native encrypted Journal
-snapshots have dedicated summaries/detail lists for the actual saved modules;
+Seven coarse domains have grouped readable views. The committed native Journal
+currently has 30 Codable fields. Its encrypted snapshots have 24 readable groups,
+including Tax & Goals messages, queued questions, confirmed intake, preparation
+milestones, recorded engine metadata, and delivery/shopping work preferences;
 receipt metadata and route references do not imply their file bytes were saved.
 Local/client-specific permissions and actions are never replayed. Files are
 fully encrypted, including filename/MIME. Readable file/JSON downloads require
 an explicit click and leave a separate readable copy in the user's Downloads.
 Unknown payloads remain explicit rather than being treated as a tax result.
 
-Normal forms create/edit tax identity, private document, income, expense, trip,
-goal and planning-reserve objects. SSNs are masked by default. The explicit SSN
+Normal forms create/edit tax identity, tax-prep intake, private document, income,
+expense, trip/completed shopping work, goals, planning reserves, and
+delivery/shopping work preferences. SSNs are masked by default. The explicit SSN
 remove action deletes the entire live tax-identity object via the API and clears
 its retry metadata; it does not erase backups or recipient copies. These typed
 objects remain separate from read-only native Journal snapshots: no automatic
 snapshot merge, restore, tax-request completion or provider reconciliation is
 claimed. Advanced JSON tools remain in a separate disclosure.
+
+Confirmed intake uses the native tax-year/jurisdiction/business-arrangement
+fields. Work-profile links use the native public HTTPS restrictions and never
+launch automatically. Saving either form creates a separate encrypted
+`driver-state` object; it does not modify a native snapshot, send a queued coach
+question, run coach inference, establish provider authority or confirm a filing.
+Preparation milestones and saved engine availability are historical data, not
+current tax or service assurances. Reputation data is outside this version of
+the snapshot.
 
 The controller authenticates v2 HPKE Auth envelopes, both complete recovery
 slots, context and revisions. It remembers public revision/tombstone metadata

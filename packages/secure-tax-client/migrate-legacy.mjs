@@ -85,6 +85,9 @@ function legacyDocument(snapshot,row,key){
 function inventory(db,accountId,clientId,receiptCount,exportedReceipts,files,usedFiles){
  const counts={
   driverMutationCaches:count(db,'driver_mutations','SELECT count(*) AS n FROM driver_mutations WHERE accountId=?',accountId),
+  coachProfiles:count(db,'driver_coach_profiles','SELECT count(*) AS n FROM driver_coach_profiles WHERE accountId=? OR clientId=?',accountId,clientId),
+  coachMessages:count(db,'driver_coach_messages','SELECT count(*) AS n FROM driver_coach_messages WHERE accountId=? OR clientId=?',accountId,clientId),
+  coachMutationCaches:count(db,'driver_coach_mutations','SELECT count(*) AS n FROM driver_coach_mutations WHERE accountId=? OR clientId=?',accountId,clientId),
   unreferencedDriverReceipts:receiptCount-exportedReceipts,
   taxDocumentReviewerMetadata:count(db,'tax_client_documents','SELECT count(*) AS n FROM tax_client_documents WHERE accountId=? AND clientId=? AND reviewedBy IS NOT NULL',accountId,clientId),
   taxDocumentReviewAudits:existsTable(db,'tax_client_documents')?count(db,'tax_document_reviews','SELECT count(*) AS n FROM tax_document_reviews r JOIN tax_client_documents d ON d.id=r.documentId WHERE d.accountId=? AND d.clientId=?',accountId,clientId):0,
@@ -108,7 +111,7 @@ function inventory(db,accountId,clientId,receiptCount,exportedReceipts,files,use
   }}
  }
  return {counts,workspaceWideUnscoped:{auditSnapshotsPresent:count(db,'audit','SELECT count(*) AS n FROM audit')>0,commandSnapshotsPresent:count(db,'commands','SELECT count(*) AS n FROM commands')>0,legacyHostVaultKeyPresent:files.includes('vault.key'),connectionVaultPresent:files.includes('connections.enc')},
-  unscannedExposure:['Other accounts and client links','Generic workspace, SDK and custom tracker fields','Device app caches, journal exports and route data outside this backup','Orphan receipt/document files and legacy JSON outside supported links','Filesystem history, prior exports, logs, deleted SQLite pages and retained backups','Provider copies, subscriptions and externally valid credentials'],
+  unscannedExposure:['Other accounts and client links','Generic workspace, SDK and custom tracker fields','Coach preferences, confirmed intake, conversation bodies and mutation metadata are counted but not exported','Device app caches, journal exports and route data outside this backup','Orphan receipt/document files and legacy JSON outside supported links','Filesystem history, prior exports, logs, deleted SQLite pages and retained backups','Provider copies, subscriptions and externally valid credentials'],
   providerCredentialsCopied:false,staffOnlySdkRowsCopied:false};
 }
 

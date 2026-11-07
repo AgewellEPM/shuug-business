@@ -4,6 +4,34 @@ Read-only inventory of `/Users/lukekist/Worktrees/GigTaxProsConnections-20261107
 branch `feat/gig-tax-pros-connections`. This file contains source findings and a migration checklist,
 not customer records or a claim of completed encryption/parity.
 
+## Implemented since this baseline audit
+
+The secure branch now merges committed native `9cfa62e`, retaining shopping
+work, app launchers, Tax & Goals guidance and branded notifications. Protected
+manual device snapshots encode all **30 committed Journal fields**, including
+six coach fields and delivery/shopping preferences. Account now links explicit
+encrypted snapshot upload/list/preview/import-review/delete. This does not turn
+normal legacy synchronization into full automatic encrypted sync, restore a
+remote Journal, include route/receipt file bytes, or include the original
+worktree's uncommitted reputation feature.
+
+The independent static browser client decrypts native snapshots into 24 readable
+sections. Normal forms cover identity, documents, trip/income/expense records,
+goals/reserves, preparation intake and gig preferences. Form edits are separate
+encrypted objects; snapshot sections remain read-only. They do not automatically
+merge into the phone's Journal or run coaching/provider/device actions.
+
+An offline preparation tool verifies copied-backup hashes/SQLite integrity and
+exports encrypted driver records, linked receipts and own submitted documents.
+Coach profiles/messages/mutation caches, staff-only SDK rows, provider secrets,
+identity records and histories are explicitly counted or left unresolved. It
+does not upload, purge source data or establish completed migration. Client
+recovery and actual authorized import must be verified separately.
+
+No real off-host keys/public pins were generated, no account was enrolled or
+migrated, and the browser artifact was not deployed. Missing independent pins
+keep activation disabled. All remaining checklist items below still apply.
+
 ## The current synchronization boundary
 
 `App/DriverModel.swift::sync()` uploads `journal.pendingReceipts` and

@@ -1,7 +1,9 @@
 import { encode64 } from '../envelope.mjs';
 
-export const FORM_TYPES=Object.freeze({document:'Tax document',identity:'Tax identity',income:'Income',expense:'Expense',trip:'Trip',goals:'Goals',reserves:'Planning reserves'});
+export const FORM_TYPES=Object.freeze({document:'Tax document',identity:'Tax identity',intake:'Tax-prep details',income:'Income',expense:'Expense',trip:'Trip / completed work',goals:'Goals',reserves:'Planning reserves','work-settings':'Delivery & shopping settings'});
 const classifications=['unclassified','business','personal'];
+const rideRoles=['ride','delivery','shopping','reposition','other'];
+const businessTypes=['unsure','sole-proprietor','single-member-llc','partnership','corporation'];
 const categories=['fuel','repairs','maintenance','tires','insurance','registration','ev_charging','cleaning','rental','lease','interest','tolls','parking','meals','lodging','amenities','supplies','phone','fees','subscriptions','training','professional','other'];
 const today=()=>new Date().toISOString().slice(0,10);
 const amount=value=>Number.isFinite(value)?String(value/100):'';
@@ -9,6 +11,7 @@ const label=value=>String(value).replaceAll('_',' ').replace(/([a-z])([A-Z])/g,'
 export function formType(data){
   if(data?.version!==1)return null;
   if(data.type==='tax-identity')return 'identity';
+  if(data.type==='coach-intake')return 'intake';if(data.type==='universal-gig-settings')return 'work-settings';
   if(data.type==='driver-record'&&['income','expense','trip'].includes(data.record?.kind))return data.record.kind;
   if(data.type==='driver-goals')return 'goals';if(data.type==='planning-reserves')return 'reserves';return null;
 }
@@ -26,8 +29,33 @@ const number=(value,name,min,max,optional=false)=>{
 const money=(value,name,optional=false)=>{const valueNumber=number(value,name,0,1000000,optional);return valueNumber===null?null:Math.round(valueNumber*100);};
 const text=(value,name,max=1000)=>{if(typeof value!=='string'||value.length>max)throw new Error(`${name} is too long.`);return value.trim();};
 const date=value=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value))||new Date(value).toISOString().slice(0,10)!==value)throw new Error('Choose a valid recorded date.');return value;};
+export function validatedWorkURL(input){
+  const value=text(input,'Work app link',2048);if(!value)return null;
+  let url;try{url=new URL(value);}catch{throw new Error('Use a public HTTPS work link without credentials, or leave it blank.');}
+  const host=url.hostname.toLowerCase();
+  if(url.protocol!=='https:'||url.username||url.password||(url.port&&url.port!=='443')||!host.includes('.')||host.includes(':')||/^[0-9.]+$/.test(host)||['.local','.internal','.localhost'].some(suffix=>host.endsWith(suffix)))throw new Error('Use a public HTTPS work link without credentials, or leave it blank.');
+  return url.href;
+}
 export function buildFormPayload(kind,values,original=null){
   const base=original?structuredClone(original):{version:1},body={...(original?.record?.body??{})};
+  if(kind==='intake'){
+    const coachIntake={...(original?.coachIntake??{})},year=number(values.taxYear,'Tax year',1900,9999,true),jurisdiction=text(values.jurisdiction,'Jurisdiction',80);
+    if(year!==null&&!Number.isInteger(year))throw new Error('Tax year must be a whole year.');
+    if(jurisdiction&&([...jurisdiction].length<2||!/^[\p{L} .,'-]+$/u.test(jurisdiction)))throw new Error('Use a state or country name without account or taxpayer numbers.');
+    if(!businessTypes.includes(values.businessType))throw new Error('Choose a business arrangement.');
+    if(year===null)delete coachIntake.taxYear;else coachIntake.taxYear=year;
+    if(!jurisdiction)delete coachIntake.jurisdiction;else coachIntake.jurisdiction=jurisdiction;
+    coachIntake.businessType=values.businessType;
+    return {domain:'driver-state',payload:{...base,type:'coach-intake',coachIntake}};
+  }
+  if(kind==='work-settings'){
+    const settings={...(original?.universalGigSettings??{})};
+    for(const workType of ['delivery','shopping']){
+      const workLabel=text(values[`${workType}Label`],`${label(workType)} work label`,80);if(!workLabel)throw new Error('Enter a work or app name between 1 and 80 characters.');
+      const profile={...(settings[workType]??{}),workLabel},url=validatedWorkURL(values[`${workType}URL`]);if(url)profile.appURL=url;else delete profile.appURL;settings[workType]=profile;
+    }
+    return {domain:'driver-state',payload:{...base,type:'universal-gig-settings',universalGigSettings:settings}};
+  }
   if(kind==='identity'){
     const legalName=text(values.legalName,'Legal name',200);if(!legalName)throw new Error('Enter the legal name.');
     const result={...base,type:'tax-identity',legalName,taxYear:number(values.taxYear,'Tax year',2000,2100,true)};
@@ -48,6 +76,7 @@ export function buildFormPayload(kind,values,original=null){
     if(ended)body.endedAt=ended.toISOString();else delete body.endedAt;
     for(const [key,input] of [['earningsCents','fare'],['platformFeesCents','fees']]){const value=money(values[input],label(input),true);if(value===null)delete body[key];else body[key]=value;}
     body.platform=text(values.platform,'Platform',100);
+    if(values.rideRole){if(!rideRoles.includes(values.rideRole))throw new Error('Choose the type of completed work.');body.rideRole=values.rideRole;}
   }else{
     Object.assign(body,{date:date(values.date),amountCents:money(values.amount,'Amount'),currency:body.currency??'USD',notes:text(values.notes,'Notes',10000)});
     if(kind==='income')Object.assign(body,{platform:text(values.platform,'Platform',100),description:text(values.description,'Description')});
@@ -92,6 +121,14 @@ export function mountForms(document,container,{onSave,onDelete,run,captureScope=
       if(editingId&&original?.ssn){const remove=document.createElement('button');remove.type='button';remove.className='danger';remove.textContent='Remove SSN and delete this identity item';remove.disabled=!enabled;remove.addEventListener('click',()=>run(async()=>{if(!confirm('Delete this entire encrypted tax identity item, including its SSN? Backups and recipient copies may retain older ciphertext or readable copies.'))return;await onDelete(editingId);api.clear();}));body.append(remove);}
       notice.textContent='SSN is hidden by default. Removing a saved SSN deletes the whole live identity object and its retry records. Backups, filesystem history and recipient copies are not erased.';
     }
+    if(kind==='intake'){
+      const year=field('taxYear','Confirmed tax year (optional)',original?.coachIntake?.taxYear,'number');year.min='1900';year.max='9999';year.step='1';field('jurisdiction','Federal / state / local jurisdiction (optional)',original?.coachIntake?.jurisdiction).maxLength=80;field('businessType','Confirmed business arrangement',original?.coachIntake?.businessType??'unsure','text',businessTypes);
+      notice.textContent+=' These are answers you confirm for preparation. No coach inference, silent intake change, queued question dispatch or filing action is performed. Keep passwords, verification codes, full SSNs and bank credentials out of chat.';
+    }
+    if(kind==='work-settings'){
+      for(const [key,name,defaultLabel] of [['delivery','Universal delivery','Universal delivery'],['shopping','In-store shopping','In-store shopping']]){field(`${key}Label`,`${name} work / app name`,original?.universalGigSettings?.[key]?.workLabel??defaultLabel).maxLength=80;field(`${key}URL`,`${name} public HTTPS app link (optional)`,original?.universalGigSettings?.[key]?.appURL).maxLength=2048;}
+      notice.textContent+=' These labels and optional links do not authorize a provider, connect an account, read offers or open an app automatically.';
+    }
     if(kind==='income'||kind==='expense'){
       field('date','Recorded date',record.date??today(),'date');field('amount',`Amount (${record.currency??'USD'})`,amount(record.amountCents),'number');
       if(kind==='income'){field('platform','Platform',record.platform);field('description','Description',record.description);}
@@ -99,6 +136,7 @@ export function mountForms(document,container,{onSave,onDelete,run,captureScope=
       field('notes','Notes',record.notes,'textarea');notice.textContent+=' Income, trip fares, bank deposits and provider payouts are kept separate.';
     }
     if(kind==='trip'){
+      field('rideRole','Type of completed work',record.rideRole??'other','text',rideRoles);
       field('startedAt','Start (your local time)',localDateTime(record.startedAt),'datetime-local');field('endedAt','End (optional)',localDateTime(record.endedAt),'datetime-local');field('miles','Recorded miles',Number.isFinite(record.distanceMeters)?(record.distanceMeters/1609.344).toFixed(3):'','number');field('purpose','Purpose',record.purpose);field('classification','Classification',record.classification??'unclassified','text',classifications);field('platform','Platform',record.platform);field('fare','Recorded fare (USD, optional)',amount(record.earningsCents),'number');field('fees','Platform fees (USD, optional)',amount(record.platformFeesCents),'number');field('notes','Notes',record.notes,'textarea');
     }
     if(kind==='goals')for(const [key,name] of [['dailyNetCents','Daily net goal (USD)'],['weeklyNetCents','Weekly net goal (USD)'],['targetHourlyCents','Hourly target (USD)'],['vehicleCostCentsPerMile','Estimated vehicle cost per mile (USD)']])field(key,`${name} — optional`,amount(original?.goals?.[key]),'number');

@@ -2,7 +2,7 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, realpathSync, unlinkSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, realpathSync, unlinkSync, readdirSync, statSync } from "node:fs";
 import { createConnection } from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
@@ -13,6 +13,10 @@ import { getBranding, saveBranding } from "../src/lib/branding/store";
 
 async function main() {
   assert(process.platform === "darwin", "This updater manages the existing macOS installation.");
+  const args = process.argv.slice(2);
+  const checkOnly = args.length === 0 || (args.length === 1 && args[0] === "--check");
+  assert(checkOnly || (args.length === 5 && args[0] === "--apply" && args[1] === "--expected-source" && args[3] === "--expected-build"),
+    "Use --check first, then --apply --expected-source PATH --expected-build BUILD to update the observed installation.");
   const root = realpathSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."));
   const data = path.join(homedir(), "Library/Application Support/Shuug/Rideshare Tax Pros");
   const marker = path.join(data, "installation.json"), plist = path.join(homedir(), "Library/LaunchAgents/com.shuug.rideshare-tax-pros.plist");
@@ -25,6 +29,26 @@ async function main() {
   assert(createHash("sha256").update(previousPlist).digest("hex") === previous.plistSha256, "Service definition changed since installation; review it first.");
   assert(typeof previous.source === "string" && existsSync(path.join(previous.source, ".next/BUILD_ID")), "Previous build is unavailable for rollback.");
   assert(readFileSync(path.join(previous.source, ".next/BUILD_ID"), "utf8").trim() === previous.buildId, "Previous source build changed; resolve it before updating.");
+  const targetBuild = readFileSync(path.join(root, ".next/BUILD_ID"), "utf8").trim();
+  const buildTime = statSync(path.join(root, ".next/BUILD_ID")).mtimeMs;
+  const sourceNewer = (directory: string): boolean => readdirSync(directory, { withFileTypes: true }).some(entry => {
+    const file = path.join(directory, entry.name);
+    if (/\.(test|spec)\.[cm]?[jt]sx?$/.test(entry.name)) return false;
+    return entry.isDirectory() ? sourceNewer(file) : entry.isFile() && statSync(file).mtimeMs > buildTime;
+  });
+  const targetSourceModifiedAfterBuild = sourceNewer(path.join(root, "src")) || ["next.config.ts", "package.json", "package-lock.json"]
+    .some(file => statSync(path.join(root, file)).mtimeMs > buildTime);
+  if (checkOnly) {
+    console.log(JSON.stringify({ ok: true, checkOnly: true, installedSource: previous.source, installedBuild: previous.buildId, targetSource: root,
+      targetBuild, targetSourceModifiedAfterBuild, installationChanged: false }, null, 2));
+    return;
+  }
+  assert(!targetSourceModifiedAfterBuild, "Target source changed after compilation. Rebuild and verify it before updating the installed service.");
+  assert(args[2] === previous.source && args[4] === previous.buildId, "Another session changed the installed source/build. Inspect the new installation before updating; it was preserved.");
+  function unchangedInstallation() {
+    assert(readFileSync(marker).equals(previousBytes) && readFileSync(plist, "utf8") === previousPlist,
+      "Another session changed the installation definition. Its current service and metadata were preserved.");
+  }
   const xml = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&apos;" })[c]!);
   const oldRoot = xml(previous.source);
   assert(previousPlist.includes(`<string>${oldRoot}</string>`) && previousPlist.includes(`${oldRoot}/node_modules/next/dist/bin/next`), "Service source does not match its installation receipt.");
@@ -42,7 +66,7 @@ async function main() {
     if (state.status === 0) {
       execFileSync("/bin/launchctl", ["bootout", target], { stdio: "pipe" });
     }
-    for (let attempt = 0; attempt < 40; attempt++) {
+    for (let attempt = 0; attempt < 300; attempt++) {
       const listening = await new Promise<boolean>((resolve, reject) => {
         const socket = createConnection({ host: "127.0.0.1", port: 3126 });
         socket.once("connect", () => { socket.destroy(); resolve(true); });
@@ -59,8 +83,13 @@ async function main() {
     throw new Error("Port 3126 is still serving; refusing to replace metadata or back up live data.");
   }
   let changed = false;
+  let stage = "checking the current installation";
   try {
+    unchangedInstallation();
+    stage = "stopping the identified service";
     await stopOwned();
+    unchangedInstallation();
+    stage = "verifying a complete stopped-data backup";
     const result = backupWorkspace(data, backup);
     oldBrand = readFileSync(path.join(backup, "branding.json"));
     const verification = path.join(backup, "verification.json");
@@ -69,6 +98,8 @@ async function main() {
     const metadata = `${backup}-service`; mkdirSync(metadata, { mode: 0o700 });
     writeFileSync(path.join(metadata, "previous-service.plist"), previousPlist, { mode: 0o600 });
     writeFileSync(path.join(metadata, "previous-installation.json"), previousBytes, { mode: 0o600 });
+    unchangedInstallation();
+    stage = "installing the verified build";
     changed = true;
     writeFileSync(plist, nextPlist, { mode: 0o600 });
     saveBranding({ businessName: "Gig Tax Pros", logoText: "GTP" });
@@ -76,7 +107,11 @@ async function main() {
     const health = await fetch(`${previous.base}/api/website/customer/driver/health`); assert.equal(health.status, 200); assert.equal((await health.json()).ready, true);
     console.log(JSON.stringify({ ok: true, verifiedAt: new Date().toISOString(), base: previous.base, buildId: readFileSync(path.join(root, ".next/BUILD_ID"), "utf8").trim(), source: root, backupDirectory: backup, backupFiles: result.files, ownerSignInAndStaffRoutesVerified: true, publicHostingVerified: false }, null, 2));
   } catch (error) {
+    const failedStage = stage;
     if (changed) {
+      const currentMarker = readFileSync(marker), installed = JSON.parse(currentMarker.toString());
+      assert(readFileSync(plist, "utf8") === nextPlist && (currentMarker.equals(previousBytes) || (installed.source === root && installed.buildId === targetBuild)),
+        "Another session changed the installation during this update. Its current service and metadata were preserved; inspect the live state before retrying.");
       try { await stopOwned(); }
       catch { throw new Error("Update failed, and the new service could not be stopped for rollback. Its current metadata was preserved; inspect the owned service before retrying."); }
       assert(oldBrand, "The stopped workspace backup is required for rollback.");
@@ -90,11 +125,11 @@ async function main() {
     }
     if (wasRunning) {
       let recovered = false;
-      for (let attempt = 0; attempt < 40; attempt++) {
+      for (let attempt = 0; attempt < 120; attempt++) {
         try { if ((await fetch(`${previous.base}/api/auth/login`, { signal: AbortSignal.timeout(500) })).ok) { recovered = true; break; } } catch {}
         await pause(250);
       }
-      assert(recovered, "The previous service was restored but has not become ready; inspect its private logs.");
+      assert(recovered, `Update failed while ${failedStage}; previous-service readiness was not confirmed. Inspect its current definition and private logs before retrying.`);
     }
     throw error;
   }
