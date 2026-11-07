@@ -1,0 +1,754 @@
+{
+  "ok": true,
+  "origin": "https://gigtax.pro",
+  "verifiedAt": "2026-11-07T08:37:44.701Z",
+  "checks": [
+    {
+      "route": "/404.html",
+      "status": 200,
+      "sha256": "25b36bff7ca0f4abab88576d83ac6301da9cc672b46fd4247b49afb1286c9ae2"
+    },
+    {
+      "route": "/about.html",
+      "status": 200,
+      "sha256": "e6570c9321b1b7ba30fa8cce4d6da4cd51b18c92939a5934c3897a09ec420a01"
+    },
+    {
+      "route": "/accessibility.html",
+      "status": 200,
+      "sha256": "3267f17179a34286221b81189f0823ea84fa5a9d9d9eb8ffd131ab56f1dd21ca"
+    },
+    {
+      "route": "/app-showcase.css",
+      "status": 200,
+      "sha256": "0ada01be7313ab683722f13a703038bcb92c4cc3b225c87a3f2574b744f90b30"
+    },
+    {
+      "route": "/app-tour.js",
+      "status": 200,
+      "sha256": "d52736a45b8baed383dc0543a0240c564c09d4f6ce7993209d7bcf15eb4eecd2"
+    },
+    {
+      "route": "/app.html",
+      "status": 200,
+      "sha256": "4b58dc4824b003e7710ba204ae8fd423a31b8b07d801c0c48b8e6b12a722dc15"
+    },
+    {
+      "route": "/app.js",
+      "status": 200,
+      "sha256": "482918c6fe863b4ac617723d8a1919879cc913976a605580fdb60e00f21530b0"
+    },
+    {
+      "route": "/bank-return.html",
+      "status": 200,
+      "sha256": "c5c6c9449f56a35d594d3db144514f069b75fdf9bb83fe0b197d5658ba4b5f0a"
+    },
+    {
+      "route": "/bookkeeping.html",
+      "status": 200,
+      "sha256": "e0b634f54dca1c518e6edccd0139fbf56644f18cb62c3e30563a512555934316"
+    },
+    {
+      "route": "/client-portal.html",
+      "status": 200,
+      "sha256": "ef53866a0bdc511cf84bcb9808449f2351aaecb78eeb848e4216b00f76c77f80"
+    },
+    {
+      "route": "/companies.css",
+      "status": 200,
+      "sha256": "9bc4b3adbd04549581272944a60cd5427b5c3d8e94d8670d97e7bcad43b2e169"
+    },
+    {
+      "route": "/company-catalog.js",
+      "status": 200,
+      "sha256": "420e3006b3e91e856e31d72c91927eab396f7733028ec4705361c85dd7d27805"
+    },
+    {
+      "route": "/contact.html",
+      "status": 200,
+      "sha256": "13a312213ec667be83e09c021798dec5e28b019e0e394373b7d5d97407d5d11b"
+    },
+    {
+      "route": "/document-checklist.html",
+      "status": 200,
+      "sha256": "59cadfecc835735359c8594a8c220b7d0771ebf876eb1948231aed57982761f9"
+    },
+    {
+      "route": "/faq.html",
+      "status": 200,
+      "sha256": "56c08cee323c9438c465cde95addf9e7fb94d82a87ff6eddd45d4c769642dbfa"
+    },
+    {
+      "route": "/favicon.svg",
+      "status": 200,
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "route": "/features.css",
+      "status": 200,
+      "sha256": "2fcff649f27f04583c0cb8f0ddc9e9b2687eb3c59379f077dee166bc52407ef1"
+    },
+    {
+      "route": "/features.html",
+      "status": 200,
+      "sha256": "b19ee036429a702358c03cdc5fed30c91c017fbb95de4b0c2ba40fc4948cbd01"
+    },
+    {
+      "route": "/features.js",
+      "status": 200,
+      "sha256": "b4c1e7b0c32b45ab897e0846b90a17c7e76ef14ae23067000401121ebe28983a"
+    },
+    {
+      "route": "/get-started.html",
+      "status": 200,
+      "sha256": "cf8e7cf6efd88759852bb880f21ba21390c69dbe26d95fa1571ba77797bbed85"
+    },
+    {
+      "route": "/gig-companies.html",
+      "status": 200,
+      "sha256": "30e5b5e31fc90dbaa93ae3e4b3a73dd8ea771ea98ee50a0cc568aeb9a95567f8"
+    },
+    {
+      "route": "/home-layout.css",
+      "status": 200,
+      "sha256": "085ffc1622ac9e301898f0d80f6c214b4d3a9b217aa4bfbe43a18952bcbdce33"
+    },
+    {
+      "route": "/how-it-works.html",
+      "status": 200,
+      "sha256": "97648da1276d02526b426e12a233ffbfe2e3654ac1049a7a9e3fd24b955281eb"
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "sha256": "d7e5bcbb3f04549fa8d4144e08c5fab002c530da17f14edd4f2cdc07ce7b2f6b"
+    },
+    {
+      "route": "/inner-pages.css",
+      "status": 200,
+      "sha256": "17da3d84e77fdc4c11a2efd0ec406fb2676e2625a0a0f76e788ca582e52d7f00"
+    },
+    {
+      "route": "/inner-pages.js",
+      "status": 200,
+      "sha256": "4c2c5593f3c91517a736ca44595a242304acf36bd98d58db9d4155441b811cdb"
+    },
+    {
+      "route": "/join-the-family.html",
+      "status": 200,
+      "sha256": "ec54e85cd53d014b8eff31589d28597f3ec0b70140745c187476eb652101d495"
+    },
+    {
+      "route": "/links.js",
+      "status": 200,
+      "sha256": "7351d2805e1b4b2ccd197a20eb312d22c2e9356a345bb370c3af87725a33e593"
+    },
+    {
+      "route": "/mileage-and-expenses.html",
+      "status": 200,
+      "sha256": "735cdb09455adcef150efcd4f60414b51a1c58f59dbe5a5d453993f8ea919eb0"
+    },
+    {
+      "route": "/office-locations.json",
+      "status": 200,
+      "sha256": "37517e5f3dc66819f61f5a7bb8ace1921282415f10551d2defa5c3eb0985b570"
+    },
+    {
+      "route": "/office-map.css",
+      "status": 200,
+      "sha256": "9d3438951a9b8290ae08519cef077a2ed220aaf574ce68178a89699defcf357d"
+    },
+    {
+      "route": "/office-map.js",
+      "status": 200,
+      "sha256": "a2e2aaa4a77d47867fd6e003830f3f654eaaec7b26a4a927719f32faa1220483"
+    },
+    {
+      "route": "/pricing.html",
+      "status": 200,
+      "sha256": "1f28b10c9eebe98a7091a489c541ed6592471b55355fc2c27921bc868d4c02e0"
+    },
+    {
+      "route": "/privacy.html",
+      "status": 200,
+      "sha256": "12e6028b58c632f848a47b1b4ee3da59856c653eecc48b6d6da66e7a8586c667"
+    },
+    {
+      "route": "/quarterly-taxes.html",
+      "status": 200,
+      "sha256": "7ef0f84f2b70ab478db173b87bb8d1177f73ea378cdaf06f2866b185a69f2031"
+    },
+    {
+      "route": "/resources.html",
+      "status": 200,
+      "sha256": "25894ee76198f785dd18542a82fd0ea274a5eecdd6c6f7847b5e2812575d9fd4"
+    },
+    {
+      "route": "/robots.txt",
+      "status": 200,
+      "sha256": "3918c5fb2666cb1a9b0e2324d100deba6b6e5caf1a847390c1ea956233d0068a"
+    },
+    {
+      "route": "/services.html",
+      "status": 200,
+      "sha256": "cbfcb04f7a4db33aed683802554ced07cdb806e30b235fc0e47491e80efee424"
+    },
+    {
+      "route": "/site-config.json",
+      "status": 200,
+      "sha256": "0c36070f431fdd7ae760f88b8574c135cfef8a3fa008743d268e9d569a90ea3c"
+    },
+    {
+      "route": "/site-manifest.json",
+      "status": 200,
+      "sha256": "2243593fe8d770715841673c23d87002175a7b6ec7e33ae936cb8649c50b0e2c"
+    },
+    {
+      "route": "/sitemap.xml",
+      "status": 200,
+      "sha256": "16ba82cc8bf8145fd1e35fd67b0d8e75c28d45381a5e83f50a629f00c4f702bc"
+    },
+    {
+      "route": "/styles.css",
+      "status": 200,
+      "sha256": "b2bf7344622f4cd7090a43f1d61156114886b3595048baf67144f09a8147ce16"
+    },
+    {
+      "route": "/tax-preparation.html",
+      "status": 200,
+      "sha256": "e68f9e2afa758f93a97f16be07b0fc1a0b7a83efbb6912e5be85cd43d11d6614"
+    },
+    {
+      "route": "/terms.html",
+      "status": 200,
+      "sha256": "b4250c24819655ef31d46d2fe4444f0af66a0fb6d99a4ff9d69bd43362db8918"
+    },
+    {
+      "route": "/guides/uber-lyft-tax-forms.html",
+      "status": 200,
+      "sha256": "904a87c2a74ede9778abcafad1d28a4d47669631cfc842c36172967e76f8b8a9"
+    },
+    {
+      "route": "/gig-companies/amazon-flex-taxes.html",
+      "status": 200,
+      "sha256": "44095bd2e52b508faf28ed935421323b237884413bc87c46491ba941814051e3"
+    },
+    {
+      "route": "/gig-companies/bungii-taxes.html",
+      "status": 200,
+      "sha256": "ced7f933eb80518d78288b519c8bec4a436405700269af79fea774d4603ac093"
+    },
+    {
+      "route": "/gig-companies/curri-taxes.html",
+      "status": 200,
+      "sha256": "5218dba593c59261fffbbbbc51a7ab08c572ddcac9ce5a382380fbd667cad7d2"
+    },
+    {
+      "route": "/gig-companies/deliverthat-taxes.html",
+      "status": 200,
+      "sha256": "fecab1ca6a003cb7e120f0d11a17261ba9c0f713dbfbf228736d707a8b46eec3"
+    },
+    {
+      "route": "/gig-companies/dispatch-taxes.html",
+      "status": 200,
+      "sha256": "c054da9c678c3801656abbf460316c51ef73bf60554dfdac41de6ec4238204f1"
+    },
+    {
+      "route": "/gig-companies/doordash-taxes.html",
+      "status": 200,
+      "sha256": "d5a321e00bbd9271546e87742e8043ff7c44a0abbd20dca8707b5774da168d29"
+    },
+    {
+      "route": "/gig-companies/favor-taxes.html",
+      "status": 200,
+      "sha256": "658d80b1d67f6f978fcae323a3ca6e38be665d53f96e6ddb979df879d11b1f52"
+    },
+    {
+      "route": "/gig-companies/fiverr-taxes.html",
+      "status": 200,
+      "sha256": "0abef5d163b81daa8ee120cc5ea29ab85c934688935f0f313547185e415b039d"
+    },
+    {
+      "route": "/gig-companies/gopuff-taxes.html",
+      "status": 200,
+      "sha256": "c7d06eed209dc32fe1a82824399c9e95aab76b750020c19a33c6d8d67caeab12"
+    },
+    {
+      "route": "/gig-companies/goshare-taxes.html",
+      "status": 200,
+      "sha256": "1dea0c1eba36dca682379e0c27294934a9386959482f8449a460e1349f0c0d2f"
+    },
+    {
+      "route": "/gig-companies/grubhub-taxes.html",
+      "status": 200,
+      "sha256": "3a31050c7d7b8c9f3801ba988019f1ac0f5a34b49639e96fd80cea836b2811f1"
+    },
+    {
+      "route": "/gig-companies/handy-taxes.html",
+      "status": 200,
+      "sha256": "9d2caa63a165dc2703d7f7e9caf5955518af293c7f4ac158108159adca8f90be"
+    },
+    {
+      "route": "/gig-companies/instacart-taxes.html",
+      "status": 200,
+      "sha256": "bcc6543d23b1657af35e42953ad3a60ca4df429ab213cd85cefcbaeadf698b86"
+    },
+    {
+      "route": "/gig-companies/instawork-taxes.html",
+      "status": 200,
+      "sha256": "e545f9e13908a822251e1f9f0b067bf80dab2354e733dd26e4576959c252b6a0"
+    },
+    {
+      "route": "/gig-companies/lugg-taxes.html",
+      "status": 200,
+      "sha256": "afc544658488da803d890f79f53c61b931c548c5db45fd3a3ed847021c196c33"
+    },
+    {
+      "route": "/gig-companies/lyft-taxes.html",
+      "status": 200,
+      "sha256": "9a53e5f6ea1017199f13cda87c2ea30ab815643215850cc86127d72f8169106e"
+    },
+    {
+      "route": "/gig-companies/roadie-taxes.html",
+      "status": 200,
+      "sha256": "0e6b3a1067310c15dcafa94882c9c52ddb86566a52a38894ed311c026675e494"
+    },
+    {
+      "route": "/gig-companies/rover-taxes.html",
+      "status": 200,
+      "sha256": "1ced733c87325084a170f7cf7ae42a72ef3d910e12f5afeed460f048640e19d1"
+    },
+    {
+      "route": "/gig-companies/shiftsmart-taxes.html",
+      "status": 200,
+      "sha256": "dbcf8a159088169241410b0ce9c9faf9ab7b846b88ed7c32581d4c773b7e64f2"
+    },
+    {
+      "route": "/gig-companies/shipt-taxes.html",
+      "status": 200,
+      "sha256": "13525dff5fbd5f80fdb96c5ccbe187c37583595f8259126a5e111c624c603108"
+    },
+    {
+      "route": "/gig-companies/skipcart-taxes.html",
+      "status": 200,
+      "sha256": "f8563bdfc50388316fde24b0c21ea191a58c4cb7df447237cee49cf2b8cb46ee"
+    },
+    {
+      "route": "/gig-companies/spark-taxes.html",
+      "status": 200,
+      "sha256": "229e206828242f1028c581ecb56f7f0806a488f94488dc371b5072ed0402597b"
+    },
+    {
+      "route": "/gig-companies/taskrabbit-taxes.html",
+      "status": 200,
+      "sha256": "cefd025bf51d2552f0b959b25d711e55b5d210bfd4a0f13f21081b4239ef2d67"
+    },
+    {
+      "route": "/gig-companies/thumbtack-taxes.html",
+      "status": 200,
+      "sha256": "d56344e796ae04c9769d529f6655be222356a9286fa82cb32af53b2f94067420"
+    },
+    {
+      "route": "/gig-companies/uber-eats-taxes.html",
+      "status": 200,
+      "sha256": "d4e34fe238a262127acbe7f628457a41799e09d87df8d06397fb2da46cc4ab2c"
+    },
+    {
+      "route": "/gig-companies/uber-taxes.html",
+      "status": 200,
+      "sha256": "e6154d17b8df04d7578082a0f0459f4303d5bac8117df3d78a62b95c88d4efe4"
+    },
+    {
+      "route": "/gig-companies/upwork-taxes.html",
+      "status": 200,
+      "sha256": "9147280f5d6829fb1458c976c63bf0677f03b6d93fff74056324194708a706b0"
+    },
+    {
+      "route": "/gig-companies/veho-taxes.html",
+      "status": 200,
+      "sha256": "4922f5341b2a329643caf82f045bc574c9f7f8008a788727507aed6529f7b0d2"
+    },
+    {
+      "route": "/gig-companies/veryable-taxes.html",
+      "status": 200,
+      "sha256": "191db7c0c80e6576c899faff1f441f9ec7296fd27401fa26c581d842d01baa88"
+    },
+    {
+      "route": "/gig-companies/wag-taxes.html",
+      "status": 200,
+      "sha256": "4cbe2df3e7247297ab289568f54bc12bab0a2a0d8ff8f699771107f01b5dba24"
+    },
+    {
+      "route": "/gig-companies/wonolo-taxes.html",
+      "status": 200,
+      "sha256": "9d1b4a8356482b28833c26aa41b1b89cfa5c4a2daff14bc237b3e174e6efdfbc"
+    },
+    {
+      "route": "/assets/artwork.png",
+      "status": 200,
+      "sha256": "c3297662e50f448c01622cd75ad9cd0f82e8d87a6b0c108d42334202bb43f042"
+    },
+    {
+      "route": "/assets/us-national-vision.svg",
+      "status": 200,
+      "sha256": "272385770da0b997ee9ea6cfa86fd35f8ff3316f305b6e6f8faad386d8c48e0e"
+    },
+    {
+      "route": "/assets/app/alerts.png",
+      "status": 200,
+      "sha256": "d2167a16b59bedb8a7d1781349fa0ad3c64faf6ef6047c48734ccd8934223cb3"
+    },
+    {
+      "route": "/assets/app/home.png",
+      "status": 200,
+      "sha256": "d5e4b96df3f9fca4a30771ce94b508027960d893b955200564bebf35a30644a5"
+    },
+    {
+      "route": "/assets/app/job-status.png",
+      "status": 200,
+      "sha256": "1756cf130594d1af1bbf51c4a96da0cb6712017ad58dc3fc51668f46f6001e6c"
+    },
+    {
+      "route": "/assets/app/offer-detail.png",
+      "status": 200,
+      "sha256": "8ca13fd84551863432b5051b1483a769ed125ca29aaa082bf817dffe0964fd79"
+    },
+    {
+      "route": "/assets/app/offers.png",
+      "status": 200,
+      "sha256": "c2f2a161328fb40e0541c80f9e5f401d838fc53d0613a743c10af60100ce6158"
+    },
+    {
+      "route": "/app/coach.html",
+      "status": 200,
+      "sha256": "cd4b0ab1b8f91c17d8fc84bf3013bc1f3717a891f827363faaaac1931430f379"
+    },
+    {
+      "route": "/app/connections.html",
+      "status": 200,
+      "sha256": "da1d43404168052a92db8bf51f8a47b8a923245ff76efb5c52ad6dc5a35c3745"
+    },
+    {
+      "route": "/app/earnings.html",
+      "status": 200,
+      "sha256": "1297d73ab511e0bb2dd988fe912e20707f2cbc500e42691e2d64c2cc152f3225"
+    },
+    {
+      "route": "/app/money.html",
+      "status": 200,
+      "sha256": "c7bd85d7af284c1faeaa952e93d5e07352baebf17cb6d9f5b954b91ae9797b92"
+    },
+    {
+      "route": "/app/offers.html",
+      "status": 200,
+      "sha256": "ac328e8bc5bd44252e766aa18bedeb3eaeb616fc59a14650813107314e64b3c6"
+    },
+    {
+      "route": "/app/routes.html",
+      "status": 200,
+      "sha256": "eee86c1d92a86aa3c505c1ab67745c61b839f5c0bea5810b28e331485708bb86"
+    },
+    {
+      "route": "/app/shopping.html",
+      "status": 200,
+      "sha256": "9efc3a5cf031ea808ff27901b54e554a61c721914807f7150634251d09a72fd0"
+    },
+    {
+      "route": "/app/trips.html",
+      "status": 200,
+      "sha256": "03ac0826de99f670128e6b1caff71010007413c676ed23eb0a6fe82089a7451a"
+    },
+    {
+      "route": "/.well-known/apple-app-site-association",
+      "status": 200,
+      "sha256": "8ea65b26b48b4d2fd8488b341fd24fe3dcd4777b6f976bae0f7663b13c619cd6"
+    },
+    {
+      "route": "/join-the-family",
+      "status": 200
+    },
+    {
+      "route": "/app",
+      "status": 200
+    },
+    {
+      "route": "/features",
+      "status": 200
+    },
+    {
+      "route": "/app/offers",
+      "status": 200
+    },
+    {
+      "route": "/app/routes",
+      "status": 200
+    },
+    {
+      "route": "/app/trips",
+      "status": 200
+    },
+    {
+      "route": "/app/earnings",
+      "status": 200
+    },
+    {
+      "route": "/app/money",
+      "status": 200
+    },
+    {
+      "route": "/app/coach",
+      "status": 200
+    },
+    {
+      "route": "/app/shopping",
+      "status": 200
+    },
+    {
+      "route": "/app/connections",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/amazon-flex-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/bungii-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/curri-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/deliverthat-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/dispatch-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/doordash-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/favor-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/fiverr-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/gopuff-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/goshare-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/grubhub-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/handy-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/instacart-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/instawork-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/lugg-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/lyft-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/roadie-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/rover-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/shiftsmart-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/shipt-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/skipcart-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/spark-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/taskrabbit-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/thumbtack-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/uber-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/uber-eats-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/upwork-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/veho-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/veryable-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/wag-taxes",
+      "status": 200
+    },
+    {
+      "route": "/gig-companies/wonolo-taxes",
+      "status": 200
+    },
+    {
+      "route": "/services",
+      "status": 200
+    },
+    {
+      "route": "/tax-preparation",
+      "status": 200
+    },
+    {
+      "route": "/mileage-and-expenses",
+      "status": 200
+    },
+    {
+      "route": "/quarterly-taxes",
+      "status": 200
+    },
+    {
+      "route": "/bookkeeping",
+      "status": 200
+    },
+    {
+      "route": "/how-it-works",
+      "status": 200
+    },
+    {
+      "route": "/pricing",
+      "status": 200
+    },
+    {
+      "route": "/get-started",
+      "status": 200
+    },
+    {
+      "route": "/document-checklist",
+      "status": 200
+    },
+    {
+      "route": "/resources",
+      "status": 200
+    },
+    {
+      "route": "/guides/uber-lyft-tax-forms",
+      "status": 200
+    },
+    {
+      "route": "/faq",
+      "status": 200
+    },
+    {
+      "route": "/about",
+      "status": 200
+    },
+    {
+      "route": "/contact",
+      "status": 200
+    },
+    {
+      "route": "/client-portal",
+      "status": 200
+    },
+    {
+      "route": "/privacy",
+      "status": 200
+    },
+    {
+      "route": "/terms",
+      "status": 200
+    },
+    {
+      "route": "/accessibility",
+      "status": 200
+    },
+    {
+      "route": "/__missing-page-check",
+      "status": 404
+    }
+  ],
+  "visualAcceptance": "Not established by HTTP checks; Luke\u2019s screenshots are required.",
+  "sourceCommit": "67403702c79f11e76f062ed9ba7fa52da46b7589",
+  "deploymentId": "dpl_9Lk9FFETT8oAggHTfv256Pizz2iV",
+  "deploymentUrl": "https://rideshare-tax-pros-jx23xtkoy-lukekist-2968s-projects.vercel.app",
+  "pageCount": 62,
+  "checkCount": 154,
+  "wwwFeaturesStatus": 200,
+  "correction": "User rejected /app overview as a feature page. /features now explains every feature inline, without requiring a separate guide or tour.",
+  "featuresPage": {
+    "explainedFeatures": 61,
+    "topics": 8,
+    "perFeature": [
+      "What it does",
+      "Why it helps you"
+    ],
+    "perTopic": [
+      "Where to find it",
+      "Four usage steps",
+      "Working-day example",
+      "Setup notes"
+    ],
+    "interactions": [
+      "Individual-feature search",
+      "Hide empty search topics",
+      "Reset search",
+      "Topic navigation resets filter before jumping"
+    ],
+    "navigation": "Features links to /features in shared header, footer, app overview and homepage feature CTA."
+  },
+  "localVerification": {
+    "appAndFeaturesFunctionalChecks": 5,
+    "fullSiteDOMChecks": 6,
+    "featuresCSSParsed": true
+  },
+  "limits": [
+    "No browser automation used. Actual browser layout and user visual acceptance remain unverified.",
+    "Existing real preview images retained unchanged; no new native screenshots fabricated or captured.",
+    "This page describes preview app features; account/provider/permissions setup stays explicit."
+  ]
+}
