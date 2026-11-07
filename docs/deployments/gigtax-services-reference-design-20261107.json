@@ -1,0 +1,65 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T23:05:57.872Z",
+  "sourceCommit": "a7b5b3b",
+  "deploymentId": "dpl_GSQsGHCjgFdApDm5kCBN78HkurS2",
+  "artworkSha256": "99a98e22cc530a3c5da112dd202689a9371a3b3b6610aa1fe8c260872c628c94",
+  "artworkMatchesUserImage": true,
+  "desktopReferenceSize": {
+    "width": 1024,
+    "height": 1536
+  },
+  "mobileBreakpoint": 800,
+  "serviceCards": 8,
+  "checks": [
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/services",
+      "status": 200,
+      "sha256": "ba91d191a16ecd8ee36f155242493e07414eab66a08db74d14e8511e351f5223"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/services.html",
+      "status": 200,
+      "sha256": "ba91d191a16ecd8ee36f155242493e07414eab66a08db74d14e8511e351f5223"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/assets/services-reference.png",
+      "status": 200,
+      "sha256": "99a98e22cc530a3c5da112dd202689a9371a3b3b6610aa1fe8c260872c628c94"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/services.css",
+      "status": 200,
+      "sha256": "0b592feffabcd1b3d0b913248d9aa23542a696ec4d9982f9a6a963d09ec28f91"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/services",
+      "status": 200,
+      "sha256": "ba91d191a16ecd8ee36f155242493e07414eab66a08db74d14e8511e351f5223"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/services.html",
+      "status": 200,
+      "sha256": "ba91d191a16ecd8ee36f155242493e07414eab66a08db74d14e8511e351f5223"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/assets/services-reference.png",
+      "status": 200,
+      "sha256": "99a98e22cc530a3c5da112dd202689a9371a3b3b6610aa1fe8c260872c628c94"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/services.css",
+      "status": 200,
+      "sha256": "0b592feffabcd1b3d0b913248d9aa23542a696ec4d9982f9a6a963d09ec28f91"
+    }
+  ],
+  "visualAcceptance": "Live screenshot review with Luke remains pending. No browser runtime or isolated session used."
+}

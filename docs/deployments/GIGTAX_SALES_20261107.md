@@ -1,6 +1,11 @@
 # GigTax office sales and enrollment
 
-## Current homepage selected by Luke
+Current website deployment and evidence:
+[Services reference and branding update](GIGTAX_SERVICES_REFERENCE_20261107.md).
+That update preserves the homepage selection below and removes the requested
+Shuug labels; its deployment and homepage hash supersede the earlier receipt.
+
+## Homepage selected before the Services update
 
 In the current November 7 session, Luke explicitly selected the homepage with
 “An office nearby. An expert to talk to.” and the larger U.S. map. This supersedes
