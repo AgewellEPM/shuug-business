@@ -6,6 +6,9 @@ import assert from'node:assert/strict';
 const origin='https://gigtax.pro',checks=[];
 const deployment=process.argv[2];
 if(!/^dpl_[A-Za-z0-9]+$/.test(deployment||''))throw new Error('Pass the confirmed deployment ID.');
+const output=process.argv[3]||'docs/deployments/gigtax-sales-live-api-proof-20261107.json';
+const expectedHome=readFileSync(new URL('../../deployments/rideshare-tax-pros/.vercel/output/static/index.html',import.meta.url));
+const expectedHomeHash=createHash('sha256').update(expectedHome).digest('hex');
 async function api(action,body={},cookie=''){
   const r=await fetch(origin+'/api/sales',{method:'POST',headers:{Origin:origin,'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{})},body:JSON.stringify({action,...body}),signal:AbortSignal.timeout(45000)});
   return {status:r.status,json:await r.json(),cookie:r.headers.get('set-cookie')?.split(';')[0],headers:r.headers};
@@ -18,7 +21,7 @@ checks.push({check:'authenticated real backend and confirmed terms',status:200,o
 const discovery=await api('search',{city:'Hartford',state:'CT'},login.cookie);assert.equal(discovery.status,200);assert(discovery.json.results.length>0);checks.push({check:'real IRS discovery through deployed function',total:discovery.json.total,shown:discovery.json.results.length});
 for(const base of [origin,'https://www.gigtax.pro']){
   const home=await fetch(base),bytes=Buffer.from(await home.arrayBuffer());assert.equal(home.status,200);
-  assert.equal(createHash('sha256').update(bytes).digest('hex'),'857b2b50dcb082748b826b817e12d3573fd1a4961e5ea7051f5bc8e2c38d7c73');
+  assert.equal(createHash('sha256').update(bytes).digest('hex'),expectedHomeHash);
   checks.push({check:'exact approved free customer homepage',origin:base,status:200});
   const sales=await fetch(base+'/sales');assert.equal(sales.status,200);assert((await sales.text()).includes('data-sales-app'));
   const pricing=await fetch(base+'/pricing',{redirect:'manual'});assert.equal(pricing.status,308);assert.equal(pricing.headers.get('location'),'/free');
@@ -27,4 +30,4 @@ for(const route of ['/join-the-family','/gig-companies','/app']){const r=await f
 const csrf=await fetch(origin+'/api/sales',{method:'POST',headers:{Origin:'https://foreign.example','Content-Type':'application/json',Cookie:login.cookie},body:'{"action":"bootstrap"}'});assert.equal(csrf.status,403);checks.push({check:'foreign origin denied',status:403});
 const webhook=await fetch(origin+'/api/sales-webhook',{method:'POST',headers:{'Content-Type':'application/json','stripe-signature':'t=0,v1='+'0'.repeat(64)},body:'{}'});assert.equal(webhook.status,400);checks.push({check:'unsigned webhook denied',status:400});
 const receipt={ok:true,verifiedAt:new Date().toISOString(),origin,deployment,implementation:'16240c6',approvedCustomerBaseline:'7e3244d',checks,payment:'No live Stripe account or webhook secret configured. No payment made; real paid activation unverified.',visual:'Safari opened on normal desktop; Luke screenshot acceptance still required.'};
-writeFileSync('docs/deployments/gigtax-sales-live-api-proof-20261107.json',JSON.stringify(receipt,null,2));console.log(JSON.stringify(receipt,null,2));
+writeFileSync(output,JSON.stringify({...receipt,approvedCustomerHomepageSha256:expectedHomeHash},null,2));console.log(JSON.stringify({...receipt,approvedCustomerHomepageSha256:expectedHomeHash},null,2));
