@@ -246,4 +246,45 @@ import XCTest
     reveal(saved, in: app); saved.tap()
     XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Earn $100.00")).firstMatch.waitForExistence(timeout: 10), app.debugDescription)
   }
+  func test06ColdStartTripNotificationActions() throws {
+    let app = open()
+    let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+    func sendTripAlert() {
+      app.tabBars.buttons["Account"].tap()
+      app.buttons["Driving & expense reminders"].tap()
+      let button = app.buttons["assistance.tripAlert"]
+      XCTAssertTrue(button.waitForExistence(timeout: 10), app.debugDescription)
+      button.tap()
+      let allow = springboard.alerts.buttons["Allow"]
+      if allow.waitForExistence(timeout: 4) { allow.tap() }
+    }
+    func answer(_ title: String, action: String) {
+      XCUIDevice.shared.press(.home)
+      let cell = springboard.descendants(matching: .any).matching(NSPredicate(format: "identifier == 'NotificationShortLookView' AND label CONTAINS %@", title)).firstMatch
+      if !cell.waitForExistence(timeout: 5) {
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.01))
+          .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.7)))
+      }
+      XCTAssertTrue(cell.waitForExistence(timeout: 10), springboard.debugDescription)
+      app.terminate()
+      if !cell.exists {
+        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.001))
+          .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.7)))
+      }
+      XCTAssertTrue(cell.waitForExistence(timeout: 10), springboard.debugDescription)
+      cell.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 1.5)
+      let button = springboard.buttons[action]
+      XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
+      button.tap()
+      XCTAssertNotEqual(app.state, .runningForeground, "A background notification action opened the app UI")
+    }
+    sendTripAlert()
+    answer("Start a new trip?", action: "Yes, start trip")
+    app.launch()
+    XCTAssertTrue(app.buttons["End drive & save"].waitForExistence(timeout: 15), app.debugDescription)
+    sendTripAlert()
+    answer("Have you finished this trip?", action: "Yes, end trip")
+    app.launch()
+    XCTAssertTrue(app.buttons["Start a drive"].waitForExistence(timeout: 15), app.debugDescription)
+  }
 }

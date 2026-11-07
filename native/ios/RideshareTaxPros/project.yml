@@ -22,7 +22,7 @@ targets:
   RideshareTaxPros:
     type: application
     platform: iOS
-    sources: [App, Resources]
+    sources: [App, Resources, Shared]
     info:
       path: Info.plist
       properties:
@@ -56,6 +56,57 @@ targets:
       - package: DriverCore
       - package: LinkKit
         product: LinkKit
+      - target: GigOfferBroadcast
+        embed: true
+      - target: GigOfferShare
+        embed: true
+  GigOfferShare:
+    type: app-extension
+    platform: iOS
+    sources: [ShareOffer, Shared]
+    info:
+      path: ShareOffer/Info.plist
+      properties:
+        CFBundleDisplayName: Gig Tax Pros
+        CFBundleShortVersionString: '0.1.0'
+        CFBundleVersion: '1'
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsImageWithMaxCount: 1
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver.offershare
+        CODE_SIGN_ENTITLEMENTS: BroadcastUpload/OfferBroadcast.entitlements
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+    dependencies:
+      - package: DriverCore
+  GigOfferBroadcast:
+    type: app-extension
+    platform: iOS
+    sources: [BroadcastUpload, Shared]
+    info:
+      path: BroadcastUpload/Info.plist
+      properties:
+        CFBundleDisplayName: Gig Tax Pros Offer Reader
+        CFBundleShortVersionString: '0.1.0'
+        CFBundleVersion: '1'
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
+          NSExtensionAttributes:
+            RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver.offerbroadcast
+        CODE_SIGN_ENTITLEMENTS: BroadcastUpload/OfferBroadcast.entitlements
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
+    dependencies:
+      - package: DriverCore
   RideshareTaxProsUITests:
     type: bundle.ui-testing
     platform: iOS

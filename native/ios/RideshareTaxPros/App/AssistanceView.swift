@@ -7,15 +7,23 @@ struct AssistanceView: View {
   var body: some View {
     Form {
       Section("Optional automatic assistance") {
-        Toggle("Detect drives automatically", isOn: Binding(get: { model.journal.assistance?.automaticDrives ?? false }, set: { assistant.update(automatic: $0) }))
+        Toggle("Detect drives & send trip alerts", isOn: Binding(get: { model.journal.assistance?.automaticDrives ?? false }, set: { assistant.update(automatic: $0) }))
           .accessibilityIdentifier("assistance.drives")
         Toggle("Remind me near expense stops", isOn: Binding(get: { model.journal.assistance?.placeReminders ?? false }, set: { assistant.update(reminders: $0) }))
           .accessibilityIdentifier("assistance.places")
         Text(assistant.status).font(.footnote).foregroundStyle(Brand.link)
+        Button("Send a trip alert") {
+          Task {
+            await DriverRuntime.shared.notifications.requestPermission()
+            if model.journal.activeTripId == nil { DriverRuntime.shared.notifications.offerStart() }
+            else { DriverRuntime.shared.notifications.offerEnd() }
+          }
+        }.accessibilityIdentifier("assistance.tripAlert")
+        Text("Check the alert controls once while parked. Expand the alert to start or end a trip without opening the app.").font(.footnote)
       }.listRowBackground(Brand.surface)
       Section("Driving detection") {
-        Text("Uses motion and sustained GPS movement to start a drive for review. A detected drive ends after a prolonged stop. It cannot tell whether you have an Uber/Lyft passenger or know the fare. A single drive may contain several rides.")
-        Text("Detected start/end points can be incomplete. Confirm mileage, time, business/personal use and fares. Ending a drive manually pauses automatic starts for five minutes.")
+        Text("Sustained movement prompts Start a new trip? A prolonged stop prompts End trip? Expand the alert to answer without opening the app. Completed drives can be classified and have earnings entered from follow-up alerts.")
+        Text("Recording begins when you confirm. Review any earlier miles and GPS gaps. The app cannot identify a passenger or a paid gig. Ending or declining a drive pauses new start prompts for five minutes.")
       }.font(.footnote)
       Section("Expense reminders") {
         Text("After a stop, Apple Maps looks for nearby gas stations, chargers, restaurants, cafés, auto repair, parts stores and dealerships. Reminders suggest a merchant and category; you confirm the purchase, amount and purpose.")

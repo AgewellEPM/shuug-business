@@ -21,11 +21,12 @@ flows.add_argument('--receipts-only', action='store_true', help='Check receipt i
 flows.add_argument('--expenses-only', action='store_true', help='Check meal/repair details, review totals and duplicate warnings.')
 flows.add_argument('--insights-only', action='store_true', help='Check goals, fare profitability and real bank statement import.')
 flows.add_argument('--mission-only', action='store_true', help='Check the native mission and offer calculation.')
+flows.add_argument('--alerts-only', action='store_true', help='Check real system Start/End actions after terminating the app.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only)
-receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only)
-expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only)
+driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only)
+receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only)
+expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only or options.alerts_only)
 insights = options.insights_only
 if options.driving_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-driving-verification-20261105.json')
@@ -37,6 +38,8 @@ elif options.insights_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-insights-verification-20261105.json')
 elif options.mission_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-mission-verification-20261106.json')
+elif options.alerts_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-notification-verification-20261106.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -144,11 +147,13 @@ try:
         if options.expenses_only: selection += '/DriverFlows/test03MealRepairDetailsAndDuplicateReview'
         if options.insights_only: selection += '/DriverFlows/test04InsightsAndBankImport'
         if options.mission_only: selection += '/DriverFlows/test05MissionAndOffer'
-        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only):
+        if options.alerts_only: selection += '/DriverFlows/test06ColdStartTripNotificationActions'
+        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only or options.alerts_only):
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
         if not insights: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test04InsightsAndBankImport']
         if not options.mission_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test05MissionAndOffer']
+        if not options.alerts_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test06ColdStartTripNotificationActions']
         test = subprocess.Popen(['xcodebuild', '-quiet', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 600
         last_fix = last_update = last_container_check = 0.0
@@ -178,7 +183,7 @@ try:
                 except (FileNotFoundError, json.JSONDecodeError):
                     pass
             if now-last_update > 20:
-                print(f'Native UI test running; {fixes} synthetic GPS fixes delivered.' if driving else 'Native UI test running through the expense form.', flush=True)
+                print(f'Native UI test running; {fixes} synthetic GPS fixes delivered.' if driving else 'Native UI test running through the selected flow.', flush=True)
                 last_update = now
             time.sleep(1)
         assert test.returncode == 0, 'Native UI tests failed; inspect ' + str(ARTIFACTS/'ui-test.log')
@@ -228,6 +233,12 @@ try:
         assert journal['goals']['targetHourlyCents'] == 2500 and journal['goals']['vehicleCostCentsPerMile'] == 50
         verified_tests += ['mission saved and restored after app relaunch', 'manual offer shows $12 estimated net from $20 payout, $3 fees, 10 miles at $0.50/mile', 'hourly target and vehicle cost persist']
         report['scope'] = 'Native iPhone Simulator mission and manually entered offer; synthetic data'
+    if options.alerts_only:
+        assert len(trips)==1 and trips[0]['body'].get('endedAt') and not journal.get('activeTripId'), 'System alert buttons did not persist one completed trip.'
+        handled = [row for row in journal.get('driverAlerts', []) if row.get('handledAt')]
+        assert any(row['kind']=='startTrip' for row in handled) and any(row['kind']=='endTrip' for row in handled)
+        verified_tests += ['actual system Start trip action after app termination', 'actual system End trip action after app termination', 'actions preserve background UI state', 'completed trip and handled-action IDs persisted in app journal']
+        report['scope'] = 'Actual iPhone Simulator system notification actions and cold background launches; physical location and cross-app screen sharing unverified'
     report.update(ok=True, tests=verified_tests, artifactDirectory=str(ARTIFACTS), resultBundle=str(result_bundle))
     success = True
 except BaseException as error:

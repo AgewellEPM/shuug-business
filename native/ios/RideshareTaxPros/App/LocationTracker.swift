@@ -1,6 +1,7 @@
 import Combine
 import CoreLocation
 import DriverCore
+import UIKit
 
 @MainActor final class LocationTracker: NSObject, ObservableObject, CLLocationManagerDelegate {
   @Published private(set) var status = "GPS is off until you start a drive"
@@ -74,6 +75,18 @@ import DriverCore
     manager.startUpdatingLocation()
     recording = true
     status = "Waiting for a reliable GPS fix…"
+  }
+  func canStartFromAlert() async -> Bool {
+    let enabled = await Task.detached { CLLocationManager.locationServicesEnabled() }.value
+    return enabled && (manager.authorizationStatus == .authorizedAlways
+      || (manager.authorizationStatus == .authorizedWhenInUse && UIApplication.shared.applicationState == .active))
+  }
+  func reconcileAfterAlert() {
+    if model?.journal.activeTripId != nil { resume() }
+    else {
+      manager.stopUpdatingLocation(); manager.allowsBackgroundLocationUpdates = false
+      recording = false; status = "Drive saved on this iPhone"
+    }
   }
   func stop(automatic: Bool = false) {
     manager.stopUpdatingLocation()

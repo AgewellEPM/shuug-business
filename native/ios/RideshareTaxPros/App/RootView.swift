@@ -78,9 +78,21 @@ struct TodayView: View {
       VStack(alignment: .leading, spacing: 22) {
         VStack(alignment: .leading, spacing: 12) {
           BrandHeader()
-          Text("You drive. We handle the taxes.").font(.subheadline)
+          Text("Make more. Waste fewer miles. Get home on your schedule.").font(.subheadline)
             .foregroundStyle(Brand.muted)
         }
+        VStack(alignment: .leading, spacing: 12) {
+          Text("Earn your way home").font(.title2.bold())
+          if let mission = model.journal.mission {
+            Text("\(Brand.usd(mission.targetCents)) net target · \(mission.destination) by \(mission.deadline.formatted(date: .omitted, time: .shortened))")
+          } else { Text("Set your destination and finish time, then compare the offers that could get you there.").foregroundStyle(Brand.muted) }
+          NavigationLink { MissionView() } label: {
+            Label(model.journal.mission == nil ? "Create today's mission" : "Open your shift mission", systemImage: "location.north.circle.fill")
+          }.buttonStyle(BrandActionStyle())
+          NavigationLink { OfferReaderView() } label: {
+            Label("Should I take this job? · Read an offer", systemImage: "viewfinder")
+          }.buttonStyle(BrandActionStyle(primary: false))
+        }.insightPanel()
         VStack(alignment: .leading, spacing: 14) {
           Label(
             liveTrip == nil ? "Ready for your next drive" : "Drive in progress",
@@ -132,9 +144,6 @@ struct TodayView: View {
           metric("Expenses today", Brand.usd(expenses), "receipt")
           metric("Income today", Brand.usd(income), "dollarsign.circle")
         }
-        NavigationLink { MissionView() } label: {
-          Label(model.journal.mission == nil ? "Create today's mission" : "Open your shift mission", systemImage: "location.north.circle.fill")
-        }.buttonStyle(BrandActionStyle())
         if !(model.journal.placePrompts ?? []).filter({ !$0.dismissed }).isEmpty {
           StopPromptsView()
         }

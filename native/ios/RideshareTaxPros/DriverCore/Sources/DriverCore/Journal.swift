@@ -24,6 +24,8 @@ public struct Journal: Codable, Sendable {
     public var mission: ShiftMission?, pickupWaits: [PickupWait]?
     public var reserveSettings: ReserveSettings?
     public var missionOffers: [MissionOffer]?
+    public var driverAlerts: [DriverAlert]?
+    public var observedOffers: [ObservedOffer]?
     public init() {}
     public var visible: [LocalEntry] { entries.filter { !$0.record.deleted }.sorted { $0.record.dateLabel > $1.record.dateLabel } }
     public var pending: [DriverMutation] { entries.filter { $0.conflict == nil }.compactMap(\.mutation) }

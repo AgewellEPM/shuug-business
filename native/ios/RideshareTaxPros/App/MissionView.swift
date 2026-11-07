@@ -33,7 +33,8 @@ struct MissionView: View {
     List {
       Section {
         Text("Make more. Waste fewer miles. Get home on your schedule.").font(.headline)
-        Text("Plan using your own numbers. Enter offers and check routes while parked; no live offers are connected.").font(.footnote).foregroundStyle(Brand.muted)
+        Text("Set your destination, plan where to wait, and compare visible offers using your costs. Review and respond while parked.").font(.footnote).foregroundStyle(Brand.muted)
+        NavigationLink("Read an incoming offer") { OfferReaderView() }
       }
       if let mission = model.journal.mission {
         let progress = mission.progress(records: model.journal.visible.map(\.record), goals: model.journal.goals ?? DriverGoals())

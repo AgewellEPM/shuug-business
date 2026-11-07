@@ -1,9 +1,10 @@
 import SwiftUI
 
 @main struct RideshareTaxProsApp: App {
-  @StateObject private var model = DriverModel()
-  @StateObject private var location = LocationTracker()
-  @StateObject private var assistant = DrivingAssistant()
+  @UIApplicationDelegateAdaptor(DriverAppDelegate.self) private var appDelegate
+  @StateObject private var model = DriverRuntime.shared.model
+  @StateObject private var location = DriverRuntime.shared.location
+  @StateObject private var assistant = DriverRuntime.shared.assistant
   @Environment(\.scenePhase) private var phase
   var body: some Scene {
     WindowGroup {
@@ -11,8 +12,6 @@ import SwiftUI
         .environmentObject(assistant)
         .preferredColorScheme(.dark)
         .task {
-          location.attach(model)
-          assistant.attach(model, tracker: location)
           await model.sync()
         }
         .onChange(of: phase) { _, value in if value == .active { assistant.configure(); Task { await model.sync() } } }

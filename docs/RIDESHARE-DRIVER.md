@@ -286,3 +286,50 @@ Unit, compiled HTTP and Simulator checks do not establish real phone GPS,
 camera capture, locked-screen behavior, battery use or Luke's visual acceptance.
 Those checks remain required on his phone. Public live synchronization also
 requires the pending persistent Oracle workspace and actual HTTPS client access.
+
+## Trip alerts and visible offer reading
+
+Driving assistance now asks before starting or ending detected drives. Expand a
+notification to start/end a trip, classify the completed drive, reply with
+`fare=20 fees=3`, or enter an expense amount. Recording starts at confirmation;
+earlier movement is marked for mileage review. Expense replies save as
+unclassified. Receipt photos and first-time permissions use the app/system UI.
+The app delegate initializes notification handling before a background response.
+Persisted action IDs, account scope, expiry and target trip prevent duplicate or
+stale actions changing a later drive. Resuming movement cancels a pending end prompt.
+
+The iPhone offer reader uses Apple's `RPSystemBroadcastPickerView` and an embedded
+ReplayKit Broadcast Upload Extension. The user starts screen sharing explicitly;
+there is no silent capture or automatic restart. At most one frame per second is
+processed with on-device Vision. A share-sheet extension and the in-app photo
+picker accept chosen offer screenshots. Images and full transcripts are not
+persisted or uploaded. Parsed observations remain local and are not income entries.
+
+Select the gig platform and supply known fees/wait estimates plus the existing
+vehicle cost and hourly goal. Live screen parsing requires the selected platform
+to be visible, so some offer layouts will not be recognized. Ambiguous totals
+stay unknown. A user must confirm that shown miles/time cover the complete job
+before saving a comparison. Observations older than 60 seconds cannot be saved
+as current comparisons. An observation's age does not prove an offer is available.
+Home impact is unknown until the drop-off and destination road routes are checked.
+The app never taps Accept or Decline in another app.
+
+Capture sessions are account scoped, expire after four hours and are disabled on
+account changes. Both app and extensions use App Group
+`group.com.ridesharetaxpros.driver`; physical signing/provisioning must include
+that capability. Screen sharing cannot be validated in Simulator. The extensions
+compile, but real gig-app layouts, extension memory/battery, alert delivery from
+the extension, physical background/locked-phone behavior and App Store approval
+remain unverified. Force-quitting, denied permissions, protected content and
+system interruptions can stop assistance or screen reading.
+
+Public references: [Apple actionable notifications](https://developer.apple.com/documentation/usernotifications/declaring-your-actionable-notification-types),
+[ReplayKit broadcast picker](https://developer.apple.com/documentation/replaykit/rpsystembroadcastpickerview),
+[screen-translator example](https://github.com/mik3yyy/screen-translator), and
+[direct extension OCR example](https://github.com/perottofederico/Pokescanner_iOS).
+These examples demonstrate mechanisms; they do not establish this app's App Store
+approval or a live connection to any gig platform.
+
+Android offer-reading and alert work is checkpointed, with further development
+deferred at the user's request to focus on iPhone. No Android runtime acceptance
+is claimed.

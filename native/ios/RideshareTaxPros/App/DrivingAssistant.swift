@@ -7,12 +7,13 @@ import UserNotifications
 
 /// Optional assistance uses one idle location manager, then hands recording to the
 /// existing trip tracker. Every detected drive remains unclassified for review.
-@MainActor final class DrivingAssistant: NSObject, ObservableObject, CLLocationManagerDelegate, UNUserNotificationCenterDelegate {
+@MainActor final class DrivingAssistant: NSObject, ObservableObject, CLLocationManagerDelegate {
   @Published private(set) var status = "Automatic assistance is off"
   private weak var model: DriverModel?
   private weak var tracker: LocationTracker?
+  private weak var notifications: DriverNotifications?
   private let manager = CLLocationManager()
-  private let motion = CMMotionActivityManager()
+  private lazy var motion = CMMotionActivityManager()
   private var window = MovementWindow(), buffer: [LocationFix] = []
   private var autoSuspendedUntil = Date.distantPast, lastSearch = Date.distantPast
   private var automotive: Bool?, motionAt = Date.distantPast, lastFix: CLLocation?
@@ -25,9 +26,8 @@ import UserNotifications
     manager.desiredAccuracy = kCLLocationAccuracyBest; manager.distanceFilter = 5
     manager.pausesLocationUpdatesAutomatically = true; manager.showsBackgroundLocationIndicator = true
   }
-  func attach(_ model: DriverModel, tracker: LocationTracker) {
-    self.model = model; self.tracker = tracker
-    UNUserNotificationCenter.current().delegate = self
+  func attach(_ model: DriverModel, tracker: LocationTracker, notifications: DriverNotifications) {
+    self.model = model; self.tracker = tracker; self.notifications = notifications
     tracker.onObservation = { [weak self] locations in self?.consume(locations) }
     tracker.onManualStop = { [weak self] in
       self?.autoSuspendedUntil = Date().addingTimeInterval(300)
@@ -42,15 +42,15 @@ import UserNotifications
     if let automatic { next.automaticDrives = automatic }
     if let reminders { next.placeReminders = reminders }
     guard model.commit({ $0.assistance = next }) else { return }
-    if reminders == true {
-      Task {
-        do {
-          let allowed = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge])
-          if !allowed { status = "Notifications are off. Stop prompts will still appear in Today." }
-        } catch { status = "Notifications are unavailable. Stop prompts stay in Today." }
-      }
+    if reminders == true || automatic == true {
+      Task { await notifications?.requestPermission() }
     }
     configure(requestPermission: true)
+  }
+  func didHandleDriveAlert() {
+    autoSuspendedUntil = Date().addingTimeInterval(300)
+    window = MovementWindow(); buffer = []
+    configure()
   }
   func configure(requestPermission: Bool = false) {
     guard model?.storageHealthy == true else { return }
@@ -58,7 +58,7 @@ import UserNotifications
     if !enabled {
       manager.stopMonitoringVisits(); manager.stopMonitoringSignificantLocationChanges()
       manager.stopUpdatingLocation(); manager.allowsBackgroundLocationUpdates = false
-      motion.stopActivityUpdates(); motionRunning = false
+      if motionRunning { motion.stopActivityUpdates() }; motionRunning = false
       burstEnd?.cancel(); window = MovementWindow(); buffer = []
       status = "Automatic assistance is off"; return
     }
@@ -70,7 +70,7 @@ import UserNotifications
     case .denied, .restricted:
       manager.stopMonitoringVisits(); manager.stopMonitoringSignificantLocationChanges()
       manager.stopUpdatingLocation(); manager.allowsBackgroundLocationUpdates = false
-      motion.stopActivityUpdates(); motionRunning = false; burstEnd?.cancel()
+      if motionRunning { motion.stopActivityUpdates() }; motionRunning = false; burstEnd?.cancel()
       window = MovementWindow(); buffer = []
       status = "Location is off. Enable it in iPhone Settings for assistance."; return
     default: break
@@ -119,7 +119,7 @@ import UserNotifications
     Task { @MainActor [weak self] in self?.consume(locations) }
   }
   private func consume(_ locations: [CLLocation]) {
-    guard let model, settings.automaticDrives || settings.placeReminders else { return }
+    guard let model, settings.automaticDrives || settings.placeReminders || model.journal.activeTripId != nil else { return }
     for location in locations.sorted(by: { $0.timestamp < $1.timestamp }) {
       guard location.horizontalAccuracy >= 0, location.horizontalAccuracy <= 50,
         abs(location.timestamp.timeIntervalSinceNow) <= 30,
@@ -129,36 +129,22 @@ import UserNotifications
                             accuracy: location.horizontalAccuracy, timestamp: location.timestamp)
       buffer.append(fix); buffer.removeAll { location.timestamp.timeIntervalSince($0.timestamp) > 90 }
       let decision = window.observe(fix, speed: location.speed)
+      if location.speed >= 3.5 { notifications?.cancelEndWhenMoving() }
       if decision.beganDriving {
         if settings.automaticDrives, model.journal.activeTripId == nil,
           Date() >= autoSuspendedUntil,
           !(automotive == false && Date().timeIntervalSince(motionAt) < 120) {
-          beginDetected(buffer)
+          notifications?.offerStart()
+          status = "Driving detected · Answer the start-trip alert when safely parked"
         }
         if model.journal.activeTripId == nil { window.reconsiderDrivingStart() }
       }
       if decision.arrivedAtStop, settings.placeReminders { Task { await searchPlaces(at: location) } }
-      if decision.parkedLongEnough, case .trip(let trip) = model.active?.record.payload,
-        trip.automaticallyDetected == true,
+      if decision.parkedLongEnough, model.journal.activeTripId != nil,
         !(automotive == true && Date().timeIntervalSince(motionAt) < 120) {
-        tracker?.stop(automatic: true); status = "Detected drive saved · Review mileage, classification and fare"
-        buffer = []; startBurst()
+        notifications?.offerEnd(); status = "You appear parked · Answer the end-trip alert"
       }
     }
-  }
-  private func beginDetected(_ fixes: [LocationFix]) {
-    guard let model, let first = fixes.first, model.journal.activeTripId == nil else { return }
-    guard model.commit({ j in
-      guard let id = j.beginTrip(classification: .unclassified, purpose: "Detected drive · review", now: first.timestamp),
-        let i = j.entries.firstIndex(where: { $0.id == id }), case .trip(var trip) = j.entries[i].record.payload else { return }
-      trip.automaticallyDetected = true; trip.hasGaps = true
-      trip.notes = "Detected from movement. Review the start/end, missing mileage and whether this was business. It may contain several rides."
-      j.entries[i].record.payload = .trip(trip)
-    }) else { return }
-    for fix in fixes { model.location(fix, now: fix.timestamp) }
-    _ = model.commit { $0.markLocationGap() }
-    manager.stopUpdatingLocation(); burstEnd?.cancel(); tracker?.resume()
-    status = "Detected drive recording · Review after arrival"
   }
   nonisolated func locationManager(_ manager: CLLocationManager, didVisit visit: CLVisit) {
     Task { @MainActor [weak self] in
@@ -208,23 +194,7 @@ import UserNotifications
         var prompts = j.placePrompts ?? []; prompts.append(prompt)
         j.placePrompts = Array(prompts.suffix(100))
       }) else { return }
-      let content = UNMutableNotificationContent()
-      content.title = "Expense to record?"
-      content.body = "Near \(candidate.name)? Add a receipt if you made a purchase."
-      content.sound = .default; content.userInfo = ["expensePrompt": prompt.id.uuidString]
-      try? await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: prompt.id.uuidString, content: content, trigger: nil))
+      notifications?.offerExpense(prompt)
     } catch { status = "Place lookup is unavailable · Manual expense entry still works" }
-  }
-  nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification,
-    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) { completionHandler([.banner, .list]) }
-  nonisolated func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse,
-    withCompletionHandler completionHandler: @escaping () -> Void) {
-    let identifier = response.notification.request.content.userInfo["expensePrompt"] as? String
-    Task { @MainActor [weak self] in
-      if let identifier, let id = UUID(uuidString: identifier) {
-        self?.model?.requestedPrompt = self?.model?.journal.placePrompts?.first { $0.id == id && !$0.dismissed }
-      }
-      completionHandler()
-    }
   }
 }
