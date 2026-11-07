@@ -33,16 +33,16 @@ struct ConnectionView: View {
           Text(connection.session.account.email).privacySensitive()
           LabeledContent("Firm", value: connection.session.branding.name)
           Text(connection.origin.host ?? "").font(.caption).foregroundStyle(.secondary)
-          Label(model.syncStatus, systemImage: "icloud")
+          Label("Trips & money: \(model.syncStatus)", systemImage: "icloud")
             .accessibilityIdentifier("account.syncStatus")
-          Label(model.coachStatus, systemImage: "bubble.left.and.bubble.right")
+          Label("Chat: \(model.coachStatus)", systemImage: "bubble.left.and.bubble.right")
             .font(.footnote).accessibilityIdentifier("account.coachStatus")
-          Label(model.reputationStatus, systemImage: "star.bubble")
+          Label("Ratings & reviews: \(model.reputationStatus)", systemImage: "star.bubble")
             .font(.footnote).accessibilityIdentifier("account.reputationStatus")
           if let date = model.journal.lastSyncAt {
-            LabeledContent("Last successful sync", value: date.formatted())
+            LabeledContent("Last trips & money sync", value: date.formatted())
           } else {
-            Text("This account has not completed a sync on this phone yet.")
+            Text("Trips and money have not completed a sync for this account on this phone yet.")
               .font(.footnote).foregroundStyle(.secondary)
           }
           if model.pendingCount > 0 {

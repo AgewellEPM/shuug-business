@@ -252,10 +252,21 @@ try:
     if options.reputation_only:
         reputation = journal.get('reputationState', {})
         assert not records and sorted(row['score'] for row in reputation['ratings']) == [4.6, 4.8]
+        assert sorted((row['score'], row['reviewCount']) for row in reputation['ratings']) == [(4.6, 100), (4.8, 105)], 'Each saved score must retain its entered review count.'
         assert all(row['platformID'] == 'lyft-driver' and row['scale'] == 5 and not row['deleted'] for row in reputation['ratings'])
         assert len(reputation['reviews']) == 1 and reputation['reviews'][0]['deleted'] is True
-        assert reputation['reviews'][0]['sentiment'] == 'negative' and reputation['reviews'][0]['topics'] == ['communication']
-        assert len(journal['reputationOutbox']) == 4 and journal['reputationOutbox'][-1]['action'] == 'deleteReview'
+        review = reputation['reviews'][0]
+        assert review['text'] == 'Customer requested clearer arrival updates.', 'The exact entered review text must survive deletion and relaunch.'
+        assert review['sentiment'] == 'negative' and review['topics'] == ['communication']
+        outbox = journal['reputationOutbox']
+        assert [change['action'] for change in outbox] == ['addRating', 'addRating', 'addReview', 'deleteReview'], 'Offline changes must retain add-before-delete order and operation types.'
+        assert len({change['mutationId'] for change in outbox}) == 4, 'Each persisted operation needs its own retry identity.'
+        assert len({row['id'] for row in reputation['ratings']}) == 2
+        assert [change['rating'] for change in outbox[:2]] == reputation['ratings'], 'Queued rating IDs and payloads must match both saved snapshots.'
+        assert all(change.get('review') is None and change.get('id') is None for change in outbox[:2])
+        assert outbox[2]['review'] == dict(review, deleted=False), 'The queued review add must preserve the original body and the tombstone ID.'
+        assert outbox[2].get('rating') is None and outbox[2].get('id') is None
+        assert outbox[3]['id'] == review['id'] and outbox[3].get('rating') is None and outbox[3].get('review') is None, 'The queued delete must target only the saved review.'
         assert len(journal.get('coachMessages', [])) == 2 and 'Lyft Driver' in journal['coachMessages'][-1]['text']
         verified_tests += ['actual native rating forms persist two same-platform star snapshots and review counts', 'review text plus user-selected negative tone and communication tag persist', 'guidance cites the saved app and tagged review topic', 'unified conversation answers rating questions using saved reputation history', 'ratings and conversations survive app relaunch', 'explicit branded deletion persists review tombstone while retaining ratings and offline sync operations']
         report['scope'] = 'Native iPhone Simulator manual ratings/reviews, guidance and offline retry queue; no live provider import or public cloud sync'
