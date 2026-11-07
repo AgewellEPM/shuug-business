@@ -35,6 +35,16 @@ class DriveService: Service(),LocationListener {
     }
     override fun onStartCommand(intent: Intent?,flags: Int,startId: Int): Int {
         try {
+            if(intent?.action=="TRIP_ALERT") {
+                if(intent.getStringExtra("alertAction")=="start") require(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) {"Allow precise location before starting a trip from an alert."}
+                val action=TripAlertNotifications.perform(repo,intent)
+                if(action=="end") suppressedUntil=Instant.now().plusSeconds(300)
+            }
+            if(intent?.action=="END_CURRENT") {
+                require(intent.getStringExtra("scope")==repo.scope && intent.getStringExtra("tripId")==repo.journal.activeTripId) {"Your trip or account changed. The current trip was not changed."}
+                val completed=repo.journal.activeTripId;repo.endDrive();suppressedUntil=Instant.now().plusSeconds(300)
+                if(completed!=null) TripAlertNotifications.completed(repo,completed)
+            }
             if(intent?.action=="STOP") { repo.endDrive(); suppressedUntil=Instant.now().plusSeconds(300) }
             if(intent?.action=="OFF") { stopSelf(); return START_NOT_STICKY }
             if(intent?.action=="START" && repo.journal.activeTripId==null) repo.startDrive()
@@ -49,9 +59,15 @@ class DriveService: Service(),LocationListener {
     private fun notification(title: String,text: String): Notification {
         val launch=PendingIntent.getActivity(this,0,Intent(this,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val stop=PendingIntent.getService(this,1,Intent(this,DriveService::class.java).setAction("OFF"),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-        return Notification.Builder(this,"driving").setSmallIcon(R.drawable.brand_mark).setContentTitle(title).setContentText(text)
+        val builder=Notification.Builder(this,"driving").setSmallIcon(R.drawable.brand_mark).setContentTitle(title).setContentText(text)
             .setContentIntent(launch).setOnlyAlertOnce(true).setOngoing(true).setVisibility(Notification.VISIBILITY_PRIVATE)
-            .addAction(Notification.Action.Builder(null,"Pause tracking",stop).build()).build()
+            .addAction(Notification.Action.Builder(null,"Pause tracking",stop).build())
+        repo.journal.activeTripId?.let {id->
+            val end=PendingIntent.getForegroundService(this,2,Intent(this,DriveService::class.java).setAction("END_CURRENT")
+                .setData(android.net.Uri.parse("gigtaxpros://drive/$id/end")).putExtra("tripId",id).putExtra("scope",repo.scope),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            builder.addAction(Notification.Action.Builder(null,"End trip",end).build())
+        }
+        return builder.build()
     }
     override fun onLocationChanged(location: Location) {
         try {
@@ -63,21 +79,22 @@ class DriveService: Service(),LocationListener {
             if(delta!=null && delta>90) { movingAt=null; movingDistance=0.0; stopAt=null; stopAnchor=null; buffer.clear() }
             val distance=last?.distance(fix) ?: 0.0
             val speed=if(location.hasSpeed()) location.speed.toDouble() else if(delta!=null && delta>0) distance/delta else 0.0
-            if(speed>65) return
+            if(speed>65 || delta!=null && delta>0 && delta<=90 && distance/delta>65) return
             previous=fix; buffer.add(fix); while(buffer.size>18) buffer.removeFirst()
             if(repo.journal.activeTripId!=null) repo.observe(fix)
             if(speed>=3.5) {
+                TripAlertNotifications.cancelEnds(repo)
                 if(movingAt==null) movingAt=time; movingDistance+=distance; stopAt=null; stopAnchor=null
                 if(repo.journal.assistance.automaticDrives && repo.journal.activeTripId==null && clock>suppressedUntil &&
                     Duration.between(movingAt,time).seconds>=45 && movingDistance>=120) {
-                    repo.startDrive(true,buffer.first().timestamp); buffer.forEach { repo.observe(it,Instant.parse(it.timestamp)) }
-                    repo.trackingStatus="Detected drive · review classification when finished"
+                    TripAlertNotifications.start(repo);suppressedUntil=clock.plusSeconds(300)
+                    repo.trackingStatus="Driving detected · answer the start-trip alert when safely parked"
                 }
             } else if(speed<=1.4) {
                 if(stopAt==null || stopAnchor!!.distance(fix)>70) { stopAt=time; stopAnchor=fix }
                 val stopped=Duration.between(stopAt,time).seconds
                 if(stopped>=90 && repo.journal.assistance.placeReminders && !lookupBusy && Duration.between(lastLookup,clock).seconds>=600) lookup(fix)
-                if(stopped>=300) { if(repo.journal.active?.record?.trip()?.automaticallyDetected==true) repo.endDrive(); movingAt=null; movingDistance=0.0; buffer.clear() }
+                if(stopped>=300) { if(repo.journal.activeTripId!=null) TripAlertNotifications.end(repo); movingAt=null; movingDistance=0.0; buffer.clear() }
             } else { stopAt=null; stopAnchor=null }
         } catch(error: Exception) { repo.failure=error.message; stopSelf() }
     }
@@ -91,7 +108,7 @@ class DriveService: Service(),LocationListener {
             if(prompts.any { it.placeId==place.placeId && Duration.between(Instant.parse(it.detectedAt),clock).seconds<21600 }) return@launch
             repo.update { it.copy(placePrompts=(it.placePrompts+place).takeLast(100)) }
             if(Build.VERSION.SDK_INT<33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED)
-                getSystemService(NotificationManager::class.java).notify(place.id.hashCode(),notification("Log a purchase?","Near ${place.merchant}. Open the app to review.").apply { flags=flags and Notification.FLAG_ONGOING_EVENT.inv() })
+                TripAlertNotifications.expense(repo,place)
         } catch(_: Exception) { repo.trackingStatus="Tracking active · nearby places temporarily unavailable" } finally { lookupBusy=false } }
     }
     override fun onProviderDisabled(provider: String) { repo.trackingStatus="GPS is off. The trip may have gaps." }

@@ -34,8 +34,8 @@ import kotlinx.serialization.json.*
     }}
     Panel("Driving assistance") {
         Text("Optional GPS monitoring uses a visible, persistent notification and battery. Start it while the app is open. Android or a force stop may interrupt tracking; review your trips for gaps.",color=Muted)
-        Toggle("Detect drives automatically",repo.journal.assistance.automaticDrives) {enabled->repo.run {repo.update {it.copy(assistance=it.assistance.copy(automaticDrives=enabled))}}}
-        Text("Detected movement is saved as unclassified. Review purpose, fare, fees and unpaid driving.",color=Muted)
+        Toggle("Detect drives & send trip alerts",repo.journal.assistance.automaticDrives) {enabled->repo.run {repo.update {it.copy(assistance=it.assistance.copy(automaticDrives=enabled))}}}
+        Text("Movement prompts Start trip? A prolonged stop prompts End trip? Answer directly in the alert. Completed drives can be classified and earnings entered from follow-up alerts. Recording begins when you confirm; earlier miles need review.",color=Muted)
         Toggle("Remind me near purchases",repo.journal.assistance.placeReminders) {enabled->repo.run {repo.update {it.copy(assistance=it.assistance.copy(placeReminders=enabled))}}}
         Text("When enabled and monitoring, a nearby-place lookup sends a stopped location to the public OpenStreetMap Overpass service. It may identify gas, charging, food, repair, auto-parts or dealership locations. Coverage is incomplete. Nothing is posted without your review. © OpenStreetMap contributors.",color=Muted)
         Button(onClick=onTracking,enabled=repo.journal.assistance.automaticDrives || repo.journal.assistance.placeReminders || repo.journal.activeTripId!=null) {Text("Start or resume monitoring")}

@@ -28,6 +28,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
     var tab by rememberSaveable { mutableStateOf("Today") }; var page by rememberSaveable { mutableStateOf<String?>(null) }
     var editing by remember { mutableStateOf<DriverRecord?>(null) }; var bank by remember { mutableStateOf<BankTransaction?>(null) }
     var prompt by remember { mutableStateOf<ExpensePrompt?>(null) }; var serviceAction by remember { mutableStateOf("START") }
+    LaunchedEffect(repo.requestedOfferReader) {if(repo.requestedOfferReader) {page="Offer reader";repo.requestedOfferReader=false}}
     val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
         if(granted[Manifest.permission.ACCESS_FINE_LOCATION]==true) try { ContextCompat.startForegroundService(repo.app,Intent(repo.app,DriveService::class.java).setAction(serviceAction)) } catch(error: Exception) { repo.failure=error.message }
         else repo.failure="Precise location is needed to measure miles. Manual trips are available."
@@ -47,6 +48,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                 "Trip" -> editing?.let { TripDetail(repo,it,onEdit={page="Edit"}) }
                 "Goals" -> GoalEditor(repo) { page=null }
                 "Shift Mission" -> MissionScreen(repo)
+                "Offer reader" -> OfferReaderScreen(repo)
                 "Import statement" -> BankImport(repo) { page="Bank inbox" }
                 "Bank inbox" -> BankScreen(repo,onImport={page="Import statement"},onReview={bank=it;editing=null;prompt=null;page="Edit"})
                 "Driver Rewards" -> ReferralScreen(repo)
@@ -54,8 +56,9 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                 else -> when(tab) {
                     "Today" -> {
                         Panel("Shift Mission") {
-                            Text("Earn toward your goal and plan your way home.",color=Muted)
+                            Text("Set your destination → choose where to wait → evaluate offers → earn toward home.",color=Muted)
                             Button(onClick={page="Shift Mission"},Modifier.fillMaxWidth()) {Text(if(repo.journal.mission==null) "Create today's mission" else "Open my mission")}
+                            OutlinedButton(onClick={page="Offer reader"},Modifier.fillMaxWidth()) {Text("Should I take this job? · Read an offer")}
                         }
                         Panel("Drive with a clearer picture") {
                             Text("Your miles. Your money. Your next goal.",color=Muted)

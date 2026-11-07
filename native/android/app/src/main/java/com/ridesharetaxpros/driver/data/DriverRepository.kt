@@ -21,6 +21,8 @@ class DriverRepository(val app: Application) {
     var bankStatus by mutableStateOf<BankStatus?>(null); private set
     var rewards by mutableStateOf<JsonObject?>(null); private set
     var trackingStatus by mutableStateOf("Tracking is off")
+    var offerReaderStatus by mutableStateOf("Offer reading is off")
+    var requestedOfferReader by mutableStateOf(false)
     val scope get()=connection?.let { PrivateStore.hash(it.origin+"|"+it.session.account.id) } ?: "guest"
     init { try {
         connection=store.read("session","connection.json")?.let { Wire.decodeFromString<Connection>(it.toString(Charsets.UTF_8)) }
@@ -40,17 +42,21 @@ class DriverRepository(val app: Application) {
         check(journal.activeTripId==null) { "End your current drive before switching accounts." }; check(storageReady)
         val origin=WorkspaceClient.origin(address); val reply=WorkspaceClient(address=origin).login(email.trim(),password)
         val next=Connection(origin,reply); val namespace=PrivateStore.hash(origin+"|"+reply.account.id)
-        val saved=store.journal(namespace)
+        val saved=store.journal(namespace).let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
+        store.save(namespace,saved)
         store.write("session","connection.json",Wire.encodeToString(next).toByteArray())
-        app.stopService(Intent(app,DriveService::class.java)); connection=next; journal=saved; rewards=null; bankStatus=null
+        app.stopService(Intent(app,DriveService::class.java)); app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
+        connection=next; journal=saved; rewards=null; bankStatus=null
         sync()
     }
     suspend fun disconnect() {
         check(journal.activeTripId==null) { "End your current drive before disconnecting." }
         connection?.let { WorkspaceClient(it).send("session","DELETE") }
-        val guest=store.journal("guest")
+        val guest=store.journal("guest").let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
+        store.save("guest",guest)
         // An empty encrypted optional value is understood as signed out at next launch.
         store.clearConnection(); app.stopService(Intent(app,DriveService::class.java))
+        app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=null; journal=guest; rewards=null; bankStatus=null
     }
     fun transferGuest() {

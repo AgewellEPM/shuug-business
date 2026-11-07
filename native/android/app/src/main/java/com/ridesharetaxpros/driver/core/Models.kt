@@ -75,7 +75,9 @@ fun day(instant: String, zone: String = "UTC"): String = Instant.parse(instant).
     val bankTransactions: List<BankTransaction> = emptyList(), val placePrompts: List<ExpensePrompt> = emptyList(),
     val bankCursor: Long = 0, val bankUpdatedAt: String? = null,
     val mission: ShiftMission? = null, val waitSamples: List<WaitSample> = emptyList(),
-    val vehicleReservePercent: Double? = null, val taxReservePercent: Double? = null) {
+    val vehicleReservePercent: Double? = null, val taxReservePercent: Double? = null,
+    val offerReader: OfferReaderSettings = OfferReaderSettings(), val observedOffers: List<ObservedGigOffer> = emptyList(),
+    val tripAlerts: List<TripAlertToken> = emptyList()) {
     val visible get() = entries.filter { !it.record.deleted }.sortedByDescending { it.record.date }
     val active get() = entries.firstOrNull { it.record.id == activeTripId }
     // A receipt selected in an editor is not yet an expense. If the editor is
