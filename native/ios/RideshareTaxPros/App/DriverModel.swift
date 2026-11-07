@@ -16,6 +16,8 @@ import Network
   @Published var bankSyncing = false
   @Published var coachSyncing = false
   @Published var coachStatus = "Saved on this iPhone"
+  @Published var reputationSyncing = false
+  @Published var reputationStatus = "Saved on this iPhone"
   @Published private(set) var syncing = false
   @Published private(set) var syncStatus = "Saved on this iPhone"
   @Published private(set) var syncDetail: String?
@@ -46,7 +48,7 @@ import Network
         "Your saved journal could not be opened. Keep this installation and its data; do not reinstall. \(error.localizedDescription)"
     }
     monitor.pathUpdateHandler = { [weak self] path in
-      if path.status == .satisfied { Task { @MainActor in await self?.sync() } }
+      if path.status == .satisfied { Task { @MainActor in await self?.syncAll() } }
     }
     monitor.start(queue: DispatchQueue(label: "com.ridesharetaxpros.driver.network"))
   }
@@ -111,7 +113,8 @@ import Network
     }
   }
   func finishTrip() { if commit({ $0.finishTrip() }) { Task { await sync() } } }
-  func connect(origin: URL, email: String, password: String, includeOffline: Bool, includeCoach: Bool = false) async throws {
+  func connect(origin: URL, email: String, password: String, includeOffline: Bool, includeCoach: Bool = false,
+               includeReputation: Bool = false) async throws {
     guard !syncing else {
       throw WorkspaceError.message("Wait for the current sync to finish before reconnecting an account.")
     }
@@ -128,9 +131,9 @@ import Network
     let nextScope = Self.scope(profile)
     let nextDisk = try JournalDiskStore(directory: root.appendingPathComponent(nextScope))
     var nextJournal = try nextDisk.load()
-    if guest && (includeOffline || includeCoach) {
+    if guest && (includeOffline || includeCoach || includeReputation) {
       let plan = try GuestTransferPlan.prepare(source: journal, destination: nextJournal,
-        includeRecords: includeOffline, includeCoach: includeCoach)
+        includeRecords: includeOffline, includeCoach: includeCoach, includeReputation: includeReputation)
       try plan.copyFiles(source: disk, destination: nextDisk)
       nextJournal = plan.journal
     }
@@ -141,11 +144,13 @@ import Network
     namespace = nextScope
     offerRouteEvidence = [:]
     connection = profile
+    reputationStatus = "Saved on this iPhone · Sharing pending"
     bankStatus = nil; bankError = nil
     syncDetail = nil
     storageHealthy = true
     syncStatus = "Connected to \(reply.branding.name)"
     await sync()
+    await syncReputation()
     if includeCoach {
       let day = DriverRecord.day(Date())
       await syncCoach(from: String(day.prefix(4)) + "-01-01", through: day)
@@ -171,6 +176,7 @@ import Network
       offerRouteEvidence = [:]
       disk = guestDisk
       journal = guestJournal
+      reputationStatus = "Saved on this iPhone"
       syncStatus = "Saved on this iPhone"
       syncDetail = nil
       if let previous {

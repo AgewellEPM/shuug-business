@@ -33,7 +33,8 @@ struct TaxCoachView: View {
             Picker("Analyze records from", selection: $period) {
               Text("7 days").tag(7); Text("30 days").tag(30); Text("90 days").tag(90); Text("This year").tag(0)
             }.pickerStyle(.segmented).accessibilityIdentifier("coach.period")
-            Text("Record analysis: \(from) through \(through)").font(.caption2).foregroundStyle(Brand.muted)
+            Text("Financial records: \(from) through \(through)").font(.caption2).foregroundStyle(Brand.muted)
+            NavigationLink("Your ratings & reviews") { ReputationView() }.font(.caption.weight(.semibold))
           }.gigCard(accent: Brand.route)
           if messages.isEmpty {
             VStack(alignment: .leading, spacing: 10) {
@@ -79,7 +80,7 @@ struct TaxCoachView: View {
   private var prompts: some View {
     ScrollView(.horizontal, showsIndicators: false) {
       HStack(spacing: 8) {
-        ForEach(["Which jobs lose money?", "What pays me best?", "What are my expenses?", "What do I need for taxes?", "How do I reach my goal?"], id: \.self) { text in
+        ForEach(["Which jobs lose money?", "What pays me best?", "What are my expenses?", "What do I need for taxes?", "How do I reach my goal?", "How can I improve my ratings?"], id: \.self) { text in
           Button(text) { ask(text) }.font(.caption.weight(.semibold)).padding(10)
             .background(Brand.route.opacity(0.1), in: Capsule()).foregroundStyle(Brand.route)
         }

@@ -10,15 +10,24 @@ extension DriverModel {
       return false
     }
     let user = CoachMessage(role: "user", text: text)
-    let local = TaxCoach.respond(to: text, records: journal.visible.map(\.record),
-      goals: journal.goals ?? DriverGoals(), from: from, through: through, intake: journal.coachIntake ?? .init())
-    var answer = local.message; answer.engine = "local-record-rules"
+    var answer: CoachMessage
+    let milestones: [CoachMilestone]
+    if ReputationGuide.isQuery(text) {
+      answer = CoachMessage(role: "assistant", text: ReputationGuide.answer(query: text,
+        state: journal.reputationState ?? .init()))
+      milestones = journal.coachMilestones ?? []
+    } else {
+      let local = TaxCoach.respond(to: text, records: journal.visible.map(\.record),
+        goals: journal.goals ?? DriverGoals(), from: from, through: through, intake: journal.coachIntake ?? .init())
+      answer = local.message; milestones = local.milestones
+    }
+    answer.engine = "local-record-rules"
     let pending = CoachPendingMessage(id: user.id, text: text, from: from, through: through,
       preferences: CoachPreferences(goals: journal.goals ?? DriverGoals()), localReplyId: answer.id)
     guard commit({ journal in
       journal.coachMessages = (journal.coachMessages ?? []) + [user, answer]
       journal.coachOutbox = (journal.coachOutbox ?? []) + [pending]
-      journal.coachMilestones = local.milestones
+      journal.coachMilestones = milestones
     }) else { return false }
     coachStatus = connection == nil ? "On this iPhone · Connect to share with your firm" : "Saved on this iPhone · Waiting to share"
     await syncCoach(from: from, through: through)
@@ -48,6 +57,14 @@ extension DriverModel {
       guard pendingCount == 0, !journal.entries.contains(where: { $0.conflict != nil }) else {
         coachStatus = "Phone analysis shown · Finish record sync or review conflicts before workspace answers"
         return
+      }
+      if (journal.coachOutbox ?? []).contains(where: { ReputationGuide.isQuery($0.text) }) {
+        let shared = await syncReputation()
+        guard journalScope == scope else { return }
+        guard shared else {
+          coachStatus = "Phone analysis shown · Sync ratings and reviews before workspace answers"
+          return
+        }
       }
       if let mutation = journal.coachIntakeMutationId {
         let state = try await client.coachIntake(journal.coachIntake ?? .init(), mutationId: mutation)

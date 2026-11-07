@@ -178,10 +178,11 @@ final class WorkspaceClient {
     struct Input: Encodable {
       let action = "message"
       let mutationId: UUID, messageId: UUID, text: String, from: String, through: String
-      let preferences: CoachPreferences
+      let preferences: CoachPreferences?
     }
     let input = Input(mutationId: message.id, messageId: message.id, text: message.text,
-      from: message.from, through: message.through, preferences: message.preferences)
+      from: message.from, through: message.through,
+      preferences: ReputationGuide.isQuery(message.text) ? nil : message.preferences)
     let (data, _) = try await send("coach", method: "POST", body: WireJSON.encoder().encode(input))
     return try WireJSON.decoder().decode(CoachState.self, from: data)
   }
@@ -194,6 +195,14 @@ final class WorkspaceClient {
     }
     let (data, _) = try await send("coach", method: "POST", body: WireJSON.encoder().encode(Input(mutationId: mutationId, answers: intake)))
     return try WireJSON.decoder().decode(CoachState.self, from: data)
+  }
+  func reputation() async throws -> ReputationState {
+    let (data, _) = try await send("reputation")
+    return try WireJSON.decoder().decode(ReputationState.self, from: data)
+  }
+  func reputation(_ mutation: ReputationMutation) async throws -> ReputationState {
+    let (data, _) = try await send("reputation", method: "POST", body: WireJSON.encoder().encode(mutation))
+    return try WireJSON.decoder().decode(ReputationState.self, from: data)
   }
   static func discover() async throws -> URL? {
     let client = WorkspaceClient(origin: websiteURL)

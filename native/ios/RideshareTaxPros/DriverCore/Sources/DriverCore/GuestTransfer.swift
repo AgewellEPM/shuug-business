@@ -38,7 +38,7 @@ public struct GuestTransferPlan {
   }
 
   public static func prepare(source: Journal, destination: Journal, includeRecords: Bool = true,
-                             includeCoach: Bool = false) throws -> Self {
+                             includeCoach: Bool = false, includeReputation: Bool = false) throws -> Self {
     var result = destination
     let existingIDs = Set(destination.entries.map(\.id))
     let additions = includeRecords ? source.entries.filter { !$0.record.deleted && !existingIDs.contains($0.id) } : []
@@ -103,6 +103,7 @@ public struct GuestTransferPlan {
       // Milestones and engine receipts describe another record/account scope.
       // Keep the destination values until its own analysis or sync recomputes them.
     }
+    if includeReputation { try result.copyGuestReputation(from: source) }
     return Self(journal: result, newRecordIDs: additions.map(\.id), requiredReceiptIDs: requiredReceiptIDs)
   }
 }

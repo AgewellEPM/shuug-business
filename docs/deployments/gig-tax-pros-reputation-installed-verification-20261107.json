@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T07:18:10.074Z",
+  "base": "http://127.0.0.1:3126",
+  "buildId": "nFX7CBy6C2pS_HrLHWEbg",
+  "source": "/Users/lukekist/Worktrees/GigTaxProsReputationServer-20261107",
+  "backupDirectory": "/Users/lukekist/Library/Application Support/Shuug Backups/Rideshare Tax Pros/2026-11-07T07-18-08-562Z",
+  "backupFiles": 9,
+  "ownerSignInAndStaffRoutesVerified": true,
+  "publicHostingVerified": false,
+  "liveVerifiedAt": "2026-11-07T07:19:33.191Z",
+  "pid": 87094,
+  "health": {
+    "service": "gig-tax-pros-workspace",
+    "apiVersion": 1,
+    "ready": true
+  },
+  "installedPlistMatches": true,
+  "runningSourceVerifiedByCwd": true,
+  "installedSourceCommit": "b1846ced231ae76d44749ab66ff9148137aef819",
+  "ownerAuthorizedReputationRoute": {
+    "path": "/rideshare/reputation",
+    "status": 200
+  },
+  "anonymousReputationPageDenied": true,
+  "anonymousReputationAPIDenied": true,
+  "sealedBackupVerified": true,
+  "backupFileCount": 9,
+  "rollbackMetadata": "/Users/lukekist/Library/Application Support/Shuug Backups/Rideshare Tax Pros/2026-11-07T07-18-08-562Z-service",
+  "previousBuildAvailableForRollback": "Hu8paYxeBx3V7F1u5pTiW",
+  "peelWorkerPID": 56913,
+  "peelWorkerLeftRunning": true,
+  "actualClientOrFinancialRecordsWritten": false,
+  "testAccountsCreated": false,
+  "ownerCredentialPrinted": false,
+  "temporaryHelpersStopped": true
+}

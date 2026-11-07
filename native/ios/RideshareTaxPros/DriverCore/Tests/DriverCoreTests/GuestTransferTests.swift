@@ -201,4 +201,86 @@ final class GuestTransferTests: XCTestCase {
     let neither = try GuestTransferPlan.prepare(source: source, destination: destination, includeRecords: false)
     XCTAssertEqual(try WireJSON.encoder().encode(neither.journal), try WireJSON.encoder().encode(destination))
   }
+
+  func testPersonalRatingsNeverCopyWithoutTheirOwnOptIn() throws {
+    var source = Journal()
+    try source.enqueueReputation(.init(action: .addRating, rating: .init(platformID: "lyft-driver", platformName: "Lyft Driver", score: 4.8)))
+    let none = try GuestTransferPlan.prepare(source: source, destination: Journal(), includeRecords: true, includeCoach: true).journal
+    XCTAssertNil(none.reputationState); XCTAssertNil(none.reputationOutbox)
+    XCTAssertEqual(source.reputationOutbox?.count, 1)
+  }
+
+  func testPersonalOnlyCopyRetainsIDsOrderStableOutboxAndOtherOptInsStaySeparate() throws {
+    let accountRating = ReputationRating(platformID: "uber-driver", platformName: "Uber Driver", score: 4.9)
+    let guestRating = ReputationRating(platformID: "lyft-driver", platformName: "Lyft Driver", score: 4.7)
+    let guestReview = ReputationReview(platformID: "lyft-driver", platformName: "Lyft Driver", text: "Clear updates", sentiment: "positive", topics: ["communication"])
+    var destination = Journal(); try destination.enqueueReputation(.init(action: .addRating, rating: accountRating))
+    var source = Journal(); try source.enqueueReputation(.init(action: .addRating, rating: guestRating))
+    try source.enqueueReputation(.init(action: .addReview, review: guestReview))
+    source.coachMessages = [.init(role: "user", text: "Separate private chat")]
+    source.coachIntake = .init(taxYear: 2025)
+    source.upsert(DriverRecord(payload: .income(.init(date: "2026-11-07", platform: "uber", description: "Separate payout", amountCents: 2_000))))
+    source.goals = .init(dailyNetCents: 50_000)
+    let sourceBytes = try WireJSON.encoder().encode(source)
+    let plan = try GuestTransferPlan.prepare(source: source, destination: destination,
+      includeRecords: false, includeCoach: false, includeReputation: true)
+    XCTAssertEqual(plan.journal.reputationState?.ratings, [accountRating, guestRating])
+    XCTAssertEqual(plan.journal.reputationState?.reviews, [guestReview])
+    XCTAssertEqual(plan.journal.reputationOutbox, destination.reputationOutbox! + source.reputationOutbox!)
+    XCTAssertTrue(plan.journal.entries.isEmpty); XCTAssertNil(plan.journal.goals)
+    XCTAssertNil(plan.journal.coachMessages); XCTAssertNil(plan.journal.coachIntake)
+    XCTAssertEqual(try WireJSON.encoder().encode(source), sourceBytes)
+    let retry = try GuestTransferPlan.prepare(source: source, destination: plan.journal,
+      includeRecords: false, includeReputation: true)
+    XCTAssertEqual(retry.journal.reputationState, plan.journal.reputationState)
+    XCTAssertEqual(retry.journal.reputationOutbox, plan.journal.reputationOutbox)
+  }
+
+  func testPersonalCopyCapacityFailureKeepsBothJournalsAndStateOnlyCopyGetsStableUploadIDs() throws {
+    var destination = Journal()
+    for _ in 0..<50 {
+      try destination.enqueueReputation(.init(action: .addReview, review: .init(platformID: "lyft-driver", platformName: "Lyft Driver", text: "Account review")))
+    }
+    var source = Journal()
+    source.reputationState = .init(ratings: [.init(platformID: "lyft-driver", platformName: "Lyft Driver", score: 4.5)])
+    let before = try WireJSON.encoder().encode(destination), sourceBefore = try WireJSON.encoder().encode(source)
+    XCTAssertThrowsError(try GuestTransferPlan.prepare(source: source, destination: destination, includeRecords: false, includeReputation: true))
+    XCTAssertEqual(try WireJSON.encoder().encode(destination), before)
+    XCTAssertEqual(try WireJSON.encoder().encode(source), sourceBefore)
+    let copied = try GuestTransferPlan.prepare(source: source, destination: Journal(), includeRecords: false, includeReputation: true).journal
+    XCTAssertEqual(copied.reputationOutbox?.count, 1)
+    let retry = try GuestTransferPlan.prepare(source: source, destination: copied, includeRecords: false, includeReputation: true).journal
+    XCTAssertEqual(retry.reputationOutbox, copied.reputationOutbox)
+  }
+
+  func testPersonalCopyAcceptsWireIdenticalPersistedDatesAndPendingMutationIDs() throws {
+    let rating = ReputationRating(platformID: "lyft-driver", platformName: "Lyft Driver",
+      recordedAt: Date(timeIntervalSince1970: 1_793_700_000.123456), score: 4.8)
+    let mutation = ReputationMutation(action: .addRating, rating: rating)
+    var source = Journal(); try source.enqueueReputation(mutation)
+    let destination = try WireJSON.decoder().decode(Journal.self, from: WireJSON.encoder().encode(source))
+    let result = try GuestTransferPlan.prepare(source: source, destination: destination,
+      includeRecords: false, includeReputation: true).journal
+    XCTAssertEqual(result.reputationState, destination.reputationState)
+    XCTAssertEqual(result.reputationOutbox, destination.reputationOutbox)
+    XCTAssertEqual(result.reputationOutbox?.map(\.mutationId), [mutation.mutationId])
+  }
+
+  func testStateOnlyGuestTombstonesQueueDeletesForKnownAccountEntries() throws {
+    let rating = ReputationRating(platformID: "lyft-driver", platformName: "Lyft Driver", score: 4.8)
+    let review = ReputationReview(platformID: "lyft-driver", platformName: "Lyft Driver", text: "Saved feedback")
+    var destination = Journal(); destination.reputationState = .init(ratings: [rating], reviews: [review])
+    var deletedRating = rating; deletedRating.deleted = true
+    var deletedReview = review; deletedReview.deleted = true
+    var source = Journal(); source.reputationState = .init(ratings: [deletedRating], reviews: [deletedReview])
+    let copied = try GuestTransferPlan.prepare(source: source, destination: destination,
+      includeRecords: false, includeReputation: true).journal
+    XCTAssertEqual(copied.reputationState?.ratings, [deletedRating])
+    XCTAssertEqual(copied.reputationState?.reviews, [deletedReview])
+    XCTAssertEqual(copied.reputationOutbox?.map(\.action), [.deleteRating, .deleteReview])
+    XCTAssertEqual(copied.reputationOutbox?.map(\.id), [rating.id, review.id])
+    let retry = try GuestTransferPlan.prepare(source: source, destination: copied,
+      includeRecords: false, includeReputation: true).journal
+    XCTAssertEqual(retry.reputationOutbox, copied.reputationOutbox)
+  }
 }

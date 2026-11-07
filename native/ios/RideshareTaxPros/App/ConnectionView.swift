@@ -7,6 +7,7 @@ struct ConnectionView: View {
   @State private var password = ""
   @State private var includeOffline = false
   @State private var includeCoach = false
+  @State private var includeReputation = false
   @State private var discovering = false
   @State private var connecting = false
   @State private var checkedDiscovery = false
@@ -34,6 +35,10 @@ struct ConnectionView: View {
           Text(connection.origin.host ?? "").font(.caption).foregroundStyle(.secondary)
           Label(model.syncStatus, systemImage: "icloud")
             .accessibilityIdentifier("account.syncStatus")
+          Label(model.coachStatus, systemImage: "bubble.left.and.bubble.right")
+            .font(.footnote).accessibilityIdentifier("account.coachStatus")
+          Label(model.reputationStatus, systemImage: "star.bubble")
+            .font(.footnote).accessibilityIdentifier("account.reputationStatus")
           if let date = model.journal.lastSyncAt {
             LabeledContent("Last successful sync", value: date.formatted())
           } else {
@@ -47,11 +52,11 @@ struct ConnectionView: View {
             Text(detail).font(.footnote).foregroundStyle(.secondary)
           }
           Button {
-            Task { await model.sync() }
+            Task { await model.syncAll() }
           } label: {
-            if model.syncing { ProgressView("Syncing…") }
+            if model.syncing || model.coachSyncing || model.reputationSyncing { ProgressView("Syncing…") }
             else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") }
-          }.disabled(model.syncing).accessibilityIdentifier("account.sync")
+          }.disabled(model.syncing || model.coachSyncing || model.reputationSyncing).accessibilityIdentifier("account.sync")
           Link("Open my client portal", destination: connection.portalURL)
           Text("Use the same client email and password in the portal. The browser may ask you to sign in separately.")
             .font(.footnote).foregroundStyle(.secondary)
@@ -91,7 +96,7 @@ struct ConnectionView: View {
       }
     }.driverScreen().navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
       .task {
-        if model.connection != nil { await model.sync() }
+        if model.connection != nil { await model.syncAll() }
         else if !checkedDiscovery { await findWorkspace() }
       }
       .brandedDialog("Sign out?", isPresented: $signingOut,
@@ -160,6 +165,14 @@ struct ConnectionView: View {
           : "Your phone-only conversation and tax details stay separate unless you choose to copy them.")
           .font(.footnote).foregroundStyle(Brand.muted)
       }
+      if model.guest && (model.journal.reputationState != nil || !(model.journal.reputationOutbox ?? []).isEmpty) {
+        Toggle("Copy my phone-only ratings and reviews to this client account", isOn: $includeReputation)
+          .disabled(connecting).accessibilityIdentifier("account.copyReputation")
+        Text(includeReputation
+          ? "Your personal entries will be shared with this account’s tax team. Existing account entries are kept, and your phone-only source remains on this iPhone."
+          : "Phone-only ratings and reviews stay separate unless you choose to copy them.")
+          .font(.footnote).foregroundStyle(Brand.muted)
+      }
       Button {
         Task { await connect() }
       } label: {
@@ -194,10 +207,11 @@ struct ConnectionView: View {
     notice = nil
     defer { connecting = false; password = "" }
     do {
-      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach)
+      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach, includeReputation: includeReputation)
       signingIn = false
       includeOffline = false
       includeCoach = false
+      includeReputation = false
     } catch { notice = error.localizedDescription }
   }
 }
