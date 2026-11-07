@@ -5,6 +5,17 @@ enum ProofFailure: Error { case failed(String) }
 @main struct NativeDriverProof {
     static func check(_ condition: Bool, _ message: String) throws { if !condition { throw ProofFailure.failed(message) } }
     static func main() async throws {
+        try check(WorkspaceClient.discoveryURL.absoluteString == "https://gigtax.pro/site-config.json", "The native app did not use the live Gig Tax Pros configuration.")
+        try check(try WorkspaceClient.discoveredWorkspace(from: Data(#"{"workspaceUrl":null}"#.utf8)) == nil, "An unconnected workspace was represented as available.")
+        let configuredWorkspace = try WorkspaceClient.discoveredWorkspace(from: Data(#"{"workspaceUrl":"https://workspace.example.com/api/website/customer"}"#.utf8))
+        try check(configuredWorkspace?.absoluteString == "https://workspace.example.com", "The app could not use the portal's shared backend origin.")
+        for destination in ["http://workspace.example.com", "https://127.0.0.1", "https://192.168.1.5", "https://[::1]", "https://workspace.local", "https://owner:secret@workspace.example.com", "https://workspace.example.com/another/path"] {
+            do {
+                let json = try JSONSerialization.data(withJSONObject: ["workspaceUrl": destination])
+                _ = try WorkspaceClient.discoveredWorkspace(from: json)
+                throw ProofFailure.failed("The public configuration admitted an unsafe workspace address.")
+            } catch WorkspaceError.message(_) { }
+        }
         guard CommandLine.arguments.count == 2, let origin = URL(string: CommandLine.arguments[1]), origin.scheme == "http", origin.host == "127.0.0.1", origin.port != nil else { throw ProofFailure.failed("Use the owned loopback fixture server only.") }
         let loginClient = WorkspaceClient(origin: origin)
         let first = try await loginClient.login(email: "ios.alpha@example.com", password: "Synthetic-native-driver-password")
@@ -71,7 +82,7 @@ enum ProofFailure: Error { case failed(String) }
         do { _ = try await alpha.records(after: 0); throw ProofFailure.failed("The native session remained valid after logout.") }
         catch WorkspaceError.server(let status, _, _) { try check(status == 401, "Native logout was not enforced.") }
         let checks = ["real invited-client login and brand", "Swift JSON optional fields", "recorded local date and time zone round trip", "idempotent native retry", "stale-write conflict decoding", "client isolation", "private receipt byte round trip", "cross-client receipt denial", "expense without receipt", "all 23 expense categories", "meal and vehicle review details round trip", "income cents", "incremental deletion", "native session revocation"]
-        let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks + ["fare/fees/platform/area and detection fields", "unconfigured bank status and isolated feed", "statement reference round trip and duplicate rejection", "native referral terms and points", "native referral claim round trip", "pending referral cannot issue reward", "DoorDash, Instacart and Spark income round trips"], "realClientDataUsed": false]
+        let result: [String: Any] = ["ok": true, "scope": "Actual app WorkspaceClient against a compiled loopback Shuug server", "checks": checks + ["live Gig Tax Pros configuration origin", "unconnected workspace stays unavailable", "shared portal workspace discovery", "unsafe workspace configuration rejection", "fare/fees/platform/area and detection fields", "unconfigured bank status and isolated feed", "statement reference round trip and duplicate rejection", "native referral terms and points", "native referral claim round trip", "pending referral cannot issue reward", "DoorDash, Instacart and Spark income round trips"], "realClientDataUsed": false]
         print(String(decoding: try JSONSerialization.data(withJSONObject: result, options: [.sortedKeys]), as: UTF8.self))
     }
 }

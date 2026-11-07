@@ -57,14 +57,15 @@ async function main() {
       const {url}=await owner({action:"invite",input:{id:account.id}});
       const invite=new URL(url).searchParams.get("invite");assert(invite);
       assert((await(await request(`/api/website/customer?invite=${invite}`)).text()).includes("Rideshare Tax Pros"));
-      const activated=await post({action:"activate",invite,password,confirmation:password});assert(activated.ok&&(await activated.text()).includes("Account activated"));
-      const login=await post({action:"login",email:account.email,password});const cookie=login.headers.getSetCookie().find(c=>c.startsWith("shuug_customer="))?.split(";")[0];assert.equal(login.status,303);assert(cookie);sessions.push(cookie);
+      const activated=await post({action:"activate",invite,password,confirmation:password});assert.equal(activated.status,303);
+      const cookie=activated.headers.getSetCookie().find(c=>c.startsWith("shuug_customer="))?.split(";")[0];assert(cookie);sessions.push(cookie);
     }
     checks.push("owner CSRF sign-in, real invitation activation and two separate customer sessions");
-    const view=async(index=0,suffix="")=>{const response=await request("/api/website/customer"+suffix,{headers:{Cookie:sessions[index]}});return{response,html:await response.text()};};
+    const view=async(index=0,suffix="?year=2025")=>{const response=await request("/api/website/customer"+suffix,{headers:{Cookie:sessions[index]}});return{response,html:await response.text()};};
     let current=await view();assert(current.html.includes("Your tax work"));assert(!current.html.includes("Alpha 2025 preparation"));assert(!current.html.includes("Annual platform summary"));checks.push("unshared engagement and its shared child remain private");
     for(const engagement of engagements) updateRecord("tax-engagements",engagement.id,moduleById("tax-engagements")!.fields,{...engagement.values,client_visible:true});
-    current=await view(0,`?client_id=${clients[1].id}`);assert(current.response.ok);assert(current.html.includes("Alpha 2025 preparation")&&current.html.includes("Annual platform summary")&&current.html.includes("Year-end review"));
+    current=await view(0,`?year=2025&client_id=${clients[1].id}`);assert(current.response.ok);assert(current.html.includes("Alpha 2025 preparation")&&current.html.includes("Annual platform summary"));
+    assert((await view(0,"?year=2026")).html.includes("Year-end review"));checks.push("client year selection includes shared engagement and quarterly-review years");
     for(const value of ["BETA-PRIVATE-ENGAGEMENT","WRONG-CLIENT-DOCUMENT","INTERNAL-","PRIVATE-VAULT-REF","PRIVATE-ADVICE-REF"])assert(!current.html.includes(value),"Private tax data crossed the customer boundary.");
     assert(current.response.headers.get("cache-control")?.includes("private, no-store"));assert(current.response.headers.get("referrer-policy")==="no-referrer");checks.push("live staff share reaches the correct client without internal fields or forged client selection");
     const beta=await view(1);assert(beta.html.includes("BETA-PRIVATE-ENGAGEMENT")&&!beta.html.includes("Alpha 2025 preparation"));

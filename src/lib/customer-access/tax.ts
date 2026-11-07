@@ -2,6 +2,7 @@ import { getBranding } from "../branding/store";
 import { catalogWithTools, visibleItems } from "../navigation/catalog";
 import { listRecords } from "../sdk/records";
 import type { ModuleRecord } from "../sdk/types";
+import { clientTaxDocuments } from "./tax-documents";
 
 const text = (row: ModuleRecord, key: string) => typeof row.values[key] === "string" ? row.values[key] as string : "";
 const year = (row: ModuleRecord) => Number.isInteger(row.values.tax_year) && Number(row.values.tax_year) >= 1900 && Number(row.values.tax_year) <= 9999 ? Number(row.values.tax_year) : null;
@@ -10,7 +11,7 @@ const date = (row: ModuleRecord, key: string) => /^\d{4}-\d{2}-\d{2}$/.test(text
 /** Server-only projection. Called after customer authentication with its linked service client.
  * Legacy records are private by default. Children require their own explicit share
  * flag AND an unarchived, shared parent belonging to the same client. */
-export function clientTaxSummary(clientId: string) {
+export function clientTaxSummary(clientId: string, token?: string) {
   const brand = getBranding();
   if (brand.industrySetup?.industryId !== "tax-firm") return null;
   const visible = new Set(visibleItems(brand, catalogWithTools()).map(item => item.id));
@@ -22,7 +23,8 @@ export function clientTaxSummary(clientId: string) {
     engagements: shared("tax-engagements").map(row => ({
       name: text(row, "name"), year: year(row), stage: text(row, "stage"), message: text(row, "client_message"),
       documents: documents.filter(item => item.values.engagement_id === row.id).map(item => ({
-        name: text(item, "name"), status: text(item, "status"), requestedBy: date(item, "due"), message: text(item, "client_message"),
+        id: item.id, name: text(item, "name"), status: text(item, "status"), requestedBy: date(item, "due"), message: text(item, "client_message"),
+        submissions: token ? clientTaxDocuments(token, item.id) : [], uploadAvailable: Boolean(token),
       })),
       records: records.filter(item => item.values.engagement_id === row.id).map(item => ({
         name: text(item, "name"), platform: text(item, "platform"), income: text(item, "income_records"),

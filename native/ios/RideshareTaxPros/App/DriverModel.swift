@@ -110,6 +110,9 @@ import Network
   }
   func finishTrip() { if commit({ $0.finishTrip() }) { Task { await sync() } } }
   func connect(origin: URL, email: String, password: String, includeOffline: Bool) async throws {
+    guard !syncing else {
+      throw WorkspaceError.message("Wait for the current sync to finish before reconnecting an account.")
+    }
     guard journal.activeTripId == nil else {
       throw WorkspaceError.message(
         "Finish your current drive before changing the workspace connection.")
@@ -136,11 +139,16 @@ import Network
     offerRouteEvidence = [:]
     connection = profile
     bankStatus = nil; bankError = nil
+    syncDetail = nil
     storageHealthy = true
     syncStatus = "Connected to \(reply.branding.name)"
     await sync()
   }
   func disconnect() async {
+    guard !syncing else {
+      message = "Wait for the current sync to finish before signing out."
+      return
+    }
     guard journal.activeTripId == nil else {
       message = "Finish your current drive before signing out."
       return
@@ -157,6 +165,7 @@ import Network
       disk = guestDisk
       journal = guestJournal
       syncStatus = "Saved on this iPhone"
+      syncDetail = nil
       if let previous {
         try? await WorkspaceClient(origin: previous.origin, token: previous.session.token).logout()
       }

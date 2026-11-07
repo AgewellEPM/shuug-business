@@ -9,7 +9,7 @@ import path from "node:path";
 import { setting } from "../src/lib/connections/vault";
 import { importBusinessTemplate } from "../src/lib/branding/templates";
 import { getBranding } from "../src/lib/branding/store";
-import { rideshareTaxProsTemplate } from "../src/lib/industry/rideshare-tax-pros";
+import { gigTaxProsTemplate } from "../src/lib/industry/rideshare-tax-pros";
 import { saveCustomerSettings } from "../src/lib/customer-access/service";
 
 const root=realpathSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)),".."));
@@ -40,7 +40,7 @@ async function main(){
     const configuredOwner=spawnSync(process.execPath,["--import","tsx",path.join(root,"scripts/workspace-setup.ts")],{cwd:root,env:process.env,stdio:"inherit"});
     assert(configuredOwner.status===0,"Owner setup is incomplete. Retry initialization to continue without resetting an existing password.");
   }
-  if(!existsSync(path.join(data,"branding.json")))importBusinessTemplate(rideshareTaxProsTemplate);
+  if(!existsSync(path.join(data,"branding.json")))importBusinessTemplate(gigTaxProsTemplate);
   assert(getBranding().industrySetup?.industryId==="tax-firm","Existing business branding differs; it was preserved.");
   saveCustomerSettings({enabled:true,pricing:false,ordering:false,orderStatus:false,servicePortal:true,booking:false});
   save("ready");
