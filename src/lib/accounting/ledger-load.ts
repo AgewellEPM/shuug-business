@@ -3,6 +3,7 @@
  * expenses) + captured receipt/return and restaurant journals + manual entries, then derive the Trial
  * Balance, P&L and Balance Sheet straight from the ledger so everything ties out.
  */
+import { applyPeriodSeal } from "./periods";
 import { restaurantJournalEntries } from "../restaurant/business";
 import { getDealStore } from "../data/store";
 import { loadAnalytics } from "../analytics/load";
@@ -41,10 +42,11 @@ export async function loadLedger(): Promise<LedgerOverview> {
   const receipts = receivableJournals(), expenses = expenseAccountingData();
   const auto = [...deriveEntries(inputs), ...receipts.entries, ...expenses.entries, ...restaurantJournalEntries()];
   const manual = listManualEntries();
-  const entries = [...auto, ...manual].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+  const sealed = applyPeriodSeal([...auto, ...manual]);
+  const entries = sealed.entries.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
   const tb = trialBalance(entries, chartOfAccounts().accounts);
   return {
-    issues: [...receipts.issues, ...expenses.issues], entries,
+    issues: [...receipts.issues, ...expenses.issues, ...sealed.issues], entries,
     autoCount: auto.length,
     manualCount: manual.length,
     trialBalance: tb,

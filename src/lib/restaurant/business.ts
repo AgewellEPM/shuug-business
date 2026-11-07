@@ -1,3 +1,4 @@
+import { assertPeriodOpen } from "../accounting/periods";
 import { executePrepAction } from "./prep";
 import { reviewServiceHours } from "./service-hours";
 import { validateMenuModifiers, optionLabels } from "./modifier-model";
@@ -63,8 +64,9 @@ function cancelPreparation(s: RestaurantState, b: RestaurantBusiness, order: Res
  * receipts commit together. No provider network calls occur in this transaction. */
 export function executeRestaurantCommand(raw: unknown, actor: string, source: "staff" | "website" = "staff") {
   const command = restaurantCommandSchema.parse(raw), hash = createHash("sha256").update(JSON.stringify({ ...command, actor, ...(source === "website" ? { source } : {}) })).digest("hex");
-  return restaurantState.change(s => {
+  return restaurantState.change((s, db) => {
     const b = business(s), previous = b.commands[command.requestId]; if (previous) { must(previous.request === hash, "This request ID was already used for another action."); return previous.result; }
+    const journalIds = new Set(b.journals.map(e => e.id));
     const today = restaurantDay(b.config), input = command.input;
     let result: { id: string; kind: string };
     switch (command.action) {
@@ -239,6 +241,7 @@ export function executeRestaurantCommand(raw: unknown, actor: string, source: "s
         if (variance) journal(b, parsed.date, `restaurant-cash-variance:${closeId}`, parsed.note, variance < 0 ? [debit(6920, -variance), credit(1005, -variance)] : [debit(1005, variance), credit(6920, variance)]); result = { id: closeId, kind: "close" }; break;
       }
     }
+    for (const entry of b.journals) if (!journalIds.has(entry.id)) assertPeriodOpen(db, entry.date);
     b.audit.push({ id: randomUUID(), at: new Date().toISOString(), actor, action: command.action, reference: result.id }); b.commands[command.requestId] = { request: hash, result }; return result;
   });
 }

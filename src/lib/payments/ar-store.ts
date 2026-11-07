@@ -1,3 +1,4 @@
+import { assertPeriodOpen } from "../accounting/periods";
 /** Durable receipt/returned-payment history, with one-time fail-closed legacy import. */
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -32,7 +33,7 @@ export function allCollectionStates(): Record<string, CollectionState> { return 
 export function applyReceivableCommand(raw: unknown, actor: string, invoices: (Invoice & { issuedOn: string })[], today = new Date().toISOString().slice(0, 10)) {
   const command = receivableCommandInput.parse(raw), input = receivableSchemas[command.action].parse(command.input);
   const hash = createHash("sha256").update(JSON.stringify({ action: command.action, input, actor })).digest("hex");
-  return state.change(s => {
+  return state.change((s, db) => {
     const prior = s.commands[command.requestId]; if (prior) { if (prior.hash !== hash) throw new Error("This request ID belongs to another receivable action or author."); return { id: prior.id, kind: "receivable" }; }
     let id: string, snapshot: unknown, changedPayment: Payment | null = null;
     const at = new Date().toISOString();
@@ -74,7 +75,7 @@ export function applyReceivableCommand(raw: unknown, actor: string, invoices: (I
     }
     if (changedPayment) {
       const existing = new Set(s.journals.map(e => e.id));
-      for (const entry of receiptJournalEntries([changedPayment]).entries) if (!existing.has(entry.id)) s.journals.push(entry);
+      for (const entry of receiptJournalEntries([changedPayment]).entries) if (!existing.has(entry.id)) { assertPeriodOpen(db, entry.date); s.journals.push(entry); }
     }
     s.audit.push({ id: randomUUID(), actor, at, action: command.action, recordId: id, snapshot: structuredClone(snapshot) });
     s.commands[command.requestId] = { hash, id }; return { id, kind: "receivable" };

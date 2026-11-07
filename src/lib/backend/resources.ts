@@ -11,8 +11,7 @@ import { listExpenses } from "@/lib/expenses/store";
 import { getInventory } from "@/lib/ops/store";
 import { readFeatures } from "@/lib/features/store";
 import { velocityBySku } from "@/lib/ops/velocity";
-import { computePnl } from "@/lib/accounting/pnl";
-import { computeBalanceSheet } from "@/lib/accounting/balance-sheet";
+import { loadFinancialReports } from "@/lib/accounting/reports";
 import { computeSalesTax } from "@/lib/accounting/sales-tax";
 import { volumePlan } from "@/lib/costs/volume";
 import { chartOfAccounts } from "@/lib/accounting/journal-store";
@@ -138,34 +137,14 @@ export function businessHandlers(): Record<string, Handler> {
       return { analytics };
     } },
 
-    "financials/pnl": { section: "money", load: async () => {
-      const store = await getDealStore();
-      const { orders, skus } = await loadAnalytics(store);
-      return { pnl: computePnl(orders, skus, safeExpenses()) };
-    } },
+    "financials/pnl": { section: "money", load: async () => loadFinancialReports() },
     "financials/costs": { section: "money", load: async () => {
       const store = await getDealStore();
       const { orders, skus } = await loadAnalytics(store);
       const velocity = velocityBySku(orders);
       return { costs: skus.map((s) => volumePlan(s, (velocity.get(s.id) ?? 0) * 30)) };
     } },
-    "financials/balance-sheet": { section: "money", load: async () => {
-      const store = await getDealStore();
-      const { orders, skus } = await loadAnalytics(store);
-      const inv = getInventory();
-      const costBySku = new Map(inv.map((i) => [i.skuId, i.mfgCostPerCaseCents]));
-      const inventoryValueCents = inv.reduce((n, i) => n + i.onHandCases * i.mfgCostPerCaseCents, 0);
-      const live = orders.filter((o) => o.status !== "cancelled");
-      const accountsReceivableCents = live.filter((o) => o.status === "submitted").reduce((n, o) => n + o.totalCents, 0);
-      const accountsPayableCents = safeExpenses().filter((e) => e.status === "recorded" && e.fields.paymentStatus === "unpaid").reduce((n, e) => n + (e.fields.amountCents ?? 0), 0);
-      const pnl = computePnl(orders, skus, safeExpenses());
-      const salesTax = computeSalesTax(orders, (await loadAnalytics(store)).customers, Number(setting("SALES_TAX_RATE_BPS")) || 0);
-      void costBySku;
-      return { balanceSheet: computeBalanceSheet({
-        accountsReceivableCents, inventoryValueCents, cashCents: 0,
-        accountsPayableCents, salesTaxPayableCents: salesTax.estimatedTaxCents, retainedEarningsCents: pnl.netIncomeCents,
-      }) };
-    } },
+    "financials/balance-sheet": { section: "money", load: async () => loadFinancialReports() },
     "ledger": { section: "money", load: async () => { const l = await loadLedger(); return { trialBalance: l.trialBalance, incomeStatement: l.incomeStatement, balanceSheet: l.balanceSheet, entryCount: l.entries.length, autoCount: l.autoCount, manualCount: l.manualCount }; } },
     "cashflow": { section: "money", load: async () => ({ baseline: await loadCashFlowAsync(), collectionsLate2wk: await loadCashFlowAsync(Date.now(), 14) }) },
     "collections": { section: "money", load: async () => (await loadCollections()) },

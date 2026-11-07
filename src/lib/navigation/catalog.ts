@@ -131,6 +131,7 @@ export const workspaceItems: WorkspaceItem[] = [
   item("workorders", "Work orders (guarded)", "/workorders", "Operations", "operations"),
   item("finance", "Money overview", "/finance", "Money", "money"),
   item("accounting", "Accounting / Profit & Loss", "/books", "Money", "money"),
+  item("client-books", "Client books", "/accounting", "Money", "money"),
   item("chart-of-accounts", "Chart of accounts", "/ledger/accounts", "Money", "money"),
   item("ledger", "General ledger (double-entry)", "/ledger", "Money", "money"),
   item("balance-sheet", "Balance sheet", "/books?view=balance-sheet", "Money", "money"),

@@ -1,3 +1,5 @@
+import { journalStateName } from "./book-scope";
+import { assertPeriodOpen } from "./periods";
 import { accountCommandInput, accountType, standardAccounts, validateAccountTree, type WorkspaceAccount } from "./account-model";
 import { accountHasSourceHistory } from "./account-usage";
 import { readFileSync } from "node:fs";
@@ -9,9 +11,9 @@ import { persistentState } from "../workspace/state";
 import { validateEntry, type JournalEntry, type JournalLine } from "./ledger";
 import { journalCommandInput, journalPostInput, journalReverseInput } from "./journal-model";
 
-interface StoredEntry { entry: JournalEntry; actor: string; recordedAt: string; reversesId: string | null; reason: string | null; imported: boolean }
+export interface StoredEntry { entry: JournalEntry; actor: string; recordedAt: string; reversesId: string | null; reason: string | null; imported: boolean }
 interface AccountAudit { id: string; number: number; actor: string; at: string; before: WorkspaceAccount | null; after: WorkspaceAccount }
-interface JournalState { accounts?: WorkspaceAccount[]; accountAudit?: AccountAudit[]; entries: StoredEntry[]; commands: Record<string, { hash: string; id: string }>; audit: { id: string; action: string; entryId: string; actor: string; at: string; relatedId: string | null }[] }
+export interface JournalState { accounts?: WorkspaceAccount[]; accountAudit?: AccountAudit[]; entries: StoredEntry[]; commands: Record<string, { hash: string; id: string }>; audit: { id: string; action: string; entryId: string; actor: string; at: string; relatedId: string | null }[] }
 const legacyEntry = z.object({ id: z.string().min(1).max(100), date: z.iso.date(), memo: z.string().max(1000), source: z.literal("manual"), lines: z.array(z.object({ accountNumber: z.number().int(), debitCents: z.number().int().nonnegative(), creditCents: z.number().int().nonnegative() }).strict()).min(2).max(100) }).strict();
 const state = persistentState<JournalState>("manual-journal", () => {
   const empty: JournalState = { entries: [], commands: {}, audit: [] };
@@ -27,17 +29,25 @@ const state = persistentState<JournalState>("manual-journal", () => {
   }
   return empty;
 });
+const clientStates = new Map<string, ReturnType<typeof persistentState<JournalState>>>();
+export function journalState(bookId = "office") {
+  const name = journalStateName(bookId);
+  if (bookId === "office") return state;
+  let store = clientStates.get(name);
+  if (!store) { store = persistentState<JournalState>(name, () => ({ entries: [], commands: {}, audit: [] })); clientStates.set(name, store); }
+  return store;
+}
 function view(s: JournalState) {
   const reversed = new Map(s.entries.filter(r => r.reversesId).map(r => [r.reversesId!, r.entry.id]));
   return s.entries.map(r => ({ ...r.entry, manual: { revision: 1 as const, actor: r.actor, recordedAt: r.recordedAt, reversesId: r.reversesId, reversedById: reversed.get(r.entry.id) ?? null, reason: r.reason, imported: r.imported } }));
 }
-export function manualJournalData() { return state.change(s => ({ entries: view(s), audit: s.audit })); }
-export function listManualEntries(): JournalEntry[] { return state.change(view); }
-export function executeJournalCommand(raw: unknown, actor: string) {
+export function manualJournalData(bookId = "office") { return journalState(bookId).change(s => ({ entries: view(s), audit: s.audit })); }
+export function listManualEntries(bookId = "office"): JournalEntry[] { return journalState(bookId).change(view); }
+export function executeJournalCommand(raw: unknown, actor: string, bookId = "office") {
   const command = journalCommandInput.parse(raw);
   const input = command.action === "journal.post" ? journalPostInput.parse(command.input) : journalReverseInput.parse(command.input);
   const hash = createHash("sha256").update(JSON.stringify({ action: command.action, input, actor })).digest("hex");
-  return state.change(s => {
+  return journalState(bookId).change((s, db) => {
     const previous = s.commands[command.requestId];
     if (previous) { if (previous.hash !== hash) throw new Error("This request ID already belongs to a different journal action or author."); return { id: previous.id, kind: "manual-journal" }; }
     if (s.entries.length >= 100000) throw new Error("The manual-journal archive is full. Review deployment capacity before adding entries.");
@@ -52,9 +62,10 @@ export function executeJournalCommand(raw: unknown, actor: string) {
       if (s.entries.some(r => r.reversesId === v.id)) throw new Error("This entry already has a recorded reversal. Reload its history before making another correction.");
       if (v.date < original.entry.date) throw new Error("A reversal cannot precede its original posting date.");
       reversesId = original.entry.id; reason = v.reason;
-      entry = { id: `manual:${randomUUID()}`, date: v.date, memo: `Reversal: ${original.entry.memo}`.slice(0, 1000), source: "manual", lines: original.entry.lines.map(l => ({ accountNumber: l.accountNumber, debitCents: l.creditCents, creditCents: l.debitCents })) };
+      entry = { id: `manual:${randomUUID()}`, date: v.date, memo: `Reversal: ${original.entry.memo}`.slice(0, 1000), source: original.entry.source.startsWith("year-close:") ? original.entry.source : "manual", lines: original.entry.lines.map(l => ({ accountNumber: l.accountNumber, debitCents: l.creditCents, creditCents: l.debitCents })) };
       const error = validateEntry(entry, s.accounts ?? standardAccounts()); if (error) throw new Error(error);
     }
+    assertPeriodOpen(db, entry.date, bookId);
     s.entries.push({ entry, actor, recordedAt: at, reversesId, reason, imported: false });
     s.audit.push({ id: randomUUID(), action: command.action, entryId: entry.id, actor, at, relatedId: reversesId });
     s.commands[command.requestId] = { hash, id: entry.id };
@@ -70,17 +81,17 @@ export function addManualEntry(input: NewEntry, actor = "Internal workflow", req
 /** Kept as an explicit failure for older callers; posted history is never erased. */
 export function removeManualEntry(id: string): never { void id; throw new Error("Posted journal entries cannot be removed. Record a reviewed reversal with its date and reason."); }
 
-export function chartOfAccounts() { return state.change(s => ({ accounts: s.accounts ?? standardAccounts(), audit: s.accountAudit ?? [] })); }
-export function executeAccountCommand(raw: unknown, actor: string) {
+export function chartOfAccounts(bookId = "office") { return journalState(bookId).change(s => ({ accounts: s.accounts ?? standardAccounts(), audit: s.accountAudit ?? [] })); }
+export function executeAccountCommand(raw: unknown, actor: string, bookId = "office") {
   const command = accountCommandInput.parse(raw), v = command.input;
   const hash = createHash("sha256").update(JSON.stringify({ action: command.action, input: v, actor })).digest("hex");
-  return state.change((s, db) => {
+  return journalState(bookId).change((s, db) => {
     const previous = s.commands[command.requestId];
     if (previous) { if (previous.hash !== hash) throw new Error("This request ID belongs to another accounting action or author."); return { id: previous.id, kind: "account" }; }
     const accounts = s.accounts ?? standardAccounts(), before = accounts.find(a => a.number === v.number);
     if ((before?.revision ?? 0) !== v.revision) throw new Error("This account changed. Reload its current revision before saving.");
     if (before?.system && (before.classification !== v.classification || !v.active)) throw new Error("System posting accounts must keep their original classification and remain active.");
-    if (before && before.classification !== v.classification && (s.entries.some(e => e.entry.lines.some(l => l.accountNumber === before.number)) || accountHasSourceHistory(db, before.number))) throw new Error("An account with journal history cannot change classification.");
+    if (before && before.classification !== v.classification && (s.entries.some(e => e.entry.lines.some(l => l.accountNumber === before.number)) || accountHasSourceHistory(db, before.number, bookId))) throw new Error("An account with journal history cannot change classification.");
     if (!before && accounts.length >= 50000) throw new Error("The account directory is full. Review deployment capacity.");
     if (accounts.some(a => a.number !== v.number && a.parentNumber === v.parentNumber && a.name.toLocaleLowerCase() === v.name.toLocaleLowerCase())) throw new Error("Another account at this level already uses that name.");
     const type = accountType(v.classification);

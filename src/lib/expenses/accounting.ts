@@ -1,3 +1,4 @@
+import { assertPeriodOpen } from "../accounting/periods";
 import { createHash, randomUUID } from "node:crypto";
 import { z } from "zod";
 import type { DatabaseSync } from "node:sqlite";
@@ -38,6 +39,7 @@ function recognition(fields: ExpenseFields, total: number, allocations: ExpenseA
 function post(state: ExpenseState, db: DatabaseSync, accounts: WorkspaceAccount[], date: string, source: string, memo: string, lines: JournalLine[], allowInactive = false) {
   const entry: JournalEntry = { id: `expense-journal:${randomUUID()}`, date, source, memo, lines: lines.filter(l => l.debitCents || l.creditCents) };
   const error = validateEntry(entry, allowInactive ? accounts : accounts.filter(a => a.active)); must(!error, error ?? "Invalid expense journal.");
+  assertPeriodOpen(db, date);
   state.journals.push(entry); for (const line of entry.lines) markAccountUsed(db, line.accountNumber, source); return entry.id;
 }
 function originalJournal(s: ExpenseState, id: string) { const entry = s.journals.find(e => e.id === id); must(entry, "The original expense posting is missing. Restore accounting history before continuing."); return entry; }
