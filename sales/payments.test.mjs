@@ -8,7 +8,8 @@ const session=()=>({id:'cs_synthetic',mode:'subscription',client_reference_id:'4
 const subscription=()=>({id:'sub_synthetic',status:'active',metadata:{gigtax_enrollment:'42',terms_hash:info.terms.hash},billing_cycle_anchor:1794009600,cancel_at:null,items:{data:[{quantity:1,price:{unit_amount:30000,currency:'usd',recurring:{interval:'month',interval_count:1}}}]}});
 test('checkout fixes $500 upfront, $300 monthly and a one-time $200 fee; retries have the same provider request',async()=>{
   const calls=[];const p=payments(env,async(url,options)=>{calls.push({url,options});return Response.json(session());});
-  await p.create(row,info,'synthetic-token');await p.create(row,info,'synthetic-token');
+  const initial={...info,checkoutId:undefined};
+  await p.create(row,initial,'synthetic-token');await p.create(row,initial,'synthetic-token');
   assert.equal(calls[0].options.body,calls[1].options.body);assert.equal(calls[0].options.headers['Idempotency-Key'],calls[1].options.headers['Idempotency-Key']);
   const body=new URLSearchParams(calls[0].options.body);assert.equal(body.get('mode'),'subscription');assert.equal(body.get('line_items[0][price_data][unit_amount]'),'30000');assert.equal(body.get('line_items[1][price_data][unit_amount]'),'20000');assert.equal(body.get('line_items[0][price_data][recurring][interval]'),'month');assert.equal(body.get('allow_promotion_codes'),null);
 });

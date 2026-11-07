@@ -151,8 +151,7 @@ export function service(env, db, payment = payments(env)) {
     if (action === 'confirm') return fulfill(row.id);
     if (action !== 'accept') throw new HttpError(404, 'Unknown signup action.');
     if (row.status === 'active') {
-      if (lead.status !== 'active') await db.patch('offices', lead.id, { status: 'active' });
-      return receipt(row,info);
+      return fulfill(row.id);
     }
     if (!payment.configured()) throw new HttpError(503,'Payment connection is not ready. No payment was taken and this office has not been activated.');
     if (b.accepted !== true || b.authorized !== true || b.independent !== true || b.termsHash !== info.terms.hash) throw new HttpError(400, 'Review and accept these terms and confirm your authority and independent ownership.');
@@ -161,6 +160,7 @@ export function service(env, db, payment = payments(env)) {
     const signed={...info,signature:info.signature||signature,acceptedAt,acceptedEmail:row.contact_email,receiptVersion:2};
     await db.patch('enrollments',row.id,{status:'payment_pending',notes:JSON.stringify(signed)});
     const checkout=await payment.create(row,signed,b.token);
+    if(checkout.status==='complete'&&checkout.payment_status==='paid')return fulfill(row.id,checkout.id);
     // Payment verification can recover a completed session even if a webhook won
     // the race before this response. Never write an old pending body over it.
     const latest=await db.get('enrollments',row.id),latestInfo=metadata(latest);
@@ -171,7 +171,7 @@ export function service(env, db, payment = payments(env)) {
   async function fulfill(id,sessionId){
     const row=await db.get('enrollments',id);if(!row)throw new HttpError(404,'Enrollment not found.');const info=metadata(row);
     if(!info.signature||!info.acceptedAt||!['payment_pending','active'].includes(row.status))throw new HttpError(409,'Terms acceptance has not been recorded.');
-    if(row.status==='active') {if(sessionId&&sessionId!==info.payment?.checkoutId)throw new HttpError(409,'Payment does not match.');await db.patch('offices',info.leadId,{status:'active'});return receipt(row,info);}
+    if(row.status==='active'&&info.payment?.live) {if(sessionId&&sessionId!==info.payment.checkoutId)throw new HttpError(409,'Payment does not match.');await db.patch('offices',info.leadId,{status:'active'});return receipt(row,info);}
     const verified=await payment.verify(row,info,sessionId||info.checkoutId);
     if(!verified.live)throw new HttpError(409,'Test payment verified. A test payment does not activate a live office.');
     const active={...info,payment:verified,activatedAt:new Date().toISOString()};
