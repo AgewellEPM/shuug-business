@@ -23,6 +23,24 @@ struct ProfileReply: Codable {
   var account: ClientAccount
   var branding: WorkspaceBrand
 }
+struct MfaLoginChallenge: Decodable {
+  var apiVersion: Int
+  var mfaRequired: Bool
+  var challengeToken: String
+  var enrollmentRequired: Bool
+  var expiresAt: Date
+  var secret: String?
+  var valid: Bool {
+    apiVersion == 1 && mfaRequired &&
+      challengeToken.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil &&
+      expiresAt > Date() && expiresAt.timeIntervalSinceNow <= 360 &&
+      (!enrollmentRequired || secret?.range(of: "^[A-Z2-7]{32}$", options: .regularExpression) != nil)
+  }
+}
+struct MfaLoginCompletion {
+  var session: LoginReply
+  var recoveryCodes: [String]
+}
 struct ConnectionProfile: Codable {
   var origin: URL
   var session: LoginReply
@@ -37,9 +55,11 @@ struct ConnectionProfile: Codable {
 enum WorkspaceError: LocalizedError {
   case message(String)
   case server(Int, String, ServerRecord?)
+  case mfa(MfaLoginChallenge)
   var errorDescription: String? {
     switch self {
     case .message(let message), .server(_, let message, _): message
+    case .mfa(let challenge): challenge.enrollmentRequired ? "Set up your authenticator to finish signing in." : "Enter your authenticator or unused recovery code."
     }
   }
 }
@@ -123,6 +143,10 @@ final class WorkspaceClient {
       throw WorkspaceError.message("The workspace returned an unexpected response.")
     }
     guard (200...299).contains(response.statusCode) else {
+      if path == "session", response.statusCode == 428,
+        let challenge = try? WireJSON.decoder().decode(MfaLoginChallenge.self, from: data), challenge.valid {
+        throw WorkspaceError.mfa(challenge)
+      }
       let failure = try? WireJSON.decoder().decode(Failure.self, from: data)
       throw WorkspaceError.server(
         response.statusCode,
@@ -139,6 +163,22 @@ final class WorkspaceClient {
     let (data, _) = try await send(
       "session", method: "POST",
       body: WireJSON.encoder().encode(Input(email: email, password: password)))
+    return try decodedLogin(data)
+  }
+  func completeLogin(_ challenge: MfaLoginChallenge, code: String) async throws -> MfaLoginCompletion {
+    guard challenge.valid, !code.isEmpty, code.count <= 40 else {
+      throw WorkspaceError.message("Verification expired or code missing. Start sign-in again if needed.")
+    }
+    struct Input: Encodable { let challengeToken: String; let code: String }
+    let (data, _) = try await send("session", method: "POST", body: WireJSON.encoder().encode(Input(challengeToken: challenge.challengeToken, code: code)))
+    struct Recovery: Decodable { var recoveryCodes: [String]? }
+    let codes = try WireJSON.decoder().decode(Recovery.self, from: data).recoveryCodes ?? []
+    guard codes.count <= 10, codes.allSatisfy({ $0.range(of: "^[A-F0-9]{6}(-[A-F0-9]{6}){3}$", options: .regularExpression) != nil }) else {
+      throw WorkspaceError.message("The workspace returned invalid recovery codes.")
+    }
+    return MfaLoginCompletion(session: try decodedLogin(data), recoveryCodes: codes)
+  }
+  private func decodedLogin(_ data: Data) throws -> LoginReply {
     let reply = try WireJSON.decoder().decode(LoginReply.self, from: data)
     guard reply.apiVersion == 1,
       reply.token.range(of: "^[a-f0-9]{64}$", options: .regularExpression) != nil

@@ -88,10 +88,36 @@
         form.append(label('Connect as the workspace owner', owner));
       }
       submit(form, 'Connect account', async values => perform(async () => {
-        await call('session.login', { email: values.get('owner') ? '' : values.get('email'), password: values.get('password') }); password.value = ''; await load();
+        try {
+          const result = await call('session.login', { email: values.get('owner') ? '' : values.get('email'), password: values.get('password') });
+          if (result.mfaRequired) verifyLogin(result);
+          else await finishLogin(result);
+        } finally { password.value = ''; }
       }));
       append(body, form, el('p', 'Forgot your business password? Ask the workspace owner for a new password setup link.'));
       if (message) notice(message, true);
+    }
+    function verifyLogin(challenge) {
+      frame();
+      if (typeof challenge.challengeToken !== 'string' || !/^[a-f0-9]{64}$/.test(challenge.challengeToken) || Date.parse(challenge.expiresAt) <= Date.now()) { login('Verification expired. Sign in again.'); return; }
+      const form = el('form', null, { className: 'shuug-card shuug-login-form' }), code = input('code', '', 'text', true);
+      code.autocomplete = 'one-time-code'; code.maxLength = 40;
+      form.append(el('h3', challenge.enrollmentRequired ? 'Set up your authenticator' : 'Verify your sign-in'));
+      if (challenge.enrollmentRequired) {
+        if (typeof challenge.secret !== 'string' || !/^[A-Z2-7]{32}$/.test(challenge.secret)) { login('Authenticator setup was invalid. Sign in again.'); return; }
+        append(form, el('p', 'Add a time-based Shuug account in your authenticator with this private setup key. Use six digits and a 30-second interval.'), el('code', challenge.secret));
+      } else form.append(el('p', 'Use the current authenticator code, or one unused recovery code.'));
+      form.append(label('Verification code', code));
+      submit(form, 'Verify and connect', values => perform(async () => {
+        try { await finishLogin(await call('session.login', { challengeToken: challenge.challengeToken, code: values.get('code') })); }
+        finally { code.value = ''; }
+      }));
+      append(body, form, button('Cancel sign-in', () => login()));
+    }
+    async function finishLogin(result) {
+      if (result.recoveryCodes?.length) {
+        frame(); append(body, el('h3', 'Save your recovery codes'), el('p', 'Keep these private, separate from this device. Each works once with your password if you lose your authenticator. They will not be shown again.'), el('pre', result.recoveryCodes.join('\n')), button('I saved my codes. Open workspace.', () => perform(load)));
+      } else await load();
     }
     async function load() { workspace = await call('workspace'); selectedModule ||= workspace.modules[0]?.href.split('/').pop() ?? ''; await navigate(tab); }
     async function navigate(next) {

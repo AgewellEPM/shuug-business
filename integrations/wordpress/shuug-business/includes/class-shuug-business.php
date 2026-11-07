@@ -98,13 +98,26 @@ final class Shuug_Business {
         if (!is_array($body) || !is_string($body['operation'] ?? null) || !in_array($body['operation'], $operations, true) || !is_array($body['input'] ?? array())) { return new WP_Error('shuug_command', __('Unknown workspace command.', 'shuug-business'), array('status' => 400)); }
         $operation = $body['operation']; $input = $body['input'] ?? array();
         if ($operation === 'session.login') {
-            if (!is_string($input['email'] ?? null) || !is_string($input['password'] ?? null) || strlen($input['password']) > 200 || strlen($input['email']) > 160) { return new WP_Error('shuug_login', __('Enter your business email and password.', 'shuug-business'), array('status' => 400)); }
-            if (trim($input['email']) === '' && !current_user_can('manage_options')) { return new WP_Error('shuug_owner', __('Owner connections require a WordPress administrator.', 'shuug-business'), array('status' => 403)); }
-            $result = Shuug_Backend::call($operation, array('email' => $input['email'], 'password' => $input['password']));
+            if (isset($input['challengeToken'])) {
+                if (!is_string($input['challengeToken']) || !preg_match('/^[a-f0-9]{64}$/D', $input['challengeToken']) || !is_string($input['code'] ?? null) || strlen($input['code']) < 1 || strlen($input['code']) > 40) { return new WP_Error('shuug_mfa', __('Enter your authenticator or unused recovery code.', 'shuug-business'), array('status' => 400)); }
+                $result = Shuug_Backend::call($operation, array('challengeToken' => $input['challengeToken'], 'code' => $input['code']));
+            } else {
+                if (!is_string($input['email'] ?? null) || !is_string($input['password'] ?? null) || strlen($input['password']) > 200 || strlen($input['email']) > 160) { return new WP_Error('shuug_login', __('Enter your business email and password.', 'shuug-business'), array('status' => 400)); }
+                if (trim($input['email']) === '' && !current_user_can('manage_options')) { return new WP_Error('shuug_owner', __('Owner connections require a WordPress administrator.', 'shuug-business'), array('status' => 403)); }
+                $result = Shuug_Backend::call($operation, array('email' => $input['email'], 'password' => $input['password']));
+            }
             if (is_wp_error($result)) { return $result; }
-            $old = Shuug_Backend::session(); if ($old) { Shuug_Backend::call('session.logout', array(), $old['token']); }
-            $saved = Shuug_Backend::remember($result); if (is_wp_error($saved)) { return $saved; }
-            $result = array('user' => $result['user']); // Never return the backend session token to page JavaScript.
+            if (empty($result['mfaRequired'])) {
+                // Check the resolved identity again after MFA; a forged input flag
+                // cannot connect a nonadministrator to an owner account.
+                if (!empty($result['user']['isOwner']) && !current_user_can('manage_options')) {
+                    if (!empty($result['token'])) { Shuug_Backend::call('session.logout', array(), $result['token']); }
+                    return new WP_Error('shuug_owner', __('Owner connections require a WordPress administrator.', 'shuug-business'), array('status' => 403));
+                }
+                $old = Shuug_Backend::session(); if ($old) { Shuug_Backend::call('session.logout', array(), $old['token']); }
+                $saved = Shuug_Backend::remember($result); if (is_wp_error($saved)) { return $saved; }
+                $result = array('user' => $result['user'], 'recoveryCodes' => $result['recoveryCodes'] ?? array()); // Backend session tokens stay on the WordPress server.
+            }
         } else {
             $session = Shuug_Backend::session();
             if (!$session) { return new WP_Error('shuug_connect', __('Connect your business account to this WordPress session.', 'shuug-business'), array('status' => 401)); }

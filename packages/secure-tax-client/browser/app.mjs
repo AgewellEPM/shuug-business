@@ -21,16 +21,20 @@ async function readJson(input){
   try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}
 }
 function resetEditor(){editing=null;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
-function clearOpened(){viewGeneration++;$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('sync-result').textContent='Opened content cleared from this view.';}
+function clearOpened(){viewGeneration++;$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
   for(const id of ['connect','key-choice','create-key','import-backup','import-key','signin-password','email','password'])$(id).disabled=!ready||working;
   $('signout').disabled=!client?.identity||working;
+  const pending=client?.pendingMfa;
+  $('second-factor').hidden=!pending;$('mfa-code').disabled=!pending||working;$('mfa-verify').disabled=!pending||working;
+  $('mfa-setup').textContent=pending?.secret??'';
+  $('mfa-instructions').textContent=pending?.enrollmentRequired?'Add a time-based Shuug account in your authenticator using this private setup key. Use six digits and a 30-second interval, then enter its code.':'Enter the current code from your authenticator, or one unused recovery code.';
   for(const id of ['unlock'])$(id).disabled=!client?.identity||!$('key-choice').value||working;
   $('backup').disabled=!ready||!$('key-choice').value||working;
   for(const id of ['request','manifest','verify-manifest'])$(id).disabled=!unlocked||working;
   for(const id of ['sync','payload','attachment','save','cancel-edit'])$(id).disabled=!writable||working;
-  $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0;
+  $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending;
   normalEditor?.setEnabled(!!writable&&!working);
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
@@ -96,7 +100,14 @@ function renderGroups(){
 }
 for(const domain of DOMAINS){const option=document.createElement('option');option.value=domain;option.textContent=labels[domain];$('domain').append(option);}
 normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
-$('signin-password').addEventListener('click',()=>run(async()=>{clearOpened();const password=$('password').value;$('password').value='';await client.signIn($('email').value.trim(),password);message('Signed in. Select the account client key to verify enrollment or prepare signed setup.');}));
+function signedIn(result){
+  if(result.mfaRequired){message('Password verified. Complete authenticator verification to access your account.');return;}
+  if(result.recoveryCodes?.length){$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;}
+  message('Signed in. Select the account client key to verify enrollment or prepare signed setup.');
+}
+$('signin-password').addEventListener('click',()=>run(async()=>{clearOpened();const password=$('password').value;$('password').value='';signedIn(await client.signIn($('email').value.trim(),password));}));
+$('mfa-verify').addEventListener('click',()=>run(async()=>{const code=$('mfa-code').value;$('mfa-code').value='';signedIn(await client.verifySignIn(code));}));
+$('recovery-saved').addEventListener('click',()=>{$('recovery-values').textContent='';$('recovery-codes').hidden=true;});
 $('signout').addEventListener('click',()=>run(async()=>{clearOpened();await client.signOut();message('Signed out. Memory session and opened content cleared; saved browser keys remain.');}));
 $('connect').addEventListener('click',()=>run(async()=>{clearOpened();await client.connect();statusText();message('Account connected. Select its local key to verify enrollment or prepare signed setup.');}));
 $('lock').addEventListener('click',()=>{client.lock();clearOpened();refreshControls();message('View locked. Opened content cleared; the nonextractable key handle remains in this browser profile.');});

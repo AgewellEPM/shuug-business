@@ -23,7 +23,7 @@ The [workflow and release guide](WORKFLOWS-AND-RELEASE.md) lists implemented beh
 
 ## Release gates still open
 
-1. SSO/MFA, independent security review, security-event export, automated invitation delivery and organization-specific retention policies. Basic employee identity, session-bound permissions and account lifecycle are implemented and tested.
+1. SSO, independent security review, security-event export, automated invitation delivery and organization-specific retention policies. [Authenticator MFA](SECURITY-MFA.md) now supports enforced owner/employee/client verification, one-time recovery and scoped session grants. Its live rollout and the remaining access-boundary review are still required; this source milestone does not certify the deployment.
 2. Connect and test the new donation/service records with payment, mail, accounting and document providers; implement the remaining specialist automation and lifecycle controls described in the capability matrix.
 3. Finish the readiness pass on fixture-backed legacy accounting/product functionality; retain clear boundaries around financial calculations, regulated-domain requirements and actual source data.
 4. Complete visual interaction tests using the configured IsolatedTester/TinkyVision stack. Its MCP transport is currently unavailable. Passing HTTP and component tests does not replace this check.

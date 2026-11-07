@@ -86,7 +86,7 @@ npm run release:source
 
 `workspace:smoke` starts one temporary production HTTP server, verifies owner and employee sign-in, account activation, private task access, role-forgery denial, immediate revocation, and the donation/program/service acceptance paths using synthetic data, then stops it and removes its private test workspace. `planning:smoke` needs your configured AI provider and sends only a synthetic planning request. Neither check uses a browser runtime.
 
-The source archive and checksum appear in `dist/`. Packaging excludes `.data`, credentials, dependencies, build output and Git history. No repository is published automatically. Check [enterprise readiness](docs/ENTERPRISE_READINESS.md) for remaining release gates, including visual verification, SSO/MFA and deployment hardening.
+The source archive and checksum appear in `dist/`. Packaging excludes `.data`, credentials, dependencies, build output and Git history. No repository is published automatically. [Authenticator MFA](docs/SECURITY-MFA.md) supports owner, employee and client accounts. Check [enterprise readiness](docs/ENTERPRISE_READINESS.md) for remaining release gates, including visual verification, SSO, MFA rollout and deployment hardening.
 
 ## Yes, you can make money with this
 

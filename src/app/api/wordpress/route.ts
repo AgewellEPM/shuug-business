@@ -7,6 +7,8 @@ import { wordpressOperation, wordpressOperations } from "@/lib/wordpress/service
 import { createLaunchTicket } from "@/lib/wordpress/launch";
 import { appBaseUrl } from "@/lib/connections/vault";
 import { boundedJson } from "@/lib/social/http";
+import { MfaChallengeError } from "@/lib/auth/mfa/model";
+import { completeLoginFactor, loginFactorView } from "@/lib/auth/mfa/store";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { "Cache-Control": "private, no-store", "X-Content-Type-Options": "nosniff" } });
@@ -15,9 +17,18 @@ export async function POST(request: Request) {
     const origin = request.headers.get("origin"); if (origin && origin !== new URL(appBaseUrl()).origin) return json({ error: "Origin not permitted." }, 403);
     const parsed = z.object({ operation: z.enum(["session.login", "session.logout", "session.launch", ...wordpressOperations]), input: z.record(z.string(), z.unknown()).default({}) }).strict().parse(await boundedJson(new Response(request.body), 150000));
     if (parsed.operation === "session.login") {
-      const login = z.object({ email: z.string().max(160), password: z.string().min(1).max(200) }).strict().parse(parsed.input);
-      try { const token = login.email.trim() ? signInEmployee(login.email, login.password) : signInOwner(login.password); return json({ data: { token, user: sessionIdentity(token), expiresIn: 43200 } }); }
-      catch (e) { return json({ error: e instanceof Error ? e.message : "Sign-in failed." }, 401); }
+      const login = z.union([
+        z.object({ email: z.string().max(160), password: z.string().min(1).max(200) }).strict(),
+        z.object({ challengeToken: z.string().regex(/^[a-f0-9]{64}$/), code: z.string().min(1).max(40) }).strict(),
+      ]).parse(parsed.input);
+      try {
+        const completed = "challengeToken" in login ? completeLoginFactor(login.challengeToken, login.code, "staff") : null;
+        const token = completed?.token ?? ("email" in login && login.email.trim() ? signInEmployee(login.email, login.password) : signInOwner("password" in login ? login.password : ""));
+        return json({ data: { token, user: sessionIdentity(token), expiresIn: 43200, ...(completed?.recoveryCodes.length ? { recoveryCodes: completed.recoveryCodes } : {}) } });
+      } catch (e) {
+        if (e instanceof MfaChallengeError) return json({ data: { mfaRequired: true, ...e.challenge, ...loginFactorView(e.challenge.challengeToken, "staff") } });
+        return json({ error: e instanceof Error ? e.message : "Sign-in failed." }, 401);
+      }
     }
     const token = request.headers.get("authorization")?.match(/^Bearer ([a-f0-9]{64})$/)?.[1], user = sessionIdentity(token);
     if (!user || !token) return json({ error: "Connect your workspace account again." }, 401);

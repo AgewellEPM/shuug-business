@@ -12,6 +12,7 @@ export function EmployeeAccounts({ initial }: { initial: EmployeeAccountsState }
     setBusy(true); setMessage(""); setInvite("");
     try { const response = await fetch("/api/workspace/employees", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(input) }); const result = await response.json();
       if (!response.ok) throw new Error(result.error ?? "Could not update access.");
+      if (result.mfaRequired) { window.location.assign("/api/auth/login"); return true; }
       setState(result); setInvite(result.inviteUrl ?? ""); setMessage(result.inviteUrl ? "Setup link created. Share it directly with this employee." : "Access updated."); router.refresh(); return true;
     } catch (error) { setMessage(error instanceof Error ? error.message : "Connection interrupted. Reload and check the account before retrying."); return false; } finally { setBusy(false); }
   }

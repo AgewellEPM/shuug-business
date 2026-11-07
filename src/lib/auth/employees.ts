@@ -4,6 +4,8 @@ import { z } from "zod";
 import { workspaceDatabase } from "../workspace/database";
 import { hashPassword, verifyPassword } from "./passwords";
 import { SESSION_TTL_SECONDS } from "./config";
+import { beginLoginFactor, mfaSessionAllowed } from "./mfa/store";
+import { MfaChallengeError } from "./mfa/model";
 
 export interface EmployeeAccount { id: string; memberId: string; name: string; email: string; status: "invited" | "active" | "disabled"; createdAt: string; lastLogin: string | null }
 type StoredAccount = EmployeeAccount & { passwordHash: string | null };
@@ -93,19 +95,23 @@ export function signInEmployee(email: string, password: string): string {
       db.prepare("INSERT INTO employee_attempts VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET failures=failures+1").run(bucket, now + 900000);
       return { error: "Email or password is incorrect, or your account is unavailable." };
     }
+    const challenge = beginLoginFactor(db, { kind: "employee", id: account.id }, account.passwordHash!);
+    if (challenge) return { challenge };
     const token = randomBytes(32).toString("hex");
     db.prepare("INSERT INTO employee_sessions VALUES(?,?,?)").run(hash(token), account.id, now + SESSION_TTL_SECONDS * 1000);
     db.prepare("UPDATE employee_accounts SET lastLogin=? WHERE id=?").run(new Date(now).toISOString(), account.id);
     db.prepare("DELETE FROM employee_attempts WHERE bucket=?").run(bucket);
     return { token };
   }, true);
-  if (result.error) throw new Error(result.error); return result.token!;
+  if (result.error) throw new Error(result.error);
+  if (result.challenge) throw new MfaChallengeError(result.challenge);
+  return result.token!;
 }
 export function employeeSession(token: string | undefined): EmployeeAccount | null {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   return workspaceDatabase(db => { init(db);
     const row = db.prepare("SELECT a.* FROM employee_sessions s JOIN employee_accounts a ON a.id=s.accountId WHERE s.tokenHash=? AND s.expires>? AND a.status='active'").get(hash(token), Date.now()) as StoredAccount | undefined;
-    return row ? publicAccount(row) : null;
+    return row && mfaSessionAllowed(db, { kind: "employee", id: row.id }, hash(token)) ? publicAccount(row) : null;
   });
 }
 export function signOutEmployee(token: string | undefined) {

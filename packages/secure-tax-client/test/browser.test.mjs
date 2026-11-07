@@ -55,6 +55,25 @@ async function fixture({enrolled=true}={}){
   return {vault,storage,config,keyId,client,firm,manifest,identity,objects,calls,sign,respond,setStatus:value=>{status=value;},setHook:value=>{replyHook=value;}};
 }
 
+test('MFA separates password proof from sessions and clears pending setup on lock',async()=>{
+  const f=await fixture(),challengeToken='a'.repeat(64),secret='JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP';
+  let finished=false;
+  f.setHook((url,options)=>{
+    if(!url.endsWith('/session')||options.method!=='POST')return;
+    const body=JSON.parse(options.body);
+    if(body.password)return new Response(JSON.stringify({apiVersion:1,mfaRequired:true,challengeToken,enrollmentRequired:true,secret,expiresAt:new Date(Date.now()+300000).toISOString()}),{status:428,headers:{'Content-Type':'application/json'}});
+    assert.deepEqual(body,{challengeToken,code:'123456'});finished=true;
+    return f.respond({apiVersion:1,token:'synthetic-session-token-12345',expiresAt:new Date(Date.now()+100000).toISOString(),identity:f.identity,recoveryCodes:['AAAAAA-BBBBBB-CCCCCC-DDDDDD']});
+  });
+  assert.deepEqual(await f.vault.signIn('synthetic@example.invalid','synthetic-password'),{mfaRequired:true});
+  assert.equal(f.vault.identity,null);assert.equal(f.vault.canWrite,false);assert.equal(f.vault.pendingMfa.secret,secret);
+  const result=await f.vault.verifySignIn('123456');assert.equal(finished,true);assert.equal(f.vault.pendingMfa,null);
+  assert.deepEqual(result.recoveryCodes,['AAAAAA-BBBBBB-CCCCCC-DDDDDD']);assert.deepEqual(f.vault.identity,f.identity);
+  await f.vault.signIn('synthetic@example.invalid','synthetic-password');f.vault.lock();assert.equal(f.vault.pendingMfa,null);
+  await assert.rejects(()=>f.vault.verifySignIn('123456'),/expired/);
+  assert.equal(JSON.stringify([...f.storage.keys,...f.storage.bindings]).includes(secret),false);
+});
+
 test('independent configuration fails closed before any network call',async()=>{
   const f=await fixture();let fetched=false;
   for(const config of [null,{...f.config,apiOrigin:f.config.uiOrigin},{...f.config,apiOrigin:'http://api.example'},{...f.config,apiOrigin:'https://api.example/path'},{...f.config,workspaceId:'workspace\n'},{...f.config,privateKey:'forbidden'},{...f.config,firmRecoveryPublicKey:f.config.signerPublicKey}])await assert.rejects(()=>VaultClient.create(config,f.config.uiOrigin,{fetcher:()=>{fetched=true;}}));

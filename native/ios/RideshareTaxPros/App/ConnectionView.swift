@@ -16,6 +16,11 @@ struct ConnectionView: View {
   @State private var signingOut = false
   @State private var profileName = ""
   @State private var editingProfile = false
+  @State private var mfa: MfaLoginChallenge?
+  @State private var mfaCode = ""
+  @State private var mfaOrigin: URL?
+  @State private var mfaScope: String?
+  @State private var recoveryCodes: [String] = []
   private var changingAccountBlocked: Bool { model.syncing || model.updatingProfile || model.active != nil }
   private var portalURL: URL {
     if let origin = try? WorkspaceAddress.parse(origin) {
@@ -29,6 +34,13 @@ struct ConnectionView: View {
         BrandHeader()
         Text("Connect your client account to keep this app and your tax portal together in the same private workspace for your tax team’s review.")
       }.listRowBackground(Brand.surface)
+      if !recoveryCodes.isEmpty {
+        Section("Save your recovery codes") {
+          Text("Keep these codes private, separate from this device. Each works once with your password if you lose your authenticator. They will not be shown again.")
+          Text(recoveryCodes.joined(separator: "\n")).font(.system(.body, design: .monospaced)).textSelection(.enabled).privacySensitive()
+          Button("I saved my codes") { recoveryCodes = [] }
+        }
+      }
       if let connection = model.connection, !signingIn {
         Section("Your client profile") {
           Text(connection.session.account.name).font(.headline)
@@ -154,16 +166,25 @@ struct ConnectionView: View {
         } label: {
           if discovering { ProgressView("Finding your workspace…") }
           else { Text("Find my firm’s workspace") }
-        }.disabled(discovering || connecting)
+        }.disabled(discovering || connecting || mfa != nil)
         DisclosureGroup("Use an address supplied by my firm") {
           TextField("HTTPS workspace address", text: $origin).textContentType(.URL).keyboardType(.URL)
             .textInputAutocapitalization(.never).autocorrectionDisabled()
-            .disabled(discovering || connecting)
+            .disabled(discovering || connecting || mfa != nil)
             .accessibilityIdentifier("account.workspace")
         }
       }
     }
     Section("2 · Sign in to your profile") {
+      if let mfa {
+        if mfa.enrollmentRequired, let secret = mfa.secret {
+          Text("Add a time-based Shuug account in your authenticator. Enter this private setup key, using six digits and a 30-second interval:")
+          Text(secret).font(.system(.body, design: .monospaced)).textSelection(.enabled).privacySensitive()
+        } else { Text("Enter the current code from your authenticator, or one unused recovery code.") }
+        TextField("Verification code", text: $mfaCode).textContentType(.oneTimeCode)
+          .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
+          .disabled(connecting).accessibilityIdentifier("account.mfaCode")
+      } else {
       TextField("Client email", text: $email).textContentType(.username).keyboardType(.emailAddress)
         .textInputAutocapitalization(.never).autocorrectionDisabled().privacySensitive()
         .disabled(connecting || (signingIn && model.connection != nil))
@@ -173,6 +194,7 @@ struct ConnectionView: View {
         .accessibilityIdentifier("account.password")
       Text("Your owner or staff login is separate from your invited client account.")
         .font(.footnote).foregroundStyle(.secondary)
+      }
     }
     Section("3 · Choose your records and sync") {
       if model.guest && !model.journal.visible.isEmpty {
@@ -207,18 +229,18 @@ struct ConnectionView: View {
         Task { await connect() }
       } label: {
         if connecting { ProgressView("Connecting…") }
-        else { Text("Connect & sync my records").font(.headline) }
-      }.disabled(connecting || discovering || changingAccountBlocked || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || password.isEmpty || origin.isEmpty || !model.storageHealthy)
+        else { Text(mfa == nil ? "Connect & sync my records" : "Verify & connect").font(.headline) }
+      }.disabled(connecting || discovering || changingAccountBlocked || email.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (mfa == nil ? password.isEmpty : mfaCode.isEmpty) || origin.isEmpty || !model.storageHealthy)
         .accessibilityIdentifier("account.connect")
       if model.active != nil { Text("Finish your current drive before connecting an account.").font(.footnote) }
-      if signingIn {
-        Button("Cancel sign-in") { signingIn = false; password = ""; notice = nil }
+      if signingIn || mfa != nil {
+        Button("Cancel sign-in") { signingIn = false; password = ""; mfa = nil; mfaCode = ""; mfaOrigin = nil; mfaScope = nil; notice = nil }
           .disabled(connecting)
       }
     }
   }
   private func findWorkspace() async {
-    guard !discovering, !connecting else { return }
+    guard !discovering, !connecting, mfa == nil else { return }
     discovering = true
     checkedDiscovery = true
     defer { discovering = false }
@@ -235,13 +257,20 @@ struct ConnectionView: View {
     guard !connecting, !discovering else { return }
     connecting = true
     notice = nil
-    defer { connecting = false; password = "" }
+    defer { connecting = false; password = ""; mfaCode = "" }
+    let initialScope = model.journalScope
     do {
-      try await model.connect(origin: WorkspaceAddress.parse(origin), email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach, includeReputation: includeReputation)
+      let target = try mfaOrigin ?? WorkspaceAddress.parse(origin)
+      recoveryCodes = try await model.connect(origin: target, email: email.trimmingCharacters(in: .whitespacesAndNewlines), password: password, includeOffline: includeOffline, includeCoach: includeCoach, includeReputation: includeReputation, mfa: mfa, code: mfaCode, expectedScope: mfaScope)
+      mfa = nil; mfaOrigin = nil; mfaScope = nil
       signingIn = false
       includeOffline = false
       includeCoach = false
       includeReputation = false
+    } catch WorkspaceError.mfa(let challenge) {
+      guard model.journalScope == initialScope else { notice = "Your account changed. Start sign-in again."; return }
+      mfa = challenge; mfaOrigin = try? WorkspaceAddress.parse(origin); mfaScope = initialScope
+      notice = challenge.enrollmentRequired ? "Password verified. Finish authenticator setup to connect." : "Password verified. Enter your second factor."
     } catch { notice = error.localizedDescription }
   }
 }

@@ -10,7 +10,11 @@ beforeEach(() => {
   calls.length = 0; mode = "workspace"; document.body.replaceChildren();
   vi.stubGlobal("fetch", vi.fn(async (_url, init) => {
     const request = JSON.parse(init.body); calls.push(request);
-    if (mode === "login" && request.operation === "workspace") return { ok: false, status: 401, json: async () => ({ message: "Connect your account." }) };
+    if (["login","mfa"].includes(mode) && request.operation === "workspace") return { ok: false, status: 401, json: async () => ({ message: "Connect your account." }) };
+    if (mode === "mfa" && request.operation === "session.login") {
+      if (request.input.password) return { ok: true, json: async () => ({ data: { mfaRequired:true,challengeToken:"a".repeat(64),enrollmentRequired:true,secret:"JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP",expiresAt:new Date(Date.now()+300000).toISOString() } }) };
+      mode="workspace";return {ok:true,json:async()=>({data:{user,recoveryCodes:["AAAAAA-BBBBBB-CCCCCC-DDDDDD"]}})};
+    }
     if (request.operation === "workspace") return { ok: true, json: async () => ({ data: workspace }) };
     if (request.operation === "me") return { ok: true, json: async () => ({ data: { user, tasks: [{ id: "task1", title: "Finish my assigned work", priority: "high", status: "todo", goal: null, dueDate: null }] } }) };
     if (request.operation === "notes") return { ok: true, json: async () => ({ data: [{ id: "note1", ownerId: user.id, author: "Alice", title: "<img src=x onerror=alert(1)>", body: "Private note", scope: "internal", pageKey: "internal", pageLabel: "Internal", profile: "all", revision: 1 }] }) };
@@ -37,4 +41,20 @@ it("renders note content as text and keeps private note editing available", asyn
 it("provides an employee account connection form without owner controls", async () => {
   mode = "login"; mount(); await screen.findByRole("button", { name: "Connect account" });
   expect(screen.getByLabelText("Business email")).toBeTruthy(); expect(screen.getByLabelText("Business password")).toBeTruthy(); expect(screen.queryByText("Connect as the workspace owner")).toBeNull();
+});
+it("finishes MFA and displays recovery codes before loading private work", async () => {
+  mode="mfa";mount();await screen.findByRole("button",{name:"Connect account"});
+  fireEvent.change(screen.getByLabelText("Business email"),{target:{value:"alice@example.test"}});
+  fireEvent.change(screen.getByLabelText("Business password"),{target:{value:"Synthetic-password-only"}});
+  fireEvent.click(screen.getByRole("button",{name:"Connect account"}));
+  await screen.findByRole("heading",{name:"Set up your authenticator"});
+  expect(screen.queryByText("Finish my assigned work")).toBeNull();
+  fireEvent.change(screen.getByLabelText("Verification code"),{target:{value:"123456"}});
+  fireEvent.click(screen.getByRole("button",{name:"Verify and connect"}));
+  await screen.findByText("AAAAAA-BBBBBB-CCCCCC-DDDDDD");
+  expect(calls).toContainEqual({operation:"session.login",input:{challengeToken:"a".repeat(64),code:"123456"}});
+  await waitFor(()=>expect(document.querySelector('[aria-busy="true"]')).toBeNull());
+  fireEvent.click(screen.getByRole("button",{name:"I saved my codes. Open workspace."}));
+  await screen.findByText("Finish my assigned work");
+  expect(screen.queryByText("AAAAAA-BBBBBB-CCCCCC-DDDDDD")).toBeNull();
 });

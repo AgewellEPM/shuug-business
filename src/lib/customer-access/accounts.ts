@@ -3,6 +3,8 @@ import type { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
 import { workspaceDatabase } from "../workspace/database";
 import { hashPassword, verifyPassword } from "../auth/passwords";
+import { beginLoginFactor, mfaSessionAllowed } from "../auth/mfa/store";
+import { MfaChallengeError } from "../auth/mfa/model";
 
 // Customer identities never enter the employee/owner session or role tables.
 export const CUSTOMER_COOKIE = "shuug_customer";
@@ -69,18 +71,22 @@ export function signInCustomer(email: string, password: string) {
     const row = db.prepare("SELECT * FROM customer_accounts WHERE email=?").get(normalized) as Stored | undefined;
     const valid = verifyPassword(password.length <= 200 ? password : "", row?.passwordHash ?? dummy);
     if (!row || row.status !== "active" || !valid) return { error: "Email or password is incorrect, or this account is unavailable." };
+    const challenge = beginLoginFactor(db, { kind: "customer", id: row.id }, row.passwordHash!);
+    if (challenge) return { challenge };
     // Bound each account's active sessions without weakening revocation.
     db.prepare("DELETE FROM customer_sessions WHERE accountId=? AND tokenHash NOT IN (SELECT tokenHash FROM customer_sessions WHERE accountId=? ORDER BY expires DESC LIMIT 9)").run(row.id, row.id);
     const token = randomBytes(32).toString("hex"); db.prepare("INSERT INTO customer_sessions VALUES(?,?,?)").run(hash(token), row.id, now + CUSTOMER_TTL * 1000);
     db.prepare("UPDATE customer_accounts SET lastLogin=? WHERE id=?").run(new Date(now).toISOString(), row.id);
     db.prepare("DELETE FROM customer_attempts WHERE bucket=?").run(`login:${hash(normalized)}`); return { token };
   }, true);
-  if (result.error) throw new Error(result.error); return result.token!;
+  if (result.error) throw new Error(result.error);
+  if (result.challenge) throw new MfaChallengeError(result.challenge);
+  return result.token!;
 }
 export function customerFromDatabase(db: DatabaseSync, token: string | undefined): CustomerAccount | null {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return null;
   init(db); const row = db.prepare("SELECT a.* FROM customer_sessions s JOIN customer_accounts a ON a.id=s.accountId WHERE s.tokenHash=? AND s.expires>? AND a.status='active'").get(hash(token), Date.now()) as Stored | undefined;
-  return row ? publicAccount(row) : null;
+  return row && mfaSessionAllowed(db, { kind: "customer", id: row.id }, hash(token)) ? publicAccount(row) : null;
 }
 export function customerSession(token: string | undefined) { return workspaceDatabase(db => customerFromDatabase(db, token)); }
 export function signOutCustomer(token: string | undefined) { if (token) workspaceDatabase(db => { init(db); db.prepare("DELETE FROM customer_sessions WHERE tokenHash=?").run(hash(token)); }, true); }

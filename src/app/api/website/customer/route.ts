@@ -10,6 +10,9 @@ import { acceptCustomerRecord, bookCustomerAppointment, cancelCustomerAppointmen
 import { authorizeInvoicePayment, paymentNotice, refreshWebsitePayment, reserveInvoicePayment } from "@/lib/website-payments/service";
 import { updateDriverProfile } from "@/lib/customer-access/driver-profile";
 import { readCoach } from "@/lib/driver-coach/store";
+import { MfaChallengeError } from "@/lib/auth/mfa/model";
+import { completeLoginFactor } from "@/lib/auth/mfa/store";
+import { factorPage, recoveryPage } from "@/lib/auth/mfa/html";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function redirect(token?: string) { const response = NextResponse.redirect(new URL(CUSTOMER_PATH, appBaseUrl()), 303); response.headers.set("Cache-Control", "private, no-store"); response.headers.set("Referrer-Policy", "no-referrer"); if (token !== undefined) response.headers.set("Set-Cookie", customerCookie(token, appBaseUrl().startsWith("https:"))); return response; }
@@ -28,10 +31,19 @@ export async function GET(request: Request) {
 }
 export async function POST(request: Request) {
   if (request.headers.get("origin") !== new URL(appBaseUrl()).origin) return customerPage("Origin not permitted", "<p>Return to the customer account to continue.</p>", 403);
+  let pending: string | undefined;
   try {
     if (!customerSettings().enabled) throw new Error("The customer portal is not available.");
     if (!request.headers.get("content-type")?.startsWith("application/x-www-form-urlencoded")) throw new Error("Use the customer account form.");
     const form = await readAuthForm(request, 64000), operation = form.get("action"), token = customerToken(request);
+    if (operation === "mfa") {
+      pending = form.get("challenge") ?? "";
+      const result = completeLoginFactor(pending, form.get("code") ?? "", "customer");
+      if (!result.recoveryCodes.length) return redirect(result.token);
+      const response = recoveryPage(result.recoveryCodes, CUSTOMER_PATH);
+      response.headers.set("Set-Cookie", customerCookie(result.token, appBaseUrl().startsWith("https:")));
+      return response;
+    }
     if (operation === "login") return redirect(signInCustomer(form.get("email") ?? "", form.get("password") ?? ""));
     if (operation === "activate") { if (form.get("password") !== form.get("confirmation")) throw new Error("The passwords do not match."); const password = form.get("password") ?? ""; const account = acceptCustomerInvitation(form.get("invite") ?? "", password); return redirect(signInCustomer(account.email, password)); }
     requireCustomer(token);
@@ -57,5 +69,11 @@ export async function POST(request: Request) {
     }
     if (operation === "order.submit") { if (form.get("accepted") !== "yes") throw new Error("Review and accept the order before placing it."); const result = await submitCustomerOrder(token!, form.get("quote") ?? ""); return customerDashboard(await customerView(token!), `Order ${result.id} ${result.duplicate ? "was already received" : "received"}.`); }
     throw new Error("Choose an available customer action.");
-  } catch (e) { const message = e instanceof z.ZodError ? e.issues[0]?.message ?? "Check the form fields." : e instanceof Error ? e.message : "Could not complete this request."; return customerPage("Could not complete this request", `<p role="alert">${escapeHtml(message)}</p><p><a href="${CUSTOMER_PATH}">Return to your customer account</a></p>`, 400); }
+  } catch (e) {
+    const hidden = '<input type="hidden" name="action" value="mfa">';
+    if (e instanceof MfaChallengeError) return factorPage(e.challenge.challengeToken, "customer", CUSTOMER_PATH, hidden);
+    if (pending) { try { return factorPage(pending, "customer", CUSTOMER_PATH, hidden, e instanceof Error ? e.message : "Verification failed.", 401); } catch { /* Restart expired sign-in. */ } }
+    const message = e instanceof z.ZodError ? e.issues[0]?.message ?? "Check the form fields." : e instanceof Error ? e.message : "Could not complete this request.";
+    return customerPage("Could not complete this request", `<p role="alert">${escapeHtml(message)}</p><p><a href="${CUSTOMER_PATH}">Return to your customer account</a></p>`, 400);
+  }
 }

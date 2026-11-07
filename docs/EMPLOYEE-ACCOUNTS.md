@@ -42,7 +42,7 @@ Managers use **Team → Staff scheduling & shifts** to assign and publish shifts
 
 `npm test` includes employee identity, role forgery, immediate role updates, invitation reuse/expiry, password/session revocation, private note/roadmap access and assignment checks. `npm run workspace:smoke` creates and activates two employees against a disposable production server, signs in, verifies personal data and task completion, tests restricted API denial and disables an active login, then cleans up.
 
-This is local account authentication, not an SSO/MFA deployment. Automatic invitation email, independent security certification, load certification and a hosted public deployment are separate work. Visual interaction verification still requires the configured native testing MCP connection to be restored.
+Authenticator MFA can now be enforced for owner, employee and invited-client accounts; see [setup and recovery](SECURITY-MFA.md). SSO, automatic invitation email, independent security certification, load certification and hosted deployment remain separate work. Installed visual interaction acceptance remains required.
 
 
 Assigned vehicle inspections also appear in **My work**. Only the assigned active employee can record their checklist, measurements, photos and timed work. Management, cost review and customer sharing require Services edit permission. See [inspection and technician setup](AUTO-REPAIR-INSPECTIONS.md).

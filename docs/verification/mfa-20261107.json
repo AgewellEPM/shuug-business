@@ -1,0 +1,61 @@
+{
+  "verifiedAt": "2026-11-07T23:09:55Z",
+  "sourceBranch": "feat/shuug-free-tax-service-20261107",
+  "baseCommit": "ab9429710fc31f2f06a47852e8b6de1edb5e943a",
+  "productionBuild": {
+    "exitCode": 0,
+    "buildId": "0sd_jSPRYRYY84BoWRjvp"
+  },
+  "focusedVitest": {
+    "files": 9,
+    "passed": 40,
+    "command": "vitest run src/lib/auth/mfa src/lib/auth/owner-session.test.ts src/lib/auth/employee-access.test.ts src/lib/secure-tax/session.test.ts src/lib/wordpress src/lib/accounting/client-books.test.ts src/lib/customer-access/tax-documents.test.ts"
+  },
+  "independentBrowserTests": {
+    "passed": 18,
+    "command": "node --test packages/secure-tax-client/test/browser.test.mjs"
+  },
+  "compiledHttp": {
+    "passed": 27,
+    "command": "node --import tsx scripts/mfa-http-check.ts",
+    "syntheticWorkspace": true,
+    "ownedServerStopped": true,
+    "originalServiceModified": false,
+    "coverage": [
+      "owner and employee setup",
+      "protected routes and least privilege",
+      "CSRF and origin checks",
+      "replay rejection",
+      "client API and portal verification",
+      "one-use recovery and revocation",
+      "restart persistence",
+      "WordPress relay API",
+      "independent browser origin and staff/client audience isolation"
+    ]
+  },
+  "nativeBuild": {
+    "exitCode": 0,
+    "sdk": "iphonesimulator",
+    "destination": "generic/platform=iOS Simulator",
+    "executableSha256": "cc1e7b5b451616a0ea54c899415b736c9256ec5246b8f74e1d06562511ba955b",
+    "appLaunched": false,
+    "physicalPhoneVerified": false
+  },
+  "phpSyntax": {
+    "exitCode": 0,
+    "path": "integrations/wordpress/shuug-business/includes/class-shuug-business.php"
+  },
+  "sourceSha256": {
+    "src/lib/auth/mfa/crypto.test.ts": "1d83cb159d16a7952323628d2c2871659133098d283b431cca67b0b707823f90",
+    "src/lib/auth/mfa/crypto.ts": "9724f5d9a40c41e84fceab4f07b43b9775373aa9ecd8aad7f6c7ddd960821303",
+    "src/lib/auth/mfa/html.ts": "51ea0a7951f7f35dae59a8d9ffc9878fa045823d7474c4879338e47654411541",
+    "src/lib/auth/mfa/model.ts": "56eedbc1cbdb03d96facebc8bcde70de6c752a53a19b72e377ef4de2994b2df1",
+    "src/lib/auth/mfa/store.test.ts": "49ae06d5eaad0f3b3d8c15d8365fe566033dd92a9017a5f3f058f72219b39e97",
+    "src/lib/auth/mfa/store.ts": "a78127c9b912e1a2b29f729325603329ae6482b82ef7bd2eb345559034b26554"
+  },
+  "limits": [
+    "MFA rollout to the installed service remains pending.",
+    "Complete encrypted office workflows, legacy-link authorization review and operational recovery remain unfinished.",
+    "Compiled synthetic HTTP checks do not establish real office acceptance or independent security review."
+  ]
+}

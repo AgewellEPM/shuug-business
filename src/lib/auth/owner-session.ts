@@ -3,6 +3,8 @@ import { workspaceDatabase } from "../workspace/database";
 import { setting, saveSecrets } from "../connections/vault";
 import { hashPassword, verifyPassword } from "./passwords";
 import { SESSION_TTL_SECONDS } from "./config";
+import { beginLoginFactor, mfaSessionAllowed } from "./mfa/store";
+import { MfaChallengeError } from "./mfa/model";
 const digest = (value: string) => createHash("sha256").update(value).digest("hex");
 function initialize(db: import("node:sqlite").DatabaseSync) {
   db.exec("CREATE TABLE IF NOT EXISTS owner_sessions (token_hash TEXT PRIMARY KEY, expires INTEGER NOT NULL); CREATE TABLE IF NOT EXISTS owner_login_attempts (bucket TEXT PRIMARY KEY, failures INTEGER NOT NULL, reset_at INTEGER NOT NULL);");
@@ -15,7 +17,7 @@ export function configureOwnerPassword(password: string, replace = false) {
 }
 export function ownerSessionValid(token: string | undefined) {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return false;
-  return workspaceDatabase(db => { initialize(db); return Boolean(db.prepare("SELECT 1 FROM owner_sessions WHERE token_hash=? AND expires>?").get(digest(token), Date.now())); });
+  return workspaceDatabase(db => { initialize(db); return Boolean(db.prepare("SELECT 1 FROM owner_sessions WHERE token_hash=? AND expires>?").get(digest(token), Date.now())) && mfaSessionAllowed(db, { kind: "owner", id: "workspace-owner" }, digest(token)); });
 }
 export function signInOwner(password: string): string {
   const hash = setting("WORKSPACE_OWNER_PASSWORD_HASH");
@@ -31,10 +33,14 @@ export function signInOwner(password: string): string {
       return { error: "Incorrect password." };
     }
     db.exec("DELETE FROM owner_login_attempts WHERE bucket='owner'");
+    const challenge = beginLoginFactor(db, { kind: "owner", id: "workspace-owner" }, hash);
+    if (challenge) return { challenge };
     const token = randomBytes(32).toString("hex");
     db.prepare("INSERT INTO owner_sessions VALUES(?,?)").run(digest(token), now + SESSION_TTL_SECONDS * 1000); return { token };
   }, true);
-  if (result.error) throw new Error(result.error); return result.token!;
+  if (result.error) throw new Error(result.error);
+  if (result.challenge) throw new MfaChallengeError(result.challenge);
+  return result.token!;
 }
 export function signOutOwner(token: string | undefined) {
   if (!token) return;

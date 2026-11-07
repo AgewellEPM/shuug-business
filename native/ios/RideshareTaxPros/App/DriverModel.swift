@@ -115,8 +115,8 @@ import Network
     }
   }
   func finishTrip() { if commit({ $0.finishTrip() }) { Task { await sync() } } }
-  func connect(origin: URL, email: String, password: String, includeOffline: Bool, includeCoach: Bool = false,
-               includeReputation: Bool = false) async throws {
+  @discardableResult func connect(origin: URL, email: String, password: String, includeOffline: Bool, includeCoach: Bool = false,
+               includeReputation: Bool = false, mfa: MfaLoginChallenge? = nil, code: String = "", expectedScope: String? = nil) async throws -> [String] {
     guard !syncing, !updatingProfile else {
       throw WorkspaceError.message("Wait for the current sync to finish before reconnecting an account.")
     }
@@ -125,7 +125,14 @@ import Network
         "Finish your current drive before changing the workspace connection.")
     }
     let originalScope = namespace
-    let reply = try await WorkspaceClient(origin: origin).login(email: email, password: password)
+    if let expectedScope, expectedScope != originalScope { throw WorkspaceError.message("Your account changed. Start sign-in again.") }
+    let client = WorkspaceClient(origin: origin), reply: LoginReply, recoveryCodes: [String]
+    if let mfa {
+      let completed = try await client.completeLogin(mfa, code: code)
+      reply = completed.session; recoveryCodes = completed.recoveryCodes
+    } else {
+      reply = try await client.login(email: email, password: password); recoveryCodes = []
+    }
     guard namespace == originalScope, journal.activeTripId == nil, storageHealthy else {
       throw WorkspaceError.message("Your account or drive changed while signing in. Finish the drive and try again.")
     }
@@ -158,6 +165,7 @@ import Network
       let day = DriverRecord.day(Date())
       await syncCoach(from: String(day.prefix(4)) + "-01-01", through: day)
     }
+    return recoveryCodes
   }
   func disconnect() async {
     guard !syncing, !updatingProfile else {

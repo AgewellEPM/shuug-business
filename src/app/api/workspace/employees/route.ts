@@ -8,6 +8,7 @@ import { addMember, getMember, listTeam, updateMember } from "@/lib/team/store";
 import { assignRole, listRoles, roleForMember } from "@/lib/permissions/store";
 import { appBaseUrl, setting } from "@/lib/connections/vault";
 import { boundedJson } from "@/lib/social/http";
+import { MfaChallengeError } from "@/lib/auth/mfa/model";
 const json = (data: unknown, status = 200) => Response.json(data, { status, headers: { "Cache-Control": "private, no-store" } });
 function state() { return { configured: Boolean(setting("WORKSPACE_OWNER_PASSWORD_HASH")), accounts: listEmployeeAccounts().map(a => ({ ...a, role: roleForMember(a.memberId) })), members: listTeam().filter(m => m.id !== "owner").map(m => ({ id: m.id, name: m.name, email: m.email })), roles: listRoles().filter(r => r !== "Owner"), loginUrl: new URL("/api/auth/login", appBaseUrl()).toString() }; }
 export async function GET() { try { await requireOwnerAccess(); return json(state()); } catch { return json({ error: "Owner access required." }, 403); } }
@@ -26,7 +27,8 @@ export async function POST(request: Request) {
     let inviteUrl: string | undefined;
     if (input.action === "setup") {
       configureOwnerPassword(input.password);
-      (await cookies()).set(SESSION_COOKIE, signInOwner(input.password), { httpOnly: true, sameSite: "lax", secure: appBaseUrl().startsWith("https:"), path: "/", maxAge: SESSION_TTL_SECONDS });
+      try { (await cookies()).set(SESSION_COOKIE, signInOwner(input.password), { httpOnly: true, sameSite: "lax", secure: appBaseUrl().startsWith("https:"), path: "/", maxAge: SESSION_TTL_SECONDS }); }
+      catch (error) { if (error instanceof MfaChallengeError) return json({ ...state(), mfaRequired: true }); throw error; }
     } else {
       if (!setting("WORKSPACE_OWNER_PASSWORD_HASH")) throw new Error("Set your owner password before enabling employee sign-in.");
       if (input.action === "create") {

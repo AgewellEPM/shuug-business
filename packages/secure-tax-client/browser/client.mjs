@@ -9,8 +9,8 @@ const stale=()=>{throw new Error('The connection changed. Unlock the current acc
 const clone=value=>structuredClone(value);
 const ownVersion=(versions,id)=>Object.hasOwn(versions,id)?versions[id]:undefined;
 const validReceipt=value=>value && validId(value.objectId) && integer(value.revision,1,1e9+1) && integer(value.sequence) && typeof value.deleted==='boolean';
-async function responseJson(response,maximum) {
-  if(!response.ok) throw new Error(response.status===401||response.status===403?'Sign in to the API portal, then reconnect this client.':'The ciphertext API rejected this request. Refresh before retrying.');
+async function responseJson(response,maximum,allowChallenge=false) {
+  if(!response.ok&&!(allowChallenge&&response.status===428)) throw new Error(response.status===401||response.status===403?'Sign-in verification failed. Check your code or sign in again.':'The ciphertext API rejected this request. Refresh before retrying.');
   if(!response.headers.get('content-type')?.toLowerCase().startsWith('application/json')) throw new Error('The ciphertext API did not return JSON.');
   const declared=Number(response.headers.get('content-length'));
   if(declared>maximum) throw new Error('The ciphertext response is too large.');
@@ -25,7 +25,7 @@ async function responseJson(response,maximum) {
 // Only public routing/revision metadata and nonextractable key handles persist.
 // Decrypted records exist in this controller's memory until lock/account change.
 export class VaultClient {
-  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt;
+  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;
   status=null; identity=null; records=new Map();
   static async create(config,origin,options={}) {
     return new VaultClient(await validateTrustedConfig(config,origin),options);
@@ -36,24 +36,41 @@ export class VaultClient {
   get enrolled(){return this.status?.enrolled===true;}
   get keyId(){return this.#key?.keyId;}
   get canWrite(){return this.enrolled && !!this.#verified && !!this.#key;}
+  get pendingMfa(){return this.#mfa?clone(this.#mfa):null;}
   #same(generation){if(generation!==this.#generation)stale();}
   #bindingId(){return `${this.#config.workspaceId}|${this.identity.accountId}`;}
-  #reset(){this.#generation++;this.#key=null;this.#verified=null;this.#binding=null;this.#cursor=0;for(const item of this.records.values())item.plaintext.fill(0);this.records.clear();}
+  #reset(){this.#generation++;this.#mfa=null;this.#key=null;this.#verified=null;this.#binding=null;this.#cursor=0;for(const item of this.records.values())item.plaintext.fill(0);this.records.clear();}
   lock(){this.#reset();}
-  async #request(path,method='GET',body,maximum=64*1024){
+  async #request(path,method='GET',body,maximum=64*1024,allowChallenge=false){
     const generation=this.#generation;
     if(this.#token&&this.#expiresAt<=Date.now()){this.#token=null;this.#reset();this.identity=null;this.status=null;throw new Error('Your API session expired. Sign in again.');}
     const response=await this.#fetch(`${this.#config.apiOrigin}${prefix}${path}`,{method,credentials:this.#token?'omit':'include',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',headers:{Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...(this.#token?{Authorization:`Bearer ${this.#token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
-    if((response.status===401||response.status===403)&&generation===this.#generation){this.#token=null;this.#reset();this.identity=null;this.status=null;}
-    return responseJson(response,maximum);
+    if((response.status===401||response.status===403)&&generation===this.#generation&&!allowChallenge){this.#token=null;this.#reset();this.identity=null;this.status=null;}
+    return responseJson(response,maximum,allowChallenge);
   }
   async signIn(email,password){
     this.#token=null;this.#expiresAt=null;this.#reset();this.status=null;this.identity=null;const generation=this.#generation;
     if(typeof email!=='string'||email.length>160||typeof password!=='string'||password.length>200)throw new Error('Enter the invited account email and password.');
-    const session=await this.#request('/session','POST',{email,password},8192);this.#same(generation);
+    const session=await this.#request('/session','POST',{email,password},8192,true);this.#same(generation);
+    if(session?.mfaRequired===true){
+      if(session.apiVersion!==1||typeof session.challengeToken!=='string'||!/^[a-f0-9]{64}$/.test(session.challengeToken)||typeof session.enrollmentRequired!=='boolean'||!Number.isFinite(Date.parse(session.expiresAt))||Date.parse(session.expiresAt)<=Date.now()||Date.parse(session.expiresAt)>Date.now()+6*60000||session.enrollmentRequired&&!/^[A-Z2-7]{32}$/.test(session.secret))throw new Error('The API did not return valid sign-in verification.');
+      this.#mfa={challengeToken:session.challengeToken,enrollmentRequired:session.enrollmentRequired,expiresAt:session.expiresAt,secret:session.enrollmentRequired?session.secret:null};
+      return {mfaRequired:true};
+    }
+    return this.#acceptSession(session,generation);
+  }
+  async verifySignIn(code){
+    if(!this.#mfa||Date.parse(this.#mfa.expiresAt)<=Date.now()){this.#mfa=null;throw new Error('Verification expired. Sign in with your password again.');}
+    if(typeof code!=='string'||!code.trim()||code.length>40)throw new Error('Enter your authenticator or unused recovery code.');
+    const generation=this.#generation,session=await this.#request('/session','POST',{challengeToken:this.#mfa.challengeToken,code:code.trim()},8192,true);this.#same(generation);
+    return this.#acceptSession(session,generation);
+  }
+  async #acceptSession(session,generation){
     if(session?.apiVersion!==1||typeof session.token!=='string'||session.token.length<16||session.token.length>4096||session.token.match(/^[A-Za-z0-9._~-]+$/)?.[0]!==session.token||!validId(session.identity?.accountId)||!validId(session.identity?.clientId)||!Number.isFinite(Date.parse(session.expiresAt))||Date.parse(session.expiresAt)<=Date.now())throw new Error('The API did not return a valid private session.');
     this.#token=session.token;this.#expiresAt=Date.parse(session.expiresAt);
-    try{const status=await this.connect();if(status.identity.accountId!==session.identity.accountId||status.identity.clientId!==session.identity.clientId)throw new Error('The authenticated identity changed during sign-in.');return status;}
+    try{const status=await this.connect();if(status.identity.accountId!==session.identity.accountId||status.identity.clientId!==session.identity.clientId)throw new Error('The authenticated identity changed during sign-in.');
+      const recoveryCodes=session.recoveryCodes??[];if(!Array.isArray(recoveryCodes)||recoveryCodes.length>10||recoveryCodes.some(code=>typeof code!=='string'||!/^[A-F0-9]{6}(?:-[A-F0-9]{6}){3}$/.test(code)))throw new Error('The API returned invalid recovery codes.');
+      return {...status,recoveryCodes};}
     catch(error){await this.signOut().catch(()=>{});throw error;}
   }
   async signOut(){
