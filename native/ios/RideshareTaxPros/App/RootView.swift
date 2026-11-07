@@ -7,6 +7,7 @@ enum DriverTool: String, Identifiable {
   case trips = "Trips", money = "Money", account = "Account", alerts = "Alerts & reminders"
   case diagnostics = "Offer Capture Diagnostics"
   case coach = "Tax & Goals"
+  case reputation = "Ratings & Reviews"
   var id: String { rawValue }
 }
 struct RootView: View {
@@ -36,6 +37,7 @@ struct RootView: View {
             case .alerts: DriverAlertsView()
             case .diagnostics: OfferCaptureDiagnosticsView()
             case .coach: TaxCoachView()
+            case .reputation: ReputationView()
             }
           }.toolbar { ToolbarItem(placement: .topBarTrailing) {
             Button("Done") { tool = nil }.accessibilityIdentifier("tools.close")
@@ -117,6 +119,7 @@ struct TodayView: View {
               Button("Alerts & reminders", systemImage: "bell") { showTool(.alerts) }
               Button("Offer Capture Diagnostics", systemImage: "waveform.path.ecg") { showTool(.diagnostics) }
               Button("Tax & Goals chat", systemImage: "bubble.left.and.text.bubble.right.fill") { showTool(.coach) }
+              Button("Ratings & reviews", systemImage: "star.bubble.fill") { showTool(.reputation) }
               Button("Explore a sample shift", systemImage: "sparkles") { showingSample = true }
             } label: { Image(systemName: "line.3.horizontal").font(.title3).frame(width: 28, height: 44) }
               .accessibilityIdentifier("dashboard.menu").accessibilityLabel("More tools")

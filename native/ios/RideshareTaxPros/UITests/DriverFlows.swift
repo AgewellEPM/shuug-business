@@ -34,6 +34,7 @@ import XCTest
     if done.waitForExistence(timeout: 1) { done.tap() }
     else if app.buttons["entry.dismissKeyboard"].exists { app.buttons["entry.dismissKeyboard"].tap() }
     else if app.buttons["mission.dismissKeyboard"].exists { app.buttons["mission.dismissKeyboard"].tap() }
+    else if app.buttons["reputation.dismissKeyboard"].exists { app.buttons["reputation.dismissKeyboard"].tap() }
   }
   private func newExpense(_ merchant: String, amount: String, in app: XCUIApplication) {
     navigate("Today", in: app)
@@ -539,5 +540,60 @@ import XCTest
     XCTAssertTrue(app.navigationBars["In-store Shopper"].waitForExistence(timeout: 10), app.debugDescription)
     app.terminate(); app.launch(); navigate("Trips", in: app)
     XCTAssertTrue(app.staticTexts["Local shopper shopping job"].waitForExistence(timeout: 10), app.debugDescription)
+  }
+  func test15RatingsReviewsGuideAndDeletionPersist() throws {
+    let app = open()
+    let reviewText = "Customer requested clearer arrival updates."
+    func openReputation() {
+      navigate("Today", in: app)
+      app.buttons["dashboard.menu"].tap()
+      app.buttons["Ratings & reviews"].tap()
+      XCTAssertTrue(app.navigationBars["My ratings & reviews"].waitForExistence(timeout: 10), app.debugDescription)
+    }
+    openReputation()
+    for (score, count) in [("4.6", "100"), ("4.8", "105")] {
+      app.buttons["reputation.addRating"].tap()
+      enter(score, into: app.textFields["reputation.score"], in: app)
+      enter(count, into: app.textFields["reputation.reviewCount"], in: app)
+      let save = app.buttons["reputation.saveRating"]
+      reveal(save, in: app); save.tap()
+      XCTAssertTrue(app.navigationBars["My ratings & reviews"].waitForExistence(timeout: 10), app.debugDescription)
+    }
+    app.buttons["reputation.addReview"].tap()
+    enter(reviewText, into: app.textViews["reputation.text"], in: app)
+    choose("Negative", picker: "reputation.sentiment", in: app)
+    let communication = app.switches["reputation.topic.communication"]
+    reveal(communication, in: app)
+    communication.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+    let communicationSelected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: communication)
+    let selectionResult = XCTWaiter.wait(for: [communicationSelected], timeout: 5)
+    XCTAssertEqual(communication.value as? String, "1", "Communication toggle did not turn on before saving (\(selectionResult)). \(communication.debugDescription)\n\(app.debugDescription)")
+    let saveReview = app.buttons["reputation.saveReview"]
+    reveal(saveReview, in: app); saveReview.tap()
+    let score = app.staticTexts["4.8 / 5"].firstMatch
+    reveal(score, in: app)
+    XCTAssertTrue(score.exists, app.debugDescription)
+    let guide = app.buttons["reputation.guide"]
+    reveal(guide, in: app); guide.tap()
+    let guidance = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Based on all saved manual reputation history")).firstMatch
+    reveal(guidance, in: app)
+    XCTAssertTrue(guidance.label.contains("Lyft Driver") && guidance.label.contains("Communication"), app.debugDescription)
+    XCTAssertTrue(guidance.label.contains("Confirm instructions"), app.debugDescription)
+    app.terminate(); app.launch(); openReputation()
+    XCTAssertTrue(score.waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["tools.close"].tap(); app.buttons["dashboard.coach"].tap()
+    let question = multiline("coach.question", in: app)
+    question.tap(); question.typeText("How can I improve my ratings?")
+    app.buttons["coach.send"].tap()
+    let answer = app.staticTexts.matching(identifier: "coach.message").matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "Lyft Driver", "Communication")).firstMatch
+    XCTAssertTrue(answer.waitForExistence(timeout: 10), app.debugDescription)
+    app.terminate(); app.launch(); openReputation()
+    let deletion = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "reputation.deleteReview.")).firstMatch
+    reveal(deletion, in: app); deletion.tap()
+    XCTAssertTrue(app.buttons["Delete entry"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["Delete entry"].tap()
+    app.terminate(); app.launch(); openReputation()
+    XCTAssertFalse(app.staticTexts[reviewText].exists, app.debugDescription)
+    XCTAssertTrue(score.exists, "Deleting a review must keep rating snapshots")
   }
 }

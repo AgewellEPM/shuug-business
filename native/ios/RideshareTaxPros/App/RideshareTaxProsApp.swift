@@ -12,9 +12,9 @@ import SwiftUI
         .environmentObject(assistant)
         .preferredColorScheme(.dark)
         .task {
-          await model.sync()
+          await model.syncAll()
         }
-        .onChange(of: phase) { _, value in if value == .active { assistant.configure(); Task { await model.sync() } } }
+        .onChange(of: phase) { _, value in if value == .active { assistant.configure(); Task { await model.syncAll() } } }
         .onChange(of: model.connection?.session.account.id) { _, _ in assistant.configure() }
     }
   }

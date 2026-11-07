@@ -9,6 +9,7 @@ deferred at the owner's request. Production readiness is not claimed.
 | Gig app row | Horizontal launcher with 19 original publisher icons plus universal work profiles | Ten publisher-associated app links and one documented URL scheme; other entries use the official App Store; device launch remains unverified |
 | Universal delivery / in-store shopping | Custom work labels and public HTTPS links; manual completed jobs reuse actual times, earnings, fees and mileage | Shopping can record zero driving miles without GPS; work profiles stay in the account's local journal |
 | Tax & Goals conversation | Saved-job loss/best comparisons, record-preparation guidance, confirmed tax context and milestones | Phone answers work offline; connected accounts share persistent browser/native history and client-visible tax requests |
+| Ratings & reviews | Manual dated stars/percentage scores, feedback history, same-app/scale trends and tagged improvement steps | Account-scoped native/browser state, stable retries and deletion tombstones; no automatic provider ratings import |
 | Sample shift | Thirty days of example records and five normalized offers ranked against a home deadline | Explicitly simulated and paused; never saved into the actual journal |
 | Screenshot | Share Extension or Photos picker → Apple Vision → normalized offer | Synthetic raster OCR proof; real provider screenshots need validation |
 | Shared text | Native Share Extension → normalizer → local inbox | Extension compiled; physical share-sheet delivery remains unverified |
@@ -161,6 +162,43 @@ separate and unknown fees remain unknown. Positive-mile work still requires the
 driver's cost estimate. A manual shopper job never starts GPS or fabricates miles.
 The native and website record schemas both retain its shopping work type.
 
+## Personal ratings and reviews
+
+**More tools → Ratings & reviews** records the scores and feedback the driver
+chooses to enter. Five-star and percentage snapshots retain the app, date,
+optional provider review count and notes. Comparisons require the same platform,
+same scale and a strictly earlier snapshot. A custom app/client receives a stable
+identity derived from its name, so unrelated work does not share one generic ID.
+
+Review text has explicit positive/mixed/negative/unreviewed labels and optional
+communication, timing, accuracy, handling, professionalism or other tags.
+Improvement steps refer to tagged mixed/negative feedback, and strengths refer
+to positive feedback. Unreviewed text cannot invent a criticism. These records
+do not establish the provider's calculation, thresholds or a promised future score.
+Rating questions in Tax & Goals use the same saved history. That intent does not
+overwrite financial preferences or receive a Peel arithmetic qualification.
+
+Records persist before networking. A bounded stable-ID outbox retries immutable
+additions and explicit deletions; full server state includes deletion markers and
+only an exact mutation acknowledgment removes a pending operation. Browser and
+native access share the authenticated client account and current revocation/origin
+checks. Guest copying has a separate personal-history opt-in. **Sync now**, app
+foregrounding and reconnect retry the financial, chat and reputation channels;
+their individual statuses make partial success visible.
+
+The actual saved Swift client passed 29 compiled native/HTTP/browser checks with
+synthetic accounts, including two-way sharing, deletion, isolation and preserved
+financial totals. The installed local backend serves the tested reputation build
+from a separate checkout, keeping further app-source builds away from its live
+files. Public syncing remains dependent on the pending HTTPS cloud deployment.
+
+The actual native Simulator flow also passed default Lyft/star snapshot entry,
+review text/count/tag persistence, matching guidance and chat, relaunch and branded
+deletion. Its saved-journal audit checks exact values and all four immutable retry
+operations. Other platform/percentage picker UI, physical iPhone behavior and
+Luke's visual acceptance remain outside that flow. Automatic provider ratings
+imports remain unavailable.
+
 Build using `scripts/build-rideshare-ios.sh` with the Simulator build-for-testing
 options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
 
@@ -176,6 +214,8 @@ options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
 - `--gig-apps-only --visible` checks horizontal access to work profiles,
   configuration persistence, explicit zero-mile shopper records and foreground
   notices. `--foreground-only --visible` isolates the notice surface.
+- `--reputation-only --visible` exercises manual ratings/review entry, guidance,
+  rating questions in chat, relaunch and explicit deletion.
 - Swift core tests cover malformed OCR, duplicates, expiration, unknown
   destinations, negative margins, uncertain tips, hard deadlines, commitments,
   rapidly changing provider inputs and simulated ranking.
