@@ -58,4 +58,5 @@ next-env.d.ts
 # Public setup template and local release artifacts
 !.env.example
 /dist/
+/packages/secure-tax-client/dist-browser/
 .github/workflows/

@@ -48,12 +48,22 @@ const aad = (context,ids,author) => utf8.encode(JSON.stringify([2,'shuug/secure-
 // Bind BOTH recovery slots to the content tag. Otherwise a storage attacker
 // could corrupt the unused slot while the currently selected recipient opens.
 const contentAad = (base,recipients) => utf8.encode(JSON.stringify([new TextDecoder().decode(base),...recipients.map(r=>[r.role,r.keyId,r.publicKey,r.encapsulatedKey,r.wrappedKey])]));
+async function assertAuthorKeyPair(privateKey,publicKey){
+  const peer=await crypto.subtle.generateKey({name:'ECDH',namedCurve:'P-256'},false,['deriveBits']);
+  const first=new Uint8Array(await crypto.subtle.deriveBits({name:'ECDH',public:peer.publicKey},privateKey,256));
+  let second;
+  try{
+    second=new Uint8Array(await crypto.subtle.deriveBits({name:'ECDH',public:publicKey},peer.privateKey,256));
+    let difference=0;for(let i=0;i<32;i++)difference|=first[i]^second[i];if(difference)fail();
+  }finally{first.fill(0);second?.fill(0);}
+}
 export async function sealEnvelope(plaintext,context,trusted,authorRole,authorPrivateKey) {
   validateContext(context);
   if(!(plaintext instanceof Uint8Array)||plaintext.length>MAX_CIPHERTEXT_BYTES-16)fail();
   const ids=await trustedRecipientIds(trusted);if(!roles.includes(authorRole)||!authorPrivateKey)fail();
   const author={role:authorRole,keyId:ids[roles.indexOf(authorRole)]},auth=aad(context,ids,author);
   const authorPublicKey=await hpke.kem.deserializePublicKey(decode64(authorRole==='client'?trusted.clientPublicKey:trusted.firmRecoveryPublicKey,65));
+  await assertAuthorKeyPair(authorPrivateKey,authorPublicKey);
   const contentBytes=crypto.getRandomValues(new Uint8Array(32));
   try {
     const recipients=[];

@@ -44,6 +44,8 @@ loopback fixtures are permitted for verification.
 
 | Route | Contract |
 | --- | --- |
+| `POST /session` | Exact trusted browser origin only; existing invited-client email/password authentication returns a memory-only Bearer token, expiry and opaque account/client binding. Existing attempt limits apply. |
+| `DELETE /session` | Exact trusted browser origin, revokes only the supplied session. |
 | `GET /status` | Enrollment/key-provisioning state and content-free known legacy counts; no plaintext payloads. |
 | `POST /enroll` | Body is the signed public recipient manifest only, up to 16 KiB. |
 | `GET /objects?after=0&limit=100` | Account-local sequence cursor and metadata only; maximum 200 changes per page. Fetch each active object separately. |

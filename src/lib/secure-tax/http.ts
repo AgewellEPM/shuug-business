@@ -12,6 +12,10 @@ function trustedOrigin() {
   try { const origin = new URL(value), loopback = ["localhost", "127.0.0.1"].includes(origin.hostname); if (origin.origin !== value || (origin.protocol !== "https:" && !loopback) || (!loopback && origin.origin === new URL(appBaseUrl()).origin)) throw new Error("Invalid independent origin"); return origin.origin; }
   catch { throw new SecureTaxError(503, "The trusted encrypted-client origin is not configured correctly."); }
 }
+export function requireSecureBrowserOrigin(request: Request) {
+  const permitted = trustedOrigin();
+  if (!permitted || request.headers.get("origin") !== permitted) throw new SecureTaxError(403, "Use the separately trusted encrypted client to sign in.");
+}
 export function secureRequestToken(request: Request, mutation = false) {
   const origin = request.headers.get("origin"), permitted = trustedOrigin();
   if (origin && origin !== permitted) throw new SecureTaxError(403, "Use the separately trusted encrypted client to access this vault.");

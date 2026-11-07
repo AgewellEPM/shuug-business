@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T06:49:10.630Z",
+  "buildId": "vqY4ck_y7jcBjYJGaJ1eq",
+  "scope": "Compiled production HTTP with disposable synthetic accounts and actual CryptoKit/WebCrypto envelopes; real server restart",
+  "checks": [
+    "two real invitation activations and native, web-cookie and trusted-browser sessions report the exact same secure account/client identity",
+    "only independently signed account-bound public manifests enroll; foreign and forged manifests fail without host private keys",
+    "exact independent-origin credentialed CORS works; first-party/foreign origins and untrusted cookie writes fail while native Bearer works",
+    "enrolled clients reject legacy journal, receipt and requested-document uploads; host provider availability stays disabled",
+    "actual CryptoKit ciphertext crosses compiled HTTP and opens with both native/WebCrypto recipients; CAS, retry, framing and foreign ownership checks hold",
+    "content-free paginated tombstones cannot be resurrected by create retries; live-object key rotation fails while same-key renewal works",
+    "real server restart preserves original web/native sessions, enrollment renewal, exact ciphertext bytes and deletion tombstones",
+    "account revocation disables every secure session; trusted-browser logout removes only its own session without disabling the other client"
+  ],
+  "nativeChecks": 33,
+  "ciphertextSha256": "6911e1ca092be0db71c753ec36d7460f75dd271035317c0f0bb56d945aae8a38",
+  "diagnosticServersStopped": true,
+  "realClientDataUsed": false,
+  "realPrivateKeysUsed": false,
+  "plaintextMigrationPerformed": false,
+  "offhostPhysicalCustodyVerified": false,
+  "publicHostingVerified": false,
+  "fullFeatureParityVerified": false
+}

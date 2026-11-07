@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T06:48:53.551Z",
+  "checks": [
+    "CryptoKit seals \u2192 WebCrypto opens for client",
+    "CryptoKit seals \u2192 WebCrypto opens for firm-recovery",
+    "WebCrypto seals \u2192 CryptoKit opens for client",
+    "WebCrypto seals \u2192 CryptoKit opens for firm-recovery"
+  ],
+  "nativeChecks": 33,
+  "scope": "Synthetic interoperability of actual CryptoKit HPKE/AES-GCM and WebCrypto @hpke/core 1.10.0; not deployed end-to-end encryption",
+  "realPrivateKeysUsed": false
+}

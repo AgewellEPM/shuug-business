@@ -13,6 +13,8 @@ test('fresh envelopes open with either local recipient, and wrong keys/context/t
  assert(!JSON.stringify(envelope).includes(new TextDecoder().decode(text)));
  assert.notEqual((await sealEnvelope(text,context,trusted,'client',client.privateKey)).ciphertext,envelope.ciphertext);
  await assert.rejects(()=>openEnvelope(envelope,context,trusted,'client',other.privateKey));
+ await assert.rejects(()=>sealEnvelope(text,context,trusted,'client',other.privateKey));
+ await assert.rejects(()=>sealEnvelope(text,context,trusted,'firm-recovery',client.privateKey));
  await assert.rejects(()=>openEnvelope(envelope,{...context,revision:2},trusted,'client',client.privateKey));
  await assert.rejects(()=>openEnvelope(envelope,context,{...trusted,firmRecoveryPublicKey:other.publicKey},'client',client.privateKey));
  const tampered=structuredClone(envelope);const bytes=decode64(tampered.ciphertext,16,1024);bytes[0]^=1;tampered.ciphertext=encode64(bytes);
