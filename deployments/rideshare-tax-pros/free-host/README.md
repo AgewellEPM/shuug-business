@@ -1,5 +1,12 @@
 # Free hosting for Rideshare Tax Pros
 
+Current public brand and primary site: **Gig Tax Pros**, https://gigtax.pro,
+on the existing Vercel project. The Cloudflare site below is an earlier separate
+publication. The unified client/app backend is implemented and installed locally;
+its cloud deployment remains pending authenticated hosting access. See
+[`GIG_TAX_PROS_UNIFIED_20261107.md`](../../../docs/deployments/GIG_TAX_PROS_UNIFIED_20261107.md)
+for the verified behavior, evidence and exact remaining deployment gates.
+
 Luke requires free hosting and selected Cloudflare Pages for the public website.
 Shuug's existing accounts, SQLite workspace and encrypted connection vault stay
 on a persistent server volume. The public static site contains no account data.
