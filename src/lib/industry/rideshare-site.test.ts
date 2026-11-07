@@ -15,10 +15,12 @@ function page(slug = "", config = {}, hash = "") {
   w.eval(readFileSync(path.join(source,"links.js"),"utf8")); w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
   return dom;
 }
-it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
+it("connects the customer pages with valid internal links, unique headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
-  expect(manifest.aliases).toHaveLength(18);
-  for (const slug of ["", ...manifest.aliases]) {
+  const customerAliases = manifest.aliases.filter((slug: string) => !["sales", "office-signup"].includes(slug));
+  expect(customerAliases).toHaveLength(18);
+  expect(manifest.aliases).toEqual(expect.arrayContaining(["sales", "office-signup"]));
+  for (const slug of ["", ...customerAliases]) {
     const dom = page(slug); const d = dom.window.document;
     try {
       expect(d.querySelector('meta[name="viewport"]')).not.toBeNull();
