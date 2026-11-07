@@ -1,4 +1,5 @@
 "use client";
+import { BillingWorkspace } from "./accounting/BillingWorkspace";
 import { useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -29,9 +30,10 @@ export function AccountingWorkspace({ data, canEdit, owner, initialTab = "report
     const result = await r.json(); if (!r.ok) throw new Error(result.error ?? "Unable to save."); retry.current = null; setNotice("Saved. Accounting records refreshed."); router.refresh();
   };
   return <div className="space-y-6"><header><Link href="/accounting" className="underline">All client books</Link><h1 className="mt-3 text-2xl font-bold">{data.book.name}</h1><p className="text-sm text-slate-600">USD · {data.periods.active ? `Closed through ${data.periods.active.through}` : "Open books"}</p></header>
-    <nav className="flex flex-wrap gap-2" aria-label="Accounting tools">{[["reports","Reports"],["journal","Journal & accounts"],["bank","Bank reconciliation"],["close","Close & history"]].map(([id,label]) => <button key={id} className={tab===id ? "dd-primary" : "dd-button"} onClick={()=>setTab(id)} aria-pressed={tab===id}>{label}</button>)}</nav>
+    <nav className="flex flex-wrap gap-2" aria-label="Accounting tools">{[["reports","Reports"],["billing","Invoices & bills"],["journal","Journal & accounts"],["bank","Bank reconciliation"],["close","Close & history"]].map(([id,label]) => <button key={id} className={tab===id ? "dd-primary" : "dd-button"} onClick={()=>setTab(id)} aria-pressed={tab===id}>{label}</button>)}</nav>
     {notice && <p role="status">{notice}</p>}{data.issues.map((issue,i)=><p role="alert" key={i} className="rounded border border-amber-300 p-3">{issue}</p>)}
-    {tab==="reports" && <><ReportDates data={data}/><FinancialReports report={data.reports}/></>}
+    {tab==="reports" && <><ReportDates data={data}/><FinancialReports report={data.reports} journalHref={`/accounting/${data.book.id}?tool=journal`}/></>}
+    {tab==="billing" && <BillingWorkspace data={data} canEdit={canEdit} owner={owner}/>}
     {tab==="journal" && <>
       {canEdit && <section className="dd-card"><h2 className="mb-3 text-xl font-semibold">Post a journal entry</h2><JournalForm send={send} accounts={data.accounts}/></section>}
       <section className="dd-card"><h2 className="mb-3 text-xl font-semibold">Recorded journal</h2>{data.entries.map(entry=><details key={entry.id} className="border-b py-3"><summary>{entry.date} · {entry.memo}</summary><div className="space-y-2 p-3">{entry.lines.map((l,i)=><p key={i}>{data.accounts.find(a=>a.number===l.accountNumber)?.name ?? l.accountNumber} · Debit {formatCents(l.debitCents)} · Credit {formatCents(l.creditCents)}</p>)}

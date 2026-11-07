@@ -1,3 +1,4 @@
+import { serviceLedgerData } from "./service-posting";
 /**
  * Assemble the live general ledger: auto-post real business activity (orders,
  * expenses) + captured receipt/return and restaurant journals + manual entries, then derive the Trial
@@ -39,14 +40,14 @@ export async function buildPostingInputs(): Promise<PostingInputs> {
 
 export async function loadLedger(): Promise<LedgerOverview> {
   const inputs = await buildPostingInputs();
-  const receipts = receivableJournals(), expenses = expenseAccountingData();
-  const auto = [...deriveEntries(inputs), ...receipts.entries, ...expenses.entries, ...restaurantJournalEntries()];
+  const receipts = receivableJournals(), expenses = expenseAccountingData(), services = serviceLedgerData();
+  const auto = [...deriveEntries(inputs), ...receipts.entries, ...expenses.entries, ...restaurantJournalEntries(), ...services.entries];
   const manual = listManualEntries();
   const sealed = applyPeriodSeal([...auto, ...manual]);
   const entries = sealed.entries.sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
   const tb = trialBalance(entries, chartOfAccounts().accounts);
   return {
-    issues: [...receipts.issues, ...expenses.issues, ...sealed.issues], entries,
+    issues: [...receipts.issues, ...expenses.issues, ...sealed.issues, ...services.issues], entries,
     autoCount: auto.length,
     manualCount: manual.length,
     trialBalance: tb,

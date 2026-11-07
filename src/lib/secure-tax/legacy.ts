@@ -22,9 +22,21 @@ export function legacySecureTaxData(db: DatabaseSync, account: { id: string; cli
     uberSourceFacts: count("gig_uber_facts", "SELECT count(*) AS n FROM gig_uber_facts WHERE accountId=? OR clientId=?", account.id, account.clientId),
     uberAuthorizationStates: count("gig_uber_states", "SELECT count(*) AS n FROM gig_uber_states WHERE accountId=? OR clientId=?", account.id, account.clientId),
     sdkTaxRecords: 0,
+    clientBooks: 0,
+    clientBookJournals: 0,
+    clientBookBilling: 0,
+    clientBookBankStatements: 0,
+    clientBookShares: 0,
     accountIdentityProfiles: count("customer_accounts", "SELECT count(*) AS n FROM customer_accounts WHERE (id=? OR clientId=?) AND (length(name)>0 OR length(email)>0)", account.id, account.clientId),
     serviceClientProfiles: count("records", "SELECT count(*) AS n FROM records WHERE kind='client' AND id=?", account.clientId),
   };
+  const books = (db.prepare("SELECT body FROM documents WHERE kind='client-book' AND json_extract(body,'$.clientId')=?").all(account.clientId) as {body:string}[]).map(r=>JSON.parse(r.body) as {id:string});
+  counts.clientBooks = books.length;
+  for (const book of books) {
+    const row = db.prepare("SELECT body FROM documents WHERE id=? AND kind='state'").get(`state:client-journal:${book.id}`) as {body:string}|undefined;
+    if(row) { const value=JSON.parse(row.body); counts.clientBookJournals+=(value.entries??[]).length; counts.clientBookBilling+=(value.billing??[]).length; counts.clientBookBankStatements+=(value.bank?.statements??[]).length; }
+    counts.clientBookShares+=count("documents","SELECT count(*) AS n FROM documents WHERE kind='billing-share' AND json_extract(body,'$.bookId')=?",book.id);
+  }
   const modules = db.prepare("SELECT body FROM documents WHERE id='state:module-records' AND kind='state'").get() as { body: string } | undefined;
   if (modules) {
     const value = JSON.parse(modules.body) as Record<string, { values?: { client_id?: unknown } }[]>;

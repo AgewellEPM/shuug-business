@@ -1,3 +1,4 @@
+import { settleBillingProvider } from "../accounting/billing-provider";
 import { randomBytes, randomUUID } from "node:crypto";
 import { z } from "zod";
 import { appBaseUrl, openSecret, sealSecret } from "../connections/vault";
@@ -15,7 +16,7 @@ const requireReady = () => { const config = getStripeConfig(); if (!config || !w
 const amountCheck = (amount: number, currency: string) => { if (!Number.isSafeInteger(amount) || amount < 100 || amount > 99_999_999 || !paymentCurrencies.includes(currency as typeof paymentCurrencies[number])) throw new Error("Online payments support USD, EUR, GBP, CAD and AUD, from 1.00 to 999,999.99. Contact the organization for other amounts or currencies."); };
 function draft(input: Pick<WebsitePayment, "id" | "kind" | "invoiceId" | "accountId" | "amount" | "currency" | "title" | "donor" | "receiptHash" | "requestHash">, returnUrl: string, email: string): WebsitePayment {
   const config = requireReady(); amountCheck(input.amount, input.currency);
-  const params = new URLSearchParams({ mode: "payment", client_reference_id: input.id, "metadata[shuug_payment]": input.id, "payment_intent_data[metadata][shuug_payment]": input.id, "payment_method_types[0]": "card", "adaptive_pricing[enabled]": "false", "line_items[0][quantity]": "1", "line_items[0][price_data][currency]": input.currency.toLowerCase(), "line_items[0][price_data][unit_amount]": String(input.amount), "line_items[0][price_data][product_data][name]": input.title, customer_email: email, success_url: returnUrl, cancel_url: returnUrl, expires_at: String(Math.floor(Date.now() / 1000) + 23 * 3600) });
+  const params = new URLSearchParams({ mode: "payment", client_reference_id: input.id, "metadata[shuug_payment]": input.id, "payment_intent_data[metadata][shuug_payment]": input.id, "adaptive_pricing[enabled]": "false", "line_items[0][quantity]": "1", "line_items[0][price_data][currency]": input.currency.toLowerCase(), "line_items[0][price_data][unit_amount]": String(input.amount), "line_items[0][price_data][product_data][name]": input.title, customer_email: email, success_url: returnUrl, cancel_url: returnUrl, expires_at: String(Math.floor(Date.now() / 1000) + 23 * 3600) });
   return { ...input, status: "creating", live: config.live, sealedKey: sealSecret(config.secretKey), parameters: params.toString(), createdAt: new Date().toISOString(), checkedAt: null, nextCheck: Date.now() + 60000, attempts: 0, sessionId: null, intentId: null, checkoutUrl: null, recordId: null, paymentId: null, error: null };
 }
 export function reserveInvoicePayment(token: string, invoiceId: string) {
@@ -71,7 +72,7 @@ function acceptSession(id: string, session: CheckoutSession) {
       p.intentId = session.payment_intent;
       if (!p.live) { p.status = "test_paid"; return putPayment(db, p); }
       db.exec("SAVEPOINT website_receipt");
-      try { Object.assign(p, settleWebsitePayment(db, p, session.payment_intent)); db.exec("RELEASE website_receipt"); p.status = "paid"; }
+      try { Object.assign(p, (p.kind === "book_invoice" ? settleBillingProvider(db, p, session.payment_intent) : settleWebsitePayment(db, p, session.payment_intent))); db.exec("RELEASE website_receipt"); p.status = "paid"; }
       catch (error) { db.exec("ROLLBACK TO website_receipt; RELEASE website_receipt"); p.status = "paid_review"; p.error = error instanceof Error ? error.message : "The received payment needs staff review."; }
     } else if (p.status !== "paid_review") {
       p.status = session.status === "expired" && session.payment_status === "unpaid" ? "expired" : session.status === "open" && session.payment_status === "unpaid" ? "open" : "processing";

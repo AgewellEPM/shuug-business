@@ -58,7 +58,7 @@ export function executeJournalCommand(raw: unknown, actor: string, bookId = "off
       entry = { id: `manual:${randomUUID()}`, date: v.date, memo: v.memo, source: "manual", lines: v.lines };
     } else {
       const v = journalReverseInput.parse(input), original = s.entries.find(r => r.entry.id === v.id);
-      if (!original) throw new Error("Manual journal entry unavailable. Correct automatically generated entries in their source workflow.");
+      if (!original || (original.entry.source !== "manual" && !original.entry.source.startsWith("year-close:"))) throw new Error("Manual journal entry unavailable. Correct automatically generated entries in their source workflow.");
       if (s.entries.some(r => r.reversesId === v.id)) throw new Error("This entry already has a recorded reversal. Reload its history before making another correction.");
       if (v.date < original.entry.date) throw new Error("A reversal cannot precede its original posting date.");
       reversesId = original.entry.id; reason = v.reason;

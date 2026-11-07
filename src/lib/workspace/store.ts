@@ -1,3 +1,4 @@
+import { postServiceRecord } from "../accounting/service-posting";
 import { requireJobInspectionsReviewed } from "../auto-repair/inspection-state";
 import { randomUUID } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
@@ -19,6 +20,7 @@ export function recordHistory(id: string) {
   return workspaceDatabase(db => db.prepare("SELECT sequence, actor, action, at, snapshot FROM audit WHERE record_id=? ORDER BY sequence DESC").all(z.uuid().parse(id)) as { sequence: number; actor: string; action: string; at: string; snapshot: string }[]);
 }
 function put(db: DatabaseSync, record: BusinessRecord, actor: string, action: string) {
+  postServiceRecord(db, record, actor);
   const body = JSON.stringify(record);
   db.prepare("INSERT INTO records VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,body=excluded.body,updated_at=excluded.updated_at")
     .run(record.id, record.kind, record.revision, body, record.createdAt, record.updatedAt);
@@ -332,6 +334,7 @@ export function settleWebsitePayment(db: DatabaseSync, p: WebsitePayment, intent
     const record: BusinessRecord = { id: randomUUID(), kind, title: title.slice(0, 200), currency: p.currency, status: definitionFor(kind).states[0], fields: validateFields(kind, fields), revision: 1, createdAt: now, updatedAt: now };
     validateReferences(record, rows(db));
     if (target) { checkTransition(record, target, rows(db)); record.status = target; }
+    if (kind === "service_payment") record.computed = { provider: "stripe", live: p.live };
     return put(db, record, "Stripe website payments", evidence);
   }
   let parent = p.invoiceId;

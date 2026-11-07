@@ -1,3 +1,6 @@
+import { billingDocuments, executeBillingCommand } from "./billing-store";
+import { executeBillingShare } from "./billing-share";
+import { billingConnectionStatus, saveBillingConnection } from "./billing-checkout";
 import { randomUUID } from "node:crypto";
 import type { WorkspaceUser } from "../auth/identity";
 import { z } from "zod";
@@ -14,14 +17,17 @@ export async function bookView(bookId: string, user: WorkspaceUser) {
   const ledger = bookId === "office" ? await loadLedger() : { entries: manualJournalData(bookId).entries, issues: [] as string[] };
   const accounts = chartOfAccounts(bookId).accounts;
   return { book: book ?? { id: "office", name: "Office books", currency: "USD" }, entries: ledger.entries, issues: ledger.issues, accounts,
-    reports: financialReports(ledger.entries, accounts), statements: bankStatements(bookId), periods: periodHistory(bookId), canEdit: user.isOwner || !!book?.grants.some(g => g.accountId === user.id && g.level === "edit") };
+    billing: billingDocuments(bookId), paymentConnection: billingConnectionStatus(bookId), reports: financialReports(ledger.entries, accounts), statements: bankStatements(bookId), periods: periodHistory(bookId), canEdit: user.isOwner || !!book?.grants.some(g => g.accountId === user.id && g.level === "edit") };
 }
 export async function bookCommand(bookId: string, raw: unknown, user: WorkspaceUser) {
   requireBook(bookId, user, true);
   const v = z.object({ requestId: z.uuid(), action: z.string(), input: z.record(z.string(), z.unknown()) }).strict().parse(raw);
   const actor = `${user.name} (${user.id})`;
-  if (v.action.startsWith("journal.")) return executeJournalCommand(v, actor, bookId);
-  if (v.action === "account.save") return executeAccountCommand(v, actor, bookId);
+  if (v.action.startsWith("billing.share")) return executeBillingShare(bookId, v, user);
+  if (v.action === "billing.connection") return saveBillingConnection(bookId, v.input, user);
+  if (v.action.startsWith("billing.")) return executeBillingCommand(bookId, v, user);
+  if (v.action.startsWith("journal.")) return journalState(bookId).change((s, db) => { checkBook(db, bookId, user, true); return executeJournalCommand(v, actor, bookId); });
+  if (v.action === "account.save") return journalState(bookId).change((s, db) => { checkBook(db, bookId, user, true); return executeAccountCommand(v, actor, bookId); });
   const view = await bookView(bookId, user);
   if (v.action.startsWith("statement.")) return executeBankCommand(v, user, bookId, view.entries);
   if (!["period.close", "period.reopen", "year.close"].includes(v.action)) throw new Error("Unknown accounting command.");
@@ -34,7 +40,7 @@ export async function bookCommand(bookId: string, raw: unknown, user: WorkspaceU
     const request = JSON.stringify({ ...v, bookId, actor });
     if (retry) { if (retry.request !== request) throw new Error("This request ID belongs to a different action."); return JSON.parse(retry.result); }
     // Re-read manual postings under the write transaction; never close a stale UI snapshot.
-    let entries: JournalEntry[] = [...view.entries.filter(e => !e.id.startsWith("manual:")), ...state.entries.map(r => r.entry)];
+    let entries: JournalEntry[] = [...view.entries.filter(e => !state.entries.some(r => r.entry.id === e.id)), ...state.entries.map(r => r.entry)];
     if (v.action !== "period.reopen") {
       const statements = bankStatements(bookId);
       for (const account of view.accounts.filter(a => a.classification === "bank")) {
@@ -56,7 +62,7 @@ export async function bookCommand(bookId: string, raw: unknown, user: WorkspaceU
       if (lines.length) {
         const result = executeJournalCommand({ requestId: randomUUID(), action: "journal.post", input: { date: input.through, memo: `Year-end close: ${input.reason}`, reviewed: true, lines } }, actor, bookId);
         state.entries.find(r => r.entry.id === result.id)!.entry.source = `year-close:${input.through}`;
-        entries = [...view.entries.filter(e => !e.id.startsWith("manual:")), ...state.entries.map(r => r.entry)];
+        entries = [...view.entries.filter(e => !state.entries.some(r => r.entry.id === e.id)), ...state.entries.map(r => r.entry)];
       }
     }
     const result = changePeriod(db, bookId, { ...input, action: v.action === "period.reopen" ? "reopen" : "close" }, entries, actor);
