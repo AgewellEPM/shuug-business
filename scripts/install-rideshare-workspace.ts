@@ -9,7 +9,7 @@ import { configureOwnerPassword } from "../src/lib/auth/owner-session";
 import { setting } from "../src/lib/connections/vault";
 import { importBusinessTemplate } from "../src/lib/branding/templates";
 import { getBranding } from "../src/lib/branding/store";
-import { rideshareTaxProsTemplate } from "../src/lib/industry/rideshare-tax-pros";
+import { gigTaxProsTemplate } from "../src/lib/industry/rideshare-tax-pros";
 
 const root=realpathSync(path.resolve(path.dirname(fileURLToPath(import.meta.url)),".."));
 const data=path.join(os.homedir(),"Library/Application Support/Shuug/Rideshare Tax Pros");
@@ -28,8 +28,9 @@ async function main(){
     assert(saved.status===0,'Could not save the owner credential in macOS Keychain. No password was logged.');
     configureOwnerPassword(password);
   }
-  if(!existsSync(path.join(data,'branding.json'))) importBusinessTemplate(rideshareTaxProsTemplate);
-  assert(getBranding().businessName==='Rideshare Tax Pros','Existing workspace branding differs; review it before reconfiguration.');
+  if(!existsSync(path.join(data,'branding.json'))) importBusinessTemplate(gigTaxProsTemplate);
+  const businessName=getBranding().businessName;
+  assert(getBranding().industrySetup?.industryId==='tax-firm'&&['Rideshare Tax Pros','Gig Tax Pros'].includes(businessName),'Existing workspace branding differs; review it before reconfiguration.');
   const logs=path.join(data,'logs');mkdirSync(logs,{recursive:true,mode:0o700});
   const plistPath=path.join(os.homedir(),'Library/LaunchAgents',`${label}.plist`);mkdirSync(path.dirname(plistPath),{recursive:true});
   const args=[process.execPath,path.join(root,'node_modules/next/dist/bin/next'),'start','--hostname','127.0.0.1','--port','3126'];
@@ -58,7 +59,7 @@ async function main(){
   const password=execFileSync('/usr/bin/security',['find-generic-password','-a','owner','-s',service,'-w'],{encoding:'utf8',stdio:['ignore','pipe','pipe']}).trim();
   const login=await fetch(base+'/api/auth/login',{method:'POST',redirect:'manual',headers:{Origin:base,'Content-Type':'application/x-www-form-urlencoded',cookie:form.headers.getSetCookie().map(c=>c.split(';')[0]).join('; ')},body:new URLSearchParams({csrf,password})});
   assert(login.status===303,'Installed owner sign-in failed.');const cookie=login.headers.getSetCookie().find(c=>c.startsWith('dd_session='))?.split(';')[0];assert(cookie,'Owner session was not established.');
-  const checked=[];for(const [route,marker] of [['/','Rideshare Tax Pros'],['/m/tax-engagements','Tax engagements'],['/m/rideshare-tax-records','Rideshare tax records'],['/m/tax-document-requests','Tax document requests'],['/m/tax-quarterly-reviews','Quarterly tax reviews'],['/api/v1/m/tax-engagements','tax-engagements']]){const response=await fetch(base+route,{headers:{cookie}});assert(response.ok&&(await response.text()).includes(marker),`Installed route failed: ${route}`);checked.push(route);}
+  const checked=[];for(const [route,marker] of [['/',businessName],['/m/tax-engagements','Tax engagements'],['/m/rideshare-tax-records','Rideshare tax records'],['/m/tax-document-requests','Tax document requests'],['/m/tax-quarterly-reviews','Quarterly tax reviews'],['/api/v1/m/tax-engagements','tax-engagements'],['/tax-documents','Tax documents']]){const response=await fetch(base+route,{headers:{cookie}});assert(response.ok&&(await response.text()).includes(marker),`Installed route failed: ${route}`);checked.push(route);}
   writeFileSync(path.join(data,'verification.json'),JSON.stringify({ok:true,verifiedAt:new Date().toISOString(),base,ownerSignIn:true,anonymousDenied:true,routes:checked,visualAcceptance:'Pending Luke screenshots'},null,2),{mode:0o600});
   console.log(JSON.stringify({ok:true,...manifest,verifiedRoutes:checked,ownerCredential:'Stored in macOS Keychain; not printed.'},null,2));
 }

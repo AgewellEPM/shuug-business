@@ -44,11 +44,12 @@ export function issueCustomerInvitation(id: string) {
 export function acceptCustomerInvitation(token: string, password: string) {
   passwordSchema.parse(password);
   if (!/^[a-f0-9]{64}$/.test(token)) throw new Error("Setup link expired or unavailable. Ask the organization for a new link.");
-  workspaceDatabase(db => {
-    init(db); const row = db.prepare("SELECT a.id,a.email FROM customer_invitations i JOIN customer_accounts a ON a.id=i.accountId WHERE i.tokenHash=? AND i.expires>? AND a.status='invited'").get(hash(token), Date.now()) as { id: string; email: string } | undefined;
+  return workspaceDatabase(db => {
+    init(db); const row = db.prepare("SELECT a.* FROM customer_invitations i JOIN customer_accounts a ON a.id=i.accountId WHERE i.tokenHash=? AND i.expires>? AND a.status='invited'").get(hash(token), Date.now()) as Stored | undefined;
     if (!row) throw new Error("Setup link expired or unavailable. Ask the organization for a new link.");
     revoke(db, row.id); db.prepare("UPDATE customer_accounts SET status='active',passwordHash=? WHERE id=?").run(hashPassword(password), row.id);
     db.prepare("DELETE FROM customer_attempts WHERE bucket=?").run(`login:${hash(row.email)}`);
+    return publicAccount({ ...row, status: "active" });
   }, true);
 }
 export function setCustomerEnabled(id: string, enabled: boolean) {

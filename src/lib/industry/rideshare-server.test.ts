@@ -16,7 +16,7 @@ beforeEach(()=>{directory=mkdtempSync(path.join(tmpdir(),"shuug-server-setup-"))
 afterEach(()=>{vi.unstubAllEnvs();rmSync(directory,{recursive:true,force:true});});
 it("initializes a real private Tax Firm volume through stdin and preserves later owner configuration",()=>{
   const first=setup();expect(first.status,first.stderr).toBe(0);expect(first.stdout).not.toContain(password);
-  expect(signInOwner(password)).toMatch(/^[a-f0-9]{64}$/);expect(getBranding().businessName).toBe("Rideshare Tax Pros");expect(customerSettings()).toMatchObject({enabled:true,servicePortal:true,pricing:false,ordering:false});
+  expect(signInOwner(password)).toMatch(/^[a-f0-9]{64}$/);expect(getBranding().businessName).toBe("Gig Tax Pros");expect(customerSettings()).toMatchObject({enabled:true,servicePortal:true,pricing:false,ordering:false});
   saveBranding({tagline:"Owner's chosen tagline"});saveCustomerSettings({...customerSettings(),enabled:false});
   const again=setup(origin,"A-different-synthetic-password");expect(again.status,again.stderr).toBe(0);expect(again.stdout).toContain('"existing":true');
   expect(getBranding().tagline).toBe("Owner's chosen tagline");expect(customerSettings().enabled).toBe(false);expect(signInOwner(password)).toMatch(/^[a-f0-9]{64}$/);expect(()=>signInOwner("A-different-synthetic-password")).toThrow("Incorrect");

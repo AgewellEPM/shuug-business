@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
-import { mkdirSync, readdirSync, lstatSync, readFileSync, writeFileSync, copyFileSync, chmodSync, existsSync, rmSync, renameSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readdirSync, lstatSync, readFileSync, writeFileSync, copyFileSync, chmodSync, existsSync, rmSync, renameSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { z } from "zod";
 const digest = (file: string) => createHash("sha256").update(readFileSync(file)).digest("hex");
@@ -15,9 +16,18 @@ function filesIn(directory: string, prefix = ""): string[] {
 }
 function verifySqlite(directory: string, files: string[]) {
   for (const file of files.filter(f => /\.(sqlite|db)$/.test(f))) {
-    const db = new DatabaseSync(path.join(directory, file), { readOnly: true });
-    try { const result = db.prepare("PRAGMA quick_check").all(); if (JSON.stringify(result) !== '[{"quick_check":"ok"}]') throw new Error(`Database integrity check failed: ${file}`); }
-    finally { db.close(); }
+    // Even a read-only SQLite connection creates WAL/SHM files for a database
+    // stored in WAL mode. Validate a disposable copy, leaving the sealed backup
+    // and its exact manifest unchanged during both backup and restore checks.
+    const temporary = mkdtempSync(path.join(tmpdir(), "shuug-backup-integrity-"));
+    let db: DatabaseSync | undefined;
+    try {
+      const copy = path.join(temporary, "verify.sqlite");
+      copyFileSync(path.join(directory, file), copy); chmodSync(copy, 0o600);
+      db = new DatabaseSync(copy, { readOnly: true });
+      const result = db.prepare("PRAGMA quick_check").all();
+      if (JSON.stringify(result) !== '[{"quick_check":"ok"}]') throw new Error(`Database integrity check failed: ${file}`);
+    } finally { db?.close(); rmSync(temporary, { recursive: true, force: true }); }
   }
 }
 /** Stop app + workers first. Refuse live SQLite journals and never overwrite a backup. */

@@ -21,6 +21,8 @@ struct LoginReply: Codable {
 struct ConnectionProfile: Codable {
   var origin: URL
   var session: LoginReply
+
+  var portalURL: URL { origin.appendingPathComponent("api/website/customer") }
 }
 enum WorkspaceError: LocalizedError {
   case message(String)
@@ -70,6 +72,8 @@ private final class SameOriginRedirects: NSObject, URLSessionTaskDelegate {
   }
 }
 final class WorkspaceClient {
+  static let websiteURL = URL(string: "https://gigtax.pro")!
+  static let discoveryURL = websiteURL.appendingPathComponent("site-config.json")
   let origin: URL, token: String?
   private let session: URLSession
   init(origin: URL, token: String? = nil) {
@@ -167,10 +171,19 @@ final class WorkspaceClient {
     return try WireJSON.decoder().decode(BankFeedReply.self, from: data)
   }
   static func discover() async throws -> URL? {
+    let client = WorkspaceClient(origin: websiteURL)
+    var request = URLRequest(url: discoveryURL)
+    request.cachePolicy = .reloadIgnoringLocalCacheData
+    request.timeoutInterval = 15
+    let (data, response) = try await client.session.data(for: request)
+    guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+      throw WorkspaceError.message("The firm’s connection information is unavailable.")
+    }
+    return try discoveredWorkspace(from: data)
+  }
+  static func discoveredWorkspace(from data: Data) throws -> URL? {
     struct Config: Decodable { var workspaceUrl: String? }
-    let (data, response) = try await URLSession.shared.data(
-      from: URL(string: "https://rideshare-tax-pros.pages.dev/site-config.json")!)
-    guard (response as? HTTPURLResponse)?.statusCode == 200, data.count < 32_000 else {
+    guard data.count < 32_000 else {
       throw WorkspaceError.message("The firm’s connection information is unavailable.")
     }
     guard let text = try JSONDecoder().decode(Config.self, from: data).workspaceUrl else {

@@ -19,3 +19,14 @@ export const rideshareTaxProsTemplate = {
   },
   tools: [], enabledFeatures: [],
 };
+
+/** Current brand for new deployments; retain the original export for existing installations. */
+export const gigTaxProsTemplate = {
+  ...rideshareTaxProsTemplate,
+  name: "Gig Tax Pros — Shuug Tax Firm v1",
+  branding: {
+    ...rideshareTaxProsTemplate.branding,
+    businessName: "Gig Tax Pros", logoText: "GTP",
+    industrySetup: { ...rideshareTaxProsTemplate.branding.industrySetup, templateName: "Gig Tax Pros — Shuug Tax Firm" },
+  },
+};

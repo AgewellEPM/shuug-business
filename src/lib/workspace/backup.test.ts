@@ -1,5 +1,5 @@
 import { afterEach, expect, it } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, readdirSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { DatabaseSync } from "node:sqlite";
 import { backupWorkspace, restoreWorkspace } from "./backup";
@@ -16,4 +16,19 @@ it("restores private data and SQLite into a new directory, and rejects damaged o
   expect(() => restoreWorkspace(`${root}/backup`, `${root}/restored`)).toThrow("new directory");
   writeFileSync(`${root}/backup/vault.key`, "damaged"); expect(() => restoreWorkspace(`${root}/backup`, `${root}/bad`)).toThrow("checksum");
   writeFileSync(`${root}/data/workspace.sqlite-wal`, "live"); expect(() => backupWorkspace(`${root}/data`, `${root}/live`)).toThrow("Stop the app");
+});
+it("keeps WAL-mode backups unchanged while verifying and restoring real workspace databases", () => {
+  const root = mkdtempSync(`${tmpdir()}/backup-wal-test-`); dirs.push(root); mkdirSync(`${root}/data`);
+  const db = new DatabaseSync(`${root}/data/workspace.sqlite`);
+  db.exec("PRAGMA journal_mode=WAL; CREATE TABLE proof(value TEXT); INSERT INTO proof VALUES('durable client record');"); db.close();
+  backupWorkspace(`${root}/data`, `${root}/backup`);
+  const before = readdirSync(`${root}/backup`).sort();
+  expect(before).toEqual(["backup-manifest.json", "workspace.sqlite"]);
+  const bytes = readFileSync(`${root}/backup/workspace.sqlite`);
+  restoreWorkspace(`${root}/backup`, `${root}/restored`);
+  expect(readdirSync(`${root}/backup`).sort()).toEqual(before);
+  expect(readFileSync(`${root}/backup/workspace.sqlite`)).toEqual(bytes);
+  expect(readdirSync(`${root}/restored`)).toEqual(["workspace.sqlite"]);
+  const restored = new DatabaseSync(`${root}/restored/workspace.sqlite`);
+  expect(restored.prepare("SELECT value FROM proof").get()?.value).toBe("durable client record"); restored.close();
 });

@@ -35,6 +35,10 @@ button:focus-visible, a:focus-visible { outline: 3px solid #fff; outline-offset:
 .brand-symbol { flex: 0 0 46px; height: 42px; background: url('./favicon.svg') center / contain no-repeat; }
 .brand sup { font-size: 8px; margin-left: 2px; vertical-align: super; }
 .brand small { display: block; font-size: 9px; letter-spacing: 2px; font-weight: 400; margin-top: 4px; }
+.art-stage .brand-link { display: flex; align-items: center; gap: 1cqw; left: 3.5%; top: 0; width: 37%; height: 4.7%; padding: .35cqw; border-radius: 0; background: #03060c; font-size: 2.65cqw; letter-spacing: -.06cqw; }
+.art-stage .brand-link .brand-symbol { flex-basis: 8.8cqw; height: 5.4cqw; }
+.art-stage .brand-link sup { font-size: .7cqw; }
+.art-stage .brand-link small { font-size: .9cqw; letter-spacing: .2cqw; margin-top: .35cqw; }
 .trust-strip { position: absolute; top: 39.6%; left: 2.65%; width: 94.7%; height: 7.08%; border: 1px solid #6f568e; border-radius: 2.5cqw; display: grid; grid-template-columns: repeat(5,minmax(0,1fr)); align-items: center; background: linear-gradient(115deg,#070c14,#050810); }
 .trust-strip div { text-align: center; padding: 0 .6cqw; }
 .trust-strip div + div { border-left: 1px solid #715782; }

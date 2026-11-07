@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T05:44:42.514Z",
+  "base": "http://127.0.0.1:3126",
+  "buildId": "gqBbMwA6212AvJiaYaQhd",
+  "source": "/Users/lukekist/Worktrees/GigTaxProsUnified-20261107",
+  "backupDirectory": "/Users/lukekist/Library/Application Support/Shuug Backups/Rideshare Tax Pros/2026-11-07T05-44-36-955Z",
+  "backupFiles": 9,
+  "ownerSignInAndStaffRoutesVerified": true,
+  "publicHostingVerified": false,
+  "implementationCommit": "cfc4561ad5ea6a4a019f35534bc2312aac6b1f14",
+  "updaterCommit": "b03769b"
+}

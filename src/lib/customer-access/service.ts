@@ -14,6 +14,7 @@ import { priceOrder, validateOrder } from "../pricing";
 import type { CreateOrderInput } from "../data/store";
 import { listShipments } from "../ops/store";
 import { clientTaxSummary } from "./tax";
+import { clientDriverSummary, type DriverPortalOptions } from "./driver-portal";
 import type { DatabaseSync } from "node:sqlite";
 
 export const customerSettingsSchema = z.object({ enabled: z.boolean(), pricing: z.boolean(), ordering: z.boolean(), orderStatus: z.boolean(), servicePortal: z.boolean(), booking: z.boolean().default(false) }).strict();
@@ -43,7 +44,7 @@ function validDeal(deal: Awaited<ReturnType<Awaited<ReturnType<typeof getDealSto
   if (!deal.agreement.approvedBy.trim() || today < deal.agreement.effectiveDate || today > deal.agreement.expirationDate) throw new Error("Your price agreement needs renewal or approval. Contact the organization.");
   return deal;
 }
-export async function customerView(token: string) {
+export async function customerView(token: string, driverOptions: DriverPortalOptions = {}) {
   const user = requireCustomer(token), config = customerSettings(), store = await getDealStore();
   const deal = user.customerId ? await store.getDeal(user.customerId) : null;
   let priceMessage = ""; if (deal) try { validDeal(deal); } catch (e) { priceMessage = (e as Error).message; }
@@ -67,9 +68,10 @@ export async function customerView(token: string) {
   const paymentConfig = websitePaymentSettings();
   const invoicePayments = paymentConfig.invoiceEnabled && websitePaymentReady();
   const checkouts = workspaceDatabase(db => paymentRows(db).filter(p => p.accountId === user.id && p.kind === "invoice").map(p => ({ id: p.id, invoiceId: p.invoiceId, status: p.status })));
-  const tax = config.servicePortal && client ? clientTaxSummary(client.id) : null;
+  const tax = config.servicePortal && client ? clientTaxSummary(client.id, token) : null;
+  const driver = config.servicePortal && client ? clientDriverSummary(token, driverOptions, [...(tax?.engagements ?? []), ...(tax?.quarterly ?? [])].flatMap(row => row.year ? [row.year] : [])) : null;
   requireCustomer(token); // Recheck revocation after asynchronous repository reads.
-  return { tax, inspections: config.servicePortal && client ? workspaceDatabase(db => sharedInspectionsForClient(db, client.id)) : [], user: { name: user.name, email: user.email }, config, invoicePayments, paymentTestMode: invoicePayments && !getStripeConfig()?.live, checkouts, company: deal?.customer.company ?? client?.title ?? user.name, catalog, priceMessage, orders, proposals: config.servicePortal ? proposals : [], jobs: config.servicePortal ? jobs.map(r => ({ id: r.id, revision: r.revision, title: r.title, status: r.status, due: String(r.fields.due ?? "") })) : [], appointments, offers: config.booking ? customerAppointmentOffers(token) : [], invoices: config.servicePortal ? invoices : [] };
+  return { tax, driver, inspections: config.servicePortal && client ? workspaceDatabase(db => sharedInspectionsForClient(db, client.id)) : [], user: { name: user.name, email: user.email }, config, invoicePayments, paymentTestMode: invoicePayments && !getStripeConfig()?.live, checkouts, company: deal?.customer.company ?? client?.title ?? user.name, catalog, priceMessage, orders, proposals: config.servicePortal ? proposals : [], jobs: config.servicePortal ? jobs.map(r => ({ id: r.id, revision: r.revision, title: r.title, status: r.status, due: String(r.fields.due ?? "") })) : [], appointments, offers: config.booking ? customerAppointmentOffers(token) : [], invoices: config.servicePortal ? invoices : [] };
 }
 export const websiteOrderInput = z.object({ lines: z.array(z.object({ skuId: z.string().min(1).max(100), quantity: z.number().int().min(1).max(100000), unit: z.enum(["case", "bottle"]) }).strict()).min(1).max(100), poNumber: z.string().trim().max(60).nullable(), note: z.string().trim().max(280) }).strict();
 type Quote = { id: string; accountId: string; customerId: string; agreementHash: string; expires: number; input: CreateOrderInput; public: { id: string; expires: number; lines: { name: string; quantity: number; unit: string; unitPriceCents: number; totalCents: number }[]; subtotalCents: number; freightCents: number; freightNote: string; totalCents: number; paymentTerms: string; poNumber: string | null }; orderId: string | null };

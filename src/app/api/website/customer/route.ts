@@ -15,7 +15,10 @@ export async function GET(request: Request) {
   if (!customerSettings().enabled) return customerPage("Customer portal unavailable", "<p>Contact the organization for access.</p>", 404);
   const invite = new URL(request.url).searchParams.get("invite"); if (invite && /^[a-f0-9]{64}$/.test(invite)) return customerInvite(invite);
   const token = customerToken(request); if (!token) return customerLogin();
-  try { return customerDashboard(await customerView(token)); } catch { return customerLogin("Sign in again to view your customer account."); }
+  const query = new URL(request.url).searchParams;
+  const year = /^\d{4}$/.test(query.get("year") ?? "") ? Number(query.get("year")) : undefined;
+  const page = /^\d{1,5}$/.test(query.get("page") ?? "") ? Number(query.get("page")) : undefined;
+  try { return customerDashboard(await customerView(token, { year, page })); } catch { return customerLogin("Sign in again to view your customer account."); }
 }
 export async function POST(request: Request) {
   if (request.headers.get("origin") !== new URL(appBaseUrl()).origin) return customerPage("Origin not permitted", "<p>Return to the customer account to continue.</p>", 403);
@@ -24,7 +27,7 @@ export async function POST(request: Request) {
     if (!request.headers.get("content-type")?.startsWith("application/x-www-form-urlencoded")) throw new Error("Use the customer account form.");
     const form = await readAuthForm(request, 64000), operation = form.get("action"), token = customerToken(request);
     if (operation === "login") return redirect(signInCustomer(form.get("email") ?? "", form.get("password") ?? ""));
-    if (operation === "activate") { if (form.get("password") !== form.get("confirmation")) throw new Error("The passwords do not match."); acceptCustomerInvitation(form.get("invite") ?? "", form.get("password") ?? ""); return customerLogin("Account activated. Sign in with your email and new password."); }
+    if (operation === "activate") { if (form.get("password") !== form.get("confirmation")) throw new Error("The passwords do not match."); const password = form.get("password") ?? ""; const account = acceptCustomerInvitation(form.get("invite") ?? "", password); return redirect(signInCustomer(account.email, password)); }
     requireCustomer(token);
     if (operation === "payment.start" || operation === "payment.refresh") {
       const reserved = operation === "payment.start" ? reserveInvoicePayment(token!, form.get("invoice") ?? "") : authorizeInvoicePayment(token!, form.get("payment") ?? "");

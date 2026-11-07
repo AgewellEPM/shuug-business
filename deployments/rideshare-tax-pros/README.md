@@ -1,4 +1,11 @@
-# Rideshare Tax Pros on Shuug
+# Gig Tax Pros on Shuug
+
+The public website is branded **Gig Tax Pros** at `https://gigtax.pro`.
+Vercel project and source directory names retain `rideshare-tax-pros` so the
+existing deployment and private workspace integrations continue to work.
+GoDaddy delegates `gigtax.pro` to Vercel's nameservers; the correctly spelled
+domain must also be attached to the Vercel project. The earlier `gittax.pro`
+entry was a typo and did not configure the purchased domain.
 
 The dedicated Vercel public site is built from `public/rideshare-tax-pros` and
 `scripts/rideshare-site` in this repository. It uses the supplied desktop artwork, replaces
