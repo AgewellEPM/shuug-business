@@ -3,6 +3,7 @@ if (configuredOrigin.protocol !== 'https:' || configuredOrigin.pathname !== '/' 
 export const origin = configuredOrigin.origin;
 export const reviewed = 'November 2, 2026';
 export const sources = {
+  franchise: ['FTC · A Consumer’s Guide to Buying a Franchise', 'https://www.ftc.gov/business-guidance/resources/consumers-guide-buying-franchise'],
   gig: ['IRS · Manage taxes for your gig work', 'https://www.irs.gov/businesses/small-businesses-self-employed/manage-taxes-for-your-gig-work'],
   documents: ['IRS · Gather your documents', 'https://www.irs.gov/filing/gather-your-documents'],
   records: ['IRS · What kind of records should I keep?', 'https://www.irs.gov/businesses/small-businesses-self-employed/what-kind-of-records-should-i-keep'],
@@ -13,6 +14,56 @@ export const sources = {
   uber: ['Uber · US tax information', 'https://www.uber.com/us/en/drive/tax-information/'],
   lyft: ['Lyft · Tax information for US drivers', 'https://help.lyft.com/hc/en-us/all/articles/115012926967'],
   preparer: ['IRS · Choosing a tax return preparer', 'https://www.irs.gov/taxtopics/tc254'],
+};
+
+export const ownerProgram = {
+  pillars: [
+    ['01','One consumer brand','Build toward national brand recognition, with a shared Gig Tax Pros front door and each local office’s name visible. Grow community by community toward a nationwide presence.'],
+    ['02','Pooled advertising','Participating owners would combine agreed contributions for coordinated local campaigns, with fund rules and reporting established together.'],
+    ['03','Shuug platform','Proposed shared intake, follow-up, office operations, financial workflows and reporting, introduced through validated rollout milestones.'],
+    ['04','Independent local offices','Local teams deliver the service, earn revenue from the work they perform and build trust in their communities.'],
+  ],
+  keep: ['Your legal business and local reputation','Your team and local relationships','Revenue from the services you deliver','Local decision-making within agreed standards'],
+  benefits: [
+    ['01', 'Staffing & HR toolkit', 'Proposed seasonal hiring templates, role descriptions, onboarding and workflow training help owners prepare their teams.'],
+    ['02', 'Free owner tax workshops', 'Owner tax workshops are free. Build practical knowledge, bring real questions and learn with other office owners. Workshop dates, topics and attendance details will be shared as the program opens.'],
+    ['03', 'Shuug & software support', 'The proposal builds on Shuug’s open-source foundation. Partner-ready intake, appointments, tasks, lead tracking and reporting would roll out by validated milestones. Specific software, licensing, access and any costs must be confirmed.'],
+    ['04', 'Practical operations help', 'Proposed tax-season checklists, scheduling standards, escalation, office setup and client follow-up methods support the daily work of a local office.'],
+    ['05', 'Creative & reputation support', 'Shared advertising creative, local campaign reporting, lead intake and reputation-management resources are proposed alongside the pooled advertising model.'],
+    ['06', 'An ongoing owner relationship', 'The commitment is to build a supportive family of owners who keep learning and helping one another. Agree on support channels, availability and responsibilities before joining.'],
+  ],
+  services: [
+    ['Tax preparation','Individual returns, gig income and business returns within the office’s qualifications.'],
+    ['Bookkeeping','Monthly recordkeeping and expense cleanup.'],
+    ['Small-business assistance','LLC filing assistance, EIN guidance and launch checklists, where permitted.'],
+    ['Business tax support','Estimated-tax reviews, payroll and sales-tax coordination within an agreed scope.'],
+    ['Tax-resolution referral','Intake and referral to qualified enrolled agents, CPAs or attorneys.'],
+    ['Gig-worker support','App onboarding and mileage, expense and income-record organization.'],
+  ],
+  pilot: [
+    ['DAYS 01–30','Baseline & onboard','Record the current inquiry and revenue baseline, confirm services and capacity, and introduce the agreed brand and intake tools.'],
+    ['DAYS 31–60','Launch & learn','Start locally targeted campaigns, route and follow up on appointment opportunities, train staff and resolve workflow friction.'],
+    ['DAYS 61–90','Review the evidence','Review actual leads, costs, conversions and service quality. Decide together whether and how to continue or expand.'],
+  ],
+  steps: [
+    ['Introduce your office','Prepare a short owner brief with your community, services, capacity and questions about the proposed 90-day founding partner pilot. Download it for a conversation through a verified contact channel.'],
+    ['Design the pilot together','Discuss the baseline, co-branding, advertising contributions and fund rules, software rollout, local service scope and the support your team needs.'],
+    ['Review, agree & begin','Review written terms and any required disclosures before deciding. Agree on ownership safeguards, routing, reporting and the 90-day review before an office joins.'],
+  ],
+  faqs: [
+    ['Will I still own my tax office?','Yes. The proposed Neighborhood Partner Network does not require an office buyout. You keep your legal business, team, local reputation and relationships, revenue from services you deliver, and local decisions within agreed standards. Final brand rights, costs and responsibilities still need written agreement.'],
+    ['What is the founding partner pilot?','A proposed 90-day pilot with independent local offices: days 1–30 establish a baseline and onboard, days 31–60 launch campaigns and learn, and days 61–90 review actual outcomes before deciding whether to expand. No completed pilot results or accepted office count is being claimed.'],
+    ['Is $200 per month the price to join?','No. $200 per office per month is an illustrative advertising-pool contribution in the proposal, not an agreed membership fee or price quote. Final contributions, fund rules, fees and other costs are subject to written agreement.'],
+    ['Where would pooled advertising money go?','The example allocation is 45% search, 30% local/maps campaigns, 15% social and community, and 10% testing and retargeting. It is illustrative, not a fixed spending commitment. The reporting proposal includes a contribution ledger, campaign spend, leads, appointments and acquired customers.'],
+    ['How would leads reach the right office?','The proposed routing considers location, requested service, office capacity and availability. The network would publish response standards and how unserved leads are reassigned. Final rules must be agreed; no lead volume, appointment count or customer acquisition is guaranteed.'],
+    ['How does the free consumer gig app fit?','The proposed free consumer app supports job-profitability decisions, mileage, expense planning and opt-in discovery of local partner offices. It is a potential referral channel, not a promise that an app user becomes a paying client. This page does not announce App Store availability.'],
+    ['Are the owner tax workshops really free?', 'Yes. Owner tax workshops are free. Dates, topics, format and attendance arrangements will be shared when available. No continuing-education credit or particular certification is being promised.'],
+    ['Are partner software and licenses free too?','The proposal identifies Shuug as the open-source foundation, with partner-ready workflows introduced through validated milestones. Products, licensing, hosting, included access and support costs remain to be confirmed. Free consumer app access and free owner workshops do not make every partner service free. Tax calculation, e-file and banking require separate validation and approval.'],
+    ['Can my office offer services all year?','The proposal includes bookkeeping, qualified small-business assistance, business tax support, gig-worker records help and qualified tax-resolution referrals as well as tax preparation. Start with what your office can properly deliver; availability depends on staffing, credentials, licensing and the operating model.'],
+    ['How will support continue after joining?','The proposal includes staffing and HR resources, operations playbooks, training, shared creative, reputation support and campaign reporting. Agree on the actual support channels, availability and responsibilities before committing; no response time or staffing service is guaranteed here.'],
+    ['What are the fees, territory and agreement terms?', 'Those details are not set out on this information page. Request the written program terms and any required disclosures, review them carefully and get independent advice before signing or paying. No fee, royalty, protected territory or earnings level is implied here.'],
+    ['Does this page send my interest brief?', 'No. The brief is prepared in this tab and downloaded to your device only when you choose. It is not sent to Gig Tax Pros, saved as an application or used to enroll your office. Use Contact & availability to check for a verified way to continue the conversation.'],
+  ],
 };
 
 export const services = [
@@ -101,7 +152,7 @@ export const checklistGroups = [
 ];
 
 export const faqs = [
-  ['Getting started', 'Where should I begin?', 'Use Get Started to choose the kind of help you need and create a preparation plan. It asks about services, years and platforms, not your name, taxpayer ID or financial amounts.'],
+  ['Getting started', 'Where should I begin?', 'Use Get Started to create a preparation plan, then confirm availability, the preparer, scope and fees with your independently owned local office. The planner asks about services, years and platforms, not your name, taxpayer ID or financial amounts.'],
   ['Getting started', 'Can I use this if driving is a side job?', 'Yes. The preparation path includes driving alongside a regular job. Let your tax professional know about all work and other relevant income.'],
   ['Getting started', 'What if this is my first year?', 'Start with the document checklist and note anything you do not yet have. Bring your questions to the preparer before deciding on the service scope.'],
   ['Platforms & records', 'Do I need records from both Uber and Lyft?', 'If you worked on both, gather the available year-end documents from both. Keep other platform and income records available for the same review.'],
@@ -110,7 +161,7 @@ export const faqs = [
   ['Platforms & records', 'What if I did not receive a 1099?', 'A missing information form does not by itself remove the responsibility to report income. Bring your other records and ask your preparer what is needed.'],
   ['Platforms & records', 'Why can a platform total be higher than my bank deposits?', 'Some platform figures describe gross customer payments before fees and other adjustments. Gather the summary and payout records together for review rather than assuming they describe the same number.'],
   ['Platforms & records', 'Does the checklist upload my documents?', 'No. It marks record categories as ready in this tab. It has no file upload, no financial entry and no connection to a client account.'],
-  ['Costs & scope', 'What does tax preparation cost?', 'Fees are being finalized. The pricing page explains the information needed to define a quote. No price, discount or package is implied by using the planner.'],
+  ['Costs & scope', 'What does tax preparation cost?', 'Offices are independently owned. Confirm the local preparer, service scope and fees in writing; no network-wide fee schedule is published here. The pricing page explains what to ask, and using the planner does not create a quote or engagement.'],
   ['Costs & scope', 'Are federal and state returns both included?', 'That must be stated in the engagement and quote. Ask about each tax year, state or other jurisdiction that may be involved.'],
   ['Costs & scope', 'Is bookkeeping included with filing?', 'Do not assume that it is. Ongoing records work, historical cleanup, quarterly reviews and return preparation should each be identified in the agreed scope.'],
   ['Quarterly & mileage', 'Can this website calculate what I should pay?', 'No. It helps organize records and questions. Your payment amount needs a review of your circumstances and the applicable instructions.'],

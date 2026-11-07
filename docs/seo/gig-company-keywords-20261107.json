@@ -1,0 +1,1332 @@
+{
+  "schemaVersion": 1,
+  "researchDate": "2026-11-07",
+  "project": "Gig Tax Pros",
+  "canonicalOrigin": "https://gigtax.pro",
+  "scope": {
+    "market": "United States",
+    "language": "en-US",
+    "initialInventory": 31,
+    "inventoryMeaning": "The 31 company IDs assigned for this release; this is a bounded starting inventory, not every gig company in existence.",
+    "hub": "/gig-companies",
+    "companyRoutePattern": "/gig-companies/{id}-taxes",
+    "status": "Research artifact aligned to 17 delivery and 14 service-company source entries. No indexing, Search Console property verification, sitemap submission, traffic or ranking outcome is established.",
+    "sourceSnapshot": {
+      "delivery": "scripts/rideshare-site/companies-delivery.mjs",
+      "services": "scripts/rideshare-site/companies-services.mjs",
+      "entries": 31
+    }
+  },
+  "methodology": {
+    "methods": [
+      "Public web-search queries for platform-specific tax questions, with official-domain filters on the recorded sample.",
+      "Reading Google Search Central, Google Ads Help, Search Console Help, IRS and platform-owned help pages.",
+      "Read the frozen companion company modules and aligned their exact IDs, names, proposed routes, search phrases and official source links."
+    ],
+    "notPerformed": [
+      "Authenticated Google Ads Keyword Planner research or volume export.",
+      "Google Search Console account access or query/impression export.",
+      "Google Trends comparison, Google Autocomplete capture, paid keyword-tool export, or certified Google SERP rank measurement.",
+      "Provider account login, private records access, tax filing, sitemap submission or live API synchronization."
+    ],
+    "interpretation": "Target phrases are semantic search-intent candidates inferred from official support topics and observed public search results. They are not verified Google keyword demand, keyword difficulty, CPC, monthly search volume, current rank or a traffic forecast.",
+    "metrics": {
+      "monthlySearchVolume": null,
+      "keywordDifficulty": null,
+      "cpc": null,
+      "searchConsoleClicks": null,
+      "searchConsoleImpressions": null,
+      "googleRank": null
+    },
+    "prioritizationBasis": "Editorial priority is based on the existing driver-focused product and the availability of distinctive official tax-document guidance, not measured audience size or competitor traffic.",
+    "sourcePolicy": "Prefer the actual worker/driver/sitter/freelancer support source. Merchant, restaurant, customer and similarly named company pages are not interchangeable. Provider help may describe a past tax year; verify the relevant year before publishing thresholds or specific forms.",
+    "classificationCaveat": "The worker's actual agreement and records control. Editorial worker categories are not individual legal classifications.",
+    "reviewType": "Collaborating-agent source/content review, not independent-provider assurance or legal review."
+  },
+  "googleGuidance": [
+    {
+      "id": "helpful-content",
+      "url": "https://developers.google.com/search/docs/fundamentals/creating-helpful-content",
+      "recommendation": "Give each company page original practical value, clear sourcing and truthful authorship. Financial topics require particular attention to trust; do not invent preparer credentials or expert review."
+    },
+    {
+      "id": "doorway-and-scaled-content",
+      "url": "https://developers.google.com/search/docs/essentials/spam-policies",
+      "recommendation": "Do not multiply near-identical company, city, deduction and 1099 pages simply to capture query variants. Each indexed page needs a useful distinct answer, rather than serving only as a funnel."
+    },
+    {
+      "id": "crawlable-links",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/links-crawlable",
+      "recommendation": "Use real descriptive HTML anchor links from the company hub and related recordkeeping guides. Link every important company page from at least one other discoverable page."
+    },
+    {
+      "id": "canonicalization",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/consolidate-duplicate-urls",
+      "recommendation": "Publish one preferred clean company URL with a self-canonical. Keep canonical, internal links and sitemap consistent; avoid competing .html, slash and alternate-domain copies."
+    },
+    {
+      "id": "sitemap",
+      "url": "https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap",
+      "recommendation": "List preferred public canonical URLs that should be indexed. A sitemap helps discovery but does not establish crawling, indexing or ranking."
+    },
+    {
+      "id": "keyword-planner-metrics",
+      "url": "https://support.google.com/google-ads/answer/3022575",
+      "recommendation": "If authorized access becomes available, export historical keyword estimates with the date range, United States targeting, language and network recorded. Close variants and targeting affect averages; estimates are not promised traffic."
+    },
+    {
+      "id": "search-console-performance",
+      "url": "https://support.google.com/webmasters/answer/7576553/performance-report-search",
+      "recommendation": "Use the verified site's actual queries, pages, impressions, clicks and CTR after launch to revise page priorities. These observations measure this site rather than the total keyword market."
+    },
+    {
+      "id": "faq-feature-status",
+      "url": "https://developers.google.com/search/updates",
+      "recommendation": "Useful visible questions and answers remain appropriate. Google announced that FAQ rich results stopped appearing on May 7, 2026 and removed their documentation in June; do not promise FAQ rich-result eligibility.",
+      "checkedDate": "2026-11-07"
+    }
+  ],
+  "taxSourceGuardrails": [
+    {
+      "url": "https://www.irs.gov/businesses/gig-economy-tax-center",
+      "requirement": "Do not imply that receiving no information form eliminates the need to report gig income. Organize income and expense records and distinguish employee from self-employed work."
+    },
+    {
+      "requirement": "Do not publish a numeric reporting threshold, mileage rate, filing deadline or deduction entitlement from an undated generic template. Verify the relevant tax year, jurisdiction and current primary IRS guidance first."
+    },
+    {
+      "requirement": "A platform may issue different forms for different payments or worker relationships. A 1099-K payment total, a 1099-NEC amount, an annual summary and a bank deposit are not automatically the same measure."
+    },
+    {
+      "requirement": "Do not add a platform's reported gross earnings to the corresponding bank deposits as separate income. Explain reconciliation and retain source records; give no unsupported guarantee about tax treatment."
+    },
+    {
+      "requirement": "An official source describing a tax-document workflow does not establish that Gig Tax Pros has a direct API connection, automatic import, e-file authorization, approved banking integration or live provider sync."
+    },
+    {
+      "requirement": "Do not ask public-site visitors to enter SSNs, platform passwords or tax documents into a keyword landing page or local owner-interest brief."
+    },
+    {
+      "url": "https://www.irs.gov/publications/p463",
+      "requirement": "Use IRS guidance for year-specific tax mechanics, even when a provider's help page includes an illustrative figure. During this review the Uber source and IRS publication disagreed on the 2025 mileage figure; the new page plan deliberately omits numerical rates."
+    }
+  ],
+  "intentClusters": [
+    {
+      "id": "tax-overview",
+      "editorialPriority": 1,
+      "patterns": [
+        "{company} taxes",
+        "{company} tax help",
+        "how to file taxes for {company}"
+      ],
+      "recommendedDestination": "The single canonical company tax guide.",
+      "distinctValue": "Identify the actual worker relationship, payment records and platform-specific first steps."
+    },
+    {
+      "id": "tax-documents",
+      "editorialPriority": 1,
+      "patterns": [
+        "{company} 1099",
+        "{company} tax documents",
+        "{company} tax form download",
+        "where is my {company} 1099"
+      ],
+      "recommendedDestination": "A company-page section initially; create a separate retrieval guide only if it has a substantial independently useful workflow.",
+      "distinctValue": "Link the verified official retrieval/support channel, relevant form types, tax year and correction/deactivated-account process where confirmed."
+    },
+    {
+      "id": "reconciliation",
+      "editorialPriority": 1,
+      "patterns": [
+        "{company} tax summary",
+        "{company} earnings statement",
+        "{company} 1099 does not match deposits"
+      ],
+      "recommendedDestination": "A company-specific explanation linked to a shared record-reconciliation guide.",
+      "distinctValue": "Explain platform-specific fees, reimbursements, tips, cancellations, payout timing and gross-versus-deposit differences only where sources support them."
+    },
+    {
+      "id": "deductions",
+      "editorialPriority": 2,
+      "patterns": [
+        "{company} tax deductions",
+        "{company} business expenses",
+        "{company} write offs"
+      ],
+      "recommendedDestination": "A relevant records checklist on the company page plus a shared, reviewed contractor expense guide.",
+      "distinctValue": "Discuss records for actual work types without promising eligibility or applying contractor rules to W-2 wages."
+    },
+    {
+      "id": "mileage",
+      "editorialPriority": 2,
+      "patterns": [
+        "{company} mileage taxes",
+        "{company} mileage deduction",
+        "{company} mileage log"
+      ],
+      "recommendedDestination": "A company section for vehicle-based work plus the shared mileage-record guide.",
+      "distinctValue": "Clarify what the provider does and does not record; distinguish trip/delivery mileage from a complete contemporaneous business log. Do not assume all travel or commuting is deductible."
+    },
+    {
+      "id": "tax-preparation",
+      "editorialPriority": 2,
+      "patterns": [
+        "{company} tax preparation",
+        "tax preparer for {company} drivers",
+        "{company} tax filing help"
+      ],
+      "recommendedDestination": "The company page's truthful service/contact next step.",
+      "distinctValue": "Explain what records to bring and how to seek help. Do not invent nearby offices, appointments, certifications or guaranteed refunds."
+    },
+    {
+      "id": "mixed-w2-and-contractor",
+      "editorialPriority": 1,
+      "patterns": [
+        "{company} W2 or 1099",
+        "{company} W2 tax documents",
+        "{company} 1099 shifts taxes"
+      ],
+      "recommendedDestination": "A prominent classification section on mixed-workforce company pages.",
+      "distinctValue": "Separate employer wage forms and withholding from contractor records. A single worker may have both categories; do not send every worker directly to a Schedule C checklist."
+    }
+  ],
+  "observedPublicQueries": [
+    {
+      "query": "Uber driver tax summary 1099 tax documents",
+      "domainFilter": [
+        "uber.com",
+        "help.uber.com"
+      ],
+      "evidenceUrls": [
+        "https://www.uber.com/us/en/drive/tax-information/"
+      ],
+      "observation": "Official Uber tax information surfaced annual summaries and tax forms; use these as separate records, not interchangeable totals."
+    },
+    {
+      "query": "DoorDash Dasher tax documents 1099",
+      "domainFilter": [
+        "help.doordash.com"
+      ],
+      "evidenceUrls": [
+        "https://help.doordash.com/en-us/dashers/article/common-dasher-tax-questions"
+      ],
+      "observation": "Official Dasher guidance surfaced the native Dasher-app tax-document workflow. Avoid assuming every company still uses Stripe Express."
+    },
+    {
+      "query": "Rover sitter taxes 1099-K documents",
+      "domainFilter": [
+        "rover.com",
+        "get.rover.com",
+        "support.rover.com"
+      ],
+      "evidenceUrls": [
+        "https://get.rover.com/sitter/taxes"
+      ],
+      "observation": "Official sitter Tax Hub distinguishes payment-processing gross amounts and supporting summaries; customer sales-tax pages are not substitutes for sitter income guidance."
+    },
+    {
+      "query": "Instawork W2 1099 tax documents",
+      "domainFilter": [
+        "help.instawork.com"
+      ],
+      "evidenceUrls": [
+        "https://help.instawork.com/en/articles/2062228-accessing-your-us-tax-documents",
+        "https://help.instawork.com/en/articles/12691234-worker-classification-basics"
+      ],
+      "observation": "Official worker guidance confirms both employee and contractor shift categories, including a worker receiving both kinds of forms."
+    },
+    {
+      "query": "site:support.stripe.com/express/questions/guide-to-1099-tax-forms-for-instacart-shopper \"2023\"",
+      "evidenceUrls": [
+        "https://support.stripe.com/express/questions/guide-to-1099-tax-forms-for-instacart-shopper"
+      ],
+      "observation": "The official Stripe guide expressly distinguishes Instacart 2023-and-later form access through the Shopper channel from 2021–2022 Stripe Express history."
+    }
+  ],
+  "observedQueryLimits": "Queries above were submitted through the available public web-search tool. Search-engine identity, Google SERP position, query popularity and volume were not measured. Tracking parameters were removed from evidence links where the clean official URL was verified or provided by the platform module.",
+  "pagePlan": {
+    "initialStrategy": "One useful company guide per assigned company; answer taxes, forms, recordkeeping and preparation intent together where appropriate. Avoid creating five thin pages per company.",
+    "pageChecklist": [
+      "Unique title, H1, introduction and practical company-specific guidance.",
+      "Verified official worker tax/help links, with date and year limitations identified.",
+      "Classification and payment-form differences explained before expense advice.",
+      "An original records checklist and a truthful next step.",
+      "Related-category and company-hub links.",
+      "A self-canonical URL, readable HTML, accessible source links and inclusion in the preferred-URL sitemap."
+    ],
+    "separatePageThreshold": "Split a forms, deductions, mileage or preparation page only when there is a distinct substantial answer, enough unique primary evidence and observed demand or a clear user-navigation need. Link it intentionally and prevent overlapping pages competing for the same answer.",
+    "keywordUse": "Use one clear primary topic naturally in the title, H1 and opening. Include appropriate related terms where they help the answer; do not repeat a company name, add hidden keyword blocks or prescribe a keyword-density target.",
+    "coverageGoal": "National reach is a goal. Local office, state service and partner-coverage claims require actual confirmed operations; do not create city doorway pages or pretend that an empty office map is a nationwide office network.",
+    "clusterApplicability": {
+      "allCompanyPages": [
+        "tax-overview",
+        "tax-documents",
+        "reconciliation",
+        "deductions",
+        "tax-preparation"
+      ],
+      "vehicleBasedWork": "Add mileage only where the actual work involves a vehicle; remote freelance and helper pages must not imply a vehicle business.",
+      "mixedRoles": "Apply the mixed-w2-and-contractor cluster prominently to Instawork, Wonolo and Veryable; their current source guidance supports both categories."
+    }
+  },
+  "companies": [
+    {
+      "id": "uber",
+      "name": "Uber",
+      "route": "/gig-companies/uber-taxes",
+      "category": "rideshare",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Uber taxes",
+        "Uber 1099",
+        "Uber tax summary",
+        "Uber mileage",
+        "Uber tax deductions",
+        "Uber tax preparation"
+      ],
+      "uniqueCoverage": "Separate annual tax summary, trip gross, platform fees and tax forms.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Uber · US driver and courier tax information",
+            "url": "https://www.uber.com/us/en/drive/tax-information/"
+          },
+          {
+            "label": "IRS · Business use of car",
+            "url": "https://www.irs.gov/taxtopics/tc510"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "uber-eats",
+      "name": "Uber Eats",
+      "route": "/gig-companies/uber-eats-taxes",
+      "category": "delivery",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Uber Eats taxes",
+        "Uber Eats 1099",
+        "Uber Eats tax forms",
+        "Uber Eats mileage",
+        "Uber Eats tax deductions",
+        "Uber Eats tax preparation"
+      ],
+      "uniqueCoverage": "Focus on courier earnings and delivery records; distinguish the Eats work from passenger-driving examples even when the driver account shares tax documents.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Uber · US driver and courier tax information",
+            "url": "https://www.uber.com/us/en/drive/tax-information/"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "lyft",
+      "name": "Lyft",
+      "route": "/gig-companies/lyft-taxes",
+      "category": "rideshare",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Lyft taxes",
+        "Lyft 1099",
+        "Lyft annual summary",
+        "Lyft mileage",
+        "Lyft tax deductions",
+        "Lyft tax preparation"
+      ],
+      "uniqueCoverage": "Explain Annual Summary, tax forms and deposited payouts using Lyft's own driver Tax Center.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Lyft · Tax information for US drivers",
+            "url": "https://help.lyft.com/hc/en-us/all/articles/115012926967"
+          },
+          {
+            "label": "Lyft · US driver taxes and Annual Summary",
+            "url": "https://www.lyft.com/driver/taxes/us"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "doordash",
+      "name": "DoorDash",
+      "route": "/gig-companies/doordash-taxes",
+      "category": "delivery",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "DoorDash taxes",
+        "DoorDash 1099",
+        "Dasher tax forms",
+        "DoorDash mileage",
+        "DoorDash tax deductions",
+        "DoorDash tax preparation"
+      ],
+      "uniqueCoverage": "Use current Dasher-app tax-document access and official support for deactivated or inaccessible accounts; reconcile actual records.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "DoorDash · Dasher Guide to Taxes",
+            "url": "https://help.doordash.com/en-us/dashers/article/common-dasher-tax-questions"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "spark",
+      "name": "Spark Driver",
+      "route": "/gig-companies/spark-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Spark Driver taxes",
+        "Walmart Spark 1099",
+        "Spark Driver tax forms",
+        "Spark Driver mileage",
+        "Spark Driver tax deductions",
+        "Spark tax preparation"
+      ],
+      "uniqueCoverage": "Keep Spark Driver independent from Walmart employee W-2 guidance; date year-specific tax-help instructions explicitly.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Spark Driver · Official FAQs",
+            "url": "https://www.sparkdriverapp.com/en_us/faqs"
+          },
+          {
+            "label": "Spark Driver · Earnings",
+            "url": "https://www.sparkdriverapp.com/en_us/earnings.html"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://www.sparkdriverapp.com/en_us/faqs.html",
+          "https://sparkdriverapp-walmart.helpdocs.io/l/en/article/d8dorui0f0-2025-tax-filing-faqs-xog"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "instacart",
+      "name": "Instacart",
+      "route": "/gig-companies/instacart-taxes",
+      "category": "shopping-delivery",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Instacart taxes",
+        "Instacart 1099",
+        "Instacart shopper tax forms",
+        "Instacart mileage",
+        "Instacart tax deductions",
+        "Instacart tax preparation"
+      ],
+      "uniqueCoverage": "Distinguish the actual shopper work relationship and current tax-document provider; old Stripe Express articles do not establish a current workflow.",
+      "workerCategory": "verify-shopper-relationship",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Stripe · Instacart Shopper tax-form guide",
+            "url": "https://support.stripe.com/express/questions/guide-to-1099-tax-forms-for-instacart-shopper"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "amazon-flex",
+      "name": "Amazon Flex",
+      "route": "/gig-companies/amazon-flex-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Amazon Flex taxes",
+        "Amazon Flex 1099",
+        "Amazon Flex tax forms",
+        "Amazon Flex mileage",
+        "Amazon Flex tax deductions",
+        "Amazon Flex tax preparation"
+      ],
+      "uniqueCoverage": "Use Flex driver records rather than Amazon employee or seller tax guidance. Do not invent a signed-in download menu.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Amazon Flex · Official FAQs and support starting point",
+            "url": "https://flex.amazon.com/faq"
+          },
+          {
+            "label": "Amazon · Tax Information Interview Guide",
+            "url": "https://taxcentral.amazon.com/tax-interview/help?locale=en_US&nodeId=201588330"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "grubhub",
+      "name": "Grubhub",
+      "route": "/gig-companies/grubhub-taxes",
+      "category": "delivery",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Grubhub taxes",
+        "Grubhub 1099",
+        "Grubhub driver tax forms",
+        "Grubhub mileage",
+        "Grubhub tax deductions",
+        "Grubhub tax preparation"
+      ],
+      "uniqueCoverage": "Use driver payment/tax help rather than restaurant merchant tax articles, including year-end delivery/payment timing where verified.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Grubhub · How will I receive my 1099 form?",
+            "url": "https://driver-support.grubhub.com/hc/en-us/articles/360035687032-How-will-I-receive-my-1099-form"
+          },
+          {
+            "label": "Grubhub · Year-end delivery and payment timing",
+            "url": "https://driver-support.grubhub.com/hc/en-us/articles/360036045531-I-made-a-delivery-at-the-end-of-the-year-but-it-doesn-t-seem-to-be-reflected-on-my-1099-Why"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://driver-support.grubhub.com/hc/en-us/categories/115001254786-Getting-Paid"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "roadie",
+      "name": "Roadie",
+      "route": "/gig-companies/roadie-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Roadie taxes",
+        "Roadie 1099",
+        "Roadie tax forms",
+        "Roadie mileage",
+        "Roadie tax deductions",
+        "Roadie tax preparation"
+      ],
+      "uniqueCoverage": "Use actual driver earnings records and support. State-specific adjustment or stipend guidance is not a nationwide tax rule.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Roadie · Driver terms and conditions",
+            "url": "https://driver.roadie.com/terms-conditions/"
+          },
+          {
+            "label": "Roadie · Regional payment and adjustment guidance",
+            "url": "https://support.roadie.com/support/article/California-Prop-22-What-You-Need-to-Know"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://driver.roadie.com/resources/index.html"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "shipt",
+      "name": "Shipt",
+      "route": "/gig-companies/shipt-taxes",
+      "category": "shopping-delivery",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Shipt taxes",
+        "Shipt 1099",
+        "Shipt shopper tax forms",
+        "Shipt mileage",
+        "Shipt tax deductions",
+        "Shipt tax preparation"
+      ],
+      "uniqueCoverage": "Use shopper tax help and actual shopping/delivery records, without confusing customer receipts with shopper business records.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Shipt · What about taxes?",
+            "url": "https://help.shipt.com/255310-what-about-taxes-how-does-that-work"
+          },
+          {
+            "label": "Stripe · Shipt Shopper tax-form guide",
+            "url": "https://support.stripe.com/express/questions/guide-to-1099-tax-forms-for-shipt-shoppers"
+          },
+          {
+            "label": "Shipt Driver Hub · Payment history",
+            "url": "https://drivers.shipt.com/kb/guide/en/payment-history-fbBLetVEWQ/Steps/5018699"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://help.shipt.com/kb/guide/en/how-do-shoppers-with-shipt-file-taxes-6THKKCvNGr/Steps/5018783"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "gopuff",
+      "name": "Gopuff",
+      "route": "/gig-companies/gopuff-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Gopuff taxes",
+        "Gopuff 1099",
+        "Gopuff driver tax forms",
+        "Gopuff mileage",
+        "Gopuff tax deductions",
+        "Gopuff tax preparation"
+      ],
+      "uniqueCoverage": "Verify current delivery-partner tax support and document provider; avoid assuming employee and delivery-partner relationships match.",
+      "workerCategory": "verify-work-relationship",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Gopuff · Delivery Partner 1099 Tax Forms FAQ",
+            "url": "https://help.gopuff.com/es/articles/delivery-partner-pay/1099-tax-forms-faq/6772d5950de4af09be98ccb9"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "favor",
+      "name": "Favor",
+      "route": "/gig-companies/favor-taxes",
+      "category": "delivery",
+      "editorialPriority": 1,
+      "querySeeds": [
+        "Favor Runner taxes",
+        "Favor 1099-K",
+        "Favor tax forms",
+        "Favor Runner mileage",
+        "Favor tax deductions",
+        "Favor tax preparation"
+      ],
+      "uniqueCoverage": "Explain Runner gross-payment records and reimbursement distinctions from the actual official Runner guide.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Favor Runners · Taxes",
+            "url": "https://favor-runners.zendesk.com/hc/en-us/articles/8704378062866-Taxes"
+          },
+          {
+            "label": "Favor Runners · Reimbursements",
+            "url": "https://favor-runners.zendesk.com/hc/en-us/articles/8704345472530-Reimbursements"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "curri",
+      "name": "Curri",
+      "route": "/gig-companies/curri-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Curri taxes",
+        "Curri 1099",
+        "Curri driver tax forms",
+        "Curri mileage",
+        "Curri tax deductions",
+        "Curri tax preparation"
+      ],
+      "uniqueCoverage": "Use the driver 1099/payout help rather than customer shipping or vendor payment instructions.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Curri · 1099 Tax Form FAQ",
+            "url": "https://help.curri.com/en/articles/4757878-1099-tax-form-faq"
+          },
+          {
+            "label": "Curri · Driver agreement and payment terms",
+            "url": "https://www.curri.com/driver-agreement"
+          },
+          {
+            "label": "Curri · Carrier/Broker Agreement",
+            "url": "https://www.curri.com/broker-carrier-agreement"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://help.curri.com/en/collections/19772952-getting-paid"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "goshare",
+      "name": "GoShare",
+      "route": "/gig-companies/goshare-taxes",
+      "category": "delivery-moving",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "GoShare taxes",
+        "GoShare 1099-K",
+        "GoShare driver tax forms",
+        "GoShare mileage",
+        "GoShare tax deductions",
+        "GoShare tax preparation"
+      ],
+      "uniqueCoverage": "Use the current driver FAQ and work records; older recruitment-blog tax thresholds need current-year verification.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "GoShare · Driver FAQs",
+            "url": "https://goshare.co/drivers/faq/"
+          },
+          {
+            "label": "GoShare · Delivery-professional vehicle and work information",
+            "url": "https://goshare.co/drivers/"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "veho",
+      "name": "Veho",
+      "route": "/gig-companies/veho-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Veho taxes",
+        "Veho 1099",
+        "Veho driver tax forms",
+        "Veho mileage",
+        "Veho tax deductions",
+        "Veho tax preparation"
+      ],
+      "uniqueCoverage": "Link actual driver support and explain the document checklist without inventing a public tax-download workflow.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Veho · Official driver-partner and route information",
+            "url": "https://www.shipveho.com/drive"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "dispatch",
+      "name": "Dispatch",
+      "route": "/gig-companies/dispatch-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Dispatch driver taxes",
+        "Dispatch 1099",
+        "Dispatch driver tax forms",
+        "Dispatch delivery mileage",
+        "Dispatch tax deductions",
+        "Dispatch tax preparation"
+      ],
+      "uniqueCoverage": "Identify Dispatch delivery-driver support distinctly from other businesses called Dispatch; use current payout/tax instructions.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Dispatch · Payment information and tax-form guidance",
+            "url": "https://support.dispatchit.com/en/articles/8654369-how-do-i-set-up-my-payment-information"
+          },
+          {
+            "label": "Dispatch · Driver and courier-partner arrangements",
+            "url": "https://www.dispatchit.com/drivers"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "skipcart",
+      "name": "Skipcart",
+      "route": "/gig-companies/skipcart-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Skipcart taxes",
+        "Skipcart 1099",
+        "Skipcart tax forms",
+        "Skipcart mileage",
+        "Skipcart tax deductions",
+        "Skipcart tax preparation"
+      ],
+      "uniqueCoverage": "Use English driver tax guidance and actual relevant year rather than copying an older form label from another locale.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Skipcart Driver Support · Taxes",
+            "url": "https://support.skipcart.com/en/support/solutions/articles/43000575572-taxes"
+          },
+          {
+            "label": "Skipcart · Independent Contractor Agreement",
+            "url": "https://skipcart.com/independent-contractor-agreement/"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-delivery.mjs"
+    },
+    {
+      "id": "taskrabbit",
+      "name": "Taskrabbit",
+      "route": "/gig-companies/taskrabbit-taxes",
+      "category": "local-services",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Taskrabbit taxes",
+        "Taskrabbit 1099-K",
+        "Tasker income records",
+        "Taskrabbit expense records",
+        "Taskrabbit tax preparation"
+      ],
+      "uniqueCoverage": "Distinguish payment-processing form guidance from employee wage reporting; collect task fees, supplies and relevant job records.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Taskrabbit · Tasker Tax Center",
+            "url": "https://support.taskrabbit.com/hc/en-us/sections/46208749501339-Tasker-Tax-Center"
+          },
+          {
+            "label": "Taskrabbit · Download transaction history",
+            "url": "https://support.taskrabbit.com/hc/en-us/articles/46260501189275-Where-Do-I-Find-My-Total-Task-Earnings-Transaction-History"
+          },
+          {
+            "label": "Taskrabbit · Accessing a 1099-K",
+            "url": "https://support.taskrabbit.com/hc/en-us/articles/46260505464603-When-Will-I-get-my-1099-K"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://support.taskrabbit.com/hc/en-us/articles/46260486452123-Am-I-Eligible-to-Receive-a-1099-K"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "rover",
+      "name": "Rover",
+      "route": "/gig-companies/rover-taxes",
+      "category": "pet-care",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Rover sitter taxes",
+        "Rover 1099-K summary",
+        "Rover gross versus net earnings",
+        "pet sitter tax records",
+        "Rover tax preparation"
+      ],
+      "uniqueCoverage": "Use sitter income and processing summaries, not Rover customer sales-tax or unrelated RoverPass guidance.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Rover · US sitter tax hub",
+            "url": "https://get.rover.com/sitter/taxes"
+          },
+          {
+            "label": "Rover · Getting paid for bookings",
+            "url": "https://support.rover.com/hc/en-us/articles/202838244-How-do-I-get-paid-for-bookings"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "wag",
+      "name": "Wag!",
+      "route": "/gig-companies/wag-taxes",
+      "category": "pet-care",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Wag caregiver taxes",
+        "Wag 1099 tax documents",
+        "Wag yearly payment history",
+        "dog walker expense records",
+        "Wag tax preparation"
+      ],
+      "uniqueCoverage": "Use Pet Caregiver income guidance and current tax-document type; separate walks, sittings and relevant expense records.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Wag! · Tax documentation and yearly payments",
+            "url": "https://support.wagwalking.com/en_us/when-and-how-will-i-receive-my-1099-tax-documentation-pcg-r1EIb8IN5"
+          },
+          {
+            "label": "Wag! · Independent-contractor status",
+            "url": "https://support.wagwalking.com/what-is-an-independent-contractor-pcg-SJp0EHIVq"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "upwork",
+      "name": "Upwork",
+      "route": "/gig-companies/upwork-taxes",
+      "category": "freelance",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Upwork freelancer taxes",
+        "Upwork 1099 tax forms",
+        "Upwork transaction history",
+        "Upwork expense records",
+        "Upwork tax preparation"
+      ],
+      "uniqueCoverage": "Distinguish client payments, platform fees and outside-platform income; remote freelancing is not a driving-mileage page.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Upwork · US freelancer income reporting",
+            "url": "https://support.upwork.com/hc/en-us/articles/211063958-Report-income-as-a-U-S-freelancer-on-Upwork"
+          },
+          {
+            "label": "Upwork · Invoices and reports",
+            "url": "https://support.upwork.com/hc/en-us/articles/218680988-How-to-view-your-invoices-and-reports"
+          },
+          {
+            "label": "Upwork · Completing Form W-9",
+            "url": "https://support.upwork.com/hc/en-us/articles/211063948-How-to-complete-Form-W-9-on-Upwork"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "fiverr",
+      "name": "Fiverr",
+      "route": "/gig-companies/fiverr-taxes",
+      "category": "freelance",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Fiverr freelancer taxes",
+        "Fiverr earnings statement",
+        "Fiverr W-9 tax documents",
+        "Fiverr expense records",
+        "Fiverr tax preparation"
+      ],
+      "uniqueCoverage": "Use freelancer/seller payment and fee records with the correct United States form guidance, not buyer invoice instructions.",
+      "workerCategory": "contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Fiverr · Your earnings page",
+            "url": "https://help.fiverr.com/hc/en-us/articles/9234443621137-Your-earnings-page"
+          },
+          {
+            "label": "Fiverr · Freelancer invoices and earnings documents",
+            "url": "https://help.fiverr.com/hc/en-us/articles/36984069815441-Downloading-updating-and-troubleshooting-your-Fiverr-invoices"
+          },
+          {
+            "label": "Fiverr · W-9 collection",
+            "url": "https://help.fiverr.com/hc/en-us/articles/360011135837-W-9-collection"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "thumbtack",
+      "name": "Thumbtack",
+      "route": "/gig-companies/thumbtack-taxes",
+      "category": "local-services",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Thumbtack pro taxes",
+        "Thumbtack lead fee records",
+        "Thumbtack payment records",
+        "home service business tax preparation",
+        "Thumbtack expense records"
+      ],
+      "uniqueCoverage": "Distinguish lead-generation charges from customer payment processing and the pro's full business income.",
+      "workerCategory": "verify-pro-payment-arrangement",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Thumbtack · Work and leads for pros",
+            "url": "https://www.thumbtack.com/pro/jobs"
+          },
+          {
+            "label": "Thumbtack · Terms and marketplace payments",
+            "url": "https://www.thumbtack.com/terms"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "instawork",
+      "name": "Instawork",
+      "route": "/gig-companies/instawork-taxes",
+      "category": "shift-work",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Instawork taxes",
+        "Instawork W-2 and 1099",
+        "Instawork tax documents",
+        "Instawork pay stub records",
+        "Instawork tax preparation"
+      ],
+      "uniqueCoverage": "Prominently split W-2 employee shifts from 1099 contractor shifts; workers may need both forms.",
+      "workerCategory": "mixed-w2-and-contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Instawork · Accessing US tax documents",
+            "url": "https://help.instawork.com/en/articles/2062228-accessing-your-us-tax-documents"
+          },
+          {
+            "label": "Instawork · US payment streams",
+            "url": "https://help.instawork.com/en/articles/7245818-how-do-i-get-paid-us"
+          },
+          {
+            "label": "Instawork · W-2 onboarding",
+            "url": "https://help.instawork.com/en/articles/3300620-w-2-faq-how-to-complete-paperwork-and-start-booking-us-based-pros"
+          }
+        ],
+        "additionalObservedUrls": [
+          "https://help.instawork.com/en/articles/12691234-worker-classification-basics"
+        ]
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "wonolo",
+      "name": "Wonolo",
+      "route": "/gig-companies/wonolo-taxes",
+      "category": "shift-work",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Wonolo taxes",
+        "Wonolo Grow2 W-2",
+        "Wonolo 1099 records",
+        "Wonolo tax documents",
+        "Wonolo tax preparation"
+      ],
+      "uniqueCoverage": "Current Grow2 guidance includes W-2 work alongside contractor jobs. Keep the actual employer, assignment and payment stream identifiable rather than using older contractor-only assumptions.",
+      "workerCategory": "mixed-w2-and-contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Wonolo · Current Grow2 and contractor job guidance",
+            "url": "https://support-grow2.wonolo.com/en_us/what-should-i-know-to-get-started-on-wonolo-%28w-2%29-HJfXpXQ1bg"
+          },
+          {
+            "label": "Wonolo · W-2 tax forms",
+            "url": "https://support-grow2.wonolo.com/en_us/will-i-receive-a-w-2-tax-form-%28w-2%29-SJSCXVsTll"
+          },
+          {
+            "label": "Wonolo · Current legal agreements",
+            "url": "https://info.wonolo.com/wonolo-legal/"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "shiftsmart",
+      "name": "Shiftsmart",
+      "route": "/gig-companies/shiftsmart-taxes",
+      "category": "shift-work",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Shiftsmart taxes",
+        "Shiftsmart 1099-NEC",
+        "Shiftsmart earnings records",
+        "Shiftsmart tax documents",
+        "Shiftsmart tax preparation"
+      ],
+      "uniqueCoverage": "Check current worker/employment arrangement and actual form-provider guidance rather than applying a blanket all-shifts rule.",
+      "workerCategory": "contractor-guidance-currently-published",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Shiftsmart · Tax forms and earnings",
+            "url": "https://help.shiftsmart.com/hc/en-us/articles/29334658725524-1099-Tax-Forms-and-Earnings"
+          },
+          {
+            "label": "Shiftsmart · Partner work and status",
+            "url": "https://shiftsmart.com/en-us/partners"
+          },
+          {
+            "label": "Shiftsmart · Partner terms",
+            "url": "https://shiftsmart.com/en-us/partner-terms-of-service"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "veryable",
+      "name": "Veryable",
+      "route": "/gig-companies/veryable-taxes",
+      "category": "shift-work",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Veryable taxes",
+        "Veryable W-2 Ops",
+        "Veryable 1099 operator records",
+        "Veryable tax documents",
+        "Veryable tax preparation"
+      ],
+      "uniqueCoverage": "Current Operator terms describe both contractor Ops and W-2 employment paths. Separate actual employer/payroll records, withholding, contractor payments and reimbursements before reviewing costs.",
+      "workerCategory": "mixed-w2-and-contractor",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Veryable · Current operator terms, including W-2 Ops",
+            "url": "https://www.veryableops.com/terms-of-service"
+          },
+          {
+            "label": "Veryable · Contractor and VWS employee models",
+            "url": "https://www.veryableops.com/veryable-vs-staffing"
+          },
+          {
+            "label": "Veryable · Operator work overview",
+            "url": "https://www.veryableops.com/find-work"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "bungii",
+      "name": "Bungii",
+      "route": "/gig-companies/bungii-taxes",
+      "category": "delivery-moving",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Bungii driver taxes",
+        "Bungii delivery income records",
+        "Bungii truck expense records",
+        "Bungii mileage records",
+        "Bungii tax preparation"
+      ],
+      "uniqueCoverage": "Explain driver earnings and relevant vehicle/moving records using actual current driver support.",
+      "workerCategory": "verify-driver-relationship",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Bungii · Delivery-pro vehicles and equipment",
+            "url": "https://bungii.com/drive/"
+          },
+          {
+            "label": "Bungii · Pickup-truck delivery work",
+            "url": "https://bungii.com/resources/pickup-truck-delivery-jobs/"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "lugg",
+      "name": "Lugg",
+      "route": "/gig-companies/lugg-taxes",
+      "category": "delivery-moving",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "Lugg mover taxes",
+        "Lugg driver expense records",
+        "Lugg helper tax records",
+        "Lugg tip payment records",
+        "Lugg tax preparation"
+      ],
+      "uniqueCoverage": "Distinguish driver and helper arrangements; the records checklist must fit the person's actual role.",
+      "workerCategory": "verify-driver-and-helper-relationship",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Lugg · Mover roles, payments and tips",
+            "url": "https://lugg.com/mover"
+          },
+          {
+            "label": "Lugg · Moving-helper work",
+            "url": "https://lugg.com/mover/jobs/helper"
+          },
+          {
+            "label": "Lugg · Role and vehicle requirements",
+            "url": "https://lugg.com/mover/requirements"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "deliverthat",
+      "name": "DeliverThat",
+      "route": "/gig-companies/deliverthat-taxes",
+      "category": "delivery",
+      "editorialPriority": 2,
+      "querySeeds": [
+        "DeliverThat driver taxes",
+        "DeliverThat catering delivery records",
+        "DeliverThat mileage expenses",
+        "DeliverThat payment records",
+        "DeliverThat tax preparation"
+      ],
+      "uniqueCoverage": "Use the correct catering-delivery driver payment source and actual tips/reimbursement records where verified.",
+      "workerCategory": "verify-driver-relationship",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "DeliverThat · Driver work and delivery bags",
+            "url": "https://www.ideliverthat.com/driver"
+          },
+          {
+            "label": "DeliverThat · Catering-driver app",
+            "url": "https://www.ideliverthat.com/driver-app"
+          },
+          {
+            "label": "DeliverThat · Contractor-driver account information",
+            "url": "https://www.ideliverthat.com/privacy-policy"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    },
+    {
+      "id": "handy",
+      "name": "Handy / Angi Services",
+      "route": "/gig-companies/handy-taxes",
+      "category": "local-services",
+      "editorialPriority": 3,
+      "querySeeds": [
+        "Handy pro tax records",
+        "Angi Services tax preparation",
+        "Handy payment history",
+        "Handy cleaner expense records",
+        "home service contractor tax help"
+      ],
+      "uniqueCoverage": "Verify the present Handy/Angi professional identity and keep legacy support separate from current onboarding or payment promises.",
+      "workerCategory": "verify-actual-professional-agreement",
+      "officialEvidence": {
+        "sources": [
+          {
+            "label": "Handy · Official support and Angi Services professional guidance",
+            "url": "https://help.handy.com/handysupport/s/topic/0TOHr000000hV1JOAU/how-handy-works"
+          },
+          {
+            "label": "Handy · Current service and payment terms",
+            "url": "https://www.handy.com/terms"
+          }
+        ],
+        "additionalObservedUrls": []
+      },
+      "moduleSourceFile": "scripts/rideshare-site/companies-services.mjs"
+    }
+  ],
+  "measurementLifecycle": [
+    {
+      "stage": "Before publication",
+      "actions": [
+        "Check every preferred URL, canonical, title, description and source link.",
+        "Confirm that public robots/CSP and redirects do not block the intended static pages.",
+        "Verify no test claims, fake offices, stale provider-menu instructions or unsupported filing promises remain."
+      ]
+    },
+    {
+      "stage": "After an authorized publication",
+      "actions": [
+        "Confirm the actual live canonical domain and HTTPS response for hub and representative company pages.",
+        "If account access is provided, verify the correct Search Console property and submit the generated preferred-URL sitemap; record the actual submission outcome separately.",
+        "Use URL Inspection and Page Indexing observations to diagnose discovery/indexing. Do not report submitted, indexed or ranking merely because a sitemap exists."
+      ]
+    },
+    {
+      "stage": "After sufficient real impressions",
+      "actions": [
+        "Export page and query data by country, device and date range.",
+        "Group actual query/page pairs by the intent clusters in this artifact, then improve unclear titles or missing answers.",
+        "Check whether one page satisfies closely related intents before expanding the page inventory.",
+        "If available, compare authorized Keyword Planner estimates for new topics using documented targeting; preserve estimated demand separately from actual site results."
+      ]
+    },
+    {
+      "stage": "Maintenance",
+      "actions": [
+        "Recheck provider document-navigation instructions before tax-season updates.",
+        "Reverify current tax-year IRS facts and source changes.",
+        "Record changes and measured outcomes without promising rankings, leads, refunds or revenue."
+      ]
+    }
+  ],
+  "publicationBoundary": "No provider affiliation, endorsement, approved integration or API access is established by a company-named informational page. Use truthful independent service wording.",
+  "reviewNotes": {
+    "reviewScope": "Source and content review only. No screenshot-based visual acceptance, Google account metrics, live deployment, indexing proof or independent-provider security assurance.",
+    "highImpactPagesChecked": [
+      "uber",
+      "uber-eats",
+      "lyft",
+      "doordash",
+      "instacart",
+      "taskrabbit",
+      "instawork",
+      "veryable",
+      "shiftsmart"
+    ],
+    "correctnessCorrection": "Lyft's Annual Summary eligibility was corrected to drivers who had earnings during the year, rather than every registered driver.",
+    "sourceLimitations": [
+      "Many provider help pages discuss the prior filing season. Access instructions and tax-year claims require later rechecking.",
+      "Generic official FAQs for Amazon Flex, Spark and Veho do not establish a publicly verified current tax-document download menu."
+    ],
+    "companyPageReviewMeaning": "Source files and major factual boundaries were reviewed. Linked sources were researched by the collaborating module authors; this reviewer additionally retrieved the primary pages listed in highImpactPagesChecked. This is not a separate independent-provider audit.",
+    "providerHelpYearLimits": {
+      "spark": "An additional observed official help article explicitly describes 2025 documents; the page itself uses generic current FAQs and does not promise a menu.",
+      "amazon-flex": "The Flex FAQ returned an access error to this research fetcher. An official Amazon tax-interview reference is linked; a current Flex tax-download menu was not verified.",
+      "roadie": "A linked California adjustment article must not be generalized to all states or treated as all earnings.",
+      "veho": "The linked current driver-partner page establishes route work, not a public tax-document download workflow.",
+      "gopuff": "The verified FAQ URL contains an /es/ locale path; the companion researcher observed English FAQ content. Users can use official support if language or routing changes.",
+      "instacart": "The official Stripe article distinguishes 2023-and-later Shopper access from earlier Stripe Express delivery."
+    },
+    "companyContentEntriesReviewed": 31,
+    "currentMixedRoleExamples": [
+      "instawork",
+      "wonolo",
+      "veryable"
+    ],
+    "handyIdentity": "The source module uses Handy / Angi Services with current official support and terms; this does not establish that every Angi-related account has the same payer or tax-document process."
+  }
+}

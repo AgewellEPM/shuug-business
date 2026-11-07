@@ -12,12 +12,14 @@ function page(slug = "", config = {}, hash = "") {
   w.fetch = (async () => ({ ok: true, json: async () => config })) as never;
   w.HTMLDialogElement.prototype.showModal = function () { this.open = true; };
   w.HTMLDialogElement.prototype.close = function () { this.open = false; this.dispatchEvent(new w.Event("close")); };
-  w.eval(readFileSync(path.join(source,"links.js"),"utf8")); w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
+  w.eval(readFileSync(path.join(source,"links.js"),"utf8")); w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"company-catalog.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
   return dom;
 }
 it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
-  expect(manifest.aliases).toHaveLength(18);
+  expect(manifest.aliases.filter((slug: string) => !slug.startsWith('gig-companies/'))).toHaveLength(20);
+  expect(manifest.aliases).toContain("gig-companies");
+  expect(manifest.aliases).toContain("join-the-family");
   for (const slug of ["", ...manifest.aliases]) {
     const dom = page(slug); const d = dom.window.document;
     try {
