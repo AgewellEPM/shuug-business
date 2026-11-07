@@ -10,7 +10,6 @@ if (!publicHttpsUrl(process.env.RIDESHARE_SITE_ORIGIN)) throw new Error('The pub
 const { renderedPages } = await import('./rideshare-site/pages.mjs');
 const { renderHome, renderPage } = await import('./rideshare-site/layout.mjs');
 const { origin } = await import('./rideshare-site/content.mjs');
-const { companyNames } = await import('./rideshare-site/companies.mjs');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const destination = path.join(root, `deployments/rideshare-tax-pros/${cloudflare ? '.cloudflare' : '.vercel'}/output`);
 const source = path.join(root, 'public/rideshare-tax-pros');
@@ -21,12 +20,11 @@ const config = JSON.parse(readFileSync(path.join(source, 'site-config.json'), 'u
 for (const key of ['workspaceUrl', 'drakePortalUrl']) if (config[key] !== null) {
   if (!publicHttpsUrl(config[key])) throw new Error(`${key} must use a hosted HTTPS domain without embedded credentials.`);
 }
-const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-src https://www.openstreetmap.org; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
+const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
 const staticPath = cloudflare ? destination : path.join(destination, 'static');
 rmSync(staticPath, { recursive: true, force: true });
 mkdirSync(staticPath, { recursive: true });
 cpSync(source, staticPath, { recursive: true });
-writeFileSync(path.join(staticPath, 'company-catalog.js'), `window.gigTaxCompanies = Object.freeze(${JSON.stringify(companyNames)});\n`);
 mkdirSync(path.join(staticPath, '.well-known'), { recursive: true });
 writeFileSync(path.join(staticPath, '.well-known/apple-app-site-association'), JSON.stringify(appleAppAssociation(config.iosAppId), null, 2));
 writeFileSync(path.join(staticPath, 'index.html'), home);
