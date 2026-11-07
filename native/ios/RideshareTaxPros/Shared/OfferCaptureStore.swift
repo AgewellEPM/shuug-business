@@ -5,6 +5,7 @@ import UserNotifications
 struct CapturedOfferEnvelope: Codable {
   var sessionId: UUID, scope: String, offer: ObservedOffer
   var normalized: UniversalGigOffer? = nil
+  var reviewedInApp: Bool? = nil
   var normalizedOffer: UniversalGigOffer { normalized ?? UniversalGigOffer.observation(offer) }
 }
 struct OfferCaptureStatus: Codable {
@@ -55,7 +56,18 @@ enum OfferCaptureStore {
     var universal = normalized ?? UniversalGigOffer.observation(offer)
     universal.offerId = offer.id
     let envelope = CapturedOfferEnvelope(sessionId: session.id, scope: session.scope, offer: offer, normalized: universal)
-    try write(envelope, name: offer.id.uuidString + ".json")
+    try retain(envelope)
+  }
+  /// Keep the original extracted fields for diagnostics after explicit in-app save.
+  /// This never creates, extends or changes a screen-reader session.
+  static func keepReviewedScreenshot(_ parsed: ParsedOfferCapture, scope: String) throws {
+    guard parsed.observation.source == .sharedScreenshot, parsed.normalized.source == .sharedScreenshot,
+      parsed.observation.id == parsed.normalized.id else { throw GigDispatchError.invalidInput }
+    try retain(CapturedOfferEnvelope(sessionId: UUID(), scope: scope, offer: parsed.observation,
+      normalized: parsed.normalized, reviewedInApp: true))
+  }
+  private static func retain(_ envelope: CapturedOfferEnvelope) throws {
+    try write(envelope, name: envelope.offer.id.uuidString + ".json")
     // These are transient, unconfirmed observations, not journal entries.
     let root = try root()
     let files = try FileManager.default.contentsOfDirectory(at: root, includingPropertiesForKeys: [.contentModificationDateKey])

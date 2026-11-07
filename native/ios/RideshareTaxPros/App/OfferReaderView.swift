@@ -17,6 +17,10 @@ struct OfferReaderView: View {
   @FocusState private var editing: Bool
   var body: some View {
     Form {
+      Section("Learn with a practice job") {
+        ScreenshotGuideButton()
+        NavigationLink("Choose screenshot without screen sharing") { OfferScreenshotImportView() }
+      }
       Section("Should I take this job?") {
         Text("Read a visible offer, check its estimated profit, then make the actual decision in your gig app.").font(.headline)
         Text("Payout − fees − total miles × your vehicle cost. Pickup, waiting and unpaid travel matter. Home direction stays unknown until the drop-off and route are checked.").font(.footnote)

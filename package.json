@@ -37,6 +37,8 @@
     "workflow:worker": "tsx scripts/workflow-worker.ts",
     "test:setup": "vitest run src/lib/getting-started",
     "website-payments:worker": "tsx scripts/website-payment-worker.ts",
+    "gig-telemetry:worker": "tsx scripts/gig-telemetry-worker.ts",
+    "gig-telemetry:install": "tsx scripts/install-gig-telemetry-worker.ts",
     "postinstall": "prisma generate"
   },
   "dependencies": {

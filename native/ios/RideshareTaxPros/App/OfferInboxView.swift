@@ -19,6 +19,7 @@ struct OfferInboxView: View {
         }
         Text("Compare observed offers across your gig apps. Availability is checked in the original app.")
           .font(.caption).foregroundStyle(Brand.muted)
+        ScreenshotHelpCard()
         HStack {
           NavigationLink { OfferReaderView() } label: { Label("Read an offer", systemImage: "viewfinder") }
           Button { entering = true } label: { Label("Enter", systemImage: "plus") }.accessibilityIdentifier("offers.enter")

@@ -15,7 +15,7 @@ extension DriverModel {
     var service = OfferIngestionService(offers: journal.gigOffers ?? [], logs: journal.gigOfferLogs ?? [])
     let previous = service.offers.map { $0.availabilityStatus }
     var imported = Set<String>()
-    for envelope in captured {
+    for envelope in captured where envelope.reviewedInApp != true {
       let key = journalScope + "|" + envelope.offer.id.uuidString
       guard !importedCaptureIDs.contains(key) else { continue }
       do { try service.ingest(envelope.normalizedOffer, now: now); imported.insert(key) }

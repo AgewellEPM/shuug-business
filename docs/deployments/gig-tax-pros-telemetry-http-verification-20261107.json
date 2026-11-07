@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T22:39:01.549Z",
+  "buildID": "-orrIlj9ul0XV8ixITvtV",
+  "nativeProbeSHA256": "0b208dff8851115fd5db73254b4b1c5725e29294030e0d95fb011e0f3f40d161",
+  "checks": [
+    "compiled API denies anonymous access and isolates invited accounts",
+    "encrypted fixture records decode with original decimals, delivery delay and live-offer limits",
+    "compiled browser portal and SDK script route load with private headers",
+    "single-use native browser handoff issues only an HttpOnly client cookie",
+    "cross-origin writes and unconfigured provider linking fail closed",
+    "actual compiled WorkspaceClient logs in, decodes connected work, validates handoff origin and queues sync"
+  ],
+  "providerData": "Synthetic encrypted fixtures only",
+  "realArgyleAccessVerified": false,
+  "physicalIPhoneVerified": false,
+  "diagnosticServerStopped": true,
+  "existingPort3126Touched": false
+}

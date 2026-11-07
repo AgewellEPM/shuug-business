@@ -215,6 +215,24 @@ final class WorkspaceClient {
     }
     return (data, response)
   }
+  func connectedWork() async throws -> ConnectedWorkSummary {
+    let (data, _) = try await taxRequest("connections/argyle/summary", maximum: 2 * 1024 * 1024)
+    return try JSONDecoder().decode(ConnectedWorkSummary.self, from: data)
+  }
+  func connectedWorkLink() async throws -> URL {
+    struct Reply: Decodable { let url: URL }
+    let (data, _) = try await taxRequest("connections/argyle/handoff", method: "POST", body: Data("{}".utf8), maximum: 16_000)
+    let url = try JSONDecoder().decode(Reply.self, from: data).url
+    guard url.scheme == origin.scheme, url.host == origin.host, url.port == origin.port,
+      url.path == "/api/website/customer/connections/argyle/handoff",
+      url.user == nil, url.password == nil, url.fragment == nil else {
+      throw WorkspaceError.message("The account connection returned an unexpected address.")
+    }
+    return url
+  }
+  func checkConnectedWork() async throws {
+    _ = try await taxRequest("connections/argyle/sync", method: "POST", body: Data("{}".utf8), maximum: 16_000)
+  }
   func taxWorkspace() async throws -> TaxWorkspaceSummary? {
     let (data, _) = try await taxRequest("driver/tax", maximum: 2 * 1024 * 1024)
     let reply = try WireJSON.decoder().decode(TaxWorkspaceReply.self, from: data)
@@ -289,4 +307,44 @@ final class WorkspaceClient {
     }
     return try WorkspaceAddress.parse(text)
   }
+}
+
+struct ConnectedWorkSummary: Decodable {
+  struct Account: Decodable, Identifiable {
+    let id: String
+    let name: String
+    let status: String
+    let refreshFrequency: String?
+    let limitations: String?
+  }
+  struct WorkRecord: Decodable {
+    let id: String
+    let kind: String
+    let platform: String?
+    let status: String?
+    let startedAt: String?
+    let endedAt: String?
+    let sourceUpdatedAt: String?
+    let observedAt: String
+    let deliveryDelaySeconds: Int?
+    let removedAt: String?
+    let rating: String?
+    let acceptanceRate: String?
+    let ontimeRate: String?
+    let income: [String: String?]?
+    var key: String { kind + ":" + id }
+  }
+  let ready: Bool
+  let canDisconnect: Bool
+  let environment: String
+  let status: String
+  let connected: Bool
+  let availability: String
+  let lastSyncAt: String?
+  let lastError: String?
+  let incomingOfferFeed: Bool
+  let liveOfferNote: String
+  let accountingNote: String
+  let accounts: [Account]
+  let records: [WorkRecord]
 }

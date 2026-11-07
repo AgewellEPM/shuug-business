@@ -1,3 +1,4 @@
+import { argylePortalCard } from "../gig-connections/argyle-html";
 import { inspectionReportsHtml } from "../auto-repair/inspection-html";
 import { escapeHtml as esc } from "../auth/forms";
 import { getBranding } from "../branding/store";
@@ -21,6 +22,7 @@ export function customerDashboard(data: Awaited<ReturnType<typeof customerView>>
   return customerPage(data.company, `<p>Signed in as ${e(data.user.name)} · ${e(data.user.email)}</p>${notice ? `<p role="status">${e(notice)}</p>` : ""}<form method="post" action="${CUSTOMER_PATH}">${action("logout")}<button>Sign out</button></form>
     ${driverPortalHtml(data.driver)}
     ${uberConnectionHtml(data.uber)}
+    ${data.driver ? argylePortalCard() : ""}
     ${data.driver ? `<section><h2>Ratings &amp; personal reviews</h2><p>See your manually recorded star ratings, feedback notes and improvement steps in the same client account.</p><a href="${CUSTOMER_PATH}/driver/reputation">Open ratings &amp; reviews</a></section>` : ""}
     ${coach ? coachPortalHtml(coach.state, coach.period) : data.driver ? `<section><h2>Tax &amp; Goals</h2><p>Ask about your received earnings, costs, best jobs and next preparation step.</p><a href="${CUSTOMER_PATH}/driver/coach">Open your shared coach conversation</a></section>` : ""}
     ${taxSummaryHtml(data.tax, data.driver?.year)}

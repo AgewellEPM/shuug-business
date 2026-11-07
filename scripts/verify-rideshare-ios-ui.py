@@ -29,9 +29,10 @@ flows.add_argument('--coach-only', action='store_true', help='Check saved-job ch
 flows.add_argument('--foreground-only', action='store_true', help='Check the actual branded foreground alert without repeating saved-job entry.')
 flows.add_argument('--gig-apps-only', action='store_true', help='Check the swipeable gig-app row, configurable shopping work and branded foreground alert.')
 flows.add_argument('--reputation-only', action='store_true', help='Check manual rating/review history, guidance, shared chat routing, relaunch and explicit deletion.')
+flows.add_argument('--screenshot-guide-only', action='store_true', help='Check both practice routes and real photo import, cancellation, correction and persistence without enabling screen reading.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps', 'reputation'] if getattr(options, name + '_only')), None)
+selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps', 'reputation', 'screenshot_guide'] if getattr(options, name + '_only')), None)
 driving = selected_flow in (None, 'driving')
 receipts = selected_flow in (None, 'receipts')
 expense_details = selected_flow in (None, 'expenses')
@@ -60,6 +61,8 @@ elif options.gig_apps_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-gig-apps-verification-20261107.json')
 elif options.reputation_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-reputation-verification-20261107.json')
+elif options.screenshot_guide_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-screenshot-guide-verification-20261107.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -148,8 +151,8 @@ try:
     if insights:
         seed_statement(Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip()))
     call('xcrun', 'simctl', 'privacy', simulator, 'grant', 'location-always', BUNDLE)
-    if receipts or options.dashboard_only or options.capture_only:
-        offer_fixture = options.dashboard_only or options.capture_only
+    if receipts or options.dashboard_only or options.capture_only or options.screenshot_guide_only:
+        offer_fixture = options.dashboard_only or options.capture_only or options.screenshot_guide_only
         receipt = ARTIFACTS/('offer-fixture.png' if offer_fixture else 'receipt-fixture.png')
         generator = 'generate-gig-offer-fixture.swift' if offer_fixture else 'generate-rideshare-receipt-fixture.swift'
         call('swift', str(ROOT/'scripts'/generator), str(receipt))
@@ -177,6 +180,7 @@ try:
         if options.foreground_only: selection += '/DriverFlows/test13ForegroundAlertUsesBrandedCard'
         if options.gig_apps_only: selection += '/DriverFlows/test14GigAppsSwipeAndShoppingProfilePersists'
         if options.reputation_only: selection += '/DriverFlows/test15RatingsReviewsGuideAndDeletionPersist'
+        if options.screenshot_guide_only: selection += '/ScreenshotGuideFlows'
         if selected_flow is None:
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
@@ -249,6 +253,23 @@ try:
     trips = [r for r in records if r['kind']=='trip']
     expenses = [r for r in records if r['kind']=='expense']
     verified_tests = []
+    if options.screenshot_guide_only:
+        offers = journal.get('gigOffers', [])
+        assert not records and len(offers) == 1, 'Practice and cancelled imports must not save offers or financial records.'
+        offer = offers[0]
+        assert offer['source'] == 'sharedScreenshot' and offer['platform'] == 'DoorDash'
+        assert offer['payoutCents'] == 2050 and offer['guaranteedPayoutCents'] == 2050 and offer['additionalCostsCents'] == 0
+        assert offer['uncertainty']['totalMiles'] == {'lower': 10, 'upper': 10} and offer['estimatedMinutes'] == 30
+        assert journal['goals']['vehicleCostCentsPerMile'] == 50 and journal['goals']['targetHourlyCents'] == 2000
+        group = Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'group.com.ridesharetaxpros.driver').stdout.strip())
+        assert not (group/'OfferReader/session.json').exists(), 'Direct import must not enable the screen reader.'
+        captures = [json.loads(p.read_text()) for p in (group/'OfferReader').glob('*.json') if p.stem not in ('status', 'session')]
+        assert len(captures) == 1 and captures[0]['reviewedInApp'] is True
+        assert captures[0]['normalized']['payoutCents'] == 1950 and captures[0]['normalized']['offerId'] == offer['offerId'], 'Original OCR and driver correction must remain separate and linked.'
+        assert captures[0]['scope'] == 'guest' and captures[0]['normalized']['pickupMiles'] == 2 and captures[0]['normalized']['deliveryMiles'] == 4
+        assert not list((group/'OfferReader').glob('*.png')) and not journal.get('receipts')
+        verified_tests += ['interactive Face ID and Home button practice', 'save-picture and both import route lessons', 'editable practice pay recalculates $15 profit to $1 loss', 'guide opens the actual screenshot picker route', 'practice and cancellation create no offers', 'real Photos picker and on-device Vision extract synthetic $19.50 offer', 'reviewed $20.50 correction and $15.50 profit survive relaunch', 'original extracted fields stay separate from corrections', 'direct import creates no broadcast session or financial entry']
+        report.update(scope='Native iPhone Simulator screenshot tutorial and real chosen-image import with synthetic offer; Photos sharing lesson is simulated', offerScreenshotImportVerified=True, sampleJournalIsolationVerified=True, physicalShareExtensionVerified=False)
     if options.reputation_only:
         reputation = journal.get('reputationState', {})
         assert not records and sorted(row['score'] for row in reputation['ratings']) == [4.6, 4.8]

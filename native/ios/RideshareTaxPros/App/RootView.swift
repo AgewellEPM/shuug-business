@@ -150,6 +150,7 @@ struct TodayView: View {
         ShiftDashboardCard()
         GoHomeDashboardCard(destination: model.journal.mission?.destination) { tab = .goHome }
         PlatformReadersRow(scope: model.journalScope)
+        ScreenshotHelpCard()
         EarningsPulseCard(records: model.journal.visible.map(\.record), goals: model.journal.goals ?? DriverGoals(), compact: true)
         Button { showingSample = true } label: {
           Label("Explore charts & offers with sample data", systemImage: "sparkles").font(.footnote.weight(.semibold))

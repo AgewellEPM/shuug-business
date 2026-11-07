@@ -3,6 +3,7 @@ import SwiftUI
 
 struct GigOfferEditor: View {
   let offer: UniversalGigOffer
+  var onSave: ((UniversalGigOffer) -> Void)? = nil
   @EnvironmentObject private var model: DriverModel
   @Environment(\.dismiss) private var dismiss
   @State private var platform = GigPlatform.doorDash
@@ -17,9 +18,20 @@ struct GigOfferEditor: View {
   @State private var reposition = ""
   @State private var checked = false
   @State private var error: String?
+  @State private var openedScope: String?
   @FocusState private var focused: Bool
   var body: some View {
     Form {
+      if offer.source == .sharedScreenshot {
+        Section("Read from your picture") {
+          Text("Check these against the picture. Fill in the complete job totals below.").font(.footnote)
+          if let miles = offer.displayedTotalMiles { LabeledContent("Miles shown", value: String(format: "%g", miles)) }
+          if let miles = offer.pickupMiles { LabeledContent("Pickup miles shown", value: String(format: "%g", miles)) }
+          if let miles = offer.deliveryMiles { LabeledContent("Delivery miles shown", value: String(format: "%g", miles)) }
+          if let minutes = offer.estimatedMinutes { LabeledContent("Minutes shown", value: String(format: "%g", minutes)) }
+          Text("These may leave out waiting or unpaid driving.").font(.caption)
+        }
+      }
       Section("Offer visible in your gig app · USD") {
         Picker("Platform", selection: $platform) { ForEach(GigPlatform.allCases) { Text($0.rawValue).tag($0) } }.disabled(offer.source != .manual)
         TextField("Quoted payout", text: $payout).keyboardType(.decimalPad)
@@ -50,6 +62,8 @@ struct GigOfferEditor: View {
         ToolbarItem(placement: .confirmationAction) { Button("Save") { save() } }
         ToolbarItem(placement: .keyboard) { Button("Done") { focused = false } }
       }.onAppear {
+        guard openedScope == nil else { return }
+        openedScope = model.journalScope
         platform = offer.platform
         payout = amount(offer.payoutCents); guarantee = amount(offer.guaranteedPayoutCents); fees = amount(offer.additionalCostsCents)
         miles = offer.uncertainty.totalMiles.flatMap { $0.lower == $0.upper ? String($0.lower) : nil } ?? ""
@@ -58,9 +72,11 @@ struct GigOfferEditor: View {
         reposition = offer.repositionMiles.map(String.init(describing:)) ?? ""
         pickup = offer.pickupLocation?.label ?? ""; dropoff = offer.dropoffLocation?.label ?? ""
       }
+      .onChange(of: model.journalScope) { _, _ in dismiss() }
   }
   private func amount(_ value: Int?) -> String { value.map { String(format: "%.2f", Double($0) / 100) } ?? "" }
   private func save() {
+    guard openedScope == model.journalScope else { dismiss(); return }
     func cash(_ text: String) -> Int? { StatementImport.signedCents(text.trimmingCharacters(in: .whitespacesAndNewlines)) }
     func number(_ text: String, max: Double) -> Double? { Double(text).flatMap { $0.isFinite && (0...max).contains($0) ? $0 : nil } }
     for text in [payout, guarantee, fees] where !text.isEmpty {
@@ -85,6 +101,6 @@ struct GigOfferEditor: View {
       if next.expiresAt.map({ $0 > Date() }) ?? true { next.lastObservedAt = Date(); next.availabilityStatus = .observed }
     }
     next.refreshMissingFields()
-    if model.saveOffer(next) { dismiss() }
+    if model.saveOffer(next) { onSave?(next); dismiss() }
   }
 }
