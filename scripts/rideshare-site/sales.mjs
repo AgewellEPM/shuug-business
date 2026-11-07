@@ -3,7 +3,7 @@ const label = (name, input) => `<label>${name}${input}</label>`;
 const field = (name, title, type = 'text', extra = '') => label(title, `<input name="${name}" type="${type}" ${extra}>`);
 const stateSelect = name => label('State', `<select name="${name}" data-states required></select>`);
 const button = (title, extra = '') => `<button class="button primary" ${extra}>${title}</button>`;
-const assets = '<link rel="stylesheet" href="/sales.css"><script src="/sales.js" defer></script><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">';
+const assets = '<link rel="stylesheet" href="/sales.css"><script src="/directory-admin.js" defer></script><script src="/sales.js" defer></script><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer">';
 export function salesPages() {
   const pages = [
     {

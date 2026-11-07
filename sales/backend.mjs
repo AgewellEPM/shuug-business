@@ -25,6 +25,8 @@ export function backend(env, fetcher = fetch) {
     async patch(kind, id, body) { return (await request(boardPath(kind) + '/rows/' + id, 'PATCH', body)).row; },
     async terms() { return (await request(boardPath('offices'))).board?.config_json?.terms || null; },
     async setTerms(terms) { const board = (await request(boardPath('offices'))).board; await request(boardPath('offices'),'PATCH',{ config_json:{ ...board.config_json,terms } }); },
+    async support() { return (await request(boardPath('offices'))).board?.config_json?.publicSupport || null; },
+    async setSupport(publicSupport) { const board = (await request(boardPath('offices'))).board; await request(boardPath('offices'),'PATCH',{ config_json:{ ...board.config_json,publicSupport } }); },
     async search(query) {
       // Reuses TinkySDR's existing research endpoint. Results are source links,
       // never represented as verified offices, owners, or contact details.

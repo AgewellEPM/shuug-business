@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T23:15:08.122Z",
+  "scope": "Local packaged directory HTTP handler reading the real configured TinkySDR/D1 office backend",
+  "publicOfficeCount": 0,
+  "publicContactConfigured": false,
+  "privateFieldProjectionVerified": true,
+  "readOnlyMethodVerified": true,
+  "publicDeploymentVerified": false,
+  "recordsChanged": false,
+  "appointmentBooked": false,
+  "phoneCallMade": false
+}

@@ -46,6 +46,7 @@
       renderList();
       tab($('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
       if (selected) await showOffice(selected);
+      if (data.user.role === 'owner') await window.GigTaxDirectory?.support({ api, status });
     }
     async function showOffice(id) {
       const record = await api('office', { id }); selected = String(id); renderList();
@@ -57,6 +58,7 @@
       <h3>Invite the office owner</h3><p>The owner reviews the exact terms and signs for this office. Copy the link to share through your normal conversation.</p><form id="sales-invite" class="sales-form"><label>Owner name<input name="ownerName" value="${e(o.contact_name)}" required maxlength="140"></label><label>Owner business email<input name="email" type="email" value="${e(o.contact_email)}" required></label><button class="button primary" ${!data.terms || m.independence !== 'independent' || ['active','do_not_contact','not_interested'].includes(o.status) ? 'disabled' : ''}>Create owner signup link</button></form><div id="sales-invitation"></div>
       <h3>Enrollments</h3>${record.enrollments.map(r => `<p>${e(r.contact_name)} · ${e(title(r.status))}${r.acceptedAt ? ` · ${e(new Date(r.acceptedAt).toLocaleString())}` : ''}</p>`).join('') || '<p>No owner invitation yet.</p>'}<h3>Office history</h3>${record.events.slice().reverse().map(r => { const event = meta(r); return `<div class="sales-event"><small>${e(r.contact_name)} · ${e(title(event.action))} · ${e(new Date(event.at).toLocaleString())}</small><p>${e(typeof event.detail === 'string' ? event.detail : JSON.stringify(event.detail))}</p></div>`; }).join('')}`;
       const update = $('#sales-update-office'); update.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(update)); if (values.stage === o.status && ['invited','active'].includes(o.status)) delete values.stage; await api('update-office',{id,...values}); await refresh(); status('Office changes saved.'); }, update);
+      if (data.user.role === 'owner') window.GigTaxDirectory?.office({ office: o, info: m, api, status, refresh: () => showOffice(id) });
       const activity = $('#sales-activity'); activity.onsubmit = run(async () => { await api('activity',{id,...Object.fromEntries(new FormData(activity))}); await showOffice(id); status('Activity saved.'); }, activity);
       const invite = $('#sales-invite'); invite.onsubmit = run(async () => { const result = await api('invite',{id,...Object.fromEntries(new FormData(invite))}); $('#sales-invitation').innerHTML = '<p>Share privately with this owner. Link expires in 14 days.</p><a class="sales-secret" target="_blank" rel="noopener noreferrer"></a><button class="button secondary" id="sales-copy-invite">Copy signup link</button>'; const anchor = $('#sales-invitation a'); anchor.href = result.link; anchor.textContent = result.link; $('#sales-copy-invite').onclick = run(async () => { await navigator.clipboard.writeText(result.link); status('Signup link copied.'); }); status('Owner invitation saved. Copy the link to share.'); }, invite);
     }
