@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { appleAppAssociation } from './rideshare-site/app-links.mjs';
+import { packageSales } from './sales/package.mjs';
 const { publicHttpsUrl } = createRequire(import.meta.url)('../public/rideshare-tax-pros/links.js');
 const cloudflare = process.argv.includes('--cloudflare');
 process.env.RIDESHARE_SITE_ORIGIN ||= cloudflare ? 'https://rideshare-tax-pros.pages.dev' : 'https://gigtax.pro';
@@ -41,7 +42,7 @@ for (const [slug, label] of [['privacy', 'Privacy notice'], ['terms', 'Website t
   writeFileSync(path.join(staticPath, `${slug}.html`), renderPage({ slug, label, description: `${label} for the Gig Tax Pros website.`, main: `<div class="legal-content">${body}</div>` }));
 }
 const aliases = [...pages.map(page => page.slug), 'privacy', 'terms', 'accessibility'];
-writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['', ...aliases].map(slug => `<url><loc>${origin}/${slug}</loc></url>`).join('')}</urlset>`);
+writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['', ...aliases.filter(slug => !['sales','office-signup'].includes(slug))].map(slug => `<url><loc>${origin}/${slug}</loc></url>`).join('')}</urlset>`);
 writeFileSync(path.join(staticPath, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 writeFileSync(path.join(staticPath, 'site-manifest.json'), JSON.stringify({ origin, aliases, pages: ['/', ...aliases.map(slug => `/${slug}`)] }, null, 2));
 if (cloudflare) {
@@ -52,8 +53,11 @@ if (cloudflare) {
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
   { src: '/\\.well-known/apple-app-site-association', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' }, continue: true },
   { src: '/bank-return', headers: { 'Referrer-Policy': 'no-referrer' }, dest: '/bank-return.html' },
+  { src: '/api/sales', dest: '/api/sales' },
+  { src: '/api/sales-webhook', dest: '/api/sales-webhook' },
   ...aliases.map(slug => ({ src: `/${slug}`, dest: `/${slug}.html` })),
   { handle: 'filesystem' },
   { src: '/.*', dest: '/404.html', status: 404 },
 ] }, null, 2));
+if (!cloudflare) packageSales(root, destination);
 console.log(`Gig Tax Pros: ${aliases.length + 1} public pages prepared at ${destination}`);

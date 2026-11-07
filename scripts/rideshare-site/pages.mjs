@@ -3,6 +3,7 @@ import { escape as e, button, textLink, cards, callout, sourceLinks, renderPage 
 import { joinFamilyPage } from './franchise.mjs';
 import { companyPages } from './company-pages.mjs';
 import { companies } from './companies.mjs';
+import { salesPages } from './sales.mjs';
 
 const intro = (title, text) => `<section class="article-section"><h2>${e(title)}</h2><p>${e(text)}</p></section>`;
 const list = items => `<ul class="plain-list">${items.map(item => `<li>${e(item)}</li>`).join('')}</ul>`;
@@ -80,4 +81,4 @@ export function innerPages() {
   ];
 }
 
-export function renderedPages() { return innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})); }
+export function renderedPages() { return [...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
