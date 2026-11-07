@@ -1,12 +1,13 @@
 import Foundation
 
 public enum RideRole: String, Codable, CaseIterable, Identifiable, Sendable {
-  case ride, delivery, reposition, other
+  case ride, delivery, shopping, reposition, other
   public var id: String { rawValue }
   public var label: String {
     switch self {
     case .ride: "Passenger ride"
     case .delivery: "Delivery"
+    case .shopping: "In-store shopping"
     case .reposition: "Driving without a paid ride"
     case .other: "Other / review"
     }
@@ -66,7 +67,9 @@ public struct RideProfit: Identifiable, Sendable {
     var calendar = Calendar(identifier: .gregorian); calendar.timeZone = trip.recordedTimeZone
     startHour = calendar.component(.hour, from: trip.startedAt)
     needsMileageReview = trip.hasGaps
-    if let cost = goals.vehicleCostCentsPerMile, cost.isFinite, (0...10_000).contains(cost) {
+    if trip.rideRole == .shopping && trip.distanceMeters == 0 {
+      estimatedVehicleCents = 0
+    } else if let cost = goals.vehicleCostCentsPerMile, cost.isFinite, (0...10_000).contains(cost) {
       estimatedVehicleCents = Int((miles * cost).rounded())
     } else { estimatedVehicleCents = nil }
     if let earnings = earningsCents, let cost = estimatedVehicleCents, feesRecorded {

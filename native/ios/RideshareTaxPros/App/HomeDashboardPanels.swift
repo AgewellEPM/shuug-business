@@ -57,7 +57,7 @@ struct ShiftDashboardCard: View {
       Divider().overlay(Brand.border.opacity(0.3))
       HStack(spacing: 10) {
         DashboardMetric(title: "Per recorded hour", value: minutes > 0 ? Brand.usd(Int(Double(dailyNet) * 60 / minutes)) : "—", icon: "dollarsign.circle", tint: minutes > 0 ? (dailyNet < 0 ? Brand.danger : Brand.income) : Brand.link)
-        DashboardMetric(title: "Driving time today", value: "\(Int(rides.reduce(0) { $0 + $1.minutes }) / 60)h \(Int(rides.reduce(0) { $0 + $1.minutes }) % 60)m", icon: "clock", tint: Brand.link)
+        DashboardMetric(title: "Recorded work time", value: "\(Int(rides.reduce(0) { $0 + $1.minutes }) / 60)h \(Int(rides.reduce(0) { $0 + $1.minutes }) % 60)m", icon: "clock", tint: Brand.link)
         DashboardMetric(title: "Business miles", value: String(format: "%.1f mi", rides.reduce(0) { $0 + $1.miles }), icon: "road.lanes", tint: Brand.route)
       }
       if priced.count < rides.count || priced.isEmpty {
@@ -93,22 +93,8 @@ struct GoHomeDashboardCard: View {
 }
 
 struct PlatformReadersRow: View {
+  // Retain Home's existing call signature. Launching an app does not establish
+  // an offer-reader connection or authorize access to that provider's account.
   let scope: String
-  var body: some View {
-    let session = OfferCaptureStore.session()
-    ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 14) {
-        ForEach(GigPlatform.allCases) { platform in
-          NavigationLink { OfferReaderView(startingPlatform: platform) } label: {
-            VStack(spacing: 6) {
-              GigPlatformIcon(platform: platform, size: 38)
-              Text(platform.rawValue).font(.system(size: 10, weight: .semibold))
-              Text(session?.scope == scope && session?.platform == platform ? "Reader ready" : "Set up")
-                .font(.system(size: 9)).foregroundStyle(Brand.muted)
-            }.foregroundStyle(.white).frame(minWidth: 57)
-          }.buttonStyle(.plain)
-        }
-      }.padding(.horizontal, 3)
-    }.gigCard(inset: 12)
-  }
+  var body: some View { GigAppLauncherRow() }
 }

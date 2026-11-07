@@ -3,13 +3,14 @@ import SwiftUI
 
 /// Foreground notices are app content. Notification permissions remain owned by iOS.
 struct ForegroundNoticeView: View {
+  let hostID: UUID
   @EnvironmentObject private var model: DriverModel
   @ObservedObject private var notifications = DriverRuntime.shared.notifications
   @State private var review: ForegroundNoticeReview?
 
   var body: some View {
     Group {
-      if let notice = notifications.foregroundNotice,
+      if notifications.foregroundHostID == hostID, let notice = notifications.foregroundNotice,
          notice.scope == nil || notice.scope == model.journalScope {
         noticeCard(notice).padding(.horizontal, 12).padding(.top, 8)
           .frame(maxWidth: 620).accessibilityIdentifier("notice.foreground")

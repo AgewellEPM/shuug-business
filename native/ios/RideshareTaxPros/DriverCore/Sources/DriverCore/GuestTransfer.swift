@@ -64,6 +64,7 @@ public struct GuestTransferPlan {
     }
     if includeRecords {
       result.goals = result.goals ?? source.goals
+    result.universalGigSettings = result.universalGigSettings ?? source.universalGigSettings
       result.assistance = result.assistance ?? source.assistance
       result.mission = result.mission ?? source.mission
       result.reserveSettings = result.reserveSettings ?? source.reserveSettings

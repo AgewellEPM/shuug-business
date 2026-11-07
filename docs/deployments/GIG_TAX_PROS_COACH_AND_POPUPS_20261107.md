@@ -30,11 +30,13 @@ No tax return or payment is submitted by chatting.
 
 Verification on the final source:
 
-- All 70 Swift core checks passed, including 13 coach and eight guest-transfer
-  checks. The iPhone app and embedded extensions compiled for Simulator.
-- Thirty focused backend/portal/tax checks and the Next production build passed.
+- All 73 Swift core checks passed, including 13 coach, eight guest-transfer and
+  three universal-work-profile checks.
+  The iPhone app and embedded extensions compiled for Simulator.
+- Thirty-three focused backend/driver/coach checks and the Next production build passed.
 - Actual saved Swift WorkspaceClient against the compiled HTTP server passed
-  19 checks, including cookie/native shared history/intake, retries and isolation.
+  23 checks, including cookie/native shared history/intake, retries, isolation and
+  a zero-mile shopping record with earnings/fees and no GPS.
 - The compiled authenticated coach endpoint through the installed actual Peel
   worker passed eight checks: positive/negative jobs, missing-input coverage,
   matched totals, persisted verification, retries and foreign-account isolation.
@@ -45,13 +47,32 @@ Receipts: `gig-tax-pros-coach-native-http-verification-20261107.json`,
 `gig-tax-pros-coach-peel-http-verification-20261107.json`, and
 `gig-tax-pros-coach-installed-verification-20261107.json`.
 
+Latest shopping-source receipts: `gig-tax-pros-shopping-native-http-verification-20261107.json`,
+`gig-tax-pros-shopping-peel-http-verification-20261107.json`, and
+`gig-tax-pros-shopping-installed-verification-20261107.json`.
+
 Installed local workspace: `http://127.0.0.1:3126`, build
-`DctnFeygq6S6EbNuhfgyv`, source `ShuugDriverIOS-20261104`. Do not rebuild `.next`
+`Hu8paYxeBx3V7F1u5pTiW`, source `ShuugDriverIOS-20261104`. Do not rebuild `.next`
 in this checkout while that service uses it; use the verified updater and its
 preserved prior source/build before replacing running build files.
 
-Native saved-chat/popup/foreground UI verification and Luke's screenshot
-acceptance are separate from these checks. The earlier expanded system-alert
+Native saved-chat/intake/relaunch and branded deletion cancellation passed
+test12. Horizontal access to the delivery/shopper profiles, saved custom profile,
+relaunch and explicit zero-mile shopping job passed test14. Their scoped receipts
+retain the separate foreground failures from those combined suites. After fixing
+first-permission presentation and duplicate underlying-page hosts, a fresh test13
+passed the actual single foreground card, dismissal and return to Home. Its
+receipt verifies the full installed bundle, debug dylib and resources:
+`gig-tax-pros-ios-foreground-verification-20261107.json`.
+
+The Home row now launches 19 publisher apps through verified links or the official
+Store, with separately configurable Universal Delivery and In-store Shopper
+profiles. Ten publisher-associated app links and original icon hashes are
+recorded in `gig-tax-pros-app-launcher-catalog-20261107.json`. Spark/Flex and
+other entries without verified general links use Store fallback. Actual provider
+launches and Luke's screenshot acceptance still require device review.
+
+The earlier expanded system-alert
 test reached the branded extension in one run but has not passed the full cold
 Start/End action flow; its latest failure was notification-card expansion before
 dispatch. Do not turn the successful core checks into a live-action claim.

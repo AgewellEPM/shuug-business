@@ -6,6 +6,8 @@ deferred at the owner's request. Production readiness is not claimed.
 | Input or action | Implemented capability | Verification boundary |
 | --- | --- | --- |
 | Saved trips and costs | Native charts, goals, unpaid-mile cost and platform comparisons | Actual local journal; incomplete records identified |
+| Gig app row | Horizontal launcher with 19 original publisher icons plus universal work profiles | Ten publisher-associated app links and one documented URL scheme; other entries use the official App Store; device launch remains unverified |
+| Universal delivery / in-store shopping | Custom work labels and public HTTPS links; manual completed jobs reuse actual times, earnings, fees and mileage | Shopping can record zero driving miles without GPS; work profiles stay in the account's local journal |
 | Tax & Goals conversation | Saved-job loss/best comparisons, record-preparation guidance, confirmed tax context and milestones | Phone answers work offline; connected accounts share persistent browser/native history and client-visible tax requests |
 | Sample shift | Thirty days of example records and five normalized offers ranked against a home deadline | Explicitly simulated and paused; never saved into the actual journal |
 | Screenshot | Share Extension or Photos picker → Apple Vision → normalized offer | Synthetic raster OCR proof; real provider screenshots need validation |
@@ -134,6 +136,31 @@ Public website discovery still needs a verified persistent HTTPS workspace.
 Until that host exists, local and disposable HTTP proofs do not establish public
 `gigtax.pro` synchronization.
 
+## Gig apps and other work
+
+The Home row scrolls horizontally across Lyft Driver, Uber Driver, Dasher, Spark,
+Instacart Shopper, Amazon Flex, Grubhub Driver, Roadie, Shipt, Gopuff, Tasker,
+Rover, Wag, Favor, Curri, GoShare, Veho, Dispatch and Skipcart. Original artwork,
+publisher App Store listings, associated domains, supported paths and asset
+hashes are recorded in `deployments/gig-tax-pros-app-launcher-catalog-20261107.json`.
+This launcher catalog is separate from the five configured offer-reader parsers.
+Opening another gig app does not establish a connection or capture support.
+
+Tapping a provider tries its verified URL scheme or publisher-associated universal
+link, then its official App Store listing. Spark and Amazon Flex currently have
+no verified general launch URI in the inspected publisher sources and use the
+Store fallback. `scripts/verify-rideshare-gig-launcher.py` checks every bundled
+icon hash, Store ID, source URL and declared query scheme. It does not prove that
+an installed third-party app opened on a physical phone.
+
+**Universal Delivery** and **In-store Shopper** open configurable work profiles.
+Choose a label/link, use the existing shared cost and goal editor, and log a
+completed job from actual start/end times and payout details. In-store jobs with
+exactly zero recorded driving miles have zero vehicle cost; other expenses stay
+separate and unknown fees remain unknown. Positive-mile work still requires the
+driver's cost estimate. A manual shopper job never starts GPS or fabricates miles.
+The native and website record schemas both retain its shopping work type.
+
 Build using `scripts/build-rideshare-ios.sh` with the Simulator build-for-testing
 options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
 
@@ -146,6 +173,9 @@ options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
   screenshot path without repeating the sample-shift checks.
 - `--coach-only --visible` checks actual saved-job questions, relaunch, confirmed
   intake, cancellation of a branded deletion dialog and a foreground alert.
+- `--gig-apps-only --visible` checks horizontal access to work profiles,
+  configuration persistence, explicit zero-mile shopper records and foreground
+  notices. `--foreground-only --visible` isolates the notice surface.
 - Swift core tests cover malformed OCR, duplicates, expiration, unknown
   destinations, negative margins, uncertain tips, hard deadlines, commitments,
   rapidly changing provider inputs and simulated ranking.

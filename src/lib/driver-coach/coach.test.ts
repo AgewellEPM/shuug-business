@@ -16,6 +16,7 @@ import { addRecord } from "../sdk/records";
 import { taxFirmModules } from "../../modules/tax-firm";
 import { GET, POST } from "@/app/api/website/customer/driver/coach/route";
 import { GET as portal } from "@/app/api/website/customer/route";
+import { POST as saveNativeRecord, GET as receivedRecords } from "@/app/api/website/customer/driver/records/route";
 import { initCoach, readCoach, staffCoachThreads, updateCoach } from "./store";
 
 const peel = vi.hoisted(() => ({ available: false, attest: vi.fn() }));
@@ -65,6 +66,19 @@ it("persists one grounded conversation across native bearer, browser cookie, por
   expect(html).toContain('id="tax-goals"'); expect(html).toContain("ALPHA &lt;job&gt;"); expect(html).not.toContain("BETA PRIVATE");
   const dom = new JSDOM(html); try { expect(dom.window.document.querySelectorAll("script")).toHaveLength(0); expect(dom.window.document.querySelector('form[action="' + path + '"]')).not.toBeNull(); } finally { dom.window.close(); }
   expect(peel.attest).not.toHaveBeenCalled();
+});
+it("round-trips a zero-mile completed shopping job through record sync and prices its actual work without a driving-cost setting", async () => {
+  const original = job("Manual store job"), record = { ...original, body: { ...original.body, rideRole: "shopping", source: "manual",
+    distanceMeters: 0, endedAt: "2026-11-06T13:00:00Z", earningsCents: 1800, platformFeesCents: 200 } };
+  const saved = await saveNativeRecord(new Request(base + "/api/website/customer/driver/records", { method: "POST", headers: {
+    Authorization: `Bearer ${alpha.token}`, "Content-Type": "application/json" }, body: JSON.stringify({ mutationId: randomUUID(), record }) }));
+  expect(saved.status).toBe(200);
+  const received = await (await receivedRecords(new Request(base + "/api/website/customer/driver/records", { headers: { Authorization: `Bearer ${alpha.token}` } }))).json();
+  expect(received.records[0].record.body).toMatchObject({ rideRole: "shopping", source: "manual", distanceMeters: 0, earningsCents: 1800, platformFeesCents: 200 });
+  const state = await (await POST(request(alpha.token, { ...question(), preferences: {} }))).json();
+  expect(state.messages.at(-1).text).toContain("$16.00 estimated net");
+  expect(state.messages.at(-1).text).toContain("1 of 1 completed business jobs");
+  expect(state.messages.at(-1).recordIds).toContain(record.id);
 });
 it("requires explicit confirmed nonsensitive intake and does not extract facts or change staff-reviewed tax work from chat", async () => {
   await updateCoach(alpha.token, question("My tax year is 2025 and business is a corporation"));

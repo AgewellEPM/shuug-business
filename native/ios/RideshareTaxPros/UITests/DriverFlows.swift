@@ -503,5 +503,41 @@ import XCTest
     app.buttons["notice.dismiss"].tap()
     XCTAssertFalse(banner.exists, app.debugDescription)
     XCTAssertTrue(app.navigationBars["Alerts & reminders"].exists, "Dismissing a notification must preserve the current page")
+    app.buttons["tools.close"].tap()
+    XCTAssertTrue(app.buttons["dashboard.menu"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertFalse(banner.exists, "A dismissed notice must not reappear on the page behind the sheet")
+  }
+  func test14GigAppsSwipeAndShoppingProfilePersists() throws {
+    let app = open()
+    func openShopper() {
+      let row = app.descendants(matching: .any).matching(identifier: "gig.launcher.row").firstMatch
+      reveal(row, in: app)
+      let shopper = app.buttons["gig.launcher.in-store-shopper"]
+      for _ in 0..<14 { if shopper.exists && shopper.isHittable { break }; row.swipeLeft() }
+      XCTAssertTrue(shopper.isHittable, app.debugDescription)
+      XCTAssertTrue(app.buttons["gig.launcher.universal-delivery"].exists, app.debugDescription)
+      shopper.tap()
+      XCTAssertTrue(app.navigationBars["In-store Shopper"].waitForExistence(timeout: 10), app.debugDescription)
+    }
+    openShopper()
+    let label = app.textFields["universal.label"]
+    label.tap()
+    let old = label.value as? String ?? ""
+    label.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: old.count) + "Local shopper")
+    let link = app.textFields["universal.appURL"]
+    link.tap(); link.typeText("https://www.instacart.com/shopper")
+    app.buttons["universal.save"].tap()
+    app.terminate(); app.launch(); openShopper()
+    XCTAssertEqual(app.textFields["universal.label"].value as? String, "Local shopper")
+    XCTAssertEqual(app.textFields["universal.appURL"].value as? String, "https://www.instacart.com/shopper")
+    app.buttons["universal.logJob"].tap()
+    XCTAssertTrue(app.navigationBars["Log shopping job"].waitForExistence(timeout: 10), app.debugDescription)
+    XCTAssertEqual(app.textFields["Miles"].value as? String, "0")
+    enter("18", into: app.textFields["trip.fare"], in: app)
+    enter("2", into: app.textFields["trip.fees"], in: app)
+    app.navigationBars["Log shopping job"].buttons["Save"].tap()
+    XCTAssertTrue(app.navigationBars["In-store Shopper"].waitForExistence(timeout: 10), app.debugDescription)
+    app.terminate(); app.launch(); navigate("Trips", in: app)
+    XCTAssertTrue(app.staticTexts["Local shopper shopping job"].waitForExistence(timeout: 10), app.debugDescription)
   }
 }

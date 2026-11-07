@@ -17,11 +17,23 @@ struct ForegroundDriverNotice: Identifiable, Sendable {
 @MainActor final class DriverNotifications: NSObject, ObservableObject, UNUserNotificationCenterDelegate {
   @Published private(set) var status = "Enable notifications to answer trip alerts."
   @Published var foregroundNotice: ForegroundDriverNotice?
+  @Published private(set) var foregroundHostID: UUID?
+  private var foregroundHosts: [UUID] = []
   private weak var model: DriverModel?
   private weak var tracker: LocationTracker?
   private let center = UNUserNotificationCenter.current()
   private var posted = Set<UUID>()
   var onDriveAction: (() -> Void)?
+
+  func activateForegroundHost(_ id: UUID) {
+    foregroundHosts.removeAll { $0 == id }
+    foregroundHosts.append(id)
+    foregroundHostID = id
+  }
+  func deactivateForegroundHost(_ id: UUID) {
+    foregroundHosts.removeAll { $0 == id }
+    foregroundHostID = foregroundHosts.last
+  }
 
   func attach(_ model: DriverModel, tracker: LocationTracker) {
     self.model = model; self.tracker = tracker
@@ -102,6 +114,10 @@ struct ForegroundDriverNotice: Identifiable, Sendable {
     Task {
       do {
         try await center.add(UNNotificationRequest(identifier: alert.id.uuidString, content: content, trigger: nil))
+        if self.model?.journalScope == scope {
+          foregroundNotice = ForegroundDriverNotice(id: alert.id.uuidString, title: title, body: body,
+            category: kind.rawValue, alertID: alert.id, offerID: nil, scope: scope)
+        }
         status = "Trip and expense alerts are ready. Expand an alert to answer."
       } catch { posted.remove(alert.id); status = "This alert could not be delivered. Open the app to check notification access." }
     }
@@ -181,7 +197,9 @@ struct ForegroundDriverNotice: Identifiable, Sendable {
     Task { @MainActor [weak self] in
       guard let self else { completionHandler([.banner, .list, .sound]); return }
       guard notice.scope == nil || notice.scope == self.model?.journalScope else { completionHandler([]); return }
-      if UIApplication.shared.applicationState == .active {
+      // Permission sheets briefly make the app inactive while its page remains
+      // visible. Those notices still belong in the branded foreground surface.
+      if UIApplication.shared.applicationState != .background {
         self.foregroundNotice = notice
         completionHandler([.list, .sound])
       } else { completionHandler([.banner, .list, .sound]) }

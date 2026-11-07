@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { expect, it } from "vitest";
 import { randomUUID } from "node:crypto";
-import { analyzeCoach } from "./analysis";
+import { analyzeCoach, coachMilestones } from "./analysis";
 import { answerCoach } from "./answers";
 import { coachPeriod } from "./model";
 import type { DriverRecord } from "../rideshare-driver/model";
@@ -27,7 +27,7 @@ it("ranks actual net losses and best jobs without adding payouts or subtracting 
   expect(analysis.jobs.find(row => row.id === missing.id)?.netCents).toBeUndefined();
   const reply = answerCoach("Where am I losing money and which jobs make the most?", analysis, { vehicleCostCentsPerMile: 50 }, {}, [], null);
   expect(reply.text).toContain("Loss job"); expect(reply.text).toContain("Best job"); expect(reply.text).toContain("$14.00 estimated net");
-  expect(reply.text).toContain("3 of 4 completed business drives"); expect(reply.text).toContain("pickup waits and idle time");
+  expect(reply.text).toContain("3 of 4 completed business jobs"); expect(reply.text).toContain("pickup waits and idle time");
   expect(reply.recordIds).toContain(loss.id); expect(reply.recordIds).toContain(best.id);
 });
 it("keeps missing operating cost unknown and excludes deleted, personal, open and out-of-period drives from job rankings", () => {
@@ -66,7 +66,7 @@ it("retains all known job net but withholds grouped and goal hourly rates when a
   }
   expect(analysis.netCents).toBe(4000);
   const goal = answerCoach("How are my goals progressing?", analysis, preferences, {}, [], null);
-  expect(goal.text).toContain("Hourly goal progress is unavailable"); expect(goal.text).not.toContain("priced drives average");
+  expect(goal.text).toContain("Hourly goal progress is unavailable"); expect(goal.text).not.toContain("priced jobs average");
 });
 it("leaves unpriced daily progress unknown and prevents missing-input or GPS-gap jobs from making a group look complete", () => {
   const unknown = trip({ platformFeesCents: undefined });
@@ -76,13 +76,28 @@ it("leaves unpriced daily progress unknown and prevents missing-input or GPS-gap
   expect(goal.text).toContain("Daily goal progress for 2026-11-06 is unavailable");
   expect(goal.text).not.toContain("$0.00 estimated net"); expect(goal.text).not.toContain("remaining");
   const cash = answerCoach("What are my income and costs?", unpriced, preferences, {}, [], null);
-  expect(cash.text).toContain("Trip-level estimated net is unavailable");
+  expect(cash.text).toContain("Job-level estimated net is unavailable");
   const complete = trip(), gap = trip({ hasGaps: true, earningsCents: 500000 });
   const partial = analyzeCoach([complete, unknown, gap], { vehicleCostCentsPerMile: 50 }, period);
   expect(partial.best.map(row => row.id)).toEqual([complete.id]);
   expect(partial.platforms[0]).toMatchObject({ count: 3, pricedCount: 1, isComplete: false, netCents: 2000 });
   expect(partial.platforms[0].hourlyCents).toBeUndefined();
   const partialGoal = answerCoach("Show my goal progress", partial, { vehicleCostCentsPerMile: 50, dailyNetCents: 10000 }, {}, [], null);
-  expect(partialGoal.text).toContain("$20.00 known estimated net from 1 of 3 drives");
+  expect(partialGoal.text).toContain("$20.00 known estimated net from 1 of 3 jobs");
   expect(partialGoal.text).toContain("Full daily goal progress is unavailable");
+});
+it("prices manual zero-mile shopping from actual earnings, fees and time without inventing vehicle miles or other costs", () => {
+  const shopping = trip({ purpose: "Store shift", rideRole: "shopping", source: "manual", distanceMeters: 0,
+    startedAt: "2026-11-06T12:00:00Z", endedAt: "2026-11-06T13:00:00Z", earningsCents: 1800, platformFeesCents: 200 });
+  const analysis = analyzeCoach([shopping], {}, period);
+  expect(analysis.priced[0]).toMatchObject({ role: "shopping", grossCents: 1800, feesCents: 200, vehicleCents: 0, netCents: 1600, hourlyCents: 1600, miles: 0, minutes: 60 });
+  expect(analysis.priced[0].netCentsPerMile).toBeUndefined();
+  expect(coachMilestones(analysis, {}, {}, null).find(row => row.id === "operating-cost")?.status).toBe("done");
+  const reply = answerCoach("Which jobs make the most?", analysis, {}, {}, [], null);
+  expect(reply.text).toContain("1 of 1 completed business jobs"); expect(reply.text).toContain("Store shift");
+  expect(reply.text).toContain("other work expenses are not assumed to be zero"); expect(reply.text).not.toContain("cannot rank net profit");
+  const positiveMiles = trip({ rideRole: "shopping", distanceMeters: 1609.344, source: "manual" });
+  expect(analyzeCoach([positiveMiles], {}, period).priced).toHaveLength(0);
+  const unknownFee = trip({ rideRole: "shopping", distanceMeters: 0, platformFeesCents: undefined, source: "manual" });
+  expect(analyzeCoach([unknownFee], {}, period).priced).toHaveLength(0);
 });

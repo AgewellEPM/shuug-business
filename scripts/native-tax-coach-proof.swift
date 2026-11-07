@@ -79,6 +79,47 @@ enum CoachWireFailure: Error { case failed(String) }
     try check(answered.messages.allSatisfy { $0.createdAt.timeIntervalSince1970 > 0 }, "A server timestamp did not decode.")
     let retry = try await alpha.coachMessage(pending)
     try check(retry.messages == answered.messages, "Retrying the same native question appended duplicate shared history.")
+    var shopping = Trip(startedAt: start.addingTimeInterval(7_200), endedAt: start.addingTimeInterval(10_800),
+      distanceMeters: 0, classification: .business, purpose: "Synthetic zero-mile shopping job",
+      source: "manual", timeZone: TimeZone(identifier: "America/New_York")!)
+    shopping.rideRole = .shopping; shopping.earningsCents = 1_800; shopping.platformFeesCents = 200
+    shopping.platform = "Instacart"; shopping.workArea = "Synthetic store"
+    let shoppingRecord = DriverRecord(payload: .trip(shopping))
+    let shoppingSaved = try await alpha.save(DriverMutation(mutationId: UUID(), record: shoppingRecord))
+    guard case .trip(let shoppingDecoded) = shoppingSaved.record.payload else {
+      throw CoachWireFailure.failed("The actual server changed the shopping record kind.")
+    }
+    try check(shoppingDecoded.rideRole == .shopping && shoppingDecoded.distanceMeters == 0
+      && shoppingDecoded.earningsCents == 1_800 && shoppingDecoded.platformFeesCents == 200,
+      "The actual native/server Codable roundtrip lost the shopping role, zero miles or money.")
+    try check(shoppingDecoded.source == "manual" && shoppingDecoded.endedAt != nil
+      && shoppingDecoded.sampleCount == 0 && !shoppingDecoded.hasGaps,
+      "A completed manual shopping record acquired GPS requirements or observations.")
+    let synced = try await alpha.records(after: 0)
+    try check(synced.records.contains { row in
+      guard row.record.id == shoppingRecord.id, case .trip(let trip) = row.record.payload else { return false }
+      return trip.rideRole == .shopping && trip.distanceMeters == 0 && trip.source == "manual"
+    }, "A fresh native records GET did not decode the server's shopping enum.")
+    let noCost = CoachPendingMessage(id: UUID(), text: "Which jobs make the most without a driving cost estimate?",
+      from: from, through: through, preferences: CoachPreferences(dailyNetCents: 10_000), localReplyId: UUID())
+    let zeroOnly = try await alpha.coachMessage(noCost)
+    guard let shoppingReply = zeroOnly.messages.last(where: { $0.role == "assistant" }) else {
+      throw CoachWireFailure.failed("No shared reply for the zero-mile shopping comparison.")
+    }
+    try check(zeroOnly.preferences.vehicleCostCentsPerMile == nil
+      && shoppingReply.text.contains("1 of 3 completed business jobs")
+      && shoppingReply.text.contains("Priced jobs: $16.00 estimated net")
+      && shoppingReply.text.contains("$18.00 earnings/tips")
+      && shoppingReply.text.contains("$2.00 platform fees")
+      && shoppingReply.text.contains("$0.00 vehicle cost"),
+      "The compiled coach did not price only the zero-mile shopping job at1600cents without a driving cost rate.")
+    try check(shoppingReply.recordIds?.contains(shoppingRecord.id) == true
+      && !shoppingReply.text.contains("$12.00 estimated net") && !shoppingReply.text.contains("-$3.00 estimated net"),
+      "The no-cost comparison invented net profit for a driving job or lost shopping evidence.")
+    let restore = CoachPendingMessage(id: UUID(), text: "Show my goals and next steps", from: from, through: through,
+      preferences: pending.preferences, localReplyId: UUID())
+    let restored = try await alpha.coachMessage(restore)
+    try check(restored.preferences == pending.preferences, "The original explicit cost and goal snapshot did not restore.")
     let intake = CoachIntake(taxYear: 2026, jurisdiction: "New York", businessType: "sole-proprietor")
     let intakeId = UUID()
     let saved = try await alpha.coachIntake(intake, mutationId: intakeId)
@@ -90,7 +131,11 @@ enum CoachWireFailure: Error { case failed(String) }
       "Fresh native GET did not read the persisted shared conversation and intake.")
     try printResult(["ok": true, "phase": "write", "messageId": messageId.uuidString.lowercased(),
       "recordIds": recordIds.map { $0.uuidString.lowercased() }, "messageCount": fetched.messages.count,
-      "checks": ["actual WorkspaceClient GET and POST", "optional empty preferences decode", "shared tax-request milestone", "positive and negative per-job estimates", "message and record UUID decode", "server timestamp decode", "optional source and engine fields", "native question retry idempotency", "explicit intake and retry", "fresh shared state GET", "foreign native account denied shared history"]])
+      "shopping": ["id": shoppingRecord.id.uuidString.lowercased(), "role": shoppingDecoded.rideRole!.rawValue,
+        "distanceMeters": shoppingDecoded.distanceMeters, "source": shoppingDecoded.source,
+        "grossCents": shoppingDecoded.earningsCents!, "feesCents": shoppingDecoded.platformFeesCents!,
+        "observedOnlyPricedNetCents": 1_600, "drivingCostRateSupplied": false],
+      "checks": ["actual WorkspaceClient GET and POST", "optional empty preferences decode", "shared tax-request milestone", "positive and negative per-job estimates", "message and record UUID decode", "server timestamp decode", "optional source and engine fields", "native question retry idempotency", "explicit intake and retry", "fresh shared state GET", "foreign native account denied shared history", "native shopping enum and zero-mile money roundtrip", "completed manual shopping record needs no GPS", "fresh records GET decodes shopping under the same account", "zero-mile shopping prices at1600cents without a cost rate while driving jobs stay unknown"]])
   }
 
   static func printResult(_ value: [String: Any]) throws {

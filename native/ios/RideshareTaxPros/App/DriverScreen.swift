@@ -3,6 +3,8 @@ import SwiftUI
 /// App-only presentation. Brand.swift also compiles in the notification extension.
 private struct DriverScreen: ViewModifier {
   @EnvironmentObject private var model: DriverModel
+  @ObservedObject private var notifications = DriverRuntime.shared.notifications
+  @State private var noticeHostID = UUID()
   var compactNavigation: Bool
   func body(content: Content) -> some View {
     Group {
@@ -21,18 +23,20 @@ private struct DriverScreen: ViewModifier {
       .disabled(model.message != nil)
       .accessibilityHidden(model.message != nil)
       .overlay(alignment: .top) {
-        ForegroundNoticeView()
+        ForegroundNoticeView(hostID: noticeHostID)
           .allowsHitTesting(model.message == nil)
           .accessibilityHidden(model.message != nil)
       }
       .overlay {
-        if let message = model.message {
+        if let message = model.message, notifications.foregroundHostID == noticeHostID {
           BrandedDialogPanel(title: "Gig Tax Pros", message: message, icon: "bell.badge.fill",
             accent: Brand.caution, cancelTitle: nil, allowsBackdropDismiss: false,
             actions: [BrandedDialogAction("OK")], close: { model.message = nil })
             .ignoresSafeArea()
         }
       }
+      .onAppear { notifications.activateForegroundHost(noticeHostID) }
+      .onDisappear { notifications.deactivateForegroundHost(noticeHostID) }
   }
 }
 

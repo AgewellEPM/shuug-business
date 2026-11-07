@@ -119,7 +119,7 @@ async function main() {
       assert.equal(reply.engine, "record-rules · Peel-verified arithmetic");
       assert(reply.text.includes("Connected Peel verified the priced-job arithmetic."));
       assert(reply.text.includes("$9.00 estimated net") && reply.text.includes("-$3.00") && reply.text.includes("$12.00"));
-      assert(reply.text.includes("2 of 3 completed business drives"), "An unpriced drive disappeared from the coverage statement.");
+      assert(reply.text.includes("2 of 3 completed business jobs"), "An unpriced job disappeared from the coverage statement.");
       assert(recordIds.every(id => reply.recordIds.includes(id)), "The actual reply lost a priced or missing-input record reference.");
       const shared = await request("/api/website/customer/driver/coach?from=2026-11-07&through=2026-11-07",
         { headers: { Cookie: sessions[0], Accept: "application/json" } });
@@ -189,7 +189,7 @@ async function main() {
       scope: "Saved native WorkspaceClient against compiled disposable HTTP and matching website cookie sessions",
       buildId: readFileSync(".next/BUILD_ID", "utf8").trim(),
       nativeProbeSHA256: createHash("sha256").update(readFileSync(binary)).digest("hex"),
-      checks, helperPid, diagnosticServerStopped: true, realClientDataUsed: false,
+      checks, shopping: nativeWrite.shopping, helperPid, diagnosticServerStopped: true, realClientDataUsed: false,
       peelIntegration: "Separately verified against the real private worker; disabled in this shared-wire fixture",
       physicalIPhoneVerified: false, visualAcceptance: "Pending Luke screenshots" }, null, 2));
   } finally {

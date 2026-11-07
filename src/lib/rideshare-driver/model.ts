@@ -16,7 +16,7 @@ const trip = z.object({
   startedAt: instant, endedAt: instant.nullable().default(null), distanceMeters: z.number().finite().min(0).max(10_000_000),
   localDate: day.optional(), timeZoneId: z.string().min(1).max(100).optional(),
   earningsCents: z.number().int().min(0).max(100_000_000).optional(), platformFeesCents: z.number().int().min(0).max(100_000_000).optional(),
-  rideRole: z.enum(["ride", "delivery", "reposition", "other"]).optional(), automaticallyDetected: z.boolean().optional(),
+  rideRole: z.enum(["ride", "delivery", "shopping", "reposition", "other"]).optional(), automaticallyDetected: z.boolean().optional(),
   platform: z.string().trim().max(80).optional(), workArea: z.string().trim().max(120).optional(),
   classification, purpose: z.string().trim().max(240), notes,
   source: z.enum(["gps", "manual"]), hasGaps: z.boolean(), sampleCount: z.number().int().min(0).max(10_000_000),

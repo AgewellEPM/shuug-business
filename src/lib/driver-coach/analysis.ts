@@ -55,12 +55,12 @@ export function analyzeCoach(records: DriverRecord[], preferences: CoachPreferen
     const grossCents = reposition ? 0 : trip.earningsCents;
     const feesCents = trip.platformFeesCents ?? (reposition ? 0 : undefined);
     const rate = preferences.vehicleCostCentsPerMile;
-    const vehicleCents = rate === undefined ? undefined : Math.round(miles * rate);
+    const vehicleCents = trip.rideRole === "shopping" && trip.distanceMeters === 0 ? 0 : rate === undefined ? undefined : Math.round(miles * rate);
     const netCents = grossCents !== undefined && feesCents !== undefined && vehicleCents !== undefined ? grossCents - feesCents - vehicleCents : undefined;
     const missing = [grossCents === undefined ? "fare and tips" : "", feesCents === undefined ? "known platform fees (including a confirmed zero)" : "",
       vehicleCents === undefined ? "your operating cost per mile" : ""].filter(Boolean);
     if (trip.hasGaps) mileageReviewIds.push(record.id);
-    jobs.push({ id: record.id, title: trip.purpose || "Recorded drive", date: recordDate(record), miles, minutes,
+    jobs.push({ id: record.id, title: trip.purpose || "Recorded job", date: recordDate(record), miles, minutes,
       platform: trip.platform?.trim() || "Unspecified platform", area: trip.workArea?.trim() || "Unspecified area",
       hour: localHour(trip.startedAt, trip.timeZoneId), role: trip.rideRole ?? "other", grossCents, feesCents, vehicleCents, netCents,
       ...(netCents !== undefined && minutes >= 1 ? { hourlyCents: netCents * 60 / minutes } : {}),
@@ -82,12 +82,12 @@ export function coachMilestones(analysis: CoachAnalysis, preferences: CoachPrefe
   const item = (id: string, title: string, detail: string, done: boolean, ids: string[] = []): CoachMilestone => ({ id, title, detail, status: done ? "done" : "todo", recordIds: evidenceIds(ids) });
   const result = [
     item("tax-context", "Confirm your tax context", "Confirm tax year, state or country, and business structure with your preparer. Do not enter taxpayer IDs in chat.", Boolean(intake.taxYear && intake.jurisdiction && intake.businessType && intake.businessType !== "unsure")),
-    item("operating-cost", "Set your operating cost per mile", "Use your own vehicle-cost estimate for profit comparisons. This is not a tax mileage rate.", preferences.vehicleCostCentsPerMile !== undefined),
-    item("goals", "Set a net earnings goal", "Choose a daily, weekly or hourly goal to compare with recorded driving estimates.", [preferences.dailyNetCents, preferences.weeklyNetCents, preferences.targetHourlyCents].some(value => value !== undefined && value > 0)),
+    item("operating-cost", "Set vehicle cost for jobs with driving", "Use your own vehicle-cost estimate for driving. Shopping jobs with exactly 0 recorded miles have 0 vehicle cost; other work expenses remain separate. This is not a tax mileage rate.", preferences.vehicleCostCentsPerMile !== undefined || (analysis.jobs.length > 0 && analysis.jobs.every(job => job.role === "shopping" && job.miles === 0))),
+    item("goals", "Set a net earnings goal", "Choose a daily, weekly or hourly goal to compare with recorded job estimates.", [preferences.dailyNetCents, preferences.weeklyNetCents, preferences.targetHourlyCents].some(value => value !== undefined && value > 0)),
     item("classifications", "Review business and personal records", `${analysis.unclassifiedIds.length} records in this period still need classification.`, analysis.unclassifiedIds.length === 0, analysis.unclassifiedIds),
-    item("trip-ends", "Finish incomplete trip records", `${analysis.incompleteIds.length} trips have no saved end time and cannot be ranked as completed jobs.`, analysis.incompleteIds.length === 0, analysis.incompleteIds),
-    item("profit-details", "Complete each job's profit details", `${unpriced.length} of ${analysis.jobs.length} completed business drives need fare, known fees, your vehicle-cost estimate or mileage-gap review. No missing amounts are assumed.`, analysis.jobs.length > 0 && unpriced.length === 0, unpriced.map(row => row.id)),
-    item("mileage-review", "Review recorded mileage gaps", `${analysis.mileageReviewIds.length} completed business drives have GPS gaps; profit per mile needs review.`, analysis.mileageReviewIds.length === 0, analysis.mileageReviewIds),
+    item("trip-ends", "Finish incomplete job records", `${analysis.incompleteIds.length} jobs have no saved end time and cannot be ranked as completed jobs.`, analysis.incompleteIds.length === 0, analysis.incompleteIds),
+    item("profit-details", "Complete each job's profit details", `${unpriced.length} of ${analysis.jobs.length} completed business jobs need earnings, known fees, any applicable vehicle-cost estimate or mileage-gap review. No missing amounts are assumed.`, analysis.jobs.length > 0 && unpriced.length === 0, unpriced.map(row => row.id)),
+    item("mileage-review", "Review recorded mileage gaps", `${analysis.mileageReviewIds.length} completed business jobs have GPS gaps; profit per mile needs review.`, analysis.mileageReviewIds.length === 0, analysis.mileageReviewIds),
     item("expense-purpose", "Add business expense purposes", `${analysis.missingPurposeIds.length} business-classified expenses lack a recorded purpose. Classification alone does not establish a deduction.`, analysis.missingPurposeIds.length === 0, analysis.missingPurposeIds),
   ];
   const engagements = (tax?.engagements ?? []).filter(row => !intake.taxYear || !row.year || row.year === intake.taxYear);

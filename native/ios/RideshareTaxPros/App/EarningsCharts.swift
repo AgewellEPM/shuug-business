@@ -103,7 +103,7 @@ private enum EarningsChartMetric: String, CaseIterable, Identifiable {
 struct MileageMixCard: View {
   let summary: DrivingInsights, goals: DriverGoals
   private var unpaid: Double { summary.rides.filter { $0.role == .reposition }.reduce(0) { $0 + $1.miles } }
-  private var paid: Double { summary.rides.filter { [.ride, .delivery].contains($0.role) }.reduce(0) { $0 + $1.miles } }
+  private var paid: Double { summary.rides.filter { [.ride, .delivery, .shopping].contains($0.role) }.reduce(0) { $0 + $1.miles } }
   private var other: Double { summary.rides.filter { $0.role == .other }.reduce(0) { $0 + $1.miles } }
   var body: some View {
     VStack(alignment: .leading, spacing: 13) {
