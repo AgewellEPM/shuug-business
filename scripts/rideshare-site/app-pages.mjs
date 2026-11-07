@@ -73,7 +73,7 @@ function hubPage() {
     slug: 'app', label: 'Gig Tax Pros app', nav: '/app', appPage: true,
     title: 'Your shift.', accent: 'A clearer picture.',
     seoTitle: 'Gig Tax Pros App: Offers, Mileage, Earnings & Records',
-    eyebrow: 'THE GIG TAX PROS IPHONE APP',
+    eyebrow: 'GIG TAX PROS · IPHONE APP PREVIEW',
     description: 'Explore the Gig Tax Pros app: review offers, plan your way home, record mileage and costs, understand earnings and prepare useful records for your tax team.',
     heroActions: `<div class="hero-actions-row">${button(appScreens.length ? 'Explore the real app screens' : 'Explore the app features', appScreens.length ? '#app-tour' : '#app-features')}${button('Find the feature I need', '#app-features', false)}</div>`,
     body: `<section class="app-hub-intro app-feature-hero"><div><p class="eyebrow">MORE THAN A TAX-SEASON CHECKLIST</p><h2>Useful through<br>the working day.</h2><p>Bring your work decisions and records into one routine. Set your own costs and goals, review a job, record the work you completed and use those records to understand the numbers.</p><p>Follow a feature below for the actual steps, the details it keeps and the setup it needs.</p>${textLink('Read availability and setup notes', '#app-availability')}</div>${firstScreen ? screenFigure(firstScreen, 'intro') : ''}</section>
@@ -91,7 +91,7 @@ function featurePage(feature) {
   return {
     slug: route(feature), label: feature.label, nav: '/app', appPage: true,
     parent: { slug: 'app', label: 'Gig Tax Pros app' },
-    title: feature.title, eyebrow: feature.kicker,
+    title: feature.title, eyebrow: `IPHONE APP PREVIEW · ${feature.kicker}`,
     seoTitle: `${feature.label} | Gig Tax Pros App`, description: feature.description,
     heroActions: `<div class="hero-actions-row">${button('See the steps', '#app-steps')}${button('Explore all app features', '/app#app-features', false)}</div>`,
     body: `<section class="app-feature-intro"><p>${e(feature.intro)}</p></section>
