@@ -3,6 +3,7 @@ import { escape as e, button, textLink, cards, callout, sourceLinks, renderPage 
 import { joinFamilyPage } from './franchise.mjs';
 import { companyPages } from './company-pages.mjs';
 import { companies } from './companies.mjs';
+import { appPages } from './app-pages.mjs';
 
 const intro = (title, text) => `<section class="article-section"><h2>${e(title)}</h2><p>${e(text)}</p></section>`;
 const list = items => `<ul class="plain-list">${items.map(item => `<li>${e(item)}</li>`).join('')}</ul>`;
@@ -52,6 +53,7 @@ function formsGuide() {
 }
 
 const resources=[
+  {slug:'app',label:'Explore the Gig Tax Pros app',short:'Real app screens and step-by-step guides for your shift, money and records.',category:'APP WALKTHROUGH',keywords:'app offers routes trips earnings expenses coaching shopping mileage'},
   {slug:'gig-companies',label:'Find your company’s tax guide',short:'Platform-specific tax forms, records and preparation questions.',category:'COMPANY GUIDES',keywords:'Uber DoorDash Instacart Spark Amazon Flex gig taxes 1099'},
   {slug:'guides/uber-lyft-tax-forms',label:'Find your Uber & Lyft tax forms',short:'Where to look, what the names mean and why payouts can differ.',category:'FORMS & INCOME',keywords:'1099 missing gross annual summary'},
   {slug:'document-checklist',label:'Build a record checklist',short:'Mark what is ready, then print or download a copy.',category:'PRACTICAL TOOL',keywords:'documents records print download'},
@@ -64,6 +66,7 @@ const resources=[
 export function innerPages() {
   return [
     joinFamilyPage(),
+    ...appPages(),
     ...companyPages(),
     page('services','Services','Support for your work.','A clear path for your taxes.','Explore four kinds of support built around rideshare and independent-driver businesses.',`${cards(services)}${intro('Not sure which service to choose?','Start with the outcome you want: prepare a return, organize records, discuss payments or keep up through the year. The planner points you toward a useful starting path.')}${callout()}`,{heroActions:`<div class="hero-actions-row">${button('Help me choose','/get-started')}${button('Pricing & scope','/pricing',false)}</div>`}),
     ...servicePages(),

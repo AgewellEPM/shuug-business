@@ -15,59 +15,29 @@
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./inner-pages.css">
+  <link rel="stylesheet" href="./home-layout.css">
   <script src="./links.js" defer></script>
   <script src="./app.js" defer></script>
   <script src="./company-catalog.js" defer></script>
   <script src="./inner-pages.js" defer></script>
 </head>
-<body>
+<body class="home-page">
   <a class="skip-link" href="#main">Skip to content</a>
-  <header class="mobile-header">
-    <a class="brand" href="#main"><span class="brand-symbol" aria-hidden="true"></span><span>Gig Tax Pros<sup>™</sup><small>TAX & ACCOUNTING</small></span></a>
-    <button class="menu-button" data-menu aria-label="Open navigation" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button>
-  </header>
+  <!-- SITE_HEADER -->
   <main id="main" tabindex="-1">
-    <section class="art-stage" aria-label="Gig Tax Pros">
-      <img class="artwork" src="./assets/artwork.png" width="1086" height="1448" alt="" fetchpriority="high">
-      <div class="sr-only">
-        <h1>You Drive. We Handle the Taxes.</h1>
-        <p>Gig Tax Pros. Tax & Accounting. Specialized tax preparation, deductions, and year-round accounting for Uber, Lyft, and independent drivers.</p>
-        <h2>Maximize Your Ride Income</h2>
-        <p>Mileage and expense records, rideshare income reporting, quarterly tax support and year-round guidance.</p>
-      </div>
-      <a class="hotspot brand-link brand" href="/" aria-label="Gig Tax Pros home"><span class="brand-symbol" aria-hidden="true"></span><span>Gig Tax Pros<sup>™</sup><small>TAX & ACCOUNTING</small></span></a>
-      <a class="hotspot contact-link solid-control" href="/get-started">Get tax-ready <span aria-hidden="true">↗</span></a>
-      <a class="hotspot portal-top solid-control gradient" href="/client-portal">Client Portal <small>Powered by Shuug</small></a>
-      <button class="hotspot menu-link" data-menu aria-label="Open navigation" aria-expanded="false" aria-controls="navigation"></button>
-      <a class="hotspot file-link" href="/get-started" aria-label="File my taxes"></a>
-      <a class="hotspot portal-main solid-control outlined" href="/client-portal"><span aria-hidden="true">♙</span><span>Client Portal<small>Powered by Shuug</small></span><span aria-hidden="true">↗</span></a>
-      <span id="desktop-benefits" class="art-anchor benefits-anchor"></span>
-      <span id="desktop-services" class="art-anchor services-anchor"></span>
-      <a class="hotspot service-one" href="/tax-preparation" aria-label="Uber and Lyft tax filing"></a>
-      <a class="hotspot service-two" href="/mileage-and-expenses" aria-label="Deductions and expenses"></a>
-      <a class="hotspot service-three" href="/quarterly-taxes" aria-label="Quarterly tax support"></a>
-      <a class="hotspot service-four" href="/bookkeeping" aria-label="Year-round support"></a>
-      <a class="hotspot get-started-link" href="/get-started" aria-label="Get started today"></a>
-      <div class="trust-strip" aria-label="Our service approach">
-        <div><span aria-hidden="true">↗</span><strong>Built for drivers</strong><small>Uber, Lyft & gig work</small></div>
-        <div><span aria-hidden="true">✓</span><strong>Clear next steps</strong><small>Know what comes next</small></div>
-        <div><span aria-hidden="true">▤</span><strong>Organized records</strong><small>One focused workflow</small></div>
-        <div><span aria-hidden="true">◇</span><strong>Professional review</strong><small>Your questions matter</small></div>
-        <div><span aria-hidden="true">↻</span><strong>Beyond tax season</strong><small>Year-round support</small></div>
-      </div>
-      <span class="illustration-label">Illustrative refund example</span>
-    </section>
+
 
     <div class="mobile-site">
-      <section class="hero">
-        <p class="eyebrow">UBER · LYFT · RIDESHARE · GIG WORKERS</p>
-        <h1>You Drive.<br>We Handle<br>the <em>Taxes.</em></h1>
-        <p class="lede">Specialized tax preparation, deductions, and year-round accounting for Uber, Lyft, and independent drivers.</p>
-        <div class="driver-visual" role="img" aria-label="A rideshare driver on a city street at night"></div>
-        <div class="hero-actions">
-          <a class="button primary" href="/get-started"><span aria-hidden="true">↗</span> File My Taxes <span aria-hidden="true">→</span></a>
-          <a class="button secondary" href="/client-portal">Client Portal <span class="shuug-label">Powered by Shuug ↗</span></a>
+      <section class="hero" aria-labelledby="home-title">
+        <div class="hero-copy"><p class="eyebrow">UBER · LYFT · RIDESHARE · GIG WORKERS</p>
+          <h1 id="home-title">You Drive.<br>We Handle<br>the <em>Taxes.</em></h1>
+          <p class="lede">Specialized tax preparation, deductions, and year-round accounting for Uber, Lyft, and independent drivers.</p>
+          <div class="hero-actions">
+            <a class="button primary" href="/get-started">File My Taxes <span aria-hidden="true">→</span></a>
+            <a class="button secondary" href="/client-portal">Client Portal <span class="shuug-label">Powered by Shuug ↗</span></a>
+          </div>
         </div>
+        <div class="driver-visual" role="img" aria-label="A rideshare driver in a car at night"></div>
       </section>
       <section class="benefits" aria-label="Our approach">
         <div><span aria-hidden="true">ϟ</span>Maximize<br>Your Deductions</div>
@@ -75,6 +45,7 @@
         <div><span aria-hidden="true">◇</span>Rideshare<br>Tax Experts</div>
         <div><span aria-hidden="true">♧</span>Year-Round<br>Guidance</div>
       </section>
+      <!-- APP_SHOWCASE -->
       <section class="income-section" id="mobile-benefits">
         <p class="eyebrow">RIDESHARE TAX SPECIALISTS</p>
         <h2>Maximize Your<br><em>Ride Income</em></h2>
@@ -126,7 +97,7 @@
         <details><summary>What if I drive for both Uber and Lyft?<span aria-hidden="true">+</span></summary><p>The service is designed around rideshare and gig work, including income from multiple platforms. Share the full picture with your tax professional so the engagement reflects your work.</p></details>
         <details><summary>Is this useful for my first year driving?<span aria-hidden="true">+</span></summary><p>Yes. The process starts with the support you need and the records requested for your situation. You can ask questions before agreeing to a service.</p></details>
         <details><summary>How much does tax preparation cost?<span aria-hidden="true">+</span></summary><p>Pricing depends on the tax year, forms, complexity and services involved. A fee schedule is not yet published here. Confirm the scope and fee before beginning an engagement.</p></details>
-        <details><summary>Do you guarantee a refund or a particular saving?<span aria-hidden="true">+</span></summary><p>No. Your outcome depends on your circumstances, records and applicable tax rules. Financial figures shown in the artwork are illustrative and are not a quote, calculation or promise of your result.</p></details>
+        <details><summary>Do you guarantee a refund or a particular saving?<span aria-hidden="true">+</span></summary><p>No. Your outcome depends on your circumstances, records and applicable tax rules.</p></details>
         <details><summary>Can I sign in or start filing here today?<span aria-hidden="true">+</span></summary><p>Client onboarding and private workspace access are opening soon. The public website currently explains services; it does not accept returns, tax-document uploads or payments.</p></details>
         <details><summary>What is the Shuug client workspace?<span aria-hidden="true">+</span></summary><p>Shuug is the business platform behind the firm’s Tax Firm workflow. The branded workspace will organize client work and staff follow-up. Any external filing service is separate, and sign-in details will be provided when access opens.</p></details>
         <details><summary>How should I send sensitive tax documents?<span aria-hidden="true">+</span></summary><p>Wait for verified instructions from your tax professional and use their approved private document channel. This public website has no tax-document upload form. Keep taxpayer IDs, bank details and tax documents out of general contact messages.</p></details>

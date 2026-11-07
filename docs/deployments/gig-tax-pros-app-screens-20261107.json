@@ -1,0 +1,77 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-11-07T08:14:38.023595+00:00",
+  "capturedDate": "2026-11-07",
+  "kind": "Actual iPhone Simulator app renders; synthetic or empty data",
+  "sourceProject": "AgewellEPM/shuug-business native/ios/RideshareTaxPros",
+  "sourceScope": "Original native preview; captures are screen evidence, not proof that the recording test passed or that a public service is activated.",
+  "privacyReview": "All five full images visually inspected by root before publication. No personal identities, addresses, receipts, account identifiers, secrets or customer tax records visible.",
+  "transform": "Offline video-frame extraction to PNG; copied unchanged, without cropping, scaling, retouching or generated UI.",
+  "screens": [
+    {
+      "id": "home",
+      "asset": "public/rideshare-tax-pros/assets/app/home.png",
+      "sha256": "d5e4b96df3f9fca4a30771ce94b508027960d893b955200564bebf35a30644a5",
+      "width": 1178,
+      "height": 2556,
+      "sourceRecordingSHA256": "eb04caba1496605351e7bfa1029414c5305e531609ce8399ff70356ece5e7c9e",
+      "sourceTest": "DriverFlows/test13ForegroundAlertUsesBrandedCard()",
+      "testOutcome": "Failed; screenshots are observed UI evidence only, not a passing functional claim",
+      "sourceFrameTimestampSeconds": 8.26,
+      "privacyReview": "No person, address, account identifier, credential, receipt, or live marketplace data visible. Empty synthetic account."
+    },
+    {
+      "id": "offers",
+      "asset": "public/rideshare-tax-pros/assets/app/offers.png",
+      "sha256": "c2f2a161328fb40e0541c80f9e5f401d838fc53d0613a743c10af60100ce6158",
+      "width": 1178,
+      "height": 2556,
+      "sourceRecordingSHA256": "2787bab277c1f5a54e9804b498a4459f5d021f17de21310862a1cf52f95f6672",
+      "sourceTest": "DriverFlows/test09ReportedJobSurvivesRelaunchAndCompletes()",
+      "testOutcome": "Failed; screenshots are observed UI evidence only, not a passing functional claim",
+      "sourceFrameTimestampSeconds": 17.313333,
+      "privacyReview": "Only fabricated test quote; no customer name, route, receipt, provider login or availability information."
+    },
+    {
+      "id": "offer-detail",
+      "asset": "public/rideshare-tax-pros/assets/app/offer-detail.png",
+      "sha256": "8ca13fd84551863432b5051b1483a769ed125ca29aaa082bf817dffe0964fd79",
+      "width": 1178,
+      "height": 2556,
+      "sourceRecordingSHA256": "2787bab277c1f5a54e9804b498a4459f5d021f17de21310862a1cf52f95f6672",
+      "sourceTest": "DriverFlows/test09ReportedJobSurvivesRelaunchAndCompletes()",
+      "testOutcome": "Failed; screenshots are observed UI evidence only, not a passing functional claim",
+      "sourceFrameTimestampSeconds": 18.001667,
+      "privacyReview": "Amounts match test09 explicit inputs; no person, address, route coordinates or live provider data."
+    },
+    {
+      "id": "job-status",
+      "asset": "public/rideshare-tax-pros/assets/app/job-status.png",
+      "sha256": "1756cf130594d1af1bbf51c4a96da0cb6712017ad58dc3fc51668f46f6001e6c",
+      "width": 1178,
+      "height": 2556,
+      "sourceRecordingSHA256": "2787bab277c1f5a54e9804b498a4459f5d021f17de21310862a1cf52f95f6672",
+      "sourceTest": "DriverFlows/test09ReportedJobSurvivesRelaunchAndCompletes()",
+      "testOutcome": "Failed; screenshots are observed UI evidence only, not a passing functional claim",
+      "sourceFrameTimestampSeconds": 30.0,
+      "privacyReview": "Synthetic $30 test only; not an actual provider acceptance or payment."
+    },
+    {
+      "id": "alerts",
+      "asset": "public/rideshare-tax-pros/assets/app/alerts.png",
+      "sha256": "d2167a16b59bedb8a7d1781349fa0ad3c64faf6ef6047c48734ccd8934223cb3",
+      "width": 1178,
+      "height": 2556,
+      "sourceRecordingSHA256": "eb04caba1496605351e7bfa1029414c5305e531609ce8399ff70356ece5e7c9e",
+      "sourceTest": "DriverFlows/test13ForegroundAlertUsesBrandedCard()",
+      "testOutcome": "Failed; screenshots are observed UI evidence only, not a passing functional claim",
+      "sourceFrameTimestampSeconds": 11.01,
+      "privacyReview": "No personal notifications or records visible. Does not establish notification delivery."
+    }
+  ],
+  "limitations": [
+    "Captures show two same-day preview builds; feature appearance may differ in later builds.",
+    "No retained captures for routes, earnings charts, money, coach, shopping, account or document workflows; their guides use audited source descriptions.",
+    "Screenshots do not establish physical-device behavior, provider access or public account hosting."
+  ]
+}
