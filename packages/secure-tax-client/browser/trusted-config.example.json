@@ -1,0 +1,8 @@
+{
+  "version": 1,
+  "uiOrigin": "https://independent-client.example",
+  "apiOrigin": "https://ciphertext-api.example",
+  "workspaceId": "replace-with-approved-workspace-id",
+  "signerPublicKey": "replace-with-independently-verified-public-signing-key",
+  "firmRecoveryPublicKey": "replace-with-independently-verified-public-recovery-key"
+}

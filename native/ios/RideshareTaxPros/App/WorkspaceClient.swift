@@ -18,11 +18,21 @@ struct LoginReply: Codable {
   var account: ClientAccount
   var branding: WorkspaceBrand
 }
+struct ProfileReply: Codable {
+  var apiVersion: Int
+  var account: ClientAccount
+  var branding: WorkspaceBrand
+}
 struct ConnectionProfile: Codable {
   var origin: URL
   var session: LoginReply
 
   var portalURL: URL { origin.appendingPathComponent("api/website/customer") }
+  var taxDocumentsURL: URL {
+    var address = URLComponents(url: portalURL, resolvingAgainstBaseURL: false)!
+    address.fragment = "tax-work"
+    return address.url!
+  }
 }
 enum WorkspaceError: LocalizedError {
   case message(String)
@@ -98,6 +108,7 @@ final class WorkspaceClient {
     _ path: String, method: String = "GET", query: [URLQueryItem] = [], body: Data? = nil,
     mime: String = "application/json"
   ) async throws -> (Data, HTTPURLResponse) {
+    try SecureTaxTransportPolicy.assertLegacyAllowed(origin: origin, group: .driver, path: path, method: method, body: body)
     var c = URLComponents(url: origin, resolvingAgainstBaseURL: false)!
     c.path = "/api/website/customer/driver/" + path
     c.queryItems = query.isEmpty ? nil : query
@@ -135,6 +146,14 @@ final class WorkspaceClient {
     return reply
   }
   func logout() async throws { _ = try await send("session", method: "DELETE") }
+  func profile(name: String? = nil) async throws -> ProfileReply {
+    struct Input: Encodable { let name: String }
+    let body = try name.map { try WireJSON.encoder().encode(Input(name: $0)) }
+    let (data, _) = try await send("profile", method: name == nil ? "GET" : "PATCH", body: body)
+    let reply = try WireJSON.decoder().decode(ProfileReply.self, from: data)
+    guard reply.apiVersion == 1 else { throw WorkspaceError.message("This workspace uses an unsupported client profile.") }
+    return reply
+  }
   func save(_ mutation: DriverMutation) async throws -> ServerRecord {
     let (data, _) = try await send(
       "records", method: "POST", body: WireJSON.encoder().encode(mutation))
@@ -169,6 +188,51 @@ final class WorkspaceClient {
   func bankFeed(after: Int) async throws -> BankFeedReply {
     let (data, _) = try await send("banks", query: [URLQueryItem(name: "after", value: String(after))])
     return try WireJSON.decoder().decode(BankFeedReply.self, from: data)
+  }
+  private func taxRequest(_ path: String, method: String = "GET", body: Data? = nil, mime: String = "application/json", maximum: Int) async throws -> (Data, HTTPURLResponse) {
+    try SecureTaxTransportPolicy.assertLegacyAllowed(origin: origin, group: .customer, path: path, method: method, body: body)
+    var address = URLComponents(url: origin, resolvingAgainstBaseURL: false)!
+    address.path = "/api/website/customer/" + path
+    address.queryItems = nil
+    var request = URLRequest(url: address.url!)
+    request.httpMethod = method
+    request.httpBody = body
+    request.setValue("application/json", forHTTPHeaderField: "Accept")
+    if body != nil { request.setValue(mime, forHTTPHeaderField: "Content-Type") }
+    if let token { request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization") }
+    let (stream, raw) = try await session.bytes(for: request)
+    guard let response = raw as? HTTPURLResponse else { throw WorkspaceError.message("The workspace returned an unexpected response.") }
+    guard response.expectedContentLength <= Int64(maximum) else { throw WorkspaceError.message("This workspace response exceeds the document size limit.") }
+    var data = Data()
+    data.reserveCapacity(min(maximum, max(0, Int(response.expectedContentLength))))
+    for try await byte in stream {
+      guard data.count < maximum else { throw WorkspaceError.message("This workspace response exceeds the document size limit.") }
+      data.append(byte)
+    }
+    guard (200...299).contains(response.statusCode) else {
+      let failure = try? WireJSON.decoder().decode(Failure.self, from: data)
+      throw WorkspaceError.server(response.statusCode, failure?.error ?? "The document request could not be completed (\(response.statusCode)).", nil)
+    }
+    return (data, response)
+  }
+  func taxWorkspace() async throws -> TaxWorkspaceSummary? {
+    let (data, _) = try await taxRequest("driver/tax", maximum: 2 * 1024 * 1024)
+    let reply = try WireJSON.decoder().decode(TaxWorkspaceReply.self, from: data)
+    guard reply.apiVersion == 1 else { throw WorkspaceError.message("This workspace uses an unsupported tax-document connection.") }
+    return reply.tax
+  }
+  func uploadTaxDocument(_ file: TaxUploadFile, requestID: UUID) async throws -> ClientTaxDocument {
+    struct Reply: Decodable { var document: ClientTaxDocument }
+    let boundary = "GigTaxPros-\(UUID().uuidString)"
+    let (data, _) = try await taxRequest("documents", method: "POST", body: file.multipart(requestID: requestID, boundary: boundary), mime: "multipart/form-data; boundary=\(boundary)", maximum: 32_000)
+    return try WireJSON.decoder().decode(Reply.self, from: data).document
+  }
+  func taxDocument(_ document: ClientTaxDocument) async throws -> Data {
+    guard (1...TaxUploadFile.maximumBytes).contains(document.size) else { throw WorkspaceError.message("This document exceeds the supported size limit.") }
+    let (data, response) = try await taxRequest("documents/" + document.id.uuidString.lowercased(), maximum: TaxUploadFile.maximumBytes)
+    guard data.count == document.size, response.mimeType == document.mime else { throw WorkspaceError.message("The returned document does not match the saved file information.") }
+    guard try TaxUploadFile(name: document.name, bytes: data).mime == document.mime else { throw WorkspaceError.message("The document contents do not match their saved format.") }
+    return data
   }
   static func discover() async throws -> URL? {
     let client = WorkspaceClient(origin: websiteURL)

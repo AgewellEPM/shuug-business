@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <!-- BUILD_CSP -->
+  <title>Gig Tax Pros · Private workspace</title>
+  <link rel="stylesheet" href="./style.css">
+  <!-- BUILD_IMPORTMAP -->
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <header><p class="eyebrow">Gig Tax Pros</p><h1>Your private workspace</h1><p>Client-held encryption · independent browser client</p></header>
+  <main>
+    <aside class="notice"><strong>Foundation preview. New activation is unavailable.</strong> This client can prepare keys and verify a firm's signed setup manifest. It can open encrypted items for accounts already enrolled through a reviewed setup. It does not migrate existing tax data, connect providers, or file a return. Existing plaintext records, provider credentials, backups and history require a separate migration and review.</aside>
+    <p id="message" role="status" aria-live="polite">Loading independent trust configuration…</p>
+    <section id="connection"><h2>1. Connect your account</h2><p id="trust">Connections remain disabled without independently installed public trust pins.</p><label for="email">Invited account email</label><input id="email" type="email" autocomplete="username" maxlength="160" disabled><label for="password">Account password</label><input id="password" type="password" autocomplete="current-password" maxlength="200" disabled><button id="signin-password" type="button" disabled>Sign in</button><button id="signout" type="button" disabled>Sign out</button><p>Account sign-in goes to the ciphertext API. Your encryption key and backup passphrase stay on this device. The session token stays in memory until sign-out or reload.</p><details><summary>Existing portal session</summary><p><a id="signin" hidden target="_blank" rel="noopener noreferrer">Sign in to the API portal</a></p><button id="connect" disabled type="button">Connect signed-in account</button></details><button id="lock" disabled type="button">Lock this view</button><p id="account">No account connected.</p><p id="migration"></p></section>
+    <section id="keys"><h2>2. Keep your key</h2><p>The browser stores a nonextractable key handle. Anyone controlling this browser profile or its trusted scripts may use that handle; the backup passphrase does not lock IndexedDB. Lock clears this page's opened content. Keep the encrypted backup and its separate passphrase somewhere safe.</p>
+      <label for="key-choice">Keys on this browser</label><select id="key-choice" disabled><option value="">No local key</option></select><button id="unlock" disabled type="button">Use selected key</button><button id="backup" disabled type="button">Save encrypted key backup</button>
+      <details><summary>Create or recover a key</summary><label for="passphrase">Separate backup passphrase (16–1,024 characters)</label><input id="passphrase" type="password" autocomplete="new-password" minlength="16" maxlength="1024"><label for="passphrase-confirm">Confirm passphrase for a new key</label><input id="passphrase-confirm" type="password" autocomplete="new-password" maxlength="1024"><button id="create-key" disabled type="button">Create key and save encrypted backup</button><label for="import-backup">Existing encrypted client-key backup</label><input id="import-backup" type="file" accept="application/json,.json" disabled><button id="import-key" disabled type="button">Recover key from backup</button><p>No firm recovery private key is generated or imported here. The firm keeps its recovery key offline.</p></details>
+      <details><summary>Prepare signed setup</summary><button id="request" disabled type="button">Save public enrollment request</button><p>Send this public request to the firm through its agreed process. Only the separately held firm signing key can approve the manifest.</p><label for="manifest">Signed public enrollment manifest</label><input id="manifest" type="file" accept="application/json,.json" disabled><button id="verify-manifest" disabled type="button">Verify and stage manifest locally</button><p id="manifest-result">Activation stays unavailable until complete encrypted sync and legacy migration are ready.</p><button disabled type="button">Activate encrypted account — unavailable</button></details>
+    </section>
+    <section><h2>3. Open your workspace</h2><p>Only ciphertext and minimal routing metadata cross the API connection. Filenames, file types, details and values stay inside encryption. The API still learns account IDs, coarse domain, item count, sizes and revision activity.</p><button id="sync" disabled type="button">Sync encrypted items</button><p id="sync-result">Connect and use the enrolled account's key to open items.</p>
+      <div id="groups"></div>
+    </section>
+    <section id="editor"><h2 id="editor-title">Add a private item</h2><div id="normal-editor"></div><details id="advanced-editor"><summary>Advanced encrypted JSON (foundation tools)</summary><label for="domain">Workspace area</label><select id="domain" disabled></select><label for="payload">Details (JSON, encrypted on this device)</label><textarea id="payload" rows="9" spellcheck="false" disabled>{"version":1,"title":"","notes":""}</textarea><label for="attachment">Optional private file (PDF, JPEG or PNG; at most 10 MiB)</label><input id="attachment" type="file" accept="application/pdf,image/jpeg,image/png,.pdf,.jpg,.jpeg,.png" disabled><p>File name and type are encrypted with the file. A file is downloaded in readable form only when you choose its download button.</p><button id="save" disabled type="button">Encrypt and save</button><button id="cancel-edit" disabled type="button">Clear editor</button></details></section>
+  </main>
+  <footer>Preview foundation · no tax filing or complete security claim · no third-party scripts, analytics or fonts</footer>
+</body>
+</html>

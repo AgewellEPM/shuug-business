@@ -2,11 +2,22 @@ import DriverCore
 import SwiftUI
 
 struct GigConnectionsView: View {
+  @EnvironmentObject private var model: DriverModel
   var body: some View {
     Form {
       Section("Copilot mode") {
         Label("You make the final offer decision", systemImage: "person.crop.circle.badge.checkmark")
         Text("Review recommendations here, then return to the gig app to accept or decline. No provider has an authorized acceptance integration configured.").font(.footnote)
+      }
+      Section("My connected accounts") {
+        if let connection = model.connection,
+          let url = URL(string: connection.portalURL.absoluteString + "#gig-connections") {
+          Link("Uber account connection & imported history", destination: url)
+          Text("Use your client profile to authorize the firm’s approved Uber connection and review imported provider records. Bank deposits and your tax journal remain separate until reviewed.")
+            .font(.footnote)
+        } else {
+          Text("Connect your invited client account in Your account to manage provider authorizations.")
+        }
       }
       Section("Gig platforms") {
         NavigationLink("Offer Capture Diagnostics") { OfferCaptureDiagnosticsView() }
@@ -17,7 +28,7 @@ struct GigConnectionsView: View {
               VStack(alignment: .leading, spacing: 6) {
                 GigPlatformWordmark(platform: platform, width: 120, height: 24)
                 Text("Screenshot / shared text · Optional screen sharing").font(.caption)
-                Text("Live offers, account status & acceptance API: unavailable").font(.caption2).foregroundStyle(Brand.muted)
+                Text(platform == .uber ? "Offer reading · Driver account sync through your client profile" : "Offer reading · No authorized account connector configured").font(.caption2).foregroundStyle(Brand.muted)
               }
             }
           }

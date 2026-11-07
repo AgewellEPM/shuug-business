@@ -17,6 +17,8 @@ import Network
   @Published private(set) var syncing = false
   @Published private(set) var syncStatus = "Saved on this iPhone"
   @Published private(set) var syncDetail: String?
+  @Published private(set) var updatingProfile = false
+  @Published private(set) var profileError: String?
   @Published private(set) var storageHealthy = true
   private(set) var disk: JournalDiskStore!
   private var namespace = "guest", lastAttempt = Date.distantPast
@@ -110,7 +112,7 @@ import Network
   }
   func finishTrip() { if commit({ $0.finishTrip() }) { Task { await sync() } } }
   func connect(origin: URL, email: String, password: String, includeOffline: Bool) async throws {
-    guard !syncing else {
+    guard !syncing, !updatingProfile else {
       throw WorkspaceError.message("Wait for the current sync to finish before reconnecting an account.")
     }
     guard journal.activeTripId == nil else {
@@ -140,12 +142,13 @@ import Network
     connection = profile
     bankStatus = nil; bankError = nil
     syncDetail = nil
+    profileError = nil
     storageHealthy = true
     syncStatus = "Connected to \(reply.branding.name)"
     await sync()
   }
   func disconnect() async {
-    guard !syncing else {
+    guard !syncing, !updatingProfile else {
       message = "Wait for the current sync to finish before signing out."
       return
     }
@@ -166,13 +169,14 @@ import Network
       journal = guestJournal
       syncStatus = "Saved on this iPhone"
       syncDetail = nil
+      profileError = nil
       if let previous {
         try? await WorkspaceClient(origin: previous.origin, token: previous.session.token).logout()
       }
     } catch { message = error.localizedDescription }
   }
   func sync() async {
-    guard !syncing, storageHealthy, let connection else { return }
+    guard !syncing, !updatingProfile, storageHealthy, let connection else { return }
     let scope = namespace
     let client = WorkspaceClient(origin: connection.origin, token: connection.session.token)
     let capturedDisk = disk!
@@ -231,6 +235,7 @@ import Network
       // keep their queue and wait for a reconnect or explicit retry.
       continueSync = morePages || !journal.pending.isEmpty || !journal.pendingReceipts.isEmpty
       await refreshBanks()
+      await refreshProfile()
     } catch {
       guard scope == namespace else { return }
       if case WorkspaceError.server(let status, _, _) = error, status == 401 || status == 403 {
@@ -240,6 +245,46 @@ import Network
       }
       syncDetail = error.localizedDescription
     }
+  }
+  private func applyProfile(_ reply: ProfileReply, expected: ConnectionProfile, scope: String) throws {
+    guard scope == namespace, var current = connection, current.origin == expected.origin,
+      current.session.token == expected.session.token
+    else { throw CancellationError() }
+    guard reply.account.id == current.session.account.id else {
+      throw WorkspaceError.message("The workspace returned another client identity. Sign in again before continuing.")
+    }
+    current.session.account = reply.account
+    current.session.branding = reply.branding
+    // A profile read or edit does not renew the session or change journal scope.
+    try SessionKeychain.save(current)
+    connection = current
+  }
+  func refreshProfile() async {
+    guard let connection, !updatingProfile else { return }
+    let scope = namespace
+    do {
+      let reply = try await WorkspaceClient(origin: connection.origin, token: connection.session.token).profile()
+      try applyProfile(reply, expected: connection, scope: scope)
+      profileError = nil
+    } catch {
+      guard scope == namespace, self.connection?.session.token == connection.session.token else { return }
+      profileError = error.localizedDescription
+      if case WorkspaceError.server(let status, _, _) = error, status == 401 || status == 403 {
+        syncStatus = "Sign in again to continue syncing"
+      }
+    }
+  }
+  func updateProfileName(_ name: String) async throws {
+    guard let connection else { throw WorkspaceError.message("Connect your client account first.") }
+    guard !syncing, !updatingProfile else { throw WorkspaceError.message("Wait for the current sync or profile update to finish.") }
+    let value = name.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !value.isEmpty, value.count <= 100 else { throw WorkspaceError.message("Use a display name between 1 and 100 characters.") }
+    let scope = namespace
+    updatingProfile = true
+    defer { updatingProfile = false }
+    let reply = try await WorkspaceClient(origin: connection.origin, token: connection.session.token).profile(name: value)
+    try applyProfile(reply, expected: connection, scope: scope)
+    profileError = nil
   }
   func receiptURL(_ id: UUID) async throws -> URL {
     if FileManager.default.fileExists(atPath: disk.receiptURL(id).path) {

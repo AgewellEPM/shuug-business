@@ -1,0 +1,37 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T07:00:39.291596+00:00",
+  "scope": "Generic iOS Simulator compilation of encryption foundation before parallel native branch integration; no app installation, UI launch or physical-device custody",
+  "sourceHead": "e25ab90d557583289f42b1964c50aae03aa1637d",
+  "buildLog": "/private/tmp/gig-tax-pros-secure-ios-build-20261107.log",
+  "appCodeSha256": "7842d86a8a8068440ba1dbc0b408c134003a3e80f595cdfb756b237f95a42d90",
+  "sources": {
+    "native/ios/RideshareTaxPros/App/SecureTaxConnectionView.swift": "47ab5c3775c0ade724b3698970ccb25a1833deaf41e028a182489144470db5bc",
+    "native/ios/RideshareTaxPros/App/SecureTaxDeviceKeys.swift": "9458add22f2a7654bca89d782a4cd0e5f1cd344962d347a7e79be3a89dad1ece",
+    "native/ios/RideshareTaxPros/App/SecureTaxEnrollmentClient.swift": "89179b146de65300d12e9aec57a10a1fe869dba5602596b31558be0857aae090",
+    "native/ios/RideshareTaxPros/App/SecureTaxEnvelope.swift": "654579c434e78ba3c2b8e48e1359ddf0fb79adeb83a69acc98890a74531a2a36",
+    "native/ios/RideshareTaxPros/App/SecureTaxJournalSnapshot.swift": "7359409673dddc23179504aac6b7f4f38979ff63c548ad4ac5c18a88ffee4e84",
+    "native/ios/RideshareTaxPros/App/SecureTaxJournalSnapshotService.swift": "e091a8fd6471aebb1ff993fed4112be7b8c14b77f20083aeae229d0083b674b9",
+    "native/ios/RideshareTaxPros/App/SecureTaxManifest.swift": "32b7ae74d543fc3115dabba62808de745efc17e1e85c1d557c68902eba7e826d",
+    "native/ios/RideshareTaxPros/App/SecureTaxObjectClient.swift": "718967139a250fe37b0a80641b5092e4ec3f59c68864ab699f522814ec00f948",
+    "native/ios/RideshareTaxPros/App/SecureTaxSnapshotCheckpoint.swift": "df956fdf4eb1365961764ffa3e83b3ad4e132031f87ff26f58911a93d52fb6e3",
+    "native/ios/RideshareTaxPros/App/SecureTaxSnapshotView.swift": "4c4a73c24cba8e3df0b136b12f88a092b37120965e01311c073cd94473e6549f",
+    "native/ios/RideshareTaxPros/App/SecureTaxTransportPolicy.swift": "ae39d85d95b89fdb92a3bfe5c4c69616814b751ba7ccf51cdd8f9291c596d9f0"
+  },
+  "extensions": [
+    "GigNotificationContent.appex",
+    "GigOfferBroadcast.appex",
+    "GigOfferShare.appex"
+  ],
+  "syntheticProofs": {
+    "nativeEnvelope": 33,
+    "nativeCustody": 27,
+    "nativeFullJournalSnapshot": 20,
+    "nativeTransportPolicy": 17
+  },
+  "bundledPublicPinsPresent": false,
+  "productionKeysGenerated": false,
+  "offhostPhysicalCustodyVerified": false,
+  "fullFeatureParityVerified": false,
+  "originalNewerAppReplaced": false
+}

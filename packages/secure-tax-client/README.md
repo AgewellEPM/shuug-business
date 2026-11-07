@@ -96,6 +96,13 @@ be installed independently in native builds, static frontend configuration and
 API public configuration. Key rotation/rewrapping, staff access grants and
 real off-host backup drills are not supplied by these commands.
 
+`public-config.mjs --pins PUBLIC-ONLY.json --api-origin https://api.example
+--ui-origin https://client.example --output NEW-DIRECTORY` prepares consistent
+public-only files for the API environment, signed native resource and independent
+static frontend. It rejects private bundle fields, does not overwrite an existing
+directory, and performs no installation or activation. Distribute each through
+its separately controlled channel after independently verifying fingerprints.
+
 ## Remaining security gates
 
 - V2 uses HPKE Auth; v1/base envelopes are rejected. It does not provide public

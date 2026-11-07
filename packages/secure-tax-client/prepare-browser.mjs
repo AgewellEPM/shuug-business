@@ -1,0 +1,48 @@
+import { cp, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { validateTrustedConfig } from './browser/config.mjs';
+
+const source=fileURLToPath(new URL('.',import.meta.url));
+const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css'];
+export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
+  if(config)await validateTrustedConfig(config,config.uiOrigin);
+  const existing=await readdir(output).catch(error=>{if(error.code==='ENOENT')return [];throw error;});
+  if(existing.length)throw new Error('Choose an empty artifact directory; existing files will not be replaced.');
+  const lock=JSON.parse(await readFile(path.join(source,'package-lock.json'),'utf8'));
+  const vendor=[];
+  for(const [name,version] of [['@hpke/core','1.10.0'],['@hpke/common','1.11.0']]){
+    const installed=JSON.parse(await readFile(path.join(source,'node_modules',name,'package.json'),'utf8'));
+    if(installed.version!==version||lock.packages[`node_modules/${name}`]?.version!==version)throw new Error(`The local ${name} dependency does not match the reviewed lock.`);
+    vendor.push([name,version]);
+  }
+  await mkdir(path.join(output,'browser'),{recursive:true});
+  for(const file of browserFiles)await cp(path.join(source,'browser',file),path.join(output,'browser',file));
+  await cp(path.join(source,'envelope.mjs'),path.join(output,'envelope.mjs'));
+  for(const [name] of vendor){
+    await mkdir(path.join(output,'vendor',name),{recursive:true});
+    await cp(path.join(source,'node_modules',name,'esm'),path.join(output,'vendor',name,'esm'),{recursive:true});
+    await cp(path.join(source,'node_modules',name,'LICENSE'),path.join(output,'vendor',name,'LICENSE'));
+  }
+  await writeFile(path.join(output,'browser','trusted-config.mjs'),`// Independently supplied public configuration. No private keys.\nexport default ${JSON.stringify(config)};\n`);
+  const importmap=JSON.stringify({imports:{'@hpke/core':'./vendor/@hpke/core/esm/mod.js','@hpke/common':'./vendor/@hpke/common/esm/mod.js'}});
+  const hash=createHash('sha256').update(importmap).digest('base64');
+  const csp=`default-src 'none'; script-src 'self' 'sha256-${hash}'; style-src 'self'; connect-src ${config?.apiOrigin??"'none'"}; img-src 'none'; font-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'`;
+  let html=await readFile(path.join(source,'browser','index.html'),'utf8');
+  html=html.replace('<!-- BUILD_CSP -->',`<meta http-equiv="Content-Security-Policy" content="${csp}">`).replace('<!-- BUILD_IMPORTMAP -->',`<script type="importmap">${importmap}</script>`).replace('href="./style.css"','href="./browser/style.css"').replace('src="./app.mjs"','src="./browser/app.mjs"');
+  await writeFile(path.join(output,'index.html'),html);
+  await writeFile(path.join(output,'_headers'),`/*\n  Content-Security-Policy: ${csp}; frame-ancestors 'none'\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Cross-Origin-Opener-Policy: same-origin\n  Cache-Control: no-store\n`);
+  await writeFile(path.join(output,'vercel.json'),JSON.stringify({headers:[{source:'/(.*)',headers:[{key:'Content-Security-Policy',value:`${csp}; frame-ancestors 'none'`},{key:'X-Content-Type-Options',value:'nosniff'},{key:'Referrer-Policy',value:'no-referrer'},{key:'Permissions-Policy',value:'camera=(), microphone=(), geolocation=()'},{key:'Cross-Origin-Opener-Policy',value:'same-origin'},{key:'Cache-Control',value:'no-store'}]}]},null,2));
+  await writeFile(path.join(output,'build-public.json'),JSON.stringify({version:1,configured:!!config,dependencies:Object.fromEntries(vendor),activationAvailable:false},null,2));
+  return {output,configured:!!config,activationAvailable:false};
+}
+if(process.argv[1] && import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
+  const args=process.argv.slice(2);let config=null,output;
+  for(let i=0;i<args.length;i++){
+    if(args[i]==='--config'&&args[i+1])config=JSON.parse(await readFile(args[++i],'utf8'));
+    else if(args[i]==='--output'&&args[i+1])output=path.resolve(args[++i]);
+    else throw new Error('Usage: node prepare-browser.mjs [--config independent-public-pins.json] [--output empty-artifact-directory]');
+  }
+  console.log(JSON.stringify(await prepareBrowser({config,output})));
+}

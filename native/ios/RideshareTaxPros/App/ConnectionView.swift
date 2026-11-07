@@ -12,7 +12,9 @@ struct ConnectionView: View {
   @State private var signingIn = false
   @State private var notice: String?
   @State private var signingOut = false
-  private var changingAccountBlocked: Bool { model.syncing || model.active != nil }
+  @State private var profileName = ""
+  @State private var editingProfile = false
+  private var changingAccountBlocked: Bool { model.syncing || model.updatingProfile || model.active != nil }
   private var portalURL: URL {
     if let origin = try? WorkspaceAddress.parse(origin) {
       return origin.appendingPathComponent("api/website/customer")
@@ -29,6 +31,28 @@ struct ConnectionView: View {
         Section("Your client profile") {
           Text(connection.session.account.name).font(.headline)
           Text(connection.session.account.email).privacySensitive()
+          DisclosureGroup("Edit display name", isExpanded: $editingProfile) {
+            TextField("Display name", text: $profileName).textContentType(.name)
+              .disabled(model.updatingProfile).accessibilityIdentifier("account.profileName")
+            Button {
+              Task {
+                do {
+                  try await model.updateProfileName(profileName)
+                  profileName = model.connection?.session.account.name ?? profileName
+                  editingProfile = false
+                  notice = "Your display name was updated in the app and client portal."
+                } catch { notice = error.localizedDescription }
+              }
+            } label: {
+              if model.updatingProfile { ProgressView("Saving profile…") }
+              else { Text("Save display name") }
+            }.disabled(model.syncing || model.updatingProfile || profileName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+              .accessibilityIdentifier("account.saveProfile")
+            Text("Ask your tax team to change your sign-in email.").font(.footnote).foregroundStyle(.secondary)
+          }
+          if let detail = model.profileError {
+            Text("Profile refresh: \(detail)").font(.footnote).foregroundStyle(.secondary)
+          }
           LabeledContent("Firm", value: connection.session.branding.name)
           Text(connection.origin.host ?? "").font(.caption).foregroundStyle(.secondary)
           Label(model.syncStatus, systemImage: "icloud")
@@ -52,6 +76,9 @@ struct ConnectionView: View {
             else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") }
           }.disabled(model.syncing).accessibilityIdentifier("account.sync")
           Link("Open my client portal", destination: connection.portalURL)
+          NavigationLink("My tax documents & progress") { TaxWorkspaceView() }
+          NavigationLink("Protected data · Key setup & status") { SecureTaxConnectionView() }
+          NavigationLink("Protected Journal · Encrypted snapshots") { SecureTaxSnapshotView() }
           Text("Use the same client email and password in the portal. The browser may ask you to sign in separately.")
             .font(.footnote).foregroundStyle(.secondary)
           Button("Sign in again") {
@@ -90,8 +117,11 @@ struct ConnectionView: View {
       }
     }.driverScreen().navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
       .task {
-        if model.connection != nil { await model.sync() }
+        if model.connection != nil { await model.sync(); profileName = model.connection?.session.account.name ?? "" }
         else if !checkedDiscovery { await findWorkspace() }
+      }
+      .onChange(of: model.connection?.session.account.name) { _, name in
+        if !editingProfile { profileName = name ?? "" }
       }
       .confirmationDialog(
         "Sign out? Your account’s unsynced records stay on this iPhone and return when you reconnect to that same account.",

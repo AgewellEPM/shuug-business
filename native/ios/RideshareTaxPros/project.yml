@@ -51,7 +51,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ENABLE_USER_SCRIPT_SANDBOXING: YES
         CODE_SIGN_ENTITLEMENTS: RideshareTaxPros.entitlements
-        RTP_BANK_LINK_DOMAIN: rideshare-tax-pros.pages.dev
+        RTP_BANK_LINK_DOMAIN: gigtax.pro
     dependencies:
       - package: DriverCore
       - package: LinkKit
