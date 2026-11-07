@@ -123,7 +123,7 @@ struct ConnectionView: View {
       }.font(.footnote)
       Section {
         Link(
-          "Rideshare Tax Pros website",
+          "Tax firm website",
           destination: URL(string: "https://rideshare-tax-pros.pages.dev")!)
         NavigationLink("App privacy & data") { DriverPrivacyView() }
         Button("Open iPhone app settings") {

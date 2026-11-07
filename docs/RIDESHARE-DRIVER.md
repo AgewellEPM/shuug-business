@@ -1,4 +1,4 @@
-# Rideshare Tax Pros iPhone driver app
+# Gig Tax Pros driver apps
 
 The native SwiftUI app is in `native/ios/RideshareTaxPros`. It uses the firm's
 dark background, purple/pink actions, panels and logo from the published website,
@@ -6,6 +6,10 @@ and existing Shuug invited-client accounts. Minimum iOS:17.
 This is the driver app; the existing macOS owner launcher remains separate.
 The Android companion is in `native/android` (minimum Android 8/API 26). Its
 debug build is a development artifact and has not yet passed device acceptance.
+
+The iPhone and Android apps display **Gig Tax Pros**. Existing application IDs,
+Keychain service and storage locations are retained so the rename preserves
+installed accounts, journals and receipts.
 
 ## Recorded work
 
@@ -257,6 +261,8 @@ opens a separate named review device on the normal desktop and leaves the app
 open for the user. It reuses that device and preserves its records on later runs,
 refuses other active guests, and verifies the installed executable matches the
 built app. This is the user preview; close it before another diagnostic run.
+The device is named **Gig Tax Pros Preview**. An existing **Rideshare Tax Pros
+Preview** is renamed and reused in place, preserving its device ID and saved data.
 
 After building Shuug in the current checkout, run:
 

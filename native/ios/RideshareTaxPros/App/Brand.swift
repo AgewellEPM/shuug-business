@@ -43,7 +43,7 @@ struct BrandHeader: View {
       Image("BrandMark").resizable().scaledToFit().frame(width: 52, height: 52)
         .accessibilityHidden(true)
       VStack(alignment: .leading, spacing: 5) {
-        Text("Rideshare Tax Pros")
+        Text("Gig Tax Pros")
           .font(.custom("Arial-BoldMT", size: 22, relativeTo: .headline))
           .tracking(-0.6).lineLimit(1).minimumScaleFactor(0.7)
         Text("TAX & ACCOUNTING").font(.system(size: 10, weight: .medium))

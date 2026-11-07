@@ -152,5 +152,5 @@ fun shareBytes(repo: DriverRepository,bytes: ByteArray,mime: String,name: String
     val folder=File(repo.app.cacheDir,"shared").apply {mkdirs()}; val file=File(folder,uuid()+"-"+name); file.writeBytes(bytes)
     val uri=FileProvider.getUriForFile(repo.app,repo.app.packageName+".files",file)
     val send=Intent(Intent.ACTION_SEND).setType(mime).putExtra(Intent.EXTRA_STREAM,uri).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-    repo.app.startActivity(Intent.createChooser(send,"Share from Rideshare Tax Pros").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    repo.app.startActivity(Intent.createChooser(send,"Share from Gig Tax Pros").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }

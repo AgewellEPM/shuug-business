@@ -9,7 +9,8 @@ import time
 
 APP = Path(os.environ.get('RIDESHARE_IOS_TEST_DERIVED', '/private/tmp/rideshare-ios-simulator-build')) / 'Build/Products/Debug-iphonesimulator/RideshareTaxPros.app'
 BUNDLE = 'com.ridesharetaxpros.driver'
-NAME = 'Rideshare Tax Pros Preview'
+NAME = 'Gig Tax Pros Preview'
+PREVIOUS_NAME = 'Rideshare Tax Pros Preview'
 RECEIPT = Path('/private/tmp/rideshare-ios-preview.json')
 
 
@@ -45,7 +46,7 @@ signature = call('codesign', '-dv', str(APP)).stderr
 assert 'Identifier='+BUNDLE in signature and 'linker-signed' not in signature, 'The preview needs normal local Simulator signing for Keychain.'
 assert call('pgrep', '-fl', 'qemu-system|VirtualBoxVM|vmware-vmx|prl_vm_app|IsolatedTester.app/Contents/MacOS/IsolatedTester', check=False).returncode == 1, 'An existing guest is active; close it before opening the preview.'
 existing = devices()
-matches = [d for d in existing if d['name'] == NAME]
+matches = [d for d in existing if d['name'] in (NAME, PREVIOUS_NAME)]
 assert len(matches) <= 1, 'More than one preview device exists; inspect before proceeding.'
 identifier = matches[0]['udid'] if matches else None
 assert not any(d['udid'] != identifier and d['state'] in ('Booted', 'Booting', 'Shutting Down') for d in existing), 'Another Simulator is active; refusing a second session.'
@@ -57,6 +58,8 @@ try:
         created = True
     state = next(d['state'] for d in devices() if d['udid'] == identifier)
     assert state in ('Shutdown', 'Booted'), 'Preview is changing state; wait for it to settle.'
+    if matches and matches[0]['name'] != NAME:
+        call('xcrun', 'simctl', 'rename', identifier, NAME)
     if state == 'Shutdown':
         call('xcrun', 'simctl', 'boot', identifier)
         booted_here = True

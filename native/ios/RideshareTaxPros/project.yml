@@ -26,7 +26,8 @@ targets:
     info:
       path: Info.plist
       properties:
-        CFBundleDisplayName: Rideshare Tax Pros
+        CFBundleDisplayName: Gig Tax Pros
+        CFBundleName: Gig Tax Pros
         CFBundleShortVersionString: '0.1.0'
         CFBundleVersion: '1'
         UILaunchScreen: {}

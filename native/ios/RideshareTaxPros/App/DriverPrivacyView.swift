@@ -40,7 +40,7 @@ struct DriverPrivacyView: View {
       }
       Section("Included services") {
         Text(
-          "This app uses Apple's location, motion, maps and on-device receipt recognition, plus Plaid for optional bank linking. It has no advertising SDK or automatic tax-filing connection. Find my firm's workspace retrieves the public connection address from the Rideshare Tax Pros website."
+          "This app uses Apple's location, motion, maps and on-device receipt recognition, plus Plaid for optional bank linking. It has no advertising SDK or automatic tax-filing connection. Find my firm's workspace retrieves the public connection address from the firm's website."
         )
       }
     }.driverScreen().navigationTitle("App privacy & data").navigationBarTitleDisplayMode(.inline)

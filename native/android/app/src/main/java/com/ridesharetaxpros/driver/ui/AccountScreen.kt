@@ -62,7 +62,7 @@ import kotlinx.serialization.json.*
         val program=state["program"]!!.jsonObject;val points=state["points"]!!.jsonPrimitive.int;val milestone=program["milestonePoints"]!!.jsonPrimitive.int.coerceAtLeast(1)
         val personalCode=state["code"]!!.jsonPrimitive.content
         Panel("Your referral code") {Text(personalCode,style=MaterialTheme.typography.headlineMedium)
-            Button(onClick={val text="I use Rideshare Tax Pros. Tell them I referred you with code $personalCode. "+state["shareUrl"]!!.jsonPrimitive.content
+            Button(onClick={val text="I use Gig Tax Pros. Tell them I referred you with code $personalCode. "+state["shareUrl"]!!.jsonPrimitive.content
                 repo.app.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,text),"Share my referral").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}) {Text("Share my referral")}
         }
         Panel("Points & progress") {Text("$points points",style=MaterialTheme.typography.headlineLarge)

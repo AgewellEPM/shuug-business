@@ -20,7 +20,7 @@ struct ReferralView: View {
       } else if let summary {
         Section("Your referral code") {
           Text(summary.code).font(.title2.monospaced().bold()).textSelection(.enabled)
-          ShareLink(item: "I use Rideshare Tax Pros. Tell them I referred you with code \(summary.code). \(summary.shareUrl)") {
+          ShareLink(item: "I use Gig Tax Pros. Tell them I referred you with code \(summary.code). \(summary.shareUrl)") {
             Label("Share my referral", systemImage: "square.and.arrow.up")
           }
         }.listRowBackground(Brand.surface)

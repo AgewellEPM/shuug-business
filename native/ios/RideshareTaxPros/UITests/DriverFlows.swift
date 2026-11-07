@@ -202,7 +202,7 @@ import XCTest
       if app.buttons["Browse"].exists { app.buttons["Browse"].firstMatch.tap() }
       let onPhone = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "On My iPhone")).firstMatch
       if onPhone.waitForExistence(timeout: 5) { onPhone.tap() }
-      let folder = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Rideshare Tax Pros")).firstMatch
+      let folder = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Gig Tax Pros")).firstMatch
       if folder.waitForExistence(timeout: 5) { folder.tap() }
     }
     XCTAssertTrue(fixture.waitForExistence(timeout: 15), app.debugDescription)

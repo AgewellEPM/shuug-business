@@ -35,7 +35,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
     fun tracking(action: String) { serviceAction=action; permissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION)+if(Build.VERSION.SDK_INT>=33) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray()) }
     fun edit(record: DriverRecord) { editing=record; bank=null; prompt=null; page="Edit" }
     BrandTheme { Scaffold(containerColor=Ink,topBar={ TopAppBar(title={ Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        Image(painterResource(R.drawable.brand_mark),null,Modifier.size(32.dp)); Text(page ?: "Rideshare Tax Pros",style=MaterialTheme.typography.titleLarge)
+        Image(painterResource(R.drawable.brand_mark),null,Modifier.size(32.dp)); Text(page ?: "Gig Tax Pros",style=MaterialTheme.typography.titleLarge)
     } },navigationIcon={ if(page!=null) IconButton(onClick={page=null;editing=null;bank=null;prompt=null}) { Icon(Icons.Default.ArrowBack,"Back") } }) },bottomBar={ if(page==null) NavigationBar(containerColor=Panel) {
         listOf("Today" to Icons.Default.Home,"Trips" to Icons.Default.DirectionsCar,"Money" to Icons.Default.ReceiptLong,"Insights" to Icons.Default.BarChart,"Account" to Icons.Default.Person).forEach { (name,icon)->
             NavigationBarItem(selected=tab==name,onClick={tab=name},icon={Icon(icon,name)},label={Text(name)}) }

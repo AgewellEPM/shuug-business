@@ -16,7 +16,7 @@ struct RootView: View {
     }.tint(Brand.link)
       .sheet(item: $model.requestedPrompt) { prompt in NavigationStack { ExpenseEditor(placePrompt: prompt) } }
       .alert(
-        "Rideshare Tax Pros",
+        "Gig Tax Pros",
         isPresented: Binding(get: { model.message != nil }, set: { if !$0 { model.message = nil } })
       ) {
         Button("OK") { model.message = nil }
@@ -175,7 +175,7 @@ struct TodayView: View {
       .fileExporter(
         isPresented: $exporting, document: DriverCSV(records: model.journal.visible.map(\.record)),
         contentType: .commaSeparatedText,
-        defaultFilename: "RideshareTaxPros-\(DriverRecord.day(Date()))"
+        defaultFilename: "GigTaxPros-\(DriverRecord.day(Date()))"
       ) { result in
         if case .failure(let error) = result { model.message = error.localizedDescription }
       }
