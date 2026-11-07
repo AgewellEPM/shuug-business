@@ -1,0 +1,13 @@
+{
+  "savedAt": "2026-11-07T08:45:09.089Z",
+  "termsVersion": "2026-11-07T08:45:08.199Z",
+  "termsHash": "284c0a1b9661e77dcfb613108017aa1353a2d1ab84acd0fd5b58214d261b78d0",
+  "business": "Gig Tax Pro",
+  "termMonths": 12,
+  "monthlyCents": 30000,
+  "signupCents": 20000,
+  "upfrontCents": 50000,
+  "totalCents": 380000,
+  "paymentConnection": "Not configured; live paid activation disabled",
+  "basis": "User confirmed business name, annual commitment, prices, first payment and individually reviewed refunds in this session."
+}

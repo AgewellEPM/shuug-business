@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-07T08:34:09.882Z",
+  "checks": [
+    "live backend agent authentication",
+    "live D1 office save and agent assignment",
+    "fresh adapter reads persisted office and activity",
+    "real persisted invitation retains exact $500/12-month terms",
+    "missing Stripe prevents real office activation",
+    "second real agent cannot read first assignment",
+    "persisted revocation rejects existing session",
+    "real IRS download: 162 Hartford candidates after filters"
+  ],
+  "diagnosticBoardsArchived": [
+    "b_uwam93on89",
+    "b_0tf0g0ahs5",
+    "b_27n925t70b",
+    "b_9tzp0crdzt"
+  ],
+  "payment": "No Stripe account configured. No actual payment made. Payment adapter covered by synthetic tests only.",
+  "visual": "No browser automation; visual acceptance remains with Luke."
+}
