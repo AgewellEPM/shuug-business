@@ -1,0 +1,25 @@
+AGREEMENT DRAFT FOR OWNER REVIEW — live payment connection is not configured.
+
+Gig Tax Pros — Independent Office Membership
+
+Contracting business: Gig Tax Pro
+
+Term and price: A 12-month office membership beginning when the initial payment is confirmed. The membership costs USD $300 per office per month for 12 months, plus a one-time USD $200 enrollment fee. Total scheduled charges for the initial 12-month term: USD $3,800.
+
+Due at signup: USD $500, comprising the USD $200 enrollment fee and the first USD $300 monthly payment. The remaining 11 monthly payments of USD $300 are charged monthly to the payment method authorized at checkout. No automatic renewal beyond the initial 12-month term is authorized by this enrollment.
+
+Cancellation, refunds and early termination: Membership is a 12-month commitment. Refund requests are reviewed individually by Gig Tax Pro.
+
+Local ownership: The office remains independently owned and keeps its legal business, team, client relationships and revenue from services it delivers.
+
+Network scope: Shared consumer visibility, coordinated advertising, Shuug workflows, staffing and operating resources, and free owner workshops follow the agreed rollout. The first 90 days form a founding-office pilot within the 12-month membership. Confirm specific service availability and delivery dates with the contracting business.
+
+Branding and advertising: Local identity remains visible. Signage, trademark permissions, customer disclosures, fund administration and lead-routing rules require the applicable written program documents before use. The pitch's $200 advertising example and 45/30/15/10 allocation are illustrative; they do not replace the membership price above or promise a fixed allocation of the monthly fee.
+
+Results: No guaranteed leads, appointments, conversions, revenue, earnings, refunds or tax savings. App and technology features are subject to availability and validation. Tax calculation, e-file and banking capabilities require their separate approvals.
+
+Office responsibilities: Provide accurate business details and independent-ownership information. Deliver only services for which the office and its professionals are qualified and authorized. Each firm controls its own client records; joining does not authorize cross-office access or transfer of taxpayer data.
+
+Payment and activation: Stripe hosts payment-method entry. Membership becomes active only after the server verifies the USD $500 initial payment and USD $300 monthly subscription with its 12-month billing end. Accepting without confirmed payment leaves enrollment pending.
+
+Acceptance: By entering your full name and accepting, you confirm authority to enroll this office and accept this terms version and payment schedule. The office, business email, signature, acceptance time, exact terms and payment references are retained in an enrollment receipt.

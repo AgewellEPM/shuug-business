@@ -1,3 +1,4 @@
+import { salesPages } from './sales.mjs';
 import { services, faqs, checklistGroups } from './content.mjs';
 import { escape as e, button, textLink, cards, callout, sourceLinks, renderPage } from './layout.mjs';
 
@@ -74,4 +75,4 @@ export function innerPages() {
   ];
 }
 
-export function renderedPages() { return innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})); }
+export function renderedPages() { return [...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
