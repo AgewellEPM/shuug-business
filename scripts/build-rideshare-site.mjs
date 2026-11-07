@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 const { publicHttpsUrl } = createRequire(import.meta.url)('../public/rideshare-tax-pros/links.js');
 const cloudflare = process.argv.includes('--cloudflare');
-process.env.RIDESHARE_SITE_ORIGIN ||= cloudflare ? 'https://rideshare-tax-pros.pages.dev' : 'https://rideshare-tax-pros.vercel.app';
+process.env.RIDESHARE_SITE_ORIGIN ||= cloudflare ? 'https://rideshare-tax-pros.pages.dev' : 'https://gigtax.pro';
 if (!publicHttpsUrl(process.env.RIDESHARE_SITE_ORIGIN)) throw new Error('The public site must use a hosted HTTPS domain.');
 const { renderedPages } = await import('./rideshare-site/pages.mjs');
 const { renderHome, renderPage } = await import('./rideshare-site/layout.mjs');
@@ -33,7 +33,7 @@ for (const [slug, label] of [['privacy', 'Privacy notice'], ['terms', 'Website t
   const original = readFileSync(path.join(source, `${slug}.html`), 'utf8');
   const body = original.match(/<main[^>]*>([\s\S]*?)<\/main>/)?.[1];
   if (!body) throw new Error(`Missing policy content: ${slug}`);
-  writeFileSync(path.join(staticPath, `${slug}.html`), renderPage({ slug, label, description: `${label} for the Rideshare Tax Pros website.`, main: `<div class="legal-content">${body}</div>` }));
+  writeFileSync(path.join(staticPath, `${slug}.html`), renderPage({ slug, label, description: `${label} for the Gig Tax Pros website.`, main: `<div class="legal-content">${body}</div>` }));
 }
 const aliases = [...pages.map(page => page.slug), 'privacy', 'terms', 'accessibility'];
 writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['', ...aliases].map(slug => `<url><loc>${origin}/${slug}</loc></url>`).join('')}</urlset>`);
@@ -49,4 +49,4 @@ if (cloudflare) {
   { handle: 'filesystem' },
   { src: '/.*', dest: '/404.html', status: 404 },
 ] }, null, 2));
-console.log(`Rideshare Tax Pros: ${aliases.length + 1} public pages prepared at ${destination}`);
+console.log(`Gig Tax Pros: ${aliases.length + 1} public pages prepared at ${destination}`);

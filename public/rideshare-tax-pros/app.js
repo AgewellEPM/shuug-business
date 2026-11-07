@@ -10,12 +10,12 @@
   let currentPanel = null;
   const content = {
     start: ['Let’s get you tax-ready.', 'Rideshare tax preparation, records review and year-round support, all centered on the way you work.'],
-    portal: ['Your client workspace.', 'Your Rideshare Tax Pros client workspace is powered by Shuug.'],
+    portal: ['Your client workspace.', 'Your Gig Tax Pros client workspace is powered by Shuug.'],
     filing: ['Built for rideshare drivers.', 'Tax preparation for Uber, Lyft and independent drivers, with a workflow that keeps your records and accountant review together.'],
     deductions: ['Make your records count.', 'Bring your income, mileage and business expense records together for review with your tax professional.'],
     quarterly: ['Plan beyond tax season.', 'Quarterly review support helps you and your accountant stay organized throughout the year.'],
     support: ['A team for the whole year.', 'Get support with tax questions, business records and planning as your rideshare business grows.'],
-    platform: ['Powered by Shuug.', 'One AI Business Operating System. Any Industry. Your Rules. Rideshare Tax Pros uses Shuug’s configurable Tax Firm industry pack.'],
+    platform: ['Powered by Shuug.', 'One AI Business Operating System. Any Industry. Your Rules. Gig Tax Pros uses Shuug’s configurable Tax Firm industry pack.'],
   };
   const safeUrl = window.rtpLinks.publicHttpsUrl;
   let menuOpener = null;
@@ -55,7 +55,7 @@
     if (workspace) link('Open my Shuug workspace ↗', workspace);
     if (key === 'portal' && drake) link('External filing portal ↗', drake, !workspace);
     if (phone) link(`Call ${phone}`, `tel:${phone.replace(/[^+\d]/g, '')}`, !workspace);
-    if (email) link('Contact Rideshare Tax Pros', `mailto:${email}`, !workspace && !phone);
+    if (email) link('Contact Gig Tax Pros', `mailto:${email}`, !workspace && !phone);
     if (!workspace && !phone && !email && !(key === 'portal' && drake)) {
       const p = document.createElement('p'); p.className = 'availability';
       p.textContent = key === 'portal' ? 'Client access is opening soon. Please check back for your secure sign-in link.' : 'New client onboarding is opening soon. Please check back for availability.';
