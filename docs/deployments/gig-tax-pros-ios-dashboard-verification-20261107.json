@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "scope": "Native iPhone Simulator dashboard and explicitly simulated shift; no live marketplace data",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": false,
+  "cloudSyncVerified": false,
+  "appExecutableSHA256": "b6f6692c28c79074c8ffe6625c06e2dfa61fa2f5afeb535115da1183cda0d4cc",
+  "sampleJournalIsolationVerified": true,
+  "offerScreenshotImportVerified": true,
+  "tests": [
+    "modern Home/Offers/Go Home/Position/Earnings navigation",
+    "existing Trips/Money/Account open through the home menu",
+    "sample earnings chart renders in the installed app",
+    "sample Uber and DoorDash offers appear in calculated rank order",
+    "sample offer detail explains destination compatibility",
+    "sample records and offers stay out of the actual journal",
+    "sample mode closes and stays closed after app relaunch",
+    "manually entered offer persists",
+    "driver-reported accepted job survives app relaunch",
+    "completion clears active work and survives relaunch without booking estimated earnings",
+    "all five platforms expose independent connection/detection/recommendation diagnostics",
+    "manual and sample offers do not count as captures",
+    "real system photo picker and Apple Vision extract a synthetic DoorDash offer",
+    "captured payout and miles appear in platform diagnostics and survive relaunch",
+    "DoorDash capture does not establish Uber capture or trustworthy advice"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-xfkj932f",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-xfkj932f/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-07T05:19:06Z"
+}

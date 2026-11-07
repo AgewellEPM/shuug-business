@@ -296,6 +296,9 @@ import XCTest
         expandedCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 1.5)
       }
       XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
+      XCTAssertTrue(springboard.descendants(matching: .any).matching(NSPredicate(
+        format: "label CONTAINS %@", "POWERED BY SHUUG")).firstMatch.waitForExistence(timeout: 10),
+        "Expanded alert did not load the branded notification content.\n" + springboard.debugDescription)
       button.tap()
       XCTAssertNotEqual(app.state, .runningForeground, "A background notification action opened the app UI")
     }
@@ -323,6 +326,18 @@ import XCTest
     XCTAssertTrue(app.navigationBars["Your account"].waitForExistence(timeout: 10), app.debugDescription)
     navigate("Today", in: app)
     XCTAssertTrue(app.buttons["dashboard.menu"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["quick.trips"].tap()
+    XCTAssertTrue(app.buttons["Add manual trip"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["tools.close"].tap()
+    app.buttons["quick.expense"].tap()
+    XCTAssertTrue(app.navigationBars["Add expense"].waitForExistence(timeout: 10), app.debugDescription)
+    app.navigationBars["Add expense"].buttons["Cancel"].tap()
+    app.buttons["quick.income"].tap()
+    XCTAssertTrue(app.navigationBars["Add income"].waitForExistence(timeout: 10), app.debugDescription)
+    app.navigationBars["Add income"].buttons["Cancel"].tap()
+    app.buttons["quick.alerts"].tap()
+    XCTAssertTrue(app.navigationBars["Alerts & reminders"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["tools.close"].tap()
   }
   func test08SampleChartsAndRankedOffers() throws {
     let app = open()

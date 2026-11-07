@@ -8,7 +8,12 @@ struct DriverAlertsView: View {
       Section("Your alerts") {
         let pending = (model.journal.driverAlerts ?? []).filter { $0.handledAt == nil && $0.expiresAt > Date() && $0.scope == model.journalScope }
         if pending.isEmpty { Text("You’re up to date. Trip and purchase prompts will appear here and in notifications.") }
-        ForEach(pending) { alert in DriverAlertRow(alert: alert) }
+        ForEach(pending) { alert in
+          DriverAlertRow(alert: alert)
+            .listRowBackground(Color.clear)
+            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+            .listRowSeparator(.hidden)
+        }
       }
       Section {
         Button("Send a trip alert") {
@@ -30,6 +35,8 @@ private struct DriverAlertRow: View {
   @State private var error: String?
   var body: some View {
     VStack(alignment: .leading, spacing: 10) {
+      Label("GIG TAX PROS · ACTION NEEDED", systemImage: "bell.badge.fill")
+        .font(.caption2.bold()).foregroundStyle(Brand.link)
       switch alert.kind {
       case .startTrip:
         Text("Start a new trip?").font(.headline)
@@ -49,9 +56,9 @@ private struct DriverAlertRow: View {
         TextField("Amount, such as 12.34", text: $reply).keyboardType(.decimalPad)
         Button("Save amount for review") { answer(.logExpense) }
       }
-      Button("Dismiss") { answer(.dismiss) }.font(.caption)
+      Button("Dismiss") { answer(.dismiss) }.font(.caption).tint(Brand.link)
       if let error { Text(error).font(.footnote).foregroundStyle(.orange) }
-    }.padding(.vertical, 5)
+    }.buttonStyle(BrandActionStyle(primary: false)).gigCard(highlight: true)
   }
   private func answer(_ action: DriverAlertAction) {
     Task {

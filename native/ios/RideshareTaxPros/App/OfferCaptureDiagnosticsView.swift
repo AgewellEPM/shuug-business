@@ -118,6 +118,7 @@ private struct CapturePlatformDiagnostics: View {
           LabeledContent("Estimated cash after reserve", value: moneyRange(financial.availableCash))
           ForEach(financial.issues, id: \.rawValue) { Text(issueLabel($0)).font(.caption).foregroundStyle(.orange) }
         }
+        NavigationLink("Review vehicle cost & hourly target") { GoalsEditor() }
         ForEach(Array(report.blockers.enumerated()), id: \.offset) { _, reason in
           Label(reason, systemImage: "exclamationmark.circle").font(.footnote).foregroundStyle(.orange)
         }

@@ -60,6 +60,31 @@ targets:
         embed: true
       - target: GigOfferShare
         embed: true
+      - target: GigNotificationContent
+        embed: true
+  GigNotificationContent:
+    type: app-extension
+    platform: iOS
+    sources: [NotificationContent, App/Brand.swift, Resources/SharedBrand.xcassets]
+    info:
+      path: NotificationContent/Info.plist
+      properties:
+        CFBundleDisplayName: Gig Tax Pros
+        CFBundleShortVersionString: '0.1.0'
+        CFBundleVersion: '1'
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.usernotifications.content-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).BrandedNotificationController
+          NSExtensionAttributes:
+            UNNotificationExtensionCategory: [startTrip, endTrip, classifyTrip, tripFare, expense, gig.status, gig.offer, gig.offer.review]
+            UNNotificationExtensionInitialContentSizeRatio: 0.7
+            UNNotificationExtensionDefaultContentHidden: true
+            UNNotificationExtensionUserInteractionEnabled: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver.notificationcontent
+        APPLICATION_EXTENSION_API_ONLY: YES
+        SKIP_INSTALL: YES
   GigOfferShare:
     type: app-extension
     platform: iOS

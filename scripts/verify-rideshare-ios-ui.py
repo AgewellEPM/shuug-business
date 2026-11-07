@@ -23,11 +23,12 @@ flows.add_argument('--insights-only', action='store_true', help='Check goals, fa
 flows.add_argument('--mission-only', action='store_true', help='Check the native mission and offer calculation.')
 flows.add_argument('--alerts-only', action='store_true', help='Check real system Start/End actions after terminating the app.')
 flows.add_argument('--dashboard-only', action='store_true', help='Check dashboard navigation, sample charts and ranked sample offers without saving sample records.')
+flows.add_argument('--capture-only', action='store_true', help='Check per-platform diagnostics and a chosen screenshot through the real photo picker and Vision.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only)
-receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only)
-expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only)
+driving = not (options.receipts_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only)
+receipts = not (options.driving_only or options.expenses_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only)
+expense_details = not (options.driving_only or options.receipts_only or options.insights_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only)
 insights = options.insights_only
 if options.driving_only:
     REPORT = REPORT.with_name('rideshare-ios-simulator-driving-verification-20261105.json')
@@ -43,6 +44,8 @@ elif options.alerts_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-notification-verification-20261106.json')
 elif options.dashboard_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-dashboard-verification-20261107.json')
+elif options.capture_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-capture-diagnostics-verification-20261107.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -130,9 +133,10 @@ try:
     if insights:
         seed_statement(Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip()))
     call('xcrun', 'simctl', 'privacy', simulator, 'grant', 'location-always', BUNDLE)
-    if receipts or options.dashboard_only:
-        receipt = ARTIFACTS/('offer-fixture.png' if options.dashboard_only else 'receipt-fixture.png')
-        generator = 'generate-gig-offer-fixture.swift' if options.dashboard_only else 'generate-rideshare-receipt-fixture.swift'
+    if receipts or options.dashboard_only or options.capture_only:
+        offer_fixture = options.dashboard_only or options.capture_only
+        receipt = ARTIFACTS/('offer-fixture.png' if offer_fixture else 'receipt-fixture.png')
+        generator = 'generate-gig-offer-fixture.swift' if offer_fixture else 'generate-rideshare-receipt-fixture.swift'
         call('swift', str(ROOT/'scripts'/generator), str(receipt))
         # The first photo-library creation can outlast a normal simctl operation.
         # Launch its system app first and observe one bounded import, without retries.
@@ -153,19 +157,22 @@ try:
         if options.mission_only: selection += '/DriverFlows/test05MissionAndOffer'
         if options.alerts_only: selection += '/DriverFlows/test06ColdStartTripNotificationActions'
         if options.dashboard_only: selection += '/DriverFlows/test07ModernDashboardAndExistingTools'
-        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only or options.alerts_only or options.dashboard_only):
+        if options.capture_only: selection += '/DriverFlows/test10CaptureDiagnosticsKeepsPlatformsSeparate'
+        if not insights and not (options.driving_only or options.receipts_only or options.expenses_only or options.mission_only or options.alerts_only or options.dashboard_only or options.capture_only):
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
         if options.alerts_only: test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/test07ModernDashboardAndExistingTools']
         elif not options.dashboard_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test07ModernDashboardAndExistingTools']
         if options.dashboard_only:
             test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/'+name for name in ['test08SampleChartsAndRankedOffers', 'test09ReportedJobSurvivesRelaunchAndCompletes', 'test10CaptureDiagnosticsKeepsPlatformsSeparate', 'test11ChosenScreenshotAppearsInOnlyItsPlatformDiagnostics']]
+        elif options.capture_only:
+            test_selection += ['-only-testing:RideshareTaxProsUITests/DriverFlows/test11ChosenScreenshotAppearsInOnlyItsPlatformDiagnostics']
         else:
             test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/'+name for name in ['test08SampleChartsAndRankedOffers', 'test09ReportedJobSurvivesRelaunchAndCompletes', 'test10CaptureDiagnosticsKeepsPlatformsSeparate', 'test11ChosenScreenshotAppearsInOnlyItsPlatformDiagnostics']]
         if not insights: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test04InsightsAndBankImport']
         if not options.mission_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test05MissionAndOffer']
         if not options.alerts_only: test_selection += ['-skip-testing:RideshareTaxProsUITests/DriverFlows/test06ColdStartTripNotificationActions']
-        test = subprocess.Popen(['xcodebuild', '-quiet', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
+        test = subprocess.Popen(['xcodebuild', '-project', str(ROOT/'native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj'), '-scheme', 'RideshareTaxPros', '-destination', 'id='+simulator, '-derivedDataPath', str(DERIVED), '-resultBundlePath', str(result_bundle), '-parallel-testing-enabled', 'NO'] + test_selection + ['CODE_SIGNING_ALLOWED=YES', 'CODE_SIGN_IDENTITY=-', 'test-without-building'], stdout=output, stderr=subprocess.STDOUT)
         deadline = time.monotonic() + 600
         last_fix = last_update = last_container_check = 0.0
         fixes = 0
@@ -272,6 +279,13 @@ try:
         verified_tests += ['manually entered offer persists', 'driver-reported accepted job survives app relaunch', 'completion clears active work and survives relaunch without booking estimated earnings']
         report['offerScreenshotImportVerified'] = True
         verified_tests += ['all five platforms expose independent connection/detection/recommendation diagnostics', 'manual and sample offers do not count as captures', 'real system photo picker and Apple Vision extract a synthetic DoorDash offer', 'captured payout and miles appear in platform diagnostics and survive relaunch', 'DoorDash capture does not establish Uber capture or trustworthy advice']
+    if options.capture_only:
+        offers = journal.get('gigOffers', [])
+        assert not journal['entries'] and len(offers) == 1 and offers[0]['source'] == 'sharedScreenshot', 'The diagnostics check must save only the chosen screenshot observation.'
+        captured = offers[0]
+        assert captured['platform'] == 'DoorDash' and captured['payoutCents'] == 1950 and captured['pickupMiles'] == 2 and captured['deliveryMiles'] == 4, 'The actual photo-picker → Vision → diagnostic-fields path did not preserve the fixture values.'
+        report.update(scope='Native iPhone Simulator per-platform offer diagnostics with one synthetic chosen screenshot', offerScreenshotImportVerified=True)
+        verified_tests += ['all five platforms expose separate connection, detection and recommendation status', 'manual and sample data cannot establish detection', 'system photo picker and on-device Vision recover the synthetic DoorDash payout and miles', 'extracted values appear in diagnostics and persist after relaunch', 'DoorDash detection does not establish Uber detection or complete recommendation evidence']
     report.update(ok=True, tests=verified_tests, artifactDirectory=str(ARTIFACTS), resultBundle=str(result_bundle))
     success = True
 except BaseException as error:
