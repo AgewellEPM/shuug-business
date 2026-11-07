@@ -15,15 +15,20 @@ function page(slug = "", config = {}, hash = "") {
   w.eval(readFileSync(path.join(source,"links.js"),"utf8")); w.eval(readFileSync(path.join(source,"app.js"),"utf8")); w.eval(readFileSync(path.join(source,"inner-pages.js"),"utf8"));
   return dom;
 }
-it("connects the entire built site with valid internal links, unique page headings and no password intake", () => {
+it("connects customer pages while keeping the existing business sign-in separate", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
-  expect(manifest.aliases).toHaveLength(18);
+  expect(manifest.aliases).toHaveLength(20);
   for (const slug of ["", ...manifest.aliases]) {
     const dom = page(slug); const d = dom.window.document;
     try {
       expect(d.querySelector('meta[name="viewport"]')).not.toBeNull();
       if(slug) expect(d.querySelectorAll("h1")).toHaveLength(1);
-      expect(d.querySelector('input[type="password"]')).toBeNull();
+      if(slug === 'sales') expect(d.querySelector('input[type="password"]')).not.toBeNull();
+      else expect(d.querySelector('input[type="password"]')).toBeNull();
+      if(!slug) {
+        expect(d.querySelector('main')?.lastElementChild?.id).toBe('local-map');
+        expect(d.querySelector('[data-coverage-vision],.company-home,[data-owner-home],.app-home-showcase')).toBeNull();
+      }
       for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
         const url = new URL(a.href);
         if(url.origin !== origin) continue;
