@@ -35,8 +35,10 @@
 		6F21419FB4AFB5DD2655EA56 /* OfferCaptureDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */; };
 		726D6091F84ABB9D8E423F15 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		73ED0120CE9C85FFEF2413AC /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
+		74534FAA583D35D2A9DA37B0 /* BrandedNotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E561D5862BEBD3894BF62C9 /* BrandedNotificationController.swift */; };
 		76B621DF2FF4A35CEBC4897D /* BankWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EBF8357067B181E7571C8CB /* BankWire.swift */; };
 		787524F53EE337DB78C13C5B /* OfferCaptureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */; };
+		78C091EE81FF035829DBFF5F /* SharedBrand.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 497D388F9CADBEE73E172A2F /* SharedBrand.xcassets */; };
 		7CBAD3E48126F10088450950 /* OfferReaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0E7D02A168B67576890FDE8 /* OfferReaderView.swift */; };
 		7DCF551DEE981E7B2A1B51C0 /* OfferCaptureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */; };
 		7DE3FF0BF4F1F81ACF97FAFE /* GigOfferBroadcast.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 42CDEAEC3D706F1D06551110 /* GigOfferBroadcast.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -59,23 +61,35 @@
 		BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */; };
 		BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */; };
 		BE522AC9C8616E658E5FDBED /* BankReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */; };
+		C04B611E43A5476B9E71239D /* GigNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */; };
 		C50A807ACBCE183C061DAC81 /* OfferWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3412DE64829798B06F79D /* OfferWorkspace.swift */; };
 		C553446C32D892BDB19618A1 /* DriverAlertsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9313626D28517F34001ABB2C /* DriverAlertsView.swift */; };
+		C6D4A4F220D5FA19ADE4596D /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B0228F6521B8DC72D9DFCAB1 /* UserNotifications.framework */; };
 		CDB3C1386471C6C7F440146C /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E515B079F485E403FF64B2AD /* Brand.swift */; };
 		CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */; };
 		D666D4CF2B72C07F0CF9E3BE /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 50EC96DE14A63112C9339895 /* RootView.swift */; };
+		D69BC5B6E23CACB7541D0033 /* UserNotificationsUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 472F49AE8FF5515EDC112D21 /* UserNotificationsUI.framework */; };
 		DBC446023CEEE744D8A12CE9 /* DashboardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0969F8A93383D28325852E /* DashboardStyle.swift */; };
 		DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */; };
 		E88EB7D984CCE264B38D6D5E /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = ED9E3503FF4FE8A2BA514E80 /* DriverCore */; };
 		E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B02495B4D78249A890D1EF7 /* Assets.xcassets */; };
+		EB93ABFFF56EA36405A0A8F1 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E515B079F485E403FF64B2AD /* Brand.swift */; };
 		F6A44B888EE96AE36F3ACAEC /* BankConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E96FB385BB01D09AF2EBF2B /* BankConnectionView.swift */; };
+		F80FADD07A0353860C8A376B /* SharedBrand.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 497D388F9CADBEE73E172A2F /* SharedBrand.xcassets */; };
 		F81CB1D2DA225515D901F6E0 /* SessionKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB62B3A50F636C82218CF62B /* SessionKeychain.swift */; };
 		F9E43C8E7F8F60AE86EE6523 /* DriverPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */; };
 		FA0EF1E92C2352C28EF89801 /* GigOfferShare.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 892D31B4A1DBDDF69F0E96A0 /* GigOfferShare.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		5B93E06BCFD21578B8894E27 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 4B3AF7C7B95D9C8812F4763D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 20661ECFB13B8DB93557AB7E;
+			remoteInfo = GigNotificationContent;
+		};
 		981093743D24A2C985B64794 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 4B3AF7C7B95D9C8812F4763D /* Project object */;
@@ -108,6 +122,7 @@
 			files = (
 				7DE3FF0BF4F1F81ACF97FAFE /* GigOfferBroadcast.appex in Embed Foundation Extensions */,
 				FA0EF1E92C2352C28EF89801 /* GigOfferShare.appex in Embed Foundation Extensions */,
+				C04B611E43A5476B9E71239D /* GigNotificationContent.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -129,8 +144,12 @@
 		32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideshareTaxProsApp.swift; sourceTree = "<group>"; };
 		35344D692A017690B3711641 /* OfferOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferOCR.swift; sourceTree = "<group>"; };
 		35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCaptureDiagnosticsView.swift; sourceTree = "<group>"; };
+		383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigNotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3E561D5862BEBD3894BF62C9 /* BrandedNotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedNotificationController.swift; sourceTree = "<group>"; };
 		3EBF8357067B181E7571C8CB /* BankWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankWire.swift; sourceTree = "<group>"; };
 		42CDEAEC3D706F1D06551110 /* GigOfferBroadcast.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigOfferBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		472F49AE8FF5515EDC112D21 /* UserNotificationsUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotificationsUI.framework; path = System/Library/Frameworks/UserNotificationsUI.framework; sourceTree = SDKROOT; };
+		497D388F9CADBEE73E172A2F /* SharedBrand.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = SharedBrand.xcassets; sourceTree = "<group>"; };
 		4A8E943BF195B750291F3E94 /* LocationTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocationTracker.swift; sourceTree = "<group>"; };
 		4AACCE76C8CCDFBB25D5716B /* WaitingAreaPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitingAreaPlanner.swift; sourceTree = "<group>"; };
 		4E96FB385BB01D09AF2EBF2B /* BankConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankConnectionView.swift; sourceTree = "<group>"; };
@@ -156,8 +175,10 @@
 		97D7931F53D492CCB053BFDF /* RideshareTaxPros.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = RideshareTaxPros.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9D4506E9DC067D656DC8DA17 /* EarningsCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsCharts.swift; sourceTree = "<group>"; };
 		9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverPrivacyView.swift; sourceTree = "<group>"; };
+		AA590996236818D712C09A21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AB62B3A50F636C82218CF62B /* SessionKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionKeychain.swift; sourceTree = "<group>"; };
 		AF479D04A51EC78525B6315D /* WorkspaceClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceClient.swift; sourceTree = "<group>"; };
+		B0228F6521B8DC72D9DFCAB1 /* UserNotifications.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UserNotifications.framework; path = System/Library/Frameworks/UserNotifications.framework; sourceTree = SDKROOT; };
 		B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigConnectionsView.swift; sourceTree = "<group>"; };
 		BCE3412DE64829798B06F79D /* OfferWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferWorkspace.swift; sourceTree = "<group>"; };
 		C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigOfferEditor.swift; sourceTree = "<group>"; };
@@ -180,6 +201,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		5A69B9B0A381B8F3CF662939 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C6D4A4F220D5FA19ADE4596D /* UserNotifications.framework in Frameworks */,
+				D69BC5B6E23CACB7541D0033 /* UserNotificationsUI.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		9DA3626875F8BFA01FFAFC8A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -211,6 +241,7 @@
 		01B65C3335AF0546F60AD27D /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */,
 				42CDEAEC3D706F1D06551110 /* GigOfferBroadcast.appex */,
 				892D31B4A1DBDDF69F0E96A0 /* GigOfferShare.appex */,
 				97D7931F53D492CCB053BFDF /* RideshareTaxPros.app */,
@@ -224,11 +255,13 @@
 			children = (
 				716B5728CE99BA75EAACF592 /* App */,
 				5CDAC013DBD4B501D197D031 /* BroadcastUpload */,
+				EF669D08A41AFEC0C3F9F7E1 /* NotificationContent */,
 				CDC3128E557FDCC7CF64C62C /* Packages */,
 				856DA67112F659ED797445A6 /* Resources */,
 				CDC88F27BB09C811125718F7 /* Shared */,
 				54CD307EBF5E322205958BD4 /* ShareOffer */,
 				79481E0073D429B5F220BB56 /* UITests */,
+				E2040D52257432C7DEB8EECC /* Frameworks */,
 				01B65C3335AF0546F60AD27D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -318,6 +351,7 @@
 			children = (
 				1B02495B4D78249A890D1EF7 /* Assets.xcassets */,
 				FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */,
+				497D388F9CADBEE73E172A2F /* SharedBrand.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -340,9 +374,46 @@
 			path = Shared;
 			sourceTree = "<group>";
 		};
+		E2040D52257432C7DEB8EECC /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B0228F6521B8DC72D9DFCAB1 /* UserNotifications.framework */,
+				472F49AE8FF5515EDC112D21 /* UserNotificationsUI.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		EF669D08A41AFEC0C3F9F7E1 /* NotificationContent */ = {
+			isa = PBXGroup;
+			children = (
+				3E561D5862BEBD3894BF62C9 /* BrandedNotificationController.swift */,
+				AA590996236818D712C09A21 /* Info.plist */,
+			);
+			path = NotificationContent;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		20661ECFB13B8DB93557AB7E /* GigNotificationContent */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 36073BA7886667DB2504C2DC /* Build configuration list for PBXNativeTarget "GigNotificationContent" */;
+			buildPhases = (
+				E7A3FE8AF25AA44E3187320F /* Sources */,
+				123D5FBF32298BA137A4F525 /* Resources */,
+				5A69B9B0A381B8F3CF662939 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GigNotificationContent;
+			packageProductDependencies = (
+			);
+			productName = GigNotificationContent;
+			productReference = 383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		3E9D63A0302BB915F027D416 /* RideshareTaxProsUITests */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 27392DE2DA06874846A0476A /* Build configuration list for PBXNativeTarget "RideshareTaxProsUITests" */;
@@ -394,6 +465,7 @@
 			dependencies = (
 				2E7717E4FDC22E32F7D6976F /* PBXTargetDependency */,
 				A3255D1A3C6665A828F37EBD /* PBXTargetDependency */,
+				BE5495C56768C8D94CB8C4FD /* PBXTargetDependency */,
 			);
 			name = RideshareTaxPros;
 			packageProductDependencies = (
@@ -432,6 +504,9 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
+					20661ECFB13B8DB93557AB7E = {
+						ProvisioningStyle = Automatic;
+					};
 					3E9D63A0302BB915F027D416 = {
 						ProvisioningStyle = Automatic;
 						TestTargetID = F3FD7DA7C221AA039279ACF0;
@@ -465,6 +540,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
+				20661ECFB13B8DB93557AB7E /* GigNotificationContent */,
 				FE22EFBFC0DA5805E8E95DF3 /* GigOfferBroadcast */,
 				7DCA3E67E3E6BC46DBE7304D /* GigOfferShare */,
 				F3FD7DA7C221AA039279ACF0 /* RideshareTaxPros */,
@@ -474,12 +550,21 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		123D5FBF32298BA137A4F525 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F80FADD07A0353860C8A376B /* SharedBrand.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		629CE2674973A99F662212B3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */,
 				BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */,
+				78C091EE81FF035829DBFF5F /* SharedBrand.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -572,6 +657,15 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		E7A3FE8AF25AA44E3187320F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				EB93ABFFF56EA36405A0A8F1 /* Brand.swift in Sources */,
+				74534FAA583D35D2A9DA37B0 /* BrandedNotificationController.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -589,6 +683,11 @@
 			isa = PBXTargetDependency;
 			target = 7DCA3E67E3E6BC46DBE7304D /* GigOfferShare */;
 			targetProxy = FBF2BB7E3E4BA30415588EED /* PBXContainerItemProxy */;
+		};
+		BE5495C56768C8D94CB8C4FD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 20661ECFB13B8DB93557AB7E /* GigNotificationContent */;
+			targetProxy = 5B93E06BCFD21578B8894E27 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -715,6 +814,23 @@
 			};
 			name = Debug;
 		};
+		5B82D78D0324FCC830BF8436 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				INFOPLIST_FILE = NotificationContent/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ridesharetaxpros.driver.notificationcontent;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
 		B35A67EE85E850D15C685084 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -811,6 +927,23 @@
 			};
 			name = Release;
 		};
+		E3BA43A78E7655EA038291EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				APPLICATION_EXTENSION_API_ONLY = YES;
+				INFOPLIST_FILE = NotificationContent/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.ridesharetaxpros.driver.notificationcontent;
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		EB44373C260894B4EA2B143B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -892,6 +1025,15 @@
 			buildConfigurations = (
 				EB44373C260894B4EA2B143B /* Debug */,
 				B35A67EE85E850D15C685084 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		36073BA7886667DB2504C2DC /* Build configuration list for PBXNativeTarget "GigNotificationContent" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E3BA43A78E7655EA038291EA /* Debug */,
+				5B82D78D0324FCC830BF8436 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

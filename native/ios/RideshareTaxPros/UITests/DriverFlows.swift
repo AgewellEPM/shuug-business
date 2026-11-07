@@ -274,27 +274,23 @@ import XCTest
           .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.7)))
       }
       XCTAssertTrue(cell.waitForExistence(timeout: 10), springboard.debugDescription)
-      app.terminate()
-      if !cell.exists {
-        springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.001))
-          .press(forDuration: 0.1, thenDragTo: springboard.coordinate(withNormalizedOffset: CGVector(dx: 0.1, dy: 0.7)))
-      }
-      XCTAssertTrue(cell.waitForExistence(timeout: 10), springboard.debugDescription)
-      let initialFrame = cell.frame
-      cell.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 1.5)
       let button = springboard.buttons[action]
-      if !button.waitForExistence(timeout: 2) {
-        // Notification Center may initially show a collapsed stack. The first
-        // gesture expands that stack and moves this card; query its new frame
-        // before expanding the individual notification. Do not replay a stale
-        // coordinate or interpret a delivered banner as an executed action.
-        let expandedCard = springboard.descendants(matching: .any).matching(NSPredicate(
+      for _ in 0..<3 {
+        if button.exists { break }
+        // First open the individual card, then terminate the main app. Killing
+        // it while Notification Center is still settling moves the hit target.
+        // A collapsed stack can require another gesture at its new location.
+        let card = springboard.descendants(matching: .any).matching(NSPredicate(
           format: "identifier == 'NotificationShortLookView' AND label CONTAINS %@", title)).firstMatch
-        XCTAssertTrue(expandedCard.exists, springboard.debugDescription)
-        XCTAssertGreaterThan(abs(expandedCard.frame.minY - initialFrame.minY), 8,
-          "The first gesture neither exposed actions nor expanded the notification stack.\n" + springboard.debugDescription)
-        expandedCard.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).press(forDuration: 1.5)
+        XCTAssertTrue(card.waitForExistence(timeout: 5), springboard.debugDescription)
+        card.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25)).press(forDuration: 2.5)
+        _ = button.waitForExistence(timeout: 5)
       }
+      XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
+      XCTAssertTrue(springboard.descendants(matching: .any).matching(NSPredicate(
+        format: "label CONTAINS %@", "POWERED BY SHUUG")).firstMatch.waitForExistence(timeout: 10),
+        "Expanded alert did not load the branded notification content.\n" + springboard.debugDescription)
+      app.terminate()
       XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
       button.tap()
       XCTAssertNotEqual(app.state, .runningForeground, "A background notification action opened the app UI")
@@ -323,6 +319,18 @@ import XCTest
     XCTAssertTrue(app.navigationBars["Your account"].waitForExistence(timeout: 10), app.debugDescription)
     navigate("Today", in: app)
     XCTAssertTrue(app.buttons["dashboard.menu"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["quick.trips"].tap()
+    XCTAssertTrue(app.buttons["Add manual trip"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["tools.close"].tap()
+    app.buttons["quick.expense"].tap()
+    XCTAssertTrue(app.navigationBars["Add expense"].waitForExistence(timeout: 10), app.debugDescription)
+    app.navigationBars["Add expense"].buttons["Cancel"].tap()
+    app.buttons["quick.income"].tap()
+    XCTAssertTrue(app.navigationBars["Add income"].waitForExistence(timeout: 10), app.debugDescription)
+    app.navigationBars["Add income"].buttons["Cancel"].tap()
+    app.buttons["quick.alerts"].tap()
+    XCTAssertTrue(app.navigationBars["Alerts & reminders"].waitForExistence(timeout: 10), app.debugDescription)
+    app.buttons["tools.close"].tap()
   }
   func test08SampleChartsAndRankedOffers() throws {
     let app = open()

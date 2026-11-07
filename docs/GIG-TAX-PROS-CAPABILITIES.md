@@ -87,6 +87,20 @@ implying provider access or endorsement.
 
 ## Verification and device review
 
+Home keeps its existing layout and bottom navigation. Its four top shortcuts open
+Trips, a new expense, a new income entry, and Alerts & reminders, so they provide
+different actions from the bottom tabs.
+Inner pages use compact navigation titles and an eight-point top content margin.
+Home keeps its own existing header and spacing.
+
+Expanded notifications use the same shared logo and dark/purple/pink palette as
+the app. A small presentation-only Notification Content Extension covers trip,
+classification, earnings, expense, offer and status categories. Original system
+actions continue to the existing account/trip/expiry-guarded app handler. Long
+content supports scrolling and Dynamic Type. In-app alert cards use the same
+brand styling. The compact banner and system action controls remain managed by
+iOS; see [Apple's notification appearance documentation](https://developer.apple.com/documentation/usernotificationsui/customizing-the-appearance-of-notifications).
+
 Build using `scripts/build-rideshare-ios.sh` with the Simulator build-for-testing
 options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
 
@@ -95,6 +109,8 @@ options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
   a manually entered job's acceptance/relaunch/completion flow, then per-platform
   diagnostics and a synthetic chosen-image → Vision → diagnostic-fields flow.
 - `--alerts-only --visible` checks real system notification actions.
+- `--capture-only --visible` checks the per-platform diagnostics and synthetic
+  screenshot path without repeating the sample-shift checks.
 - Swift core tests cover malformed OCR, duplicates, expiration, unknown
   destinations, negative margins, uncertain tips, hard deadlines, commitments,
   rapidly changing provider inputs and simulated ranking.

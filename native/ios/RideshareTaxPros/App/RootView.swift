@@ -83,7 +83,6 @@ struct TodayView: View {
   @State private var addingExpense = false
   @State private var addingIncome = false
   @State private var exporting = false
-  @State private var offerCount = 0
   @State private var showingSample = false
   private var today: [DriverRecord] {
     model.journal.visible.map(\.record).filter { $0.dateLabel == DriverRecord.day(Date()) }
@@ -136,10 +135,16 @@ struct TodayView: View {
             .font(.system(size: 12, weight: .medium)).foregroundStyle(Brand.muted)
         }
         HStack(spacing: 10) {
-          DashboardQuickAction(title: "Offers", icon: "bolt", count: offerCount) { tab = .offers }
-          DashboardQuickAction(title: "Go Home", icon: "location.north") { tab = .goHome }
-          DashboardQuickAction(title: "Position", icon: "scope") { tab = .position }
-          DashboardQuickAction(title: "Earnings", icon: "dollarsign.circle") { tab = .earnings }
+          DashboardQuickAction(title: "Trips", icon: "car.fill") { showTool(.trips) }
+            .accessibilityIdentifier("quick.trips")
+          DashboardQuickAction(title: "Expense", icon: "receipt.fill") { addingExpense = true }
+            .accessibilityLabel("Quick add expense").accessibilityIdentifier("quick.expense")
+          DashboardQuickAction(title: "Income", icon: "dollarsign.circle.fill") { addingIncome = true }
+            .accessibilityLabel("Quick add income").accessibilityIdentifier("quick.income")
+          DashboardQuickAction(title: "Alerts", icon: "bell.fill", count: (model.journal.driverAlerts ?? []).filter {
+            $0.scope == model.journalScope && $0.handledAt == nil && $0.expiresAt > Date()
+          }.count) { showTool(.alerts) }
+            .accessibilityIdentifier("quick.alerts")
         }
         ShiftDashboardCard()
         GoHomeDashboardCard(destination: model.journal.mission?.destination) { tab = .goHome }
@@ -227,13 +232,12 @@ struct TodayView: View {
           Label("Export my records as CSV", systemImage: "square.and.arrow.up")
         }.disabled(!model.storageHealthy)
       }.padding(.horizontal, 16).padding(.vertical, 10)
-    }.driverScreen().navigationTitle("")
+    }.driverScreen(compactNavigation: false).navigationTitle("")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar(.hidden, for: .navigationBar)
       .task {
         while !Task.isCancelled {
           model.refreshCapturedOffers()
-          offerCount = (model.journal.gigOffers ?? []).filter { $0.validForComparison() }.count
           do { try await Task.sleep(for: .seconds(3)) } catch { break }
         }
       }

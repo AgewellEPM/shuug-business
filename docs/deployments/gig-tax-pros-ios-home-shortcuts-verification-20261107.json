@@ -1,0 +1,32 @@
+{
+  "ok": true,
+  "scope": "Only the Home navigation/quick-action test; the other notification test in this run failed before an action was executed",
+  "physicalIPhoneVerified": false,
+  "sourceCommit": "37113da6222f81d98c66f72e4adabd7cf668fa26",
+  "test": {
+    "name": "test07ModernDashboardAndExistingTools()",
+    "result": "Passed",
+    "durationInSeconds": 54.38365399837494
+  },
+  "suiteResult": "Failed",
+  "otherTests": [
+    {
+      "name": "test06ColdStartTripNotificationActions()",
+      "result": "Failed",
+      "durationInSeconds": 54.022634983062744
+    }
+  ],
+  "checks": [
+    "Bottom tabs open Offers, Go Home, Positioning and Earnings",
+    "Home menu preserves Trips, Money and Account access",
+    "Top Trips shortcut opens saved trips",
+    "Top Expense shortcut opens the actual expense editor",
+    "Top Income shortcut opens the actual income editor",
+    "Top Alerts shortcut opens Alerts & reminders",
+    "Expense and income drafts are canceled without saving"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-oa52fkgc",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-oa52fkgc/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true
+}
