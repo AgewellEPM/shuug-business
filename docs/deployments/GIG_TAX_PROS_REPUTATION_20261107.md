@@ -51,9 +51,25 @@ in a separate source checkout. The original app worktree's `.next` was preserved
 Receipts: `gig-tax-pros-reputation-native-http-verification-20261107.json` and
 `gig-tax-pros-reputation-installed-verification-20261107.json`.
 
-Native test15 is compiled but awaits execution while the authorized isolated
-Oracle support session has priority under the one-session policy. Luke's visual
-acceptance and physical iPhone behavior remain separate. Public gigtax.pro
+Native test15 passed at 08:11:41 UTC in one disposable iPhone Simulator. It entered
+two Lyft Driver star snapshots (4.6 with 100 reviews, 4.8 with 105), the exact
+feedback text, negative tone and Communication tag. The actual switch must report
+on before saving. Guidance and chat cite that saved app and topic. Relaunch and
+the branded deletion confirmation preserve both ratings, a deleted-review marker,
+four distinct ordered retry operations and the two conversation messages. The
+persisted audit checks operation IDs, target IDs and original payloads as well as
+displayed text. This UI flow covers the default Lyft/star choices; other platform
+pickers and percentage scores have separate core/HTTP coverage, not this UI pass.
+
+The successful run verified installed bundle SHA256
+`1647ebff166a42d320b2743a1005a3993d9a5c7801447aa05f0c454a7ec47ad2`, including
+debug code and resources. Its receipt is
+`gig-tax-pros-ios-reputation-verification-20261107.json`. The temporary device was
+shut down and deleted. The first run retained failure artifacts after its broad
+switch tap did not select a tag; it did not write a success receipt. No production
+UI change was needed for the focused switch interaction to pass.
+
+Luke's visual acceptance and physical iPhone behavior remain separate. Public gigtax.pro
 sync is not verified until an authenticated persistent HTTPS host exists and
 the site discovery configuration is checked against it. Oracle recovery is an
 actual external dependency; local checks cannot establish that outcome.

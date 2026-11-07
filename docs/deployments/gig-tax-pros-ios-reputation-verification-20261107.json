@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "scope": "Native iPhone Simulator manual ratings/reviews, guidance and offline retry queue; no live provider import or public cloud sync",
+  "physicalIPhoneVerified": false,
+  "cameraVerified": false,
+  "receiptPhotoImportVerified": false,
+  "cloudSyncVerified": false,
+  "appExecutableSHA256": "e8e3e926000ec323a10253fb56254e7154abd4a0509bc1b8384390c07bddf43c",
+  "appBundleSHA256": "1647ebff166a42d320b2743a1005a3993d9a5c7801447aa05f0c454a7ec47ad2",
+  "tests": [
+    "actual native rating forms persist two same-platform star snapshots and review counts",
+    "review text plus user-selected negative tone and communication tag persist",
+    "guidance cites the saved app and tagged review topic",
+    "unified conversation answers rating questions using saved reputation history",
+    "ratings and conversations survive app relaunch",
+    "explicit branded deletion persists review tombstone while retaining ratings and offline sync operations"
+  ],
+  "artifactDirectory": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-wyq_6e84",
+  "resultBundle": "/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-wyq_6e84/DriverFlows.xcresult",
+  "ownedSimulatorShutdownVerified": true,
+  "ownedSimulatorDeleted": true,
+  "verifiedAt": "2026-11-07T08:11:41Z"
+}

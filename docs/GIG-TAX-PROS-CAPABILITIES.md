@@ -192,6 +192,13 @@ financial totals. The installed local backend serves the tested reputation build
 from a separate checkout, keeping further app-source builds away from its live
 files. Public syncing remains dependent on the pending HTTPS cloud deployment.
 
+The actual native Simulator flow also passed default Lyft/star snapshot entry,
+review text/count/tag persistence, matching guidance and chat, relaunch and branded
+deletion. Its saved-journal audit checks exact values and all four immutable retry
+operations. Other platform/percentage picker UI, physical iPhone behavior and
+Luke's visual acceptance remain outside that flow. Automatic provider ratings
+imports remain unavailable.
+
 Build using `scripts/build-rideshare-ios.sh` with the Simulator build-for-testing
 options in `RIDESHARE-DRIVER.md`. Use one owned diagnostic device at a time:
 

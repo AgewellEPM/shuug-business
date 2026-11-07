@@ -563,7 +563,11 @@ import XCTest
     enter(reviewText, into: app.textViews["reputation.text"], in: app)
     choose("Negative", picker: "reputation.sentiment", in: app)
     let communication = app.switches["reputation.topic.communication"]
-    reveal(communication, in: app); communication.tap()
+    reveal(communication, in: app)
+    communication.coordinate(withNormalizedOffset: CGVector(dx: 0.93, dy: 0.5)).tap()
+    let communicationSelected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", "1"), object: communication)
+    let selectionResult = XCTWaiter.wait(for: [communicationSelected], timeout: 5)
+    XCTAssertEqual(communication.value as? String, "1", "Communication toggle did not turn on before saving (\(selectionResult)). \(communication.debugDescription)\n\(app.debugDescription)")
     let saveReview = app.buttons["reputation.saveReview"]
     reveal(saveReview, in: app); saveReview.tap()
     let score = app.staticTexts["4.8 / 5"].firstMatch
