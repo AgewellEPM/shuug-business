@@ -2,7 +2,8 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync, mkdirSync, realpathSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync, realpathSync, unlinkSync } from "node:fs";
+import { createConnection } from "node:net";
 import { homedir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -31,20 +32,39 @@ async function main() {
   process.env.DEALDESK_DATA_DIR = data;
   const brand = getBranding();
   assert(brand.industrySetup?.industryId === "tax-firm" && ["Rideshare Tax Pros", "Gig Tax Pros"].includes(brand.businessName), "Existing workspace identity differs; no configuration was changed.");
-  const oldBrand = readFileSync(path.join(data, "branding.json"));
+  let oldBrand: Buffer | undefined;
+  let oldVerification: Buffer | null = null;
   const backup = path.join(homedir(), "Library/Application Support/Shuug Backups/Rideshare Tax Pros", new Date().toISOString().replace(/[:.]/g, "-"));
   const wasRunning = spawnSync("/bin/launchctl", ["print", target], { stdio: "ignore" }).status === 0;
-  let changed = false;
-  try {
-    if (wasRunning) execFileSync("/bin/launchctl", ["bootout", target], { stdio: "pipe" });
+  async function stopOwned() {
+    const state = spawnSync("/bin/launchctl", ["print", target], { encoding: "utf8" });
+    const pid = Number(state.stdout?.match(/\n\s*pid = (\d+)/)?.[1]);
+    if (state.status === 0) {
+      execFileSync("/bin/launchctl", ["bootout", target], { stdio: "pipe" });
+    }
     for (let attempt = 0; attempt < 40; attempt++) {
-      try { await fetch(previous.base, { signal: AbortSignal.timeout(200) }); } catch { break; }
+      const listening = await new Promise<boolean>((resolve, reject) => {
+        const socket = createConnection({ host: "127.0.0.1", port: 3126 });
+        socket.once("connect", () => { socket.destroy(); resolve(true); });
+        socket.once("error", (error: NodeJS.ErrnoException) => {
+          socket.destroy(); if (error.code === "ECONNREFUSED") resolve(false); else reject(error);
+        });
+        socket.setTimeout(500, () => { socket.destroy(); reject(new Error("Cannot verify whether the owned service stopped.")); });
+      });
+      let running = false;
+      if (pid) { try { process.kill(pid, 0); running = true; } catch (error) { if ((error as NodeJS.ErrnoException).code !== "ESRCH") running = true; } }
+      if (!listening && !running) return;
       await pause(100);
     }
-    let stillRunning = false;
-    try { await fetch(previous.base, { signal: AbortSignal.timeout(300) }); stillRunning = true; } catch {}
-    assert(!stillRunning, "Port 3126 is still serving; refusing to replace or back up live data.");
+    throw new Error("Port 3126 is still serving; refusing to replace metadata or back up live data.");
+  }
+  let changed = false;
+  try {
+    await stopOwned();
     const result = backupWorkspace(data, backup);
+    oldBrand = readFileSync(path.join(backup, "branding.json"));
+    const verification = path.join(backup, "verification.json");
+    oldVerification = existsSync(verification) ? readFileSync(verification) : null;
     // Keep rollback metadata outside the sealed data backup and its manifest.
     const metadata = `${backup}-service`; mkdirSync(metadata, { mode: 0o700 });
     writeFileSync(path.join(metadata, "previous-service.plist"), previousPlist, { mode: 0o600 });
@@ -57,11 +77,24 @@ async function main() {
     console.log(JSON.stringify({ ok: true, verifiedAt: new Date().toISOString(), base: previous.base, buildId: readFileSync(path.join(root, ".next/BUILD_ID"), "utf8").trim(), source: root, backupDirectory: backup, backupFiles: result.files, ownerSignInAndStaffRoutesVerified: true, publicHostingVerified: false }, null, 2));
   } catch (error) {
     if (changed) {
-      spawnSync("/bin/launchctl", ["bootout", target], { stdio: "ignore" });
+      try { await stopOwned(); }
+      catch { throw new Error("Update failed, and the new service could not be stopped for rollback. Its current metadata was preserved; inspect the owned service before retrying."); }
+      assert(oldBrand, "The stopped workspace backup is required for rollback.");
       writeFileSync(plist, previousPlist, { mode: 0o600 }); writeFileSync(marker, previousBytes, { mode: 0o600 }); writeFileSync(path.join(data, "branding.json"), oldBrand, { mode: 0o600 });
+      const verification = path.join(data, "verification.json");
+      if (oldVerification) writeFileSync(verification, oldVerification, { mode: 0o600 });
+      else if (existsSync(verification)) unlinkSync(verification);
     }
     if (wasRunning && spawnSync("/bin/launchctl", ["print", target], { stdio: "ignore" }).status !== 0) {
       execFileSync("/bin/launchctl", ["bootstrap", `gui/${process.getuid!()}`, plist], { stdio: "pipe" });
+    }
+    if (wasRunning) {
+      let recovered = false;
+      for (let attempt = 0; attempt < 40; attempt++) {
+        try { if ((await fetch(`${previous.base}/api/auth/login`, { signal: AbortSignal.timeout(500) })).ok) { recovered = true; break; } } catch {}
+        await pause(250);
+      }
+      assert(recovered, "The previous service was restored but has not become ready; inspect its private logs.");
     }
     throw error;
   }
