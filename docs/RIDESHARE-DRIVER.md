@@ -263,6 +263,9 @@ refuses other active guests, and verifies the installed executable matches the
 built app. This is the user preview; close it before another diagnostic run.
 The device is named **Gig Tax Pros Preview**. An existing **Rideshare Tax Pros
 Preview** is renamed and reused in place, preserving its device ID and saved data.
+Set `RIDESHARE_IOS_PREVIEW_DEVICE` to an existing Simulator UDID to review on that
+device instead, keeping its name and records. An unknown UDID fails without
+creating a substitute. The same one-guest checks apply.
 
 After building Shuug in the current checkout, run:
 

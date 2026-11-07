@@ -85,6 +85,9 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver.notificationcontent
         APPLICATION_EXTENSION_API_ONLY: YES
         SKIP_INSTALL: YES
+    dependencies:
+      - sdk: UserNotifications.framework
+      - sdk: UserNotificationsUI.framework
   GigOfferShare:
     type: app-extension
     platform: iOS

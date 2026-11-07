@@ -262,7 +262,8 @@ try:
         assert len(trips)==1 and trips[0]['body'].get('endedAt') and not journal.get('activeTripId'), 'System alert buttons did not persist one completed trip.'
         handled = [row for row in journal.get('driverAlerts', []) if row.get('handledAt')]
         assert any(row['kind']=='startTrip' for row in handled) and any(row['kind']=='endTrip' for row in handled)
-        verified_tests += ['actual system Start trip action after app termination', 'actual system End trip action after app termination', 'actions preserve background UI state', 'completed trip and handled-action IDs persisted in app journal', 'modern Home/Offers/Go Home/Position/Earnings navigation', 'existing Trips/Money/Account open through the home menu']
+        verified_tests += ['expanded system notification loads the Gig Tax Pros brand card', 'actual system Start trip action after app termination', 'actual system End trip action after app termination', 'actions preserve background UI state', 'completed trip and handled-action IDs persisted in app journal']
+        verified_tests += ['Home top shortcuts open Trips, expense entry, income entry and Alerts', 'bottom navigation and existing home tools remain accessible after the inner-page spacing change']
         report['scope'] = 'Actual iPhone Simulator system notification actions and cold background launches; physical location and cross-app screen sharing unverified'
     if options.dashboard_only:
         assert not journal['entries'] and not journal.get('missionOffers'), 'Exploring offers created financial records in the real journal.'

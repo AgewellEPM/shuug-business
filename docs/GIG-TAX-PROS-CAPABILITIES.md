@@ -90,6 +90,8 @@ implying provider access or endorsement.
 Home keeps its existing layout and bottom navigation. Its four top shortcuts open
 Trips, a new expense, a new income entry, and Alerts & reminders, so they provide
 different actions from the bottom tabs.
+Inner pages use compact navigation titles and an eight-point top content margin.
+Home keeps its own existing header and spacing.
 
 Expanded notifications use the same shared logo and dark/purple/pink palette as
 the app. A small presentation-only Notification Content Extension covers trip,

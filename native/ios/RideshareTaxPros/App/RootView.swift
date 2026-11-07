@@ -232,7 +232,7 @@ struct TodayView: View {
           Label("Export my records as CSV", systemImage: "square.and.arrow.up")
         }.disabled(!model.storageHealthy)
       }.padding(.horizontal, 16).padding(.vertical, 10)
-    }.driverScreen().navigationTitle("")
+    }.driverScreen(compactNavigation: false).navigationTitle("")
       .navigationBarTitleDisplayMode(.inline)
       .toolbar(.hidden, for: .navigationBar)
       .task {

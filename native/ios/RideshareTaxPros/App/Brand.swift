@@ -81,8 +81,16 @@ struct BrandActionStyle: ButtonStyle {
 }
 
 private struct DriverScreen: ViewModifier {
+  var compactNavigation: Bool
   func body(content: Content) -> some View {
-    content.scrollContentBackground(.hidden)
+    Group {
+      if compactNavigation {
+        content.navigationBarTitleDisplayMode(.inline)
+          .contentMargins(.top, 8, for: .scrollContent)
+      } else {
+        content
+      }
+    }.scrollContentBackground(.hidden)
       .background(Brand.background.ignoresSafeArea())
       .toolbar(.visible, for: .navigationBar)
       .toolbarBackground(Brand.background, for: .navigationBar, .tabBar)
@@ -91,5 +99,7 @@ private struct DriverScreen: ViewModifier {
   }
 }
 extension View {
-  func driverScreen() -> some View { modifier(DriverScreen()) }
+  func driverScreen(compactNavigation: Bool = true) -> some View {
+    modifier(DriverScreen(compactNavigation: compactNavigation))
+  }
 }
