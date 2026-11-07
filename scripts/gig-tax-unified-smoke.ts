@@ -38,7 +38,7 @@ async function main() {
     child = undefined;
   }
   async function start(directory: string) {
-    const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: "production", DEALDESK_DATA_DIR: directory, WORKSPACE_ACCESS_TOKEN: "", PPC_WORKSPACE_ACCESS_TOKEN: "", PLAID_CLIENT_ID: "", PLAID_SECRET: "", PLAID_LIVE_ENABLED: "false" };
+    const env: NodeJS.ProcessEnv = { ...process.env, NODE_ENV: "production", DEALDESK_DATA_DIR: directory, WORKSPACE_ACCESS_TOKEN: "", PPC_WORKSPACE_ACCESS_TOKEN: "", PLAID_CLIENT_ID: "", PLAID_SECRET: "", PLAID_LIVE_ENABLED: "false", UBER_DRIVER_CLIENT_ID: "", UBER_DRIVER_CLIENT_SECRET: "", UBER_DRIVER_APPROVED: "false" };
     const server = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(port)], { env, stdio: ["ignore", "pipe", "pipe"] });
     child = server;
     if (server.pid) pids.push(server.pid);
@@ -74,6 +74,15 @@ async function main() {
       assert.equal(native.status, 200); const reply = await native.json(); assert.equal(reply.account.id, accounts[i].id); assert.equal(reply.branding.name, "Gig Tax Pros"); tokens.push(reply.token);
     }
     checks.push("two invitation activations sign in directly; web and native sessions share the exact client identity");
+    const profileRoute = "/api/website/customer/driver/profile";
+    const renamed = await request(profileRoute, { method: "PATCH", headers: headers(tokens[0]), body: JSON.stringify({ name: "Unified Alpha renamed" }) });
+    assert.equal(renamed.status, 200); assert.equal((await renamed.json()).account.id, accounts[0].id);
+    assert.equal((await request(profileRoute, { method: "PATCH", headers: headers(tokens[0]), body: JSON.stringify({ name: "Forged", clientId: clients[1].id }) })).status, 400);
+    assert((await (await request("/api/website/customer", { headers: { Cookie: sessions[0] } })).text()).includes("Unified Alpha renamed"));
+    const nativeTax = await request("/api/website/customer/driver/tax", { headers: headers(tokens[0]) }); assert.equal(nativeTax.status, 200);
+    assert((await nativeTax.json()).tax.engagements.some((row: { documents: { id: string }[] }) => row.documents.some(item => item.id === document.id)));
+    const otherTax = await (await request("/api/website/customer/driver/tax", { headers: headers(tokens[1]) })).json(); assert.equal(otherTax.tax.engagements.length, 0);
+    checks.push("native profile edits appear in the same portal account; client binding is immutable and native tax requests stay isolated");
     const receiptId = randomUUID(), png = Buffer.from("89504e470d0a1a0a0000000049454e44ae426082", "hex");
     const receiptRoute = `/api/website/customer/driver/receipts/${receiptId}`;
     const upload = await request(receiptRoute, { method: "PUT", headers: headers(tokens[0]), body: png }); assert.equal(upload.status, 200);
@@ -100,11 +109,19 @@ async function main() {
     const staff = await request("/rideshare", { headers: { Cookie: ownerCookie } }); assert.equal(staff.status, 200); const staffHtml = await staff.text(); assert(staffHtml.includes("Unified fuel") && staffHtml.includes("Unified payout"));
     assert.equal((await request("/api/setup/customers", { headers: { Cookie: sessions[0] } })).status, 403);
     checks.push("authorized tax staff sees those same records; client cannot administer accounts");
+    assert.equal((await request("/api/setup/driver-connections", { headers: { Cookie: sessions[0] } })).status, 403);
+    const providerSettings = await request("/api/setup/driver-connections", { headers: { Cookie: ownerCookie } }); assert.equal(providerSettings.status, 200);
+    const settingsBody = await providerSettings.json(); assert.equal(settingsBody.bank.secretConfigured, false); assert.equal(settingsBody.uber.approved, false);
+    assert.equal((await request("/setup/driver-connections", { headers: { Cookie: ownerCookie } })).status, 200);
+    checks.push("provider setup is owner-only and reports unavailable credentials without exposing secrets or claiming live connections");
     const pdf = Buffer.from("%PDF-1.4\nSynthetic unified tax document\n%%EOF\n");
     const form = new FormData(); form.set("requestId", document.id); form.set("file", new Blob([pdf], { type: "application/pdf" }), "platform-summary.pdf");
     const submitted = await request("/api/website/customer/documents", { method: "POST", headers: { Origin: base, Cookie: sessions[0], Accept: "application/json" }, body: form });
     assert.equal(submitted.status, 201); const submittedDocument = (await submitted.json()).document;
     assert.equal(submittedDocument.status, "received");
+    const nativeFile = new FormData(); nativeFile.set("requestId", document.id); nativeFile.set("file", new Blob([pdf], { type: "application/pdf" }), "native-summary.pdf");
+    const nativeSubmit = await request("/api/website/customer/documents", { method: "POST", headers: { Authorization: `Bearer ${tokens[0]}`, Accept: "application/json" }, body: nativeFile });
+    assert.equal(nativeSubmit.status, 201); assert.equal((await nativeSubmit.json()).document.id, submittedDocument.id);
     const documentRoute = `/api/website/customer/documents/${submittedDocument.id}`;
     const privateDocument = await request(documentRoute, { headers: { Cookie: sessions[0] } }); assert.equal(privateDocument.status, 200); assert.deepEqual(Buffer.from(await privateDocument.arrayBuffer()), pdf);
     assert.equal((await request(documentRoute, { headers: { Cookie: sessions[1] } })).status, 404);
@@ -126,6 +143,8 @@ async function main() {
     checks.push("verified full-volume backup restores account, web/native sessions, journal, receipt and requested tax-document bytes");
     process.env.DEALDESK_DATA_DIR = restored; setCustomerEnabled(accounts[0].id, false);
     assert.equal((await request("/api/website/customer/driver/records", { headers: headers(tokens[0]) })).status, 401);
+    assert.equal((await request(profileRoute, { headers: headers(tokens[0]) })).status, 401);
+    assert.equal((await request("/api/website/customer/driver/tax", { headers: headers(tokens[0]) })).status, 401);
     assert((await (await dashboard()).text()).includes("Client sign-in"));
     checks.push("revoking one account immediately removes app and portal access after recovery");
     await stop();

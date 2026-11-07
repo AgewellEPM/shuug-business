@@ -11,6 +11,8 @@ import Foundation
     var context: Envelope.Context
     var clientPublicKey: String
     var firmRecoveryPublicKey: String
+    var authorPrivateKey: String?
+    var authorRole: Envelope.Role?
     var privateKey: String?
     var role: Envelope.Role?
     var plaintext: String?
@@ -41,16 +43,43 @@ import Foundation
     bytes[bytes.startIndex] ^= 1
     return Envelope.encode(bytes)
   }
+  /// An attacker knows these synthetic payload bytes and can produce valid base
+  /// HPKE ciphertext. Labeling it "auth" must never make it an authored item.
+  static func forbiddenBaseEnvelope(trusted: Envelope.TrustedRecipients) throws -> Envelope {
+    let author = Envelope.Author(role: .client, keyId: Envelope.keyId(trusted.client))
+    let aad = try Envelope.authenticatedHeader(context: context, author: author,
+      clientId: Envelope.keyId(trusted.client), firmId: Envelope.keyId(trusted.firmRecovery))
+    let contentKey = SymmetricKey(size: .bits256)
+    let keyBytes = contentKey.withUnsafeBytes { Data($0) }
+    let slots = try [(Envelope.Role.client, trusted.client), (.firmRecovery, trusted.firmRecovery)].map { role, key in
+      var sender = try HPKE.Sender(recipientKey: key, ciphersuite: .P256_SHA256_AES_GCM_256, info: Envelope.hpkeInfo)
+      return Envelope.Recipient(role: role, keyId: Envelope.keyId(key), publicKey: Envelope.encode(key.x963Representation),
+        encapsulatedKey: Envelope.encode(sender.encapsulatedKey), wrappedKey: Envelope.encode(try sender.seal(keyBytes, authenticating: aad)))
+    }
+    let content = try AES.GCM.seal(plaintext, using: contentKey,
+      authenticating: Envelope.contentAuthenticatedHeader(aad, recipients: slots))
+    return Envelope(version: 2, suite: Envelope.suiteName, contentAlgorithm: Envelope.contentAlgorithmName,
+      hpkeMode: "auth", author: author, context: context,
+      nonce: Envelope.encode(content.nonce.withUnsafeBytes { Data($0) }),
+      ciphertext: Envelope.encode(content.ciphertext + content.tag), recipients: slots)
+  }
   static func selfTest() throws {
     let client = P256.KeyAgreement.PrivateKey(), firm = P256.KeyAgreement.PrivateKey()
     let other = P256.KeyAgreement.PrivateKey()
     let trusted = Envelope.TrustedRecipients(client: client.publicKey, firmRecovery: firm.publicKey)
-    let sealed = try Envelope.seal(plaintext, context: context, recipients: trusted)
+    let sealed = try Envelope.seal(plaintext, context: context, recipients: trusted,
+      authorRole: .client, authorPrivateKey: client)
     var checks: [String] = []
     try require(try sealed.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client) == plaintext, "Client could not decrypt")
     checks.append("client recipient decrypts original bytes")
     try require(try sealed.open(expectedContext: context, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm) == plaintext, "Firm recovery could not decrypt")
     checks.append("separate firm recovery recipient decrypts original bytes")
+    let firmAuthored = try Envelope.seal(plaintext, context: context, recipients: trusted,
+      authorRole: .firmRecovery, authorPrivateKey: firm)
+    try require(try firmAuthored.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client) == plaintext, "Client could not decrypt firm-authored item")
+    checks.append("client decrypts firm recovery authored item")
+    try require(try firmAuthored.open(expectedContext: context, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm) == plaintext, "Firm could not decrypt its authored item")
+    checks.append("firm recovery decrypts its authored item")
     let restored = try JSONDecoder().decode(Envelope.self, from: JSONEncoder().encode(sealed))
     try require(restored == sealed, "Versioned serialization changed the envelope")
     checks.append("versioned serialization round trip")
@@ -62,6 +91,36 @@ import Foundation
     }
     try rejects("recipient role substitution rejected", checks: &checks) {
       _ = try sealed.open(expectedContext: context, trustedRecipients: trusted, role: .firmRecovery, privateKey: client)
+    }
+    try rejects("untrusted author private key rejected before sealing", checks: &checks) {
+      _ = try Envelope.seal(plaintext, context: context, recipients: trusted, authorRole: .client, authorPrivateKey: other)
+    }
+    try rejects("author private key and role mismatch rejected before sealing", checks: &checks) {
+      _ = try Envelope.seal(plaintext, context: context, recipients: trusted, authorRole: .firmRecovery, authorPrivateKey: client)
+    }
+    var authorChanged = sealed; authorChanged.author.keyId = Envelope.keyId(other.publicKey)
+    try rejects("untrusted author key ID substitution rejected", checks: &checks) {
+      _ = try authorChanged.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    authorChanged = sealed; authorChanged.author.role = .firmRecovery
+    authorChanged.author.keyId = Envelope.keyId(firm.publicKey)
+    try rejects("trusted author role relabeling fails authenticated decryption", checks: &checks) {
+      _ = try authorChanged.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    var downgrade = sealed; downgrade.version = 1
+    try rejects("v1 envelope rejected", checks: &checks) {
+      _ = try downgrade.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    downgrade = sealed; downgrade.hpkeMode = "base"
+    try rejects("base mode label rejected", checks: &checks) {
+      _ = try downgrade.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    let forbiddenBase = try forbiddenBaseEnvelope(trusted: trusted)
+    try rejects("base mode ciphertext relabeled as auth rejected for client", checks: &checks) {
+      _ = try forbiddenBase.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    try rejects("base mode ciphertext relabeled as auth rejected for firm recovery", checks: &checks) {
+      _ = try forbiddenBase.open(expectedContext: context, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm)
     }
     var moved = context; moved.accountId = "different-client"
     try rejects("wrong expected account context rejected", checks: &checks) {
@@ -87,6 +146,22 @@ import Foundation
     try rejects("wrapped content-key tampering rejected", checks: &checks) {
       _ = try tampered.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
     }
+    tampered = sealed; tampered.recipients[1].wrappedKey = try changed(tampered.recipients[1].wrappedKey)
+    try rejects("client rejects tampering with unused firm recovery wrapped key", checks: &checks) {
+      _ = try tampered.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    tampered = sealed; tampered.recipients[1].encapsulatedKey = try changed(tampered.recipients[1].encapsulatedKey)
+    try rejects("client rejects tampering with unused firm recovery encapsulation", checks: &checks) {
+      _ = try tampered.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
+    }
+    tampered = sealed; tampered.recipients[0].wrappedKey = try changed(tampered.recipients[0].wrappedKey)
+    try rejects("firm recovery rejects tampering with unused client wrapped key", checks: &checks) {
+      _ = try tampered.open(expectedContext: context, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm)
+    }
+    tampered = sealed; tampered.recipients[0].encapsulatedKey = try changed(tampered.recipients[0].encapsulatedKey)
+    try rejects("firm recovery rejects tampering with unused client encapsulation", checks: &checks) {
+      _ = try tampered.open(expectedContext: context, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm)
+    }
     tampered = sealed; tampered.recipients[0].encapsulatedKey = try changed(tampered.recipients[0].encapsulatedKey)
     try rejects("HPKE encapsulation tampering rejected", checks: &checks) {
       _ = try tampered.open(expectedContext: context, trustedRecipients: trusted, role: .client, privateKey: client)
@@ -100,13 +175,18 @@ import Foundation
       _ = try sealed.open(expectedContext: context, trustedRecipients: substituted, role: .client, privateKey: client)
     }
     try rejects("duplicate client and firm public keys rejected", checks: &checks) {
-      _ = try Envelope.seal(plaintext, context: context, recipients: .init(client: client.publicKey, firmRecovery: client.publicKey))
+      _ = try Envelope.seal(plaintext, context: context, recipients: .init(client: client.publicKey, firmRecovery: client.publicKey),
+        authorRole: .client, authorPrivateKey: client)
     }
     var invalid = context; invalid.objectId = ".."
-    try rejects("unsafe opaque object ID rejected", checks: &checks) { _ = try Envelope.seal(plaintext, context: invalid, recipients: trusted) }
+    try rejects("unsafe opaque object ID rejected", checks: &checks) {
+      _ = try Envelope.seal(plaintext, context: invalid, recipients: trusted, authorRole: .client, authorPrivateKey: client)
+    }
     invalid.objectId = "synthetic-document\n"
-    try rejects("trailing newline in opaque object ID rejected", checks: &checks) { _ = try Envelope.seal(plaintext, context: invalid, recipients: trusted) }
-    let second = try Envelope.seal(plaintext, context: context, recipients: trusted)
+    try rejects("trailing newline in opaque object ID rejected", checks: &checks) {
+      _ = try Envelope.seal(plaintext, context: invalid, recipients: trusted, authorRole: .client, authorPrivateKey: client)
+    }
+    let second = try Envelope.seal(plaintext, context: context, recipients: trusted, authorRole: .client, authorPrivateKey: client)
     try require(second.nonce != sealed.nonce && second.ciphertext != sealed.ciphertext && second.recipients[0].encapsulatedKey != sealed.recipients[0].encapsulatedKey, "Object encryption reused randomness")
     checks.append("fresh content key nonce and HPKE context per object")
     try emit(["ok": true, "syntheticOnly": true, "scope": "Native CryptoKit envelope primitive; current application uploads remain unmigrated", "checks": checks])
@@ -114,7 +194,7 @@ import Foundation
   static func fixture() throws {
     let client = P256.KeyAgreement.PrivateKey(), firm = P256.KeyAgreement.PrivateKey()
     let envelope = try Envelope.seal(plaintext, context: context,
-      recipients: .init(client: client.publicKey, firmRecovery: firm.publicKey))
+      recipients: .init(client: client.publicKey, firmRecovery: firm.publicKey), authorRole: .client, authorPrivateKey: client)
     try emit(["syntheticOnly": true, "context": object(context), "plaintext": Envelope.encode(plaintext),
       "clientPrivateKey": Envelope.encode(client.rawRepresentation), "firmRecoveryPrivateKey": Envelope.encode(firm.rawRepresentation),
       "clientPublicKey": Envelope.encode(client.publicKey.x963Representation), "firmRecoveryPublicKey": Envelope.encode(firm.publicKey.x963Representation),
@@ -137,9 +217,12 @@ import Foundation
       let firm = try P256.KeyAgreement.PublicKey(x963Representation: Envelope.decode(value.firmRecoveryPublicKey, count: 65))
       let trusted = Envelope.TrustedRecipients(client: client, firmRecovery: firm)
       if CommandLine.arguments[1] == "seal" {
-        guard let text = value.plaintext else { throw ProofFailure(message: "Missing synthetic plaintext") }
+        guard let text = value.plaintext, let encodedAuthorKey = value.authorPrivateKey,
+          let authorRole = value.authorRole else { throw ProofFailure(message: "Missing synthetic plaintext or author input") }
         let bytes = try Envelope.decode(text, minimum: 1, maximum: Envelope.maximumCiphertextBytes - 16)
-        try emit(["ok": true, "envelope": object(Envelope.seal(bytes, context: value.context, recipients: trusted))])
+        let authorKey = try P256.KeyAgreement.PrivateKey(rawRepresentation: Envelope.decode(encodedAuthorKey, count: 32))
+        try emit(["ok": true, "envelope": object(Envelope.seal(bytes, context: value.context, recipients: trusted,
+          authorRole: authorRole, authorPrivateKey: authorKey))])
       } else {
         guard let envelope = value.envelope, let encodedKey = value.privateKey, let role = value.role else { throw ProofFailure(message: "Missing synthetic recipient input") }
         let key = try P256.KeyAgreement.PrivateKey(rawRepresentation: Envelope.decode(encodedKey, count: 32))

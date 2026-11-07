@@ -10,6 +10,7 @@ import { workspaceDatabase } from "../workspace/database";
 import { listRecords } from "../sdk/records";
 import type { ModuleRecord } from "../sdk/types";
 import { customerFromDatabase } from "./accounts";
+import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
 
 export const MAX_TAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
 export const TAX_DOCUMENT_ACCOUNT_BYTES = 200 * 1024 * 1024;
@@ -70,7 +71,7 @@ const mimeFor = (bytes: Buffer) => {
 
 export function assertTaxDocumentRequest(token: string | undefined, requestId: string) {
   uuid.parse(requestId); prepare();
-  workspaceDatabase(db => { clientScope(db, token, requestId); });
+  workspaceDatabase(db => { const { account } = clientScope(db, token, requestId); assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db); });
 }
 export function submitTaxDocument(token: string | undefined, requestId: string, name: string, bytes: Buffer): ClientTaxDocument {
   uuid.parse(requestId);
@@ -80,7 +81,9 @@ export function submitTaxDocument(token: string | undefined, requestId: string, 
   prepare(); let owned: string | undefined;
   try {
     return workspaceDatabase(db => {
-      const { account, parent } = clientScope(db, token, requestId); init(db);
+      const { account, parent } = clientScope(db, token, requestId);
+      assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db);
+      init(db);
       const prior = db.prepare("SELECT * FROM tax_client_documents WHERE accountId=? AND requestId=? AND digest=?").get(account.id, requestId, digest) as TaxDocument | undefined;
       if (prior) {
         if (prior.clientId !== account.clientId || prior.engagementId !== parent.id) throw unavailable();

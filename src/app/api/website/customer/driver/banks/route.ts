@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { bankFeed, bankStatus, createBankLink, disconnectBank, exchangeBankLink, syncBankItem } from "@/lib/rideshare-driver/bank-store";
+import { bankFeed, bankStatus, createBankLink, disconnectBank, exchangeBankLink, syncBankItem, cancelBankLink } from "@/lib/rideshare-driver/bank-store";
 import { checkDriverOrigin, driverFailure, driverJson, driverToken, privateHeaders } from "@/lib/rideshare-driver/http";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,6 +20,7 @@ export async function POST(request: Request) {
       z.object({ action: z.literal("exchange"), sessionId: z.uuid(), publicToken: z.string().max(1000) }).strict(),
       z.object({ action: z.literal("sync"), itemId: z.uuid() }).strict(),
       z.object({ action: z.literal("disconnect"), itemId: z.uuid() }).strict(),
+      z.object({ action: z.literal("cancel"), sessionId: z.uuid() }).strict(),
     ]).parse(raw);
     let value: object;
     switch (input.action) {
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
       case "exchange": value = await exchangeBankLink(token, { sessionId: input.sessionId, publicToken: input.publicToken }); break;
       case "sync": value = await syncBankItem(token, input.itemId); break;
       case "disconnect": await disconnectBank(token, input.itemId); value = { disconnected: true }; break;
+      case "cancel": cancelBankLink(token, input.sessionId); value = { canceled: true }; break;
     }
     return Response.json(value, { headers: privateHeaders });
   } catch (error) { return driverFailure(error); }

@@ -11,10 +11,16 @@ import { randomUUID } from "node:crypto";
 import { dataDirectory } from "../connections/vault";
 import { validateValues, type Field } from "../features/model";
 import type { ModuleRecord } from "./types";
+import type { DatabaseSync } from "node:sqlite";
+import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
 
 type Store = Record<string, ModuleRecord[]>;
 const file = () => path.join(dataDirectory(), "module-records.json");
 const MAX_PER_MODULE = 5000;
+const taxModules = new Set(["tax-engagements", "tax-document-requests", "tax-filing-handoffs", "rideshare-tax-records", "tax-quarterly-reviews"]);
+function assertTaxRecordAllowed(moduleId: string, record: ModuleRecord, db: DatabaseSync) {
+  if (taxModules.has(moduleId) && typeof record.values.client_id === "string") assertPlaintextTaxAllowed({ clientId: record.values.client_id }, db);
+}
 
 function loadFromDisk(): Store {
   try { const v = JSON.parse(readFileSync(file(), "utf8")); if (!v || typeof v !== "object" || Array.isArray(v) || Object.values(v).some(rows => !Array.isArray(rows))) throw new Error("Invalid module records"); return v; }
@@ -22,29 +28,54 @@ function loadFromDisk(): Store {
 }
 const durable = persistentState<Store>("module-records", loadFromDisk);
 /** Domain extensions share this aggregate transaction, so review receipts and record changes commit together. */
-export function changeModuleRecords<T>(moduleId: string, mutate: (records: ModuleRecord[]) => T): T { return durable.change(store => mutate(store[moduleId] ??= [])); }
+export function changeModuleRecords<T>(moduleId: string, mutate: (records: ModuleRecord[]) => T): T {
+  return durable.change((store, db) => {
+    const records = store[moduleId] ??= [];
+    if (!taxModules.has(moduleId)) return mutate(records);
+    const before = structuredClone(records);
+    try {
+      const result = mutate(records);
+      for (const row of records) {
+        const previous = before.find(old => old.id === row.id);
+        if (!previous || JSON.stringify(previous.values) !== JSON.stringify(row.values)) {
+          if (previous) assertTaxRecordAllowed(moduleId, previous, db);
+          assertTaxRecordAllowed(moduleId, row, db);
+        }
+      }
+      return result;
+    } catch (error) {
+      // Nested domain transactions may catch an error; also restore the shared
+      // in-memory aggregate so a later successful operation cannot persist it.
+      records.splice(0, records.length, ...before);
+      throw error;
+    }
+  });
+}
 
 export function listRecords(moduleId: string): ModuleRecord[] {
   return (durable.read()[moduleId] ?? []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((r) => ({ ...r, values: { ...r.values } }));
 }
 
 export function addRecord(moduleId: string, fields: Field[], input: unknown): ModuleRecord {
-  return durable.change(store => {
+  return durable.change((store, db) => {
   const existing = store[moduleId] ?? [];
   if (existing.length >= MAX_PER_MODULE) throw new Error("This module has reached its record limit.");
   const now = new Date().toISOString();
   const rec: ModuleRecord = { id: randomUUID(), values: validateValues(fields, input), archived: false, createdAt: now, updatedAt: now };
+  assertTaxRecordAllowed(moduleId, rec, db);
   store[moduleId] = [...existing, rec];
   return rec;
   });
 }
 
 export function updateRecord(moduleId: string, id: string, fields: Field[], input: unknown): ModuleRecord {
-  return durable.change(store => {
+  return durable.change((store, db) => {
   const list = store[moduleId] ?? [];
   const rec = list.find((r) => r.id === id);
   if (!rec) throw new Error("Record not found.");
   const next: ModuleRecord = { ...rec, values: validateValues(fields, input), updatedAt: new Date(Math.max(Date.now(), Date.parse(rec.updatedAt) + 1)).toISOString() };
+  assertTaxRecordAllowed(moduleId, rec, db);
+  assertTaxRecordAllowed(moduleId, next, db);
   store[moduleId] = list.map((r) => (r.id === id ? next : r));
   return next;
   });

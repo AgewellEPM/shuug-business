@@ -9,9 +9,10 @@ export function bankConfiguration(platform?: "ios" | "android") {
   try { const url = new URL(redirect); validRedirect = url.protocol === "https:" && !url.username && !url.password && !url.search && !url.hash; } catch {}
   const androidPackage = setting("PLAID_ANDROID_PACKAGE_NAME");
   const platformReady = platform === "ios" ? validRedirect : platform === "android" ? androidPackage === "com.ridesharetaxpros.driver" : true;
-  const ready = !!clientId && !!secret && platformReady && ["sandbox", "production"].includes(environment)
+  const credentialsReady = !!clientId && !!secret && ["sandbox", "production"].includes(environment);
+  const ready = credentialsReady && platformReady
     && (environment === "sandbox" || setting("PLAID_LIVE_ENABLED") === "true");
-  return { ready, environment, clientId, secret, redirect, androidPackage,
+  return { ready, credentialsReady, environment, clientId, secret, redirect, androidPackage,
     reason: ready ? (environment === "sandbox" ? "Sandbox uses test banks only." : "Available banks appear in the secure connection screen.")
       : "Your firm has not activated bank linking. CSV, OFX and QFX imports are available now." };
 }
@@ -20,9 +21,11 @@ export class BankProviderError extends DriverError {
     super(503, code === "ITEM_LOGIN_REQUIRED" ? "This bank needs you to reconnect securely." : "The bank provider could not complete this request. Your saved records are kept.");
   }
 }
-export async function plaid<T>(path: string, input: object, schema: z.ZodType<T>): Promise<T> {
-  const config = bankConfiguration();
-  if (!config.ready) throw new DriverError(503, config.reason);
+export async function plaid<T>(path: string, input: object, schema: z.ZodType<T>, pinned?: ReturnType<typeof bankConfiguration>): Promise<T> {
+  const config = pinned ?? bankConfiguration();
+  // Pausing new/live links must not prevent a customer from revoking an
+  // existing provider authorization with the still-valid credential pair.
+  if (!config.ready && !(path === "/item/remove" && config.credentialsReady)) throw new DriverError(503, config.reason);
   let response: Response;
   try {
     response = await fetch(`https://${config.environment}.plaid.com${path}`, {

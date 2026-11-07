@@ -6,6 +6,7 @@ import { workspaceDatabase } from "../workspace/database";
 import { driverAccount } from "./policy";
 import { driverId, DriverError } from "./model";
 import { initDriver } from "./store";
+import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
 
 export const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
 type Receipt = { id: string; accountId: string; mime: string; size: number; digest: string; createdAt: string };
@@ -24,7 +25,9 @@ export function saveDriverReceipt(token: string | undefined, rawId: string, byte
   let owned: string | undefined;
   try {
     return workspaceDatabase(db => {
-      const account = driverAccount(db, token); initDriver(db);
+      const account = driverAccount(db, token);
+      assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db);
+      initDriver(db);
       const prior = db.prepare("SELECT * FROM driver_receipts WHERE accountId=? AND id=?").get(account.id, id) as Receipt | undefined;
       if (prior) {
         if (prior.digest !== digest) throw new DriverError(409, "This receipt ID already contains a different file.");

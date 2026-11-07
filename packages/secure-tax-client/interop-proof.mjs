@@ -7,15 +7,16 @@ const call=(command,input)=>JSON.parse(execFileSync(binary,[command],{input:inpu
 const native=call('self-test');assert(native.ok);
 const fixture=call('fixture');
 const trusted={clientPublicKey:fixture.clientPublicKey,firmRecoveryPublicKey:fixture.firmRecoveryPublicKey};
-const checks=[];
+const checks=[];let authorPrivateKey;
 for(const role of ['client','firm-recovery']){
  const raw=decode64(role==='client'?fixture.clientPrivateKey:fixture.firmRecoveryPrivateKey,32);
  const pub=decode64(role==='client'?fixture.clientPublicKey:fixture.firmRecoveryPublicKey,65);
  const privateKey=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:encode64(pub.subarray(1,33)),y:encode64(pub.subarray(33)),d:encode64(raw)},{name:'ECDH',namedCurve:'P-256'},false,['deriveBits']);raw.fill(0);
+ if(role==='client')authorPrivateKey=privateKey;
  const opened=await openEnvelope(fixture.envelope,fixture.context,trusted,role,privateKey);
  assert.equal(encode64(opened),fixture.plaintext);checks.push(`CryptoKit seals → WebCrypto opens for ${role}`);
 }
-const envelope=await sealEnvelope(decode64(fixture.plaintext,0,1024*1024),fixture.context,trusted);
+const envelope=await sealEnvelope(decode64(fixture.plaintext,0,1024*1024),fixture.context,trusted,'client',authorPrivateKey);
 for(const role of ['client','firm-recovery']){
  const result=call('open',{syntheticOnly:true,context:fixture.context,...trusted,privateKey:role==='client'?fixture.clientPrivateKey:fixture.firmRecoveryPrivateKey,role,envelope});
  assert(result.ok);assert.equal(result.plaintext,fixture.plaintext);checks.push(`WebCrypto seals → CryptoKit opens for ${role}`);

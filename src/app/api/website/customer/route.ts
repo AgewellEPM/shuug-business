@@ -8,6 +8,7 @@ import { customerPage, customerInvite, customerLogin, customerDashboard, custome
 import { escapeHtml } from "@/lib/auth/forms";
 import { acceptCustomerRecord, bookCustomerAppointment, cancelCustomerAppointment } from "@/lib/workspace/store";
 import { authorizeInvoicePayment, paymentNotice, refreshWebsitePayment, reserveInvoicePayment } from "@/lib/website-payments/service";
+import { updateDriverProfile } from "@/lib/customer-access/driver-profile";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 function redirect(token?: string) { const response = NextResponse.redirect(new URL(CUSTOMER_PATH, appBaseUrl()), 303); response.headers.set("Cache-Control", "private, no-store"); response.headers.set("Referrer-Policy", "no-referrer"); if (token !== undefined) response.headers.set("Set-Cookie", customerCookie(token, appBaseUrl().startsWith("https:"))); return response; }
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
     if (operation === "login") return redirect(signInCustomer(form.get("email") ?? "", form.get("password") ?? ""));
     if (operation === "activate") { if (form.get("password") !== form.get("confirmation")) throw new Error("The passwords do not match."); const password = form.get("password") ?? ""; const account = acceptCustomerInvitation(form.get("invite") ?? "", password); return redirect(signInCustomer(account.email, password)); }
     requireCustomer(token);
+    if (operation === "profile") { const input = Object.fromEntries([...form.entries()].filter(([key]) => key !== "action")); updateDriverProfile(token, input); return customerDashboard(await customerView(token!), "Your display name was updated. The app will refresh it on its next successful sync."); }
     if (operation === "payment.start" || operation === "payment.refresh") {
       const reserved = operation === "payment.start" ? reserveInvoicePayment(token!, form.get("invoice") ?? "") : authorizeInvoicePayment(token!, form.get("payment") ?? "");
       const payment = await refreshWebsitePayment(reserved.id);

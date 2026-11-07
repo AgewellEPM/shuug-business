@@ -7,6 +7,7 @@ import { customerPage } from "@/lib/customer-access/page";
 import { MAX_TAX_DOCUMENT_BYTES, TaxDocumentError, assertTaxDocumentRequest, submitTaxDocument } from "@/lib/customer-access/tax-documents";
 import { boundedBytes, driverToken, privateHeaders } from "@/lib/rideshare-driver/http";
 import { DriverError } from "@/lib/rideshare-driver/model";
+import { assertPlaintextTaxAllowed } from "@/lib/secure-tax/policy";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export async function POST(request: Request) {
@@ -15,7 +16,9 @@ export async function POST(request: Request) {
     const origin = request.headers.get("origin"), native = request.headers.get("authorization")?.startsWith("Bearer ");
     if (origin !== new URL(appBaseUrl()).origin && !(native && !origin)) throw new TaxDocumentError(403, "Return to your client workspace to upload a document.");
     const token = driverToken(request, true);
-    if (!customerSession(token)) throw new TaxDocumentError(401, "Sign in to your client account.");
+    const account = customerSession(token);
+    if (!account) throw new TaxDocumentError(401, "Sign in to your client account.");
+    assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId });
     const type = request.headers.get("content-type") ?? "";
     if (!/^multipart\/form-data;\s*boundary=/i.test(type)) throw new TaxDocumentError(415, "Use the document upload form.");
     const bytes = await boundedBytes(request, MAX_TAX_DOCUMENT_BYTES + 16_384);

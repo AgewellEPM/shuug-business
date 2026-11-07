@@ -9,7 +9,7 @@ export const CONTENT_ALGORITHM = 'AES-256-GCM';
 export const MAX_CIPHERTEXT_BYTES = 16*1024*1024;
 export const DOMAINS = Object.freeze(['tax-document','tax-identity','driver-record','driver-receipt','driver-state','driver-route','provider-record']);
 const roles = ['client','firm-recovery'];
-const info = utf8.encode('shuug/secure-tax-envelope/v1');
+const info = utf8.encode('shuug/secure-tax-envelope/v2');
 const fail = () => {throw new Error('Protected item or trusted context is invalid.');};
 const exactKeys = (object,keys) => {
   if (!object || typeof object!=='object' || Array.isArray(object) || Object.keys(object).sort().join('|')!==[...keys].sort().join('|')) fail();
@@ -44,33 +44,40 @@ export async function trustedRecipientIds(trusted) {
   const client=await publicKeyId(trusted.clientPublicKey),firm=await publicKeyId(trusted.firmRecoveryPublicKey);
   if(client===firm)fail();return [client,firm];
 }
-const aad = (context,ids) => utf8.encode(JSON.stringify([1,'shuug/secure-tax-envelope',context.domain,context.workspaceId,context.accountId,context.objectId,context.revision,CONTENT_ALGORITHM,SUITE,['client',ids[0]],['firm-recovery',ids[1]]]));
-export async function sealEnvelope(plaintext,context,trusted) {
+const aad = (context,ids,author) => utf8.encode(JSON.stringify([2,'shuug/secure-tax-envelope',context.domain,context.workspaceId,context.accountId,context.objectId,context.revision,CONTENT_ALGORITHM,SUITE,'auth',[author.role,author.keyId],['client',ids[0]],['firm-recovery',ids[1]]]));
+// Bind BOTH recovery slots to the content tag. Otherwise a storage attacker
+// could corrupt the unused slot while the currently selected recipient opens.
+const contentAad = (base,recipients) => utf8.encode(JSON.stringify([new TextDecoder().decode(base),...recipients.map(r=>[r.role,r.keyId,r.publicKey,r.encapsulatedKey,r.wrappedKey])]));
+export async function sealEnvelope(plaintext,context,trusted,authorRole,authorPrivateKey) {
   validateContext(context);
   if(!(plaintext instanceof Uint8Array)||plaintext.length>MAX_CIPHERTEXT_BYTES-16)fail();
-  const ids=await trustedRecipientIds(trusted),auth=aad(context,ids);
+  const ids=await trustedRecipientIds(trusted);if(!roles.includes(authorRole)||!authorPrivateKey)fail();
+  const author={role:authorRole,keyId:ids[roles.indexOf(authorRole)]},auth=aad(context,ids,author);
+  const authorPublicKey=await hpke.kem.deserializePublicKey(decode64(authorRole==='client'?trusted.clientPublicKey:trusted.firmRecoveryPublicKey,65));
   const contentBytes=crypto.getRandomValues(new Uint8Array(32));
   try {
-    const contentKey=await crypto.subtle.importKey('raw',contentBytes,'AES-GCM',false,['encrypt']);
-    const nonce=crypto.getRandomValues(new Uint8Array(12));
-    const ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:auth,tagLength:128},contentKey,plaintext));
     const recipients=[];
     for(let i=0;i<2;i++){
       const publicKey=i===0?trusted.clientPublicKey:trusted.firmRecoveryPublicKey;
-      const sender=await hpke.createSenderContext({recipientPublicKey:await hpke.kem.deserializePublicKey(decode64(publicKey,65)),info});
+      const sender=await hpke.createSenderContext({recipientPublicKey:await hpke.kem.deserializePublicKey(decode64(publicKey,65)),senderKey:{privateKey:authorPrivateKey,publicKey:authorPublicKey},info});
       // A fresh sender context seals exactly one content key, never a stream.
       recipients.push({role:roles[i],keyId:ids[i],publicKey,encapsulatedKey:encode64(new Uint8Array(sender.enc)),wrappedKey:encode64(new Uint8Array(await sender.seal(contentBytes,auth)))});
     }
-    return {version:1,suite:SUITE,contentAlgorithm:CONTENT_ALGORITHM,context:{...context},nonce:encode64(nonce),ciphertext:encode64(ciphertext),recipients};
+    const contentKey=await crypto.subtle.importKey('raw',contentBytes,'AES-GCM',false,['encrypt']);
+    const nonce=crypto.getRandomValues(new Uint8Array(12));
+    const ciphertext=new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:contentAad(auth,recipients),tagLength:128},contentKey,plaintext));
+    return {version:2,suite:SUITE,contentAlgorithm:CONTENT_ALGORITHM,hpkeMode:'auth',author,context:{...context},nonce:encode64(nonce),ciphertext:encode64(ciphertext),recipients};
   }finally{contentBytes.fill(0);}
 }
 export async function openEnvelope(envelope,expectedContext,trusted,role,privateKey) {
   validateContext(expectedContext);
-  exactKeys(envelope,['version','suite','contentAlgorithm','context','nonce','ciphertext','recipients']);
+  exactKeys(envelope,['version','suite','contentAlgorithm','hpkeMode','author','context','nonce','ciphertext','recipients']);
+  exactKeys(envelope.author,['role','keyId']);
   validateContext(envelope.context);
-  if(envelope.version!==1||envelope.suite!==SUITE||envelope.contentAlgorithm!==CONTENT_ALGORITHM||!roles.includes(role))fail();
-  const ids=await trustedRecipientIds(trusted),auth=aad(expectedContext,ids);
-  if(JSON.stringify([...aad(envelope.context,ids)])!==JSON.stringify([...auth]))fail();
+  if(envelope.version!==2||envelope.hpkeMode!=='auth'||envelope.suite!==SUITE||envelope.contentAlgorithm!==CONTENT_ALGORITHM||!roles.includes(role)||!roles.includes(envelope.author.role))fail();
+  const ids=await trustedRecipientIds(trusted);if(envelope.author.keyId!==ids[roles.indexOf(envelope.author.role)])fail();
+  const auth=aad(expectedContext,ids,envelope.author);
+  if(JSON.stringify([...aad(envelope.context,ids,envelope.author)])!==JSON.stringify([...auth]))fail();
   if(!Array.isArray(envelope.recipients)||envelope.recipients.length!==2)fail();
   for(let i=0;i<2;i++){
     const slot=envelope.recipients[i];exactKeys(slot,['role','keyId','publicKey','encapsulatedKey','wrappedKey']);
@@ -79,12 +86,13 @@ export async function openEnvelope(envelope,expectedContext,trusted,role,private
   }
   const slot=envelope.recipients[roles.indexOf(role)];
   const publicKey=await hpke.kem.deserializePublicKey(decode64(slot.publicKey,65));
-  const recipient=await hpke.createRecipientContext({recipientKey:{privateKey,publicKey},enc:decode64(slot.encapsulatedKey,65),info});
+  const senderPublicKey=await hpke.kem.deserializePublicKey(decode64(envelope.author.role==='client'?trusted.clientPublicKey:trusted.firmRecoveryPublicKey,65));
+  const recipient=await hpke.createRecipientContext({recipientKey:{privateKey,publicKey},senderPublicKey,enc:decode64(slot.encapsulatedKey,65),info});
   const raw=new Uint8Array(await recipient.open(decode64(slot.wrappedKey,48),auth));
   try {
     if(raw.length!==32)fail();
     const contentKey=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
-    return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:decode64(envelope.nonce,12),additionalData:auth,tagLength:128},contentKey,decode64(envelope.ciphertext,16,MAX_CIPHERTEXT_BYTES)));
+    return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:decode64(envelope.nonce,12),additionalData:contentAad(auth,envelope.recipients),tagLength:128},contentKey,decode64(envelope.ciphertext,16,MAX_CIPHERTEXT_BYTES)));
   }finally{raw.fill(0);}
 }
 export async function generateRecipientKeyPair(){
@@ -103,7 +111,7 @@ export async function verifyEnrollmentManifest(manifest,expected,pins,now=Date.n
   const signerId=await publicKeyId(pins.signerPublicKey);
   if(signerId===ids[0]||signerId===ids[1]||manifest.client.keyId!==ids[0]||manifest.firmRecovery.keyId!==ids[1]||manifest.signature.signerKeyId!==signerId||manifest.signature.algorithm!=='ES256-P1363')fail();
   const issued=Date.parse(manifest.issuedAt),expires=Date.parse(manifest.expiresAt);
-  if(!Number.isFinite(issued)||!Number.isFinite(expires)||!manifest.issuedAt.endsWith('Z')||!manifest.expiresAt.endsWith('Z')||issued>now+300000||expires<=now||expires<=issued)fail();
+  if(!Number.isFinite(issued)||!Number.isFinite(expires)||!manifest.issuedAt.endsWith('Z')||!manifest.expiresAt.endsWith('Z')||issued>now+60000||expires<=now||expires<=issued)fail();
   const canonical=[1,'shuug/secure-tax-manifest',manifest.manifestId,manifest.workspaceId,manifest.accountId,manifest.clientId,manifest.epoch,manifest.client.keyId,manifest.client.publicKey,manifest.firmRecovery.keyId,manifest.firmRecovery.publicKey,manifest.issuedAt,manifest.expiresAt];
   const key=await crypto.subtle.importKey('raw',decode64(pins.signerPublicKey,65),{name:'ECDSA',namedCurve:'P-256'},false,['verify']);
   if(!await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,decode64(manifest.signature.value,64),utf8.encode(JSON.stringify(canonical))))fail();

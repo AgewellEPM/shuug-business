@@ -15,7 +15,7 @@ import { GET, POST } from "@/app/api/website/customer/driver/banks/route";
 
 let directory: string, alpha: { id: string; token: string }, beta: typeof alpha;
 let calls: { path: string; body: Record<string, unknown> }[];
-let provider: (path: string, body: Record<string, unknown>) => Response;
+let provider: (path: string, body: Record<string, unknown>) => Response | Promise<Response>;
 const reply = (value: unknown, status = 200) => Response.json(value, { status });
 const tx = (id = "one", amount = 17.35) => ({ transaction_id: id, account_id: "bank-account", date: "2026-11-05", name: "Fixture Shell", amount, iso_currency_code: "USD", pending: false });
 const page = (values: unknown[] = [tx()], cursor = "cursor-one", more = false) => ({ added: values, modified: [], removed: [], next_cursor: cursor, has_more: more });
@@ -130,4 +130,65 @@ it("enforces the actual handler's private response, origin, session and request 
   const post = (body: object, origin?: string) => POST(new Request(url, { method: "POST", headers: { Authorization: `Bearer ${alpha.token}`, "Content-Type": "application/json", ...(origin ? { Origin: origin } : {}) }, body: JSON.stringify(body) }));
   expect((await post({ action: "link", accountId: beta.id })).status).toBe(400);
   expect((await post({ action: "link" }, "https://unrelated.example")).status).toBe(403);
+});
+it("refuses a pending link after provider setup changes and cancels only the caller's unfinished session", async () => {
+  const session=await createBankLink(alpha.token,{});
+  vi.stubEnv("PLAID_SECRET","changed-fixture-secret");
+  await expect(exchangeBankLink(alpha.token,{sessionId:session.sessionId,publicToken:"fixture-public"})).rejects.toThrow("setup changed");
+  expect(calls.filter(c=>c.path==="/item/public_token/exchange")).toHaveLength(0);
+  const url="https://workspace.example.com/api/website/customer/driver/banks";
+  const cancel=(token:string)=>POST(new Request(url,{method:"POST",headers:{Authorization:`Bearer ${token}`,"Content-Type":"application/json"},body:JSON.stringify({action:"cancel",sessionId:session.sessionId})}));
+  expect((await cancel(beta.token)).status).toBe(200);
+  expect(workspaceDatabase(db=>db.prepare("SELECT 1 FROM driver_bank_links WHERE id=?").get(session.sessionId))).toBeTruthy();
+  expect((await cancel(alpha.token)).status).toBe(200);
+  expect(workspaceDatabase(db=>db.prepare("SELECT 1 FROM driver_bank_links WHERE id=?").get(session.sessionId))).toBeUndefined();
+});
+it("allows a client to revoke an existing production authorization when new live linking is paused", async () => {
+  const {itemId}=await linked();
+  workspaceDatabase(db=>db.prepare("UPDATE driver_bank_items SET environment='production'").run(),true);
+  vi.stubEnv("PLAID_ENV","production");vi.stubEnv("PLAID_LIVE_ENABLED","false");
+  vi.stubGlobal("fetch",vi.fn(async (url:string,init:RequestInit)=>{
+    expect(url).toBe("https://production.plaid.com/item/remove");
+    const body=JSON.parse(init.body as string);expect(body.access_token).toBe("fixture-access-token");return reply({});
+  }));
+  expect(bankStatus(alpha.token).ready).toBe(false);
+  await disconnectBank(alpha.token,itemId);
+  expect(bankStatus(alpha.token).items[0]).toMatchObject({connected:0});
+});
+it("removes an unreachable pending session when provider token creation fails",async()=>{
+  provider=()=>reply({error_code:"INVALID_API_KEYS"},400);
+  await expect(createBankLink(alpha.token,{})).rejects.toThrow("could not complete");
+  expect(workspaceDatabase(db=>db.prepare("SELECT count(*) AS n FROM driver_bank_links WHERE itemId IS NULL").get())).toEqual({n:0});
+});
+it("revokes a canceled in-flight exchange using its original provider credentials",async()=>{
+ const session=await createBankLink(alpha.token,{});
+ let finish:((response:Response)=>void)|undefined;
+ const wait=new Promise<Response>(resolve=>{finish=resolve;});
+ const initial=provider;
+ provider=(route,body)=>route==='/item/public_token/exchange' ? wait : initial(route,body);
+ const exchange=exchangeBankLink(alpha.token,{sessionId:session.sessionId,publicToken:'fixture-public'});
+ await new Promise(resolve=>setTimeout(resolve,0));
+ const cancel=(await import('./bank-store')).cancelBankLink;cancel(alpha.token,session.sessionId);
+ vi.stubEnv('PLAID_SECRET','new-provider-secret');
+ finish!(reply({access_token:'fixture-access-token',item_id:'fixture-item'}));
+ await expect(exchange).rejects.toThrow('setup changed');
+ const removed=calls.find(call=>call.path==='/item/remove');
+ expect(removed?.body.secret).toBe('fixture-secret');
+ expect(bankStatus(alpha.token).items).toEqual([]);
+});
+it("retains encrypted failed revocations and retries with the original provider credentials",async()=>{
+ const session=await createBankLink(alpha.token,{});
+ let finish:((response:Response)=>void)|undefined;
+ const wait=new Promise<Response>(resolve=>{finish=resolve;});
+ const initial=provider;
+ provider=(route,body)=>route==='/item/public_token/exchange'?wait:route==='/item/remove'?reply({error_code:'INTERNAL_SERVER_ERROR'},500):initial(route,body);
+ const exchange=exchangeBankLink(alpha.token,{sessionId:session.sessionId,publicToken:'fixture-public'});
+ await new Promise(resolve=>setTimeout(resolve,0));
+ const {cancelBankLink,retryBankRevocations}=await import('./bank-store');cancelBankLink(alpha.token,session.sessionId);
+ vi.stubEnv('PLAID_SECRET','new-provider-secret');finish!(reply({access_token:'fixture-access-token',item_id:'fixture-item'}));
+ await expect(exchange).rejects.toThrow('setup changed');
+ const queued=workspaceDatabase(db=>db.prepare('SELECT configuration,accessSecret FROM driver_bank_revocations').get());
+ expect(JSON.stringify(queued)).not.toContain('fixture-access-token');expect(JSON.stringify(queued)).not.toContain('fixture-secret');
+ provider=(route,body)=>{expect(route).toBe('/item/remove');expect(body.secret).toBe('fixture-secret');return reply({});};
+ expect(await retryBankRevocations()).toEqual({revoked:1,remaining:0});
 });

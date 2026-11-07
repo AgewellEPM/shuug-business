@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+// Run only on a separately trusted firm device. No network, API or live data
+// discovery; all inputs and outputs must be explicitly selected by the operator.
+import {readFileSync,readSync,writeFileSync,openSync,closeSync,unlinkSync,fstatSync,constants} from 'node:fs';
+import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest,recoverFirmObject} from './firm-recovery.mjs';
+const usage='Commands: init | sign | recover. All require --confirm-off-host, --passphrase-fd N, --bundle PATH and --public-pins PATH. sign adds --request PATH --epoch N --out PATH. recover adds --manifest PATH --envelope PATH --expected PATH --out PATH.';
+const options=new Map();const command=process.argv[2];
+try{
+ for(let i=3;i<process.argv.length;i++){
+  const name=process.argv[i];if(!name.startsWith('--')||options.has(name))throw new Error('Invalid arguments.');
+  if(name==='--confirm-off-host')options.set(name,true);
+  else {const value=process.argv[++i];if(!value||value.startsWith('--'))throw new Error('Missing argument.');options.set(name,value);}
+ }
+ const allowed=['--confirm-off-host','--passphrase-fd','--bundle','--public-pins',...(command==='init'?['--workspace-id']:command==='sign'?['--request','--epoch','--out']:command==='recover'?['--manifest','--envelope','--expected','--out']:[])];
+ if(!['init','sign','recover'].includes(command)||!options.get('--confirm-off-host')||[...options.keys()].some(k=>!allowed.includes(k)))throw new Error(usage);
+ const required=n=>{const v=options.get(n);if(typeof v!=='string')throw new Error(`Missing ${n}.`);return v;};
+ const readJson=(name,max=24*1024*1024)=>{
+  const fd=openSync(required(name),constants.O_RDONLY|constants.O_NOFOLLOW);
+  try{const stat=fstatSync(fd);if(!stat.isFile()||stat.size>max)throw new Error('Input must be a bounded regular file.');return JSON.parse(readFileSync(fd,'utf8'));}finally{closeSync(fd);}
+ };
+ const fd=Number(required('--passphrase-fd'));if(!Number.isInteger(fd)||fd<0||fd>1024)throw new Error('Invalid passphrase descriptor.');
+ const passBytes=Buffer.alloc(1027);let passLength=0,received;
+ while(passLength<passBytes.length&&(received=readSync(fd,passBytes,passLength,passBytes.length-passLength,null))>0)passLength+=received;
+ if(passLength>1026){passBytes.fill(0);throw new Error('Passphrase input is too long.');}
+ let passphrase=new TextDecoder('utf-8',{fatal:true}).decode(passBytes.subarray(0,passLength)).replace(/\r?\n$/,'');passBytes.fill(0);
+ const write=(name,bytes)=>writeFileSync(required(name),bytes,{mode:0o600,flag:'wx'});
+ try{
+  if(command==='init'){
+   // Both outputs use exclusive creation; existing keys are never overwritten.
+   const result=await createFirmBundle(required('--workspace-id'),passphrase);
+   const owned=[];
+   try{
+    for(const [option,value] of [['--bundle',result.bundle],['--public-pins',result.publicPins]]){
+     const output=required(option),descriptor=openSync(output,'wx',0o600);owned.push({output,descriptor});
+     writeFileSync(descriptor,JSON.stringify(value,null,2)+'\n');
+    }
+   }catch(error){for(const item of owned){try{unlinkSync(item.output);}catch{}}throw error;}
+   finally{for(const item of owned)closeSync(item.descriptor);}
+   console.log('Created encrypted off-host firm bundle and public-only pins. Keep the bundle and its passphrase separate from the hosting service.');
+  }else{
+   const unlocked=await unlockFirmBundle(readJson('--bundle',16384),passphrase,readJson('--public-pins',4096));
+   if(command==='sign'){
+    const request=readJson('--request',4096),epoch=Number(required('--epoch'));
+    const manifest=await signEnrollmentRequest(request,unlocked,{epoch});
+    write('--out',JSON.stringify(manifest,null,2)+'\n');console.log('Signed public enrollment manifest. Verify the client identity and key fingerprint independently before delivery.');
+   }else{
+    const bytes=await recoverFirmObject(readJson('--envelope'),readJson('--manifest',16384),unlocked,readJson('--expected',4096));
+    try{write('--out',bytes);}finally{bytes.fill(0);}
+    console.log('Recovered the explicitly selected object into the private output file.');
+   }
+  }
+ }finally{passphrase='';}
+}catch(error){
+ // Never serialize input, key material, passphrases or recovered data in errors.
+ console.error(error?.message===usage?usage:'Offline firm operation failed. Check explicit paths, public pins, passphrase and expected client context. Existing output files are never overwritten.');
+ process.exitCode=1;
+}

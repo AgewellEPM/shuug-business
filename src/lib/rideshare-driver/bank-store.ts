@@ -6,6 +6,7 @@ import { openSecret, sealSecret } from "../connections/vault";
 import { driverAccount } from "./policy";
 import { DriverError } from "./model";
 import { accountsReply, bankConfiguration, BankProviderError, plaid, syncReply, type ProviderTransaction } from "./bank-provider";
+import { assertPlaintextTaxAllowed, secureTaxRequired, SECURE_TAX_REQUIRED_MESSAGE } from "../secure-tax/policy";
 
 type Item = { id: string; accountId: string; clientId: string; providerItem: string; secret: string; label: string; cursor: string; lastSync: string | null; lastAttempt: number; leaseUntil: number; connected: number; error: string | null; environment: string };
 type InboxTransaction = { id: string; provider: string; accountLabel: string; date: string; merchant: string; amountCents: number; currency: string; pending: boolean; removed: boolean; isTestData: boolean };
@@ -18,10 +19,19 @@ function init(db: DatabaseSync) {
     CREATE TABLE IF NOT EXISTS driver_bank_transactions (id TEXT PRIMARY KEY, itemId TEXT NOT NULL, body TEXT NOT NULL CHECK(json_valid(body)), sequence INTEGER NOT NULL UNIQUE);
     CREATE INDEX IF NOT EXISTS driver_bank_transactions_item ON driver_bank_transactions(itemId,sequence);
     CREATE TABLE IF NOT EXISTS driver_bank_clock (id INTEGER PRIMARY KEY CHECK(id=1), sequence INTEGER NOT NULL);
-    INSERT OR IGNORE INTO driver_bank_clock VALUES(1,0);`);
+    INSERT OR IGNORE INTO driver_bank_clock VALUES(1,0);
+    CREATE TABLE IF NOT EXISTS driver_bank_revocations (id TEXT PRIMARY KEY, accountId TEXT NOT NULL, clientId TEXT NOT NULL,
+      configuration TEXT NOT NULL, accessSecret TEXT NOT NULL, createdAt TEXT NOT NULL, attempts INTEGER NOT NULL DEFAULT 0);`);
+  const columns = new Set((db.prepare("PRAGMA table_info(driver_bank_links)").all() as { name: string }[]).map(row => row.name));
+  if (!columns.has("platform")) db.exec("ALTER TABLE driver_bank_links ADD COLUMN platform TEXT");
+  if (!columns.has("configuration")) db.exec("ALTER TABLE driver_bank_links ADD COLUMN configuration TEXT");
 }
-function context(token: string | undefined) {
-  return workspaceDatabase(db => { const account = driverAccount(db, token); init(db); return account; });
+const configurationKey = (platform: "ios" | "android") => {
+  const config = bankConfiguration(platform);
+  return createHash("sha256").update(JSON.stringify([config.environment, config.clientId, config.secret, config.redirect, config.androidPackage, platform])).digest("hex");
+};
+function context(token: string | undefined, plaintext = false) {
+  return workspaceDatabase(db => { const account = driverAccount(db, token); if (plaintext) assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db); init(db); return account; });
 }
 function ownedItem(db: DatabaseSync, token: string | undefined, id: string) {
   const account = driverAccount(db, token); init(db);
@@ -34,57 +44,80 @@ export function bankStatus(token: string | undefined, platform: "ios" | "android
   return workspaceDatabase(db => {
     const account = driverAccount(db, token); init(db);
     const items = db.prepare("SELECT id,label,lastSync,error,connected,environment FROM driver_bank_items WHERE accountId=? AND clientId=? ORDER BY label").all(account.id, account.clientId);
-    return { ready: config.ready, environment: config.environment, reason: config.reason, items };
+    const secure = secureTaxRequired({ accountId: account.id, clientId: account.clientId }, db);
+    return { ready: config.ready && !secure, environment: config.environment, reason: secure ? SECURE_TAX_REQUIRED_MESSAGE : config.reason, secureTaxRequired: secure, items };
   });
 }
 export async function createBankLink(token: string | undefined, raw: unknown) {
   const input = z.object({ itemId: z.uuid().optional(), platform: z.enum(["ios", "android"]).default("ios") }).strict().parse(raw);
-  const config = bankConfiguration(input.platform); const account = context(token);
+  const config = bankConfiguration(input.platform); const account = context(token, true);
   if (!config.ready) throw new DriverError(503, config.reason);
   const id = randomUUID();
+  const configuration = configurationKey(input.platform);
   const item = workspaceDatabase(db => {
-    driverAccount(db, token); init(db);
+    const current = driverAccount(db, token);
+    assertPlaintextTaxAllowed({ accountId: current.id, clientId: current.clientId }, db);
+    init(db);
     const recent = db.prepare("SELECT count(*) AS n FROM driver_bank_links WHERE accountId=? AND at>?").get(account.id, Date.now()-600_000) as { n: number };
     if (recent.n >= 5) throw new DriverError(429, "Wait a few minutes before opening another bank connection.");
     const count = db.prepare("SELECT count(*) AS n FROM driver_bank_items WHERE accountId=? AND connected=1").get(account.id) as { n: number };
     if (!input.itemId && count.n >= 20) throw new DriverError(422, "Disconnect an unused bank before adding another.");
     const item = input.itemId ? ownedItem(db, token, input.itemId) : undefined;
     if (item && (!item.connected || item.environment !== config.environment)) throw new DriverError(409, "This bank connection cannot be updated in the current provider environment.");
-    db.prepare("INSERT INTO driver_bank_links(id,accountId,clientId,at,updating) VALUES(?,?,?,?,?)").run(id, account.id, account.clientId, Date.now(), input.itemId ?? null);
+    db.prepare("INSERT INTO driver_bank_links(id,accountId,clientId,at,updating,platform,configuration) VALUES(?,?,?,?,?,?,?)").run(id, account.id, account.clientId, Date.now(), input.itemId ?? null, input.platform, configuration);
     db.prepare("DELETE FROM driver_bank_links WHERE at<?").run(Date.now()-86400_000);
     return item;
   }, true);
-  const reply = await plaid("/link/token/create", {
-    client_name: "Rideshare Tax Pros", language: "en", country_codes: ["US"], user: { client_user_id: account.id },
+  try {
+    const reply = await plaid("/link/token/create", {
+    client_name: "Gig Tax Pros", language: "en", country_codes: ["US"], user: { client_user_id: account.id },
     ...(input.platform === "android" ? { android_package_name: config.androidPackage } : { redirect_uri: config.redirect }),
     ...(item ? { access_token: openSecret(item.secret) } : { products: ["transactions"], transactions: { days_requested: 90 } }),
   }, z.object({ link_token: z.string(), expiration: z.string() }));
-  const current = context(token);
-  if (current.id !== account.id || current.clientId !== account.clientId) throw new DriverError(403, "Client access changed.");
-  return { linkToken: reply.link_token, sessionId: id, environment: config.environment, redirectUri: config.redirect };
+    const current = context(token, true);
+    if (current.id !== account.id || current.clientId !== account.clientId) throw new DriverError(403, "Client access changed.");
+    if (configuration !== configurationKey(input.platform)) throw new DriverError(409, "The bank provider setup changed. Open bank linking again.");
+    return { linkToken: reply.link_token, sessionId: id, environment: config.environment, redirectUri: config.redirect };
+  } catch (error) {
+    // No bank authorization exists at this stage. An unreachable session ID
+    // must not lock the owner out of correcting invalid provider credentials.
+    workspaceDatabase(db => {
+      init(db);
+      db.prepare("DELETE FROM driver_bank_links WHERE id=? AND accountId=? AND clientId=? AND itemId IS NULL").run(id, account.id, account.clientId);
+    }, true);
+    throw error;
+  }
 }
 export async function exchangeBankLink(token: string | undefined, raw: unknown) {
   const input = z.object({ sessionId: z.uuid(), publicToken: z.string().max(1000) }).strict().parse(raw);
-  const account = context(token);
+  const account = context(token, true);
   const link = workspaceDatabase(db => db.prepare("SELECT * FROM driver_bank_links WHERE id=? AND accountId=? AND clientId=? AND at>?")
-    .get(input.sessionId, account.id, account.clientId, Date.now()-4*3600_000)) as { itemId: string | null; updating: string | null } | undefined;
+    .get(input.sessionId, account.id, account.clientId, Date.now()-4*3600_000)) as { itemId: string | null; updating: string | null; platform: "ios" | "android" | null; configuration: string | null } | undefined;
   if (!link) throw new DriverError(400, "This connection session expired. Open bank linking again.");
   if (link.itemId) return { itemId: link.itemId };
+  if (!link.platform || link.configuration !== configurationKey(link.platform)) throw new DriverError(409, "The bank provider setup changed. Open bank linking again.");
+  const providerConfiguration = bankConfiguration(link.platform);
   if (link.updating) {
     workspaceDatabase(db => {
       const item = ownedItem(db, token, link.updating!);
+      assertPlaintextTaxAllowed({ accountId: item.accountId, clientId: item.clientId }, db);
       db.prepare("UPDATE driver_bank_items SET error=NULL WHERE id=?").run(item.id);
       db.prepare("UPDATE driver_bank_links SET itemId=? WHERE id=?").run(item.id, input.sessionId);
     }, true);
     return { itemId: link.updating };
   }
   if (!input.publicToken) throw new DriverError(400, "The bank did not return a connection token.");
-  const reply = await plaid("/item/public_token/exchange", { public_token: input.publicToken }, z.object({ access_token: z.string(), item_id: z.string() }));
+  const reply = await plaid("/item/public_token/exchange", { public_token: input.publicToken }, z.object({ access_token: z.string(), item_id: z.string() }), providerConfiguration);
   let committed = false;
   try {
     const id = workspaceDatabase(db => {
-      const current = driverAccount(db, token); init(db);
+      const current = driverAccount(db, token);
+      assertPlaintextTaxAllowed({ accountId: current.id, clientId: current.clientId }, db);
+      init(db);
       if (current.id !== account.id || current.clientId !== account.clientId) throw new DriverError(403, "Client access changed.");
+      if (link.configuration !== configurationKey(link.platform!)) throw new DriverError(409, "The bank provider setup changed. Open bank linking again.");
+      const pending = db.prepare("SELECT 1 FROM driver_bank_links WHERE id=? AND accountId=? AND clientId=? AND itemId IS NULL AND at>?").get(input.sessionId, current.id, current.clientId, Date.now()-4*3600_000);
+      if (!pending) throw new DriverError(409, "This bank connection was canceled or changed. Open bank linking again.");
       const existing = db.prepare("SELECT * FROM driver_bank_items WHERE providerItem=?").get(reply.item_id) as Item | undefined;
       if (existing && (existing.accountId !== current.id || existing.clientId !== current.clientId)) throw new DriverError(403, "This bank belongs to a different client connection.");
       const id = existing?.id ?? randomUUID();
@@ -97,8 +130,36 @@ export async function exchangeBankLink(token: string | undefined, raw: unknown) 
     committed = true; return { itemId: id };
   } finally {
     // A failed local save must not leave an inaccessible subscribed Item behind.
-    if (!committed) { try { await plaid("/item/remove", { access_token: reply.access_token }, z.object({})); } catch {} }
+    if (!committed) {
+      try { await plaid("/item/remove", { access_token: reply.access_token }, z.object({}), providerConfiguration); }
+      catch {
+        // Preserve failed cleanup with its original encrypted credentials so
+        // the owner can retry revocation even after provider settings change.
+        workspaceDatabase(db => { init(db); db.prepare("INSERT INTO driver_bank_revocations VALUES(?,?,?,?,?,?,0)").run(randomUUID(), account.id, account.clientId,
+          sealSecret(JSON.stringify(providerConfiguration)), sealSecret(reply.access_token), new Date().toISOString()); }, true);
+      }
+    }
   }
+}
+export function cancelBankLink(token: string | undefined, id: string) {
+  z.uuid().parse(id);
+  workspaceDatabase(db => {
+    const account = driverAccount(db, token); init(db);
+    db.prepare("DELETE FROM driver_bank_links WHERE id=? AND accountId=? AND clientId=? AND itemId IS NULL").run(id, account.id, account.clientId);
+  }, true);
+}
+/** Owner-only settings actions call this to recover failed provider cleanup. */
+export async function retryBankRevocations() {
+  const pending = workspaceDatabase(db => { init(db); return db.prepare("SELECT id,configuration,accessSecret FROM driver_bank_revocations ORDER BY createdAt LIMIT 3").all() as { id: string; configuration: string; accessSecret: string }[]; });
+  let revoked = 0;
+  for (const row of pending) {
+    try {
+      const config = JSON.parse(openSecret(row.configuration)) as ReturnType<typeof bankConfiguration>;
+      await plaid("/item/remove", { access_token: openSecret(row.accessSecret) }, z.object({}), config);
+      workspaceDatabase(db => db.prepare("DELETE FROM driver_bank_revocations WHERE id=?").run(row.id), true); revoked++;
+    } catch { workspaceDatabase(db => db.prepare("UPDATE driver_bank_revocations SET attempts=attempts+1 WHERE id=?").run(row.id), true); }
+  }
+  return { revoked, remaining: workspaceDatabase(db => Number((db.prepare("SELECT count(*) AS n FROM driver_bank_revocations").get() as { n: number }).n)) };
 }
 const transactionId = (item: string, providerId: string) => "plaid:" + createHash("sha256").update(item + "|" + providerId).digest("hex");
 function normalize(item: Item, row: ProviderTransaction, accounts: Map<string, string>): InboxTransaction {
@@ -120,6 +181,7 @@ export async function syncBankItem(token: string | undefined, id: string) {
   const start = Date.now();
   const item = workspaceDatabase(db => {
     const item = ownedItem(db, token, id);
+    assertPlaintextTaxAllowed({ accountId: item.accountId, clientId: item.clientId }, db);
     if (!item.connected || item.environment !== bankConfiguration().environment) throw new DriverError(409, "This bank is disconnected or belongs to a different provider environment.");
     if (item.leaseUntil > start || start - item.lastAttempt < 60_000) return null;
     db.prepare("UPDATE driver_bank_items SET leaseUntil=?,lastAttempt=? WHERE id=?").run(start+180_000, start, id);
@@ -128,6 +190,7 @@ export async function syncBankItem(token: string | undefined, id: string) {
   if (!item) return { synced: false };
   try {
     const access_token = openSecret(item.secret), accountResponse = await plaid("/accounts/get", { access_token }, accountsReply);
+    context(token, true);
     const accounts = new Map(accountResponse.accounts.map(a => [a.account_id, (a.name + (a.mask ? " •" + a.mask : "")).slice(0,100)]));
     let cursor = item.cursor, changes: InboxTransaction[] = [], removed: string[] = [], complete = false;
     for (let attempt = 0; attempt < 3 && !complete; attempt++) {
@@ -135,6 +198,7 @@ export async function syncBankItem(token: string | undefined, id: string) {
       try {
         for (let page = 0; page < 100; page++) {
           if (Date.now()-start > 90_000) throw new BankProviderError("SYNC_TIMEOUT");
+          context(token, true);
           const reply = await plaid("/transactions/sync", { access_token, ...(cursor ? { cursor } : {}), count: 500 }, syncReply);
           changes.push(...[...reply.added, ...reply.modified].map(row => normalize(item, row, accounts)));
           removed.push(...reply.removed.map(row => transactionId(item.id, row.transaction_id)));
@@ -149,6 +213,7 @@ export async function syncBankItem(token: string | undefined, id: string) {
     if (!complete) throw new BankProviderError("INCOMPLETE_SYNC");
     workspaceDatabase(db => {
       const current = ownedItem(db, token, id);
+      assertPlaintextTaxAllowed({ accountId: current.accountId, clientId: current.clientId }, db);
       if (!current.connected || current.cursor !== item.cursor || current.lastAttempt !== start) throw new DriverError(409, "The bank changed during this update. Refresh again.");
       for (const row of changes) putTransaction(db, item, row);
       for (const removedId of removed) {

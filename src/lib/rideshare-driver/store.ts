@@ -4,6 +4,7 @@ import { workspaceDatabase } from "../workspace/database";
 import { driverAccount } from "./policy";
 import { driverMutation, driverRecord, DriverError, type DriverRecord } from "./model";
 import { validateBankReference } from "./bank-store";
+import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
 
 export function initDriver(db: DatabaseSync) {
   db.exec(`CREATE TABLE IF NOT EXISTS driver_records (
@@ -31,7 +32,9 @@ export function readDriverRecords(token: string | undefined, after = 0, limit = 
 export function saveDriverRecord(token: string | undefined, raw: unknown): DriverRow {
   const input = driverMutation.parse(raw), digest = createHash("sha256").update(JSON.stringify(input.record)).digest("hex");
   const result = workspaceDatabase(db => {
-    const account = driverAccount(db, token); initDriver(db);
+    const account = driverAccount(db, token);
+    assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db);
+    initDriver(db);
     const prior = db.prepare("SELECT digest,result FROM driver_mutations WHERE accountId=? AND id=?").get(account.id, input.mutationId) as { digest: string; result: string } | undefined;
     if (prior) {
       if (prior.digest !== digest) throw new DriverError(409, "This sync operation was already used for different data.");

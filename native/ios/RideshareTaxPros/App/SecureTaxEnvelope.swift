@@ -37,6 +37,10 @@ struct SecureTaxEnvelope: Codable, Equatable {
     var encapsulatedKey: String
     var wrappedKey: String
   }
+  struct Author: Codable, Equatable {
+    var role: Role
+    var keyId: String
+  }
   /// Keys supplied here must be independently trusted, e.g. an already pinned,
   /// verified manifest. Keys downloaded from the ciphertext host alone do not
   /// establish recipient identity or authorize recovery/rewrapping.
@@ -58,12 +62,15 @@ struct SecureTaxEnvelope: Codable, Equatable {
   static let suiteName = "HPKE-P256-SHA256-A256GCM"
   static let contentAlgorithmName = "AES-256-GCM"
   static let maximumCiphertextBytes = 16 * 1024 * 1024
-  static let hpkeInfo = Data("shuug/secure-tax-envelope/v1".utf8)
+  static let hpkeModeName = "auth"
+  static let hpkeInfo = Data("shuug/secure-tax-envelope/v2".utf8)
   private static let suite = HPKE.Ciphersuite.P256_SHA256_AES_GCM_256
 
   var version: Int
   var suite: String
   var contentAlgorithm: String
+  var hpkeMode: String
+  var author: Author
   var context: Context
   var nonce: String
   /// Standard AES-GCM output: ciphertext followed by the 16-byte tag; nonce is separate.
@@ -74,23 +81,40 @@ struct SecureTaxEnvelope: Codable, Equatable {
     encode(Data(SHA256.hash(data: key.x963Representation)))
   }
 
-  static func seal(_ plaintext: Data, context: Context, recipients trusted: TrustedRecipients) throws -> Self {
+  /// RFC 9180 Auth proves possession of the pinned author's private key to a
+  /// recipient. It is not a public signature or a rollback/replay defense.
+  /// Per RFC 9180 section 9.1.1, recipient-key compromise permits impersonation
+  /// to that recipient; an authenticated envelope is not nonrepudiation.
+  static func seal<SK: HPKEDiffieHellmanPrivateKey>(
+    _ plaintext: Data, context: Context, recipients trusted: TrustedRecipients,
+    authorRole: Role, authorPrivateKey: SK
+  ) throws -> Self where SK.PublicKey == P256.KeyAgreement.PublicKey {
     try context.validate()
     guard plaintext.count <= maximumCiphertextBytes - 16 else { throw Failure.invalidEnvelope }
     let clientId = keyId(trusted.client), firmId = keyId(trusted.firmRecovery)
     guard clientId != firmId else { throw Failure.untrustedRecipients }
-    let aad = try authenticatedHeader(context: context, clientId: clientId, firmId: firmId)
+    let authorKey = authorRole == .client ? trusted.client : trusted.firmRecovery
+    guard authorPrivateKey.publicKey.x963Representation == authorKey.x963Representation else {
+      throw Failure.untrustedRecipients
+    }
+    let author = Author(role: authorRole, keyId: keyId(authorKey))
+    let aad = try authenticatedHeader(context: context, author: author, clientId: clientId, firmId: firmId)
     let contentKey = SymmetricKey(size: .bits256)
     let keyBytes = contentKey.withUnsafeBytes { Data($0) }
-    let sealed = try AES.GCM.seal(plaintext, using: contentKey, authenticating: aad)
     let slots = try [(Role.client, trusted.client), (.firmRecovery, trusted.firmRecovery)].map { role, key in
       // Each recipient/object uses its own RFC 9180 context and sequence zero.
-      var sender = try HPKE.Sender(recipientKey: key, ciphersuite: suite, info: hpkeInfo)
+      var sender = try HPKE.Sender(recipientKey: key, ciphersuite: suite,
+        info: hpkeInfo, authenticatedBy: authorPrivateKey)
       let wrapped = try sender.seal(keyBytes, authenticating: aad)
       return Recipient(role: role, keyId: keyId(key), publicKey: encode(key.x963Representation),
         encapsulatedKey: encode(sender.encapsulatedKey), wrappedKey: encode(wrapped))
     }
-    return Self(version: 1, suite: suiteName, contentAlgorithm: contentAlgorithmName,
+    // Bind both recovery slots into content authentication, including the slot
+    // not used by this reader. Host tampering must not silently break recovery.
+    let sealed = try AES.GCM.seal(plaintext, using: contentKey,
+      authenticating: contentAuthenticatedHeader(aad, recipients: slots))
+    return Self(version: 2, suite: suiteName, contentAlgorithm: contentAlgorithmName,
+      hpkeMode: hpkeModeName, author: author,
       context: context, nonce: encode(sealed.nonce.withUnsafeBytes { Data($0) }),
       ciphertext: encode(sealed.ciphertext + sealed.tag), recipients: slots)
   }
@@ -100,14 +124,17 @@ struct SecureTaxEnvelope: Codable, Equatable {
   func open<SK: HPKEDiffieHellmanPrivateKey>(
     expectedContext: Context, trustedRecipients trusted: TrustedRecipients,
     role: Role, privateKey: SK
-  ) throws -> Data {
+  ) throws -> Data where SK.PublicKey == P256.KeyAgreement.PublicKey {
     try expectedContext.validate()
-    guard version == 1, suite == Self.suiteName,
+    guard version == 2, suite == Self.suiteName, hpkeMode == Self.hpkeModeName,
       contentAlgorithm == Self.contentAlgorithmName, context == expectedContext,
       recipients.count == 2, recipients[0].role == .client,
       recipients[1].role == .firmRecovery else { throw Failure.invalidEnvelope }
     let clientId = Self.keyId(trusted.client), firmId = Self.keyId(trusted.firmRecovery)
     guard clientId != firmId else { throw Failure.untrustedRecipients }
+    // Resolve the author's key only from the independently trusted manifest.
+    let authorKey = author.role == .client ? trusted.client : trusted.firmRecovery
+    guard author.keyId == Self.keyId(authorKey) else { throw Failure.untrustedRecipients }
     let expectedKeys = [trusted.client, trusted.firmRecovery]
     for (index, key) in expectedKeys.enumerated() {
       let slot = recipients[index]
@@ -122,30 +149,38 @@ struct SecureTaxEnvelope: Codable, Equatable {
     let encryptedBytes = try Self.decode(ciphertext, minimum: 16, maximum: Self.maximumCiphertextBytes)
     let slot = recipients[role == .client ? 0 : 1]
     let expectedPublic = expectedKeys[role == .client ? 0 : 1].x963Representation
-    let aad = try Self.authenticatedHeader(context: context, clientId: clientId, firmId: firmId)
+    let aad = try Self.authenticatedHeader(context: context, author: author, clientId: clientId, firmId: firmId)
     do {
       guard try privateKey.publicKey.hpkeRepresentation(kem: Self.suite.kem) == expectedPublic else {
         throw Failure.unableToOpen
       }
       var recipient = try HPKE.Recipient(privateKey: privateKey, ciphersuite: Self.suite,
-        info: Self.hpkeInfo, encapsulatedKey: Self.decode(slot.encapsulatedKey, count: 65))
+        info: Self.hpkeInfo, encapsulatedKey: Self.decode(slot.encapsulatedKey, count: 65),
+        authenticatedBy: authorKey)
       let keyBytes = try recipient.open(Self.decode(slot.wrappedKey, count: 48), authenticating: aad)
       guard keyBytes.count == 32 else { throw Failure.unableToOpen }
       let sealed = try AES.GCM.SealedBox(nonce: AES.GCM.Nonce(data: nonceBytes),
         ciphertext: encryptedBytes.dropLast(16), tag: encryptedBytes.suffix(16))
-      return try AES.GCM.open(sealed, using: SymmetricKey(data: keyBytes), authenticating: aad)
+      return try AES.GCM.open(sealed, using: SymmetricKey(data: keyBytes),
+        authenticating: Self.contentAuthenticatedHeader(aad, recipients: recipients))
     } catch { throw Failure.unableToOpen }
   }
 
   /// Array ordering, ASCII identifiers and integer bounds make these UTF-8
   /// bytes identical to JavaScript JSON.stringify without custom crypto/KDFs.
-  static func authenticatedHeader(context: Context, clientId: String, firmId: String) throws -> Data {
+  static func authenticatedHeader(context: Context, author: Author, clientId: String, firmId: String) throws -> Data {
     try context.validate()
     return try JSONSerialization.data(withJSONObject: [
-      1, "shuug/secure-tax-envelope", context.domain.rawValue, context.workspaceId,
+      2, "shuug/secure-tax-envelope", context.domain.rawValue, context.workspaceId,
       context.accountId, context.objectId, context.revision, contentAlgorithmName, suiteName,
+      hpkeModeName, [author.role.rawValue, author.keyId],
       [Role.client.rawValue, clientId], [Role.firmRecovery.rawValue, firmId],
     ], options: [.withoutEscapingSlashes])
+  }
+  static func contentAuthenticatedHeader(_ baseAAD: Data, recipients: [Recipient]) throws -> Data {
+    var header: [Any] = [String(decoding: baseAAD, as: UTF8.self)]
+    header.append(contentsOf: recipients.map { [$0.role.rawValue, $0.keyId, $0.publicKey, $0.encapsulatedKey, $0.wrappedKey] })
+    return try JSONSerialization.data(withJSONObject: header, options: [.withoutEscapingSlashes])
   }
   static func encode(_ value: Data) -> String {
     value.base64EncodedString().replacingOccurrences(of: "+", with: "-")
