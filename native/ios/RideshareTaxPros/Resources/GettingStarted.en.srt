@@ -19,157 +19,157 @@ Offers, Go Home, Position, and Earnings. The menu opens your trips, money, accou
 explore before connecting an account.
 
 6
-00:00:30,171 --> 00:00:36,428
+00:00:30,200 --> 00:00:36,457
 While parked, tap Start a drive and choose the details for that trip. End the drive when you arrive,
 
 7
-00:00:36,428 --> 00:00:42,686
+00:00:36,457 --> 00:00:42,715
 then review its mileage and classification. Trips keeps your saved history, and you can add a missed trip manually.
 
 8
-00:00:42,686 --> 00:00:45,650
+00:00:42,715 --> 00:00:45,679
 Optional driving and expense reminders are controlled in Account.
 
 9
-00:00:46,450 --> 00:00:53,377
+00:00:46,500 --> 00:00:53,427
 Use the Home shortcuts to add income or an expense. Enter the amount and category, and attach a receipt
 
 10
-00:00:53,377 --> 00:01:00,304
+00:00:53,427 --> 00:01:00,354
 if you have one. The app can read a chosen receipt on your iPhone. Always review the suggested information
 
 11
-00:01:00,304 --> 00:01:05,773
+00:01:00,354 --> 00:01:05,823
 before saving. The Money screen brings income, expenses, statement imports, and available bank connections together.
 
 12
-00:01:06,573 --> 00:01:12,771
+00:01:06,633 --> 00:01:12,832
 Offers helps you review a job before deciding. Open the screenshot guide and follow the pink arrows. It shows
 
 13
-00:01:12,771 --> 00:01:18,969
+00:01:12,832 --> 00:01:19,030
 which iPhone buttons to press, how to save the picture, and how to bring it into Gig Tax Pros.
 
 14
-00:01:18,969 --> 00:01:25,168
+00:01:19,030 --> 00:01:25,228
 This DoorDash screen is a published example. The guide uses clearly stated practice costs and time, and never saves
 
 15
-00:01:25,168 --> 00:01:27,125
+00:01:25,228 --> 00:01:27,185
 a practice job to your records.
 
 16
-00:01:27,925 --> 00:01:34,796
+00:01:28,000 --> 00:01:34,871
 For your own screenshot, choose its gig app, then select the picture from Photos. Review the pay, guaranteed amount,
 
 17
-00:01:34,796 --> 00:01:41,666
+00:01:34,871 --> 00:01:41,741
 total working miles, time, and additional costs. A delivery deadline is not the whole trip duration. Include unpaid driving
 
 18
-00:01:41,666 --> 00:01:48,537
+00:01:41,741 --> 00:01:48,612
 and waiting. Cancel if the picture is wrong, or save your corrected numbers. Your choice to accept a job
 
 19
-00:01:48,537 --> 00:01:50,345
+00:01:48,612 --> 00:01:50,420
 stays in the gig app.
 
 20
-00:01:51,145 --> 00:01:57,882
+00:01:51,233 --> 00:01:57,970
 Earnings shows results from the records you have saved. Open Goals to set daily, weekly, and hourly targets and
 
 21
-00:01:57,882 --> 00:02:04,618
+00:01:57,970 --> 00:02:04,706
 your estimated vehicle cost per mile. These values affect offer estimates. Use costs that fit your vehicle, and remember
 
 22
-00:02:04,618 --> 00:02:09,227
+00:02:04,706 --> 00:02:09,315
 that missing information can change the result. Sample views are marked as examples.
 
 23
-00:02:10,027 --> 00:02:16,906
+00:02:10,133 --> 00:02:17,012
 Go Home helps you plan around an earnings goal, destination, and time to finish. Enter the full job and
 
 24
-00:02:16,906 --> 00:02:23,784
+00:02:17,012 --> 00:02:23,891
 waiting time when comparing an offer. When you request route comparisons, check the pickup, drop-off, and onward trip. Review
 
 25
-00:02:23,784 --> 00:02:28,491
+00:02:23,891 --> 00:02:28,597
 the estimates while parked; traffic and extra stops can change your arrival time.
 
 26
-00:02:29,291 --> 00:02:36,019
+00:02:29,400 --> 00:02:36,128
 Position helps you explore waiting areas using your saved job history and destination. Choose your current location and destination
 
 27
-00:02:36,019 --> 00:02:42,746
+00:02:36,128 --> 00:02:42,856
 before asking for comparisons. A new account may not have enough history yet. These are estimates from available records,
 
 28
-00:02:42,746 --> 00:02:45,579
+00:02:42,856 --> 00:02:45,689
 not a promise that another gig will arrive.
 
 29
-00:02:46,379 --> 00:02:52,636
+00:02:46,500 --> 00:02:52,756
 Tax and Goals is where you can ask questions about your recorded work and goals. Review the context shown
 
 30
-00:02:52,636 --> 00:02:58,892
+00:02:52,756 --> 00:02:59,013
 with each answer. Tax details you choose to save need your confirmation. For filing decisions or questions about your
 
 31
-00:02:58,892 --> 00:03:01,855
+00:02:59,013 --> 00:03:01,976
 situation, use Get help to reach your tax team.
 
 32
-00:03:02,655 --> 00:03:08,716
+00:03:02,800 --> 00:03:08,860
 Ratings and reviews keeps the scores and feedback you choose to record for each gig platform. Add a rating
 
 33
-00:03:08,716 --> 00:03:14,776
+00:03:08,860 --> 00:03:14,921
 snapshot or review, then look at the history and guidance. Leave customer names and private details out. These are
 
 34
-00:03:14,776 --> 00:03:19,241
+00:03:14,921 --> 00:03:19,386
 your saved records; entering them does not change a rating in the gig platform.
 
 35
-00:03:20,041 --> 00:03:26,903
+00:03:20,200 --> 00:03:27,062
 In Account, activate your tax team’s invitation and sign in with that client account. Review which phone records you
 
 36
-00:03:26,903 --> 00:03:33,765
+00:03:27,062 --> 00:03:33,924
 want to copy and sync. Optional bank and work-account connections depend on your firm’s setup. Work-account updates are not
 
 37
-00:03:33,765 --> 00:03:39,183
+00:03:33,924 --> 00:03:39,341
 a live feed of incoming offers. Account also contains privacy information and your reminder controls.
 
 38
-00:03:39,983 --> 00:03:46,775
+00:03:40,167 --> 00:03:46,959
 Get help opens the office map. As approved locations join, they appear here without an app update. Use your
 
 39
-00:03:46,775 --> 00:03:53,568
+00:03:46,959 --> 00:03:53,752
 location or ZIP code, check an office’s address and exterior photo, and use street view where available. Open driving
 
 40
-00:03:53,568 --> 00:04:00,360
+00:03:53,752 --> 00:04:00,544
 directions in Apple Maps. Call the listed number or open its appointment link. A twenty-four-seven label appears only for
 
 41
-00:04:00,360 --> 00:04:01,790
+00:04:00,544 --> 00:04:01,974
 a confirmed staffed line.
 
 42
-00:04:02,590 --> 00:04:08,680
+00:04:02,800 --> 00:04:08,890
 Start with one real drive, income entry, or expense, and build your records as you work. Review anything read
 
 43
-00:04:08,680 --> 00:04:14,770
+00:04:08,890 --> 00:04:14,980
 from a picture before saving. You can replay this tour from Help and return to the interactive screenshot guide
 
 44
-00:04:14,770 --> 00:04:17,975
+00:04:14,980 --> 00:04:18,185
 whenever you need it. Your next step starts on Home.

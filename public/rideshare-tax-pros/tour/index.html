@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Get to know Gig Tax Pros with a narrated tour of the real iPhone app, captions, chapters, and a full transcript.">
+  <title>Your next shift, more in control · Gig Tax Pros</title>
+  <link rel="stylesheet" href="./player.css">
+  <script defer src="./player.js"></script>
+</head>
+<body>
+  <main class="gig-tour">
+    <header class="tour-heading">
+      <a class="brand" href="/" aria-label="Gig Tax Pros home"><img src="./brand.svg" alt="" width="44" height="44">Gig Tax Pros</a>
+      <p class="eyebrow">GET TO KNOW THE APP</p>
+      <h1>Your next shift.<br>More in control.</h1>
+      <p class="intro">Your miles, money, and next move. See how it all comes together in the real iPhone app.</p>
+    </header>
+    <p class="rotate"><span aria-hidden="true">↻</span> <strong>On your phone? Turn it sideways.</strong> Watch in landscape for a clearer view. If it stays upright, turn off Portrait Orientation Lock in Control Center.</p>
+    <div class="tour-layout">
+      <section class="player" aria-label="Getting started video">
+        <video controls playsinline preload="metadata" poster="./poster.jpg" aria-describedby="tour-caption-note">
+          <source src="./getting-started.mp4" type="video/mp4">
+          <track kind="captions" src="./captions.en.vtt" srclang="en" label="English">
+          <p><a href="./getting-started.mp4">Download the getting-started video</a></p>
+        </video>
+        <div class="player-caption"><span class="now-playing">Getting started with Gig Tax Pros</span><span class="runtime">About 4 minutes</span></div>
+        <p class="video-status" role="status" aria-live="polite"></p>
+        <p id="tour-caption-note" class="small">Narrated and captioned. Practice examples are labeled. <a href="#transcript">Read the full transcript</a>.</p>
+      </section>
+      <nav class="chapters" aria-label="Video chapters">
+        <div class="chapter-heading"><h2>Make it your own.</h2><p>Watch from the beginning or choose a chapter.</p></div>
+        <ol><!--CHAPTERS--></ol>
+      </nav>
+    </div>
+    <section id="transcript" class="transcript" aria-labelledby="transcript-title">
+      <p class="eyebrow">TAKE IT AT YOUR PACE</p><h2 id="transcript-title">Every step, in words.</h2>
+      <!--TRANSCRIPT-->
+    </section>
+    <footer><span>Gig Tax Pros</span><a href="./getting-started.mp4" download>Download video</a><a href="./captions.en.vtt" download>Download captions</a></footer>
+  </main>
+</body>
+</html>

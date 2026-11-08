@@ -30,7 +30,11 @@ def finalize(output, archive):
         if hashlib.sha256(raw).hexdigest() != item['sha256']: raise ValueError('Screenshot digest changed: '+file.name)
         if raw[:8] != b'\x89PNG\r\n\x1a\n': raise ValueError('Not a PNG: '+file.name)
         width, height = struct.unpack('>II', raw[16:24])
-        if (width, height) != (item['width'], item['height']): raise ValueError('Screenshot dimensions changed')
+        # XCUIScreenshot can encode portrait pixels with orientation metadata
+        # for a landscape image. Keep both encoded and displayed dimensions.
+        expected = (item['width'], item['height'])
+        if (width, height) not in (expected, expected[::-1]): raise ValueError('Screenshot dimensions changed')
+        item.update(encodedWidth=width, encodedHeight=height)
         if item['sha256'] in seen:
             shutil.move(str(file), archive/file.name)
             duplicates.append({'file': item['file'], 'sameAs': seen[item['sha256']]})

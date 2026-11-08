@@ -1,50 +1,83 @@
-# Gig Tax Pros getting-started tour
+# Gig Tax Pros getting-started tour and screen collection
 
 Source: `feat/gig-tax-pros-telemetry`, `Worktrees/GigTaxProsTelemetry-20261107`.
 
-The native iPhone app presents a skippable getting-started page on first launch.
-It bundles a recorded app walkthrough with local narration, burned captions,
-an English subtitle track, a readable transcript and 13 chapter shortcuts.
-Users can replay it from Get help, Account or the Home menu without a network
-connection. Watching or practising must not create financial records.
+The iPhone app has a skippable first-launch tour, offline playback, 13 chapter
+shortcuts, written transcripts and replay from Home, Account and Get help.
+“Turn your iPhone sideways” appears before playback and in the opening narration
+and captions. The portrait-player reminder disappears in landscape. The page
+also explains Portrait Orientation Lock.
 
-Luke's November 7 correction is included: **Turn your iPhone sideways** appears
-before playback, in the portrait player, and in the opening narration and
-captions. The player reminder disappears when the phone rotates to landscape.
-The page explains Portrait Orientation Lock for a phone that stays upright.
+The video uses the website's dark purple/pink palette and italic typography,
+original vector branding, animated steps, a rounded phone frame, chapter
+progress, narration and captions. A selectable English track remains available;
+the player initially suppresses it because captions are already in the picture.
+Async media loading and seeking stop when the player is dismissed.
 
-The recording includes the existing interactive screenshot guide and office-help
-screen. DoorDash's published example retains its original bytes and provenance;
-the lesson explicitly distinguishes its displayed values from practice time and
-cost assumptions. Office contact availability depends on published directory
-data. No actual office call, appointment, provider connection or client data was
-used to record this tour.
+## Reproducible media
 
-## Media evidence
-
-- Recorded 13 native Simulator sections in a fresh guest profile, then deleted
-  the owned recording device. Raw recording and production receipts:
+- 258.62322 seconds; 1920 × 1080 H.264/AAC; 13 embedded chapters.
+- 13,972,166 bytes; SHA256
+  `b0082eece2487b7e8efa1f042d9b34a347ae4916d1bd8c2d28bb61a926213d21`.
+- Original guest recording and production receipt:
   `/Volumes/PRO-G40/GigTaxProsVerification-20261107/tour-20261107-01/`.
-- Updated video: 258.489714 seconds, 10,533,442 bytes, 1920 × 1080 H.264/AAC,
-  English subtitles and 13 embedded chapter markers.
-- Video SHA256:
-  `63bbfd08b70efd81d9c0980ef9d026bcc3bb72e580c04d107a1bf5697095fcb7`.
-- Reproducible inputs and local editing tools: `scripts/tour/`,
-  `scripts/record-rideshare-tour.py`, `UITests/TourRecordingFlows.swift`.
+  Final production is in `edit-branded/`.
+- `scripts/tour/verified-cuts.json` binds reviewed decoded-frame boundaries to
+  the original recording's digest. Simulator recordings omit unchanged frames;
+  `produce-video.py` normalizes frame rate **before** trimming. Wall-clock test
+  markers do not establish video timestamps. This excludes launch, notification
+  and termination frames from the final chapters.
+- First and last app frames from all 13 finished chapters were checked with
+  native text recognition. The Home, drive, expense, screenshot lessons, field
+  review, earnings/goals, mission, positioning, chat, ratings, account, help and
+  closing scenes match their intended chapters.
+- Narration uses the installed Samantha voice, synthesized locally. The
+  original practice image retains its provenance. No real client records,
+  financial entries, calls, bookings or external account connections were made.
 
-## Verification in progress
+## Website reuse
 
-The app and UI runner built successfully before the landscape correction.
-The first playback test did not find the native controls after they hid during
-playback. That failed run is retained at
-`/private/var/folders/d_/4nl8dfbs6nx4rl91nfj_7lxm0000gn/T/rtp-ios-ui-uguwl4bf/`;
-its owned Simulator was shut down and deleted. The focused check now reveals
-native controls and verifies the landscape reminder, actual play/pause, chapter
-playback, skip/relaunch persistence and replay from Get help.
+`node scripts/tour/export-web.mjs OUTPUT_DIRECTORY` creates a self-contained
+player with the exact app MP4, poster, WebVTT captions, chapters, full transcript
+and integration notes. The existing website builder includes it at `/tour/`.
+The public homepage is unchanged. This work does not deploy the website.
 
-Run `scripts/verify-rideshare-ios-ui.py --tour-only --visible` against the freshly
-built app to produce the final installed-bundle receipt. Physical iPhone
-playback, heard narration and Luke's visual acceptance remain unverified.
+The player has native controls, no autoplay, responsive layout, keyboard-accessible
+chapter buttons, current-chapter indication and transcript fallback. The shipped
+interaction code passes checks for delayed metadata, chapter seeking, playback
+rejection and media errors. Export checks verify chapter timing, referenced
+assets and identical app/web video bytes. Browser visual acceptance is separate.
 
-The independent connected-work worker and its installed verification receipt
-remain outside this tour checkpoint.
+The local reusable package is on the Desktop in
+`Gig Tax Pros Tour - Website Ready`.
+
+## Labeled iPhone screenshots
+
+The Desktop folder `Gig Tax Pros Screens - 2026-11-07` contains the full-resolution
+PNG collection, a searchable `Open Screen Gallery.html`, navigation paths and
+`CAPTURE NOTES.txt`. Exact duplicate captures are archived in the private
+verification directory. Images are not committed or published.
+
+The walkthrough uses the existing visible iPhone 17 Pro Max preview, checks that
+no second guest is running, preserves journal bytes, opens/cancels forms and
+labels the app's built-in examples. It covers the available guest screens,
+settings, forms, five platform diagnostics, both screenshot-import lessons,
+manual entries, offer examples and account/help views. Signed-in tax documents,
+protected-data enrollment, live bank/work connections, existing-record details
+and physical-iPhone capture paths require the corresponding environment; these
+limits are listed in the collection.
+
+Capture and installed-app receipts are in
+`/Volumes/PRO-G40/GigTaxProsVerification-20261107/screens-20261107-01/` through
+`screens-20261107-04/`. Earlier passes retained their failed navigation checks;
+follow-up passes replace the affected captures. The user preview remains open.
+
+Final collection: 139 distinct screenshots from 155 captures. The final pass
+passed playback, pause/resume, portrait-to-landscape guidance, chapter seeking,
+welcome/chapters and all manual-driving forms. Playback advanced to 8 seconds;
+the screenshot chapter opened at 1 minute 14 seconds. The installed bundle hash
+is `3f9654ba6e3844e55e31815fa231b6b115036d625f327df38794fc4477435995`.
+All capture groups passed across the completed passes; existing journal bytes
+were preserved. All 7,758 final video frames decoded with increasing timestamps.
+Physical-iPhone playback, heard narration and Luke's visual acceptance remain
+unverified. Independent telemetry worker changes remain outside this scope.

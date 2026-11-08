@@ -18,12 +18,22 @@ import XCTest
     XCUIDevice.shared.orientation = .landscapeLeft
     let rotated = expectation(for: NSPredicate(format: "exists == false"), evaluatedWith: rotate)
     wait(for: [rotated], timeout: 10)
-    // AVPlayer hides its controls while playing; a tap brings them back.
     let player = app.descendants(matching: .any)["tour.player"].firstMatch
-    player.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)).tap()
     let pause = app.buttons["Pause"].firstMatch
+    // A tap toggles the native controls, so reveal them only when hidden.
+    if !pause.exists { player.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)).tap() }
     XCTAssertTrue(pause.waitForExistence(timeout: 15), app.debugDescription)
-    print("TOUR_PLAYBACK|\(chapter)|\(app.debugDescription)")
+    // AVKit's disabled volume slider has the same label. Match the actual
+    // playback slider's identifier, not XCTest's identifier-or-label shortcut.
+    let timeline = app.sliders.matching(NSPredicate(format: "identifier == %@", "Current position")).firstMatch
+    XCTAssertTrue(timeline.exists, app.debugDescription)
+    let position = timeline.value as? String ?? ""
+    print("TOUR_PLAYBACK|\(chapter)|\(position)")
+    if chapter == "screenshots" {
+      XCTAssertTrue(position.hasPrefix("1 minute"), "Chapter must seek to the screenshot lesson: \(position)")
+    } else {
+      XCTAssertTrue(position.contains("seconds elapsed") && !position.hasPrefix("0 seconds"), "Video must advance after opening: \(position)\n\(app.debugDescription)")
+    }
     pause.tap()
     let play = app.buttons["Play"].firstMatch
     XCTAssertTrue(play.waitForExistence(timeout: 5), app.debugDescription)
@@ -31,6 +41,22 @@ import XCTest
     XCTAssertTrue(pause.waitForExistence(timeout: 5))
     XCUIDevice.shared.orientation = .portrait
     app.buttons["tour.player.done"].tap()
+  }
+
+  func testExistingPreviewPlaybackAndChapterSeeking() throws {
+    let app = XCUIApplication()
+    XCUIDevice.shared.orientation = .portrait
+    defer { XCUIDevice.shared.orientation = .portrait }
+    // Show the welcome page without changing an existing user's stored preference.
+    app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-gettingStartedSeen", "NO"]
+    app.launch()
+    let watch = app.buttons["tour.watch"]
+    XCTAssertTrue(watch.waitForExistence(timeout: 15))
+    reveal(watch, in: app); watch.tap()
+    checkPlayback(in: app, chapter: "start")
+    let chapter = app.buttons["tour.chapter.screenshots"]
+    reveal(chapter, in: app); chapter.tap()
+    checkPlayback(in: app, chapter: "screenshots")
   }
 
   func testFirstLaunchPlaybackSkipRelaunchAndHelpReplay() throws {
