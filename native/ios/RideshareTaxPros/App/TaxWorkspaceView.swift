@@ -65,7 +65,7 @@ struct TaxWorkspaceView: View {
           }
         }
         if let connection = model.connection {
-          Section { Link("Open the full client portal", destination: connection.taxDocumentsURL) }
+          Section { Link("Open My Portal", destination: connection.taxDocumentsURL) }
         }
       }
     }.driverScreen().navigationTitle("My tax workspace")

@@ -42,7 +42,7 @@ struct ConnectionView: View {
                   try await model.updateProfileName(profileName)
                   profileName = model.connection?.session.account.name ?? profileName
                   editingProfile = false
-                  notice = "Your display name was updated in the app and client portal."
+                  notice = "Your display name was updated in the app and My Portal."
                 } catch { notice = error.localizedDescription }
               }
             } label: {
@@ -81,7 +81,7 @@ struct ConnectionView: View {
             if model.syncing || model.coachSyncing || model.reputationSyncing { ProgressView("Syncing…") }
             else { Label("Sync now", systemImage: "arrow.triangle.2.circlepath") }
           }.disabled(model.syncing || model.coachSyncing || model.reputationSyncing).accessibilityIdentifier("account.sync")
-          Link("Open my client portal", destination: connection.portalURL)
+          Link("Open My Portal", destination: connection.portalURL)
           NavigationLink("My tax documents & progress") { TaxWorkspaceView() }
           NavigationLink("Protected data · Key setup & status") { SecureTaxConnectionView() }
           NavigationLink("Protected Journal · Encrypted snapshots") { SecureTaxSnapshotView() }
@@ -145,8 +145,8 @@ struct ConnectionView: View {
         Text("To use another account, cancel and sign out first. Your saved records stay with their original account.")
           .font(.footnote).foregroundStyle(.secondary)
       } else {
-        Text("Activate the invitation from your tax team in the client portal. Use that same email and password here.")
-        Link("Open client portal / activate invitation", destination: portalURL)
+        Text("Activate the invitation from your tax team in My Portal. Use that same email and password here.")
+        Link("Open My Portal / activate invitation", destination: portalURL)
         if !origin.isEmpty, let workspace = try? WorkspaceAddress.parse(origin) {
           Label(workspace.host ?? "Workspace found", systemImage: "checkmark.circle")
             .font(.footnote).foregroundStyle(Brand.link)
