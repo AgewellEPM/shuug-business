@@ -70,7 +70,8 @@ it('opens the homepage video on request, pauses on close, and returns focus', as
     play.mockRejectedValueOnce(new Error('Playback unavailable'));
     triggers[1].click(); await Promise.resolve();
     expect(w.document.querySelector('[data-tour-status]')!.textContent).toContain('Press play');
-    expect(w.document.querySelector('#home-tour')!.textContent).toContain('Turn it sideways');
+    expect(w.document.querySelector('#home-tour .dialog-top')).toBeNull();
+    expect(w.document.querySelector('#home-tour video track[default]')).not.toBeNull();
   } finally { dom.window.close(); vi.restoreAllMocks(); }
 });
 
