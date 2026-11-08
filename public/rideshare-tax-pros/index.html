@@ -17,23 +17,47 @@
   <link rel="stylesheet" href="./inner-pages.css">
   <link rel="stylesheet" href="./national-vision.css">
   <link rel="stylesheet" href="./navigation.css">
-  <link rel="stylesheet" href="./native-pages.css">
-  <link rel="stylesheet" href="./home.css">
   <script src="./links.js" defer></script>
   <script src="./app.js" defer></script>
-  <script src="/page-experience.js" defer></script>
   <script src="./inner-pages.js" defer></script>
 </head>
 <body class="public-home">
   <a class="skip-link" href="#main">Skip to content</a>
   <!-- SITE_PUBLIC_HEADER -->
   <main id="main" tabindex="-1">
-    <div class="home-native">
+    <section class="art-stage" aria-label="Gig Tax Pros">
+      <img class="artwork" src="./assets/artwork.png" width="1086" height="1448" alt="" fetchpriority="high">
+      <div class="sr-only">
+        <h1>You Drive. We Handle the Taxes.</h1>
+        <p>Gig Tax Pros. Tax & Accounting. Specialized tax preparation, deductions, and year-round accounting for Uber, Lyft, and independent drivers.</p>
+        <h2>Maximize Your Ride Income</h2>
+        <p>Mileage and expense records, rideshare income reporting, quarterly tax support and year-round guidance.</p>
+      </div>
+      <a class="hotspot file-link" href="/get-started" aria-label="File my taxes"></a>
+      <a class="hotspot portal-main solid-control outlined" href="/client-portal"><span aria-hidden="true">♙</span><span>Client Portal</span><span aria-hidden="true">↗</span></a>
+      <span id="desktop-benefits" class="art-anchor benefits-anchor"></span>
+      <span id="desktop-services" class="art-anchor services-anchor"></span>
+      <a class="hotspot service-one" href="/tax-preparation" aria-label="Uber and Lyft tax filing"></a>
+      <a class="hotspot service-two" href="/mileage-and-expenses" aria-label="Deductions and expenses"></a>
+      <a class="hotspot service-three" href="/quarterly-taxes" aria-label="Quarterly tax support"></a>
+      <a class="hotspot service-four" href="/bookkeeping" aria-label="Year-round support"></a>
+      <a class="hotspot get-started-link" href="/get-started" aria-label="Get started today"></a>
+      <div class="trust-strip" aria-label="Our service approach">
+        <div><span aria-hidden="true">↗</span><strong>Built for drivers</strong><small>Uber, Lyft & gig work</small></div>
+        <div><span aria-hidden="true">✓</span><strong>Clear next steps</strong><small>Know what comes next</small></div>
+        <div><span aria-hidden="true">▤</span><strong>Organized records</strong><small>One focused workflow</small></div>
+        <div><span aria-hidden="true">◇</span><strong>Professional review</strong><small>Your questions matter</small></div>
+        <div><span aria-hidden="true">↻</span><strong>Beyond tax season</strong><small>Year-round support</small></div>
+      </div>
+      <span class="illustration-label">Illustrative refund example</span>
+    </section>
+
+    <div class="mobile-site">
       <section class="hero">
         <p class="eyebrow">UBER · LYFT · RIDESHARE · GIG WORKERS</p>
         <h1>You Drive.<br>We Handle<br>the <em>Taxes.</em></h1>
         <p class="lede">Specialized tax preparation, deductions, and year-round accounting for Uber, Lyft, and independent drivers.</p>
-        <svg class="home-driver-photo photo" viewBox="470 70 420 340" aria-hidden="true" focusable="false"><image href="/assets/artwork.png" width="1086" height="1448"/></svg>
+        <div class="driver-visual" role="img" aria-label="A rideshare driver on a city street at night"></div>
         <div class="hero-actions">
           <a class="button primary" href="/get-started"><span aria-hidden="true">↗</span> File My Taxes <span aria-hidden="true">→</span></a>
           <a class="button secondary" href="/client-portal">Client Portal</a>
@@ -89,7 +113,7 @@
         <details><summary>What if I drive for both Uber and Lyft?<span aria-hidden="true">+</span></summary><p>The service is designed around rideshare and gig work, including income from multiple platforms. Share the full picture with your tax professional so the engagement reflects your work.</p></details>
         <details><summary>Is this useful for my first year driving?<span aria-hidden="true">+</span></summary><p>Yes. The process starts with the support you need and the records requested for your situation. You can ask questions before agreeing to a service.</p></details>
         <details><summary>Is Gig Tax Pros free to use?<span aria-hidden="true">+</span></summary><p>Yes. Use the app and tools for free, with no subscription. You pay only when you choose and approve a professional service, with the price shown before work begins.</p></details>
-        <details><summary>Do you guarantee a refund or a particular saving?<span aria-hidden="true">+</span></summary><p>No. Your outcome depends on your circumstances, records and applicable tax rules. Any illustrative figures are not a calculation or promise of your result.</p></details>
+        <details><summary>Do you guarantee a refund or a particular saving?<span aria-hidden="true">+</span></summary><p>No. Your outcome depends on your circumstances, records and applicable tax rules. Financial figures shown in the artwork are illustrative and are not a calculation or promise of your result.</p></details>
         <details><summary>Can I sign in or start filing here today?<span aria-hidden="true">+</span></summary><p>Client onboarding and private workspace access are opening soon. The public website currently explains services; it does not accept returns, tax-document uploads or payments.</p></details>
         <details><summary>What is the Shuug client workspace?<span aria-hidden="true">+</span></summary><p>Shuug is the business platform behind the firm’s Tax Firm workflow. The branded workspace will organize client work and staff follow-up. Any external filing service is separate, and sign-in details will be provided when access opens.</p></details>
         <details><summary>How should I send sensitive tax documents?<span aria-hidden="true">+</span></summary><p>Wait for verified instructions from your tax professional and use their approved private document channel. This public website has no tax-document upload form. Keep taxpayer IDs, bank details and tax documents out of general contact messages.</p></details>
@@ -103,7 +127,7 @@
   </main>
   <!-- SITE_FOOTER -->
 
-  <div class="mobile-action-bar" aria-label="Quick actions"><a class="button primary" href="/get-the-app">Get The App <span aria-hidden="true">→</span></a><a class="button secondary" href="/client-portal">Client Portal <span aria-hidden="true">↗</span></a></div>
+  <div class="mobile-action-bar" aria-label="Quick actions"><a class="button primary" href="/get-started">Get Started <span aria-hidden="true">→</span></a><a class="button secondary" href="/client-portal">Client Portal <span aria-hidden="true">↗</span></a></div>
 
   <!-- SITE_NAVIGATION -->
   <dialog id="information" class="information" aria-labelledby="information-title" aria-describedby="information-description">
