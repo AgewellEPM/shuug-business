@@ -1,9 +1,12 @@
-import { cpSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { cpSync, mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { appleAppAssociation } from './rideshare-site/app-links.mjs';
 import { packageSales } from './sales/package.mjs';
+import { optimizeSeo, seoIndexable, structuredDataHashes } from './rideshare-site/seo.mjs';
+import { canonicalRedirects } from './rideshare-site/seo-routes.mjs';
+import { renderTour } from './rideshare-site/tour.mjs';
 const { publicHttpsUrl } = createRequire(import.meta.url)('../public/rideshare-tax-pros/links.js');
 const cloudflare = process.argv.includes('--cloudflare');
 process.env.RIDESHARE_SITE_ORIGIN ||= cloudflare ? 'https://rideshare-tax-pros.pages.dev' : 'https://gigtax.pro';
@@ -21,11 +24,12 @@ const config = JSON.parse(readFileSync(path.join(source, 'site-config.json'), 'u
 for (const key of ['workspaceUrl', 'drakePortalUrl', 'iosDownloadUrl', 'androidDownloadUrl']) if (config[key] != null) {
   if (!publicHttpsUrl(config[key])) throw new Error(`${key} must use a hosted HTTPS domain without embedded credentials.`);
 }
-const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";
 const staticPath = cloudflare ? destination : path.join(destination, 'static');
 rmSync(staticPath, { recursive: true, force: true });
 mkdirSync(staticPath, { recursive: true });
 cpSync(source, staticPath, { recursive: true });
+const tourFile = path.join(staticPath, 'tour/index.html');
+writeFileSync(tourFile, renderTour(readFileSync(tourFile, 'utf8')));
 mkdirSync(path.join(staticPath, '.well-known'), { recursive: true });
 writeFileSync(path.join(staticPath, '.well-known/apple-app-site-association'), JSON.stringify(appleAppAssociation(config.iosAppId), null, 2));
 writeFileSync(path.join(staticPath, 'index.html'), home);
@@ -40,13 +44,28 @@ for (const [slug, label] of [['privacy', 'Privacy notice'], ['terms', 'Website t
   writeFileSync(path.join(staticPath, `${slug}.html`), renderPage({ slug, label, description: `${label} for the Gig Tax Pros website.`, main: `<div class="legal-content">${body}</div>` }));
 }
 const aliases = [...pages.map(page => page.slug), 'privacy', 'terms', 'accessibility'];
-writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${['', ...aliases.filter(slug => !['sales','office-signup'].includes(slug))].map(slug => `<url><loc>${origin}/${slug}</loc></url>`).join('')}</urlset>`);
+const redirects = canonicalRedirects(aliases, origin);
+const seoHashes = new Set();
+// Enrich the final files, including copied tour/return/error pages. Page bodies
+// remain identical to their existing templates and artwork markup.
+for (const filename of readdirSync(staticPath, { recursive: true }).filter(filename => filename.endsWith('.html'))) {
+  const file = path.join(staticPath, filename);
+  const slug = filename === 'index.html' ? '' : filename === 'tour/index.html' ? 'tour' : filename.replace(/\.html$/, '');
+  const html = optimizeSeo(readFileSync(file, 'utf8'), { slug, origin });
+  writeFileSync(file, html);
+  structuredDataHashes(html).forEach(hash => seoHashes.add(hash));
+}
+const scriptSources = ["'self'", ...[...seoHashes].sort().map(hash => `'${hash}'`)];
+const csp = `default-src 'self'; script-src ${scriptSources.join(' ')}; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'`;
+const sitemapSlugs = [...new Set(['', ...aliases, 'tour'])].filter(seoIndexable);
+writeFileSync(path.join(staticPath, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${sitemapSlugs.map(slug => `<url><loc>${origin}/${slug === 'tour' ? 'tour/' : slug}</loc></url>`).join('')}</urlset>`);
 writeFileSync(path.join(staticPath, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${origin}/sitemap.xml\n`);
 writeFileSync(path.join(staticPath, 'site-manifest.json'), JSON.stringify({ origin, aliases, pages: ['/', ...aliases.map(slug => `/${slug}`)] }, null, 2));
 if (cloudflare) {
-  writeFileSync(path.join(staticPath, '_redirects'), '/pricing /free 301\n/pricing.html /free 301\n');
+  writeFileSync(path.join(staticPath, '_redirects'), redirects.cloudflare + '/pricing /free 301\n/pricing.html /free 301\n');
   writeFileSync(path.join(staticPath, '_headers'), `/*\n  Content-Security-Policy: ${csp}\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/site-config.json\n  Cache-Control: no-store\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n  Cache-Control: public, max-age=300\n/bank-return\n  Referrer-Policy: no-referrer\n`);
 } else writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3, routes: [
+  ...redirects.vercel,
   { src: '/.*', headers: { 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }, continue: true },
   { src: '/site-config.json', headers: { 'Cache-Control': 'no-store' }, continue: true },
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
