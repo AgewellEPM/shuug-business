@@ -27,7 +27,7 @@
     if (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom) dialog.close();
   });
   video.addEventListener('loadedmetadata', () => {
-    if (video.textTracks.length) video.textTracks[0].mode = 'showing';
+    Array.from(video.textTracks).forEach((track, index) => { track.mode = index === 0 ? 'showing' : 'disabled'; });
   });
   video.addEventListener('error', () => { status.textContent = 'The video could not load. Please try again, or open gigtax.pro/tour for the transcript.'; });
 })();

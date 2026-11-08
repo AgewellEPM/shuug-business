@@ -74,6 +74,11 @@ it('opens the homepage video on request, pauses on close, and returns focus', as
     expect(w.document.querySelector('[data-tour-status]')!.textContent).toContain('Press play');
     expect(w.document.querySelector('#home-tour .dialog-top')).toBeNull();
     expect(w.document.querySelector('#home-tour video track[default]')).not.toBeNull();
+    const video = w.document.querySelector<HTMLVideoElement>('#home-tour video')!;
+    const tracks = [{ mode: 'disabled' }, { mode: 'showing' }];
+    Object.defineProperty(video, 'textTracks', { value: tracks, configurable: true });
+    video.dispatchEvent(new w.Event('loadedmetadata'));
+    expect(tracks.map(track => track.mode)).toEqual(['showing', 'disabled']);
   } finally { dom.window.close(); vi.restoreAllMocks(); }
 });
 
