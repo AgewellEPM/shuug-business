@@ -13,6 +13,7 @@ beforeEach(() => {
   directory=mkdtempSync(`${tmpdir()}/gig-provider-setup-`);
   for (const [key,value] of Object.entries({DEALDESK_DATA_DIR:directory,APP_BASE_URL:'https://workspace.example.com',PLAID_ENV:'sandbox',PLAID_CLIENT_ID:'',PLAID_SECRET:'',PLAID_IOS_REDIRECT_URI:'',PLAID_LIVE_ENABLED:'false',UBER_DRIVER_CLIENT_ID:'',UBER_DRIVER_CLIENT_SECRET:'',UBER_DRIVER_APPROVED:'false'})) vi.stubEnv(key,value);
   vi.mocked(requireOwnerAccess).mockResolvedValue({id:'owner',memberId:'owner',name:'Owner',email:'',role:'Owner',isOwner:true});
+  for (const key of ['GOOGLE_MAPS_DRIVER_SERVER_KEY','GOOGLE_MAPS_DRIVER_ROUTES_ENABLED','GOOGLE_MAPS_SERVER_KEY']) vi.stubEnv(key,'');
 });
 afterEach(() => {vi.unstubAllEnvs();vi.clearAllMocks();rmSync(directory,{recursive:true,force:true});});
 const bank = (patch = {}) => ({provider:'plaid',environment:'sandbox',clientId:'client-a',secret:'synthetic-only-bank-secret',redirectUri:bankReturnUri,iosAppId:'',liveEnabled:false,...patch});
@@ -45,6 +46,19 @@ it('preserves Uber application credentials needed to revoke existing driver auth
   workspaceDatabase(db=>db.exec("CREATE TABLE gig_uber_links(secrets TEXT); INSERT INTO gig_uber_links VALUES('encrypted-token');"),true);
   expect(() => saveDriverProviderSetup({provider:'uber',clientId:'uber-b',secret:'different',approved:true})).toThrow('Disconnect existing Uber');
   saveDriverProviderSetup({provider:'uber',clientId:'',secret:'',approved:false});expect(setting('UBER_DRIVER_CLIENT_SECRET')).toBe('synthetic-uber-secret');expect(driverProviderSetup().uber.approved).toBe(false);
+});
+it('requires a dedicated Google driver key, encrypts it and keeps it private when enabling or pausing routes', () => {
+  vi.stubEnv('GOOGLE_MAPS_SERVER_KEY','staff-visits-key-only');
+  expect(driverProviderSetup().googleRoutes).toEqual({serverKeyConfigured:false,enabled:false,ready:false});
+  expect(() => saveDriverProviderSetup({provider:'googleRoutes',serverKey:'',liveEnabled:true})).toThrow('dedicated driver');
+  expect(() => saveDriverProviderSetup({provider:'googleRoutes',serverKey:'bad key',liveEnabled:false})).toThrow('server Routes API key');
+  const summary=saveDriverProviderSetup({provider:'googleRoutes',serverKey:'synthetic-driver-server-key',liveEnabled:true});
+  expect(summary.googleRoutes).toEqual({serverKeyConfigured:true,enabled:true,ready:true});
+  expect(JSON.stringify(summary)).not.toContain('synthetic-driver-server-key');
+  expect(readFileSync(`${directory}/connections.enc`,'utf8')).not.toContain('synthetic-driver-server-key');
+  saveDriverProviderSetup({provider:'googleRoutes',serverKey:'',liveEnabled:false});
+  expect(setting('GOOGLE_MAPS_DRIVER_SERVER_KEY')).toBe('synthetic-driver-server-key');
+  expect(driverProviderSetup().googleRoutes).toEqual({serverKeyConfigured:true,enabled:false,ready:false});
 });
 it('enforces the actual owner route and exact same-origin writes with bounded input', async () => {
   const url='https://workspace.example.com/api/setup/driver-connections';

@@ -3,12 +3,14 @@ import { appBaseUrl, saveSecrets, setting } from "../connections/vault";
 import { workspaceDatabase } from "../workspace/database";
 import { bankConfiguration } from "./bank-provider";
 import { argyleSetupInput, argyleSetupStatus, saveArgyleSetup } from "../gig-connections/argyle-setup";
+import { googleDriverRouteConfiguration } from "./google-routes";
 
 export const bankReturnUri = "https://gigtax.pro/bank-return";
 const appIdentifier = /^[A-Z0-9]{10}\.com\.ridesharetaxpros\.driver$/;
 const value = z.string().trim().max(500).default("");
 export const providerSetupInput = z.discriminatedUnion("provider", [
   argyleSetupInput,
+  z.object({ provider: z.literal("googleRoutes"), serverKey: value, liveEnabled: z.boolean() }).strict(),
   z.object({ provider: z.literal("plaid"), environment: z.enum(["sandbox", "production"]), clientId: value, secret: value,
     redirectUri: z.literal(bankReturnUri), iosAppId: z.string().trim().max(100).default(""), liveEnabled: z.boolean(), associationVerified: z.boolean().default(false) }).strict(),
   z.object({ provider: z.literal("uber"), clientId: value, secret: value, approved: z.boolean() }).strict(),
@@ -19,7 +21,7 @@ export function driverProviderSetup() {
   try { const url = new URL(appBaseUrl()); publicWorkspace = url.protocol === "https:" && !["localhost", "127.0.0.1"].includes(url.hostname); } catch {}
   const pendingRevocations = workspaceDatabase(db => db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='driver_bank_revocations'").get()
     ? Number((db.prepare("SELECT count(*) AS n FROM driver_bank_revocations").get() as { n: number }).n) : 0);
-  return { argyle: argyleSetupStatus(), bank: { environment: bank.environment, clientIdConfigured: !!bank.clientId, secretConfigured: !!bank.secret,
+  return { googleRoutes: googleDriverRouteConfiguration(), argyle: argyleSetupStatus(), bank: { environment: bank.environment, clientIdConfigured: !!bank.clientId, secretConfigured: !!bank.secret,
     redirectUri: bank.redirect || bankReturnUri, iosAppId: setting("PLAID_IOS_APP_ID"), liveEnabled: setting("PLAID_LIVE_ENABLED") === "true",
     ready: bank.ready, pendingRevocations, associationVerified: setting("PLAID_IOS_ASSOCIATION_VERIFIED") === "true", reason: bank.reason },
     uber: { clientIdConfigured: !!setting("UBER_DRIVER_CLIENT_ID"), secretConfigured: !!setting("UBER_DRIVER_CLIENT_SECRET"),
@@ -39,6 +41,13 @@ function activeBankState() {
 export function saveDriverProviderSetup(raw: unknown) {
   const input = providerSetupInput.parse(raw);
   if (input.provider === "argyle") { saveArgyleSetup(input); return driverProviderSetup(); }
+  if (input.provider === "googleRoutes") {
+    const key = input.serverKey || setting("GOOGLE_MAPS_DRIVER_SERVER_KEY");
+    if (key && !/^[\x21-\x7e]{10,500}$/.test(key)) throw new Error("Use the server Routes API key from your Google Cloud project.");
+    if (input.liveEnabled && !key) throw new Error("Save the dedicated driver Routes API key before enabling lookups.");
+    saveSecrets({ ...(input.serverKey ? { GOOGLE_MAPS_DRIVER_SERVER_KEY: input.serverKey } : {}), GOOGLE_MAPS_DRIVER_ROUTES_ENABLED: String(input.liveEnabled) });
+    return driverProviderSetup();
+  }
   if (input.provider === "uber") {
     const identityChanged = Boolean(input.clientId && input.clientId !== setting("UBER_DRIVER_CLIENT_ID"));
     if (identityChanged && !input.secret) throw new Error("Supply the matching secret when changing the Uber application.");

@@ -20,6 +20,9 @@ async function save(form: FormData) {
     if (provider === "argyle") {
       await requireOwnerAccess();
       saveDriverProviderSetup({provider,environment:String(form.get("environment")),apiKeyId:String(form.get("apiKeyId")??""),apiKeySecret:String(form.get("apiKeySecret")??""),enabled:form.get("enabled")==="on",lookbackDays:366});
+    } else if (provider === "googleRoutes") {
+      await requireOwnerAccess();
+      saveDriverProviderSetup({ provider, serverKey: String(form.get("serverKey") ?? ""), liveEnabled: form.get("liveEnabled") === "on" });
     } else {
     if (provider !== "plaid" && provider !== "uber") throw new Error("Choose an available provider.");
     saveDriverProviderSetup(provider === "plaid" ? {
@@ -46,7 +49,7 @@ export default async function DriverConnectionSetup({ searchParams }: { searchPa
   const status = driverProviderSetup(), result = (await searchParams).result;
   const input = "mt-1 w-full rounded border p-2";
   return <div className="max-w-3xl space-y-6">
-    <header><p className="dd-eyebrow">Owner setup</p><h1 className="text-2xl font-bold">Driver account connections</h1><p>Configure the approved provider applications. Each client separately authorizes their own account; these settings do not connect a client's bank or gig account.</p></header>
+    <header><p className="dd-eyebrow">Owner setup</p><h1 className="text-2xl font-bold">Driver app connections</h1><p>Configure maps and approved account providers. Each client separately authorizes their own account; these settings do not connect a client&apos;s bank or gig account.</p></header>
     {result?.startsWith("argyle-") && <p role="status">{result==="argyle-checked"?"Argyle API access verified. A client account still needs to connect.":result==="argyle-registered"?"Signed account-update webhooks registered.":result==="argyle-recovered"?"Interrupted account setups checked and any unique matching users restored.":result==="argyle-review"?"Some interrupted setups need review in Argyle Console; no duplicate provider users were created.":"The provider check did not finish. Check the keys, environment, HTTPS address and Argyle Console."}</p>}
     {result && !result.startsWith("argyle-") && <p role="status" className="rounded border p-4">{result === "saved" ? "Provider settings saved securely." : "Settings were not saved. Check the fields; existing banks must be disconnected before changing the provider application, and pending links must finish or be canceled."}</p>}
     <section className="space-y-4 rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">1 · Bank transactions through Plaid</h2><p>{status.bank.reason}</p>
@@ -57,13 +60,13 @@ export default async function DriverConnectionSetup({ searchParams }: { searchPa
         <label className="block">Plaid secret<input name="secret" type="password" autoComplete="new-password" placeholder={status.bank.secretConfigured ? "Saved · leave blank to retain" : "Environment-specific secret"} className={input}/></label>
         <p>Register this exact iPhone return URI in Plaid: <code>{bankReturnUri}</code></p>
         <label className="block">Signed iPhone application identifier<input name="iosAppId" defaultValue={status.bank.iosAppId} placeholder="Actual prefix.com.ridesharetaxpros.driver" className={input}/></label>
-        <p className="text-sm">Publish this actual identifier as <code>iosAppId</code> in the website's public configuration and deploy it. The website build serves the app association for <code>/bank-return</code>. Confirm it matches the signed physical app.</p>
+        <p className="text-sm">Publish this actual identifier as <code>iosAppId</code> in the website&apos;s public configuration and deploy it. The website build serves the app association for <code>/bank-return</code>. Confirm it matches the signed physical app.</p>
         <label className="block"><input type="checkbox" name="associationVerified" defaultChecked={status.bank.associationVerified}/> I verified the published app association and signed iPhone return link.</label>
         <label className="block"><input type="checkbox" name="liveEnabled" defaultChecked={status.bank.liveEnabled}/> Enable approved production bank linking for consenting clients.</label>
         <button className="rounded bg-purple-700 px-4 py-2 text-white">Save bank provider settings</button>
       </form>
     </section>
-    <section className="space-y-4 rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">2 · Uber driver account</h2><p>Driver profile, trips and payment information require Uber's approved Driver API application and each driver's authorization.</p>
+    <section className="space-y-4 rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">2 · Uber driver account</h2><p>Driver profile, trips and payment information require Uber&apos;s approved Driver API application and each driver&apos;s authorization.</p>
       <p>Register this exact backend callback with Uber: <code>{status.uber.callbackUri}</code>{!status.uber.publicWorkspace && <strong className="block">Deploy the public HTTPS workspace before enabling driver authorization.</strong>}</p>
       <form action={save} className="space-y-4"><input type="hidden" name="provider" value="uber"/>
         <label className="block">Uber Driver API client ID<input name="clientId" autoComplete="off" placeholder={status.uber.clientIdConfigured ? "Saved · leave blank to retain" : "From the approved Uber application"} className={input}/></label>
@@ -73,7 +76,7 @@ export default async function DriverConnectionSetup({ searchParams }: { searchPa
       </form>
     </section>
     <section id="argyle" className="space-y-4 rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">3 · Gig accounts through Argyle</h2>
-      <p>Connect each client's own work accounts. Receive available job, pay, rating and vehicle records automatically. Incoming offers and second-by-second updates must be confirmed separately for each platform.</p>
+      <p>Connect each client&apos;s own work accounts. Receive available job, pay, rating and vehicle records automatically. Incoming offers and second-by-second updates must be confirmed separately for each platform.</p>
       <p>{status.argyle.ready?"Provider settings are ready for an account connection.":"Finish the provider settings and public HTTPS workspace first."}</p>
       <form action={save} className="space-y-4"><input type="hidden" name="provider" value="argyle"/>
         <label className="block">Environment<select name="environment" defaultValue={status.argyle.environment} className={input}><option value="sandbox">Sandbox · sample records only</option><option value="production">Production · actual consenting accounts</option></select></label>
@@ -88,6 +91,17 @@ export default async function DriverConnectionSetup({ searchParams }: { searchPa
       <form action={argyleAction}><input type="hidden" name="operation" value="recover"/><button>Check interrupted account setups</button></form>
       <p>Webhooks: {status.argyle.subscriptionConfigured?"Registered":"Not yet registered"}. Automatic worker: {status.argyle.workerRunning?"Running":"Not detected"}.</p>
     </section>
-    <section className="rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">4 · Verify a consenting client's connection</h2><p>Use an invited client account in the app and portal. Verify the correct client receives their provider records, verify staff access, then verify disconnecting revokes access. A saved credential or approval checkbox does not prove a live customer connection.</p><Link className="underline" href="/setup/customers">Client invitations</Link> · <Link className="underline" href="/rideshare">Driver records</Link></section>
+    <section id="google-routes" className="space-y-4 rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">4 · Google Maps route comparisons</h2>
+      <p>Opening the Google Maps app for directions needs no API key. Automatic route and travel-time comparisons use Google Maps Platform and its billing-enabled Routes API.</p>
+      <p>{status.googleRoutes.ready ? "Server route lookups are enabled. Verify a real route with the configured Android app before relying on the connection." : "Server route lookups are not enabled."}</p>
+      <form action={save} className="space-y-4"><input type="hidden" name="provider" value="googleRoutes"/>
+        <label className="block">Dedicated driver Routes API server key<input name="serverKey" type="password" autoComplete="new-password" placeholder={status.googleRoutes.serverKeyConfigured ? "Saved · leave blank to retain" : "From your Google Cloud project"} className={input}/></label>
+        <p>This private server key stays in the workspace vault. The Android build uses its own Android-restricted Maps SDK key; the app displays these routes on Google Maps.</p>
+        <label className="block"><input name="liveEnabled" type="checkbox" defaultChecked={status.googleRoutes.enabled}/> Enable authenticated driver route lookups with this project&apos;s Google Maps billing and quotas.</label>
+        <button className="rounded bg-purple-700 px-4 py-2 text-white">Save Google Maps settings privately</button>
+      </form>
+      <a className="underline" href="https://developers.google.com/maps/documentation/routes/get-api-key" target="_blank" rel="noreferrer">Google Routes API setup</a>
+    </section>
+    <section className="rounded-xl border bg-white p-6"><h2 className="text-xl font-semibold">5 · Verify a consenting client&apos;s connection</h2><p>Use an invited client account in the app and portal. Verify the correct client receives their provider records, verify staff access, then verify disconnecting revokes access. A saved credential or approval checkbox does not prove a live customer connection.</p><Link className="underline" href="/setup/customers">Client invitations</Link> · <Link className="underline" href="/rideshare">Driver records</Link></section>
   </div>;
 }
