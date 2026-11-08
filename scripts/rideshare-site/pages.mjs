@@ -3,7 +3,8 @@ import { servicesPage } from './services.mjs';
 import { howItWorksPage } from './how-it-works.mjs';
 import { driversPage } from './drivers.mjs';
 import { getTheAppPage } from './get-the-app.mjs';
-import { officesPage, resourcesPage, aboutPage } from './community-pages.mjs';
+import { officesPage, resourcesPage } from './community-pages.mjs';
+import { aboutPage } from './about.mjs';
 import { services, faqs, checklistGroups } from './content.mjs';
 import { escape as e, button, textLink, cards, callout, sourceLinks, renderPage } from './layout.mjs';
 

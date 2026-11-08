@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T01:11:57.815Z",
+  "artworkSha256": "34860a030042946926d629e4c2460663752190d7e7e34aaba4d2a398b7c1a018",
+  "originalArtworkUnchanged": true,
+  "dimensions": [
+    941,
+    1672
+  ],
+  "header": "Shared current navigation: no Resources; About retained; Get The App primary button.",
+  "desktop": "Original reference artwork with accessible content and linked controls.",
+  "mobile": "Reflowed native HTML reuses the supplied illustrations.",
+  "visualAcceptance": "Luke screenshot review pending"
+}
