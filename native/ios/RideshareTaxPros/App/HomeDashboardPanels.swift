@@ -17,7 +17,9 @@ struct ShiftDashboardCard: View {
     let progress = mission?.progress(records: model.journal.visible.map(\.record), goals: model.journal.goals ?? DriverGoals())
     let net = progress?.netCents ?? dailyNet
     let target = mission?.targetCents ?? model.journal.goals?.dailyNetCents
-    let minutes = priced.reduce(0.0) { $0 + $1.minutes }
+    let timed = priced.filter { $0.hourlyCents != nil }
+    let minutes = timed.reduce(0.0) { $0 + $1.minutes }
+    let timedNet = timed.reduce(0) { $0 + ($1.estimatedNetCents ?? 0) }
     VStack(alignment: .leading, spacing: 12) {
       HStack {
         Text(mission == nil ? "Today’s driving" : "Your shift mission").font(.headline)
@@ -56,12 +58,13 @@ struct ShiftDashboardCard: View {
       }
       Divider().overlay(Brand.border.opacity(0.3))
       HStack(spacing: 10) {
-        DashboardMetric(title: "Per recorded hour", value: minutes > 0 ? Brand.usd(Int(Double(dailyNet) * 60 / minutes)) : "—", icon: "dollarsign.circle", tint: minutes > 0 ? (dailyNet < 0 ? Brand.danger : Brand.income) : Brand.link)
+        DashboardMetric(title: "Per recorded hour", value: minutes >= 1 ? Brand.usd(Int(Double(timedNet) * 60 / minutes)) : "—", icon: "dollarsign.circle", tint: minutes >= 1 ? (timedNet < 0 ? Brand.danger : Brand.income) : Brand.link)
+          .accessibilityIdentifier("dashboard.hourly")
         DashboardMetric(title: "Recorded work time", value: "\(Int(rides.reduce(0) { $0 + $1.minutes }) / 60)h \(Int(rides.reduce(0) { $0 + $1.minutes }) % 60)m", icon: "clock", tint: Brand.link)
         DashboardMetric(title: "Business miles", value: String(format: "%.1f mi", rides.reduce(0) { $0 + $1.miles }), icon: "road.lanes", tint: Brand.route)
       }
-      if priced.count < rides.count || priced.isEmpty {
-        Text("Add fares, known fees and vehicle cost to complete your profit picture.").font(.caption).foregroundStyle(Brand.muted)
+      if priced.count < rides.count || priced.isEmpty || timed.count < priced.count {
+        Text("Add fares, known fees, vehicle cost and recorded work time to complete your profit picture.").font(.caption).foregroundStyle(Brand.muted)
       } else {
         Text("Recorded driving only; unrecorded idle time and tax are excluded.").font(.caption2).foregroundStyle(Brand.muted)
       }

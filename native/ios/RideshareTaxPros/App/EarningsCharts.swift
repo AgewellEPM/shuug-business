@@ -138,9 +138,11 @@ struct EarningsEfficiencyCard: View {
   var body: some View {
     let priced = summary.rides.filter { $0.estimatedNetCents != nil }
     let net = priced.reduce(0) { $0 + ($1.estimatedNetCents ?? 0) }
-    let minutes = priced.reduce(0) { $0 + $1.minutes }, miles = priced.reduce(0) { $0 + $1.miles }
+    let timed = priced.filter { $0.hourlyCents != nil }
+    let minutes = timed.reduce(0) { $0 + $1.minutes }, miles = priced.reduce(0) { $0 + $1.miles }
+    let timedNet = timed.reduce(0) { $0 + ($1.estimatedNetCents ?? 0) }
     HStack(spacing: 12) {
-      DashboardMetric(title: "Per recorded hour", value: minutes > 0 ? Brand.usd(Int((Double(net) * 60 / minutes).rounded())) : "—", icon: "clock", tint: minutes > 0 ? (net < 0 ? Brand.danger : Brand.income) : Brand.link)
+      DashboardMetric(title: "Per recorded hour", value: minutes >= 1 ? Brand.usd(Int((Double(timedNet) * 60 / minutes).rounded())) : "—", icon: "clock", tint: minutes >= 1 ? (timedNet < 0 ? Brand.danger : Brand.income) : Brand.link)
       DashboardMetric(title: "Net per priced mile", value: miles > 0 ? Brand.usd(Int((Double(net) / miles).rounded())) : "—", icon: "road.lanes", tint: miles > 0 ? (net < 0 ? Brand.danger : Brand.income) : Brand.link)
       DashboardMetric(title: "Drives priced", value: "\(priced.count)/\(summary.rides.count)", icon: "checkmark.seal", tint: Brand.route)
     }.gigCard()
