@@ -92,6 +92,23 @@ activation, actual physical key custody or full multi-view feature acceptance.
 
 ## Migration and feature coverage
 
+Read-only encrypted staff access is now implemented using detached, signed
+per-device grants and per-object key capsules. Original v2 client envelopes and
+their client/recovery recipients remain unchanged. The separately distributed
+staff UI requires actual MFA, independent pins and a local staff key. A compiled
+synthetic pilot verifies record/document decryption, encrypted device-backup
+import, replacement-device recovery through a new CLI process, signed revocation,
+fresh-revision denial and clean restore. It does not establish physical key
+separation, real browser persistence or public TLS. See the
+[staff contract](SECURE-TAX-STAFF-CONTRACT.md) and
+[verification](verification/encrypted-staff-20261107.json).
+
+The [AWS key-service package](SECURE-TAX-AWS-KEY-SERVER.md) requires a different
+AWS account from the data host, a strict MFA operator and private KMS/S3 custody.
+Its reviewed local artifact and synthetic provider tests are preparation only:
+saved AWS credentials return InvalidClientTokenId. No cloud resources or real
+firm keys have been created. AWS provider controls do not certify this application.
+
 The current plaintext journal, raw receipt files, generic SDK tax fields,
 audit/command snapshots, mutation results, profile data, provider source facts,
 legacy JSON, client caches, exports and existing backups require an explicit
@@ -118,9 +135,10 @@ Do not present sample data or a new encrypted-object API as proof of this parity
 
 ## Unfinished acceptance
 
-Off-host recovery setup and protected backup, trusted frontend/key distribution,
-staff/device grants, native/browser secure synchronization, migration/erasure,
-all feature views and actual end-to-end hosted/phone acceptance remain open.
+Real off-host recovery setup and protected backup, trusted frontend/key distribution,
+staff/device activation, encrypted staff editing/review, native/browser secure
+synchronization, migration/erasure, all feature views and actual end-to-end
+hosted/phone acceptance remain open.
 Public client hosting is still unconfigured. Keep the overall goal active.
 
 The application/key workflows have not received an independent security review.

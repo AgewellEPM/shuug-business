@@ -32,6 +32,14 @@ No real off-host keys/public pins were generated, no account was enrolled or
 migrated, and the browser artifact was not deployed. Missing independent pins
 keep activation disabled. All remaining checklist items below still apply.
 
+Read-only staff access and key/device recovery have since been implemented with
+signed per-device grants and detached per-object capsules, preserving original
+v2 envelopes. The independent staff frontend and compiled synthetic recovery
+pilot are documented in [the staff contract](SECURE-TAX-STAFF-CONTRACT.md).
+A [separate AWS key-account package](SECURE-TAX-AWS-KEY-SERVER.md) is prepared;
+actual account access, deployment, key custody and staff use remain unverified.
+This does not migrate legacy plaintext or provide encrypted office edits/reviews.
+
 ## The current synchronization boundary
 
 `App/DriverModel.swift::sync()` uploads `journal.pendingReceipts` and
@@ -91,9 +99,10 @@ The canonical phone models are in
    on the server today. Host-blind storage requires authorized browser/native
    decryption and rendering. Server-side full-text search, sums, filters and
    file-type sniffing cannot silently keep plaintext copies for convenience.
-5. Key recovery, multi-device enrollment, role/view-specific key grants, rotation,
-   revocation and key-loss recovery are not implemented. Session recovery by
-   resetting a password is distinct from recovering encrypted data.
+5. Read-only staff key grants, encrypted device-backup import, signed revocation
+   and replacement-device recovery now have synthetic verification. Actual
+   offhost activation, broader key rotation and encrypted office edits/reviews
+   remain open. Resetting a password is distinct from recovering encrypted data.
 
 ## Migration and acceptance checklist
 

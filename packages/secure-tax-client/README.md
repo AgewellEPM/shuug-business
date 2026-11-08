@@ -94,7 +94,16 @@ place the passphrase alongside the bundle or in shell history.
 Unlock imports nonextractable private CryptoKeys. The signed public pins must
 be installed independently in native builds, static frontend configuration and
 API public configuration. Key rotation/rewrapping, staff access grants and
-real off-host backup drills are not supplied by these commands.
+real off-host backup drills are not supplied by these original commands.
+
+`firm-staff.mjs` and `staff-offline-cli.mjs` add signed, read-only staff grants,
+per-object capsules, signed revocation and replacement-device recovery without
+changing original v2 envelopes. The separately distributed browser artifact
+includes `staff.html`, ordinary staff MFA and a separate local key namespace;
+it excludes firm private-key tooling. See the
+[staff contract](../../docs/SECURE-TAX-STAFF-CONTRACT.md) for exact CLI/API shapes
+and revocation limits. The [AWS package](../../docs/SECURE-TAX-AWS-KEY-SERVER.md)
+prepares isolated cloud custody but has not been deployed or initialized.
 
 `public-config.mjs --pins PUBLIC-ONLY.json --api-origin https://api.example
 --ui-origin https://client.example --output NEW-DIRECTORY` prepares consistent
@@ -108,8 +117,8 @@ its separately controlled channel after independently verifying fingerprints.
 - V2 uses HPKE Auth; v1/base envelopes are rejected. It does not provide public
   nonrepudiation, rollback/history anchoring or protection after recipient-key
   compromise (see RFC9180 section9.1.1). Host-driven deletion is still possible.
-- Actual off-host master-key setup/custody, client recovery activation,
-  authorized staff sharing, rotation and trusted public-key distribution remain.
+- Actual off-host master-key setup/custody, client/staff recovery activation,
+  encrypted office editing, broader rotation and trusted public-key distribution remain.
 - Native/browser sync must select the secure path before sending plaintext;
   a server rejection after receiving plaintext does not meet host blindness.
 - Plaintext provider credentials or tokens on the API host can fetch fresh tax
