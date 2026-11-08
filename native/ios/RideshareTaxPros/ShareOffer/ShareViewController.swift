@@ -62,7 +62,7 @@ final class ShareViewController: UIViewController {
         }
         let bytes = try Data(contentsOf: url)
         let result = try autoreleasepool {
-          try ParsedOfferCapture.read(OfferOCR.text(in: OfferOCR.image(from: bytes)), platform: selected, source: .sharedScreenshot)
+          try ParsedOfferCapture.read(OfferOCR.text(in: OfferOCR.image(from: bytes), accurate: true), platform: selected, source: .sharedScreenshot)
         }
         Task { @MainActor in
           self?.show(result, session: session)

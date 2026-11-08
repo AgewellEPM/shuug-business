@@ -69,7 +69,7 @@ struct OfferScreenshotImportView: View {
       guard let bytes = try await photo.loadTransferable(type: Data.self) else { throw DriverAlertError.unavailable }
       try Task.checkCancellation()
       let parsed = try await Task.detached(priority: .userInitiated) {
-        try ParsedOfferCapture.read(OfferOCR.text(in: OfferOCR.image(from: bytes)),
+        try ParsedOfferCapture.read(OfferOCR.text(in: OfferOCR.image(from: bytes), accurate: true),
           platform: chosenPlatform, source: .sharedScreenshot)
       }.value
       try Task.checkCancellation()

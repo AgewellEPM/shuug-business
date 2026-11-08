@@ -4,9 +4,9 @@ import ImageIO
 import Vision
 
 enum OfferOCR {
-  static func text(in image: CGImage) throws -> String {
+  static func text(in image: CGImage, accurate: Bool = false) throws -> String {
     let request = VNRecognizeTextRequest()
-    request.recognitionLevel = .fast
+    request.recognitionLevel = accurate ? .accurate : .fast
     request.recognitionLanguages = ["en-US"]
     request.usesLanguageCorrection = false
     try VNImageRequestHandler(cgImage: image).perform([request])

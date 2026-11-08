@@ -17,10 +17,12 @@
 		0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */; };
 		0E77D8056D29A49C7F97C633 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A8E943BF195B750291F3E94 /* LocationTracker.swift */; };
 		0E7F566C2E67CCCCD5996E1C /* ScreenshotGuideFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0589FDD6984FBFDF3C295CEC /* ScreenshotGuideFlows.swift */; };
+		11B7B70623D5EA5285F36C03 /* DoorDashOfferReference.provenance.json in Resources */ = {isa = PBXBuildFile; fileRef = EA83E80A7C193967EFA30EFE /* DoorDashOfferReference.provenance.json */; };
 		15087537926F94E2BFF2B70F /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
 		1EAAB4E1C132A0195200418F /* GigPlatformBrand.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8ECD5CA6EC984CAB70F96FE5 /* GigPlatformBrand.swift */; };
 		1FCFCD6F7B59E64FA68C9C19 /* DriverNotifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D7B0C11AEBC9185FC2B326 /* DriverNotifications.swift */; };
 		229E01E931D65683CB416F1D /* LinkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 81B72326462F9C7E5E8F5B50 /* LinkKit */; };
+		22B51C6173D1AB47147D9D57 /* GettingStartedPoster.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 94881146F3F8F1B31C82F10C /* GettingStartedPoster.jpg */; };
 		2D657A4931BB9FCB6DBE4A4B /* DriverModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA8C42B736A4CB4413818634 /* DriverModel.swift */; };
 		2D926D059B83E27630FC5FD9 /* SecureTaxConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CE7D6C85A2490741C70CB9C1 /* SecureTaxConnectionView.swift */; };
 		2D9FEE1E193828A2294DB012 /* MissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E0BE3FABE19BBD6459733E82 /* MissionView.swift */; };
@@ -28,6 +30,7 @@
 		30F1ED43691D6039BFF34F50 /* GigOfferRouteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FB0347BAC4DEAA503ADEE84 /* GigOfferRouteView.swift */; };
 		31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282961514CC8F1169E8346AA /* InsightsView.swift */; };
 		35C70F8A9D7C074824944EFB /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3F11F2CFCE48457C84C93872 /* DriverCore */; };
+		3A5A3FF2B7227F7944C1ED9C /* OfficeHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00C6040340CAB507F058FAA /* OfficeHelpView.swift */; };
 		3D04DCC18C29A95D718D3FEE /* DrivingAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A275B806AE67181728CC33 /* DrivingAssistant.swift */; };
 		3F1312EBBDD6113390662F71 /* GigAppCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1F2D261964BEA7AA307572 /* GigAppCatalog.swift */; };
 		3FDFF060BF7B5FCE060311AD /* SecureTaxTransportPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5432CA878E7461D7934B4337 /* SecureTaxTransportPolicy.swift */; };
@@ -39,13 +42,16 @@
 		55A9B282A3A248A7A3B7AA76 /* GigAppLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF0712A5B7830443ED4373 /* GigAppLauncher.swift */; };
 		56D498BB7423905FE8A79253 /* ReserveAndHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */; };
 		5FDA77B4EFC4131F5F87E030 /* BankImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99DB6310D01A30734F776EC /* BankImportView.swift */; };
+		631165DBDE1AFD1CF0653576 /* GettingStarted.en.srt in Resources */ = {isa = PBXBuildFile; fileRef = 00E08B995FE430CF1AEC5BF9 /* GettingStarted.en.srt */; };
 		65A72F59A943AF82BF11FD8E /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		665C61B03274440F9E733A12 /* TaxCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674AAC450486D726F72CB64E /* TaxCoachView.swift */; };
+		693EE8C44C6378E489E2A53E /* GettingStartedView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FAAFE7F71960F9D41D6EA1DB /* GettingStartedView.swift */; };
 		6A48A2BD5954B5F46AE3AA43 /* SecureTaxEnvelope.swift in Sources */ = {isa = PBXBuildFile; fileRef = F99900949DD2DD0AF4B977F0 /* SecureTaxEnvelope.swift */; };
 		6B6D751EDE40989BB97238B4 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		6D2CE7A9CFB7BA25ABB8C6C4 /* TaxCoachModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC06E1715846FC3BD4D93A32 /* TaxCoachModel.swift */; };
 		6F21419FB4AFB5DD2655EA56 /* OfferCaptureDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */; };
 		726D6091F84ABB9D8E423F15 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
+		72E612CC74B5AAFBC7FE20AF /* OfficeExteriorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3FB7A7EAEB2F5B94D9D288 /* OfficeExteriorView.swift */; };
 		73ED0120CE9C85FFEF2413AC /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
 		74534FAA583D35D2A9DA37B0 /* BrandedNotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3E561D5862BEBD3894BF62C9 /* BrandedNotificationController.swift */; };
 		76B621DF2FF4A35CEBC4897D /* BankWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EBF8357067B181E7571C8CB /* BankWire.swift */; };
@@ -63,13 +69,16 @@
 		83374FA02D9AEF1D3008C4C9 /* HomeDashboardPanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E57576534AE23D3836BDD688 /* HomeDashboardPanels.swift */; };
 		886E454402F281E35DE86B95 /* OfferScreenshotImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FC1743C9CF562B5B0DE161 /* OfferScreenshotImportView.swift */; };
 		8A37631442C4F9D959E4E2ED /* WaitingAreaPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AACCE76C8CCDFBB25D5716B /* WaitingAreaPlanner.swift */; };
+		8C29AB17FA7EBAB5F0DBE50A /* GettingStartedFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2FE4F8E87A95871C562500 /* GettingStartedFlows.swift */; };
 		90AD684EB74444D190614B24 /* RideProfitDetails.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBC5760D5BC82B4A89C9EFB5 /* RideProfitDetails.swift */; };
+		91A2E63CF81242571AEEC287 /* OfficeHelpModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 930912151754079EB64EB02A /* OfficeHelpModel.swift */; };
 		9222423B0B9385801E7533A9 /* SecureTaxEnrollmentClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1351D61C9A558D601D6725DF /* SecureTaxEnrollmentClient.swift */; };
 		949FD6C853FBF760B7BF4C65 /* EarningsCharts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D4506E9DC067D656DC8DA17 /* EarningsCharts.swift */; };
 		9569AC01F3234B9850361D73 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6E5E3D526067D4F7777505 /* SampleHandler.swift */; };
 		9C393CC11D7EC66589FC00AC /* SecureTaxDeviceKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D175B8E1585C9B2129C1400E /* SecureTaxDeviceKeys.swift */; };
 		9D4341571DF02C1875A0A859 /* GigOfferEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */; };
 		A3918B8396A9380C72424824 /* TripViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A24C2D320EB0630D00C88 /* TripViews.swift */; };
+		A3DFB2D82B0B01245650992C /* GettingStartedTour.json in Resources */ = {isa = PBXBuildFile; fileRef = E1881843D4BE7BAD4E2FBBAD /* GettingStartedTour.json */; };
 		A4C8D82AD98883F48FD456B5 /* OfferScreenshotGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E0027CB494B51E959BB0EE /* OfferScreenshotGuide.swift */; };
 		A81F7028AE6AD54E9C6F6D4E /* ReferralView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E868C7975E7DB0DC484E4DB /* ReferralView.swift */; };
 		AC8E09FE3DE7F979EDCB7A86 /* PositioningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */; };
@@ -83,6 +92,7 @@
 		BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */; };
 		BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */; };
 		BE522AC9C8616E658E5FDBED /* BankReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */; };
+		BF51D3512A227FB145094CEF /* TourRecordingFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B4948C9AF3A5A22DE1074 /* TourRecordingFlows.swift */; };
 		C04B611E43A5476B9E71239D /* GigNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */; };
 		C50A807ACBCE183C061DAC81 /* OfferWorkspace.swift in Sources */ = {isa = PBXBuildFile; fileRef = BCE3412DE64829798B06F79D /* OfferWorkspace.swift */; };
@@ -97,6 +107,7 @@
 		DBC446023CEEE744D8A12CE9 /* DashboardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0969F8A93383D28325852E /* DashboardStyle.swift */; };
 		DE4E1A545498158E41CB4160 /* ReputationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7474C9B1D3628D58E5A010C8 /* ReputationModel.swift */; };
 		DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */; };
+		E7DB05313A373EB54B74443A /* GettingStarted.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = DDB410DCD9DDF717A1EEB8BA /* GettingStarted.mp4 */; };
 		E88EB7D984CCE264B38D6D5E /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = ED9E3503FF4FE8A2BA514E80 /* DriverCore */; };
 		E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B02495B4D78249A890D1EF7 /* Assets.xcassets */; };
 		E8E2AFDA31D4042722507230 /* SecureTaxSnapshotCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = 270591ACB51835C6E7B0D640 /* SecureTaxSnapshotCheckpoint.swift */; };
@@ -159,6 +170,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		00E08B995FE430CF1AEC5BF9 /* GettingStarted.en.srt */ = {isa = PBXFileReference; path = GettingStarted.en.srt; sourceTree = "<group>"; };
 		00EF0712A5B7830443ED4373 /* GigAppLauncher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigAppLauncher.swift; sourceTree = "<group>"; };
 		0589FDD6984FBFDF3C295CEC /* ScreenshotGuideFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGuideFlows.swift; sourceTree = "<group>"; };
 		07D7B0C11AEBC9185FC2B326 /* DriverNotifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverNotifications.swift; sourceTree = "<group>"; };
@@ -168,7 +180,9 @@
 		1351D61C9A558D601D6725DF /* SecureTaxEnrollmentClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxEnrollmentClient.swift; sourceTree = "<group>"; };
 		15FDA7CD65B534F29AF763BE /* OfferBroadcast.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = OfferBroadcast.entitlements; sourceTree = "<group>"; };
 		1B02495B4D78249A890D1EF7 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1E2FE4F8E87A95871C562500 /* GettingStartedFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GettingStartedFlows.swift; sourceTree = "<group>"; };
 		1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionRouteSection.swift; sourceTree = "<group>"; };
+		1F3FB7A7EAEB2F5B94D9D288 /* OfficeExteriorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficeExteriorView.swift; sourceTree = "<group>"; };
 		21B80AD735307B52D4FFE7B8 /* DriverRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverRuntime.swift; sourceTree = "<group>"; };
 		23F8C32CB72588CD83A7C5BA /* BankLinkReturn.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankLinkReturn.swift; sourceTree = "<group>"; };
 		270591ACB51835C6E7B0D640 /* SecureTaxSnapshotCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxSnapshotCheckpoint.swift; sourceTree = "<group>"; };
@@ -212,7 +226,9 @@
 		8B1B1F20D201AE688FE4A9C9 /* ForegroundNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundNotice.swift; sourceTree = "<group>"; };
 		8ECD5CA6EC984CAB70F96FE5 /* GigPlatformBrand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigPlatformBrand.swift; sourceTree = "<group>"; };
 		924A979B3BE387E377D4A198 /* TaxWorkspaceWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxWorkspaceWire.swift; sourceTree = "<group>"; };
+		930912151754079EB64EB02A /* OfficeHelpModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficeHelpModel.swift; sourceTree = "<group>"; };
 		9313626D28517F34001ABB2C /* DriverAlertsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverAlertsView.swift; sourceTree = "<group>"; };
+		94881146F3F8F1B31C82F10C /* GettingStartedPoster.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = GettingStartedPoster.jpg; sourceTree = "<group>"; };
 		94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MoneyViews.swift; sourceTree = "<group>"; };
 		95628BD560766164B798CEEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		95C1998BCE1484E7730D48C2 /* ScreenshotGuideArtwork.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotGuideArtwork.swift; sourceTree = "<group>"; };
@@ -228,24 +244,29 @@
 		B5E716100FEB75DE04C4B5F2 /* SecureTaxSnapshotView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxSnapshotView.swift; sourceTree = "<group>"; };
 		B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigConnectionsView.swift; sourceTree = "<group>"; };
 		BCE3412DE64829798B06F79D /* OfferWorkspace.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferWorkspace.swift; sourceTree = "<group>"; };
+		C00C6040340CAB507F058FAA /* OfficeHelpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficeHelpView.swift; sourceTree = "<group>"; };
 		C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigOfferEditor.swift; sourceTree = "<group>"; };
 		C3D63407C2CADA02A6D862C8 /* ShareViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareViewController.swift; sourceTree = "<group>"; };
 		C99DB6310D01A30734F776EC /* BankImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankImportView.swift; sourceTree = "<group>"; };
 		CA8C42B736A4CB4413818634 /* DriverModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverModel.swift; sourceTree = "<group>"; };
 		CAD4EAFE1C9CBC92E0EF8C15 /* UniversalGigSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniversalGigSettingsView.swift; sourceTree = "<group>"; };
 		CBC5760D5BC82B4A89C9EFB5 /* RideProfitDetails.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideProfitDetails.swift; sourceTree = "<group>"; };
+		CC8B4948C9AF3A5A22DE1074 /* TourRecordingFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourRecordingFlows.swift; sourceTree = "<group>"; };
 		CE7D6C85A2490741C70CB9C1 /* SecureTaxConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxConnectionView.swift; sourceTree = "<group>"; };
 		D175B8E1585C9B2129C1400E /* SecureTaxDeviceKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxDeviceKeys.swift; sourceTree = "<group>"; };
 		D34AC156EB56DF0359A34459 /* ReferralWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralWire.swift; sourceTree = "<group>"; };
 		DD1F2D261964BEA7AA307572 /* GigAppCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigAppCatalog.swift; sourceTree = "<group>"; };
+		DDB410DCD9DDF717A1EEB8BA /* GettingStarted.mp4 */ = {isa = PBXFileReference; path = GettingStarted.mp4; sourceTree = "<group>"; };
 		DE7FA76494AEC8F8228E6932 /* SecureTaxManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxManifest.swift; sourceTree = "<group>"; };
 		DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverFlows.swift; sourceTree = "<group>"; };
 		E0BE3FABE19BBD6459733E82 /* MissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MissionView.swift; sourceTree = "<group>"; };
+		E1881843D4BE7BAD4E2FBBAD /* GettingStartedTour.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GettingStartedTour.json; sourceTree = "<group>"; };
 		E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReserveAndHistoryView.swift; sourceTree = "<group>"; };
 		E297540A733C7C95CC3B7F46 /* DriverScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverScreen.swift; sourceTree = "<group>"; };
 		E515B079F485E403FF64B2AD /* Brand.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Brand.swift; sourceTree = "<group>"; };
 		E57576534AE23D3836BDD688 /* HomeDashboardPanels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeDashboardPanels.swift; sourceTree = "<group>"; };
 		E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositioningView.swift; sourceTree = "<group>"; };
+		EA83E80A7C193967EFA30EFE /* DoorDashOfferReference.provenance.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DoorDashOfferReference.provenance.json; sourceTree = "<group>"; };
 		EB5F2A2D07756ADE2F52486C /* AssistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistanceView.swift; sourceTree = "<group>"; };
 		EC06E1715846FC3BD4D93A32 /* TaxCoachModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxCoachModel.swift; sourceTree = "<group>"; };
 		F0E7D02A168B67576890FDE8 /* OfferReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferReaderView.swift; sourceTree = "<group>"; };
@@ -256,6 +277,7 @@
 		F98F0F0AE06B31B0E7191979 /* SecureTaxObjectClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxObjectClient.swift; sourceTree = "<group>"; };
 		F99900949DD2DD0AF4B977F0 /* SecureTaxEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxEnvelope.swift; sourceTree = "<group>"; };
 		FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		FAAFE7F71960F9D41D6EA1DB /* GettingStartedView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GettingStartedView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -369,6 +391,7 @@
 				5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */,
 				7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */,
 				8B1B1F20D201AE688FE4A9C9 /* ForegroundNotice.swift */,
+				FAAFE7F71960F9D41D6EA1DB /* GettingStartedView.swift */,
 				DD1F2D261964BEA7AA307572 /* GigAppCatalog.swift */,
 				00EF0712A5B7830443ED4373 /* GigAppLauncher.swift */,
 				B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */,
@@ -388,6 +411,9 @@
 				60E0027CB494B51E959BB0EE /* OfferScreenshotGuide.swift */,
 				F0FC1743C9CF562B5B0DE161 /* OfferScreenshotImportView.swift */,
 				BCE3412DE64829798B06F79D /* OfferWorkspace.swift */,
+				1F3FB7A7EAEB2F5B94D9D288 /* OfficeExteriorView.swift */,
+				930912151754079EB64EB02A /* OfficeHelpModel.swift */,
+				C00C6040340CAB507F058FAA /* OfficeHelpView.swift */,
 				E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */,
 				79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */,
 				5E868C7975E7DB0DC484E4DB /* ReferralView.swift */,
@@ -428,7 +454,9 @@
 			isa = PBXGroup;
 			children = (
 				DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */,
+				1E2FE4F8E87A95871C562500 /* GettingStartedFlows.swift */,
 				0589FDD6984FBFDF3C295CEC /* ScreenshotGuideFlows.swift */,
+				CC8B4948C9AF3A5A22DE1074 /* TourRecordingFlows.swift */,
 			);
 			path = UITests;
 			sourceTree = "<group>";
@@ -437,6 +465,11 @@
 			isa = PBXGroup;
 			children = (
 				1B02495B4D78249A890D1EF7 /* Assets.xcassets */,
+				EA83E80A7C193967EFA30EFE /* DoorDashOfferReference.provenance.json */,
+				00E08B995FE430CF1AEC5BF9 /* GettingStarted.en.srt */,
+				DDB410DCD9DDF717A1EEB8BA /* GettingStarted.mp4 */,
+				94881146F3F8F1B31C82F10C /* GettingStartedPoster.jpg */,
+				E1881843D4BE7BAD4E2FBBAD /* GettingStartedTour.json */,
 				FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */,
 				497D388F9CADBEE73E172A2F /* SharedBrand.xcassets */,
 			);
@@ -650,6 +683,11 @@
 			buildActionMask = 2147483647;
 			files = (
 				E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */,
+				11B7B70623D5EA5285F36C03 /* DoorDashOfferReference.provenance.json in Resources */,
+				631165DBDE1AFD1CF0653576 /* GettingStarted.en.srt in Resources */,
+				E7DB05313A373EB54B74443A /* GettingStarted.mp4 in Resources */,
+				22B51C6173D1AB47147D9D57 /* GettingStartedPoster.jpg in Resources */,
+				A3DFB2D82B0B01245650992C /* GettingStartedTour.json in Resources */,
 				BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */,
 				78C091EE81FF035829DBFF5F /* SharedBrand.xcassets in Resources */,
 			);
@@ -663,7 +701,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */,
+				8C29AB17FA7EBAB5F0DBE50A /* GettingStartedFlows.swift in Sources */,
 				0E7F566C2E67CCCCD5996E1C /* ScreenshotGuideFlows.swift in Sources */,
+				BF51D3512A227FB145094CEF /* TourRecordingFlows.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -694,6 +734,7 @@
 				C4B0E21FFB889FB23401B6D1 /* ExpenseEditor.swift in Sources */,
 				30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */,
 				79D5D7852B02AB9F5FB89E4B /* ForegroundNotice.swift in Sources */,
+				693EE8C44C6378E489E2A53E /* GettingStartedView.swift in Sources */,
 				3F1312EBBDD6113390662F71 /* GigAppCatalog.swift in Sources */,
 				55A9B282A3A248A7A3B7AA76 /* GigAppLauncher.swift in Sources */,
 				832743508EE851F8C59C8BB7 /* GigConnectionsView.swift in Sources */,
@@ -716,6 +757,9 @@
 				A4C8D82AD98883F48FD456B5 /* OfferScreenshotGuide.swift in Sources */,
 				886E454402F281E35DE86B95 /* OfferScreenshotImportView.swift in Sources */,
 				C50A807ACBCE183C061DAC81 /* OfferWorkspace.swift in Sources */,
+				72E612CC74B5AAFBC7FE20AF /* OfficeExteriorView.swift in Sources */,
+				91A2E63CF81242571AEEC287 /* OfficeHelpModel.swift in Sources */,
+				3A5A3FF2B7227F7944C1ED9C /* OfficeHelpView.swift in Sources */,
 				AC8E09FE3DE7F979EDCB7A86 /* PositioningView.swift in Sources */,
 				CEBEC81CD284EBB31A6DEAB4 /* ReceiptCapture.swift in Sources */,
 				A81F7028AE6AD54E9C6F6D4E /* ReferralView.swift in Sources */,

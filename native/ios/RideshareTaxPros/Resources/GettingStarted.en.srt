@@ -1,0 +1,175 @@
+1
+00:00:00,400 --> 00:00:07,196
+Before we begin, turn your iPhone sideways to landscape so the app screens and captions are easier to see.
+
+2
+00:00:07,196 --> 00:00:13,991
+If the screen does not rotate, turn off Portrait Orientation Lock in Control Center. Welcome to Gig Tax Pros.
+
+3
+00:00:13,991 --> 00:00:20,787
+Start on Home to see your day and reach the tools you use most. The five tabs are Home,
+
+4
+00:00:20,787 --> 00:00:27,583
+Offers, Go Home, Position, and Earnings. The menu opens your trips, money, account, alerts, and other tools. You can
+
+5
+00:00:27,583 --> 00:00:29,371
+explore before connecting an account.
+
+6
+00:00:30,171 --> 00:00:36,428
+While parked, tap Start a drive and choose the details for that trip. End the drive when you arrive,
+
+7
+00:00:36,428 --> 00:00:42,686
+then review its mileage and classification. Trips keeps your saved history, and you can add a missed trip manually.
+
+8
+00:00:42,686 --> 00:00:45,650
+Optional driving and expense reminders are controlled in Account.
+
+9
+00:00:46,450 --> 00:00:53,377
+Use the Home shortcuts to add income or an expense. Enter the amount and category, and attach a receipt
+
+10
+00:00:53,377 --> 00:01:00,304
+if you have one. The app can read a chosen receipt on your iPhone. Always review the suggested information
+
+11
+00:01:00,304 --> 00:01:05,773
+before saving. The Money screen brings income, expenses, statement imports, and available bank connections together.
+
+12
+00:01:06,573 --> 00:01:12,771
+Offers helps you review a job before deciding. Open the screenshot guide and follow the pink arrows. It shows
+
+13
+00:01:12,771 --> 00:01:18,969
+which iPhone buttons to press, how to save the picture, and how to bring it into Gig Tax Pros.
+
+14
+00:01:18,969 --> 00:01:25,168
+This DoorDash screen is a published example. The guide uses clearly stated practice costs and time, and never saves
+
+15
+00:01:25,168 --> 00:01:27,125
+a practice job to your records.
+
+16
+00:01:27,925 --> 00:01:34,796
+For your own screenshot, choose its gig app, then select the picture from Photos. Review the pay, guaranteed amount,
+
+17
+00:01:34,796 --> 00:01:41,666
+total working miles, time, and additional costs. A delivery deadline is not the whole trip duration. Include unpaid driving
+
+18
+00:01:41,666 --> 00:01:48,537
+and waiting. Cancel if the picture is wrong, or save your corrected numbers. Your choice to accept a job
+
+19
+00:01:48,537 --> 00:01:50,345
+stays in the gig app.
+
+20
+00:01:51,145 --> 00:01:57,882
+Earnings shows results from the records you have saved. Open Goals to set daily, weekly, and hourly targets and
+
+21
+00:01:57,882 --> 00:02:04,618
+your estimated vehicle cost per mile. These values affect offer estimates. Use costs that fit your vehicle, and remember
+
+22
+00:02:04,618 --> 00:02:09,227
+that missing information can change the result. Sample views are marked as examples.
+
+23
+00:02:10,027 --> 00:02:16,906
+Go Home helps you plan around an earnings goal, destination, and time to finish. Enter the full job and
+
+24
+00:02:16,906 --> 00:02:23,784
+waiting time when comparing an offer. When you request route comparisons, check the pickup, drop-off, and onward trip. Review
+
+25
+00:02:23,784 --> 00:02:28,491
+the estimates while parked; traffic and extra stops can change your arrival time.
+
+26
+00:02:29,291 --> 00:02:36,019
+Position helps you explore waiting areas using your saved job history and destination. Choose your current location and destination
+
+27
+00:02:36,019 --> 00:02:42,746
+before asking for comparisons. A new account may not have enough history yet. These are estimates from available records,
+
+28
+00:02:42,746 --> 00:02:45,579
+not a promise that another gig will arrive.
+
+29
+00:02:46,379 --> 00:02:52,636
+Tax and Goals is where you can ask questions about your recorded work and goals. Review the context shown
+
+30
+00:02:52,636 --> 00:02:58,892
+with each answer. Tax details you choose to save need your confirmation. For filing decisions or questions about your
+
+31
+00:02:58,892 --> 00:03:01,855
+situation, use Get help to reach your tax team.
+
+32
+00:03:02,655 --> 00:03:08,716
+Ratings and reviews keeps the scores and feedback you choose to record for each gig platform. Add a rating
+
+33
+00:03:08,716 --> 00:03:14,776
+snapshot or review, then look at the history and guidance. Leave customer names and private details out. These are
+
+34
+00:03:14,776 --> 00:03:19,241
+your saved records; entering them does not change a rating in the gig platform.
+
+35
+00:03:20,041 --> 00:03:26,903
+In Account, activate your tax team’s invitation and sign in with that client account. Review which phone records you
+
+36
+00:03:26,903 --> 00:03:33,765
+want to copy and sync. Optional bank and work-account connections depend on your firm’s setup. Work-account updates are not
+
+37
+00:03:33,765 --> 00:03:39,183
+a live feed of incoming offers. Account also contains privacy information and your reminder controls.
+
+38
+00:03:39,983 --> 00:03:46,775
+Get help opens the office map. As approved locations join, they appear here without an app update. Use your
+
+39
+00:03:46,775 --> 00:03:53,568
+location or ZIP code, check an office’s address and exterior photo, and use street view where available. Open driving
+
+40
+00:03:53,568 --> 00:04:00,360
+directions in Apple Maps. Call the listed number or open its appointment link. A twenty-four-seven label appears only for
+
+41
+00:04:00,360 --> 00:04:01,790
+a confirmed staffed line.
+
+42
+00:04:02,590 --> 00:04:08,680
+Start with one real drive, income entry, or expense, and build your records as you work. Review anything read
+
+43
+00:04:08,680 --> 00:04:14,770
+from a picture before saving. You can replay this tour from Help and return to the interactive screenshot guide
+
+44
+00:04:14,770 --> 00:04:17,975
+whenever you need it. Your next step starts on Home.

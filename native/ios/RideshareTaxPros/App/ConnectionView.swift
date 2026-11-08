@@ -105,6 +105,8 @@ struct ConnectionView: View {
         connectionSteps
       }
       if let notice { Section { Text(notice).font(.footnote) } }
+      Section { NavigationLink("Find an office · Help & appointments") { OfficeHelpView() } }
+      Section { NavigationLink("Getting-started video") { GettingStartedView() } }
       Section { NavigationLink("Driving & expense reminders") { AssistanceView() } }
       Section { NavigationLink("Read gig offers · Screen sharing & screenshots") { OfferReaderView() } }
       Section { NavigationLink("Driver Rewards · Referrals & points") { ReferralView() } }

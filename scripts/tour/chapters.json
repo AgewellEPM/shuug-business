@@ -1,0 +1,132 @@
+[
+  {
+    "id": "home",
+    "title": "Welcome to Gig Tax Pros",
+    "bullets": [
+      "Turn your iPhone sideways",
+      "Explore the five main tabs",
+      "Replay from Get help"
+    ],
+    "narration": "Before we begin, turn your iPhone sideways to landscape so the app screens and captions are easier to see. If the screen does not rotate, turn off Portrait Orientation Lock in Control Center. Welcome to Gig Tax Pros. Start on Home to see your day and reach the tools you use most. The five tabs are Home, Offers, Go Home, Position, and Earnings. The menu opens your trips, money, account, alerts, and other tools. You can explore before connecting an account."
+  },
+  {
+    "id": "drives",
+    "title": "Keep your driving records",
+    "bullets": [
+      "Start while parked",
+      "End and review each drive",
+      "Add missed trips manually"
+    ],
+    "narration": "While parked, tap Start a drive and choose the details for that trip. End the drive when you arrive, then review its mileage and classification. Trips keeps your saved history, and you can add a missed trip manually. Optional driving and expense reminders are controlled in Account."
+  },
+  {
+    "id": "money",
+    "title": "Track money and receipts",
+    "bullets": [
+      "Add income and expenses",
+      "Attach a receipt you choose",
+      "Review before saving"
+    ],
+    "narration": "Use the Home shortcuts to add income or an expense. Enter the amount and category, and attach a receipt if you have one. The app can read a chosen receipt on your iPhone. Always review the suggested information before saving. The Money screen brings income, expenses, statement imports, and available bank connections together."
+  },
+  {
+    "id": "screenshots",
+    "title": "Learn screenshot import",
+    "bullets": [
+      "Open the practice guide",
+      "Follow the pink arrows",
+      "Practice never saves a job"
+    ],
+    "narration": "Offers helps you review a job before deciding. Open the screenshot guide and follow the pink arrows. It shows which iPhone buttons to press, how to save the picture, and how to bring it into Gig Tax Pros. This DoorDash screen is a published example. The guide uses clearly stated practice costs and time, and never saves a practice job to your records."
+  },
+  {
+    "id": "review",
+    "title": "Check every offer field",
+    "bullets": [
+      "Choose the right gig app",
+      "Review pay, miles and time",
+      "Save only after checking"
+    ],
+    "narration": "For your own screenshot, choose its gig app, then select the picture from Photos. Review the pay, guaranteed amount, total working miles, time, and additional costs. A delivery deadline is not the whole trip duration. Include unpaid driving and waiting. Cancel if the picture is wrong, or save your corrected numbers. Your choice to accept a job stays in the gig app."
+  },
+  {
+    "id": "earnings",
+    "title": "Set costs and pay goals",
+    "bullets": [
+      "Review recorded earnings",
+      "Set your vehicle cost",
+      "Choose your own goals"
+    ],
+    "narration": "Earnings shows results from the records you have saved. Open Goals to set daily, weekly, and hourly targets and your estimated vehicle cost per mile. These values affect offer estimates. Use costs that fit your vehicle, and remember that missing information can change the result. Sample views are marked as examples."
+  },
+  {
+    "id": "go_home",
+    "title": "Plan the end of your shift",
+    "bullets": [
+      "Choose a destination",
+      "Set a goal and deadline",
+      "Compare the complete route"
+    ],
+    "narration": "Go Home helps you plan around an earnings goal, destination, and time to finish. Enter the full job and waiting time when comparing an offer. When you request route comparisons, check the pickup, drop-off, and onward trip. Review the estimates while parked; traffic and extra stops can change your arrival time."
+  },
+  {
+    "id": "position",
+    "title": "Choose where to wait",
+    "bullets": [
+      "Select your destination",
+      "Use saved job history",
+      "Review the suggested area"
+    ],
+    "narration": "Position helps you explore waiting areas using your saved job history and destination. Choose your current location and destination before asking for comparisons. A new account may not have enough history yet. These are estimates from available records, not a promise that another gig will arrive."
+  },
+  {
+    "id": "coach",
+    "title": "Ask about your records",
+    "bullets": [
+      "Open Tax & Goals",
+      "Review the answer’s context",
+      "Confirm details you save"
+    ],
+    "narration": "Tax and Goals is where you can ask questions about your recorded work and goals. Review the context shown with each answer. Tax details you choose to save need your confirmation. For filing decisions or questions about your situation, use Get help to reach your tax team."
+  },
+  {
+    "id": "ratings",
+    "title": "Keep ratings and feedback",
+    "bullets": [
+      "Track your own snapshots",
+      "Record feedback you choose",
+      "Keep customer details private"
+    ],
+    "narration": "Ratings and reviews keeps the scores and feedback you choose to record for each gig platform. Add a rating snapshot or review, then look at the history and guidance. Leave customer names and private details out. These are your saved records; entering them does not change a rating in the gig platform."
+  },
+  {
+    "id": "account",
+    "title": "Connect your client account",
+    "bullets": [
+      "Use your firm’s invitation",
+      "Review what will sync",
+      "Control optional connections"
+    ],
+    "narration": "In Account, activate your tax team’s invitation and sign in with that client account. Review which phone records you want to copy and sync. Optional bank and work-account connections depend on your firm’s setup. Work-account updates are not a live feed of incoming offers. Account also contains privacy information and your reminder controls."
+  },
+  {
+    "id": "help",
+    "title": "Find an office and get help",
+    "bullets": [
+      "Search near you or by ZIP",
+      "Check the office exterior",
+      "Call, book or get directions"
+    ],
+    "narration": "Get help opens the office map. As approved locations join, they appear here without an app update. Use your location or ZIP code, check an office’s address and exterior photo, and use street view where available. Open driving directions in Apple Maps. Call the listed number or open its appointment link. A twenty-four-seven label appears only for a confirmed staffed line."
+  },
+  {
+    "id": "finish",
+    "title": "You’re ready to begin",
+    "bullets": [
+      "Start with one real record",
+      "Review before you save",
+      "Replay this tour from Help"
+    ],
+    "narration": "Start with one real drive, income entry, or expense, and build your records as you work. Review anything read from a picture before saving. You can replay this tour from Help and return to the interactive screenshot guide whenever you need it. Your next step starts on Home."
+  }
+]

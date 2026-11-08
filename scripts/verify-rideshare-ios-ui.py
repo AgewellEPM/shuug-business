@@ -4,6 +4,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import plistlib
 import signal
 import subprocess
 import tempfile
@@ -30,9 +31,10 @@ flows.add_argument('--foreground-only', action='store_true', help='Check the act
 flows.add_argument('--gig-apps-only', action='store_true', help='Check the swipeable gig-app row, configurable shopping work and branded foreground alert.')
 flows.add_argument('--reputation-only', action='store_true', help='Check manual rating/review history, guidance, shared chat routing, relaunch and explicit deletion.')
 flows.add_argument('--screenshot-guide-only', action='store_true', help='Check both practice routes and real photo import, cancellation, correction and persistence without enabling screen reading.')
+flows.add_argument('--tour-only', action='store_true', help='Check first-launch video playback, chapter shortcuts, skipping and replay without creating records.')
 parser.add_argument('--visible', action='store_true', help='Show the owned iPhone Simulator window during the check.')
 options = parser.parse_args()
-selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps', 'reputation', 'screenshot_guide'] if getattr(options, name + '_only')), None)
+selected_flow = next((name for name in ['driving', 'receipts', 'expenses', 'insights', 'mission', 'alerts', 'dashboard', 'capture', 'coach', 'foreground', 'gig_apps', 'reputation', 'screenshot_guide', 'tour'] if getattr(options, name + '_only')), None)
 driving = selected_flow in (None, 'driving')
 receipts = selected_flow in (None, 'receipts')
 expense_details = selected_flow in (None, 'expenses')
@@ -63,6 +65,8 @@ elif options.reputation_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-reputation-verification-20261107.json')
 elif options.screenshot_guide_only:
     REPORT = REPORT.with_name('gig-tax-pros-ios-screenshot-guide-verification-20261107.json')
+elif options.tour_only:
+    REPORT = REPORT.with_name('gig-tax-pros-ios-tour-verification-20261107.json')
 
 def call(*args, timeout=60, check=True):
     result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
@@ -181,6 +185,7 @@ try:
         if options.gig_apps_only: selection += '/DriverFlows/test14GigAppsSwipeAndShoppingProfilePersists'
         if options.reputation_only: selection += '/DriverFlows/test15RatingsReviewsGuideAndDeletionPersist'
         if options.screenshot_guide_only: selection += '/ScreenshotGuideFlows'
+        if options.tour_only: selection += '/GettingStartedFlows'
         if selected_flow is None:
             selection = 'RideshareTaxProsUITests/DriverFlows'
         test_selection = ['-only-testing:'+selection]
@@ -246,13 +251,24 @@ try:
     report['appBundleSHA256'] = bundle_hash
     container = Path(call('xcrun', 'simctl', 'get_app_container', simulator, BUNDLE, 'data').stdout.strip())
     journal_path = next(container.rglob('journal.json'), None)
-    if not options.dashboard_only:
+    if not options.dashboard_only and not options.tour_only:
         assert journal_path and journal_path.exists(), 'The actual app did not save a journal.'
     journal = json.loads(journal_path.read_text()) if journal_path and journal_path.exists() else {'entries': []}
     records = [entry['record'] for entry in journal['entries'] if not entry['record']['deleted']]
     trips = [r for r in records if r['kind']=='trip']
     expenses = [r for r in records if r['kind']=='expense']
     verified_tests = []
+    if options.tour_only:
+        assert not records and not journal.get('gigOffers') and not journal.get('receipts'), 'Watching the tour must not create financial records, offers or receipts.'
+        preferences = container/'Library/Preferences'/f'{BUNDLE}.plist'
+        with preferences.open('rb') as source:
+            assert plistlib.load(source).get('gettingStartedSeen') is True, 'Skipping the welcome must persist across app launches.'
+        manifest = json.loads((installed/'GettingStartedTour.json').read_text())
+        assert len(manifest['chapters']) == 13 and 240 < manifest['duration'] < 360
+        video_hash = hashlib.sha256((installed/'GettingStarted.mp4').read_bytes()).hexdigest()
+        assert (installed/'GettingStarted.en.srt').is_file() and (installed/'GettingStartedPoster.jpg').is_file()
+        verified_tests += ['fresh install presents the getting-started welcome', 'bundled native player plays and pauses the actual video', 'Skip for now persists and relaunch returns to Home', 'Get help reopens the tour', 'chapter shortcut opens playback at the selected topic', 'interactive screenshot guide opens from the tour', 'tour creates no financial records, offers or receipts']
+        report.update(scope='Native iPhone Simulator first-launch tour and native bundled video playback; no physical iPhone or human visual acceptance', tourVideoSHA256=video_hash, tourDurationSeconds=manifest['duration'], tourChapterCount=len(manifest['chapters']), sampleJournalIsolationVerified=True, humanVisualAcceptance=False)
     if options.screenshot_guide_only:
         offers = journal.get('gigOffers', [])
         assert not records and len(offers) == 1, 'Practice and cancelled imports must not save offers or financial records.'
@@ -268,8 +284,9 @@ try:
         assert captures[0]['normalized']['payoutCents'] == 1950 and captures[0]['normalized']['offerId'] == offer['offerId'], 'Original OCR and driver correction must remain separate and linked.'
         assert captures[0]['scope'] == 'guest' and captures[0]['normalized']['pickupMiles'] == 2 and captures[0]['normalized']['deliveryMiles'] == 4
         assert not list((group/'OfferReader').glob('*.png')) and not journal.get('receipts')
-        verified_tests += ['interactive Face ID and Home button practice', 'save-picture and both import route lessons', 'editable practice pay recalculates $15 profit to $1 loss', 'guide opens the actual screenshot picker route', 'practice and cancellation create no offers', 'real Photos picker and on-device Vision extract synthetic $19.50 offer', 'reviewed $20.50 correction and $15.50 profit survive relaunch', 'original extracted fields stay separate from corrections', 'direct import creates no broadcast session or financial entry']
-        report.update(scope='Native iPhone Simulator screenshot tutorial and real chosen-image import with synthetic offer; Photos sharing lesson is simulated', offerScreenshotImportVerified=True, sampleJournalIsolationVerified=True, physicalShareExtensionVerified=False)
+        verified_tests += ['interactive Face ID and Home button practice with published DoorDash screenshot', 'save-picture and both import route lessons', 'editable practice pay recalculates $6.70 profit to $0.30 loss', 'guide opens the actual screenshot picker route', 'practice and cancellation create no offers', 'real Photos picker and on-device Vision extract synthetic $19.50 offer', 'reviewed $20.50 correction and $15.50 profit survive relaunch', 'original extracted fields stay separate from corrections', 'direct import creates no broadcast session or financial entry']
+        verified_tests += ['Home opens dynamic office help map, ZIP validation and directory refresh']
+        report.update(scope='Native iPhone Simulator tutorial using DoorDash published reference, chosen-image import with synthetic offer and office-help navigation; Photos sharing lesson is simulated', offerScreenshotImportVerified=True, sampleJournalIsolationVerified=True, officeHelpNavigationVerified=True, physicalShareExtensionVerified=False)
     if options.reputation_only:
         reputation = journal.get('reputationState', {})
         assert not records and sorted(row['score'] for row in reputation['ratings']) == [4.6, 4.8]

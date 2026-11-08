@@ -4,7 +4,7 @@ import XCTest
   override func setUpWithError() throws { continueAfterFailure = false }
   private func open() -> XCUIApplication {
     let app = XCUIApplication()
-    app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
+    app.launchArguments += ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-gettingStartedSeen", "YES"]
     app.launch()
     XCTAssertFalse(app.alerts.firstMatch.waitForExistence(timeout: 2), app.debugDescription)
     return app

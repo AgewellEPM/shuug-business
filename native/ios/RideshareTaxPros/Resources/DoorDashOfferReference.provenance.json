@@ -1,0 +1,16 @@
+{
+  "publisher": "DoorDash",
+  "title": "Redesigned Accept Modal",
+  "pageURL": "https://help.doordash.com/en-us/dashers/article/redesigned-accept-modal",
+  "imageURL": "https://images.ctfassets.net/ubxkqizxnrpo/4HHStCqo5ghqH9leDPLJNN/bffb7f6c61707a01a68a25fb2c7cd019/rtaImage__39_.png?fm=png&q=80&w=1200",
+  "retrievedOn": "2026-11-07",
+  "asset": "Assets.xcassets/DoorDashOfferReference.imageset/offer.png",
+  "sha256": "f708f150643bfce062e55ff8686b207797735a5ec5f3ac3791c3630c3cb19b85",
+  "originalSize": { "width": 600, "height": 586 },
+  "displayViewport": { "x": 343, "y": 29, "width": 229, "height": 491 },
+  "originalBytesPreserved": true,
+  "context": "DoorDash-published educational example, used in the screenshot practice guide with an attribution link. Not a captured live customer offer.",
+  "observed": { "guaranteedPayCents": 750, "tipsIncluded": true, "displayedMiles": 1.6, "deliverBy": "10:45 AM" },
+  "practiceOnlyAssumptions": { "allWorkingMiles": 1.6, "allWorkingMinutes": 20, "vehicleCostCentsPerMile": 50 },
+  "notes": "The deadline and Accept countdown are not trip duration. Practice all-working time and all-working miles must not be presented as values extracted from the screenshot."
+}

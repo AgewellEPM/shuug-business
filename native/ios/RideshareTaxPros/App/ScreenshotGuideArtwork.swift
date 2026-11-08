@@ -6,7 +6,7 @@ enum ScreenshotPhone: String, CaseIterable, Identifiable {
   var firstButton: String { self == .faceID ? "Volume up" : "Home" }
 }
 
-/// Original vector teaching artwork, never a capture of another app.
+/// Practice controls surround DoorDash's published offer-screen example.
 struct ScreenshotPhoneDiagram: View {
   let phone: ScreenshotPhone
   @Binding var pressed: Set<String>
@@ -23,6 +23,7 @@ struct ScreenshotPhoneDiagram: View {
         VStack(spacing: 12) {
           Capsule().fill(.black).frame(width: 62, height: 16)
           GuideExampleOffer(compact: true)
+            .frame(maxHeight: phone == .home ? 180 : 300)
           if phone == .home {
             hardware("Home", id: "first", symbol: "circle")
             GuideArrow(symbol: "arrow.up")
@@ -71,16 +72,44 @@ struct GuideArrow: View {
 
 struct GuideExampleOffer: View {
   var compact = false
+  var highlightNumbers = false
   var body: some View {
-    VStack(alignment: .leading, spacing: compact ? 10 : 16) {
-      Text("PRACTICE JOB").font(.caption2.bold()).foregroundStyle(Brand.link)
-      Image(systemName: "map.fill").font(compact ? .largeTitle : .system(size: 54))
-        .foregroundStyle(Brand.route).frame(maxWidth: .infinity).padding(.vertical, 10)
-      Text("$20.00").font(.system(size: compact ? 25 : 38, weight: .bold, design: .rounded))
-      Text("10 miles · 30 min").font(compact ? .caption : .headline)
-      if !compact { Text("Example pickup → Example drop-off").font(.caption).foregroundStyle(Brand.muted) }
-    }.frame(maxWidth: .infinity, alignment: .leading)
-      .padding(compact ? 8 : 20).background(Brand.surface, in: RoundedRectangle(cornerRadius: 18))
+    VStack(spacing: compact ? 6 : 12) {
+      if !compact { Text("DOORDASH EXAMPLE · PRACTICE ONLY").font(.caption2.bold()).foregroundStyle(Brand.link) }
+      DoorDashReferenceScreen(highlightNumbers: highlightNumbers)
+        .frame(maxWidth: compact ? .infinity : 224)
+      if !compact {
+        Text("$7.50 guaranteed · 1.6 miles shown").font(.subheadline.bold())
+      }
+    }.frame(maxWidth: .infinity)
+  }
+}
+
+/// Keep the publisher's original 600×586 PNG intact. Display only its new-design
+/// screen, excluding the second offer and caption, with a SwiftUI viewport.
+private struct DoorDashReferenceScreen: View {
+  var highlightNumbers: Bool
+  var body: some View {
+    GeometryReader { geometry in
+      let scale = geometry.size.width / 229
+      ZStack(alignment: .topLeading) {
+        Image("DoorDashOfferReference").resizable()
+          .frame(width: 600 * scale, height: 586 * scale)
+          .offset(x: -343 * scale, y: -29 * scale)
+          .accessibilityHidden(true).allowsHitTesting(false)
+        if highlightNumbers {
+          RoundedRectangle(cornerRadius: 7).stroke(Brand.pink, lineWidth: 3)
+            .frame(width: 216 * scale, height: 48 * scale)
+            .offset(x: 5 * scale, y: 283 * scale)
+          GuideArrow().position(x: 196 * scale, y: 258 * scale)
+        }
+      }.frame(width: geometry.size.width, height: geometry.size.height, alignment: .topLeading)
+        .clipped().contentShape(Rectangle())
+    }.aspectRatio(229.0 / 491, contentMode: .fit)
+      .clipShape(RoundedRectangle(cornerRadius: 16))
+      .accessibilityElement(children: .ignore)
+      .accessibilityLabel("DoorDash's published example: $7.50 guaranteed including tips, 1.6 miles, deliver by 10:45 AM, Frosty Bear pickup and customer drop-off.")
+      .accessibilityIdentifier("guide.doordash.reference")
   }
 }
 

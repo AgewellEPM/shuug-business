@@ -12,7 +12,7 @@ struct OfferScreenshotGuide: View {
   @State private var photoSaved = false
   @State private var shareRoute = false
   @State private var transferStage = 0
-  @State private var payout = "20.00"
+  @State private var payout = "7.50"
   @FocusState private var editing: Bool
   private let titles = ["Take a screenshot", "Save the picture", "Pick a way to bring it in", "Bring the picture in", "Check the numbers", "See what you could keep"]
   private var ready: Bool {
@@ -30,8 +30,8 @@ struct OfferScreenshotGuide: View {
     var offer = UniversalGigOffer(platform: .doorDash, source: .simulation)
     offer.currency = "USD"; offer.payoutCents = cents; offer.guaranteedPayoutCents = cents
     offer.tipTreatment = .includedInQuote; offer.unconfirmedTipCents = 0
-    offer.uncertainty.totalMiles = GigNumericBounds(10, 10)
-    offer.estimatedMinutes = 30; offer.durationCoverage = .allWorkingTime
+    offer.uncertainty.totalMiles = GigNumericBounds(1.6, 1.6)
+    offer.estimatedMinutes = 20; offer.durationCoverage = .allWorkingTime
     offer.additionalCostsCents = 0
     return OfferProfitabilityEngine.assess(offer,
       profile: GigProfitProfile(vehicleCostCentsPerMile: 50, minimumNetHourlyCents: 2000))
@@ -90,6 +90,10 @@ struct OfferScreenshotGuide: View {
       }.pickerStyle(.segmented).onChange(of: phone) { _, _ in pressed = [] }
       Text("Press \(phone.firstButton) + Side together. Let go right away. Do not hold them down.")
       ScreenshotPhoneDiagram(phone: phone, pressed: $pressed)
+      Text("This is DoorDash’s published offer example. Your app may look different.")
+        .font(.footnote).foregroundStyle(Brand.muted)
+      Link("DoorDash’s example screen", destination: URL(string: "https://help.doordash.com/en-us/dashers/article/redesigned-accept-modal")!)
+        .font(.footnote)
       Text("These taps are practice. Use the real buttons on the edge of your phone when taking a screenshot.")
         .font(.footnote).foregroundStyle(Brand.muted)
       Link("Apple’s screenshot steps", destination: URL(string: "https://support.apple.com/en-us/102616")!).font(.footnote)
@@ -130,13 +134,19 @@ struct OfferScreenshotGuide: View {
       if shareRoute { shareLesson } else { pickerLesson }
     case 4:
       Text("Pictures can be read wrong. Check pay, all miles, time and costs before saving a real job.")
+      GuideExampleOffer(highlightNumbers: true)
+      Text("The pink outline shows the pay and miles to check. “Deliver by 10:45 AM” is a deadline. The number beside Accept is a countdown. Neither tells us all your working time.")
+        .font(.subheadline)
       VStack(alignment: .leading, spacing: 16) {
         Text("PRACTICE NUMBERS").font(.caption.bold()).foregroundStyle(Brand.link)
+        Text("Guaranteed pay, including tips").font(.subheadline)
         TextField("Pay ($)", text: $payout).keyboardType(.decimalPad).focused($editing)
           .font(.title.bold()).padding(12).background(Brand.background, in: RoundedRectangle(cornerRadius: 12))
           .accessibilityIdentifier("guide.pay")
-        Text("All miles: 10 · All time: 30 minutes")
-        Text("This example uses 50¢ per mile, $0 extra costs, no money set aside, and a $20/hour goal. The pay is guaranteed in this example only.")
+        Text("Miles shown: 1.6 · Practice time: 20 minutes")
+        Text("For this lesson, assume 1.6 miles covers all driving and the job takes 20 minutes. Those are practice assumptions. For a real job, include extra driving, pickup and waiting time.")
+          .font(.footnote).foregroundStyle(Brand.muted)
+        Text("Practice costs: 50¢ per mile, $0 extra costs, no money set aside, and a $20/hour goal.")
           .font(.footnote).foregroundStyle(Brand.muted)
       }.gigCard(highlight: true)
       Text("Try changing the pay. The result will change too.").foregroundStyle(Brand.link)
@@ -209,7 +219,7 @@ struct OfferScreenshotGuide: View {
     }.buttonStyle(BrandActionStyle()).accessibilityIdentifier("guide.real")
     NavigationLink("Set up sharing from Photos") { OfferReaderView() }.font(.footnote)
     Button("Try the guide again") {
-      pressed = []; saveMenu = false; photoSaved = false; transferStage = 0; payout = "20.00"; move(to: 0)
+      pressed = []; saveMenu = false; photoSaved = false; transferStage = 0; payout = "7.50"; move(to: 0)
     }.accessibilityIdentifier("guide.restart")
     Text("Practice jobs never go into your earnings or saved offers.").font(.footnote).foregroundStyle(Brand.muted)
   }

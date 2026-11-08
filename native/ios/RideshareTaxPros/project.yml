@@ -39,7 +39,7 @@ targets:
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         'UISupportedInterfaceOrientations~ipad': [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
         NSCameraUsageDescription: Scan receipts you choose to attach to your expense records.
-        NSLocationWhenInUseUsageDescription: Record driving mileage and, if you enable assistance, detect drives and remind you to log purchases near a stop.
+        NSLocationWhenInUseUsageDescription: Find nearby Gig Tax Pros offices when requested, record driving mileage and, if you enable assistance, detect drives and remind you to log purchases near a stop.
         NSLocationAlwaysAndWhenInUseUsageDescription: With optional assistance enabled, detect driving and stops near fuel, food and auto businesses even while this app is in the background. You control both options in Account.
         NSMotionUsageDescription: Use movement activity to help distinguish driving from walking when you enable automatic assistance.
         NSLocationTemporaryUsageDescriptionDictionary:

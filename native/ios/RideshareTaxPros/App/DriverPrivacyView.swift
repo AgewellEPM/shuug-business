@@ -16,6 +16,10 @@ struct DriverPrivacyView: View {
           "You choose the expenses, income entries, photos and scans to save. Receipt text recognition runs on the iPhone. Suggested merchants and amounts need your review; they are not automatically posted."
         )
       }
+      Section("Office help & appointments") {
+        Text("The app refreshes public office addresses, hours and contact options from GigTax.pro. Finding nearby offices uses your location only when requested; distance sorting happens on your phone. Apple Maps receives map areas, ZIP searches and directions you request. Your search location is not added to your journal or sent to the tax workspace.")
+        Text("Calling opens your phone’s call flow. Booking opens the office’s appointment provider, where you choose what to submit and confirm the appointment.")
+      }
       Section("Optional firm connection") {
         Text(
           "After you sign in to your invited client account, queued trip details, mileage totals, classifications, notes, income, expenses and chosen receipts sync to that firm’s private Shuug workspace. Staff with financial-record access can review them. Route coordinates are not part of those uploads."

@@ -8,12 +8,16 @@ enum DriverTool: String, Identifiable {
   case diagnostics = "Offer Capture Diagnostics"
   case coach = "Tax & Goals"
   case reputation = "Ratings & Reviews"
+  case help = "Get help"
+  case gettingStarted = "Getting started"
   var id: String { rawValue }
 }
 struct RootView: View {
   @EnvironmentObject private var model: DriverModel
   @State private var tab: DriverTab = .home
   @State private var tool: DriverTool?
+  @AppStorage("gettingStartedSeen") private var gettingStartedSeen = false
+  @State private var showingWelcome = false
   var body: some View {
     TabView(selection: $tab) {
       NavigationStack { TodayView(tab: $tab, showTool: { tool = $0 }) }
@@ -38,6 +42,8 @@ struct RootView: View {
             case .diagnostics: OfferCaptureDiagnosticsView()
             case .coach: TaxCoachView()
             case .reputation: ReputationView()
+            case .help: OfficeHelpView()
+            case .gettingStarted: GettingStartedView()
             }
           }.toolbar { ToolbarItem(placement: .topBarTrailing) {
             Button("Done") { tool = nil }.accessibilityIdentifier("tools.close")
@@ -54,6 +60,10 @@ struct RootView: View {
         }
       }
       .onChange(of: model.journalScope) { _, _ in model.requestedOffer = nil }
+      .task { if !gettingStartedSeen { showingWelcome = true } }
+      .sheet(isPresented: $showingWelcome, onDismiss: { gettingStartedSeen = true }) {
+        NavigationStack { GettingStartedView(onFinish: { gettingStartedSeen = true; showingWelcome = false }) }
+      }
   }
 }
 struct RecordStatus: View {
@@ -120,6 +130,8 @@ struct TodayView: View {
               Button("Offer Capture Diagnostics", systemImage: "waveform.path.ecg") { showTool(.diagnostics) }
               Button("Tax & Goals chat", systemImage: "bubble.left.and.text.bubble.right.fill") { showTool(.coach) }
               Button("Ratings & reviews", systemImage: "star.bubble.fill") { showTool(.reputation) }
+              Button("Find an office & get help", systemImage: "map.fill") { showTool(.help) }
+              Button("Getting-started video", systemImage: "play.circle.fill") { showTool(.gettingStarted) }
               Button("Explore a sample shift", systemImage: "sparkles") { showingSample = true }
             } label: { Image(systemName: "line.3.horizontal").font(.title3).frame(width: 28, height: 44) }
               .accessibilityIdentifier("dashboard.menu").accessibilityLabel("More tools")
@@ -148,6 +160,7 @@ struct TodayView: View {
             .accessibilityIdentifier("quick.alerts")
         }
         ShiftDashboardCard()
+        OfficeHelpCard()
         GoHomeDashboardCard(destination: model.journal.mission?.destination) { tab = .goHome }
         PlatformReadersRow(scope: model.journalScope)
         ScreenshotHelpCard()
