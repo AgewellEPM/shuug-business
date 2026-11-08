@@ -30,11 +30,13 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.body.textContent).not.toMatch(/client portal/i);
       expect(d.querySelector('.public-services')).toBeNull();
       expect(d.querySelector('nav[aria-label="Primary"] a[href="/services"]')).not.toBeNull();
-      expect([...d.querySelectorAll('nav[aria-label="Primary"] a')].map(a => a.textContent?.trim())).toEqual(['Home', 'Services', 'How It Works', 'Drivers', 'Offices', 'About']);
+      expect([...d.querySelectorAll('nav[aria-label="Primary"] a')].map(a => a.textContent?.trim())).toEqual(['Home', 'About', 'Services', 'How It Works', 'Drivers']);
       expect(d.querySelector<HTMLAnchorElement>('.public-ready')!.getAttribute('href')).toBe('/get-the-app');
       expect(d.querySelector('.public-ready')!.textContent).toContain('Get The App');
       expect(d.querySelector('#navigation a[href="/resources"]')).toBeNull();
       expect(d.querySelector('#navigation a[href="/about"]')).not.toBeNull();
+      expect(d.querySelector('#navigation a[href="/offices"]')).toBeNull();
+      expect(d.querySelector('.site-footer a[href="/offices"]')).not.toBeNull();
       for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
         const url = new URL(a.href);
         if(url.origin !== origin) continue;
