@@ -1,0 +1,133 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T01:13:31.067Z",
+  "deployment": "dpl_GcJhhQqGatATjap3BiBZVksGwmUA",
+  "implementation": "21ed836",
+  "checks": [
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/",
+      "status": 200,
+      "sha256": "8ec7bfed8d3dd71c2838d7dc8c79523fa824f58aa6cb8341e5dcd79f796d165c"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/services",
+      "status": 200,
+      "sha256": "30bf310ef47df8d428d5ae3bac45f98d063c86df3c7b2caf620562a8a4383982"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/how-it-works",
+      "status": 200,
+      "sha256": "0ac24c4586355e8d48d553577b93f3853bbcd258e45c23f9583120e67977607c"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/drivers",
+      "status": 200,
+      "sha256": "deb337716a8315cb2a4cbc41f6d7fce9428de1476630a9ca9dc8a3e109a84a1d"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/offices",
+      "status": 200,
+      "sha256": "aaa5dd8c524a643626d6ecf5509a464e198b974d49c3e89389212c78d0ad22ac"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/about",
+      "status": 200,
+      "sha256": "cfadd129fc86bab7971f890c01d8c79c5a562402765ca0cd17438dea14f37f3a"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/get-the-app",
+      "status": 200,
+      "sha256": "27ef65f67ba2285e40cdd5b3c0032b0c329a30ff93c10b68b589badd2d9bcdb8"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/assets/about-reference.png",
+      "status": 200,
+      "sha256": "34860a030042946926d629e4c2460663752190d7e7e34aaba4d2a398b7c1a018"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/assets/get-the-app-reference.png",
+      "status": 200,
+      "sha256": "3764246c956a7dc159294c288ee8df554421bba245918f4f73f466b78a4405e4"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/about.css",
+      "status": 200,
+      "sha256": "6e7cbd4fcdfdff9375ee6fbde2673baaf63b9a93fb1ee2845675d3585cc3d462"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/",
+      "status": 200,
+      "sha256": "8ec7bfed8d3dd71c2838d7dc8c79523fa824f58aa6cb8341e5dcd79f796d165c"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/services",
+      "status": 200,
+      "sha256": "30bf310ef47df8d428d5ae3bac45f98d063c86df3c7b2caf620562a8a4383982"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/how-it-works",
+      "status": 200,
+      "sha256": "0ac24c4586355e8d48d553577b93f3853bbcd258e45c23f9583120e67977607c"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/drivers",
+      "status": 200,
+      "sha256": "deb337716a8315cb2a4cbc41f6d7fce9428de1476630a9ca9dc8a3e109a84a1d"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/offices",
+      "status": 200,
+      "sha256": "aaa5dd8c524a643626d6ecf5509a464e198b974d49c3e89389212c78d0ad22ac"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/about",
+      "status": 200,
+      "sha256": "cfadd129fc86bab7971f890c01d8c79c5a562402765ca0cd17438dea14f37f3a"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/get-the-app",
+      "status": 200,
+      "sha256": "27ef65f67ba2285e40cdd5b3c0032b0c329a30ff93c10b68b589badd2d9bcdb8"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/assets/about-reference.png",
+      "status": 200,
+      "sha256": "34860a030042946926d629e4c2460663752190d7e7e34aaba4d2a398b7c1a018"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/assets/get-the-app-reference.png",
+      "status": 200,
+      "sha256": "3764246c956a7dc159294c288ee8df554421bba245918f4f73f466b78a4405e4"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/about.css",
+      "status": 200,
+      "sha256": "6e7cbd4fcdfdff9375ee6fbde2673baaf63b9a93fb1ee2845675d3585cc3d462"
+    }
+  ],
+  "resourcesRemovedFromNavigation": true,
+  "aboutKept": true,
+  "primaryAction": "Get The App",
+  "downloadAvailability": "Coming soon; Luke confirmed no public links yet.",
+  "visualAcceptance": "Luke screenshot review pending"
+}
