@@ -5,6 +5,7 @@ import { driverAccount } from "./policy";
 import { driverMutation, driverRecord, DriverError, type DriverRecord } from "./model";
 import { validateBankReference } from "./bank-store";
 import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
+import { filterTaxClientRows } from "../tax-office/access";
 
 export function initDriver(db: DatabaseSync) {
   db.exec(`CREATE TABLE IF NOT EXISTS driver_records (
@@ -74,10 +75,11 @@ export class DriverConflict extends DriverError {
   constructor(public current: DriverRow | null) { super(409, "This record changed in another session. Review both versions before syncing."); }
 }
 /** Staff-only projection. Call only behind the Money permission and Tax Firm visibility guards. */
-export function staffDriverRecords(clientId?: string) {
+export function staffDriverRecords(clientId?: string, user?: import("../auth/identity").WorkspaceUser) {
   return workspaceDatabase(db => {
     initDriver(db);
     const rows = (clientId ? db.prepare("SELECT * FROM driver_records WHERE clientId=? ORDER BY sequence DESC").all(clientId) : db.prepare("SELECT * FROM driver_records ORDER BY sequence DESC").all()) as unknown as Stored[];
-    return rows.map(row => ({ ...project(row), clientId: row.clientId, accountId: row.accountId })).filter(row => !row.record.deleted);
+    const visible=user?filterTaxClientRows(db,rows,user,row=>row.clientId):rows;
+    return visible.map(row => ({ ...project(row), clientId: row.clientId, accountId: row.accountId })).filter(row => !row.record.deleted);
   });
 }

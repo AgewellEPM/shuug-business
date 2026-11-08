@@ -2,12 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireSectionAccess } from "@/lib/permissions/guard";
 import { staffCoachThreads } from "@/lib/driver-coach/store";
+import { requireIdentity } from "@/lib/auth/identity";
 
 export const dynamic = "force-dynamic";
 export default async function CoachReview() {
   await requireSectionAccess("money", "view");
   await requireSectionAccess("services", "view");
-  const threads = (() => { try { return staffCoachThreads(); } catch { notFound(); } })();
+  const user=await requireIdentity();
+  const threads = (() => { try { return staffCoachThreads(user); } catch { notFound(); } })();
   return <div className="space-y-6">
     <header><p className="dd-eyebrow">Gig Tax Pros · Shared client work</p><h1 className="text-2xl font-bold">Tax &amp; Goals conversations</h1>
       <p className="mt-2 text-sm text-slate-600">Client questions, confirmed preparation facts and recorded-data replies share the existing client account. These are not approved deductions, filed returns or accountant-reviewed advice.</p></header>

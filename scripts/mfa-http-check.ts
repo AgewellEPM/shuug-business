@@ -15,6 +15,8 @@ import { createLinkedCustomer, saveCustomerSettings } from "../src/lib/customer-
 import { acceptCustomerInvitation, issueCustomerInvitation } from "../src/lib/customer-access/accounts";
 import { totp } from "../src/lib/auth/mfa/crypto";
 import { officeAccountingHttpCheck } from "./office-accounting-http-check";
+import { officeWorkflowHttpCheck } from "./office-workflow-http-check";
+import { backupWorkspace, restoreWorkspace } from "../src/lib/workspace/backup";
 
 async function freePort() {
   const server=createServer();await new Promise<void>((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",resolve);});
@@ -83,6 +85,15 @@ async function check(directory:string,base:string) {
     assert.equal((await request("/api/workspace/employees",{headers:{Cookie:staffCookie}})).status,403);checks++;
     const staffAccount=employeeData.accounts.find((account:{email:string})=>account.email==="mfa-staff@example.invalid");assert(staffAccount);
     const accounting=await officeAccountingHttpCheck(base,ownerCookie,staffCookie,staffAccount.id,client.id);
+    const officeWorkflow=await officeWorkflowHttpCheck(base,ownerCookie,staffCookie,staffAccount.id,client.id);
+    const officeBeforeRestore=await(await request("/api/tax-office",{headers:{Cookie:ownerCookie}})).json();
+    const restoreDocumentId=officeBeforeRestore.engagements.flatMap((c:{requests:{files:{id:string}[]}[]})=>c.requests.flatMap(r=>r.files))[0]?.id;assert(restoreDocumentId);
+    const beforeDocument=await request(`/api/tax-documents/${restoreDocumentId}`,{headers:{Cookie:ownerCookie}});assert.equal(beforeDocument.status,200);
+    const documentBeforeRestore=Buffer.from(await beforeDocument.arrayBuffer());
+    const restoreBook=(await(await request("/api/accounting/books",{headers:{Cookie:ownerCookie}})).json()).books.find((b:{clientId:string})=>b.clientId===client.id);assert(restoreBook);
+    const bookBeforeRestore=await(await request(`/api/accounting/books/${restoreBook.id}`,{headers:{Cookie:ownerCookie}})).json();
+    const officePage=await request("/tax-office",{headers:{Cookie:ownerCookie}});
+    assert.equal(officePage.status,200);assert.match(await officePage.text(),/Tax work/);checks++;
 
     const native=await request("/api/website/customer/driver/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:account.email,password})});assert.equal(native.status,428);
     const challenge=await native.json();assert.equal(challenge.mfaRequired,true);assert.equal(challenge.token,undefined);assert.equal(native.headers.get("Cache-Control"),"private, no-store");checks++;
@@ -94,7 +105,16 @@ async function check(directory:string,base:string) {
     const portalChallenge=portalHtml.match(/name="challenge" value="([a-f0-9]{64})"/)?.[1];assert(portalChallenge);
     const portalFinished=await request("/api/website/customer",form({action:"mfa",challenge:portalChallenge,code:nativeSession.recoveryCodes[0]}));assert.equal(portalFinished.status,303);assert(cookies(portalFinished).startsWith("shuug_customer="));checks++;
     assert.equal((await request("/api/website/customer/driver/profile",{headers:{Authorization:`Bearer ${nativeSession.token}`}})).status,401);checks++;
-    await stop(child!);await start();
+    await stop(child!);
+    const backup=backupWorkspace(directory,`${directory}-backup`);
+    const restored=restoreWorkspace(`${directory}-backup`,`${directory}-restored`);
+    assert(backup.files>0);assert.equal(restored.files,backup.files);checks++;
+    env.DEALDESK_DATA_DIR=`${directory}-restored`;
+    await start();
+    assert.deepEqual(await(await request("/api/tax-office",{headers:{Cookie:ownerCookie}})).json(),officeBeforeRestore);checks++;
+    const restoredDocument=await request(`/api/tax-documents/${restoreDocumentId}`,{headers:{Cookie:ownerCookie}});assert.equal(restoredDocument.status,200);
+    assert.deepEqual(Buffer.from(await restoredDocument.arrayBuffer()),documentBeforeRestore);checks++;
+    assert.deepEqual(await(await request(`/api/accounting/books/${restoreBook.id}`,{headers:{Cookie:ownerCookie}})).json(),bookBeforeRestore);checks++;
     assert.equal((await request("/api/accounting/books",{headers:{Cookie:ownerCookie}})).status,200);checks++;
     const afterRestart=await staffLogin();assert(!afterRestart.text.includes(secret));
     const recovered=await request("/api/auth/login",form({csrf:afterRestart.csrf,challenge:afterRestart.challenge,code:ownerRecovery[0]},afterRestart.cookie));assert.equal(recovered.status,303);checks++;
@@ -111,7 +131,7 @@ async function check(directory:string,base:string) {
     const wrongAudience=await wp({operation:"session.login",input:{challengeToken:secureChallenge.challengeToken,code:nativeSession.recoveryCodes[1]}});assert.equal(wrongAudience.status,401);checks++;
     const secureFinished=await secure({challengeToken:secureChallenge.challengeToken,code:nativeSession.recoveryCodes[1]});assert.equal(secureFinished.status,200);
     const secureSession=await secureFinished.json();assert.deepEqual(secureSession.identity,{accountId:account.id,clientId:client.id});assert.equal(secureSession.secret,undefined);assert.equal(secureSession.name,undefined);checks++;
-    console.log(JSON.stringify({ok:true,checks,mappedAccounting:accounting,buildId:readFileSync(".next/BUILD_ID","utf8").trim(),syntheticWorkspace:true,covered:["owner enrollment and protected route","CSRF/origin denial","challenge replay rejection","staff enrollment and least privilege","native client MFA API","portal MFA and recovery revocation","persistent grants across server restart","WordPress relay MFA API","independent browser origin and audience separation"]},null,2));
+    console.log(JSON.stringify({ok:true,checks,mappedAccounting:accounting,officeWorkflow,cleanRestore:{files:restored.files,officeStatePreserved:true,documentBytesPreserved:true,clientBooksPreserved:true,mfaSessionsPreserved:true},buildId:readFileSync(".next/BUILD_ID","utf8").trim(),syntheticWorkspace:true,covered:["owner enrollment and protected route","CSRF/origin denial","challenge replay rejection","staff enrollment and least privilege","native client MFA API","portal MFA and recovery revocation","persistent grants across clean restore and server restart","WordPress relay MFA API","independent browser origin and audience separation"]},null,2));
   }catch(error){console.error(`Disposable server diagnostics:\n${log}`);throw error;}
   finally{
     if(child)await stop(child);
@@ -124,7 +144,7 @@ async function main(){
   try{await check(directory,base);}
   finally{
     if(previous===undefined)delete process.env.DEALDESK_DATA_DIR;else process.env.DEALDESK_DATA_DIR=previous;
-    rmSync(directory,{recursive:true,force:true});
+    for(const fixture of [directory,`${directory}-backup`,`${directory}-restored`])rmSync(fixture,{recursive:true,force:true});
   }
 }
 main().catch(error=>{console.error(error);process.exitCode=1;});

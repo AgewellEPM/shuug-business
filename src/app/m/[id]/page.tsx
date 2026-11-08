@@ -13,6 +13,7 @@ import { getMatrix } from "@/lib/permissions/store";
 import { can } from "@/lib/permissions/model";
 import { moduleById } from "@/lib/sdk/registry";
 import { listRecords } from "@/lib/sdk/records";
+import { isTaxModule, moduleRecordsForUser } from "@/lib/tax-office/module-access";
 import { getBranding } from "@/lib/branding/store";
 import { restaurantWorkspaceLink } from "@/lib/restaurant/navigation";
 import { ModuleRuntime } from "@/components/ModuleRuntime";
@@ -29,7 +30,7 @@ export default async function ModulePage({ params }: { params: Promise<{ id: str
   const role = await getActiveRole();
   const canEdit = can(getMatrix(), role, mod.section, "edit");
 
-  const records = listRecords(id);
+  const records = isTaxModule(id) ? moduleRecordsForUser(id, await requireIdentity()) : listRecords(id);
   const panels = (mod.panels ?? []).map((p) => {
     try { return { id: p.id, label: p.label, stats: p.compute(records) }; }
     catch { return { id: p.id, label: p.label, stats: [] }; } // a bad panel never breaks the page

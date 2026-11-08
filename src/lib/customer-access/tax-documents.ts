@@ -1,3 +1,5 @@
+import type { WorkspaceUser } from "../auth/identity";
+import { assertTaxClientAccess } from "../tax-office/access";
 import { createHash, randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, renameSync, rmSync } from "node:fs";
 import path from "node:path";
@@ -73,7 +75,7 @@ export function assertTaxDocumentRequest(token: string | undefined, requestId: s
   uuid.parse(requestId); prepare();
   workspaceDatabase(db => { const { account } = clientScope(db, token, requestId); assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db); });
 }
-export function submitTaxDocument(token: string | undefined, requestId: string, name: string, bytes: Buffer): ClientTaxDocument {
+export function submitTaxDocument(token: string | undefined, requestId: string, name: string, bytes: Buffer, staff?: { user: WorkspaceUser; clientId: string }): ClientTaxDocument {
   uuid.parse(requestId);
   if (!bytes.length || bytes.length > MAX_TAX_DOCUMENT_BYTES) throw new TaxDocumentError(413, "Each document must be between 1 byte and 10 MB.");
   const mime = mimeFor(bytes), digest = createHash("sha256").update(bytes).digest("hex");
@@ -81,7 +83,11 @@ export function submitTaxDocument(token: string | undefined, requestId: string, 
   prepare(); let owned: string | undefined;
   try {
     return workspaceDatabase(db => {
-      const { account, parent } = clientScope(db, token, requestId);
+      const { account, parent } = staff ? (() => {
+        modulesVisible(); assertTaxClientAccess(db,staff.clientId,staff.user,true);
+        const linked=linkedRequest(db,requestId,staff.clientId,false);
+        return {account:{id:`staff:${staff.user.id}:${staff.clientId}`,clientId:staff.clientId},parent:linked.parent};
+      })() : clientScope(db, token, requestId);
       assertPlaintextTaxAllowed({ accountId: account.id, clientId: account.clientId }, db);
       init(db);
       const prior = db.prepare("SELECT * FROM tax_client_documents WHERE accountId=? AND requestId=? AND digest=?").get(account.id, requestId, digest) as TaxDocument | undefined;
@@ -135,29 +141,31 @@ export function clientTaxDocument(token: string | undefined, id: string) {
   });
 }
 /** Staff routes must enforce services-view/edit access before calling these functions. */
-export function staffTaxDocuments() {
+export function staffTaxDocuments(user?: WorkspaceUser) {
   prepare(); modulesVisible();
   return workspaceDatabase(db => {
     init(db);
     return (db.prepare("SELECT * FROM tax_client_documents ORDER BY createdAt DESC, id LIMIT 2000").all() as TaxDocument[]).flatMap(row => {
-      try { const { request, parent } = linkedRequest(db, row.requestId, row.clientId, false); return parent.id === row.engagementId ? [{ ...row, requestName: String(request.values.name ?? "Document request"), engagementName: String(parent.values.name ?? "Tax engagement") }] : []; }
+      try { if(user)assertTaxClientAccess(db,row.clientId,user); const { request, parent } = linkedRequest(db, row.requestId, row.clientId, false); return parent.id === row.engagementId ? [{ ...row, requestName: String(request.values.name ?? "Document request"), engagementName: String(parent.values.name ?? "Tax engagement") }] : []; }
       catch { return []; }
     });
   });
 }
-export function staffTaxDocument(id: string) {
+export function staffTaxDocument(id: string, user?: WorkspaceUser) {
   uuid.parse(id); prepare(); modulesVisible();
   return workspaceDatabase(db => {
     init(db); const row = db.prepare("SELECT * FROM tax_client_documents WHERE id=?").get(id) as TaxDocument | undefined;
     if (!row || linkedRequest(db, row.requestId, row.clientId, false).parent.id !== row.engagementId) throw unavailable();
+    if(user)assertTaxClientAccess(db,row.clientId,user);
     return bytesFor(row);
   });
 }
-export function reviewTaxDocument(id: string, status: string, actor: string) {
+export function reviewTaxDocument(id: string, status: string, actor: string, user?: WorkspaceUser) {
   uuid.parse(id); const next = z.enum(statuses).parse(status); prepare(); modulesVisible();
   workspaceDatabase(db => {
     init(db); const row = db.prepare("SELECT * FROM tax_client_documents WHERE id=?").get(id) as TaxDocument | undefined;
     if (!row || linkedRequest(db, row.requestId, row.clientId, false).parent.id !== row.engagementId) throw unavailable();
+    if(user)assertTaxClientAccess(db,row.clientId,user,true);
     const at = new Date().toISOString();
     db.prepare("UPDATE tax_client_documents SET status=?,reviewedAt=?,reviewedBy=? WHERE id=?").run(next, at, actor, id);
     db.prepare("INSERT INTO tax_document_reviews VALUES(?,?,?,?,?)").run(randomUUID(), id, next, actor, at);

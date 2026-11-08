@@ -31,6 +31,43 @@ prove independent provider verification. Drake is optional and external.
 Existing AI assistant/provider integrations remain optional and separately
 configured; installing this pack does not send taxpayer records to a model.
 
+## Controlled office work
+
+**Tax work** at `/tax-office` connects real service clients, separate client books,
+document requests, staff uploads/reviews and a reviewed filing handoff. The owner
+creates an engagement, selects its tax year and assigns an accountant. Assignment
+and book grants control staff client access; section permission remains required.
+These grants cover that client's records across engagements. To remove all
+client access, revoke every active assignment and the staff member's book grants.
+The tax document inbox and driver records are available in the same navigation.
+
+Request client records, a prepared return, client authorization and external
+filing evidence using the purpose selector. Staff can upload an office copy of a
+PDF/JPEG/PNG; invited clients can upload through explicitly shared requests.
+Office copies remain internal. Review received documents or request replacements.
+Source requests can be waived with a recorded reason. Review readiness comes from
+the actual uploads and waivers, rather than an editable tracker status.
+
+Move completed work to accountant review, select the reviewed return and client
+authorization, then approve the exact package. The exported ZIP contains its
+manifest, applicable reviewed source records, the selected return and authorization.
+Changes to source records, return documents or financial data invalidate approval.
+Authorization evidence remains bound to the package it originally authorized;
+corrected work needs fresh evidence. This is staff-reviewed uploaded evidence,
+not an identity-verified electronic signature service.
+
+Shuug does not transmit the package. Use the firm's approved external filing
+software, then upload and review its submission/acknowledgment evidence. Record a
+sent attempt first, and associate acceptance or rejection with that exact attempt.
+These outcomes are visibly attributed to staff-recorded external evidence.
+Correction creates a new reviewed package and a distinct submission attempt;
+the previous outcome and review history are retained.
+
+Clients enrolled in the offhost encrypted vault remain blocked from this legacy
+host-readable workflow. Complete encrypted staff views, recovery and migration
+before using those enrolled clients here; do not disable their protection to
+make an office pilot work. Initial acceptance uses disposable synthetic data.
+
 ## Invited client accounts
 
 Use Shuug's existing **Customer website access** setup at `/setup/customers`.

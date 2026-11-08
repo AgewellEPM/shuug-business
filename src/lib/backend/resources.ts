@@ -29,6 +29,8 @@ import { summarizeVault } from "@/lib/documents/model";
 import { loadAutomation } from "@/lib/automation/load";
 import { appModules } from "@/lib/sdk/registry";
 import { listRecords } from "@/lib/sdk/records";
+import { requireIdentity } from "@/lib/auth/identity";
+import { isTaxModule, moduleRecordsForUser } from "@/lib/tax-office/module-access";
 import { loadLedger } from "@/lib/accounting/ledger-load";
 import { loadTimeClock } from "@/lib/timeclock/load";
 import { scheduleView } from "../timeclock/schedule";
@@ -65,7 +67,7 @@ export function businessHandlers(): Record<string, Handler> {
     moduleHandlers[`m/${m.id}`] = {
       section: m.section,
       load: async () => {
-        const records = listRecords(m.id);
+        const records = isTaxModule(m.id) ? moduleRecordsForUser(m.id, await requireIdentity()) : listRecords(m.id);
         return {
           module: { id: m.id, label: m.label, version: m.version },
           count: records.filter((r) => !r.archived).length,

@@ -7,6 +7,8 @@ import { driverRecord, DriverError, type DriverRecord } from "../rideshare-drive
 import { initDriver } from "../rideshare-driver/store";
 import { workspaceDatabase } from "../workspace/database";
 import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
+import { filterTaxClientRows } from "../tax-office/access";
+import type { WorkspaceUser } from "../auth/identity";
 import { readReputation } from "../driver-reputation/store";
 import { isReputationQuestion, reputationAnswer } from "../driver-reputation/guide";
 import { analyzeCoach, coachMilestones } from "./analysis";
@@ -134,12 +136,13 @@ export async function updateCoach(token: string | undefined, raw: unknown): Prom
   return result;
 }
 /** Staff callers must require BOTH Money-view and Services-view before using this projection. */
-export function staffCoachThreads() {
+export function staffCoachThreads(user?:WorkspaceUser) {
   if (!driverAvailable()) throw new DriverError(404, "Driver coaching is unavailable.");
   const accounts = listCustomerAccounts().filter(row => row.status === "active" && row.clientId);
   return workspaceDatabase(db => {
     initCoach(db);
-    return accounts.flatMap(account => {
+    const visible=user?filterTaxClientRows(db,accounts,user,account=>account.clientId??undefined):accounts;
+    return visible.flatMap(account => {
       const client = db.prepare("SELECT body FROM records WHERE id=? AND kind='client'").get(account.clientId!) as { body: string } | undefined;
       if (!client || ["inactive", "archived", "cancelled"].includes(JSON.parse(client.body).status)) return [];
       const scoped = { id: account.id, clientId: account.clientId! }, history = messages(db, scoped);

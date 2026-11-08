@@ -5,6 +5,8 @@ import { driverAccount, driverAvailable } from "../rideshare-driver/policy";
 import { DriverError } from "../rideshare-driver/model";
 import { listCustomerAccounts } from "../customer-access/accounts";
 import { ratingSchema, reputationMutation, reviewSchema, type ReputationState } from "./model";
+import { filterTaxClientRows } from "../tax-office/access";
+import type { WorkspaceUser } from "../auth/identity";
 
 type Scope = { id: string; clientId: string };
 const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -62,12 +64,13 @@ export function updateReputation(token: string | undefined, raw: unknown): Reput
   }, true);
 }
 /** Staff route must enforce Services-view before calling this account-scoped projection. */
-export function staffReputation() {
+export function staffReputation(user?:WorkspaceUser) {
   if (!driverAvailable()) throw new DriverError(404, "Driver reputation is unavailable.");
   const accounts = listCustomerAccounts().filter(row => row.status === "active" && row.clientId);
   return workspaceDatabase(db => {
     initReputation(db);
-    return accounts.flatMap(account => {
+    const visible=user?filterTaxClientRows(db,accounts,user,account=>account.clientId??undefined):accounts;
+    return visible.flatMap(account => {
       const client = db.prepare("SELECT body FROM records WHERE id=? AND kind='client'").get(account.clientId!) as { body: string } | undefined;
       if (!client || ["inactive", "archived", "cancelled"].includes(JSON.parse(client.body).status)) return [];
       const data = state(db, { id: account.id, clientId: account.clientId! });

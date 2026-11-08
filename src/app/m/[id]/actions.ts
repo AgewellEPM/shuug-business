@@ -4,6 +4,8 @@ import { revalidatePath } from "next/cache";
 import { moduleById } from "@/lib/sdk/registry";
 import { addRecord, updateRecord, setArchived, removeRecord } from "@/lib/sdk/records";
 import { requireSectionAccess } from "@/lib/permissions/guard";
+import { requireIdentity } from "@/lib/auth/identity";
+import { withTaxModuleMutation } from "@/lib/tax-office/module-access";
 
 export interface ActionResult { ok: boolean; error?: string; id?: string }
 
@@ -18,7 +20,7 @@ async function gate(moduleId: string) {
 export async function addRecordAction(moduleId: string, values: Record<string, unknown>): Promise<ActionResult> {
   try {
     const m = await gate(moduleId);
-    const r = addRecord(moduleId, m.fields, values);
+    const r = withTaxModuleMutation(moduleId, await requireIdentity(), { values }, () => addRecord(moduleId, m.fields, values));
     revalidatePath(`/m/${moduleId}`);
     return { ok: true, id: r.id };
   } catch (e) { return fail(e); }
@@ -27,19 +29,19 @@ export async function addRecordAction(moduleId: string, values: Record<string, u
 export async function updateRecordAction(moduleId: string, id: string, values: Record<string, unknown>): Promise<ActionResult> {
   try {
     const m = await gate(moduleId);
-    updateRecord(moduleId, id, m.fields, values);
+    withTaxModuleMutation(moduleId, await requireIdentity(), { id, values }, () => updateRecord(moduleId, id, m.fields, values));
     revalidatePath(`/m/${moduleId}`);
     return { ok: true, id };
   } catch (e) { return fail(e); }
 }
 
 export async function archiveRecordAction(moduleId: string, id: string, archived: boolean): Promise<ActionResult> {
-  try { await gate(moduleId); setArchived(moduleId, id, archived); revalidatePath(`/m/${moduleId}`); return { ok: true, id }; }
+  try { await gate(moduleId); withTaxModuleMutation(moduleId, await requireIdentity(), { id }, () => setArchived(moduleId, id, archived)); revalidatePath(`/m/${moduleId}`); return { ok: true, id }; }
   catch (e) { return fail(e); }
 }
 
 export async function removeRecordAction(moduleId: string, id: string): Promise<ActionResult> {
-  try { await gate(moduleId); removeRecord(moduleId, id); revalidatePath(`/m/${moduleId}`); return { ok: true, id }; }
+  try { await gate(moduleId); withTaxModuleMutation(moduleId, await requireIdentity(), { id }, () => removeRecord(moduleId, id)); revalidatePath(`/m/${moduleId}`); return { ok: true, id }; }
   catch (e) { return fail(e); }
 }
 

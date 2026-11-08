@@ -16,6 +16,10 @@ import { POST as login } from "@/app/api/website/customer/driver/session/route";
 import { POST, GET } from "@/app/api/website/customer/driver/records/route";
 import { PUT as upload } from "@/app/api/website/customer/driver/receipts/[id]/route";
 import { sectionForPath } from "../permissions/model";
+import { workspaceDatabase } from "../workspace/database";
+import type { WorkspaceUser } from "../auth/identity";
+import { updateCoach, staffCoachThreads } from "../driver-coach/store";
+import { updateReputation, staffReputation } from "../driver-reputation/store";
 
 let directory: string;
 let alpha: { id: string; token: string; clientId: string };
@@ -129,6 +133,34 @@ it("keeps receipts private and immutable, requires an uploaded receipt for an ex
   saveDriverRecord(alpha.token, { mutationId: randomUUID(), record: expense });
   expect(staffDriverReceipt(alpha.id, id).bytes).toEqual(bytes);
   expect(() => saveDriverReceipt(alpha.token, randomUUID(), Buffer.from("<html>bad</html>"))).toThrow("JPEG");
+});
+it("limits staff journal and receipt reads to current client grants and blocks enrolled legacy data", () => {
+  const staff:WorkspaceUser={id:randomUUID(),memberId:"synthetic-reviewer",name:"Reviewer",email:"",role:"Manager",isOwner:false};
+  const id=randomUUID(),bytes=Buffer.from("ffd8ffe000104a4649460001","hex"),bookId=randomUUID();
+  saveDriverReceipt(alpha.token,id,bytes);
+  saveDriverRecord(alpha.token,{mutationId:randomUUID(),record:{id:randomUUID(),revision:0,deleted:false,kind:"expense",body:{date:"2026-11-04",merchant:"Scoped receipt",category:"fuel",amountCents:4235,currency:"USD",classification:"business",notes:"",receiptId:id}}});
+  saveDriverRecord(beta.token,mutation());
+  expect(staffDriverRecords(undefined,staff)).toEqual([]);
+  expect(()=>staffDriverReceipt(alpha.id,id,staff)).toThrow(/not assigned/);
+  const grant=(enabled:boolean)=>workspaceDatabase(db=>db.prepare("INSERT INTO documents VALUES(?,'client-book',?) ON CONFLICT(id) DO UPDATE SET body=excluded.body").run(`client-book:${bookId}`,JSON.stringify({id:bookId,clientId:alpha.clientId,grants:enabled?[{accountId:staff.id,level:"view"}]:[]})),true);
+  grant(true);
+  expect(staffDriverRecords(undefined,staff)).toMatchObject([{clientId:alpha.clientId}]);expect(staffDriverReceipt(alpha.id,id,staff).bytes).toEqual(bytes);
+  grant(false);expect(staffDriverRecords(undefined,staff)).toEqual([]);expect(()=>staffDriverReceipt(alpha.id,id,staff)).toThrow(/not assigned/);
+  grant(true);workspaceDatabase(db=>{db.exec("CREATE TABLE secure_tax_enrollments(accountId TEXT,clientId TEXT,status TEXT)");db.prepare("INSERT INTO secure_tax_enrollments VALUES(?,?,'active')").run(alpha.id,alpha.clientId);},true);
+  expect(staffDriverRecords(undefined,staff)).toEqual([]);expect(()=>staffDriverReceipt(alpha.id,id,staff)).toThrow(/encrypted tax vault/);
+});
+it("applies the same assignment and enrollment boundary to linked coach and reputation views",async()=>{
+  const staff:WorkspaceUser={id:randomUUID(),memberId:"synthetic-reviewer",name:"Reviewer",email:"",role:"Manager",isOwner:false},bookId=randomUUID();
+  for(const account of [alpha,beta]) {
+    await updateCoach(account.token,{action:"intake",mutationId:randomUUID(),confirmed:true,answers:{taxYear:2026},from:"2026-11-01",through:"2026-11-30"});
+    updateReputation(account.token,{action:"addReview",mutationId:randomUUID(),review:{id:randomUUID(),platformID:"uber",platformName:"Uber",recordedAt:"2026-11-07T03:00:00Z",text:`Synthetic ${account.id} note`,sentiment:"mixed",topics:["accuracy"],deleted:false}});
+  }
+  expect(staffCoachThreads(staff)).toEqual([]);expect(staffReputation(staff)).toEqual([]);
+  const grant=(enabled:boolean)=>workspaceDatabase(db=>db.prepare("INSERT INTO documents VALUES(?,'client-book',?) ON CONFLICT(id) DO UPDATE SET body=excluded.body").run(`client-book:${bookId}`,JSON.stringify({id:bookId,clientId:alpha.clientId,grants:enabled?[{accountId:staff.id,level:"view"}]:[]})),true);
+  grant(true);expect(staffCoachThreads(staff).map(row=>row.accountId)).toEqual([alpha.id]);expect(staffReputation(staff).map(row=>row.accountId)).toEqual([alpha.id]);
+  grant(false);expect(staffCoachThreads(staff)).toEqual([]);expect(staffReputation(staff)).toEqual([]);
+  grant(true);workspaceDatabase(db=>{db.exec("CREATE TABLE secure_tax_enrollments(accountId TEXT,clientId TEXT,status TEXT)");db.prepare("INSERT INTO secure_tax_enrollments VALUES(?,?,'active')").run(alpha.id,alpha.clientId);},true);
+  expect(staffCoachThreads(staff)).toEqual([]);expect(staffReputation(staff)).toEqual([]);
 });
 it("restores a missing or corrupted receipt on an identical upload retry without accepting different bytes", () => {
   const id = randomUUID(), bytes = Buffer.from("ffd8ffe000104a4649460001", "hex");

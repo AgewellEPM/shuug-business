@@ -21,7 +21,7 @@ export const packs = [
   { id: "auto_repair", label: "Vehicles & auto repair", tools: [], profiles: ["service"] },
   { id: "restaurant", label: "Restaurant operations", tools: ["restaurant", "restaurant-orders", "restaurant-online", "restaurant-booking-rules", "restaurant-analysis"], profiles: ["product"] },
   { id: "childcare", label: "Childcare, classes & lessons", tools: ["childcare", "assessments"], profiles: ["service"] },
-  { id: "tax_firm", label: "Tax firm operations", tools: ["module:tax-engagements", "module:tax-document-requests", "module:tax-filing-handoffs"], profiles: ["service"] },
+  { id: "tax_firm", label: "Tax firm operations", tools: ["tax-office", "module:tax-engagements", "module:tax-document-requests", "module:tax-filing-handoffs"], profiles: ["service"] },
   { id: "rideshare_tax", label: "Rideshare & gig worker tax records", tools: ["module:rideshare-tax-records"], profiles: ["service"] },
   { id: "quarterly_tax", label: "Quarterly tax review tracking", tools: ["module:tax-quarterly-reviews"], profiles: ["service"] },
 ] as const;

@@ -5,15 +5,18 @@ import { driverAvailable } from "@/lib/rideshare-driver/policy";
 import { staffDriverRecords } from "@/lib/rideshare-driver/store";
 import { expenseCategoryLabels } from "@/lib/rideshare-driver/model";
 import { listBusinessRecords } from "@/lib/workspace/store";
+import { requireIdentity } from "@/lib/auth/identity";
+import { taxClientsForUser } from "@/lib/tax-office/access";
 
 export const dynamic = "force-dynamic";
 const usd = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
 export default async function DriverJournal({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
   await requireSectionAccess("money", "view");
   if (!driverAvailable()) notFound();
-  const filter = (await searchParams).client, clients = listBusinessRecords(["client"]);
+  const user=await requireIdentity();
+  const filter = (await searchParams).client, clients = taxClientsForUser(listBusinessRecords(["client"]),user);
   if (filter && !clients.some(c => c.id === filter)) notFound();
-  const rows = staffDriverRecords(filter);
+  const rows = staffDriverRecords(filter,user);
   const totals = rows.reduce((sum, { record }) => {
     if (record.kind === "trip" && record.body.classification === "business") sum.meters += record.body.distanceMeters;
     if (record.kind === "expense") sum.expenses += record.body.amountCents;

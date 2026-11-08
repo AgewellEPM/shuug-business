@@ -22,7 +22,7 @@ import { sectionForPath } from "../permissions/model";
 import type { ModuleRecord } from "../sdk/types";
 
 vi.mock("../permissions/guard", () => ({ requireSectionAccess: vi.fn() }));
-vi.mock("../auth/identity", () => ({ requireIdentity: vi.fn(async () => ({ id: "synthetic-staff" })) }));
+vi.mock("../auth/identity", () => ({ requireIdentity: vi.fn(async () => ({ id: "synthetic-staff",isOwner:true,role:"Owner",name:"Synthetic owner",email:"",memberId:"owner" })) }));
 let directory: string;
 let alpha: { id: string; clientId: string; token: string };
 let beta: typeof alpha;

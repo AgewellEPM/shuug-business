@@ -13,12 +13,13 @@ export const dynamic = "force-dynamic";
 async function review(form: FormData) {
   "use server";
   await requireSectionAccess("services", "edit");
-  reviewTaxDocument(String(form.get("id")), String(form.get("status")), (await requireIdentity()).id);
+  const user=await requireIdentity(); reviewTaxDocument(String(form.get("id")), String(form.get("status")), user.id, user);
   revalidatePath("/tax-documents");
 }
 export default async function TaxDocumentInbox() {
   await requireSectionAccess("services", "view");
-  const documents = (() => { try { return staffTaxDocuments(); } catch { notFound(); } })(), clients = listBusinessRecords(["client"]);
+  const user=await requireIdentity();
+  const documents = (() => { try { return staffTaxDocuments(user); } catch { notFound(); } })(), clients = listBusinessRecords(["client"]);
   const canReview = can(getMatrix(), await getActiveRole(), "services", "edit");
   return <div className="space-y-6">
     <header><p className="dd-eyebrow">Private client submissions</p><h1 className="text-2xl font-bold">Tax documents</h1><p className="mt-2 text-sm text-slate-600">Files clients sent for explicitly shared document requests. Receipt confirms storage; review status is entered by staff and does not confirm filing or acceptance of a return.</p></header>

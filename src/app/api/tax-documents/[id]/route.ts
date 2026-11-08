@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ id: string }> };
 export async function GET(_request: Request, context: Context) {
-  try { await requireSectionAccess("services", "view"); return taxDocumentResponse(staffTaxDocument((await context.params).id)); }
+  try { await requireSectionAccess("services", "view"); return taxDocumentResponse(staffTaxDocument((await context.params).id, await requireIdentity())); }
   catch { return new Response("Document unavailable.", { status: 404, headers: privateHeaders }); }
 }
 export async function POST(request: Request, context: Context) {
@@ -17,7 +17,7 @@ export async function POST(request: Request, context: Context) {
   try {
     if (request.headers.get("content-type")?.split(";")[0].trim() !== "application/json") throw new Error("JSON required");
     const input = z.object({ status: z.enum(["received", "reviewed", "replacement_requested"]) }).strict().parse(JSON.parse((await boundedBytes(request, 2048)).toString("utf8")));
-    reviewTaxDocument((await context.params).id, input.status, (await requireIdentity()).id);
+    const user=await requireIdentity(); reviewTaxDocument((await context.params).id, input.status, user.id, user);
     return Response.json({ ok: true, status: input.status }, { headers: privateHeaders });
   } catch { return Response.json({ error: "Document review could not be recorded." }, { status: 400, headers: privateHeaders }); }
 }

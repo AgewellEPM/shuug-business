@@ -33,6 +33,7 @@ export const taxFirmModules = [
   module("tax-document-requests", "Tax document requests", ["tax_firm"], [
     text("name", "Requested document", true), text("engagement_id", "Tax engagement record ID", true), client,
     choice("status", "Request status", ["Requested", "Received externally", "Staff reviewed", "Needs replacement", "Not applicable"]),
+    field("purpose", "Document purpose", "select", false, ["Client records", "Prepared return", "Client authorization", "Filing acknowledgment"]),
     date("due", "Requested by"), text("reviewer", "Reviewed by"), text("secure_reference", "Private document vault reference"), notes, ...clientSharing,
   ], "Track requests and human review of documents held in your approved private vault. This record stores references, not uploaded tax documents or extracted taxpayer data."),
   module("tax-filing-handoffs", "External filing handoffs", ["tax_firm"], [

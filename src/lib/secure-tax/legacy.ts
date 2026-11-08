@@ -22,6 +22,7 @@ export function legacySecureTaxData(db: DatabaseSync, account: { id: string; cli
     uberSourceFacts: count("gig_uber_facts", "SELECT count(*) AS n FROM gig_uber_facts WHERE accountId=? OR clientId=?", account.id, account.clientId),
     uberAuthorizationStates: count("gig_uber_states", "SELECT count(*) AS n FROM gig_uber_states WHERE accountId=? OR clientId=?", account.id, account.clientId),
     sdkTaxRecords: 0,
+    taxOfficeWorkflows: count("documents", "SELECT count(*) AS n FROM documents WHERE kind='tax-workflow' AND json_extract(body,'$.clientId')=?", account.clientId),
     clientBooks: 0,
     clientBookJournals: 0,
     clientBookBilling: 0,

@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 import { requireSectionAccess } from "@/lib/permissions/guard";
 import { staffReputation } from "@/lib/driver-reputation/store";
 import { reputationGuide } from "@/lib/driver-reputation/guide";
+import { requireIdentity } from "@/lib/auth/identity";
 
 export const dynamic = "force-dynamic";
 export default async function ReputationReview() {
   await requireSectionAccess("services", "view");
-  const accounts = (() => { try { return staffReputation(); } catch { notFound(); } })();
+  const user=await requireIdentity();
+  const accounts = (() => { try { return staffReputation(user); } catch { notFound(); } })();
   return <div className="space-y-6"><h1 className="text-2xl font-bold">Client ratings &amp; personal reviews</h1>
     <p>Client-entered measurements and notes, shared through their existing account. These are not verified provider scores or predictions.</p>
     <Link className="underline" href="/rideshare">Driver records</Link>

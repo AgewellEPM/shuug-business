@@ -7,6 +7,8 @@ import { driverAccount } from "./policy";
 import { driverId, DriverError } from "./model";
 import { initDriver } from "./store";
 import { assertPlaintextTaxAllowed } from "../secure-tax/policy";
+import { assertTaxClientAccess } from "../tax-office/access";
+import type { WorkspaceUser } from "../auth/identity";
 
 export const MAX_RECEIPT_BYTES = 5 * 1024 * 1024;
 type Receipt = { id: string; accountId: string; mime: string; size: number; digest: string; createdAt: string };
@@ -69,12 +71,13 @@ export function driverReceipt(token: string | undefined, rawId: string) {
   return workspaceDatabase(db => { const account = driverAccount(db, token); initDriver(db); return receiptBytes(db.prepare("SELECT * FROM driver_receipts WHERE accountId=? AND id=?").get(account.id, id) as Receipt | undefined); });
 }
 /** Call after authenticated staff Money access and module visibility checks. */
-export function staffDriverReceipt(rawAccount: string, rawId: string) {
+export function staffDriverReceipt(rawAccount: string, rawId: string, user?: WorkspaceUser) {
   const account = driverId.parse(rawAccount), id = driverId.parse(rawId);
   return workspaceDatabase(db => {
     initDriver(db);
-    const linked = db.prepare("SELECT 1 FROM driver_records WHERE accountId=? AND json_extract(body,'$.kind')='expense' AND json_extract(body,'$.deleted')=0 AND json_extract(body,'$.body.receiptId')=?").get(account, id);
+    const linked = db.prepare("SELECT clientId FROM driver_records WHERE accountId=? AND json_extract(body,'$.kind')='expense' AND json_extract(body,'$.deleted')=0 AND json_extract(body,'$.body.receiptId')=?").get(account, id) as {clientId:string}|undefined;
     if (!linked) throw new DriverError(404, "Receipt unavailable.");
+    if(user)assertTaxClientAccess(db,linked.clientId,user);
     return receiptBytes(db.prepare("SELECT * FROM driver_receipts WHERE accountId=? AND id=?").get(account, id) as Receipt | undefined);
   });
 }
