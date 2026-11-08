@@ -1,0 +1,133 @@
+{
+  "verifiedAt": "2026-11-08T02:19:24.141988+00:00",
+  "sourceCommit": "01cca817899fc6b0f810e758d79b99ab4d53f394",
+  "productionBuildId": "7-XcWfF-r8G7B-GGorOZM",
+  "sourceSha256": {
+    "scripts/mfa-http-check.ts": "4b5484220f16664cc488e5552adc482cf4776b1742345f5ada20cb8826128d29",
+    "scripts/office-workflow-http-check.ts": "3b22ade8d45a56f9d31c672eb63eaa38d6facbd816e1a80de565421a340f048d",
+    "src/app/api/rideshare/receipts/[account]/[id]/route.ts": "dfde94ae9395d2b981119c49272ed0abdc2d101b7f8da1883b207836654931b2",
+    "src/app/api/tax-documents/[id]/route.ts": "c39177a61e44f968377b6e775a786c5c59364ecc2b174e0847ef0b6b7637a754",
+    "src/app/api/tax-office/[id]/documents/route.ts": "4727f8e5953f4d2ef6a1c5846e51a966ecac001fe8cbca9c90ffaecf68c737b2",
+    "src/app/api/tax-office/[id]/package/route.ts": "7f816a35fa765bc0a3491911e9141ebb20b2400efdb8f3f68f4ee2c7bdc2ea10",
+    "src/app/api/tax-office/route.ts": "4e047a969682dcd1d293be1400bab8657341a5466ab2200b7ba3d521e262b527",
+    "src/app/m/[id]/actions.ts": "a4a9a044f24155df23aba32fc55238f64c0fc2df65040599d9a332557c6d272e",
+    "src/app/m/[id]/page.tsx": "fa2422349883a8b7d83b7b8740c6bd6b0e4c6a4273ed1770f69ab00ef1a215e4",
+    "src/app/rideshare/coach/page.tsx": "5d8548a52498a3c883488c4ee4d513ae803febb30b6111fdde96952a024e0b54",
+    "src/app/rideshare/page.tsx": "28f3ec3547f3980578bd1b2e8074aa9724b74706bf95b631b33462ed182c2544",
+    "src/app/rideshare/reputation/page.tsx": "274756388bf9d5e0de1d593ae7e4eb343eb5891485a5ac495dbf3996f0240709",
+    "src/app/tax-documents/page.tsx": "86558c6f24a55b6f356fbf8e77e275b90d0b2a60a59c0a4ae8cfc07e16d04640",
+    "src/app/tax-office/page.tsx": "6c0e5f11c8405762e3656757ed8d9c24c79aff378dcd44f6d0159c3ea456d034",
+    "src/components/TaxOfficeWorkspace.tsx": "7902e5c82ba5d93fb4dcce83f05beaf95e5ab93bfe3c08fbee47ed2ebbeb4298",
+    "src/lib/backend/resources.ts": "75b878ec1b4e0c06c3120df07bcedff27703a8704a13304645222adb77a09671",
+    "src/lib/customer-access/tax-documents.ts": "66745cf23b880ce2684b470ac6e681da6f237286c4bc270ccd1d06c20141debb",
+    "src/lib/driver-coach/store.ts": "378f2e7f9e1f3c3bd41c8a2dab7f6d85bc34a9860289e904720e64b1a14c86dc",
+    "src/lib/driver-reputation/store.ts": "3440554d83cb17ef9a115843ac7808db538500a58b7fdad576c863690246a7d7",
+    "src/lib/industry/catalog.ts": "b3c5d0b36ba2743fcf5eabf9fdc94d41dd08e306483a51c9c0c83afcf51199c6",
+    "src/lib/navigation/catalog.ts": "12cf15747af91d3849406d71513bfe7db8880d6f7e56677c0c04a65db382e6c6",
+    "src/lib/permissions/model.ts": "22d87db81dd3ac1ca33160fd3a59a50040ae9aad56233d7fd1d5556f884cdd01",
+    "src/lib/rideshare-driver/receipts.ts": "3c1e4c2d3b028d9324b46b6aadc040ceb6c26047a45b069e02f69bb4f5505daf",
+    "src/lib/rideshare-driver/store.ts": "d32ac7b8fa9c3218c2166223f3f7341b76a17772c8992cfa49c8030417127e4e",
+    "src/lib/sdk/records.ts": "8608021916179498be4d235866f1bb46f8ecde24788e9343e15e1a8a3cf722c1",
+    "src/lib/secure-tax/legacy.ts": "d4a0d36169b66459e1de17aabbf4afd801589d001fb762365ca04c0ce92f1388",
+    "src/lib/tax-office/access.ts": "4a8162cf1bd2ebca45646da73235c59b603e4e233f5495a9b696977186f68a9e",
+    "src/lib/tax-office/model.ts": "f2640328942de0f0cd1e505c6d085f9c2ec7fae6690ef909b424971605b80761",
+    "src/lib/tax-office/module-access.ts": "b08a91d31e9bc447b7e3b16c8d81dda4ad4c2420025dcd2d129c5ff3c372f2ac",
+    "src/lib/tax-office/service.ts": "f26d16c3b1f42aa31dc3ea6e5fd9f946c543dfe627cdc0dbe4a7bf3be71c2983",
+    "src/lib/tax-office/zip.ts": "104fbaeb745b956aad08015e7aad805a34a6fe30132b666f0124d6a2401eb1b8",
+    "src/modules/tax-firm.ts": "54e2f0906388193e60ab2d09872f6078b17c77fba87e3f45e1664572aec2106a"
+  },
+  "sourceBranch": "feat/shuug-free-tax-service-20261107",
+  "integrationCommit": "d217ef959cad4a08659de0ab46f0e3d377e93bfa",
+  "productionBuildPassed": true,
+  "buildUsedDisposableData": true,
+  "unitVerificationGroups": [
+    {
+      "name": "office/accounting/MFA/access/recovery",
+      "files": 27,
+      "passed": 174
+    },
+    {
+      "name": "linked staff projections and backend",
+      "files": 5,
+      "passed": 47
+    },
+    {
+      "name": "rendering repair",
+      "files": 1,
+      "passed": 9
+    }
+  ],
+  "unitGroupsOverlap": true,
+  "clientFormDomTests": {
+    "passed": 3,
+    "file": "src/components/TaxOfficeWorkspace.test.tsx",
+    "selectedAttemptAndOwnerReassignmentVerified": true,
+    "browserRuntimeUsed": false
+  },
+  "compiledHttp": {
+    "ok": true,
+    "checks": 32,
+    "mappedAccounting": {
+      "checks": 15,
+      "coverage": [
+        "custom-bank cash summary",
+        "mapped import without posting",
+        "reviewed posting and exact reconciliation",
+        "duplicate/overlap rejection",
+        "CSV export",
+        "period close and backdate denial",
+        "office/client isolation",
+        "MFA-authenticated staff grants and immediate revocation"
+      ]
+    },
+    "officeWorkflow": {
+      "checks": 94,
+      "efileTransmitted": false,
+      "acknowledgmentAttribution": "staff_recorded_external_evidence",
+      "coverage": [
+        "compiled tax-office screen",
+        "client intake and request waivers",
+        "staff upload/download/review",
+        "wrong-client and read-only denial",
+        "reviewed ZIP handoff",
+        "return-version authorization invalidation",
+        "staff-recorded external sent/rejected/corrected/accepted history",
+        "document/book changes invalidate approval",
+        "immediate client grant and assignment revocation",
+        "generic tracker/API assignment filtering"
+      ]
+    },
+    "cleanRestore": {
+      "files": 15,
+      "officeStatePreserved": true,
+      "documentBytesPreserved": true,
+      "clientBooksPreserved": true,
+      "mfaSessionsPreserved": true
+    },
+    "buildId": "7-XcWfF-r8G7B-GGorOZM",
+    "syntheticWorkspace": true,
+    "covered": [
+      "owner enrollment and protected route",
+      "CSRF/origin denial",
+      "challenge replay rejection",
+      "staff enrollment and least privilege",
+      "native client MFA API",
+      "portal MFA and recovery revocation",
+      "persistent grants across clean restore and server restart",
+      "WordPress relay MFA API",
+      "independent browser origin and audience separation"
+    ],
+    "totalChecks": 141
+  },
+  "standardLibraryZipReaderPassed": true,
+  "ownedServersStopped": true,
+  "temporaryFixturesRemoved": true,
+  "originalOfficeSourcePreserved": true,
+  "installedServiceChanged": false,
+  "realTaxpayerDataUsed": false,
+  "realFilingPerformed": false,
+  "publicWebsiteChanged": false,
+  "visualAcceptanceObtained": false,
+  "independentSecurityReviewPerformed": false,
+  "readiness": "Compiled synthetic office pilot; real office rollout and encrypted staff workflow remain unfinished."
+}
