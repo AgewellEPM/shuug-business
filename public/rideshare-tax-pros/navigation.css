@@ -7,7 +7,7 @@
 .public-header .brand-symbol { flex: 0 0 4.1cqw; height: 4.1cqw; }
 .public-header .brand small { font-size: .68cqw; letter-spacing: .2cqw; margin-top: .25cqw; }
 .public-header .brand sup { font-size: .6cqw; }
-.public-primary { display: flex; align-items: center; justify-content: space-between; gap: .7cqw; min-width: 0; }
+.public-primary { display: flex; align-items: center; justify-content: center; gap: 1.2cqw; min-width: 0; }
 .public-nav-link { position: relative; display: flex; align-items: center; justify-content: center; gap: .3cqw; min-height: 44px; padding: .4cqw .2cqw; border: 1px solid transparent; border-radius: 8px; font-weight: 700; font-size: 1.23cqw; white-space: nowrap; text-decoration: none; }
 .public-nav-link[aria-current="page"]::after { content: ""; position: absolute; left: 5%; right: 5%; bottom: 0; height: 2px; border-radius: 100%; background: #f82cec; box-shadow: 0 0 8px #f82cec, 0 0 16px #d310ec; }
 .public-services { position: relative; }
