@@ -37,3 +37,12 @@ Validation:
 
 The existing unrelated untracked How It Works HTTP receipt was preserved.
 Private sales/backend records and payment configuration were not modified.
+
+Published source: `009a56aacd7f02ab2f4bea79f9e82b581769c534`, verified on GitHub
+branch `feat/gig-tax-pros-sales-integrated`.
+Production deployment `dpl_B65t5RhipmQguPEZhKCc9sMVHdPo` is Ready, aliased to
+https://gigtax.pro. All 84 public HTTP file/route checks pass and the www Services
+HTML is byte-identical to the saved build. Receipt:
+`gigtax-native-text-http-20261107.json`. Safari was opened on the normal desktop
+at https://gigtax.pro/services and left open for Luke. The local test HTTP server
+and owned WebKit audit processes exited; no VM or isolated desktop was used.
