@@ -38,8 +38,7 @@ import UserNotificationsUI
     mark.widthAnchor.constraint(equalToConstant: 42).isActive = true
     mark.heightAnchor.constraint(equalToConstant: 42).isActive = true
     let name = label("Gig Tax Pros", style: .headline, color: .white)
-    let powered = label("POWERED BY SHUUG", style: .caption2, color: UIColor(Brand.link))
-    let names = UIStackView(arrangedSubviews: [name, powered]); names.axis = .vertical; names.spacing = 4
+    let names = UIStackView(arrangedSubviews: [name]); names.axis = .vertical
     let brand = UIStackView(arrangedSubviews: [mark, names]); brand.spacing = 12; brand.alignment = .center
     stack.addArrangedSubview(brand)
     let rule = NotificationGradientView(colors: [UIColor(Brand.purple), UIColor(Brand.pink)])

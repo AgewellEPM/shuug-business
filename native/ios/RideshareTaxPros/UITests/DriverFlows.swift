@@ -289,7 +289,7 @@ import XCTest
       }
       XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)
       XCTAssertTrue(springboard.descendants(matching: .any).matching(NSPredicate(
-        format: "label CONTAINS %@", "POWERED BY SHUUG")).firstMatch.waitForExistence(timeout: 10),
+        format: "label CONTAINS %@", "Review and respond when safely parked.")).firstMatch.waitForExistence(timeout: 10),
         "Expanded alert did not load the branded notification content.\n" + springboard.debugDescription)
       app.terminate()
       XCTAssertTrue(button.waitForExistence(timeout: 10), springboard.debugDescription)

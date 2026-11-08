@@ -54,8 +54,6 @@ struct BrandHeader: View {
         Text("Gig Tax Pros")
           .font(.custom("Arial-BoldMT", size: compact ? 20 : 22, relativeTo: .headline))
           .tracking(-0.6).lineLimit(1).minimumScaleFactor(0.7)
-        Text("POWERED BY SHUUG").font(.system(size: 9, weight: .medium))
-          .tracking(1.3).foregroundStyle(Brand.link)
       }
     }.foregroundStyle(.white).accessibilityElement(children: .combine)
   }
