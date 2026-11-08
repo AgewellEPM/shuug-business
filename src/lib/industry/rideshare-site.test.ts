@@ -44,6 +44,8 @@ it("connects the customer pages with valid internal links, unique headings and n
         else if(url.pathname !== '/') expect(manifest.aliases.includes(url.pathname.slice(1)) || existsSync(path.join(source,url.pathname.slice(1))),a.href).toBe(true);
       }
       expect(d.querySelectorAll('.mobile-action-bar a')).toHaveLength(2);
+      expect(d.querySelector('.mobile-action-bar .primary')!.getAttribute('href')).toBe('/get-the-app');
+      expect(d.querySelector('.mobile-action-bar .primary')!.textContent).toContain('Get The App');
     } finally { dom.window.close(); }
   }
 });
