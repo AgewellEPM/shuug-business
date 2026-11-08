@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T20:14:56.843Z",
+  "deployment": "dpl_5H37bhiFyQ3x4ch7Q1ApW2PmE4sC",
+  "movieSHA256": "bbf9518e89d11f9e603096d7e0ecc336e16a5010c0d78335dadc2306811cc6dc",
+  "movieSizeBytes": 18772265,
+  "checks": [
+    {
+      "origin": "https://gigtax.pro",
+      "homepageMatches": true
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "homepageMatches": true
+    },
+    {
+      "videoRangeStatus": 206,
+      "contentRange": "bytes 0-1023/18772265"
+    },
+    {
+      "captionContentType": "text/vtt; charset=utf-8",
+      "cues": 54
+    },
+    {
+      "posterMatches": true,
+      "chapterCount": 13,
+      "duration": 244.13333333333338
+    }
+  ],
+  "scope": "Live HTTP delivery, cache revision, byte ranges and captions. Human visual acceptance is separate."
+}
