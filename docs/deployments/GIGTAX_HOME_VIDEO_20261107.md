@@ -25,3 +25,8 @@ Validation: static build succeeds; all 11 website checks pass, including modal
 open/play/close/pause/focus, playback rejection and site-wide label checks.
 Every built HTML page is free of the old Client Portal phrase. Browser visual
 acceptance remains Luke's; live HTTP evidence is saved after publication.
+
+Published deployment `dpl_8SXS3TxS4nksq5u6LJeekCmhgG9R` is Ready. Both apex
+and www match the saved homepage. All 91 public HTTP checks pass, with exact
+asset bytes. Video range requests return HTTP206, captions use text/vtt, and
+the /tour/ fallback is live. Evidence: gigtax-home-video-live-20261107.json.
