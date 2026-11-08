@@ -1,0 +1,44 @@
+.tour-mobile-controls { display: none; }
+@media (max-width: 1023px) {
+  body { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .tour-mobile-controls { display: contents; }
+  .tour-mobile-controls .mobile-action-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 35;
+    gap: 10px;
+    padding: 12px max(16px, env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+    border-top: 1px solid #b264d84d;
+    background: #080811f5;
+    backdrop-filter: blur(16px);
+  }
+  .tour-mobile-controls .button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 50px;
+    padding: 12px 8px;
+    border: 0;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    gap: 8px;
+    text-align: center;
+    text-decoration: none;
+  }
+  .tour-mobile-controls .button.primary {
+    color: #06220d;
+    background: linear-gradient(110deg, #64ff37, #26e680);
+    box-shadow: 0 0 18px #49ff3740;
+  }
+  .tour-mobile-controls .button.secondary {
+    background: #080810;
+    border: 1px solid #c95ceb;
+  }
+}
