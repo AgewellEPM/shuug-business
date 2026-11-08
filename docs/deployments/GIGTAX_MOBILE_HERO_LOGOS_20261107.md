@@ -42,3 +42,11 @@ Local evidence: /private/tmp/gigtax-hero-desktop-before.json and
 /private/tmp/gigtax-hero-mobile-after.json. No downloaded browser runtime or
 isolated desktop was used. The unrelated untracked How It Works HTTP receipt
 is preserved. No private sales data or service configuration changed.
+
+Published implementation3ae9a6b is GitHub SHA verified. Production deployment
+`dpl_5veBW5tJ5bAtg5bhYM4HrAkzV2ML` is Ready on gigtax.pro. All99 public file/route
+checks pass. Live Services/Drivers at440px also pass actual security-policy,
+edge-to-edge image, loaded-logo, horizontal reachability and scroll-transform
+checks in system WebKit (same explicit timer clock). Receipt:
+`gigtax-mobile-hero-logos-proof-20261107.json`. Safari is open on the normal
+desktop at /services. The local server and all owned audit processes exited.

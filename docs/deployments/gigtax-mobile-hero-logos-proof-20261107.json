@@ -1,0 +1,1041 @@
+{
+  "implementation": "3ae9a6bf8e4b6ee1c4b771a0b07111054562e460",
+  "desktopBaseline": "8559874",
+  "deployment": "dpl_5veBW5tJ5bAtg5bhYM4HrAkzV2ML",
+  "localLayout": {
+    "animationClock": "timer substitution in nonvisual renderer",
+    "checks": 42,
+    "engine": "macOS system WebKit",
+    "failures": 0,
+    "results": [
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 185.65625,
+          "left": 0,
+          "right": 320,
+          "width": 320
+        },
+        "page": "",
+        "parallax": {
+          "end": "5.637px",
+          "frameBottom": 185.65625,
+          "frameHeight": 185.65625,
+          "frameTop": 0,
+          "height": 185.65625,
+          "photoBottom": 202.4119873046875,
+          "photoTop": -5.52301025390625,
+          "start": "4.174px"
+        },
+        "passed": true,
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 226.265625,
+          "left": 0,
+          "right": 390,
+          "width": 390
+        },
+        "page": "",
+        "parallax": {
+          "end": "6.285px",
+          "frameBottom": 226.265625,
+          "frameHeight": 226.265625,
+          "frameTop": 0,
+          "height": 226.265625,
+          "photoBottom": 246.14251708984375,
+          "photoTop": -7.274993896484375,
+          "start": "4.562px"
+        },
+        "passed": true,
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 255.28125,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "",
+        "parallax": {
+          "end": "6.646px",
+          "frameBottom": 255.28125,
+          "frameHeight": 255.28125,
+          "frameTop": 0,
+          "height": 255.28125,
+          "photoBottom": 277.260986328125,
+          "photoTop": -8.65399169921875,
+          "start": "4.749px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 445.59375,
+          "left": 0.015625,
+          "right": 768.015625,
+          "width": 768
+        },
+        "page": "",
+        "parallax": {
+          "end": "7.302px",
+          "frameBottom": 445.59375,
+          "frameHeight": 445.59375,
+          "frameTop": 0,
+          "height": 445.59375,
+          "photoBottom": 479.60699462890625,
+          "photoTop": -19.4580078125,
+          "start": "4.441px"
+        },
+        "passed": true,
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 593.53125,
+          "left": 0.015625,
+          "right": 1023,
+          "width": 1022.984375
+        },
+        "page": "",
+        "parallax": {
+          "end": "5.614px",
+          "frameBottom": 593.53125,
+          "frameHeight": 593.53125,
+          "frameTop": 0,
+          "height": 593.53125,
+          "photoBottom": 634.72900390625,
+          "photoTop": -30.0260009765625,
+          "start": "2.516px"
+        },
+        "passed": true,
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1024,
+        "styleHash": "57f6e2af7e7c1ca0e72e229fc4d47fefe5b3512d1bdd77775ec3d20fc679cb7b",
+        "width": 1024
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1440,
+        "styleHash": "d5063f2f5b9320c8c61f80955001a67065ef68fcf99479d6da62bda5a1b7ae36",
+        "width": 1440
+      },
+      {
+        "bar": {
+          "clientWidth": 320,
+          "lastRight": 299.640625,
+          "rowRight": 320,
+          "scrollLeft": 650,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 172.640625,
+          "left": 0,
+          "right": 320,
+          "width": 320
+        },
+        "page": "services",
+        "parallax": {
+          "end": "5.392px",
+          "frameBottom": 172.640625,
+          "frameHeight": 172.640625,
+          "frameTop": 0,
+          "height": 172.640625,
+          "photoBottom": 188.3695068359375,
+          "photoTop": -4.988006591796875,
+          "start": "4.015px"
+        },
+        "passed": true,
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bar": {
+          "clientWidth": 390,
+          "lastRight": 369.640625,
+          "rowRight": 390,
+          "scrollLeft": 580,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 210.40625,
+          "left": 0,
+          "right": 390,
+          "width": 390
+        },
+        "page": "services",
+        "parallax": {
+          "end": "6.052px",
+          "frameBottom": 210.40625,
+          "frameHeight": 210.40625,
+          "frameTop": 0,
+          "height": 210.40625,
+          "photoBottom": 229.10699462890625,
+          "photoTop": -6.548004150390625,
+          "start": "4.429px"
+        },
+        "passed": true,
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bar": {
+          "clientWidth": 440,
+          "lastRight": 419.640625,
+          "rowRight": 440,
+          "scrollLeft": 530,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 237.375,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "services",
+        "parallax": {
+          "end": "6.432px",
+          "frameBottom": 237.375,
+          "frameHeight": 237.375,
+          "frameTop": 0,
+          "height": 237.375,
+          "photoBottom": 258.072021484375,
+          "photoTop": -7.787994384765625,
+          "start": "4.642px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": {
+          "clientWidth": 768,
+          "lastRight": 747.65625,
+          "rowRight": 768.015625,
+          "scrollLeft": 202,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 414.34375,
+          "left": 0.015625,
+          "right": 768.015625,
+          "width": 768
+        },
+        "page": "services",
+        "parallax": {
+          "end": "7.370px",
+          "frameBottom": 414.34375,
+          "frameHeight": 414.34375,
+          "frameTop": 0,
+          "height": 414.34375,
+          "photoBottom": 446.594970703125,
+          "photoTop": -17.470001220703125,
+          "start": "4.649px"
+        },
+        "passed": true,
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bar": {
+          "clientWidth": 1023,
+          "lastRight": 949.65625,
+          "rowRight": 1023,
+          "scrollLeft": 0,
+          "scrollWidth": 1023
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 551.90625,
+          "left": 0.015625,
+          "right": 1023,
+          "width": 1022.984375
+        },
+        "page": "services",
+        "parallax": {
+          "end": "6.432px",
+          "frameBottom": 551.90625,
+          "frameHeight": 551.90625,
+          "frameTop": 0,
+          "height": 551.90625,
+          "photoBottom": 591.447021484375,
+          "photoTop": -26.68798828125,
+          "start": "3.248px"
+        },
+        "passed": true,
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "services",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1024,
+        "styleHash": "86968224629732a66763927875ce141b4fcb84fce81787ae638038dec6027704",
+        "width": 1024
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "services",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1440,
+        "styleHash": "b138ece67e44aa737d00187258a7df1bc221afe8f719b2cb4c02fe7069b26059",
+        "width": 1440
+      },
+      {
+        "bar": {
+          "clientWidth": 320,
+          "lastRight": 299.640625,
+          "rowRight": 320,
+          "scrollLeft": 650,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 160.265625,
+          "left": 0,
+          "right": 320,
+          "width": 320
+        },
+        "page": "how-it-works",
+        "parallax": {
+          "end": "5.141px",
+          "frameBottom": 160.265625,
+          "frameHeight": 160.265625,
+          "frameTop": 0,
+          "height": 160.265625,
+          "photoBottom": 175.03851318359375,
+          "photoTop": -4.459014892578125,
+          "start": "3.849px"
+        },
+        "passed": true,
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bar": {
+          "clientWidth": 390,
+          "lastRight": 369.640625,
+          "rowRight": 390,
+          "scrollLeft": 580,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 195.328125,
+          "left": 0,
+          "right": 390,
+          "width": 390
+        },
+        "page": "how-it-works",
+        "parallax": {
+          "end": "5.807px",
+          "frameBottom": 195.328125,
+          "frameHeight": 195.328125,
+          "frameTop": 0,
+          "height": 195.328125,
+          "photoBottom": 212.87451171875,
+          "photoTop": -5.89300537109375,
+          "start": "4.280px"
+        },
+        "passed": true,
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bar": {
+          "clientWidth": 440,
+          "lastRight": 419.640625,
+          "rowRight": 440,
+          "scrollLeft": 530,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 220.375,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "how-it-works",
+        "parallax": {
+          "end": "6.201px",
+          "frameBottom": 220.375,
+          "frameHeight": 220.375,
+          "frameTop": 0,
+          "height": 220.375,
+          "photoBottom": 239.82098388671875,
+          "photoTop": -6.998992919921875,
+          "start": "4.515px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": {
+          "clientWidth": 768,
+          "lastRight": 747.65625,
+          "rowRight": 768.015625,
+          "scrollLeft": 202,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 384.65625,
+          "left": 0.015625,
+          "right": 768.015625,
+          "width": 768
+        },
+        "page": "how-it-works",
+        "parallax": {
+          "end": "7.377px",
+          "frameBottom": 384.65625,
+          "frameHeight": 384.65625,
+          "frameTop": 0,
+          "height": 384.65625,
+          "photoBottom": 415.09197998046875,
+          "photoTop": -15.722991943359375,
+          "start": "4.795px"
+        },
+        "passed": true,
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bar": {
+          "clientWidth": 1023,
+          "lastRight": 949.65625,
+          "rowRight": 1023,
+          "scrollLeft": 0,
+          "scrollWidth": 1023
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 512.375,
+          "left": 0.015625,
+          "right": 1023,
+          "width": 1022.984375
+        },
+        "page": "how-it-works",
+        "parallax": {
+          "end": "6.966px",
+          "frameBottom": 512.375,
+          "frameHeight": 512.375,
+          "frameTop": 0,
+          "height": 512.375,
+          "photoBottom": 550.1059875488281,
+          "photoTop": -23.753997802734375,
+          "start": "3.825px"
+        },
+        "passed": true,
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "how-it-works",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1024,
+        "styleHash": "9868500d7a8016238aecb0f1dae67a1a7c95648180610717e73e1e382e4b752e",
+        "width": 1024
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "how-it-works",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1440,
+        "styleHash": "7d62304cd4c6a883e45441cd27643829ec0216287043a9d65424a47e368ce283",
+        "width": 1440
+      },
+      {
+        "bar": {
+          "clientWidth": 320,
+          "lastRight": 299.640625,
+          "rowRight": 320,
+          "scrollLeft": 650,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 225.75,
+          "left": 0,
+          "right": 320,
+          "width": 320
+        },
+        "page": "drivers",
+        "parallax": {
+          "end": "6.277px",
+          "frameBottom": 225.75,
+          "frameHeight": 225.75,
+          "frameTop": 0,
+          "height": 225.75,
+          "photoBottom": 245.5570068359375,
+          "photoTop": -7.282989501953125,
+          "start": "4.558px"
+        },
+        "passed": true,
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bar": {
+          "clientWidth": 390,
+          "lastRight": 369.640625,
+          "rowRight": 390,
+          "scrollLeft": 580,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 275.140625,
+          "left": 0,
+          "right": 390,
+          "width": 390
+        },
+        "page": "drivers",
+        "parallax": {
+          "end": "6.847px",
+          "frameBottom": 275.140625,
+          "frameHeight": 275.140625,
+          "frameTop": 0,
+          "height": 275.140625,
+          "photoBottom": 298.5045166015625,
+          "photoTop": -9.65301513671875,
+          "start": "4.836px"
+        },
+        "passed": true,
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bar": {
+          "clientWidth": 440,
+          "lastRight": 419.640625,
+          "rowRight": 440,
+          "scrollLeft": 530,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 310.40625,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "drivers",
+        "parallax": {
+          "end": "7.121px",
+          "frameBottom": 310.40625,
+          "frameHeight": 310.40625,
+          "frameTop": 0,
+          "height": 310.40625,
+          "photoBottom": 336.176025390625,
+          "photoTop": -11.47900390625,
+          "start": "4.915px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": {
+          "clientWidth": 768,
+          "lastRight": 747.65625,
+          "rowRight": 768.015625,
+          "scrollLeft": 202,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 541.8125,
+          "left": 0.015625,
+          "right": 768.015625,
+          "width": 768
+        },
+        "page": "drivers",
+        "parallax": {
+          "end": "6.637px",
+          "frameBottom": 541.8125,
+          "frameHeight": 541.8125,
+          "frameTop": 0,
+          "height": 541.8125,
+          "photoBottom": 580.947021484375,
+          "photoTop": -25.88299560546875,
+          "start": "3.432px"
+        },
+        "passed": true,
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bar": {
+          "clientWidth": 1023,
+          "lastRight": 949.65625,
+          "rowRight": 1023,
+          "scrollLeft": 0,
+          "scrollWidth": 1023
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 721.703125,
+          "left": 0.015625,
+          "right": 1023,
+          "width": 1022.984375
+        },
+        "page": "drivers",
+        "parallax": {
+          "end": "3.352px",
+          "frameBottom": 721.703125,
+          "frameHeight": 721.703125,
+          "frameTop": 0,
+          "height": 721.703125,
+          "photoBottom": 768.3395080566406,
+          "photoTop": -39.967987060546875,
+          "start": "0.491px"
+        },
+        "passed": true,
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "drivers",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1024,
+        "styleHash": "1b0eb0b6f0453cadc933ba8f811e2075f9cffcba1971f1d709137f0779f46610",
+        "width": 1024
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "drivers",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1440,
+        "styleHash": "1597651fa3bf67595ad45117e288ed7e6b28865595928b4aaf5dccdd2dbd5c9f",
+        "width": 1440
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 212,
+          "left": 0,
+          "right": 320,
+          "width": 320
+        },
+        "page": "about",
+        "parallax": {
+          "end": "6.077px",
+          "frameBottom": 212,
+          "frameHeight": 212,
+          "frameTop": 0,
+          "height": 212,
+          "photoBottom": 230.7969970703125,
+          "photoTop": -6.64300537109375,
+          "start": "4.443px"
+        },
+        "passed": true,
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 258.390625,
+          "left": 0,
+          "right": 390,
+          "width": 390
+        },
+        "page": "about",
+        "parallax": {
+          "end": "6.679px",
+          "frameBottom": 258.390625,
+          "frameHeight": 258.390625,
+          "frameTop": 0,
+          "height": 258.390625,
+          "photoBottom": 280.59649658203125,
+          "photoTop": -8.800994873046875,
+          "start": "4.765px"
+        },
+        "passed": true,
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 291.515625,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "about",
+        "parallax": {
+          "end": "6.987px",
+          "frameBottom": 291.515625,
+          "frameHeight": 291.515625,
+          "frameTop": 0,
+          "height": 291.515625,
+          "photoBottom": 315.9644775390625,
+          "photoTop": -10.532989501953125,
+          "start": "4.884px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 508.828125,
+          "left": 0.015625,
+          "right": 768.015625,
+          "width": 768
+        },
+        "page": "about",
+        "parallax": {
+          "end": "6.990px",
+          "frameBottom": 508.828125,
+          "frameHeight": 508.828125,
+          "frameTop": 0,
+          "height": 508.828125,
+          "photoBottom": 546.3375244140625,
+          "photoTop": -23.54998779296875,
+          "start": "3.864px"
+        },
+        "passed": true,
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 677.765625,
+          "left": 0.015625,
+          "right": 1023,
+          "width": 1022.984375
+        },
+        "page": "about",
+        "parallax": {
+          "end": "4.087px",
+          "frameBottom": 677.765625,
+          "frameHeight": 677.765625,
+          "frameTop": 0,
+          "height": 677.765625,
+          "photoBottom": 722.5045471191406,
+          "photoTop": -36.592987060546875,
+          "start": "1.149px"
+        },
+        "passed": true,
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "about",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1024,
+        "styleHash": "3a92bc841e775026c187593bac48c3789b5d8ce770329fefd758e67b29cef4f2",
+        "width": 1024
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "about",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1440,
+        "styleHash": "74c5b2fd7968222812905f9728dbaae439d55d769f1761371e1931b4bf820bfd",
+        "width": 1440
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 184.1875,
+          "left": 0,
+          "right": 320,
+          "width": 320
+        },
+        "page": "get-the-app",
+        "parallax": {
+          "end": "5.611px",
+          "frameBottom": 184.1875,
+          "frameHeight": 184.1875,
+          "frameTop": 0,
+          "height": 184.1875,
+          "photoBottom": 200.86102294921875,
+          "photoTop": -5.42901611328125,
+          "start": "4.157px"
+        },
+        "passed": true,
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 224.46875,
+          "left": 0,
+          "right": 390,
+          "width": 390
+        },
+        "page": "get-the-app",
+        "parallax": {
+          "end": "6.260px",
+          "frameBottom": 224.46875,
+          "frameHeight": 224.46875,
+          "frameTop": 0,
+          "height": 224.46875,
+          "photoBottom": 244.2249755859375,
+          "photoTop": -7.17999267578125,
+          "start": "4.548px"
+        },
+        "passed": true,
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 253.25,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "get-the-app",
+        "parallax": {
+          "end": "6.623px",
+          "frameBottom": 253.25,
+          "frameHeight": 253.25,
+          "frameTop": 0,
+          "height": 253.25,
+          "photoBottom": 275.0830078125,
+          "photoTop": -8.5570068359375,
+          "start": "4.738px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 442.046875,
+          "left": 0.015625,
+          "right": 768.015625,
+          "width": 768
+        },
+        "page": "get-the-app",
+        "parallax": {
+          "end": "7.313px",
+          "frameBottom": 442.046875,
+          "frameHeight": 442.046875,
+          "frameTop": 0,
+          "height": 442.046875,
+          "photoBottom": 475.885498046875,
+          "photoTop": -19.207000732421875,
+          "start": "4.467px"
+        },
+        "passed": true,
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bar": null,
+        "failures": [],
+        "frameBounds": {
+          "height": 588.8125,
+          "left": 0.015625,
+          "right": 1023,
+          "width": 1022.984375
+        },
+        "page": "get-the-app",
+        "parallax": {
+          "end": "5.705px",
+          "frameBottom": 588.8125,
+          "frameHeight": 588.8125,
+          "frameTop": 0,
+          "height": 588.8125,
+          "photoBottom": 629.8349609375,
+          "photoTop": -29.635009765625,
+          "start": "2.597px"
+        },
+        "passed": true,
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "get-the-app",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1024,
+        "styleHash": "8da9a14a693376f1cb8ff09a939e030eb6f2be3d95cbfd6e754720716da409a6",
+        "width": 1024
+      },
+      {
+        "bar": null,
+        "desktopUnchanged": true,
+        "failures": [],
+        "frameBounds": null,
+        "page": "get-the-app",
+        "parallax": null,
+        "passed": true,
+        "requestedWidth": 1440,
+        "styleHash": "73ed50ee3713996d89a787bf93cfa4554eef91333cc56827a50d0af3be36229d",
+        "width": 1440
+      }
+    ]
+  },
+  "liveLayout": {
+    "animationClock": "timer substitution in nonvisual renderer",
+    "checks": 2,
+    "engine": "macOS system WebKit",
+    "failures": 0,
+    "results": [
+      {
+        "bar": {
+          "clientWidth": 440,
+          "lastRight": 419.640625,
+          "rowRight": 440,
+          "scrollLeft": 530,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 237.375,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "services",
+        "parallax": {
+          "end": "6.432px",
+          "frameBottom": 237.375,
+          "frameHeight": 237.375,
+          "frameTop": 0,
+          "height": 237.375,
+          "photoBottom": 258.072021484375,
+          "photoTop": -7.787994384765625,
+          "start": "4.642px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bar": {
+          "clientWidth": 440,
+          "lastRight": 419.640625,
+          "rowRight": 440,
+          "scrollLeft": 530,
+          "scrollWidth": 970
+        },
+        "failures": [],
+        "frameBounds": {
+          "height": 310.40625,
+          "left": 0,
+          "right": 440,
+          "width": 440
+        },
+        "page": "drivers",
+        "parallax": {
+          "end": "7.121px",
+          "frameBottom": 310.40625,
+          "frameHeight": 310.40625,
+          "frameTop": 0,
+          "height": 310.40625,
+          "photoBottom": 336.176025390625,
+          "photoTop": -11.47900390625,
+          "start": "4.915px"
+        },
+        "passed": true,
+        "requestedWidth": 440,
+        "width": 440
+      }
+    ]
+  },
+  "liveHTTP": {
+    "ok": true,
+    "checks": 99,
+    "verifiedAt": "2026-11-08T03:46:35.823Z"
+  },
+  "visualAcceptance": "Luke\u2019s refreshed phone screenshot remains required for visual acceptance."
+}
