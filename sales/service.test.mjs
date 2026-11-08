@@ -5,6 +5,7 @@ import { createHandler } from './handler.mjs';
 import { digest, unseal, seal, metadata, termsValid } from './model.mjs';
 import { agreement } from './terms.mjs';
 import { parseDirectory, unzipState } from './discovery.mjs';
+import { initialBilling } from './billing.mjs';
 const env = { GIGTAX_SALES_SESSION_KEY:'a'.repeat(64), GIGTAX_SALES_OWNER_HASH:digest('owner-test-code'), GIGTAX_TINKY_KEY:'synthetic-not-a-real-key', GIGTAX_SALES_ORIGIN:'https://gigtax.pro' };
 let db, app, rows, id;
 const owner = { id:'owner',name:'Owner',role:'owner',states:[] };
@@ -18,12 +19,17 @@ beforeEach(() => {
     patch:async (kind,id,body) => { const row = rows[kind].find(r=>String(r.id)===String(id)); Object.assign(row,structuredClone(body)); return structuredClone(row); },
     terms:async () => structuredClone(terms),setTerms:async t => {terms=structuredClone(t);},
     discover:async () => ({results:[]}),
-  }; app = service(env,db,{configured:()=>true,create:async()=>({id:"cs_synthetic",url:"https://checkout.stripe.com/c/pay/synthetic"}),verify:async()=>({live:true,checkoutId:"cs_synthetic",subscriptionId:"sub_synthetic",initialAmountCents:50000,billingEndsAt:"2027-11-07T00:00:00Z"})});
+  }; app = service(env,db,{configured:()=>true,create:async()=>({id:"cs_synthetic",url:"https://checkout.stripe.com/c/pay/synthetic"}),verify:async()=>({live:true,checkoutId:"cs_synthetic",subscriptionId:"sub_synthetic",customerId:"cus_synthetic",invoiceId:"in_synthetic",initialAmountCents:50000,currency:'USD',verifiedAt:new Date().toISOString(),billingEndsAt:new Date(Date.now()+365*86400000).toISOString(),paidThroughAt:new Date(Date.now()+30*86400000).toISOString()})}, {
+    billingReconciler: async (_env, adapter, enrollmentId) => {
+      const row = await adapter.get('enrollments',enrollmentId), info = metadata(row), billing = initialBilling(info.payment);
+      return adapter.patch('enrollments',row.id,{status:billing.status,notes:JSON.stringify({...info,billing})});
+    },
+  });
 });
 const input = {name:'Synthetic Office',address:'123 Example Way',city:'Hartford',state:'CT',contact:'Test Owner',email:'office@example.test',independence:'independent',website:'https://example.test',source:'https://example.test/about'};
 async function newAgent(states = ['CT']) { return app.dispatch(owner,'create-agent',{name:'Test Agent',email:`agent-${id}@example.test`,states}); }
 async function agentIdentity(a) { const login = await app.login({code:a.code,email:a.agent.email}); return { user:await app.identity(login.token),token:login.token }; }
-async function invite() { const {office} = await app.dispatch(owner,'create-office',input); const invitation = await app.dispatch(owner,'invite',{id:office.id,email:input.email,ownerName:'Test Owner'}); const q = new URLSearchParams(new URL(invitation.link).hash.slice(1)); return {office,body:{id:q.get('id'),token:q.get('token')}}; }
+async function invite() { const {office} = await app.dispatch(owner,'create-office',input); await app.dispatch(owner,'verify-office',{id:office.id,finding:'independent',sourceURL:'https://example.test/about',note:'Synthetic explicit source reviewed',reviewed:true}); const invitation = await app.dispatch(owner,'invite',{id:office.id,email:input.email,ownerName:'Test Owner'}); const q = new URLSearchParams(new URL(invitation.link).hash.slice(1)); return {office,body:{id:q.get('id'),token:q.get('token')}}; }
 test('owner login encrypts the credential and rejects modified or expired sessions',async()=>{
   const result = await app.login({code:'owner-test-code'}); assert.equal((await app.identity(result.token)).role,'owner'); assert(!result.token.includes('owner-test-code'));
   await assert.rejects(app.identity(result.token.slice(0,-3)+'xyz'),/Sign in/);
@@ -53,6 +59,26 @@ test('deduplication opens same office; cross-agent duplication does not reveal i
   assert.equal((await app.dispatch(owner,'create-office',input)).duplicate,true);
   await assert.rejects(app.dispatch(user,'create-office',input),/already in the team pipeline/);
 });
+test('new offices start unverified even when imported fields claim independent ownership or checked contacts',async()=>{
+  const {office}=await app.dispatch(owner,'create-office',{...input,contactVerified:true,emailVerified:true,contactRole:'owner'}), info=metadata(office);
+  assert.equal(info.independence,'unverified'); assert.equal(info.contactRole,'unverified'); assert.equal(info.contactVerified,false); assert.equal(info.emailVerified,false);
+  await assert.rejects(app.dispatch(owner,'update-office',{id:office.id,independence:'independent'}),/ownership verification/);
+  await app.dispatch(owner,'verify-office',{id:office.id,finding:'independent',sourceURL:input.source,note:'Synthetic explicit source reviewed',reviewed:true});
+  const updated=await app.dispatch(owner,'update-office',{id:office.id,independence:'independent'}); assert.equal(metadata(updated.office).independenceVerification.reviewed,true);
+});
+test('contact edits invalidate prior verification while preserving explicit ownership evidence',async()=>{
+  const {office}=await app.dispatch(owner,'create-office',input);
+  await app.dispatch(owner,'verify-office',{id:office.id,finding:'independent',sourceURL:input.source,note:'Synthetic explicit source reviewed',reviewed:true});
+  await app.dispatch(owner,'update-office',{id:office.id,contactVerified:true,emailVerified:true,contactRole:'owner',verificationSource:input.source,verificationNote:'Synthetic contact source reviewed'});
+  const changed=await app.dispatch(owner,'update-office',{id:office.id,contact:'Another Person',email:'another@example.test'}), info=metadata(changed.office);
+  assert.equal(changed.office.contact_email,'another@example.test'); assert.equal(info.contactVerified,false); assert.equal(info.emailVerified,false); assert.equal(info.contactRole,'unverified'); assert.equal(info.independenceVerification.reviewed,true);
+});
+test('follow-up dates must be real calendar dates and can be cleared',async()=>{
+  const {office}=await app.dispatch(owner,'create-office',input);
+  for(const nextFollowup of ['2025-02-29','2026-02-30','2026-04-31','2026-13-01','2026-11-00','2026-1-05',null]) await assert.rejects(app.dispatch(owner,'update-office',{id:office.id,nextFollowup}),/valid follow-up date/);
+  const leap=await app.dispatch(owner,'update-office',{id:office.id,nextFollowup:'2028-02-29'}); assert.equal(leap.office.meeting_date,'2028-02-29');
+  const cleared=await app.dispatch(owner,'update-office',{id:office.id,nextFollowup:''}); assert.equal(cleared.office.meeting_date,null);
+});
 test('verification and published terms gate invitations; stage edits cannot create activation',async()=>{
   const {office}=await app.dispatch(owner,'create-office',{...input,independence:'unverified'});
   await assert.rejects(app.dispatch(owner,'invite',{id:office.id,email:input.email,ownerName:'Owner'}),/Confirm independent/);
@@ -76,6 +102,52 @@ test('invitation tokens, expiry and do-not-contact are enforced',async()=>{
   const row=rows.enrollments[0],m=metadata(row); row.notes=JSON.stringify({...m,expiresAt:1});
   await assert.rejects(app.signup('view',body),/expired/); row.notes=JSON.stringify(m);
   await db.patch('offices',office.id,{status:'do_not_contact'});await assert.rejects(app.signup('view',body),/no longer available/);
+});
+test('owner can review and replace an expired unpaid invitation while the old link remains unusable', async () => {
+  const { office, body } = await invite();
+  const row = rows.enrollments[0]; row.notes = JSON.stringify({ ...metadata(row), expiresAt: 1 });
+  await assert.rejects(app.dispatch(owner, 'renew-invitation', { id: office.id, reason: 'Synthetic review' }), /Review the expired/);
+  const renewed = await app.dispatch(owner, 'renew-invitation', { id: office.id, reason: 'Synthetic owner rechecked the expired unpaid invitation.', reviewed: true });
+  assert.equal(rows.enrollments.length, 2); assert.equal(rows.enrollments[0].status, 'expired');
+  await assert.rejects(app.signup('view', body), /not found/);
+  const next = Object.fromEntries(new URLSearchParams(new URL(renewed.link).hash.slice(1)));
+  assert.notEqual(next.id, body.id); assert.equal((await app.signup('view', next)).terms.upfrontCents, 50000);
+});
+test('renewal cannot replace an open checkout or renew an existing paid membership', async () => {
+  const { office } = await invite(), row = rows.enrollments[0];
+  row.notes = JSON.stringify({ ...metadata(row), checkoutId: 'cs_synthetic', expiresAt: 1 });
+  const pending = service(env, db, { checkoutState: async () => ({ status: 'open', paymentStatus: 'unpaid' }) });
+  await assert.rejects(pending.dispatch(owner, 'renew-invitation', { id: office.id, reviewed: true, reason: 'Synthetic review' }), /still open/);
+  assert.equal(rows.enrollments.length, 1); assert.equal(row.status, 'invited');
+  row.notes = JSON.stringify({ ...metadata(row), payment: { live: true } });
+  await assert.rejects(app.dispatch(owner, 'renew-invitation', { id: office.id, reviewed: true, reason: 'Synthetic review' }), /paid membership/);
+  assert.equal(rows.enrollments.length, 1);
+});
+test('renewal preserves blocked or unverified offices without changing expired invitations', async () => {
+  const { office } = await invite(), row = rows.enrollments[0];
+  row.notes = JSON.stringify({ ...metadata(row), expiresAt: 1 });
+  for (const status of ['do_not_contact', 'not_interested', 'active']) {
+    await db.patch('offices', office.id, { status });
+    const snapshot = structuredClone(rows);
+    await assert.rejects(app.dispatch(owner, 'renew-invitation', { id: office.id, reviewed: true, reason: 'Synthetic review' }), /independent ownership/);
+    assert.deepEqual(rows, snapshot);
+  }
+  await db.patch('offices', office.id, { status: 'invited', notes: JSON.stringify({ ...metadata(rows.offices[0]), independence: 'unverified' }) });
+  const snapshot = structuredClone(rows);
+  await assert.rejects(app.dispatch(owner, 'renew-invitation', { id: office.id, reviewed: true, reason: 'Synthetic review' }), /independent ownership/);
+  assert.deepEqual(rows, snapshot);
+});
+test('a concurrent invitation attempt cannot create a second enrollment after the first reservation', async () => {
+  const { office } = await app.dispatch(owner, 'create-office', input);
+  await app.dispatch(owner, 'verify-office', { id: office.id, finding: 'independent', sourceURL: 'https://example.test/about', note: 'Synthetic reviewed source.', reviewed: true });
+  db.patchIfUnchanged = async (kind, recordId, expected, patch) => {
+    const record = rows[kind].find(value => String(value.id) === String(recordId));
+    if (record.notes !== expected) return { matched: false };
+    return db.patch(kind, recordId, patch);
+  };
+  const outcomes = await Promise.allSettled([1,2].map(() => app.dispatch(owner, 'invite', { id: office.id, email: input.email, ownerName: input.contact })));
+  assert.equal(rows.enrollments.length, 1);
+  assert(outcomes.some(result => result.status === 'fulfilled'));
 });
 test('separate append-only activities retain both agents entries',async()=>{
   const {office}=await app.dispatch(owner,'create-office',input);

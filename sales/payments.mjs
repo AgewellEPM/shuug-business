@@ -29,7 +29,7 @@ export function payments(env,fetcher=fetch) {
     // byte-identical for the same provider idempotency key.
     params.expires_at=String(Math.floor(new Date(info.acceptedAt).getTime()/1000)+3600);
     if(info.checkoutId){const existing=await stripe(`/checkout/sessions/${info.checkoutId}`);validateSession(existing,row,info,false);if(existing.status==='expired')throw new HttpError(409,'This checkout expired. Ask the workspace owner to review and renew the invitation.');return existing;}
-    const session=await stripe('/checkout/sessions','POST',params,`gigtax-office-${info.leadId}-${info.terms.hash}`);
+    const session=await stripe('/checkout/sessions','POST',params,`gigtax-office-${row.id}-${info.terms.hash}`);
     validateSession(session,row,info,false);
     if(session.status==='expired')throw new HttpError(409,'This checkout expired. Ask the workspace owner to review and renew the invitation.');
     if(session.url){const url=new URL(session.url);if(url.origin!=='https://checkout.stripe.com'||url.username||url.password)throw new HttpError(502,'Stripe returned an unexpected checkout URL.');}
@@ -48,11 +48,21 @@ export function payments(env,fetcher=fetch) {
     if(!/^sub_[a-zA-Z0-9_]+$/.test(session.subscription||''))throw new HttpError(409,'The monthly subscription was not confirmed.');
     let sub=await stripe(`/subscriptions/${session.subscription}`);
     const items=sub.items?.data||[];
-    if(sub.status!=='active'||sub.metadata?.gigtax_enrollment!==String(row.id)||sub.metadata?.terms_hash!==info.terms.hash||items.length!==1||items[0].quantity!==1||items[0].price?.unit_amount!==30000||items[0].price?.currency!=='usd'||items[0].price?.recurring?.interval!=='month'||items[0].price?.recurring?.interval_count!==1||!Number.isInteger(sub.billing_cycle_anchor))throw new HttpError(409,'The subscription does not match the approved $300 monthly membership.');
+    if(sub.status!=='active'||sub.livemode!==session.livemode||sub.customer!==session.customer||sub.metadata?.gigtax_enrollment!==String(row.id)||sub.metadata?.terms_hash!==info.terms.hash||items.length!==1||items[0].quantity!==1||items[0].price?.unit_amount!==30000||items[0].price?.currency!=='usd'||items[0].price?.recurring?.interval!=='month'||items[0].price?.recurring?.interval_count!==1||!Number.isInteger(sub.billing_cycle_anchor))throw new HttpError(409,'The subscription does not match the approved $300 monthly membership.');
     const end=endOfTerm(sub.billing_cycle_anchor);
     if(sub.cancel_at!==end)sub=await stripe(`/subscriptions/${sub.id}`,'POST',{cancel_at:String(end),proration_behavior:'none'},`gigtax-term-${row.id}-${sub.id}`);
     if(sub.cancel_at!==end)throw new HttpError(502,'The 12-month billing end was not confirmed. Activation is pending.');
-    return {checkoutId:session.id,subscriptionId:sub.id,customerId:session.customer,initialAmountCents:50000,currency:'USD',live:session.livemode,billingEndsAt:new Date(end*1000).toISOString(),verifiedAt:new Date().toISOString()};
+    const paidThrough=items[0].current_period_end ?? sub.current_period_end;
+    if(!Number.isInteger(paidThrough)||paidThrough<=Date.now()/1000||paidThrough>end)throw new HttpError(409,'The initial paid billing period was not confirmed. Activation is pending.');
+    const invoiceId=typeof session.invoice==='string'?session.invoice:typeof sub.latest_invoice==='string'?sub.latest_invoice:null;
+    if(!/^in_[a-zA-Z0-9_]+$/.test(invoiceId||''))throw new HttpError(409,'The initial membership invoice was not confirmed.');
+    return {checkoutId:session.id,subscriptionId:sub.id,customerId:session.customer,invoiceId,initialAmountCents:50000,currency:'USD',live:session.livemode,billingEndsAt:new Date(end*1000).toISOString(),paidThroughAt:new Date(paidThrough*1000).toISOString(),verifiedAt:new Date().toISOString()};
   }
-  return {configured,create,verify};
+  async function checkoutState(row,info) {
+    if(!/^cs_[a-zA-Z0-9_]+$/.test(info.checkoutId||''))throw new HttpError(409,'No checkout session is saved for this enrollment.');
+    const session=await stripe(`/checkout/sessions/${info.checkoutId}`);
+    validateSession(session,row,info,false);
+    return {id:session.id,status:session.status,paymentStatus:session.payment_status};
+  }
+  return {configured,create,verify,checkoutState};
 }

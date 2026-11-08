@@ -4,8 +4,8 @@ import {createHmac} from 'node:crypto';
 import {payments,endOfTerm,verifyWebhook} from './payments.mjs';
 const env={GIGTAX_STRIPE_SECRET_KEY:'sk_live_synthetic',GIGTAX_STRIPE_WEBHOOK_SECRET:'whsec_synthetic',GIGTAX_SALES_ORIGIN:'https://gigtax.pro'};
 const row={id:42,contact_email:'owner@example.test'},info={leadId:'12',terms:{hash:'a'.repeat(64)},acceptedAt:'2026-11-07T00:00:00Z',checkoutId:'cs_synthetic'};
-const session=()=>({id:'cs_synthetic',mode:'subscription',client_reference_id:'42',metadata:{gigtax_enrollment:'42',terms_hash:info.terms.hash},currency:'usd',amount_total:50000,livemode:true,customer_email:row.contact_email,payment_status:'paid',status:'complete',subscription:'sub_synthetic',customer:'cus_synthetic',url:'https://checkout.stripe.com/c/pay/synthetic'});
-const subscription=()=>({id:'sub_synthetic',status:'active',metadata:{gigtax_enrollment:'42',terms_hash:info.terms.hash},billing_cycle_anchor:1794009600,cancel_at:null,items:{data:[{quantity:1,price:{unit_amount:30000,currency:'usd',recurring:{interval:'month',interval_count:1}}}]}});
+const session=()=>({id:'cs_synthetic',mode:'subscription',client_reference_id:'42',metadata:{gigtax_enrollment:'42',terms_hash:info.terms.hash},currency:'usd',amount_total:50000,livemode:true,customer_email:row.contact_email,payment_status:'paid',status:'complete',subscription:'sub_synthetic',customer:'cus_synthetic',invoice:'in_synthetic',url:'https://checkout.stripe.com/c/pay/synthetic'});
+const subscription=()=>({id:'sub_synthetic',status:'active',livemode:true,customer:'cus_synthetic',latest_invoice:'in_synthetic',metadata:{gigtax_enrollment:'42',terms_hash:info.terms.hash},billing_cycle_anchor:Math.floor(Date.now()/1000),cancel_at:null,items:{data:[{quantity:1,current_period_end:Math.floor(Date.now()/1000)+86400,price:{unit_amount:30000,currency:'usd',recurring:{interval:'month',interval_count:1}}}]}});
 test('checkout fixes $500 upfront, $300 monthly and a one-time $200 fee; retries have the same provider request',async()=>{
   const calls=[];const p=payments(env,async(url,options)=>{calls.push({url,options});return Response.json(session());});
   const initial={...info,checkoutId:undefined};
@@ -20,7 +20,7 @@ test('unpaid, wrong amount, wrong office and test mode cannot confirm a live off
 });
 test('verification confirms the subscription amount and installs its 12-month billing stop before activation',async()=>{
   const calls=[],sub=subscription();const p=payments(env,async(url,options)=>{calls.push({url,options});if(url.includes('/checkout/'))return Response.json(session());if(options.method==='POST')sub.cancel_at=Number(new URLSearchParams(options.body).get('cancel_at'));return Response.json(sub);});
-  const result=await p.verify(row,info);assert.equal(calls.length,3);assert.equal(result.initialAmountCents,50000);assert.equal(sub.cancel_at,endOfTerm(sub.billing_cycle_anchor));assert(result.live);
+  const result=await p.verify(row,info);assert.equal(calls.length,3);assert.equal(result.initialAmountCents,50000);assert.equal(sub.cancel_at,endOfTerm(sub.billing_cycle_anchor));assert(result.live);assert.equal(result.invoiceId,'in_synthetic');assert(Date.parse(result.paidThroughAt)>Date.now());
 });
 test('subscription amount mismatch and failed term-stop configuration prevent activation',async()=>{
   for(const bad of ['amount','end']){
@@ -38,4 +38,28 @@ test('signed webhooks verify exact raw bytes and reject tampering, duplicates an
 });
 test('missing payment account fails before a provider request',async()=>{
   let called=false;const p=payments({},async()=>{called=true;});await assert.rejects(p.create(row,info,'test'),/need the GigTax Stripe/);assert(!called);
+});
+
+test('foreign customer, wrong provider mode and missing paid period fail activation',async()=>{
+  for(const patch of [{customer:'cus_foreign'},{livemode:false},{items:{data:[{quantity:1,price:subscription().items.data[0].price}]}},{latest_invoice:null}]){
+    const sub={...subscription(),...patch};sub.cancel_at=endOfTerm(sub.billing_cycle_anchor);
+    const p=payments(env,async url=>Response.json(url.includes('/checkout/')?{...session(),...(patch.latest_invoice===null?{invoice:null}:{})}:sub));
+    await assert.rejects(p.verify(row,info));
+  }
+});
+
+test('checkout status reads canonical provider state without creating or altering payments',async()=>{
+  const calls=[],p=payments(env,async(url,options)=>{calls.push({url,options});return Response.json({...session(),status:'expired',payment_status:'unpaid'});});
+  assert.deepEqual(await p.checkoutState(row,info),{id:'cs_synthetic',status:'expired',paymentStatus:'unpaid'});
+  assert.equal(calls.length,1);assert.equal(calls[0].options.method,'GET');assert.equal(calls[0].options.body,undefined);
+  const bad=payments(env,async()=>Response.json({...session(),metadata:{gigtax_enrollment:'99',terms_hash:info.terms.hash}}));
+  await assert.rejects(bad.checkoutState(row,info));
+});
+
+test('a fresh owner-renewed enrollment gets a distinct checkout idempotency key for the same office and terms',async()=>{
+  const keys=[],p=payments(env,async(url,options)=>{keys.push(options.headers['Idempotency-Key']);const body=new URLSearchParams(options.body),enrollmentId=body.get('client_reference_id');
+    return Response.json({...session(),client_reference_id:enrollmentId,metadata:{gigtax_enrollment:enrollmentId,terms_hash:info.terms.hash},status:'open',payment_status:'unpaid'});});
+  const unsigned={...info,checkoutId:undefined};
+  await p.create(row,unsigned,'token');await p.create({...row,id:43},unsigned,'token');
+  assert.notEqual(keys[0],keys[1]);assert(keys[0].includes('42'));assert(keys[1].includes('43'));
 });

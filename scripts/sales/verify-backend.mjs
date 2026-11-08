@@ -23,6 +23,7 @@ try {
   const {office}=await app.dispatch(user,'create-office',input);assert.equal(String(office.assigned_to),user.id);checks.push('live D1 office save and agent assignment');
   await app.dispatch(user,'activity',{id:office.id,kind:'call',note:'Synthetic persistence check; no call was made.'});
   const fresh=service(env,backend(env)),record=await fresh.dispatch(user,'office',{id:office.id});assert(record.events.length>=2);checks.push('fresh adapter reads persisted office and activity');
+  await app.dispatch(user,'verify-office',{id:office.id,finding:'independent',sourceURL:'https://example.test/about',note:'Synthetic verification only; no real office.',reviewed:true});
   const invite=await app.dispatch(user,'invite',{id:office.id,email:input.email,ownerName:input.contact});const fragment=new URLSearchParams(new URL(invite.link).hash.slice(1)),body={id:fragment.get('id'),token:fragment.get('token')};
   const view=await fresh.signup('view',body);assert.equal(view.terms.upfrontCents,50000);assert.equal(view.terms.termMonths,12);checks.push('real persisted invitation retains exact $500/12-month terms');
   await assert.rejects(fresh.signup('accept',{...body,email:input.email,signature:input.contact,termsHash:view.terms.hash,accepted:true,authorized:true,independent:true}),/Payment connection/);assert.equal((await db.get('offices',office.id)).status,'invited');checks.push('missing Stripe prevents real office activation');

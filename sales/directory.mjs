@@ -1,4 +1,5 @@
-import { HttpError, metadata, state, text } from './model.mjs';
+import { HttpError, metadata, state, text, independenceVerified } from './model.mjs';
+import { enrollmentEligibility } from './billing.mjs';
 
 function phone(value) {
   const clean = text(value || '', 40);
@@ -48,14 +49,11 @@ export function listingInput(input = {}) {
  * outreach history, owner emails or enrollment receipts. */
 export async function publicDirectory(db) {
   const [rows, enrollments, savedSupport] = await Promise.all([db.list('offices'), db.list('enrollments'), db.support()]);
-  const active = new Set(enrollments.filter(row => {
-    const info = metadata(row);
-    return row.status === 'active' && info.payment?.live === true && info.acceptedAt && info.signature;
-  }).map(row => String(metadata(row).leadId)));
+  const active = new Set(enrollments.filter(row => enrollmentEligibility(row).eligible).map(row => String(metadata(row).leadId)));
   const offices = [];
   for (const row of rows) {
     const info = metadata(row), listing = info.publicListing;
-    if (row.status !== 'active' || !active.has(String(row.id)) || info.independence !== 'independent' || !listing?.enabled) continue;
+    if (row.status !== 'active' || !active.has(String(row.id)) || !independenceVerified(info) || !listing?.enabled) continue;
     try {
       const clean = listingInput({ ...listing, publicDetailsConfirmed: true, coverageConfirmed: true });
       const { enabled, updatedAt, ...fields } = clean;

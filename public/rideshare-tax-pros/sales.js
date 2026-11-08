@@ -15,19 +15,19 @@
   function download(name, content, type = 'text/plain') { const a = document.createElement('a'), url = URL.createObjectURL(new Blob([content], { type })); a.href = url; a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
   function run(work, form) {
     return async event => {
-      event?.preventDefault(); const buttons = form ? $$('button', form) : []; buttons.forEach(b => b.disabled = true);
+      event?.preventDefault(); const buttons = form ? $$('button', form).map(button => ({ button, disabled: button.disabled })) : []; buttons.forEach(({ button }) => button.disabled = true);
       try { await work(event); } catch (err) { status(err.message, true, Boolean($('[data-signup-app]'))); }
-      finally { buttons.forEach(b => b.disabled = false); }
+      finally { buttons.forEach(({ button, disabled }) => { if (button.isConnected) button.disabled = disabled; }); }
     };
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected;
+    let data, selected, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
     const tab = name => { $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner')); $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name)); };
     function renderList() {
       const filter = $('#sales-filter').value.toLowerCase(), stage = $('#sales-stage-filter').value;
       const offices = data.offices.filter(o => (!stage || o.status === stage) && [o.town,o.locality,o.state,o.contact_name,o.contact_email].join(' ').toLowerCase().includes(filter));
-      $('#sales-offices').innerHTML = offices.length ? offices.map(o => `<button class="sales-office" data-office="${e(o.id)}" aria-pressed="${String(o.id) === selected}"><strong>${e(o.town)}</strong><small>${e(o.locality)}, ${e(o.state)} · ${e(title(o.status))}</small><small>${e(o.contact_name || 'Decision maker needed')}${o.meeting_date ? ` · Follow up ${e(o.meeting_date)}` : ''}</small></button>`).join('') : '<p class="sales-empty">No offices in this view. Find an office to start your pipeline.</p>';
+      $('#sales-offices').innerHTML = offices.length ? offices.map(o => `<button class="sales-office" data-office="${e(o.id)}" aria-pressed="${String(o.id) === selected}"><strong>${e(o.town)}</strong><small>${e(o.locality)}, ${e(o.state)} · ${e(title(o.status))}</small><small>${e(o.contact_name || 'Public contact needed')}${o.meeting_date ? ` · Follow up ${e(o.meeting_date)}` : ''}</small></button>`).join('') : '<p class="sales-empty">No offices in this view. Find an office to start your pipeline.</p>';
       $$('[data-office]').forEach(b => b.onclick = run(() => showOffice(b.dataset.office)));
     }
     async function refresh() {
@@ -37,30 +37,53 @@
       $$('[data-states]').forEach(s => { const previous = s.value; const states = data.user.states.length ? data.user.states : data.states; s.innerHTML = states.map(v => `<option>${e(v)}</option>`).join(''); if (states.includes(previous)) s.value = previous; });
       $$('[data-agents]').forEach(s => { s.innerHTML = '<option value="owner">Workspace owner</option>' + data.agents.map(a => `<option value="${e(a.id)}">${e(a.name)}</option>`).join(''); });
       const priorStage = $('#sales-stage-filter').value; $('#sales-stage-filter').innerHTML = '<option value="">All stages</option>' + data.stages.map(s => `<option value="${s}">${e(title(s))}</option>`).join(''); $('#sales-stage-filter').value = priorStage;
-      const today = new Date().toISOString().slice(0,10), stats = [ ['Offices', data.offices.length], ['Follow-ups due', data.offices.filter(o => o.meeting_date && o.meeting_date <= today && !['active','not_interested','do_not_contact'].includes(o.status)).length], ['Invited',data.offices.filter(o => o.status === 'invited').length], ['Active',data.offices.filter(o => o.status === 'active').length] ];
+      const clock = new Date(), today = `${clock.getFullYear()}-${String(clock.getMonth()+1).padStart(2,'0')}-${String(clock.getDate()).padStart(2,'0')}`, stats = [ ['Offices', data.offices.length], ['Follow-ups due', data.offices.filter(o => o.meeting_date && o.meeting_date <= today && !['active','not_interested','do_not_contact'].includes(o.status)).length], ['Invited',data.offices.filter(o => o.status === 'invited').length], ['Active',data.offices.filter(o => o.membership?.eligible === true).length] ];
       $('#sales-stats').innerHTML = stats.map(([label,count]) => `<div class="sales-stat"><strong>${count}</strong><span>${label}</span></div>`).join('');
       $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>${e(a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
       $$('[data-revoke]').forEach(b => b.onclick = run(async () => { if (!window.confirm('Revoke this agent’s sales access? Existing sessions will stop working.')) return; await api('revoke-agent',{id:b.dataset.revoke}); await refresh(); status('Agent access revoked. Their office assignments are retained for reassignment.'); }));
-      $('#sales-payment-status').textContent = data.paymentsConfigured ? 'Stripe payment connection configured.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
+      $('#sales-payment-status').textContent = data.paymentsConfigured ? 'Stripe credentials are saved. Live checkout and billing still need verification.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
       $('#sales-terms-status').textContent = data.terms ? `${data.terms.title} · ${data.terms.version}` : 'Agreement prepared for owner approval. Invitations will become available when the final terms are published.';
       renderList();
+      window.GigTaxWorkflows?.queue({ offices: data.offices, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
       tab($('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
       if (selected) await showOffice(selected);
       if (data.user.role === 'owner') await window.GigTaxDirectory?.support({ api, status });
     }
+    function showInvitation(result) {
+      if (!result?.link) throw new Error('The backend did not return a private invitation link. Refresh this office before trying again.');
+      $('#sales-invitation').innerHTML = '<p>Share privately with this owner. Link expires in 14 days.</p><a class="sales-secret" target="_blank" rel="noopener noreferrer"></a><button class="button secondary" id="sales-copy-invite">Copy signup link</button>';
+      const anchor = $('#sales-invitation a'); anchor.href = result.link; anchor.textContent = result.link;
+      $('#sales-copy-invite').onclick = run(async () => { await navigator.clipboard.writeText(result.link); status('Signup link copied.'); });
+    }
     async function showOffice(id) {
-      const record = await api('office', { id }); selected = String(id); renderList();
+      const requestId = ++officeRequest, target = $('#sales-detail');
+      selected = String(id); renderList();
+      target.setAttribute('aria-busy', 'true'); target.innerHTML = '<h2>Loading office record…</h2>';
+      let record;
+      try { record = await api('office', { id }); }
+      catch (error) {
+        if (requestId !== officeRequest) return;
+        target.removeAttribute('aria-busy'); target.innerHTML = '<h2>Office record unavailable</h2><p>Refresh or select this office again to retry.</p>'; throw error;
+      }
+      if (requestId !== officeRequest) return;
+      target.removeAttribute('aria-busy');
       const o = record.office, m = meta(o), panel = $('#sales-detail');
       panel.innerHTML = `<p class="eyebrow">${e(o.state)} · ${e(title(o.status))}</p><h2>${e(o.town)}</h2><p>${e(m.address)}<br>${e(o.locality)}, ${e(o.state)}</p><div class="sales-actions">${link(m.website,'Office website ↗')}${link(m.source,'Research source ↗')}</div>
-      <form id="sales-update-office" class="sales-form"><label>Decision maker<input name="contact" value="${e(o.contact_name)}" maxlength="140"></label><label>Business email<input name="email" type="email" value="${e(o.contact_email)}"></label><label>Phone<input name="phone" type="tel" value="${e(o.contact_phone)}" maxlength="60"></label><label>Stage<select name="stage" ${o.status === 'active' ? 'disabled' : ''}>${data.stages.filter(s => !['active','invited'].includes(s) || s === o.status).map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${e(title(s))}</option>`).join('')}</select></label><label>Next follow-up<input type="date" name="nextFollowup" value="${e((o.meeting_date || '').slice(0,10))}"></label><label>Ownership<select name="independence">${[['unverified','Needs verification'],['independent','Confirmed independent'],['chain','Chain / franchise']].map(([v,l]) => `<option value="${v}" ${v === m.independence ? 'selected' : ''}>${l}</option>`).join('')}</select></label>${data.user.role === 'owner' ? `<label>Assigned agent<select name="assignedTo"><option value="owner">Workspace owner</option>${data.agents.map(a => `<option value="${e(a.id)}" ${String(o.assigned_to) === a.id ? 'selected' : ''}>${e(a.name)}</option>`).join('')}</select></label>` : ''}<button class="button primary">Save changes</button></form>
+      <form id="sales-update-office" class="sales-form"><label>Public contact / decision maker (verify role)<input name="contact" value="${e(o.contact_name)}" maxlength="140"></label><label>Business email<input name="email" type="email" value="${e(o.contact_email)}"></label><label>Phone<input name="phone" type="tel" value="${e(o.contact_phone)}" maxlength="60"></label><label>Stage<select name="stage" ${o.status === 'active' ? 'disabled' : ''}>${data.stages.filter(s => !['active','invited'].includes(s) || s === o.status).map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${e(title(s))}</option>`).join('')}</select></label><label>Next follow-up<input type="date" name="nextFollowup" value="${e((o.meeting_date || '').slice(0,10))}"></label><label>Office website<input name="website" type="url" value="${e(m.website || '')}" maxlength="1200"></label><label>ZIP code<input name="postalCode" value="${e(m.postalCode || '')}" maxlength="10"></label><p>Ownership: <strong>${e(m.independence || 'unverified')}</strong>. Use the ownership verification tool below to record evidence.</p>${data.user.role === 'owner' ? `<label>Assigned agent<select name="assignedTo"><option value="owner">Workspace owner</option>${data.agents.map(a => `<option value="${e(a.id)}" ${String(o.assigned_to) === a.id ? 'selected' : ''}>${e(a.name)}</option>`).join('')}</select></label>` : ''}<button class="button primary">Save changes</button></form>
       <h3>Conversation tools</h3><p>Editable starting points. Review the office facts and current offer before using them.</p>${Object.entries(record.drafts).map(([name,text]) => `<details><summary>${e(title(name.replace('callScript','call script')))}</summary><pre class="sales-draft">${e(text)}</pre></details>`).join('')}
       <h3>Record a follow-up</h3><form id="sales-activity" class="sales-form"><label>Activity<select name="kind"><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option><option value="meeting">Meeting</option></select></label><label>What happened?<textarea name="note" maxlength="3000" required></textarea></label><button class="button primary">Save activity</button></form>
-      <h3>Invite the office owner</h3><p>The owner reviews the exact terms and signs for this office. Copy the link to share through your normal conversation.</p><form id="sales-invite" class="sales-form"><label>Owner name<input name="ownerName" value="${e(o.contact_name)}" required maxlength="140"></label><label>Owner business email<input name="email" type="email" value="${e(o.contact_email)}" required></label><button class="button primary" ${!data.terms || m.independence !== 'independent' || ['active','do_not_contact','not_interested'].includes(o.status) ? 'disabled' : ''}>Create owner signup link</button></form><div id="sales-invitation"></div>
-      <h3>Enrollments</h3>${record.enrollments.map(r => `<p>${e(r.contact_name)} · ${e(title(r.status))}${r.acceptedAt ? ` · ${e(new Date(r.acceptedAt).toLocaleString())}` : ''}</p>`).join('') || '<p>No owner invitation yet.</p>'}<h3>Office history</h3>${record.events.slice().reverse().map(r => { const event = meta(r); return `<div class="sales-event"><small>${e(r.contact_name)} · ${e(title(event.action))} · ${e(new Date(event.at).toLocaleString())}</small><p>${e(typeof event.detail === 'string' ? event.detail : JSON.stringify(event.detail))}</p></div>`; }).join('')}`;
+      <h3>Invite the office owner</h3><p>The owner reviews the exact terms and signs for this office. Copy the link to share through your normal conversation.</p><form id="sales-invite" class="sales-form"><label>Owner name<input name="ownerName" value="${e(o.contact_name)}" required maxlength="140"></label><label>Owner business email<input name="email" type="email" value="${e(o.contact_email)}" required></label><button class="button primary" ${!data.terms || (m.independence !== 'independent' || m.independenceVerification?.reviewed !== true) || ['active','do_not_contact','not_interested'].includes(o.status) ? 'disabled' : ''}>Create owner signup link</button></form><div id="sales-invitation"></div>
+      <h3>Enrollments</h3>${record.enrollments.map(r => `<p>${e(r.contact_name)} · ${e(title(r.status))}${r.acceptedAt ? ` · ${e(new Date(r.acceptedAt).toLocaleString())}` : ''}</p>${data.user.role === 'owner' && r.hasLivePayment ? `<button class="button secondary" data-refresh-billing="${e(r.id)}">Refresh billing status</button>` : ''}`).join('') || '<p>No owner invitation yet.</p>'}${data.user.role === 'owner' && !['do_not_contact','not_interested'].includes(o.status) && record.enrollments.some(r => r.expired) && !record.enrollments.some(r => r.hasLivePayment) ? '<form id="sales-renew-invitation" class="sales-form"><h4>Review an expired invitation</h4><label>Reason for a new invitation<textarea name="reason" maxlength="900" required></textarea></label><label class="sales-check"><input type="checkbox" name="reviewed" required>I reviewed the old invitation and want to prepare a fresh private link. This does not renew a paid membership.</label><button class="button secondary">Prepare fresh invitation</button></form>' : ''}<h3>Office history</h3>${record.events.slice().reverse().map(r => { const event = meta(r); return `<div class="sales-event"><small>${e(r.contact_name)} · ${e(title(event.action))} · ${e(new Date(event.at).toLocaleString())}</small><p>${e(typeof event.detail === 'string' ? event.detail : JSON.stringify(event.detail))}</p></div>`; }).join('')}`;
       const update = $('#sales-update-office'); update.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(update)); if (values.stage === o.status && ['invited','active'].includes(o.status)) delete values.stage; await api('update-office',{id,...values}); await refresh(); status('Office changes saved.'); }, update);
       if (data.user.role === 'owner') window.GigTaxDirectory?.office({ office: o, info: m, api, status, refresh: () => showOffice(id) });
+      window.GigTaxResearch?.mount({ office: o, api, status, refresh });
+      window.GigTaxWorkflows?.mount({ office: o, api, status, refresh, drafts: record.drafts, events: record.events });
+      $$('[data-refresh-billing]', panel).forEach(button => button.onclick = run(async () => { await api('refresh-billing', { enrollmentId: button.dataset.refreshBilling }); await refresh(); status('Current billing state checked. No charge, cancellation or refund was requested.'); }));
+      const renew = $('#sales-renew-invitation');
+      if (renew) renew.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(renew)); const result = await api('renew-invitation', { id, reason: values.reason, reviewed: values.reviewed === 'on' }); await refresh(); showInvitation(result); status('Fresh private invitation ready to copy. No message was sent.'); }, renew);
+
       const activity = $('#sales-activity'); activity.onsubmit = run(async () => { await api('activity',{id,...Object.fromEntries(new FormData(activity))}); await showOffice(id); status('Activity saved.'); }, activity);
-      const invite = $('#sales-invite'); invite.onsubmit = run(async () => { const result = await api('invite',{id,...Object.fromEntries(new FormData(invite))}); $('#sales-invitation').innerHTML = '<p>Share privately with this owner. Link expires in 14 days.</p><a class="sales-secret" target="_blank" rel="noopener noreferrer"></a><button class="button secondary" id="sales-copy-invite">Copy signup link</button>'; const anchor = $('#sales-invitation a'); anchor.href = result.link; anchor.textContent = result.link; $('#sales-copy-invite').onclick = run(async () => { await navigator.clipboard.writeText(result.link); status('Signup link copied.'); }); status('Owner invitation saved. Copy the link to share.'); }, invite);
+      const invite = $('#sales-invite'); invite.onsubmit = run(async () => { const result = await api('invite',{id,...Object.fromEntries(new FormData(invite))}); showInvitation(result); status('Owner invitation saved. Copy the link to share.'); }, invite);
     }
     const agreementForm = $('#sales-agreement');
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
@@ -71,7 +94,41 @@
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });
     $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download('gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
-    const discovery = $('#sales-discover'); discovery.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(discovery)), query = `tax preparation offices ${input.city} ${input.state}`; $('#sales-search-links').innerHTML = `${link(`https://www.google.com/search?q=${encodeURIComponent(query)}`,'Web search ↗')}${link('https://www.irs.gov/e-file-providers/authorized-irs-e-file-provider-locator-service-for-tax-professionals','IRS directory ↗')}`; status('Searching public office sources…'); const r = await api('search',input); $('#sales-results').innerHTML = r.results.map((item,i) => `<article class="sales-result">${link(item.url,item.title)}<p>${e(item.snippet)}</p><button class="button secondary" data-use-result="${i}">Prepare office record</button></article>`).join(''); $$('[data-use-result]').forEach(b => b.onclick = () => { const result = r.results[Number(b.dataset.useResult)], form = $('#sales-create-office'); form.elements.name.value = result.name || result.title; form.elements.source.value = result.url; form.elements.city.value = result.city || input.city; form.elements.state.value = input.state; form.elements.address.value = result.address || ''; form.elements.phone.value = result.phone || ''; form.elements.contact.value = result.contact || ''; form.elements.name.focus(); status('Source added to the form. Check the office name, address and independent ownership before saving.'); }); status(r.message); },discovery);
+    const discovery = $('#sales-discover');
+    async function findOffices(input, offset = 0) {
+      const requestId = ++discoveryRequest;
+      ['#sales-results-prev', '#sales-results-next'].forEach(selector => { const button = $(selector); if (button) button.disabled = true; });
+      const query = `tax preparation offices ${input.city} ${input.state}`;
+      $('#sales-search-links').innerHTML = `${link(`https://www.google.com/search?q=${encodeURIComponent(query)}`,'Web search ↗')}${link('https://www.irs.gov/e-file-providers/authorized-irs-e-file-provider-locator-service-for-tax-professionals','IRS directory ↗')}`;
+      status('Searching public office sources…');
+      let r;
+      try { r = await api('search', { ...input, offset }); }
+      catch (error) {
+        if (requestId !== discoveryRequest) return;
+        $('#sales-results-prev').disabled = !discoveryState.query || discoveryState.offset === 0;
+        $('#sales-results-next').disabled = !discoveryState.query || !discoveryState.hasMore;
+        throw error;
+      }
+      if (requestId !== discoveryRequest) return;
+      discoveryState = { query: input, offset: r.offset ?? offset, limit: r.limit || 50, total: r.total || 0, hasMore: Boolean(r.hasMore) };
+      $('#sales-results').innerHTML = r.results.map((item,i) => `<article class="sales-result">${link(item.url,item.title)}<p>${e(item.snippet)}</p><button class="button secondary" data-use-result="${i}">Prepare office record</button></article>`).join('');
+      $$('[data-use-result]').forEach(b => b.onclick = () => {
+        const result = r.results[Number(b.dataset.useResult)], form = $('#sales-create-office');
+        for (const [name, value] of Object.entries({ name: result.name || result.title, source: result.url, city: result.city || input.city, state: input.state, address: result.address || '', postalCode: result.zip || '', phone: result.phone || '', contact: result.contact || '', independence: 'unverified', email: '', website: '' })) if (form.elements[name]) form.elements[name].value = value;
+        form.elements.name.focus(); status('Source added. Save the candidate, then check its official website and ownership evidence.');
+      });
+      const pagination = $('#sales-pagination');
+      if (pagination) {
+        pagination.hidden = !r.total;
+        $('#sales-results-prev').disabled = discoveryState.offset === 0;
+        $('#sales-results-next').disabled = !r.hasMore;
+        $('#sales-results-range').textContent = `${r.results.length ? discoveryState.offset+1 : 0}–${r.results.length ? discoveryState.offset+r.results.length : 0} of ${r.total || 0}`;
+      }
+      status(r.message || 'Public office search finished.');
+    }
+    discovery.onsubmit = run(() => findOffices(Object.fromEntries(new FormData(discovery)), 0), discovery);
+    $('#sales-results-prev')?.addEventListener('click', run(() => discoveryState.query && findOffices(discoveryState.query, Math.max(0, discoveryState.offset - discoveryState.limit))));
+    $('#sales-results-next')?.addEventListener('click', run(() => discoveryState.query && findOffices(discoveryState.query, discoveryState.offset + discoveryState.limit)));
     const create = $('#sales-create-office'); create.onsubmit = run(async () => { const result = await api('create-office',Object.fromEntries(new FormData(create))); create.reset(); selected = String(result.office.id); await refresh(); tab('pipeline'); status(result.duplicate ? 'Opened the office already in your pipeline.' : 'Office saved to your pipeline.'); },create);
     const agentForm = $('#sales-create-agent'); agentForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agentForm)); input.states = input.states.split(/[\s,]+/).filter(Boolean).map(s=>s.toUpperCase()); const result = await api('create-agent',input); await refresh(); tab('team'); const panel = $('#sales-agent-code'); panel.hidden = false; panel.innerHTML = '<p>Share this access code privately with the agent. It is shown once.</p><code class="sales-secret"></code><button class="button secondary">Copy access code</button>'; $('code',panel).textContent = result.code; $('button',panel).onclick = run(async () => { await navigator.clipboard.writeText(result.code); status('Agent access code copied.'); }); agentForm.reset(); status('Agent created. Save the access code before leaving this page.'); },agentForm);
     (async () => {

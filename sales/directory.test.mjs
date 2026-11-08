@@ -4,12 +4,13 @@ import { service } from './service.mjs';
 import { publicDirectory, listingInput, supportInput } from './directory.mjs';
 import { createDirectoryHandler } from './directory-handler.mjs';
 import { agreement } from './terms.mjs';
+import { initialBilling } from './billing.mjs';
 
 const owner = { id: 'owner', name: 'Owner', role: 'owner', states: [] };
 const listing = { enabled: true, name: 'Synthetic Public Office', address: '123 Example Way', city: 'Hartford', state: 'CT', postalCode: '06103',
   latitude: 41.7658, longitude: -72.6734, phone: '+1 203 555 0100', hours: 'Mon–Fri 9–5 Eastern', appointmentURL: 'https://example.test/book',
   available24x7: false, coverageConfirmed: false, publicDetailsConfirmed: true };
-function fixture() {
+function fixture({ billingStatus = 'active' } = {}) {
   let id = 0, support = null;
   const rows = { offices: [], enrollments: [], agents: [], events: [] };
   const db = { list: async kind => structuredClone(rows[kind]), get: async (kind, id) => structuredClone(rows[kind].find(r => String(r.id) === String(id))),
@@ -18,11 +19,18 @@ function fixture() {
     terms: async () => agreement({ business: 'Synthetic Test', cancellation: 'Synthetic terms', approved: true }),
     support: async () => structuredClone(support), setSupport: async value => { support = structuredClone(value); } };
   const app = service({ GIGTAX_SALES_SESSION_KEY: 'a'.repeat(64), GIGTAX_SALES_ORIGIN: 'https://gigtax.pro' }, db,
-    { configured: () => true, create: async () => ({ id: 'cs_test', url: 'https://checkout.stripe.com/test' }), verify: async () => ({ live: true, checkoutId: 'cs_test' }) });
+    { configured: () => true, create: async () => ({ id: 'cs_test', url: 'https://checkout.stripe.com/test' }), verify: async () => ({ live: true, checkoutId: 'cs_test', subscriptionId: 'sub_test', customerId: 'cus_test', invoiceId: 'in_test', initialAmountCents: 50000, currency: 'USD', verifiedAt: new Date().toISOString(), billingEndsAt: new Date(Date.now() + 365 * 86400000).toISOString(), paidThroughAt: new Date(Date.now() + 30 * 86400000).toISOString() }) }, {
+      billingReconciler: async (_env, adapter, enrollmentId) => {
+        const row = await adapter.get('enrollments', enrollmentId), info = JSON.parse(row.notes), initial = initialBilling(info.payment);
+        const billing = billingStatus === 'active' ? initial : { ...initial, status: billingStatus, reason: 'Synthetic current provider state', holds: [{ status: billingStatus, reason: 'Synthetic payment adjustment' }] };
+        return adapter.patch('enrollments', row.id, { status: billing.status, notes: JSON.stringify({ ...info, billing }) });
+      },
+    });
   return { app, db, rows };
 }
 async function prepared(f) {
   const { office } = await f.app.dispatch(owner, 'create-office', { ...listing, contact: 'Private Owner', email: 'private-owner@example.test', independence: 'independent' });
+  await f.app.dispatch(owner, 'verify-office', { id: office.id, finding: 'independent', sourceURL: 'https://example.test/about', note: 'Synthetic explicit source reviewed', reviewed: true });
   await f.app.dispatch(owner, 'save-office-listing', { id: office.id, ...listing });
   return office;
 }
@@ -53,6 +61,18 @@ test('neither forged active stage nor unapproved listing or sandbox payment expo
   await f.db.create('enrollments', { status: 'active', notes: JSON.stringify({ leadId: office.id, acceptedAt: '2026-11-07', signature: 'Synthetic', payment: { live: false } }) });
   assert.equal((await publicDirectory(f.db)).offices.length, 0);
   assert.throws(() => listingInput({ ...listing, publicDetailsConfirmed: false }), /Confirm the public/);
+});
+test('a matching initial payment cannot publish an office when current canonical billing reports a refund', async () => {
+  const f = fixture({ billingStatus: 'refunded' }), office = await prepared(f);
+  const invite = await f.app.dispatch(owner, 'invite', { id: office.id, email: 'private-owner@example.test', ownerName: 'Private Owner' });
+  const body = Object.fromEntries(new URLSearchParams(new URL(invite.link).hash.slice(1))), view = await f.app.signup('view', body);
+  await f.app.signup('accept', { ...body, signature: 'Private Owner', email: view.email, accepted: true, independent: true, authorized: true, termsHash: view.terms.hash });
+  assert.equal((await publicDirectory(f.db)).offices.length, 0);
+  await assert.rejects(f.app.signup('confirm', body), /Synthetic payment adjustment|refunded|review/);
+  assert.equal((await publicDirectory(f.db)).offices.length, 0);
+  assert.equal(f.rows.enrollments[0].status, 'refunded');
+  await f.db.patch('offices', office.id, { status: 'active' });
+  assert.equal((await publicDirectory(f.db)).offices.length, 0, 'A forged active office stage cannot override the reconciled refund hold.');
 });
 test('only workspace owner controls public contacts; 24/7 needs a phone and explicit confirmation', async () => {
   const f = fixture(), office = await prepared(f), agent = { ...owner, id: 'agent', role: 'agent' };

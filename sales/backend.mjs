@@ -9,6 +9,7 @@ export function backend(env, fetcher = fetch) {
     const r = await fetcher(base + path, { method, headers: { Authorization: `Bearer ${env.GIGTAX_TINKY_KEY}`, 'Content-Type': 'application/json' }, ...(body === undefined ? {} : { body: JSON.stringify(body) }), signal: AbortSignal.timeout(25000) });
     const data = await r.json().catch(() => ({}));
     if (r.status === 404) throw new HttpError(404, 'Record not found.');
+    if (r.status === 409) throw new HttpError(409, 'This record changed. Refresh before trying again.');
     if (!r.ok) throw new HttpError(502, 'TinkySDR could not complete this request. Your changes have not been confirmed.');
     return data;
   }
@@ -18,11 +19,17 @@ export function backend(env, fetcher = fetch) {
     return `/api/outreach/boards/${boards[kind]}`;
   };
   return {
-    discover: (region, city) => discoverOffices(region, city, fetcher),
+    discover: (region, city, options) => discoverOffices(region, city, fetcher, options),
     async list(kind) { return (await request(boardPath(kind) + '/rows')).rows || []; },
     async get(kind, id) { if (!/^\d+$/.test(String(id))) throw new HttpError(404, 'Record not found.'); try { return (await request(boardPath(kind) + '/rows/' + id)).row; } catch(error) { if (error.status === 404) return undefined; throw error; } },
     async create(kind, body) { return (await request(boardPath(kind) + '/rows', 'POST', body)).row; },
     async patch(kind, id, body) { return (await request(boardPath(kind) + '/rows/' + id, 'PATCH', body)).row; },
+    async patchIfUnchanged(kind, id, expectedNotes, body) {
+      if (!/^\d+$/.test(String(id))) throw new HttpError(404, 'Record not found.');
+      const value = await request(boardPath(kind) + '/rows/' + id, 'PATCH', { ...body, expected_notes: expectedNotes ?? null });
+      if (value.matched !== true) throw new HttpError(503, 'The backend has not confirmed its conditional-write support. Refresh before retrying.');
+      return value.row;
+    },
     async terms() { return (await request(boardPath('offices'))).board?.config_json?.terms || null; },
     async setTerms(terms) { const board = (await request(boardPath('offices'))).board; await request(boardPath('offices'),'PATCH',{ config_json:{ ...board.config_json,terms } }); },
     async support() { return (await request(boardPath('offices'))).board?.config_json?.publicSupport || null; },

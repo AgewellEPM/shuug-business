@@ -2,7 +2,7 @@ import { backend } from './backend.mjs';
 import { service } from './service.mjs';
 import { HttpError } from './model.mjs';
 
-export function createHandler(env = process.env, adapter) {
+export function createHandler(env = process.env, adapter, tools = {}) {
   return async function handler(req, res) {
     const reply = (status, body) => { res.statusCode = status; res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.end(JSON.stringify(body)); };
     res.setHeader('Cache-Control', 'private, no-store');
@@ -24,7 +24,7 @@ export function createHandler(env = process.env, adapter) {
         body = JSON.parse(raw);
       }
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'Invalid request.');
-      const app = service(env, adapter || backend(env));
+      const app = service(env, adapter || backend(env), undefined, tools);
       if (body.action === 'login') {
         const result = await app.login(body);
         res.setHeader('Set-Cookie', `gigtax_sales=${result.token}; HttpOnly; Secure; SameSite=Strict; Path=/api/sales; Max-Age=28800`);

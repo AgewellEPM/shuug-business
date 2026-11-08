@@ -1,5 +1,5 @@
 import { inflateRawSync } from 'node:zlib';
-import { HttpError, STATES } from './model.mjs';
+import { HttpError, STATES, digest, officeIdentity } from './model.mjs';
 
 export const IRS_DIRECTORY = 'https://www.irs.gov/e-file-providers/download-delimited-files-by-state-or-district-of-columbia';
 const cache = new Map();
@@ -29,8 +29,9 @@ export function parseDirectory(raw, region) {
   const clean = value => !value || /^(none|null)$/i.test(value.trim()) ? '' : value.trim();
   return raw.split(/\r?\n/).filter(Boolean).map(line => line.split('|').map(clean)).filter(c => c.length >= 11 && c[4] === region && c[0]).map(c => ({ name:c[0], address:[c[1],c[2]].filter(Boolean).join(', '), city:c[3], state:c[4], zip:c[5], contact:[c[7],c[8],c[9]].filter(Boolean).join(' '), phone:c[10], ero:c[11] === 'X' }));
 }
-export async function discoverOffices(region, locality, fetcher = fetch) {
+export async function discoverOffices(region, locality, fetcher = fetch, { offset = 0, limit = 50 } = {}) {
   if (!STATES.includes(region)) throw new HttpError(400, 'Choose a state.');
+  if (!Number.isInteger(offset) || offset < 0 || offset > 100000 || !Number.isInteger(limit) || limit < 1 || limit > 50) throw new HttpError(400, 'Choose a valid search page.');
   const url = `https://www.irs.gov/pub/irs-efile/${region.toLowerCase()}.zip`;
   let data = cache.get(region);
   if (!data || data.expires < Date.now()) {
@@ -42,6 +43,12 @@ export async function discoverOffices(region, locality, fetcher = fetch) {
     cache.set(region,data);
   }
   const query = locality.toLowerCase().trim();
-  const matches = data.rows.filter(o => o.ero && (o.city.toLowerCase().includes(query) || o.zip.startsWith(query)) && !/h\s*&\s*r\s*block|jackson\s*hewitt|liberty\s*tax/i.test(o.name));
-  return { results:matches.slice(0,50).map(o => ({ ...o,title:o.name,url, snippet:`${o.address}, ${o.city}, ${o.state} ${o.zip} · ${o.phone || 'No phone listed'} · Public directory contact: ${o.contact || 'Not listed'}. Independent ownership needs verification.` })), total:matches.length, stateRecords:data.rows.length, checkedAt:data.checkedAt, source:IRS_DIRECTORY, message:matches.length ? `${matches.length} matching e-file provider candidates; showing up to 50. Known national chain names filtered. Verify independent ownership and contact details; IRS listing is not an endorsement.` : 'No matching candidates in this state directory. Try a nearby city or ZIP, or use the manual research links.' };
+  const seen = new Set();
+  const matches = data.rows.filter(o => {
+    if (!o.ero || !(o.city.toLowerCase().includes(query) || o.zip.startsWith(query)) || /h\s*&\s*r\s*block|jackson\s*hewitt|liberty\s*tax/i.test(o.name)) return false;
+    const identity = officeIdentity(o.name, o.address, o.city, o.state);
+    if (seen.has(identity)) return false; seen.add(identity); return true;
+  });
+  const results = matches.slice(offset, offset + limit).map(o => ({ ...o, candidateId: digest(officeIdentity(o.name,o.address,o.city,o.state)).slice(0,24), independence:'unverified', contactRole:'unverified', title:o.name,url, snippet:`${o.address}, ${o.city}, ${o.state} ${o.zip} · ${o.phone || 'No phone listed'} · Public directory contact: ${o.contact || 'Not listed'}. Independent ownership needs verification.` }));
+  return { results, total:matches.length, offset, limit, hasMore:offset + results.length < matches.length, stateRecords:data.rows.length, checkedAt:data.checkedAt, source:IRS_DIRECTORY, message:matches.length ? `${matches.length} matching e-file provider candidates; showing ${results.length ? offset+1 : 0}–${results.length ? offset+results.length : 0}. Known national chain names filtered. Verify independent ownership and contact details; IRS listing is not an endorsement.` : 'No matching candidates in this state directory. Try a nearby city or ZIP, or use the manual research links.' };
 }

@@ -33,7 +33,7 @@
       }, status);
     },
     office({ office, info, api, status, refresh }) {
-      const saved = info.publicListing || {}, value = { name: office.town, address: info.address, city: office.locality, state: office.state, ...saved };
+      const saved = info.publicListing || {}, value = { name: office.town, address: info.address, city: office.locality, state: office.state, postalCode: info.postalCode, phone: office.contact_phone, ...saved };
       const panel = document.createElement('section'); panel.className = 'sales-panel'; panel.id = 'directory-listing';
       panel.innerHTML = '<h3>App map listing</h3><p>Prepare the public listing now. It appears in the app when this office has an active, paid enrollment and confirmed independent ownership. Uncheck the listing to remove it from the next refresh.</p>' +
         `<form id="directory-listing-form" class="sales-form"><label class="sales-check"><input type="checkbox" name="enabled" ${saved.enabled ? 'checked' : ''}>Show in the app when enrollment is active</label>` +

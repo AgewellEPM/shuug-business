@@ -33,9 +33,17 @@ export function unseal(token, key) {
 export function visible(user, lead) { return user.role === 'owner' || ((!user.states.length || user.states.includes(lead.state)) && String(lead.assigned_to) === String(user.id)); }
 export function metadata(row) { try { return JSON.parse(row.notes || '{}'); } catch { throw new HttpError(502, 'A saved record needs repair. No changes were made.'); } }
 export function officeInput(b) {
-  return { name: text(b.name, 180, true), address: text(b.address, 300, true), city: text(b.city, 100, true), state: state(b.state), website: https(b.website || ''), email: b.email ? email(b.email) : '', phone: text(b.phone || '', 60), contact: text(b.contact || '', 140), source: https(b.source || ''), independence: ['unverified', 'independent', 'chain'].includes(b.independence) ? b.independence : 'unverified' };
+  const postalCode = text(b.postalCode || b.zip || '', 10);
+  if (postalCode && !/^\d{5}(?:-\d{4})?$/.test(postalCode)) throw new HttpError(400, 'Enter a valid US ZIP code.');
+  return { name: text(b.name, 180, true), address: text(b.address, 300, true), city: text(b.city, 100, true), postalCode, state: state(b.state), website: https(b.website || ''), email: b.email ? email(b.email) : '', phone: text(b.phone || '', 60), contact: text(b.contact || '', 140), source: https(b.source || ''), independence: 'unverified' };
+}
+export function officeIdentity(name, address, city, region) {
+  const normalize = value => String(value || '').normalize('NFKC').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+  return [region, name, address, city].map(normalize).join('|');
 }
 export function termsValid(terms) { return terms?.published === true && typeof terms.text === 'string' && terms.text.length >= 100 && /^[a-f0-9]{64}$/.test(terms.hash) && digest(terms.text) === terms.hash; }
+export const independenceVerified = info => info.independence === 'independent' && info.independenceVerification?.reviewed === true &&
+  info.independenceVerification.finding === 'independent' && Boolean(info.independenceVerification.sourceURL && info.independenceVerification.note && info.independenceVerification.checkedAt);
 export function outreach(lead) {
   const name = lead.contact_name || 'there', office = lead.town;
   return {
