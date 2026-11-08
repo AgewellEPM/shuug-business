@@ -29,6 +29,7 @@
 		30B133174339999B044D57DB /* ExpenseReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7881FA8192DA6B8A4C0784E2 /* ExpenseReviewView.swift */; };
 		30F1ED43691D6039BFF34F50 /* GigOfferRouteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FB0347BAC4DEAA503ADEE84 /* GigOfferRouteView.swift */; };
 		31DFE9A23774D226C0F6D7C0 /* InsightsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 282961514CC8F1169E8346AA /* InsightsView.swift */; };
+		329784177BCDFF822218F991 /* ScreenCatalogMoneyFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = EBE38B18B41494DD15D9DC0F /* ScreenCatalogMoneyFlows.swift */; };
 		35C70F8A9D7C074824944EFB /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = 3F11F2CFCE48457C84C93872 /* DriverCore */; };
 		3A5A3FF2B7227F7944C1ED9C /* OfficeHelpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C00C6040340CAB507F058FAA /* OfficeHelpView.swift */; };
 		3D04DCC18C29A95D718D3FEE /* DrivingAssistant.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A275B806AE67181728CC33 /* DrivingAssistant.swift */; };
@@ -42,6 +43,7 @@
 		55A9B282A3A248A7A3B7AA76 /* GigAppLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF0712A5B7830443ED4373 /* GigAppLauncher.swift */; };
 		56D498BB7423905FE8A79253 /* ReserveAndHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */; };
 		5FDA77B4EFC4131F5F87E030 /* BankImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99DB6310D01A30734F776EC /* BankImportView.swift */; };
+		61A5109877159281981BF36A /* ScreenCatalogAccountFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAD2884EABCA3A81C125B978 /* ScreenCatalogAccountFlows.swift */; };
 		631165DBDE1AFD1CF0653576 /* GettingStarted.en.srt in Resources */ = {isa = PBXBuildFile; fileRef = 00E08B995FE430CF1AEC5BF9 /* GettingStarted.en.srt */; };
 		65A72F59A943AF82BF11FD8E /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		665C61B03274440F9E733A12 /* TaxCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 674AAC450486D726F72CB64E /* TaxCoachView.swift */; };
@@ -50,6 +52,7 @@
 		6B6D751EDE40989BB97238B4 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		6D2CE7A9CFB7BA25ABB8C6C4 /* TaxCoachModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EC06E1715846FC3BD4D93A32 /* TaxCoachModel.swift */; };
 		6F21419FB4AFB5DD2655EA56 /* OfferCaptureDiagnosticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */; };
+		71CEE6CEB7B60A72A041F3A7 /* ScreenCatalogBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3BDC180AD2343B2ADDE47957 /* ScreenCatalogBase.swift */; };
 		726D6091F84ABB9D8E423F15 /* OfferCaptureStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */; };
 		72E612CC74B5AAFBC7FE20AF /* OfficeExteriorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1F3FB7A7EAEB2F5B94D9D288 /* OfficeExteriorView.swift */; };
 		73ED0120CE9C85FFEF2413AC /* OfferOCR.swift in Sources */ = {isa = PBXBuildFile; fileRef = 35344D692A017690B3711641 /* OfferOCR.swift */; };
@@ -107,6 +110,7 @@
 		DBC446023CEEE744D8A12CE9 /* DashboardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E0969F8A93383D28325852E /* DashboardStyle.swift */; };
 		DE4E1A545498158E41CB4160 /* ReputationModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7474C9B1D3628D58E5A010C8 /* ReputationModel.swift */; };
 		DFBBB9E1429E264C5F3EE7A7 /* MissionRouteSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1ED88E088275818CEEAD9F68 /* MissionRouteSection.swift */; };
+		E733E4927AD276DEE9B1B01D /* ScreenCatalogMainFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33F55693B7B0C79DF69484F5 /* ScreenCatalogMainFlows.swift */; };
 		E7DB05313A373EB54B74443A /* GettingStarted.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = DDB410DCD9DDF717A1EEB8BA /* GettingStarted.mp4 */; };
 		E88EB7D984CCE264B38D6D5E /* DriverCore in Frameworks */ = {isa = PBXBuildFile; productRef = ED9E3503FF4FE8A2BA514E80 /* DriverCore */; };
 		E8BEBB2ED8774C88D4BD3A52 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B02495B4D78249A890D1EF7 /* Assets.xcassets */; };
@@ -114,6 +118,7 @@
 		E9B27456B9704A247C067016 /* ReputationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3C72F5891EF14B5B50478C /* ReputationView.swift */; };
 		EB93ABFFF56EA36405A0A8F1 /* Brand.swift in Sources */ = {isa = PBXBuildFile; fileRef = E515B079F485E403FF64B2AD /* Brand.swift */; };
 		F6A44B888EE96AE36F3ACAEC /* BankConnectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E96FB385BB01D09AF2EBF2B /* BankConnectionView.swift */; };
+		F8077996C17CC67F0E4CAD55 /* ScreenCatalogOffersFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2C42C28B72798E43383B418 /* ScreenCatalogOffersFlows.swift */; };
 		F80FADD07A0353860C8A376B /* SharedBrand.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 497D388F9CADBEE73E172A2F /* SharedBrand.xcassets */; };
 		F81CB1D2DA225515D901F6E0 /* SessionKeychain.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB62B3A50F636C82218CF62B /* SessionKeychain.swift */; };
 		F9E43C8E7F8F60AE86EE6523 /* DriverPrivacyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */; };
@@ -192,9 +197,11 @@
 		2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankReviewView.swift; sourceTree = "<group>"; };
 		31EB2F5C6C2F4E5247F7EF77 /* TaxWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxWorkspaceView.swift; sourceTree = "<group>"; };
 		32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideshareTaxProsApp.swift; sourceTree = "<group>"; };
+		33F55693B7B0C79DF69484F5 /* ScreenCatalogMainFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogMainFlows.swift; sourceTree = "<group>"; };
 		35344D692A017690B3711641 /* OfferOCR.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferOCR.swift; sourceTree = "<group>"; };
 		35B7C371322C83C3B585A495 /* OfferCaptureDiagnosticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCaptureDiagnosticsView.swift; sourceTree = "<group>"; };
 		383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigNotificationContent.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		3BDC180AD2343B2ADDE47957 /* ScreenCatalogBase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogBase.swift; sourceTree = "<group>"; };
 		3E561D5862BEBD3894BF62C9 /* BrandedNotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedNotificationController.swift; sourceTree = "<group>"; };
 		3EBF8357067B181E7571C8CB /* BankWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankWire.swift; sourceTree = "<group>"; };
 		42CDEAEC3D706F1D06551110 /* GigOfferBroadcast.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigOfferBroadcast.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -236,6 +243,7 @@
 		9D4506E9DC067D656DC8DA17 /* EarningsCharts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarningsCharts.swift; sourceTree = "<group>"; };
 		9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverPrivacyView.swift; sourceTree = "<group>"; };
 		A13888EC0FAE80FE4B9AD9F0 /* SecureTaxJournalSnapshotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxJournalSnapshotService.swift; sourceTree = "<group>"; };
+		A2C42C28B72798E43383B418 /* ScreenCatalogOffersFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogOffersFlows.swift; sourceTree = "<group>"; };
 		AA3C72F5891EF14B5B50478C /* ReputationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReputationView.swift; sourceTree = "<group>"; };
 		AA590996236818D712C09A21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AB62B3A50F636C82218CF62B /* SessionKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionKeychain.swift; sourceTree = "<group>"; };
@@ -255,6 +263,7 @@
 		CE7D6C85A2490741C70CB9C1 /* SecureTaxConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxConnectionView.swift; sourceTree = "<group>"; };
 		D175B8E1585C9B2129C1400E /* SecureTaxDeviceKeys.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxDeviceKeys.swift; sourceTree = "<group>"; };
 		D34AC156EB56DF0359A34459 /* ReferralWire.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralWire.swift; sourceTree = "<group>"; };
+		DAD2884EABCA3A81C125B978 /* ScreenCatalogAccountFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogAccountFlows.swift; sourceTree = "<group>"; };
 		DD1F2D261964BEA7AA307572 /* GigAppCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigAppCatalog.swift; sourceTree = "<group>"; };
 		DDB410DCD9DDF717A1EEB8BA /* GettingStarted.mp4 */ = {isa = PBXFileReference; path = GettingStarted.mp4; sourceTree = "<group>"; };
 		DE7FA76494AEC8F8228E6932 /* SecureTaxManifest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxManifest.swift; sourceTree = "<group>"; };
@@ -268,6 +277,7 @@
 		E8C5B5F6AC6D5030CAEC833F /* PositioningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PositioningView.swift; sourceTree = "<group>"; };
 		EA83E80A7C193967EFA30EFE /* DoorDashOfferReference.provenance.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = DoorDashOfferReference.provenance.json; sourceTree = "<group>"; };
 		EB5F2A2D07756ADE2F52486C /* AssistanceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssistanceView.swift; sourceTree = "<group>"; };
+		EBE38B18B41494DD15D9DC0F /* ScreenCatalogMoneyFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogMoneyFlows.swift; sourceTree = "<group>"; };
 		EC06E1715846FC3BD4D93A32 /* TaxCoachModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxCoachModel.swift; sourceTree = "<group>"; };
 		F0E7D02A168B67576890FDE8 /* OfferReaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferReaderView.swift; sourceTree = "<group>"; };
 		F0FC1743C9CF562B5B0DE161 /* OfferScreenshotImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferScreenshotImportView.swift; sourceTree = "<group>"; };
@@ -455,6 +465,11 @@
 			children = (
 				DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */,
 				1E2FE4F8E87A95871C562500 /* GettingStartedFlows.swift */,
+				DAD2884EABCA3A81C125B978 /* ScreenCatalogAccountFlows.swift */,
+				3BDC180AD2343B2ADDE47957 /* ScreenCatalogBase.swift */,
+				33F55693B7B0C79DF69484F5 /* ScreenCatalogMainFlows.swift */,
+				EBE38B18B41494DD15D9DC0F /* ScreenCatalogMoneyFlows.swift */,
+				A2C42C28B72798E43383B418 /* ScreenCatalogOffersFlows.swift */,
 				0589FDD6984FBFDF3C295CEC /* ScreenshotGuideFlows.swift */,
 				CC8B4948C9AF3A5A22DE1074 /* TourRecordingFlows.swift */,
 			);
@@ -702,6 +717,11 @@
 			files = (
 				0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */,
 				8C29AB17FA7EBAB5F0DBE50A /* GettingStartedFlows.swift in Sources */,
+				61A5109877159281981BF36A /* ScreenCatalogAccountFlows.swift in Sources */,
+				71CEE6CEB7B60A72A041F3A7 /* ScreenCatalogBase.swift in Sources */,
+				E733E4927AD276DEE9B1B01D /* ScreenCatalogMainFlows.swift in Sources */,
+				329784177BCDFF822218F991 /* ScreenCatalogMoneyFlows.swift in Sources */,
+				F8077996C17CC67F0E4CAD55 /* ScreenCatalogOffersFlows.swift in Sources */,
 				0E7F566C2E67CCCCD5996E1C /* ScreenshotGuideFlows.swift in Sources */,
 				BF51D3512A227FB145094CEF /* TourRecordingFlows.swift in Sources */,
 			);
