@@ -102,3 +102,11 @@
   .app-feature p { grid-column: 2; font-size: 15px; }
   .app-download-links { flex-direction: column; }
 }
+@media (max-width: 1023px) {
+  .get-app-page .app-hit {
+    inset: auto;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+}

@@ -70,3 +70,11 @@
   .drivers-hero-actions { grid-template-columns: 1fr; }
   .drivers-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
+@media (max-width: 1023px) {
+  .drivers-page .drivers-hit {
+    inset: auto;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+}

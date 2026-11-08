@@ -78,3 +78,11 @@
 @media (prefers-reduced-motion: reduce) {
   .services-page { scroll-behavior: auto; }
 }
+@media (max-width: 1023px) {
+  .services-page .services-hit {
+    inset: auto;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+}

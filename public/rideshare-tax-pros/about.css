@@ -72,3 +72,11 @@
   .about-help-card h3 { margin: 0; font-size: 21px; }
   .about-help-card p { grid-column: 2; font-size: 15px; }
 }
+@media (max-width: 1023px) {
+  .about-reference-page .about-hit {
+    inset: auto;
+    width: 100%;
+    min-width: 0;
+    height: auto;
+  }
+}
