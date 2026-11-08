@@ -4,6 +4,10 @@ This workstream covers taxpayer protection, a complete office workflow,
 accountant workflows, simpler onboarding and sustainable free hosting.
 It is not complete merely because one milestone passes tests.
 
+The [November 8 assessment](SHUUG-READINESS-20261108.md) records current missing
+work, reproduced native snapshot compatibility findings and a firm-owned Mac mini
+hosting path. AWS is optional for application hosting and offhost recovery design.
+
 Source branch: `feat/shuug-free-tax-service-20261107`, based on the committed
 office accounting/billing milestone `ab94297`. A reviewed copy of the pending
 `feat/shuug-office-complete` workflow is now integrated here, with strengthened

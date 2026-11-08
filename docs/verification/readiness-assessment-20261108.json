@@ -1,0 +1,120 @@
+{
+  "verifiedAt": "2026-11-08T20:32:38.041829+00:00",
+  "auditedCommit": "785123478eeb89fbd7ed990e34eaf32339f4659e",
+  "sourceBranch": "feat/shuug-free-tax-service-20261107",
+  "scope": "Remaining non-AWS product gaps, local Mac mini hosting, requested workstation preview",
+  "sourceSha256": {
+    "scripts/preview-tax-workstation.ts": "4556f87d51bb3c75f4b0e686e7a3ed371112f899c9901eeb4743a07f891a4c38",
+    "scripts/install-rideshare-workspace.ts": "8b819554fc12d7a06e6a5023d14522ecea906d2d27ab0a37597c3d643c9d73a7",
+    "scripts/setup-rideshare-server.ts": "37e25025d93330258bb56b0400329344b682a1930a51aaf9a0fdf34357be553c",
+    "scripts/release-source.ts": "5745c1abbd3d90de8f21fc26904e1b5d693d96795f9eb6de50cac7eef5862441",
+    "scripts/update-gig-tax-workspace.ts": "055ae1515990dacee873476359bd3d9701780798f6c0c15dc47fe31f789f4671",
+    "src/lib/tax-office/access.ts": "4a8162cf1bd2ebca45646da73235c59b603e4e233f5495a9b696977186f68a9e",
+    "src/lib/tax-office/service.ts": "f26d16c3b1f42aa31dc3ea6e5fd9f946c543dfe627cdc0dbe4a7bf3be71c2983",
+    "src/lib/accounting/reports.ts": "d02c8cf1752e1ab55e6576c68ceb8da218d9c9e24e33691c2501651fb8e8d17e",
+    "src/lib/workspace/access.ts": "12af059a5855fe65e5912a69541fb043652277354a64068b00785bc7cc7a08d3",
+    "src/lib/workspace/portal.ts": "8e4ecffe5f2ab5e047d4fe0990b6bdc6eb8a770382a50fc310142a9202fa5347",
+    "src/lib/workspace/backup.ts": "fef5bf45d39812b84cf40c28b404324eca039bcfeddb445c3af13a727d7296e8",
+    "src/lib/auth/identity.ts": "b78eb9e35f8139291f53f1899a758c6e03cb5b6f6b26d45986bf8a6391234232",
+    "src/lib/backend/auth.ts": "f90b3740a340f94f5fcab92f3074e3d8ad968aa976ee458abaae4dbf9b1fd190",
+    "src/lib/secure-tax/staff-store.ts": "f503a76686171ec29682d72953c4b764f0e50654157b18606f48100d096e9c62",
+    "packages/secure-tax-client/browser/staff-client.mjs": "579c6ac59e68deb5586fab51e925b7b3edb96b61f44b7bd549897657e50f4adc",
+    "packages/secure-tax-client/browser/staff-view.mjs": "7baf0e13f7ad629fd73e8d6bdfb9934c846e2a6d077bffe58308fd1981a01c25",
+    "packages/secure-tax-client/browser/config.mjs": "50dcb5686680d5e97ca660d574c9f398a5c8028bfa196568666e9ed5a4bdfb60",
+    "packages/secure-tax-client/migrate-legacy.mjs": "d77c491fdc5c0b7e57714cd46357e5cea1d778c8ea7e6bfafe49db32a3bfd12a",
+    "native/ios/RideshareTaxPros/DriverCore/Sources/DriverCore/Journal.swift": "d4bd5f43cde4416c8f80a8255249349e40ab6661462b8d3cdf53ed0cdd08d773",
+    "native/ios/RideshareTaxPros/App/SecureTaxJournalSnapshot.swift": "584ba40f7e487a9ee673a9555413d4c8837211d2dc349ffc09b5ba64a060a7df"
+  },
+  "nativeSnapshotReproduction": {
+    "performedBy": "same-provider browser review agent",
+    "actualCurrentSwiftDecoderCompiled": true,
+    "cases": [
+      {
+        "fields": "reputation nil",
+        "encodedBytes": 286,
+        "decoded": true
+      },
+      {
+        "fields": "non-nil empty reputation state",
+        "encodedBytes": 347,
+        "decoded": false
+      },
+      {
+        "fields": "non-nil empty reputation outbox",
+        "encodedBytes": 308,
+        "decoded": false
+      },
+      {
+        "fields": "both non-nil",
+        "encodedBytes": 369,
+        "decoded": false
+      }
+    ],
+    "uploadedArchivePreviewCanFail": true,
+    "dataLossDemonstrated": false,
+    "keysGenerated": false,
+    "keychainCalled": false,
+    "nativeAppLaunched": false,
+    "ownedTemporaryProofRemoved": true
+  },
+  "staffGrantResponseReproduction": {
+    "performedBy": "same-provider browser review agent",
+    "actualController": "StaffVaultClient.refreshGrants",
+    "injectedResponseOnly": true,
+    "unsignedDummyEntries": 128,
+    "bodyBytes": 81089,
+    "clientLimitBytes": 65536,
+    "failureBoundary": "stream byte guard before JSON parse or grant verification",
+    "contentLengthProvided": false,
+    "grantBindingReads": 0,
+    "openedRecords": 0,
+    "unlockedAfterFailure": false,
+    "entryCountIsUniversalThreshold": false,
+    "realKeysUsed": false,
+    "networkUsed": false
+  },
+  "requestedPreview": {
+    "buildId": "gCfCUAOj0cd8RK8HPZzeh",
+    "fictionalClients": 3,
+    "separateClientBooks": 3,
+    "taxOfficeHtmlStatus": 200,
+    "clientBooksHtmlStatus": 200,
+    "exampleLedgerHtmlStatus": 200,
+    "staticAssetsChecked": 16,
+    "allStaticAssetsServed": true,
+    "directNextAnonymousRequestStatus": 307,
+    "foreignOriginGatewayRequestStatus": 403,
+    "browserSessionCookiesChanged": false,
+    "loopbackOnly": true,
+    "installedServiceChanged": false,
+    "encryptedOfficeEditingDemonstrated": false,
+    "safariOpenRequested": true,
+    "visualAcceptanceObtained": false,
+    "leftAvailableAtUserRequest": true,
+    "cleanup": "Ctrl-C on preview helper stops its child and removes only its own fictional workspace"
+  },
+  "existingLiveInstallation": {
+    "port": 3126,
+    "buildId": "-orrIlj9ul0XV8ixITvtV",
+    "sourceCheckoutHeadObserved": "a12bf54be8f6ec88d908d50ba2e8077c9ff23800",
+    "accountingRoutePresent": false,
+    "taxOfficeRoutePresent": false,
+    "secureStaffStatusRoutePresent": false,
+    "unrelatedPendingWorkPreserved": true,
+    "modifiedByAssessment": false
+  },
+  "verificationThisTurn": {
+    "fullTypeScriptCheckPassed": true,
+    "previous38And141HttpSuitesRerun": false,
+    "browserAutomationUsed": false,
+    "vmLaunched": false,
+    "realTaxpayerDataUsed": false,
+    "outgoingMessagesSent": false,
+    "independentSecurityReview": false
+  },
+  "references": [
+    "https://www.ftc.gov/business-guidance/resources/ftc-safeguards-rule-what-your-business-needs-know",
+    "https://www.irs.gov/newsroom/tax-professional-tips-for-creating-a-data-security-plan",
+    "https://support.apple.com/en-gb/guide/mac-help/mchlp1168/mac"
+  ]
+}
