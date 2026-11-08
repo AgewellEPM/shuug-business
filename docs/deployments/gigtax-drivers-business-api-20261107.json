@@ -1,0 +1,64 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T00:38:03.460Z",
+  "origin": "https://gigtax.pro",
+  "deployment": "dpl_4VD6VBCsp66KMBEN37s8F1p3iVrw",
+  "implementation": "16240c6",
+  "approvedCustomerBaseline": "7e3244d",
+  "checks": [
+    {
+      "check": "anonymous denial",
+      "status": 401
+    },
+    {
+      "check": "owner login and protected cookie",
+      "status": 200
+    },
+    {
+      "check": "authenticated real backend and confirmed terms",
+      "status": 200,
+      "offices": 0,
+      "agents": 0,
+      "paymentsConfigured": false,
+      "termsPublished": true
+    },
+    {
+      "check": "real IRS discovery through deployed function",
+      "total": 162,
+      "shown": 50
+    },
+    {
+      "check": "exact approved free customer homepage",
+      "origin": "https://gigtax.pro",
+      "status": 200
+    },
+    {
+      "check": "exact approved free customer homepage",
+      "origin": "https://www.gigtax.pro",
+      "status": 200
+    },
+    {
+      "route": "/join-the-family",
+      "status": 404
+    },
+    {
+      "route": "/gig-companies",
+      "status": 404
+    },
+    {
+      "route": "/app",
+      "status": 404
+    },
+    {
+      "check": "foreign origin denied",
+      "status": 403
+    },
+    {
+      "check": "unsigned webhook denied",
+      "status": 400
+    }
+  ],
+  "payment": "No live Stripe account or webhook secret configured. No payment made; real paid activation unverified.",
+  "visual": "Safari opened on normal desktop; Luke screenshot acceptance still required.",
+  "approvedCustomerHomepageSha256": "5114deb3c790b9a392a9db32e961edd1463a458e952de00637d047bebcac9081"
+}

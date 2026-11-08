@@ -1,0 +1,109 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T00:38:05.842Z",
+  "deployment": "dpl_4VD6VBCsp66KMBEN37s8F1p3iVrw",
+  "checks": [
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/drivers",
+      "status": 200,
+      "sha256": "eaa1efdab6297279879838435124fd2f1e1ee2ec26f637197dd126ab54b4f2a2"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/drivers.html",
+      "status": 200,
+      "sha256": "eaa1efdab6297279879838435124fd2f1e1ee2ec26f637197dd126ab54b4f2a2"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/assets/drivers-reference.png",
+      "status": 200,
+      "sha256": "1d52c47ae25f0a0df8407915789f1b8d029d31edb4b40f458025537f372442c4"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/drivers.css",
+      "status": 200,
+      "sha256": "56c704a7d813d2ca5d83f051e405e9c8ea21e202cfd0ff869f9fe36c383f17a3"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/offices",
+      "status": 200,
+      "sha256": "050a88dd5368c6f397f7aa5858d6d94fca2492e75371b28777f5971fc39740c7"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/resources",
+      "status": 200,
+      "sha256": "9e7cc054fe30691c403d1633aed2f38cc7d03cc81cacfb662566251044beb4fc"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/about",
+      "status": 200,
+      "sha256": "e3f57dde77c448496cbca7b983b2fd8447e0978bdd79c2e806c89178668c8732"
+    },
+    {
+      "origin": "https://gigtax.pro",
+      "route": "/",
+      "status": 200,
+      "sha256": "5114deb3c790b9a392a9db32e961edd1463a458e952de00637d047bebcac9081"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/drivers",
+      "status": 200,
+      "sha256": "eaa1efdab6297279879838435124fd2f1e1ee2ec26f637197dd126ab54b4f2a2"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/drivers.html",
+      "status": 200,
+      "sha256": "eaa1efdab6297279879838435124fd2f1e1ee2ec26f637197dd126ab54b4f2a2"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/assets/drivers-reference.png",
+      "status": 200,
+      "sha256": "1d52c47ae25f0a0df8407915789f1b8d029d31edb4b40f458025537f372442c4"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/drivers.css",
+      "status": 200,
+      "sha256": "56c704a7d813d2ca5d83f051e405e9c8ea21e202cfd0ff869f9fe36c383f17a3"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/offices",
+      "status": 200,
+      "sha256": "050a88dd5368c6f397f7aa5858d6d94fca2492e75371b28777f5971fc39740c7"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/resources",
+      "status": 200,
+      "sha256": "9e7cc054fe30691c403d1633aed2f38cc7d03cc81cacfb662566251044beb4fc"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/about",
+      "status": 200,
+      "sha256": "e3f57dde77c448496cbca7b983b2fd8447e0978bdd79c2e806c89178668c8732"
+    },
+    {
+      "origin": "https://www.gigtax.pro",
+      "route": "/",
+      "status": 200,
+      "sha256": "5114deb3c790b9a392a9db32e961edd1463a458e952de00637d047bebcac9081"
+    }
+  ],
+  "publicOfficeCount": 0,
+  "publicContactConfigured": false,
+  "directoryReadOnly": true,
+  "servicesDropdownRemoved": true,
+  "exactUserArtwork": true,
+  "visualAcceptance": "Luke screenshot review pending"
+}

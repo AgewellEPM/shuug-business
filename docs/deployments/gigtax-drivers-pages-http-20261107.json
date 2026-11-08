@@ -1,0 +1,355 @@
+{
+  "ok": true,
+  "origin": "https://gigtax.pro",
+  "verifiedAt": "2026-11-08T00:38:07.590Z",
+  "checks": [
+    {
+      "route": "/404.html",
+      "status": 200,
+      "sha256": "25b36bff7ca0f4abab88576d83ac6301da9cc672b46fd4247b49afb1286c9ae2"
+    },
+    {
+      "route": "/about.html",
+      "status": 200,
+      "sha256": "e3f57dde77c448496cbca7b983b2fd8447e0978bdd79c2e806c89178668c8732"
+    },
+    {
+      "route": "/accessibility.html",
+      "status": 200,
+      "sha256": "bc2511a89bda6e0f5189f2816d9b455ccd3d18ba0f8cf73e4ec9427d3f55e91b"
+    },
+    {
+      "route": "/app.js",
+      "status": 200,
+      "sha256": "ef7a2e8e3ea963c95c01a6f3560d9d7634d5b1ee97f6dd45b5fd3a0960eff402"
+    },
+    {
+      "route": "/bank-return.html",
+      "status": 200,
+      "sha256": "c5c6c9449f56a35d594d3db144514f069b75fdf9bb83fe0b197d5658ba4b5f0a"
+    },
+    {
+      "route": "/bookkeeping.html",
+      "status": 200,
+      "sha256": "4b87937dd1c48790ceafc6774843a51f8ba8943924dd31e0f37c1680cb4bdbaf"
+    },
+    {
+      "route": "/client-portal.html",
+      "status": 200,
+      "sha256": "36ad662b7d4b84605bb5e2cc0fc77a9c3cc20f1152c1f3f9d0fd647f043abd5e"
+    },
+    {
+      "route": "/contact.html",
+      "status": 200,
+      "sha256": "2d47a80c6c6d899e26ad3fcc05631206a9013c07577d418d923b4bbd392d467e"
+    },
+    {
+      "route": "/directory-admin.js",
+      "status": 200,
+      "sha256": "471feac91fee8b5e92cbf204810dc7e2b902ce342f0fbd689187bb93fc247baf"
+    },
+    {
+      "route": "/document-checklist.html",
+      "status": 200,
+      "sha256": "71f362cc78a77818dcfe9fb77e16a8d0b331eb4ac6267f5aeb12cd11f74f792a"
+    },
+    {
+      "route": "/drivers.css",
+      "status": 200,
+      "sha256": "56c704a7d813d2ca5d83f051e405e9c8ea21e202cfd0ff869f9fe36c383f17a3"
+    },
+    {
+      "route": "/drivers.html",
+      "status": 200,
+      "sha256": "eaa1efdab6297279879838435124fd2f1e1ee2ec26f637197dd126ab54b4f2a2"
+    },
+    {
+      "route": "/faq.html",
+      "status": 200,
+      "sha256": "b98fd7c761c32eee02e7582c8155ff4076fed9b8b3ec7bf2c98f77ccfc23a3ec"
+    },
+    {
+      "route": "/favicon.svg",
+      "status": 200,
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "route": "/free.html",
+      "status": 200,
+      "sha256": "b570c2fe77802f027166af0a58852663a00e47645dfff30b976b5c9ce4e16436"
+    },
+    {
+      "route": "/get-started.html",
+      "status": 200,
+      "sha256": "0e4a8f68ac22bd1b4d5fa159d7baa6e0809c0afceaa52ba1063a536ce3cc27bb"
+    },
+    {
+      "route": "/how-it-works.css",
+      "status": 200,
+      "sha256": "67937478f898c652435a2e72a9d77ed49ad7980878eb97aa6fd0383a0e6cdea0"
+    },
+    {
+      "route": "/how-it-works.html",
+      "status": 200,
+      "sha256": "6b5daa3a1afbc5363f13c68a7032c63e9778e634bd4b6d9b832ea5c6231fa684"
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "sha256": "5114deb3c790b9a392a9db32e961edd1463a458e952de00637d047bebcac9081"
+    },
+    {
+      "route": "/inner-pages.css",
+      "status": 200,
+      "sha256": "188d1d9ab2e4bd79f841902b54c603ca45e1e87b207186895d31cfc6a415acee"
+    },
+    {
+      "route": "/inner-pages.js",
+      "status": 200,
+      "sha256": "72b7bf8100ccea4cde2ea22f8c009cc705065f469b7a2fd6a9a1ff09c4471c97"
+    },
+    {
+      "route": "/links.js",
+      "status": 200,
+      "sha256": "7351d2805e1b4b2ccd197a20eb312d22c2e9356a345bb370c3af87725a33e593"
+    },
+    {
+      "route": "/marketing-pages.css",
+      "status": 200,
+      "sha256": "3d2e73dcbff830ba8d14366376b88e974047905fac6cfd49ac55e95840a08f8d"
+    },
+    {
+      "route": "/mileage-and-expenses.html",
+      "status": 200,
+      "sha256": "960369bdc1e1459686c09566478a2a575035656031ad134184ca2f2de8f244be"
+    },
+    {
+      "route": "/national-vision.css",
+      "status": 200,
+      "sha256": "54585937205eeba7e8bceeb9db09db0c3b4f2240bd55f9bc0fefe61b644fc6d0"
+    },
+    {
+      "route": "/navigation.css",
+      "status": 200,
+      "sha256": "90939f10ccff1b39722a9758ad487b484774679088e1e102b4093e6f0406e744"
+    },
+    {
+      "route": "/office-signup.html",
+      "status": 200,
+      "sha256": "d39b4b09ac1309dcc9d86abe125aef81cea97049847ec69f84ad86b19d1c19a6"
+    },
+    {
+      "route": "/offices.html",
+      "status": 200,
+      "sha256": "050a88dd5368c6f397f7aa5858d6d94fca2492e75371b28777f5971fc39740c7"
+    },
+    {
+      "route": "/offices.js",
+      "status": 200,
+      "sha256": "35fd5c5e4accc13d815a59fa75ade48988bdcd9e856d5d0e6a02f03bbe6fd471"
+    },
+    {
+      "route": "/privacy.html",
+      "status": 200,
+      "sha256": "d7bbcd53b07ff69fe5e07faee618876a5d14e14bbe7bb768cd03a340d4fb4788"
+    },
+    {
+      "route": "/quarterly-taxes.html",
+      "status": 200,
+      "sha256": "2dbe0fd8d82768277e0fae5ee00167c454ceff095795a7399ca4c543226319b5"
+    },
+    {
+      "route": "/resources.html",
+      "status": 200,
+      "sha256": "9e7cc054fe30691c403d1633aed2f38cc7d03cc81cacfb662566251044beb4fc"
+    },
+    {
+      "route": "/robots.txt",
+      "status": 200,
+      "sha256": "3918c5fb2666cb1a9b0e2324d100deba6b6e5caf1a847390c1ea956233d0068a"
+    },
+    {
+      "route": "/sales.css",
+      "status": 200,
+      "sha256": "8467e75400fc396e05d09c08e1455f1170e2c98557355af26df8b360e1337311"
+    },
+    {
+      "route": "/sales.html",
+      "status": 200,
+      "sha256": "2af54c7f3c185c7b190b0e4ebbcbd2adda0621c6fb232bb0ad2b9f84794da56f"
+    },
+    {
+      "route": "/sales.js",
+      "status": 200,
+      "sha256": "49ab366f656ee5b8d5deb7e3813d587d40bdca8e6fc38da8efb66ca6b8967707"
+    },
+    {
+      "route": "/services.css",
+      "status": 200,
+      "sha256": "f83c7ce8f3230609253050f2bd4f9ff5f9fb46eb92f47ed2291448a6cbdbb2fc"
+    },
+    {
+      "route": "/services.html",
+      "status": 200,
+      "sha256": "12b9d4c04f5686dcaaf1286b0f04c7d4c45bd4981384c026c09bbbfdaad7c55f"
+    },
+    {
+      "route": "/site-config.json",
+      "status": 200,
+      "sha256": "0c36070f431fdd7ae760f88b8574c135cfef8a3fa008743d268e9d569a90ea3c"
+    },
+    {
+      "route": "/site-manifest.json",
+      "status": 200,
+      "sha256": "90a18b5d16517decba722333e79f012b855edc98f2c11369694f09428e6d78af"
+    },
+    {
+      "route": "/sitemap.xml",
+      "status": 200,
+      "sha256": "3ad4789c6432267179ab48ab63eb879e4c1c632bf687af346ae34d08ced53e13"
+    },
+    {
+      "route": "/styles.css",
+      "status": 200,
+      "sha256": "811ca8fc8b2fd19b0ae39c54096997e2f433e98c0cadadf2f0e417a6e17e0b23"
+    },
+    {
+      "route": "/tax-preparation.html",
+      "status": 200,
+      "sha256": "d92a471c10692b479f64267a97f33d30a6c2ca9a65be88ebc0b67bc05cb31870"
+    },
+    {
+      "route": "/terms.html",
+      "status": 200,
+      "sha256": "399d1944444e6cc35865d0f394202e6d750fad4464847929e0c2e9d8f2b5d70f"
+    },
+    {
+      "route": "/guides/uber-lyft-tax-forms.html",
+      "status": 200,
+      "sha256": "76cd09cf8cdae8720f8a3ed4daf0caf22aec1c3f7cb1e8a16f33f7093da315a9"
+    },
+    {
+      "route": "/assets/artwork.png",
+      "status": 200,
+      "sha256": "c3297662e50f448c01622cd75ad9cd0f82e8d87a6b0c108d42334202bb43f042"
+    },
+    {
+      "route": "/assets/drivers-reference.png",
+      "status": 200,
+      "sha256": "1d52c47ae25f0a0df8407915789f1b8d029d31edb4b40f458025537f372442c4"
+    },
+    {
+      "route": "/assets/how-it-works-reference.png",
+      "status": 200,
+      "sha256": "ba5209b599548401d09e7f6b25c2a6ae8584858ab07d759ba3f9eccde2307caa"
+    },
+    {
+      "route": "/assets/services-reference.png",
+      "status": 200,
+      "sha256": "99a98e22cc530a3c5da112dd202689a9371a3b3b6610aa1fe8c260872c628c94"
+    },
+    {
+      "route": "/assets/us-national-vision.svg",
+      "status": 200,
+      "sha256": "272385770da0b997ee9ea6cfa86fd35f8ff3316f305b6e6f8faad386d8c48e0e"
+    },
+    {
+      "route": "/.well-known/apple-app-site-association",
+      "status": 200,
+      "sha256": "8ea65b26b48b4d2fd8488b341fd24fe3dcd4777b6f976bae0f7663b13c619cd6"
+    },
+    {
+      "route": "/services",
+      "status": 200
+    },
+    {
+      "route": "/how-it-works",
+      "status": 200
+    },
+    {
+      "route": "/drivers",
+      "status": 200
+    },
+    {
+      "route": "/offices",
+      "status": 200
+    },
+    {
+      "route": "/resources",
+      "status": 200
+    },
+    {
+      "route": "/about",
+      "status": 200
+    },
+    {
+      "route": "/tax-preparation",
+      "status": 200
+    },
+    {
+      "route": "/mileage-and-expenses",
+      "status": 200
+    },
+    {
+      "route": "/quarterly-taxes",
+      "status": 200
+    },
+    {
+      "route": "/bookkeeping",
+      "status": 200
+    },
+    {
+      "route": "/free",
+      "status": 200
+    },
+    {
+      "route": "/get-started",
+      "status": 200
+    },
+    {
+      "route": "/document-checklist",
+      "status": 200
+    },
+    {
+      "route": "/guides/uber-lyft-tax-forms",
+      "status": 200
+    },
+    {
+      "route": "/faq",
+      "status": 200
+    },
+    {
+      "route": "/contact",
+      "status": 200
+    },
+    {
+      "route": "/client-portal",
+      "status": 200
+    },
+    {
+      "route": "/sales",
+      "status": 200
+    },
+    {
+      "route": "/office-signup",
+      "status": 200
+    },
+    {
+      "route": "/privacy",
+      "status": 200
+    },
+    {
+      "route": "/terms",
+      "status": 200
+    },
+    {
+      "route": "/accessibility",
+      "status": 200
+    },
+    {
+      "route": "/__missing-page-check",
+      "status": 404
+    }
+  ],
+  "visualAcceptance": "Not established by HTTP checks; Luke’s screenshots are required."
+}
