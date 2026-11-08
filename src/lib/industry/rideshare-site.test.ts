@@ -46,6 +46,8 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.querySelectorAll('.mobile-action-bar a')).toHaveLength(2);
       expect(d.querySelector('.mobile-action-bar .primary')!.getAttribute('href')).toBe('/get-the-app');
       expect(d.querySelector('.mobile-action-bar .primary')!.textContent).toContain('Get The App');
+      expect(d.querySelectorAll('.platform-bar')).toHaveLength(1);
+      expect(d.querySelectorAll('.platform-bar img')).toHaveLength(5);
     } finally { dom.window.close(); }
   }
 });
