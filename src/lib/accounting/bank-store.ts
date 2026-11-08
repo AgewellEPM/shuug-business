@@ -33,11 +33,11 @@ export function executeBankCommand(raw: unknown, user: WorkspaceUser, bookId: st
       if (preceding) { verifyStatementMatches(preceding, entries); must(v.from > preceding.through && v.openingCents === preceding.closingCents && !v.openingEntryIds.length, "The next statement must follow the prior close and carry its ending balance."); }
       const opening = selectedEntries(entries, v.openingEntryIds);
       if (!preceding) must(opening.every(e => e.date < v.from && bankAmount(e, v.accountNumber) !== 0) && opening.reduce((n,e) => n + bankAmount(e, v.accountNumber), 0) === v.openingCents, "Select the previously cleared journal entries that equal this first statement's opening balance.");
-      const rows = parseStatementCsv(v.csv);
+      const rows = parseStatementCsv(v.csv, v.mapping, `shuug-statement:${v.from}:${v.through}`);
       must(rows.every(r => r.date >= v.from && r.date <= v.through), "Every imported transaction must fall within the statement period.");
       must(v.openingCents + rows.reduce((n,r) => n + r.amountCents, 0) === v.closingCents, "Opening balance plus imported transactions must exactly equal the statement ending balance.");
       must(!rows.some(r => bank.statements.some(b => b.accountNumber === v.accountNumber && b.rows.some(old => old.reference === r.reference))), "A bank transaction reference was already imported for this account.");
-      statement = { id: randomUUID(), revision: 1, accountNumber: v.accountNumber, from: v.from, through: v.through, openingCents: v.openingCents, closingCents: v.closingCents, reference: v.reference, rows, openingEntryIds: v.openingEntryIds, openingDigest: entriesDigest(opening), matches: [], status: "review", actor, createdAt: new Date().toISOString() };
+      statement = { id: randomUUID(), revision: 1, accountNumber: v.accountNumber, from: v.from, through: v.through, openingCents: v.openingCents, closingCents: v.closingCents, reference: v.reference, rows, ...(v.mapping ? { mapping: v.mapping } : {}), openingEntryIds: v.openingEntryIds, openingDigest: entriesDigest(opening), matches: [], status: "review", actor, createdAt: new Date().toISOString() };
       bank.statements.push(statement);
     } else {
       const identity = z.object({ id: z.uuid(), revision: z.number().int().positive() }).parse(cmd.input);
@@ -65,7 +65,8 @@ export function executeBankCommand(raw: unknown, user: WorkspaceUser, bookId: st
           must(v.allocations.reduce((n,a) => n + a.amountCents, 0) === Math.abs(row.amountCents), "Split allocations must equal the statement transaction amount.");
           for (const a of v.allocations) must(a.accountNumber !== statement.accountNumber && accounts.some(ac => ac.number === a.accountNumber && ac.active), "Choose active offset accounts different from the statement bank account.");
           const lines = [{ accountNumber: statement.accountNumber, debitCents: Math.max(0,row.amountCents), creditCents: Math.max(0,-row.amountCents) }, ...v.allocations.map(a => ({ accountNumber: a.accountNumber, debitCents: row.amountCents < 0 ? a.amountCents : 0, creditCents: row.amountCents > 0 ? a.amountCents : 0 }))];
-          const result = executeJournalCommand({ requestId: cmd.requestId, action: "journal.post", input: { date: row.date, memo: `${row.description} · Bank ${row.reference}`, lines, reviewed: true } }, actor, bookId);
+          const referenceLabel = statement.mapping?.referenceColumn === null ? "Statement row" : "Bank export";
+          const result = executeJournalCommand({ requestId: cmd.requestId, action: "journal.post", input: { date: row.date, memo: `${row.description} · ${referenceLabel} ${row.reference}`, lines, reviewed: true } }, actor, bookId);
           entryIds = [result.id]; entries = ledger(s, external);
         } else entryIds = v.entryIds;
         const chosen = selectedEntries(entries, entryIds);

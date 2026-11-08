@@ -14,6 +14,7 @@ import { saveBusinessRecord } from "../src/lib/workspace/store";
 import { createLinkedCustomer, saveCustomerSettings } from "../src/lib/customer-access/service";
 import { acceptCustomerInvitation, issueCustomerInvitation } from "../src/lib/customer-access/accounts";
 import { totp } from "../src/lib/auth/mfa/crypto";
+import { officeAccountingHttpCheck } from "./office-accounting-http-check";
 
 async function freePort() {
   const server=createServer();await new Promise<void>((resolve,reject)=>{server.once("error",reject);server.listen(0,"127.0.0.1",resolve);});
@@ -80,6 +81,8 @@ async function check(directory:string,base:string) {
     const staffFinished=await request("/api/auth/login",form({csrf:staff.csrf,challenge:staff.challenge,code:totp(staffSecret,Math.floor(Date.now()/30000))},staff.cookie)),staffCookie=staffFinished.headers.getSetCookie().find(c=>c.startsWith("dd_session="))?.split(";")[0];assert(staffCookie);
     assert.equal((await request("/api/workspace/me",{headers:{Cookie:staffCookie}})).status,200);checks++;
     assert.equal((await request("/api/workspace/employees",{headers:{Cookie:staffCookie}})).status,403);checks++;
+    const staffAccount=employeeData.accounts.find((account:{email:string})=>account.email==="mfa-staff@example.invalid");assert(staffAccount);
+    const accounting=await officeAccountingHttpCheck(base,ownerCookie,staffCookie,staffAccount.id,client.id);
 
     const native=await request("/api/website/customer/driver/session",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:account.email,password})});assert.equal(native.status,428);
     const challenge=await native.json();assert.equal(challenge.mfaRequired,true);assert.equal(challenge.token,undefined);assert.equal(native.headers.get("Cache-Control"),"private, no-store");checks++;
@@ -108,7 +111,7 @@ async function check(directory:string,base:string) {
     const wrongAudience=await wp({operation:"session.login",input:{challengeToken:secureChallenge.challengeToken,code:nativeSession.recoveryCodes[1]}});assert.equal(wrongAudience.status,401);checks++;
     const secureFinished=await secure({challengeToken:secureChallenge.challengeToken,code:nativeSession.recoveryCodes[1]});assert.equal(secureFinished.status,200);
     const secureSession=await secureFinished.json();assert.deepEqual(secureSession.identity,{accountId:account.id,clientId:client.id});assert.equal(secureSession.secret,undefined);assert.equal(secureSession.name,undefined);checks++;
-    console.log(JSON.stringify({ok:true,checks,buildId:readFileSync(".next/BUILD_ID","utf8").trim(),syntheticWorkspace:true,covered:["owner enrollment and protected route","CSRF/origin denial","challenge replay rejection","staff enrollment and least privilege","native client MFA API","portal MFA and recovery revocation","persistent grants across server restart","WordPress relay MFA API","independent browser origin and audience separation"]},null,2));
+    console.log(JSON.stringify({ok:true,checks,mappedAccounting:accounting,buildId:readFileSync(".next/BUILD_ID","utf8").trim(),syntheticWorkspace:true,covered:["owner enrollment and protected route","CSRF/origin denial","challenge replay rejection","staff enrollment and least privilege","native client MFA API","portal MFA and recovery revocation","persistent grants across server restart","WordPress relay MFA API","independent browser origin and audience separation"]},null,2));
   }catch(error){console.error(`Disposable server diagnostics:\n${log}`);throw error;}
   finally{
     if(child)await stop(child);

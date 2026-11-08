@@ -63,3 +63,16 @@ it("closes annual income into retained earnings without changing the year's P&L"
   await command(book.id,"year.close",{through:"2025-12-31",reason:"Annual books approved"});const view=await bookView(book.id,owner);
   expect(view.reports.pnl.netIncomeCents).toBe(20000);expect(view.reports.balanceSheet.equity.retainedEarningsCents).toBe(20000);expect(view.reports.balanceSheet.netIncomeCents).toBe(0);
 });
+it("imports a mapped bank export without journal posting, then reconciles it once and rejects overlap",async()=>{
+  const book=create(),mapping={mode:"split",headerRow:0,dateColumn:0,descriptionColumn:1,debitColumn:2,creditColumn:3,referenceColumn:null,dateFormat:"mdy"};
+  const input={accountNumber:1000,from:"2026-10-01",through:"2026-10-31",openingCents:0,closingCents:10000,reference:"Mapped October",csv:"Date,Description,Debit,Credit\n10/01/2026,Client payment,,120.00\n10/02/2026,Office costs,20.00,",mapping};
+  await command(book.id,"statement.import",input);
+  expect(manualJournalData(book.id).entries).toHaveLength(0);
+  let statement=(await bookView(book.id,owner)).statements[0];expect(statement.mapping).toEqual(mapping);
+  await command(book.id,"statement.post",{id:statement.id,revision:statement.revision,rowId:"1",allocations:[{accountNumber:4000,amountCents:12000}]});
+  statement=(await bookView(book.id,owner)).statements[0];
+  await command(book.id,"statement.post",{id:statement.id,revision:statement.revision,rowId:"2",allocations:[{accountNumber:6000,amountCents:2000}]});
+  statement=(await bookView(book.id,owner)).statements[0];await command(book.id,"statement.finish",{id:statement.id,revision:statement.revision});
+  await expect(command(book.id,"statement.import",{...input,reference:"Another copy"})).rejects.toThrow(/non-overlapping/);
+  const view=await bookView(book.id,owner);expect(view.reports.balanceSheet.assets.cashCents).toBe(10000);expect(view.reports.pnl.netIncomeCents).toBe(10000);expect(view.entries).toHaveLength(2);
+});

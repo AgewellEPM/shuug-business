@@ -1,0 +1,50 @@
+{
+  "verifiedAt": "2026-11-07T23:38:55.526152+00:00",
+  "lastReverifiedAt": "2026-11-08T00:35:25Z",
+  "lastReverification": {
+    "focusedTestsPassed": 65,
+    "compiledMfaHttpChecksPassed": 27,
+    "compiledAccountingHttpChecksPassed": 15,
+    "recordedBuildIdMatched": true,
+    "allRecordedSourceHashesMatched": true,
+    "temporaryServerExited": true,
+    "installedServiceChanged": false
+  },
+  "sourceBranch": "feat/shuug-free-tax-service-20261107",
+  "priorMilestone": "5e0bbe00c0917121b31b84764e0ee7c14a1842c0",
+  "productionBuildId": "C2qjMwj3YdVCnnDP00naq",
+  "focusedTests": {
+    "files": 10,
+    "passed": 65,
+    "command": "vitest run src/lib/accounting src/components/accounting/StatementImport.test.tsx"
+  },
+  "compiledHttp": {
+    "mfaChecksPassed": 27,
+    "accountingChecksPassed": 15,
+    "command": "node --import tsx scripts/mfa-http-check.ts",
+    "syntheticWorkspace": true,
+    "ownedServerStopped": true,
+    "verifiedCashCents": 10000,
+    "journalEntriesAfterImport": 0,
+    "journalEntriesAfterReviewedPosting": 2,
+    "reconciled": true,
+    "duplicateStatementRejected": true,
+    "closedPeriodBackdateRejected": true,
+    "officeAndClientBooksSeparate": true,
+    "staffViewGrantAndImmediateRevocationVerified": true
+  },
+  "sourceSha256": {
+    "src/lib/accounting/reports.ts": "d02c8cf1752e1ab55e6576c68ceb8da218d9c9e24e33691c2501651fb8e8d17e",
+    "src/lib/accounting/bank-import.ts": "4d81dc879cc5da53262db7c22af40c7abcac30a33ea0bf453b22fadf743e3960",
+    "src/lib/accounting/bank-model.ts": "44c21c0dd30b55b611c06b3a0e74b89cdc0eb25b911610a8d47e296e21695e5c",
+    "src/lib/accounting/bank-store.ts": "cff45cdac62f27056b236cf6183d221aaf3716808c9ac484f8315e227846a03a",
+    "src/components/AccountingWorkspace.tsx": "e6ce36d76e6fdd76b83623914ba84b7b94170e9d6ccfb3c6b246dc6ce0555628",
+    "src/components/accounting/StatementMappingFields.tsx": "5aa9098fe8ad5bccb08401c235568e6eb359ea3453bbde11c5315668b7d9d9d5"
+  },
+  "installedServiceChanged": false,
+  "liveBankProviderUsed": false,
+  "visualAcceptanceObtained": false,
+  "cashAccrualConversionImplemented": false,
+  "productionBuildArtifactVerified": true,
+  "productionBuildVerification": "The current compiled production artifact started and passed all 42 synthetic HTTP checks."
+}

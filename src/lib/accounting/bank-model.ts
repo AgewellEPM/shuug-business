@@ -1,12 +1,13 @@
 import { z } from "zod";
 import type { StatementRow } from "./bank-import";
+import { statementMappingInput, type StatementMapping } from "./bank-import";
 import type { JournalEntry } from "./ledger";
 import { entriesDigest } from "./periods";
 export interface Match { rowId: string; entryIds: string[]; digest: string }
-export interface BankStatement { id: string; revision: number; accountNumber: number; from: string; through: string; openingCents: number; closingCents: number; reference: string; rows: StatementRow[]; matches: Match[]; openingEntryIds: string[]; openingDigest: string; status: "review" | "reconciled"; createdAt: string; actor: string; reconciledAt?: string; reconciledBy?: string; endingBookCents?: number; outstanding?: { id: string; date: string; memo: string; amountCents: number }[] }
+export interface BankStatement { id: string; revision: number; accountNumber: number; from: string; through: string; openingCents: number; closingCents: number; reference: string; rows: StatementRow[]; mapping?: StatementMapping; matches: Match[]; openingEntryIds: string[]; openingDigest: string; status: "review" | "reconciled"; createdAt: string; actor: string; reconciledAt?: string; reconciledBy?: string; endingBookCents?: number; outstanding?: { id: string; date: string; memo: string; amountCents: number }[] }
 export interface BankState { statements: BankStatement[]; commands: Record<string, { hash: string; result: { id: string } }> }
 const amount = z.number().int().min(-99_999_999_999).max(99_999_999_999);
-export const statementCreate = z.object({ accountNumber: z.number().int().positive(), from: z.iso.date(), through: z.iso.date(), openingCents: amount, closingCents: amount, reference: z.string().trim().min(1).max(160), csv: z.string().max(2_000_000), openingEntryIds: z.array(z.string().min(1).max(150)).max(10000).default([]), reviewed: z.literal(true) }).strict();
+export const statementCreate = z.object({ accountNumber: z.number().int().positive(), from: z.iso.date(), through: z.iso.date(), openingCents: amount, closingCents: amount, reference: z.string().trim().min(1).max(160), csv: z.string().max(2_000_000), mapping: statementMappingInput.optional(), openingEntryIds: z.array(z.string().min(1).max(150)).max(10000).default([]), reviewed: z.literal(true) }).strict();
 export const statementMatch = z.object({ id: z.uuid(), revision: z.number().int().positive(), rowId: z.string(), entryIds: z.array(z.string().min(1).max(150)).min(1).max(200), reviewed: z.literal(true) }).strict();
 export const statementPost = z.object({ id: z.uuid(), revision: z.number().int().positive(), rowId: z.string(), allocations: z.array(z.object({ accountNumber: z.number().int().positive(), amountCents: z.number().int().positive().max(99_999_999_999) }).strict()).min(1).max(100), reviewed: z.literal(true) }).strict();
 export const statementFinish = z.object({ id: z.uuid(), revision: z.number().int().positive(), reviewed: z.literal(true) }).strict();
