@@ -1,0 +1,79 @@
+{
+  "implementation": [
+    "8104e41ec8bdbbcea23a78d1331daeb414a0e518",
+    "cf2394066fd7627551cbad418498efb4af84a31d"
+  ],
+  "deployment": "dpl_3KGkvTFvRWEej5WJmXVbepP3Ghbf",
+  "httpVerifiedAt": "2026-11-08T20:05:51.510Z",
+  "httpChecksPassed": 107,
+  "selectedHttp": [
+    {
+      "route": "/about-the-app.html",
+      "status": 200,
+      "sha256": "f8efd505ae2d754b7933b7c9503f9e7ab884d8a300cdb4c5ddfcd80bf9a8ca58"
+    },
+    {
+      "route": "/get-the-app.html",
+      "status": 200,
+      "sha256": "413531976a6b9c4d755faac2c418346173bb6681094daac4703ffaa86295bdad"
+    },
+    {
+      "route": "/",
+      "status": 200,
+      "sha256": "3401b511fc161d3571e34fc13ca84789789f7e312e67f8d3b343261cf1fb7d3d"
+    },
+    {
+      "route": "/get-the-app",
+      "status": 200
+    },
+    {
+      "route": "/about-the-app",
+      "status": 200
+    },
+    {
+      "route": "/about",
+      "status": 200
+    }
+  ],
+  "seoVerifiedAt": "2026-11-08T20:05:44.791Z",
+  "seoChecksPassed": 57,
+  "selectedSeo": [
+    {
+      "url": "https://gigtax.pro/app-features?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/about-the-app?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/app-features.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/about-the-app?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/get-the-app.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/get-the-app?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/about-the-app.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/about-the-app?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/get-the-app",
+      "status": 200,
+      "canonical": "https://gigtax.pro/get-the-app",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/about-the-app",
+      "status": 200,
+      "canonical": "https://gigtax.pro/about-the-app",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    }
+  ],
+  "customerTestsPassed": 12,
+  "seoTestsPassed": 14,
+  "limits": "HTTP and source/font-metric navigation-fit checks are not physical-phone visual acceptance."
+}

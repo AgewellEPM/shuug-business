@@ -1,5 +1,29 @@
 # Get The App download reference
 
+## Current page names and navigation
+
+Luke clarified that Get The App and About The App must be separate pages and
+About The App must be visible in navigation. Implemented in `8104e41` and
+`cf23940`; GitHub backup independently verified.
+
+- https://gigtax.pro/get-the-app — download design and availability.
+- https://gigtax.pro/about-the-app — detailed app explanation/features.
+- https://gigtax.pro/about — the existing company story, preserved.
+
+About The App is a distinct desktop/mobile navigation item after Offices.
+The Get The App header/bottom actions still open the download page. Feature
+links and the company About page's feature actions open About The App; its
+download actions open Get The App. Previous `/app-features` and
+`/app-features.html` links permanently redirect to `/about-the-app`.
+
+Current Ready deployment: `dpl_3KGkvTFvRWEej5WJmXVbepP3Ghbf`. All107live
+file/alias checks and57SEO/redirect checks pass, with12customer tests and14SEO
+tests passing. Seven desktop links fit the existing CSS/font metrics with35px
+minimum spare width at1024px; no stylesheet/artwork changes were needed.
+Selected live evidence: `gigtax-two-app-pages-20261108.json`.
+
+## Initial download design implementation
+
 Luke supplied the 1199×1312 download design and explicitly chose to retain both
 pages. Implementation `2bc9ee2599e6872d4553ed96f7529a6d83e028d0` is on
 `feat/gig-tax-pros-sales-integrated`; GitHub SHA independently verified.
@@ -7,7 +31,7 @@ pages. Implementation `2bc9ee2599e6872d4553ed96f7529a6d83e028d0` is on
 Ready production deployment: `dpl_9b5LXZ4kvHPsAVoVjVmCpeqByLFd`.
 
 - https://gigtax.pro/get-the-app — new supplied download design.
-- https://gigtax.pro/app-features — previous detailed app design, retained.
+- The previous detailed app design was retained, now at `/about-the-app`.
 
 ## Design and behavior
 
