@@ -1,14 +1,14 @@
 # Mobile hero alignment, full-width photos and platform bar
 
-Luke requested centered mobile hero text, photos extending to both screen
-edges, scroll parallax on the hero photos, and authentic platform logos in one
-horizontally swipeable bar. The broader real-font reconstruction goal is paused;
+The current mobile presentation uses the original left-aligned hero text,
+photos extending to both screen edges, scroll parallax on the hero photos, and
+authentic platform logos in one horizontally swipeable bar. The broader real-font reconstruction goal is paused;
 this work does not reconstruct or redesign the desktop artwork.
 
 - Home, Services, How It Works, Drivers, About and Get The App share a mobile
   photo frame with intrinsic SVG dimensions. Balanced margins span the viewport
   even when the content sheet has a narrower maximum width. Mobile hero copy is
-  centered. Frame edges are square and have no side inset.
+  left-aligned per Luke’s latest correction. Frame edges are square and have no side inset.
 - Original photo assets are unchanged. Mobile viewports exclude stray headline
   fragments from the left of the supplied page artwork. Desktop poster images,
   sections, navigation and their geometry stay in place.
@@ -50,3 +50,16 @@ edge-to-edge image, loaded-logo, horizontal reachability and scroll-transform
 checks in system WebKit (same explicit timer clock). Receipt:
 `gigtax-mobile-hero-logos-proof-20261107.json`. Safari is open on the normal
 desktop at /services. The local server and all owned audit processes exited.
+
+## Final mobile follow-up
+
+Luke restored the original left text alignment, requested full viewport width
+for the remaining images outside bordered cards, an inset first logo with a
+partial next tile visible, and neon green for the bottom Get The App button.
+Only hero-mobile.css and navigation.css change in this follow-up. Services’
+How It Works image and the standalone App phone image now reach both edges;
+bordered images and card illustrations retain their existing fit. The logo bar
+starts24px inward, uses responsive tile widths and preserves its scroll inset.
+The bottom app action uses a neon-green background with dark text. Main page
+buttons keep their existing colors. All42 responsive checks pass again, including
+these changes; all12 original desktop comparisons remain identical.
