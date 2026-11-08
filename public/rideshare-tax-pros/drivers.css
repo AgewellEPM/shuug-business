@@ -1,72 +1,17 @@
-@charset "UTF-8";
-.drivers-page { background: #05030a; padding-bottom: 0; }
-.drivers-sheet { position: relative; width: 100%; max-width: 1440px; margin: auto; container-type: inline-size; }
-.drivers-sheet > .public-header { position: absolute; top: 0; left: 0; height: 4.42%; }
-.drivers-reference { display: block; width: 100%; height: auto; }
-.drivers-readable { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; }
-.drivers-mobile-art, .drivers-page .mobile-action-bar { display: none; }
-.drivers-hit { position: absolute; display: block; color: #fff; text-decoration: none; border-radius: 14px; }
-.drivers-hero { position: absolute; top: 4.42%; left: 0; width: 100%; height: 24.85%; }
-.drivers-start { left: 3.42%; top: 76.3%; width: 19.3%; height: 15.6%; }
-.drivers-find { left: 24.4%; top: 76.3%; width: 19.6%; height: 15.6%; }
-.drivers-features { position: absolute; top: 29.45%; left: .75%; width: 98.5%; height: 10%; display: grid; grid-template-columns: 1.24fr .9fr .94fr 1.06fr 1.02fr 1fr .92fr .86fr; }
-.drivers-feature { position: relative; border-radius: 8px; }
-.drivers-panel { position: absolute; }
-.drivers-free { top: 41.5%; left: .8%; width: 53.7%; height: 24%; }
-.drivers-paid { top: 41.15%; left: 55.65%; width: 43.4%; height: 17.85%; }
-.drivers-services-link { inset: 0; }
-.drivers-future { top: 60.4%; left: 55.8%; width: 43.2%; height: 19.2%; scroll-margin-top: 20px; }
-.drivers-local { top: 67.45%; left: .5%; width: 54.1%; height: 15.25%; }
-.drivers-office-link { inset: 0; }
-.drivers-cta { position: absolute; top: 89.7%; left: 0; width: 100%; height: 8.7%; }
-.drivers-final-start { left: 75.7%; top: 31%; width: 22%; height: 46%; }
-@media (hover: hover) and (pointer: fine) {
-  .drivers-hit:hover { outline: 1px solid #fa3be8; outline-offset: 2px; box-shadow: 0 0 20px #f326e780; }
-}
-.drivers-hit:focus-visible { outline: 2px solid #ffe2fd; outline-offset: 3px; box-shadow: 0 0 20px #f326e788; }
-@media (max-width: 1023px) {
-  .drivers-page { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
-  .drivers-sheet { max-width: 720px; }
-  .drivers-sheet > .public-header { display: block; position: sticky; height: 64px; }
-  .drivers-reference { display: none; }
-  .drivers-readable { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip-path: none; border: 0; }
-  .drivers-hero, .drivers-panel, .drivers-cta { position: static; width: auto; height: auto; }
-  .drivers-hero { padding: 28px 22px 22px; background: radial-gradient(ellipse at top right, #bd16ce29, transparent 75%); }
-  .drivers-hero > p:first-child { color: #f52de7; font-weight: 800; font-size: 14px; letter-spacing: 1px; margin-bottom: 12px; }
-  .drivers-sheet h1 { font-size: clamp(37px, 7.8vw, 59px); line-height: 1.03; font-weight: 900; font-style: italic; letter-spacing: -1.5px; margin: 0 0 18px; }
-  .drivers-sheet em { color: #ed0fe6; }
-  .drivers-lede { font-size: 17px; line-height: 1.5; }
-  .drivers-mobile-art { display: block; width: 100%; height: auto; overflow: hidden; }
-  .drivers-hero-art { margin: 22px 0; border-radius: 18px; }
-  .drivers-hit { position: static; display: flex; align-items: center; justify-content: center; min-height: 50px; padding: 14px 18px; border: 1px solid #df70e5; border-radius: 12px; font-size: 16px; font-weight: 700; text-align: center; }
-  .drivers-hero-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .drivers-start, .drivers-final-start { background: linear-gradient(110deg, #cb02e8, #f600d7); box-shadow: 0 0 24px #ed13e84d; }
-  .drivers-platforms { display: flex; flex-wrap: wrap; justify-content: center; gap: 9px; list-style: none; padding: 25px 0 0; }
-  .drivers-platforms li { padding: 8px 12px; border: 1px solid #8d4898; border-radius: 9px; font-size: 14px; font-weight: 700; }
-  .drivers-features { position: static; width: auto; height: auto; margin: 0 20px 26px; padding: 10px; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; border: 1px solid #d856e3; border-radius: 20px; background: linear-gradient(135deg, #200e27, #09060e); }
-  .drivers-feature { display: flex; flex-direction: column; gap: 10px; padding: 12px 6px; border: 0; font-size: 13px; line-height: 1.3; }
-  .drivers-feature-art { width: 54px; height: 50px; }
-  .drivers-panels { display: grid; gap: 22px; padding: 0 20px 28px; }
-  .drivers-panel { min-width: 0; padding: 24px 22px; border: 1px solid #e36aea; border-radius: 22px; background: radial-gradient(ellipse at bottom left, #821a9030, transparent 75%), #0b0611; box-shadow: 0 0 20px #d11ae822; }
-  .drivers-sheet h2 { font-size: clamp(27px, 5.7vw, 36px); line-height: 1.12; font-weight: 900; font-style: italic; letter-spacing: -.6px; margin: 0 0 16px; }
-  .drivers-panel p { font-size: 16px; line-height: 1.55; margin: 0 0 18px; }
-  .drivers-list { list-style: none; margin: 0; padding: 0; }
-  .drivers-list li { position: relative; padding: 7px 0 7px 28px; font-size: 16px; line-height: 1.45; }
-  .drivers-list li::before { content: "✓"; position: absolute; left: 0; top: 8px; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; background: #ee0bdf; color: #fff; font-size: 14px; font-weight: 900; }
-  .drivers-green-list li::before { color: #052900; background: #39ff18; }
-  .drivers-phone-art { max-width: 260px; margin: 22px auto -24px; }
-  .drivers-services-link, .drivers-office-link { margin-top: 22px; }
-  .drivers-future { border: 2px solid #58ff4b; background: radial-gradient(ellipse at top left, #124c132f, transparent 80%), #060e0b; box-shadow: 0 0 18px #4aff3444, inset 0 0 20px #4aff341a; scroll-margin-top: 90px; }
-  .drivers-future h2 > span { color: #47ff2c; }
-  .drivers-future-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; list-style: none; padding: 18px; border: 1px solid #77bd7d80; border-radius: 16px; }
-  .drivers-future-tools li { font-size: 15px; line-height: 1.4; padding: 10px 0; }
-  .drivers-local { padding-top: 0; overflow: hidden; }
-  .drivers-office-art { width: calc(100% + 44px); margin: 0 -22px 24px; }
-  .drivers-cta { margin: 0 20px 28px; padding: 26px 22px; border: 1px solid #da67e2; border-radius: 22px; background: linear-gradient(135deg, #2c1234, #0d0713); box-shadow: 0 0 25px #d11ae833; }
-  .drivers-cta > p { font-size: 16px; line-height: 1.55; margin-bottom: 24px; }
-  .drivers-page .mobile-action-bar { display: grid; }
-}
-@media (max-width: 479px) {
-  .drivers-hero-actions { grid-template-columns: 1fr; }
-  .drivers-features { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
+.drivers-features { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1px; margin: 0 0 32px; padding: 16px; border: 1px solid #ab4bb5; border-radius: 22px; background: #130a1b; }
+.drivers-feature { display: flex; gap: 16px; align-items: center; padding: 20px 14px; font-size: 17px; font-weight: 700; line-height: 1.35; border-radius: 10px; }
+.drivers-feature .line-icon { width: 40px; height: 40px; margin: 0; }
+.drivers-panels { display: grid; grid-template-columns: 1.15fr 1fr; gap: 24px; margin-bottom: 32px; }
+.drivers-free { grid-row: span 2; }
+.drivers-phone-art { margin: 28px auto 12px; }
+.native-page .drivers-future { border-color: #68dc58; background: linear-gradient(140deg,#112016,#080910); }
+.drivers-future h2 > span { color: #63ee45; }
+.drivers-future-tools { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; padding: 24px 0 0; list-style: none; border-top: 1px solid #56845a; font-size: 16px; line-height: 1.5; }
+.drivers-local { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1.4fr; gap: 32px; align-items: center; }
+.drivers-services-link,.drivers-office-link { display: inline-flex; min-height: 44px; align-items: center; color: #f996ef; font-weight: 700; padding: 8px 0; }
+.drivers-cta { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px 32px; align-items: center; }
+.drivers-cta h2 { grid-row: span 2; }
+.drivers-final-start { justify-self: start; }
+@media (max-width: 1000px) { .drivers-features { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+@media (max-width: 700px) { .drivers-panels,.drivers-local,.drivers-cta { grid-template-columns: 1fr; }.drivers-cta h2 { grid-row: auto; }.drivers-final-start { justify-self: stretch; }.drivers-local { gap: 24px; } }
+@media (max-width: 400px) { .drivers-features { padding: 8px; }.drivers-feature { flex-direction: column; text-align: center; padding: 18px 8px; font-size: 15px; } }
