@@ -1,0 +1,24 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T00:56:09.166Z",
+  "artworkSha256": "3764246c956a7dc159294c288ee8df554421bba245918f4f73f466b78a4405e4",
+  "originalArtworkUnchanged": true,
+  "dimensions": [
+    1199,
+    1312
+  ],
+  "navigation": [
+    "Home",
+    "Services",
+    "How It Works",
+    "Drivers",
+    "Offices",
+    "About"
+  ],
+  "primaryAction": {
+    "label": "Get The App",
+    "href": "/get-the-app"
+  },
+  "downloadLinksConfigured": false,
+  "visualAcceptance": "Luke screenshot review pending"
+}

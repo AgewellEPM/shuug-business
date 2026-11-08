@@ -1,19 +1,7 @@
 @charset "UTF-8";
 .drivers-page { background: #05030a; padding-bottom: 0; }
 .drivers-sheet { position: relative; width: 100%; max-width: 1440px; margin: auto; container-type: inline-size; }
-.drivers-sheet > .public-header { display: none; }
-.drivers-reference-header { position: absolute; z-index: 40; top: 0; left: 0; width: 100%; height: 4.42%; }
-.drivers-reference-header .drivers-hit { top: 10%; height: 75%; border-radius: 8px; }
-.drivers-nav-brand { left: 2.1%; width: 18.9%; }
-.drivers-nav-home { left: 23.4%; width: 4.7%; }
-.drivers-nav-services { left: 28.9%; width: 6.6%; }
-.drivers-nav-how { left: 36.7%; width: 8.1%; }
-.drivers-nav-drivers { left: 45.7%; width: 6.7%; }
-.drivers-nav-offices { left: 53.3%; width: 5.4%; }
-.drivers-nav-resources { left: 59.7%; width: 6.5%; }
-.drivers-nav-about { left: 67.8%; width: 4.7%; }
-.drivers-reference-header .drivers-nav-portal { left: 74%; top: 13.8%; width: 11.2%; height: 62%; }
-.drivers-reference-header .drivers-nav-start { left: 86.5%; top: 13.8%; width: 12.4%; height: 62%; }
+.drivers-sheet > .public-header { position: absolute; top: 0; left: 0; height: 4.42%; }
 .drivers-reference { display: block; width: 100%; height: auto; }
 .drivers-readable { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; }
 .drivers-mobile-art, .drivers-page .mobile-action-bar { display: none; }
@@ -40,7 +28,6 @@
   .drivers-page { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
   .drivers-sheet { max-width: 720px; }
   .drivers-sheet > .public-header { display: block; position: sticky; height: 64px; }
-  .drivers-reference-header { display: none; }
   .drivers-reference { display: none; }
   .drivers-readable { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip-path: none; border: 0; }
   .drivers-hero, .drivers-panel, .drivers-cta { position: static; width: auto; height: auto; }

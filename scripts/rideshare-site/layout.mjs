@@ -17,7 +17,7 @@ export function footer() {
 export function dialogs() {
   return `<dialog id="information" class="information" aria-labelledby="information-title" aria-describedby="information-description"><div class="dialog-top"><span class="eyebrow">GIG TAX PROS</span><button class="close-button" data-close aria-label="Close dialog">×</button></div><h2 id="information-title"></h2><p id="information-description"></p><div id="information-extra"></div><div id="information-actions"></div></dialog>`;
 }
-export const quickActions = () => `<div class="mobile-action-bar" aria-label="Quick actions">${button('Get Started', '/get-started')}${button('Client Portal', '/client-portal', false)}</div>`;
+export const quickActions = () => `<div class="mobile-action-bar" aria-label="Quick actions">${button('Get The App', '/get-the-app')}${button('Client Portal', '/client-portal', false)}</div>`;
 export function sourceLinks(keys) {
   return `<aside class="source-note"><h2>Go to the original source</h2><p>General US information. Check current instructions for your year and circumstances. Sources reviewed ${reviewed}.</p><ul>${keys.map(key => `<li><a href="${escape(sources[key][1])}" target="_blank" rel="noopener noreferrer">${escape(sources[key][0])} ↗</a></li>`).join('')}</ul></aside>`;
 }

@@ -18,19 +18,6 @@ const features = [
   ['Real Local Support', '/offices', [1097, 399, 59, 57]],
 ];
 
-// Keep every desktop pixel of the supplied page, including its header. The
-// transparent links make its actual controls usable without drawing over it.
-function referenceHeader() {
-  const links = [
-    ['Gig Tax Pros home', '/', 'drivers-nav-brand'], ['Home', '/', 'drivers-nav-home'],
-    ['Services', '/services', 'drivers-nav-services'], ['How It Works', '/how-it-works', 'drivers-nav-how'],
-    ['Drivers', '/drivers', 'drivers-nav-drivers'], ['Offices', '/offices', 'drivers-nav-offices'],
-    ['Resources', '/resources', 'drivers-nav-resources'], ['About', '/about', 'drivers-nav-about'],
-    ['Client Portal', '/client-portal', 'drivers-nav-portal'], ['Get Started Free', '/get-started', 'drivers-nav-start'],
-  ];
-  return `<header class="drivers-reference-header"><nav aria-label="Primary">${links.map(([label, href, name]) => `<a class="drivers-hit ${name}" href="${href}"${href === '/drivers' ? ' aria-current="page"' : ''}>${readable(e(label))}</a>`).join('')}</nav></header>`;
-}
-
 function main() {
   return `<main id="main" tabindex="-1">
     <img class="drivers-reference" src="${artwork}" width="1199" height="1312" alt="" fetchpriority="high">
@@ -77,5 +64,5 @@ function main() {
 
 export function driversPage() {
   const description = 'Free tools for gig drivers, professional tax services when you choose, and local office support. Drive. Earn. Track. Save. File. Grow.';
-  return { slug: 'drivers', label: 'Drivers', file: 'drivers.html', html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>For Gig Drivers | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/drivers"><meta property="og:title" content="For Gig Drivers | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/drivers"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/drivers.css"><link rel="stylesheet" href="/navigation.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="drivers-page"><a class="skip-link" href="#main">Skip to content</a><div class="drivers-sheet">${publicHeader('/drivers', brand())}${referenceHeader()}${main()}</div>${footer()}${quickActions()}${publicNavigation('/drivers')}${dialogs()}</body></html>` };
+  return { slug: 'drivers', label: 'Drivers', file: 'drivers.html', html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>For Gig Drivers | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/drivers"><meta property="og:title" content="For Gig Drivers | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/drivers"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/drivers.css"><link rel="stylesheet" href="/navigation.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="drivers-page"><a class="skip-link" href="#main">Skip to content</a><div class="drivers-sheet">${publicHeader('/drivers', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/drivers')}${dialogs()}</body></html>` };
 }

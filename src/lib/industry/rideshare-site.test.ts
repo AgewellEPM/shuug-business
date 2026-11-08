@@ -18,8 +18,8 @@ function page(slug = "", config = {}, hash = "") {
 it("connects the customer pages with valid internal links, unique headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
   const customerAliases = manifest.aliases.filter((slug: string) => !["sales", "office-signup"].includes(slug));
-  expect(customerAliases).toHaveLength(20);
-  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "resources", "about"]));
+  expect(customerAliases).toHaveLength(21);
+  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "get-the-app", "resources", "about"]));
   expect(manifest.aliases).toEqual(expect.arrayContaining(["sales", "office-signup"]));
   for (const slug of ["", ...customerAliases]) {
     const dom = page(slug); const d = dom.window.document;
@@ -29,6 +29,11 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.querySelector('input[type="password"]')).toBeNull();
       expect(d.querySelector('.public-services')).toBeNull();
       expect(d.querySelector('nav[aria-label="Primary"] a[href="/services"]')).not.toBeNull();
+      expect([...d.querySelectorAll('nav[aria-label="Primary"] a')].map(a => a.textContent?.trim())).toEqual(['Home', 'Services', 'How It Works', 'Drivers', 'Offices', 'About']);
+      expect(d.querySelector<HTMLAnchorElement>('.public-ready')!.getAttribute('href')).toBe('/get-the-app');
+      expect(d.querySelector('.public-ready')!.textContent).toContain('Get The App');
+      expect(d.querySelector('#navigation a[href="/resources"]')).toBeNull();
+      expect(d.querySelector('#navigation a[href="/about"]')).not.toBeNull();
       for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
         const url = new URL(a.href);
         if(url.origin !== origin) continue;
@@ -36,6 +41,27 @@ it("connects the customer pages with valid internal links, unique headings and n
         else if(url.pathname !== '/') expect(manifest.aliases.includes(url.pathname.slice(1)) || existsSync(path.join(source,url.pathname.slice(1))),a.href).toBe(true);
       }
       expect(d.querySelectorAll('.mobile-action-bar a')).toHaveLength(2);
+    } finally { dom.window.close(); }
+  }
+});
+
+it('offers only configured public app downloads and leaves missing download availability explicit', async () => {
+  for (const config of [
+    { iosDownloadUrl: 'https://example.com/iphone', androidDownloadUrl: 'https://example.com/android' },
+    { iosDownloadUrl: 'javascript:alert(1)', androidDownloadUrl: 'https://127.0.0.1/private' },
+  ]) {
+    const dom = page('get-the-app', config);
+    try {
+      dom.window.eval(readFileSync(path.join(source, 'get-the-app.js'), 'utf8'));
+      await new Promise(resolve => setTimeout(resolve, 0));
+      const links = [...dom.window.document.querySelectorAll<HTMLAnchorElement>('#app-download-links a')];
+      if (config.iosDownloadUrl.startsWith('https://example.com')) {
+        expect(links.map(a => a.href)).toEqual([config.iosDownloadUrl, config.androidDownloadUrl]);
+        expect(dom.window.document.querySelector('#app-download-status')!.textContent).toContain('Choose your device');
+      } else {
+        expect(links).toHaveLength(0);
+        expect(dom.window.document.querySelector('#app-download-status')!.textContent).toContain('coming soon');
+      }
     } finally { dom.window.close(); }
   }
 });

@@ -18,7 +18,7 @@ const pages = renderedPages();
 if (new Set(pages.map(page => page.slug)).size !== pages.length) throw new Error('Duplicate public page routes.');
 const home = renderHome(readFileSync(path.join(source, 'index.html'), 'utf8'));
 const config = JSON.parse(readFileSync(path.join(source, 'site-config.json'), 'utf8'));
-for (const key of ['workspaceUrl', 'drakePortalUrl']) if (config[key] !== null) {
+for (const key of ['workspaceUrl', 'drakePortalUrl', 'iosDownloadUrl', 'androidDownloadUrl']) if (config[key] != null) {
   if (!publicHttpsUrl(config[key])) throw new Error(`${key} must use a hosted HTTPS domain without embedded credentials.`);
 }
 const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'";

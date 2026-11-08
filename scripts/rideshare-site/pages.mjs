@@ -2,6 +2,7 @@ import { salesPages } from './sales.mjs';
 import { servicesPage } from './services.mjs';
 import { howItWorksPage } from './how-it-works.mjs';
 import { driversPage } from './drivers.mjs';
+import { getTheAppPage } from './get-the-app.mjs';
 import { officesPage, resourcesPage, aboutPage } from './community-pages.mjs';
 import { services, faqs, checklistGroups } from './content.mjs';
 import { escape as e, button, textLink, cards, callout, sourceLinks, renderPage } from './layout.mjs';
@@ -75,4 +76,4 @@ export function innerPages() {
   ];
 }
 
-export function renderedPages() { return [servicesPage(), howItWorksPage(), driversPage(), officesPage(), resourcesPage(resources), aboutPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
+export function renderedPages() { return [servicesPage(), howItWorksPage(), driversPage(), getTheAppPage(), officesPage(), resourcesPage(resources), aboutPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }

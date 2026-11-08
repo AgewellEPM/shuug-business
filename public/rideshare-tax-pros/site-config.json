@@ -3,5 +3,7 @@
   "drakePortalUrl": null,
   "contactPhone": null,
   "contactEmail": null,
-  "iosAppId": null
+  "iosAppId": null,
+  "iosDownloadUrl": null,
+  "androidDownloadUrl": null
 }

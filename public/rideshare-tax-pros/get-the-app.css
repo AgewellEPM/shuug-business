@@ -1,0 +1,104 @@
+@charset "UTF-8";
+.get-app-page { background: #05030a; padding-bottom: 0; }
+.app-sheet { position: relative; width: 100%; max-width: 1440px; margin: auto; container-type: inline-size; }
+.app-sheet > .public-header { position: absolute; top: 0; left: 0; height: 4.04%; }
+.app-reference { display: block; width: 100%; height: auto; }
+.app-readable { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); border: 0; }
+.app-mobile-art, .get-app-page .mobile-action-bar { display: none; }
+.app-hit { position: absolute; display: block; color: #fff; text-decoration: none; border-radius: 12px; }
+.app-hero { position: absolute; top: 4.04%; left: 0; width: 100%; height: 16.62%; }
+.app-hero-download { left: 3.05%; top: 73.8%; width: 16.7%; height: 18.8%; }
+.app-see-features { left: 21.1%; top: 73.8%; width: 17.1%; height: 18.8%; }
+.app-features { position: absolute; top: 20.65%; left: .9%; width: 98.35%; height: 20.7%; scroll-margin-top: 20px; }
+.app-feature-grid { position: absolute; top: 19.3%; left: 0; width: 100%; height: 79.5%; display: grid; grid-template-columns: 1.1fr .95fr 1fr 1fr .95fr .98fr .95fr 1fr; gap: .65%; }
+.app-phone { position: absolute; top: 42.2%; left: .5%; width: 19.6%; height: 32.4%; }
+.app-panel { position: absolute; }
+.app-profit { top: 42.83%; left: 19.77%; width: 28.77%; height: 21.65%; }
+.app-going-home { top: 42.75%; left: 49.37%; width: 21.6%; height: 21.72%; }
+.app-more { top: 42.61%; left: 71.9%; width: 27.4%; height: 21.5%; }
+.app-together { top: 65.78%; left: 21.43%; width: 77.65%; height: 14.18%; }
+.app-future { position: absolute; top: 80.64%; left: 1%; width: 98%; height: 6.94%; }
+.app-bottom { position: absolute; top: 88.49%; left: 0; width: 100%; height: 10.44%; }
+.app-bottom-download { left: 79.73%; top: 15.3%; width: 19.18%; height: 35%; }
+.app-bottom-office { left: 80%; top: 56.9%; width: 19%; height: 29.2%; }
+.app-download { max-width: 1100px; margin: 36px auto 44px; padding: 32px; border: 1px solid #d564e0; border-radius: 24px; background: radial-gradient(ellipse at top right, #b40fbf2b, transparent 70%), #0f0717; scroll-margin-top: 88px; }
+.app-download h2 { font-size: 34px; line-height: 1.1; font-style: italic; margin: 14px 0 20px; }
+.app-download em, .app-eyebrow { color: #f12ce4; }
+.app-download > p { line-height: 1.6; }
+.app-eyebrow { font-size: 14px; font-weight: 800; letter-spacing: 1px; }
+.app-download-links { display: flex; flex-wrap: wrap; gap: 16px; }
+.app-download-links .button { min-height: 50px; padding: 14px 22px; font-size: 16px; }
+@media (hover: hover) and (pointer: fine) { .app-hit:hover { outline: 1px solid #fa3be8; outline-offset: 2px; box-shadow: 0 0 20px #f326e780; } }
+.app-hit:focus-visible { outline: 2px solid #ffe2fd; outline-offset: 3px; box-shadow: 0 0 20px #f326e788; }
+@media (max-width: 1150px) { .app-download { margin-left: 24px; margin-right: 24px; } }
+@media (max-width: 1023px) {
+  .get-app-page { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+  .app-sheet { max-width: 720px; }
+  .app-sheet > .public-header { position: sticky; height: 64px; }
+  .app-reference { display: none; }
+  .app-readable { position: static; width: auto; height: auto; margin: 0; padding: 0; overflow: visible; clip-path: none; border: 0; }
+  .app-hero, .app-features, .app-phone, .app-panel, .app-future, .app-bottom { position: static; width: auto; height: auto; }
+  .app-hero { padding: 28px 22px 24px; background: radial-gradient(ellipse at top right, #a513b32b, transparent 70%); }
+  .app-hero > .app-eyebrow { margin-bottom: 12px; }
+  .app-sheet h1 { font-size: clamp(36px, 7.4vw, 53px); line-height: 1.04; font-weight: 900; font-style: italic; letter-spacing: -1.3px; margin: 0 0 18px; }
+  .app-sheet em { color: #ee19e1; }
+  .app-lede { font-size: 17px; line-height: 1.5; }
+  .app-free-badge { display: inline-block; margin-top: 20px; padding: 10px 16px; color: #fff; font-size: 20px; font-weight: 900; font-style: italic; background: #b5009f; border-radius: 12px; transform: rotate(-4deg); }
+  .app-mobile-art { display: block; width: 100%; height: auto; overflow: hidden; }
+  .app-hero-art { margin: 24px 0; border-radius: 18px; }
+  .app-hit { position: static; display: flex; align-items: center; justify-content: center; min-height: 50px; padding: 14px 18px; border: 1px solid #db71e3; border-radius: 12px; text-align: center; font-size: 16px; font-weight: 700; }
+  .app-hero-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .app-hero-download, .app-bottom-download { background: linear-gradient(110deg, #cb02e8, #f600d7); box-shadow: 0 0 24px #ed13e84d; }
+  .app-checks { list-style: none; padding: 0; margin: 20px 0 0; }
+  .app-checks li { position: relative; padding: 7px 0 7px 28px; font-size: 16px; line-height: 1.45; }
+  .app-checks li::before { content: "✓"; position: absolute; left: 0; top: 8px; display: grid; place-items: center; width: 19px; height: 19px; border-radius: 50%; color: #052900; background: #39ff18; font-size: 14px; font-weight: 900; }
+  .app-hero .app-checks { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .app-features { padding: 28px 20px; border-top: 1px solid #b84dca67; scroll-margin-top: 88px; }
+  .app-sheet h2 { font-size: clamp(28px, 5.6vw, 36px); line-height: 1.1; font-style: italic; font-weight: 900; letter-spacing: -.7px; margin: 0 0 20px; }
+  .app-feature-grid { position: static; width: auto; height: auto; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .app-feature { padding: 20px; border: 1px solid #c364d4; border-radius: 18px; background: linear-gradient(145deg, #230d2c, #08050c); }
+  .app-feature-art { width: 130px; height: 120px; margin: auto auto 16px; }
+  .app-feature h3 { font-size: 23px; line-height: 1.15; margin: 0 0 14px; letter-spacing: -.4px; }
+  .app-feature p, .app-panel p { font-size: 16px; line-height: 1.5; margin: 0; }
+  .app-phone { padding: 0 20px 28px; }
+  .app-phone-art { max-width: 260px; margin: auto; }
+  .app-panel, .app-future, .app-bottom { margin: 0 20px 24px; padding: 24px 22px; border: 1px solid #d967e3; border-radius: 22px; background: radial-gradient(ellipse at top left, #a513b225, transparent 70%), #0b0510; }
+  .app-profit-examples { display: grid; gap: 16px; }
+  .app-profit-example { padding: 18px; border: 1px solid #5ce94a; border-radius: 16px; background: #061309; box-shadow: 0 0 15px #4fff2822; }
+  .app-profit-example h3 { margin: 0 0 15px; font-size: 23px; }
+  .app-profit-example small { display: block; margin-top: 6px; font-size: 14px; font-weight: 400; }
+  .app-profit-example dl { margin: 0; }
+  .app-profit-example dl > div { display: flex; gap: 16px; align-items: baseline; justify-content: space-between; padding: 5px 0; font-size: 15px; }
+  .app-profit-example dd { margin: 0; flex-shrink: 0; }
+  .app-profit-example dl > div:last-child { color: #5aff3a; font-weight: 800; font-size: 18px; border-top: 1px solid #9ed28b50; margin-top: 7px; padding-top: 12px; }
+  .app-profit-negative { background: #1a060d; border-color: #ff4d72; box-shadow: 0 0 15px #ff4d7222; }
+  .app-profit-negative dl > div:last-child { color: #ff6176; border-color: #ff617650; }
+  .app-panel .app-example-note { color: #cdb5d6; font-size: 12px; }
+  .app-route-art { margin: 0 0 18px; border-radius: 14px; }
+  .app-home-examples > p:first-child { color: #f1c4f3; font-weight: 700; }
+  .app-home-examples ul { list-style: none; padding: 0; margin: 14px 0; }
+  .app-home-examples li { display: grid; grid-template-columns: 1fr auto auto; gap: 15px; padding: 14px 0; border-bottom: 1px solid #9759b350; font-size: 16px; }
+  .app-home-examples strong { color: #56ff32; }
+  .app-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; list-style: none; margin: 0; padding: 0; }
+  .app-step-number { display: grid; place-items: center; width: 36px; height: 36px; margin-bottom: 16px; color: #ffb6f6; border: 1px solid #d353db; border-radius: 50%; background: #d353db17; }
+  .app-steps h3 { margin: 0 0 10px; font-size: 22px; line-height: 1.15; }
+  .app-future h2 > span { color: #48ff20; }
+  .app-future p { font-size: 16px; line-height: 1.5; margin: 0 0 18px; }
+  .app-future ul { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 24px; list-style: none; margin: 0; padding: 18px 0 0; border-top: 1px solid #a253ad67; }
+  .app-future li { font-size: 15px; line-height: 1.4; }
+  .app-bottom { padding-top: 0; overflow: hidden; }
+  .app-office-art { width: calc(100% + 44px); margin: 0 -22px 24px; }
+  .app-bottom p { font-size: 16px; line-height: 1.55; }
+  .app-bottom-actions { display: grid; gap: 12px; margin-top: 24px; }
+  .app-download { max-width: 680px; margin: 28px auto; padding: 26px 22px; }
+  .get-app-page .mobile-action-bar { display: grid; }
+}
+@media (max-width: 735px) { .app-download { margin-left: 20px; margin-right: 20px; } }
+@media (max-width: 479px) {
+  .app-hero-actions, .app-feature-grid, .app-steps { grid-template-columns: 1fr; }
+  .app-feature > .app-readable { display: grid; grid-template-columns: 85px 1fr; gap: 8px 16px; }
+  .app-feature-art { width: 85px; height: 95px; grid-row: span 2; margin: 0; align-self: center; }
+  .app-feature h3 { margin: 0; font-size: 21px; }
+  .app-feature p { grid-column: 2; font-size: 15px; }
+  .app-download-links { flex-direction: column; }
+}
