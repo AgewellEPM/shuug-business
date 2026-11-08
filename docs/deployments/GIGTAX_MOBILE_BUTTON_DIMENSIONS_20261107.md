@@ -19,9 +19,9 @@ Verification in macOS system WebKit (nonvisual; no browser download):
   opens/closes and restores focus. Final saved CSS passes the same checks.
 - All computed element styles and geometry compare exactly before/after at
   1024 and 1440px for all five pages (ten desktop comparisons unchanged).
-- All ten existing customer DOM tests pass. Build output hashes differ only
+- All eleven current customer DOM tests pass (including the preserved video workflow). Build output hashes differ only
   for about.css, services.css, drivers.css and get-the-app.css. Every HTML,
-  image and script is byte-identical to the restored approved baseline475004f.
+  image and script is byte-identical to the current portal/video build4ab8f62.
 
 45 responsive checks pass. Local before/after measurements are retained in
 `/private/tmp/gigtax-mobile-buttons-before-after-20261107.json`; final saved CSS
@@ -29,3 +29,18 @@ measurements in `/private/tmp/gigtax-mobile-buttons-20261107.json`. These establ
 layout/interaction behavior, not Luke's physical-phone visual acceptance.
 
 Existing unrelated untracked How It Works receipt remains untouched.
+
+Concurrent update preserved: during the first publication, another session
+published My Portal and the homepage tour video (`4ab8f62`). That exact commit
+was carried into the integrated checkout as `b2dad6e`. A full build comparison
+against that current source again differs only in the four CSS files above.
+The other session's worktree was not changed. The initial mobile-only deployment
+was superseded and is not the final verification target.
+
+Final production `dpl_i4o2TFJM7UiHjMzy5jJ83QaSr4nZ` is Ready on gigtax.pro/www.
+All 91 published file/route checks pass; www About CSS is byte-identical to the
+saved fix. Implementation `41b64ba` is backed up; final evidence commit also
+includes the preserved concurrent update. Compact receipt:
+`gigtax-mobile-dimensions-verification-20261107.json`. The local preview server
+and all owned system WebKit audit processes have exited. User screenshots are
+still the physical-phone visual acceptance source.

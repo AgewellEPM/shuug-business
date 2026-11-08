@@ -1,0 +1,271 @@
+{
+  "implementation": "41b64ba0bbe44e471d0d72f3e7dc95a4c025cd76",
+  "preservedConcurrentSource": "4ab8f62ca2ff4ec30e657db4b912e3f5e2993e2c",
+  "deployment": "dpl_i4o2TFJM7UiHjMzy5jJ83QaSr4nZ",
+  "changedPublishedFiles": [
+    "about.css",
+    "drivers.css",
+    "get-the-app.css",
+    "services.css"
+  ],
+  "layout": {
+    "engine": "macOS system WebKit",
+    "checks": 45,
+    "failures": 0,
+    "finalSavedCSSChecks": 45,
+    "finalSavedCSSFailures": 0,
+    "desktopExactComparisons": 10,
+    "widths": [
+      320,
+      375,
+      390,
+      440,
+      640,
+      768,
+      1023,
+      1024,
+      1440
+    ],
+    "examples": [
+      {
+        "after": {
+          "buttons": [
+            {
+              "className": "services-hit services-hero-start",
+              "height": 48,
+              "left": 22,
+              "right": 418,
+              "text": "Get Started Today \u2192",
+              "width": 396
+            },
+            {
+              "className": "services-hit services-hero-watch",
+              "height": 53,
+              "left": 22,
+              "right": 418,
+              "text": "\u25b7 Watch How It Works",
+              "width": 396
+            },
+            {
+              "className": "services-hit services-phone-action",
+              "height": 48,
+              "left": 20,
+              "right": 420,
+              "text": "Get Started",
+              "width": 400
+            },
+            {
+              "className": "services-hit services-create-account",
+              "height": 48,
+              "left": 37,
+              "right": 403,
+              "text": "Create Your Account \u2192",
+              "width": 366
+            },
+            {
+              "className": "services-hit services-find-office",
+              "height": 48,
+              "left": 37,
+              "right": 403,
+              "text": "Find a Local Office",
+              "width": 366
+            }
+          ],
+          "documentWidth": 440,
+          "groups": [
+            {
+              "className": "services-hero-actions",
+              "gaps": [
+                12
+              ],
+              "height": 113
+            }
+          ],
+          "width": 440
+        },
+        "before": {
+          "buttons": [
+            {
+              "className": "services-hit services-hero-start",
+              "height": 48,
+              "left": 22,
+              "right": 99.21875,
+              "text": "Get Started Today \u2192",
+              "width": 77.21875
+            },
+            {
+              "className": "services-hit services-hero-watch",
+              "height": 48,
+              "left": 22,
+              "right": 93.265625,
+              "text": "\u25b7 Watch How It Works",
+              "width": 71.265625
+            },
+            {
+              "className": "services-hit services-phone-action",
+              "height": 64,
+              "left": 20,
+              "right": 74,
+              "text": "Get Started",
+              "width": 54
+            },
+            {
+              "className": "services-hit services-create-account",
+              "height": 98,
+              "left": 37,
+              "right": 132.15625,
+              "text": "Create Your Account \u2192",
+              "width": 95.15625
+            },
+            {
+              "className": "services-hit services-find-office",
+              "height": 81,
+              "left": 37,
+              "right": 137.640625,
+              "text": "Find a Local Office",
+              "width": 100.640625
+            }
+          ],
+          "documentWidth": 440,
+          "groups": [
+            {
+              "className": "services-hero-actions",
+              "gaps": [
+                62
+              ],
+              "height": 214
+            }
+          ],
+          "width": 440
+        },
+        "desktopUnchanged": null,
+        "failures": [],
+        "page": "services",
+        "passed": true,
+        "requestedWidth": 440
+      },
+      {
+        "after": {
+          "buttons": [
+            {
+              "className": "about-hit about-hero-start",
+              "height": 50,
+              "left": 22,
+              "right": 418,
+              "text": "Get Started Free \u2192",
+              "width": 396
+            },
+            {
+              "className": "about-hit about-hero-features",
+              "height": 50,
+              "left": 22,
+              "right": 418,
+              "text": "See App Features",
+              "width": 396
+            },
+            {
+              "className": "about-hit about-final-start",
+              "height": 50,
+              "left": 22,
+              "right": 418,
+              "text": "Get Started Free \u2192",
+              "width": 396
+            },
+            {
+              "className": "about-hit about-final-features",
+              "height": 50,
+              "left": 22,
+              "right": 418,
+              "text": "See App Features",
+              "width": 396
+            }
+          ],
+          "documentWidth": 440,
+          "groups": [
+            {
+              "className": "about-hero-actions",
+              "gaps": [
+                12
+              ],
+              "height": 112
+            },
+            {
+              "className": "about-cta-actions",
+              "gaps": [
+                12
+              ],
+              "height": 112
+            }
+          ],
+          "width": 440
+        },
+        "before": {
+          "buttons": [
+            {
+              "className": "about-hit about-hero-start",
+              "height": 50,
+              "left": 22,
+              "right": 89.3125,
+              "text": "Get Started Free \u2192",
+              "width": 67.3125
+            },
+            {
+              "className": "about-hit about-hero-features",
+              "height": 50,
+              "left": 22,
+              "right": 81.78125,
+              "text": "See App Features",
+              "width": 59.78125
+            },
+            {
+              "className": "about-hit about-final-start",
+              "height": 50,
+              "left": 22,
+              "right": 103.5625,
+              "text": "Get Started Free \u2192",
+              "width": 81.5625
+            },
+            {
+              "className": "about-hit about-final-features",
+              "height": 50,
+              "left": 22,
+              "right": 94.453125,
+              "text": "See App Features",
+              "width": 72.453125
+            }
+          ],
+          "documentWidth": 440,
+          "groups": [
+            {
+              "className": "about-hero-actions",
+              "gaps": [
+                46
+              ],
+              "height": 162
+            },
+            {
+              "className": "about-cta-actions",
+              "gaps": [
+                46
+              ],
+              "height": 162
+            }
+          ],
+          "width": 440
+        },
+        "desktopUnchanged": null,
+        "failures": [],
+        "page": "about",
+        "passed": true,
+        "requestedWidth": 440
+      }
+    ]
+  },
+  "live": {
+    "ok": true,
+    "checks": 91,
+    "verifiedAt": "2026-11-08T02:52:21.473Z",
+    "wwwAboutCSSMatches": true
+  },
+  "visualAcceptance": "Nonvisual layout and file checks passed; physical-phone visual acceptance remains with Luke."
+}
