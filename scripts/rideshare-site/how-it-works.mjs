@@ -61,7 +61,7 @@ function main() {
       ${crop([16, 1336, 338, 183], 'how-office-art')}
       <h2 class="services-readable" id="how-cta-title">Get Started with <em>Gig Tax Pros</em> Today</h2>
       <p class="services-readable">Use the tools for free, stay organized, and get expert support when you’re ready to file or process your documents.</p>
-      ${action('Create Your Free Account →', '/client-portal', 'how-create-account')}${action('Find a Local Office', '/contact', 'how-find-office')}
+      ${action('Create Your Free Account →', '/client-portal', 'how-create-account')}${action('Find a Local Office', '/offices', 'how-find-office')}
     </section>
   </main>`;
 }

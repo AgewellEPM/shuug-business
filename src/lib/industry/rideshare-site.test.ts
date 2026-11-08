@@ -18,7 +18,8 @@ function page(slug = "", config = {}, hash = "") {
 it("connects the customer pages with valid internal links, unique headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
   const customerAliases = manifest.aliases.filter((slug: string) => !["sales", "office-signup"].includes(slug));
-  expect(customerAliases).toHaveLength(18);
+  expect(customerAliases).toHaveLength(20);
+  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "resources", "about"]));
   expect(manifest.aliases).toEqual(expect.arrayContaining(["sales", "office-signup"]));
   for (const slug of ["", ...customerAliases]) {
     const dom = page(slug); const d = dom.window.document;
@@ -26,6 +27,8 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.querySelector('meta[name="viewport"]')).not.toBeNull();
       if(slug) expect(d.querySelectorAll("h1")).toHaveLength(1);
       expect(d.querySelector('input[type="password"]')).toBeNull();
+      expect(d.querySelector('.public-services')).toBeNull();
+      expect(d.querySelector('nav[aria-label="Primary"] a[href="/services"]')).not.toBeNull();
       for (const a of d.querySelectorAll<HTMLAnchorElement>('a[href]')) {
         const url = new URL(a.href);
         if(url.origin !== origin) continue;
@@ -95,4 +98,69 @@ it("returns keyboard focus to the navigation opener and exposes a focusable main
     expect(dialog.open).toBe(false);expect(opener.getAttribute('aria-expanded')).toBe('false');expect(d.activeElement).toBe(opener);
     expect(d.querySelector('#main')!.getAttribute('tabindex')).toBe('-1');
   } finally {dom.window.close();}
+});
+
+const office = { id: 'synthetic-ct', name: 'Synthetic Hartford Office', address: '123 Example Street', city: 'Hartford', state: 'CT', postalCode: '06103', phone: '+1 203 555 0100', hours: 'By appointment', appointmentURL: 'https://example.com/book' };
+const directory = (offices = [office]) => ({ version: 1, support: {}, offices });
+async function officesPage(responses: Array<{ ok: boolean; body: unknown }>) {
+  const dom = page('offices');
+  const fetcher = vi.fn(async () => {
+    const response = responses.shift();
+    if (!response) throw new Error('Unexpected directory request');
+    return { ok: response.ok, json: async () => response.body };
+  });
+  dom.window.fetch = fetcher as never;
+  dom.window.eval(readFileSync(path.join(source, 'offices.js'), 'utf8'));
+  await new Promise(resolve => setTimeout(resolve, 0));
+  return { dom, fetcher };
+}
+
+it('filters real directory responses by city, ZIP and state, clears filters, and preserves contact destinations', async () => {
+  const ny = { ...office, id: 'synthetic-ny', name: 'Synthetic New York Office', city: 'New York', state: 'NY', postalCode: '10001' };
+  const { dom, fetcher } = await officesPage([{ ok: true, body: directory([office, ny]) }]);
+  try {
+    const d = dom.window.document;
+    const search = d.querySelector<HTMLInputElement>('#office-query')!;
+    const state = d.querySelector<HTMLSelectElement>('#office-state')!;
+    expect(fetcher).toHaveBeenCalledWith('/api/offices', expect.objectContaining({ cache: 'no-store' }));
+    expect(d.querySelectorAll('.office-card')).toHaveLength(2);
+    search.value = '06103'; search.dispatchEvent(new dom.window.Event('input'));
+    expect(d.querySelectorAll('.office-card')).toHaveLength(1);
+    expect(d.querySelector<HTMLAnchorElement>('.office-card a[href^="tel:"]')!.href).toBe('tel:+12035550100');
+    expect(new URL(d.querySelector<HTMLAnchorElement>('.office-card a[href^="https://maps.apple.com/"]')!.href).searchParams.get('daddr')).toContain('Hartford, CT 06103');
+    expect(d.querySelector<HTMLAnchorElement>('.office-card a[href="https://example.com/book"]')).not.toBeNull();
+    state.value = 'NY'; state.dispatchEvent(new dom.window.Event('change'));
+    expect(d.querySelector<HTMLElement>('#office-empty')!.hidden).toBe(false);
+    expect(d.querySelector('#office-empty-title')!.textContent).toBe('No offices match this search.');
+    d.querySelector<HTMLButtonElement>('#office-clear')!.click();
+    expect(d.querySelectorAll('.office-card')).toHaveLength(2);
+    expect(d.activeElement).toBe(search);
+  } finally { dom.window.close(); }
+});
+
+it('distinguishes an empty office network from a failed request and recovers on retry', async () => {
+  const { dom, fetcher } = await officesPage([{ ok: false, body: {} }, { ok: true, body: directory([]) }]);
+  try {
+    const d = dom.window.document;
+    expect(d.querySelector<HTMLElement>('#office-error')!.hidden).toBe(false);
+    expect(d.querySelector<HTMLElement>('#office-empty')!.hidden).toBe(true);
+    d.querySelector<HTMLButtonElement>('#office-retry')!.click();
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(d.querySelector<HTMLElement>('#office-error')!.hidden).toBe(true);
+    expect(d.querySelector<HTMLElement>('#office-empty')!.hidden).toBe(false);
+    expect(d.querySelector('#office-empty-title')!.textContent).toBe('Our local network is growing.');
+    expect(d.querySelector('#office-results')!.getAttribute('aria-busy')).toBe('false');
+  } finally { dom.window.close(); }
+});
+
+it('renders office names as text and excludes unsafe phone and appointment destinations', async () => {
+  const unsafe = { ...office, name: '<img src=x onerror=alert(1)>', phone: 'javascript:alert(1)', appointmentURL: 'https://owner:secret@workspace.example.com' };
+  const { dom } = await officesPage([{ ok: true, body: directory([unsafe]) }]);
+  try {
+    const d = dom.window.document;
+    expect(d.querySelector('.office-card h3')!.textContent).toBe(unsafe.name);
+    expect(d.querySelector('.office-card img')).toBeNull();
+    expect(d.querySelectorAll('.office-card a')).toHaveLength(1);
+  } finally { dom.window.close(); }
 });

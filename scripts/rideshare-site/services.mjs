@@ -11,7 +11,7 @@ const offerings = [
   ['Business Setup', 'Start or grow your business (LLC, S-Corp, or sole prop) with the right tax strategy.', '/contact', [88, 687, 105, 80]],
   ['IRS Assistance', 'Get help with notices, letters, payment plans, and representation.', '/contact', [337, 684, 113, 81]],
   ['Year-Round Support', 'Not just tax season. Get answers, updates, and planning help all year long.', '/bookkeeping', [582, 685, 114, 82]],
-  ['Local Office Support', 'Work with a real person at a nearby Gig Tax Pros location in your community.', '/contact', [815, 686, 115, 82]],
+  ['Local Office Support', 'Work with a real person at a nearby Gig Tax Pros location in your community.', '/offices', [815, 686, 115, 82]],
 ];
 
 // The supplied artwork stays unchanged. SVG viewports reuse its illustrations
@@ -55,7 +55,7 @@ function main() {
       ${crop([22, 1290, 336, 202], 'services-office-art')}
       <h2 id="services-cta-title" class="services-readable">Get Started with <em>Gig Tax Pros</em> Today</h2>
       <p class="services-readable">File your taxes, track your income, and get the support you need — all in one place.</p>
-      ${action('Create Your Account →', '/client-portal', 'services-create-account')}${action('Find a Local Office', '/contact', 'services-find-office')}
+      ${action('Create Your Account →', '/client-portal', 'services-create-account')}${action('Find a Local Office', '/offices', 'services-find-office')}
     </section>
   </main>`;
 }

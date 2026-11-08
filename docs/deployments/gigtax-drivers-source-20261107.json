@@ -1,0 +1,14 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T00:34:08.520Z",
+  "originalArtworkUnchanged": true,
+  "artworkSha256": "1d52c47ae25f0a0df8407915789f1b8d029d31edb4b40f458025537f372442c4",
+  "dimensions": [
+    1199,
+    1312
+  ],
+  "desktopHeader": "Original reference pixels with transparent accessible links; mobile header is hidden on desktop.",
+  "servicesNavigation": "Direct /services link; no dropdown.",
+  "cssSyntax": "Three changed or shared stylesheets parsed successfully.",
+  "visualAcceptance": "Live screenshot comparison remains Luke’s."
+}

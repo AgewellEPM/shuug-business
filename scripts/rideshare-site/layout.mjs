@@ -3,13 +3,12 @@ import { publicHeader, publicNavigation } from './public-navigation.mjs';
 export const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 export const button = (label, href, primary = true) => `<a class="button ${primary ? 'primary' : 'secondary'}" href="${escape(href)}">${escape(label)} <span aria-hidden="true">↗</span></a>`;
 export const textLink = (label, href) => `<a class="text-link" href="${escape(href)}">${escape(label)} <span aria-hidden="true">↗</span></a>`;
-const links = [['Services', '/services'], ['How it works', '/how-it-works'], ['Free to use', '/free'], ['Resources', '/resources'], ['About', '/about']];
 export function brand() { return `<a class="brand" href="/"><span class="brand-symbol" aria-hidden="true"></span><span>Gig Tax Pros<sup>™</sup><small>TAX & ACCOUNTING</small></span></a>`; }
 export function navigation(active = '') {
-  return `<dialog id="navigation" class="navigation" aria-labelledby="navigation-title"><div class="dialog-top"><strong id="navigation-title">Find your next step</strong><button class="close-button" data-close aria-label="Close navigation">×</button></div><nav aria-label="Main navigation">${[['Home', '/'], ...links, ['Document checklist', '/document-checklist'], ['FAQs', '/faq'], ['Contact', '/contact'], ['Client portal', '/client-portal']].map(([label, href]) => `<a href="${href}"${active === href ? ' aria-current="page"' : ''}>${label}<span aria-hidden="true">↗</span></a>`).join('')}</nav></dialog>`;
+  return publicNavigation(active);
 }
 export function header(active) {
-  return `<header class="inner-header"><div class="inner-header-content">${brand()}<nav class="desktop-links" aria-label="Primary">${links.map(([label, href]) => `<a href="${href}"${href === active ? ' aria-current="page"' : ''}>${label}</a>`).join('')}</nav><div class="header-actions"><a class="header-portal" href="/client-portal">Client portal ↗</a><button class="menu-button" data-menu aria-label="Open navigation" aria-expanded="false" aria-controls="navigation"><span></span><span></span><span></span></button></div></div></header>`;
+  return publicHeader(active, brand());
 }
 export function footer() {
   const nav = (label, items) => `<nav aria-label="Footer ${escape(label)}"><h2>${escape(label)}</h2>${items.map(([name, href]) => `<a href="${href}">${escape(name)}</a>`).join('')}</nav>`;
