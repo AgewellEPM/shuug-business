@@ -5,6 +5,7 @@ import { billingBalance, type BillingDocument } from "@/lib/accounting/billing-m
 import { formatCents, parseDollarsToCents } from "@/lib/money";
 import type { bookView } from "@/lib/accounting/book-service";
 import { BillingAction, BillingField, BillingAccount, BillingDraftForm, BillingLines, readBillingLines, textValue, type BillingSend } from "./BillingForms";
+import { InvoiceDelivery } from "./InvoiceDelivery";
 type View=Awaited<ReturnType<typeof bookView>>;
 export function BillingWorkspace({data,canEdit,owner}:{data:View;canEdit:boolean;owner:boolean}) {
   const router=useRouter(),retry=useRef<{key:string;id:string}|null>(null),[notice,setNotice]=useState(""),[creating,setCreating]=useState<"invoice"|"bill"|null>(null),[filter,setFilter]=useState("");
@@ -19,12 +20,12 @@ export function BillingWorkspace({data,canEdit,owner}:{data:View;canEdit:boolean
     {notice&&<p role="status">{notice}</p>}{canEdit&&<div className="flex gap-3"><button className="dd-primary" onClick={()=>setCreating("invoice")}>New invoice</button><button className="dd-button" onClick={()=>setCreating("bill")}>Enter vendor bill</button></div>}
     {creating&&<section className="dd-card space-y-4"><div className="flex justify-between gap-3"><h2 className="text-xl font-semibold">{creating==="invoice"?"New customer invoice":"New vendor bill"}</h2><button className="dd-button" onClick={()=>setCreating(null)}>Close</button></div><BillingDraftForm key={creating} kind={creating} accounts={data.accounts} send={send} issuer={data.book.name} onSaved={()=>setCreating(null)}/></section>}
     <label className="grid gap-1 text-sm">Find a document<input type="search" className="rounded border p-2" value={filter} onChange={e=>setFilter(e.target.value)} placeholder="Customer, vendor, number or description"/></label>
-    {data.billing.filter(d=>`${d.number} ${d.party.name} ${d.status} ${d.lines.map(l=>l.description).join(" ")}`.toLowerCase().includes(filter.toLowerCase())).map(doc=><DocumentCard key={`${doc.id}:${doc.revision}`} doc={doc} data={data} send={send} canEdit={canEdit}/>)}
+    {data.billing.filter(d=>`${d.number} ${d.party.name} ${d.status} ${d.lines.map(l=>l.description).join(" ")}`.toLowerCase().includes(filter.toLowerCase())).map(doc=><DocumentCard key={`${doc.id}:${doc.revision}`} doc={doc} data={data} send={send} canEdit={canEdit} owner={owner}/>)}
     {!data.billing.length&&<p>No invoices or vendor bills in this book yet.</p>}
     {owner&&<details className="dd-card"><summary className="font-semibold">Online payment account for this business</summary><p className="my-3 text-sm">{data.paymentConnection.enabled?(data.paymentConnection.live?"Live Stripe payments enabled.":"Stripe test mode enabled. Test payments do not enter the books."):"Online payments are not connected."} Each client book uses its own connection.</p><BillingAction send={send} action="billing.connection" label="Save payment connection" build={f=>({enabled:f.get("enabled")==="on",...(textValue(f,"secret")?{secretKey:textValue(f,"secret")}:{})})}><label className="flex gap-2"><input type="checkbox" name="enabled" defaultChecked={data.paymentConnection.enabled}/>Enable online invoice payments</label><BillingField label="Stripe secret key (leave blank to retain the saved key)" name="secret" type="password" required={false}/></BillingAction></details>}
   </div>;
 }
-function DocumentCard({doc:d,data,send,canEdit}:{doc:BillingDocument;data:View;send:BillingSend;canEdit:boolean}) {
+function DocumentCard({doc:d,data,send,canEdit,owner}:{doc:BillingDocument;data:View;send:BillingSend;canEdit:boolean;owner:boolean}) {
   const b=billingBalance(d),[editing,setEditing]=useState(false),[link,setLink]=useState("");
   const today=new Date().toISOString().slice(0,10),overdue=d.status==="posted"&&b.outstanding>0&&d.due<today;
   const wrapped:BillingSend=async(action,input)=>{const result=await send(action,input);if(result.url)setLink(result.url);if(action==="billing.share.revoke")setLink("");return result;};
@@ -37,6 +38,7 @@ function DocumentCard({doc:d,data,send,canEdit}:{doc:BillingDocument;data:View;s
       {b.credited<b.total&&<CreditForm doc={d} data={data} send={send}/>}
       {d.kind==="invoice"&&<details><summary>Share with customer</summary><p className="my-3 text-sm">The link shows the invoice, payments and credits. Private notes and ledger accounts stay internal. Creating a new link revokes prior links.</p><BillingAction send={wrapped} action="billing.share" label="Create private invoice link" build={f=>({id:d.id,revision:d.revision,days:Number(textValue(f,"days"))})}><BillingField label="Link valid for days (1–90)" name="days" type="number" value="30"/></BillingAction>{link&&<div className="my-3 break-all"><a href={link} target="_blank" rel="noreferrer" className="underline">{link}</a><p className="text-sm">Copy this link into your message to {d.party.email||d.party.name}.</p></div>}<div className="mt-4"><BillingAction send={wrapped} action="billing.share.revoke" label="Revoke all invoice links" build={()=>({id:d.id,revision:d.revision})}/></div></details>}
     </>}
+    {d.kind==="invoice"&&d.status!=="draft"&&<InvoiceDelivery bookId={data.book.id} doc={d} connection={data.deliveryConnection} history={data.invoiceDeliveries} canEdit={canEdit} owner={owner}/>}
     {canEdit&&d.status!=="void"&&!d.settlements.length&&!d.credits.length&&<details><summary>Void this document</summary><BillingAction send={send} action="billing.void" label="Record void" build={f=>({id:d.id,revision:d.revision,date:textValue(f,"date"),reason:textValue(f,"reason")})}><BillingField label="Void date" name="date" type="date" value={today}/><BillingField label="Reason" name="reason"/></BillingAction></details>}
   </article>;
 }

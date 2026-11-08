@@ -5,7 +5,7 @@ import path from 'node:path';
 import { validateTrustedConfig } from './browser/config.mjs';
 
 const source=fileURLToPath(new URL('.',import.meta.url));
-const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs'];
+const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','client-portal.mjs','client-portal-view.mjs'];
 export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
   if(config)await validateTrustedConfig(config,config.uiOrigin);
   const existing=await readdir(output).catch(error=>{if(error.code==='ENOENT')return [];throw error;});

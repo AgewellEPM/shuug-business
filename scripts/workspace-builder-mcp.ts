@@ -50,7 +50,7 @@ async function main() {
     } else result = await call("workspace_preview", plan);
     const receipt = { ok: true, server: client.getServerVersion(), toolCount: tools.tools.length, backendOrigin: url.origin, operation: apply ? "workspace_apply" : "workspace_preview", calls, businessDescription: plan.description, catalogVersion: catalog.version ?? null, result, generatedAt: new Date().toISOString() };
     if (options.has("--out")) writeFileSync(options.get("--out")!, JSON.stringify(receipt, null, 2) + "\n", { mode: 0o600, flag: "wx" });
-    const output = options.has("--out") ? { ...receipt, result: { applied: result.applied ?? false, duplicate: result.duplicate ?? false, currentDigest: result.currentDigest, proposedDigest: result.proposedDigest, receiptId: result.receipt?.id, visibleTools: result.visibleTools, hiddenToolCount: result.hiddenToolIds?.length, unsupportedRequests: result.unsupportedRequests, connectionsRequiringSeparateAuthorization: result.connectionsRequiringSeparateAuthorization } } : receipt;
+    const output = options.has("--out") ? { ...receipt, result: { applied: result.applied ?? false, duplicate: result.duplicate ?? false, currentDigest: result.currentDigest, proposedDigest: result.proposedDigest, receiptId: result.receipt?.id, visibleTools: result.visibleTools, hiddenToolCount: result.hiddenToolIds?.length, unsupportedRequests: result.unsupportedRequests, requiredCapabilities: result.requiredCapabilities, requestedGoalComplete: result.requestedGoalComplete, connectionsRequiringSeparateAuthorization: result.connectionsRequiringSeparateAuthorization } } : receipt;
     console.log(JSON.stringify(output, null, 2));
   } finally { await client.close(); }
 }

@@ -1,6 +1,7 @@
 import { billingDocuments, executeBillingCommand } from "./billing-store";
 import { executeBillingShare } from "./billing-share";
 import { billingConnectionStatus, saveBillingConnection } from "./billing-checkout";
+import { executeInvoiceDelivery, invoiceDeliveryConnection, invoiceDeliveryHistory } from "./invoice-delivery";
 import { randomUUID } from "node:crypto";
 import type { WorkspaceUser } from "../auth/identity";
 import { z } from "zod";
@@ -17,12 +18,13 @@ export async function bookView(bookId: string, user: WorkspaceUser) {
   const ledger = bookId === "office" ? await loadLedger() : { entries: manualJournalData(bookId).entries, issues: [] as string[] };
   const accounts = chartOfAccounts(bookId).accounts;
   return { book: book ?? { id: "office", name: "Office books", currency: "USD" }, entries: ledger.entries, issues: ledger.issues, accounts,
-    billing: billingDocuments(bookId), paymentConnection: billingConnectionStatus(bookId), reports: financialReports(ledger.entries, accounts), statements: bankStatements(bookId), periods: periodHistory(bookId), canEdit: user.isOwner || !!book?.grants.some(g => g.accountId === user.id && g.level === "edit") };
+    billing: billingDocuments(bookId), paymentConnection: billingConnectionStatus(bookId), deliveryConnection: invoiceDeliveryConnection(), invoiceDeliveries: invoiceDeliveryHistory(bookId, user), reports: financialReports(ledger.entries, accounts), statements: bankStatements(bookId), periods: periodHistory(bookId), canEdit: user.isOwner || !!book?.grants.some(g => g.accountId === user.id && g.level === "edit") };
 }
 export async function bookCommand(bookId: string, raw: unknown, user: WorkspaceUser) {
   requireBook(bookId, user, true);
   const v = z.object({ requestId: z.uuid(), action: z.string(), input: z.record(z.string(), z.unknown()) }).strict().parse(raw);
   const actor = `${user.name} (${user.id})`;
+  if (v.action.startsWith("billing.delivery.")) return executeInvoiceDelivery(bookId, v, user);
   if (v.action.startsWith("billing.share")) return executeBillingShare(bookId, v, user);
   if (v.action === "billing.connection") return saveBillingConnection(bookId, v.input, user);
   if (v.action.startsWith("billing.")) return executeBillingCommand(bookId, v, user);

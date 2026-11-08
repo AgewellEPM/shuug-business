@@ -1,5 +1,5 @@
 {
-  "description": "Shuug is the complete tax preparation, accounting and electronic filing software for independent and small family-run tax firms. The product must prepare individual, self-employed and business returns, calculate federal and state tax, produce return forms and diagnostics, collect reviewed client authorization, transmit filings and track official acknowledgments and amendments. It also needs secure client intake and documents, separate client books, bank import and reconciliation, accounting reports, firm invoicing, appointments, quarterly reviews and gig-worker records. Each firm can run its server on its own Mac mini; outside application hosting is optional. Keep staff and recovery key custody separate from the server. Build a focused tax/accounting workstation, with unrelated retail, restaurant, manufacturing and general business-assistant menus hidden. Existing capability gaps must be reported explicitly; a tracker or handoff record is not a tax calculation or transmission engine.",
+  "description": "Shuug is the complete tax preparation, accounting and electronic filing software for independent and small family-run tax firms. The product must prepare individual, self-employed and business returns, calculate federal and state tax, produce return forms and diagnostics, collect reviewed client authorization, transmit filings and track official acknowledgments and amendments. It also needs secure client intake and documents, separate client books, bank import and reconciliation, accounting reports, firm invoicing, appointments, quarterly reviews and gig-worker records. Each firm can run its server on its own Mac mini; outside application hosting is optional. Keep staff and recovery key custody separate from the server. Build a focused tax/accounting workstation, with unrelated retail, restaurant, manufacturing and general business-assistant menus hidden. Existing capability gaps must be reported explicitly; a tracker or handoff record is not a tax calculation or transmission engine. Each firm must create and send client invoices directly, accept verified online and recorded bank/cash payments, and show receipts, partial payments and outstanding balances. Each client needs a private portal for multi-file upload of statements, receipts, their business invoices, billing records and other requested information, plus readable own-business information and updates shared with the firm. Show upload progress, retry failures safely and report actual refresh status. Do not claim complete real-time financial or review parity while enrollment, sharing or encrypted staff editing remains incomplete.",
   "industry": {
     "industryId": "tax-firm",
     "answers": {
@@ -16,7 +16,7 @@
       "marketing"
     ],
     "templateName": "Tax & accounting workstation",
-    "revision": 3
+    "revision": 4
   },
   "layout": {
     "homeToolId": "tax-office",
@@ -26,6 +26,7 @@
       "tax-documents",
       "client-books",
       "office-billing",
+      "client-access",
       "calendar"
     ]
   },
@@ -41,16 +42,26 @@
     "rideshare-journal",
     "module:tax-quarterly-reviews",
     "service-booking",
-    "service-portal",
+    "client-access",
     "timeclock",
     "people",
     "roles",
     "connections",
+    "integrations",
     "backend",
     "branding",
     "module:tax-engagements",
     "module:tax-document-requests",
     "module:tax-filing-handoffs"
   ],
-  "businessName": "Shuug Tax & Accounting \u00b7 SAMPLE"
+  "businessName": "Shuug Tax & Accounting · SAMPLE",
+  "requiredCapabilityIds": [
+    "tax-return-calculation",
+    "tax-return-forms",
+    "tax-efile-transmission",
+    "invoice-delivery",
+    "online-invoice-payments",
+    "client-portal-bulk-uploads",
+    "client-business-live-view"
+  ]
 }

@@ -22,9 +22,11 @@ import {totp} from '../src/lib/auth/mfa/crypto.ts';
 import {backupWorkspace,restoreWorkspace} from '../src/lib/workspace/backup.ts';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../packages/secure-tax-client/firm-recovery.mjs';
 import {signStaffGrant,createStaffCapsule} from '../packages/secure-tax-client/firm-staff.mjs';
-import {generateRecipientKeyPair,publicKeyId,sealEnvelope} from '../packages/secure-tax-client/envelope.mjs';
+import {generateRecipientKeyPair,publicKeyId,sealEnvelope,decode64} from '../packages/secure-tax-client/envelope.mjs';
 import {openStaffCapsule} from '../packages/secure-tax-client/staff-grants.mjs';
 import {StaffVaultClient} from '../packages/secure-tax-client/browser/staff-client.mjs';
+import {VaultClient} from '../packages/secure-tax-client/browser/client.mjs';
+import {PortalUploadQueue,PortalRefresh,portalSnapshot} from '../packages/secure-tax-client/browser/client-portal.mjs';
 
 class MemoryKeys {
   keys=new Map();bindings=new Map();
@@ -33,6 +35,7 @@ class MemoryKeys {
   async listKeys(){return [...this.keys.values()].map(({keyId,publicKey})=>({keyId,publicKey}));}
   async putBinding(value){this.bindings.set(value.id,structuredClone(value));}
   async getBinding(id){return structuredClone(this.bindings.get(id));}
+  async updateBinding(id,mutate){const next=mutate(structuredClone(this.bindings.get(id)));this.bindings.set(id,structuredClone(next));return structuredClone(next);}
 }
 async function freePort(){const s=createServer();await new Promise((ok,bad)=>{s.once('error',bad);s.listen(0,'127.0.0.1',ok);});const port=s.address().port;await new Promise(ok=>s.close(ok));return port;}
 async function stop(child){if(!child?.pid||child.exitCode!==null||child.signalCode!==null)return;const exited=once(child,'exit'),timer=setTimeout(()=>child.kill('SIGKILL'),5000);child.kill('SIGTERM');try{await exited;}finally{clearTimeout(timer);}}
@@ -139,14 +142,59 @@ try{
   assert.deepEqual(afterRestore.client.records.get(changed.context.objectId).plaintext,changed.bytes);checks++;
   await json('/staff/objects/'+changed.context.objectId+'?grantId='+grant.grantId,{token:tokens.get('after-restore')},403);
   setEmployeeEnabled(employee.id,false);await assert.rejects(afterRestore.client.sync());assert.equal(afterRestore.client.records.size,0);checks++;
+  const customerKeyId=await publicKeyId(clientKey.publicKey),customerStorage=new MemoryKeys(),putBodies=new Map();let loseReceipt=true;
+  await customerStorage.putKey({keyId:customerKeyId,publicKey:clientKey.publicKey,privateKey:clientKey.privateKey});
+  async function customerVault(label,storage){
+    const fetcher=async(url,options)=>{const u=new URL(url);assert.equal(u.origin,config.apiOrigin);if(options.headers.Authorization)tokens.set(label,options.headers.Authorization.slice(7));
+      const response=await fetch(base+u.pathname+u.search,{...options,headers:{...options.headers,Origin:uiOrigin}});
+      if(label==='portal'&&options.method==='PUT'){const previous=putBodies.get(u.pathname);if(previous)assert.equal(options.body,previous);else putBodies.set(u.pathname,options.body);
+        if(loseReceipt){loseReceipt=false;assert(response.ok);await response.arrayBuffer();throw new Error('Synthetic lost upload receipt after the server committed.');}}
+      return response;};
+    const customer=await VaultClient.create(config,uiOrigin,{storage,fetcher});let session=await customer.signIn(account.email,password);
+    if(session.mfaRequired){session=await customer.verifySignIn(totp(customer.pendingMfa.secret,Math.floor(Date.now()/30000)));}
+    await customer.unlock(customerKeyId);await customer.sync();return customer;
+  }
+  const portal=await customerVault('portal',customerStorage),queue=new PortalUploadQueue(portal),uploaded=[];
+  const samples=[{name:'Sample statement.csv',type:'text/csv',bytes:new TextEncoder().encode(`date,description,amount\n2026-11-01,${marker},12.00`),purpose:'bank-statement',category:'banking'},
+    {name:'Sample receipt.jpg',type:'image/jpeg',bytes:new Uint8Array([255,216,255,...new TextEncoder().encode(marker)]),purpose:'receipt',category:'purchases'},
+    {name:'Sample client invoice.pdf',type:'application/pdf',bytes:new TextEncoder().encode(`%PDF-1.7\n${marker}\n%%EOF`),purpose:'invoice',category:'sales'}];
+  for(const sample of samples)queue.add([new File([sample.bytes],sample.name,{type:sample.type})],{purpose:sample.purpose,category:sample.category,notes:marker});
+  await queue.flush();assert.equal(queue.rows.filter(row=>row.status==='failed').length,1);assert.equal(queue.rows.filter(row=>row.status==='complete').length,2);checks++;
+  assert.equal((await portal.pendingUploads()).length,1);assert(!JSON.stringify([...customerStorage.bindings.values()]).includes(marker));checks++;
+  const retriedQueue=new PortalUploadQueue(portal);await retriedQueue.restore();assert.equal(retriedQueue.rows.length,1);await retriedQueue.flush();
+  assert.equal(retriedQueue.rows[0].status,'complete');assert.equal((await portal.pendingUploads()).length,0);checks++;
+  await portal.sync();let dashboard=portalSnapshot(portal.records);assert.equal(dashboard.counts.statements,1);assert.equal(dashboard.counts.receipts,1);assert.equal(dashboard.counts.invoices,1);assert.equal(dashboard.totals.length,0);checks++;
+  for(const item of portal.records.values()){
+    let payload;try{payload=JSON.parse(new TextDecoder().decode(item.plaintext));}catch{continue;}if(payload.type!=='private-file')continue;
+    const source=samples.find(sample=>sample.name===payload.filename);assert(source);assert.deepEqual(decode64(payload.data,1,10*1024*1024),source.bytes);
+    const served=await json(`/objects/${item.objectId}`,{token:tokens.get('portal')});uploaded.push({context:served.envelope.context,envelope:served.envelope,bytes:item.plaintext});checks++;
+  }
+  const remoteStorage=new MemoryKeys();await remoteStorage.putKey({keyId:customerKeyId,publicKey:clientKey.publicKey,privateKey:clientKey.privateKey});
+  const remote=await customerVault('portal-remote',remoteStorage),noteBytes=new TextEncoder().encode(JSON.stringify({version:1,type:'business-note',title:marker,date:'2026-11-08'}));
+  const note=await remote.save('driver-record',noteBytes);const noteObject=await json(`/objects/${note.objectId}`,{token:tokens.get('portal-remote')});
+  uploaded.push({context:noteObject.envelope.context,envelope:noteObject.envelope,bytes:noteBytes});
+  let scheduled,cleared=false;const refresh=new PortalRefresh({eligible:()=>portal.unlocked&&portal.canWrite,refresh:()=>portal.sync(),setTimer:callback=>{scheduled=callback;return 1;},clearTimer:()=>{cleared=true;}});
+  refresh.start();assert.equal(typeof scheduled,'function');assert.equal(await refresh.tick(),true);assert.equal(portalSnapshot(portal.records).counts.notes,1);assert(refresh.state.lastUpdated);refresh.stop({clear:true});assert(cleared);checks++;
+  setEmployeeEnabled(employee.id,true);acceptEmployeeInvitation(issueEmployeeInvitation(employee.id),password);
+  await login(afterRestore.client,member.email,firstSession.recoveryCodes[3]);await afterRestore.client.unlock(newDevice.keyId);
+  const portalGrant=await signStaffGrant({...replacementRequest},firm,{grantId:newGrant.grantId,epoch:newGrant.epoch+1,domains:['tax-document','driver-record','driver-receipt']});
+  await owner.client.installGrant(portalGrant);
+  for(const object of [...objects,...uploaded])await owner.client.installCapsule(await createStaffCapsule(object.envelope,manifest,portalGrant,firm,expected(portalGrant,object)));
+  await afterRestore.client.selectGrant(portalGrant.grantId);assert.equal((await afterRestore.client.sync()).items,6);
+  for(const object of uploaded)assert.deepEqual(afterRestore.client.records.get(object.context.objectId).plaintext,object.bytes);checks++;
+  await stop(child);child=null;const portalBackup=backupWorkspace(restored,path.join(root,'portal-backup')),portalRestored=path.join(root,'portal-restored');restoreWorkspace(path.join(root,'portal-backup'),portalRestored);
+  env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,7);
+  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal((await afterRestore.client.sync()).items,6);checks++;
+  portal.lock();assert.equal(portal.records.size,0);assert.equal(queue.clear().unpreparedDiscarded,0);retriedQueue.clear();remote.lock();checks++;
   await stop(child);child=null;
   function hostFiles(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?hostFiles(path.join(dir,entry.name)):[path.join(dir,entry.name)]);}
-  const files=hostFiles(restored);
+  const files=hostFiles(env.DEALDESK_DATA_DIR);
   for(const filename of files){const bytes=readFileSync(filename);assert(!bytes.includes(Buffer.from(marker)), 'Host copy contains protected plaintext.');assert(!filename.startsWith(trusted));}
   checks++;
   console.log(JSON.stringify({ok:true,checks,buildId:readFileSync('.next/BUILD_ID','utf8').trim(),syntheticWorkspace:true,freshClientHadNoLegacyBooks:true,mandatoryStaffMfaVerifiedWithGlobalFlagOff:true,
     originalV2ClientEnvelopesPreserved:true,staffOpenedProtectedBooksAndDocumentBytes:true,encryptedDeviceBackupRecovered:true,newDeviceGrantedAfterOriginalRevocation:true,
     oldDeviceCannotOpenReplacementCapsules:true,newProcessFirmRecoveryCliVerified:true,staleRevisionFailsClosed:true,restoredDataAndRevocationVerified:true,backupFiles:copied.files,copiedHostPlaintextMarkerAbsent:true,
+    portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffEditingImplemented:false},
     realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
 }catch(error){console.error('Owned fixture diagnostics:\n'+log);throw error;}
 finally{await stop(child);rmSync(root,{recursive:true,force:true});}

@@ -13,7 +13,7 @@ export const packs = [
   { id: "accounting", label: "Accounting & payments", tools: ["client-books", "office-billing", "finance", "accounting", "chart-of-accounts", "ledger", "balance-sheet", "sales-tax", "cashflow", "collections", "reconciliation", "payments", "expenses", "reports", "service-collections"], profiles: [] },
   { id: "purchasing", label: "Purchasing & suppliers", tools: ["invoice-audit", "expenses"], profiles: [] },
   { id: "marketing", label: "Marketing", tools: ["marketing", "google-ads", "amazon-marketing", "social", "module:customer-feedback"], profiles: [] },
-  { id: "portal", label: "Customer portal", tools: ["service-portal"], profiles: ["service"] },
+  { id: "portal", label: "Customer portal", tools: ["service-portal", "client-access"], profiles: ["service"] },
   { id: "programs", label: "Programs, participants & outcomes", tools: ["nonprofit-budgets", "nonprofit-enrollment", "nonprofit-participants", "nonprofit-sessions", "nonprofit-outcomes", "nonprofit-reporting", "nonprofit-events"], profiles: ["nonprofit"] },
   { id: "volunteers", label: "Volunteer coordination", tools: ["nonprofit-volunteers", "nonprofit-shifts"], profiles: ["nonprofit"] },
   { id: "governance", label: "Board & governance", tools: ["nonprofit-governance"], profiles: ["nonprofit"] },

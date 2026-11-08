@@ -39,7 +39,8 @@ The builder rejects that plan before applying it.
 Keep the existing backend authentication and transport described in
 [SHOPIFY-BACKEND-MCP.md](SHOPIFY-BACKEND-MCP.md). Shopify is optional. Read
 `business_capabilities` and status first, then use the workspace tools. The server
-now exposes 42 tools. Backend credentials authorize the whole selected workspace;
+now exposes 45 tools, including native `billing_catalog`, `billing_read` and
+`billing_command`. Backend credentials authorize the whole selected workspace;
 keep them in the private local vault or a trusted MCP client's secret settings.
 
 `scripts/workspace-builder-mcp.ts` is a small client of the real stdio MCP server.
@@ -58,7 +59,10 @@ After inspecting that preview, repeat with `--apply --current-digest HASH
 the exact reviewed preview. Remote origins require HTTPS. Configure access with
 `backend:setup` first; do not paste tokens into command arguments or chat.
 
-The plan contains `{description, industry, layout, visibleToolIds?, businessName?}`.
+The plan contains `{description, industry, layout, visibleToolIds?, businessName?,
+requiredCapabilityIds?}`. Required capabilities stay attached to the preview and
+receipt, with separate implementation, configuration and live-verification status.
+A configured menu does not mark a requested capability complete.
 `industry` uses the existing installed industry contract.
 `layout` is `{homeToolId, primaryToolIds}`; choose one to twelve unique installed,
 visible primary IDs including the home ID. The root home tool is not itself a
@@ -74,7 +78,8 @@ review, invoices, quarterly work and a local Mac mini. It requests hiding unrela
 retail, restaurant and manufacturing tools. It also requires gaps to remain visible.
 
 The generated primary destinations are Tax work, Clients, Tax document inbox,
-Client books, Firm invoices & bills and Calendar. Sample clients/books/PDFs stay
+Client books, Firm invoices & bills, Client access & invitations and Calendar.
+Sample clients/books/PDFs stay
 fictional. This is a configuration of the existing Shuug application, not a
 separate custom tax homepage or a completed tax-return engine.
 
@@ -87,3 +92,33 @@ The ordinary installed service and real data are not changed by the demo. Its
 loopback-only sample runtime is explicitly labeled SAMPLE and left open at Luke's
 request. Visual acceptance requires his screenshot. Public marketing pages,
 provider accounts, payments and filing are outside this demonstration.
+
+## Billing and the encrypted client portal
+
+The native billing MCP tools use the same books, invoice revisions, ledger and
+authorization as the application. They support reviewed draft/post/void, private
+invoice links, partial settlements, payment connection status and invoice email.
+Manual settlement evidence records an asserted payment; it does not move money.
+The command tool declares external effects because reviewed email sending can
+contact Mailgun. Never infer permission for a real email or charge from a demo.
+
+Invoice delivery requires a configured Mailgun domain/sender, vault-held key,
+explicit test/live mode and a public HTTPS application origin. Preview binds the
+exact recipient, posted invoice revision and private link. Sending records one
+durable attempt before contacting the provider. An uncertain response requires
+reviewed outcome resolution; retrying never blindly sends another email. Provider
+acceptance is shown separately from confirmed delivery. Stripe checkout and its
+verified payment receipt remain the existing online-payment path.
+
+The separately distributed trusted encrypted client now has a multi-file inbox,
+readable records and a 15-second refresh while signed in, unlocked, visible and
+idle. It accepts PDF, JPEG, PNG and UTF-8 CSV, within the displayed limits. Failed
+uploads retain ciphertext for exact retry after reload. Raw selected files stay
+only in memory and are cleared on lock. Uploaded invoices and receipts remain
+documents; they do not create paid balances or ledger entries.
+
+This does not activate real client enrollment or place recovery/signing keys on
+the hosting Mac. Signed sharing is still required for staff to open new client
+objects. Full encrypted staff editing, a shared financial projection and instant
+push updates remain incomplete. The required capability statuses report those
+limits rather than treating a document counter as the client's whole business.

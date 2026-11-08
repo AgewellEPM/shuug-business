@@ -8,13 +8,16 @@ import { workspaceDatabase } from "../workspace/database";
 import { industries, packs } from "./catalog";
 import { industryRequestSchema } from "./model";
 import { previewIndustry } from "./service";
+import { invoiceDeliveryConnection } from "../accounting/invoice-delivery";
 
 const toolId = z.string().regex(/^[a-zA-Z0-9:_-]{1,100}$/);
+export const workspaceCapabilityIds = ["tax-return-calculation", "tax-return-forms", "tax-efile-transmission", "invoice-delivery", "online-invoice-payments", "client-portal-bulk-uploads", "client-business-live-view"] as const;
 export const workspacePlanSchema = z.object({
   description: z.string().trim().min(1).max(3000).describe("Business needs only; do not include taxpayer records, identifiers, credentials or private keys. The MCP caller selects installed capabilities explicitly."),
   industry: industryRequestSchema,
   layout: workspaceLayoutSchema,
   visibleToolIds: z.array(toolId).min(1).max(300).refine(ids => new Set(ids).size === ids.length, "Visible tool IDs must be unique.").optional(),
+  requiredCapabilityIds: z.array(z.enum(workspaceCapabilityIds)).min(1).max(workspaceCapabilityIds.length).refine(ids => new Set(ids).size === ids.length, "Required capability IDs must be unique.").optional(),
   businessName: z.string().trim().min(1).max(40).optional(),
 }).strict();
 export const workspaceApplySchema = z.object({
@@ -35,6 +38,20 @@ const taxLimits = [
   { id: "tax-return-forms", status: "not_implemented", detail: "Shuug does not generate or certify complete filing-ready federal or state return forms." },
   { id: "tax-efile-transmission", status: "not_implemented", detail: "Shuug does not transmit returns to IRS MeF or state e-file systems. Its filing workflow records reviewed handoff and external acknowledgment evidence." },
 ] as const;
+function workspaceCapabilities() {
+  const delivery = invoiceDeliveryConnection();
+  return [
+    ...taxLimits.map(capability => ({ ...capability, requiresConfiguration: false, configured: false, liveVerification: false })),
+    { id: "invoice-delivery", status: "implemented", requiresConfiguration: true, configured: delivery.ready, liveVerification: false, mode: delivery.mode,
+      detail: "Native invoice email preview, explicit reviewed send and uncertain-attempt resolution are implemented. Mailgun sender/account configuration and actual provider delivery verification remain required; provider acceptance does not prove receipt or reading." },
+    { id: "online-invoice-payments", status: "implemented", requiresConfiguration: true, configured: null, liveVerification: false,
+      detail: "Native posted invoices support private Stripe Checkout payment links and verified provider-state accounting. Each book needs its own approved payment connection; read billing_read.paymentConnection for the selected book. Configuration, test mode and checkout creation do not prove a real payment." },
+    { id: "client-portal-bulk-uploads", status: "partial", requiresConfiguration: true, configured: null, liveVerification: false,
+      detail: "The independently trusted encrypted client supports bounded multi-file statements, receipts and invoice documents with encrypted purpose/notes and durable per-file retry. Signed account/key enrollment, independent frontend activation and real browser verification remain required. These files are not automatically posted into office books." },
+    { id: "client-business-live-view", status: "partial", requiresConfiguration: true, configured: null, liveVerification: false,
+      detail: "The unlocked independent client derives a local business view from its own decrypted records and refreshes while visible. Uploaded client invoices remain documents; complete ledger/receivable/payment binding, office-book synchronization and encrypted staff edits/reviews remain unfinished. Polling is not an instant or push-update guarantee." },
+  ];
+}
 const boundary = "The MCP caller interprets the business description and selects installed industry capabilities and tool IDs. This operation configures the existing workspace; it does not generate code, execute the description, authorize providers, file returns or change employee permissions or encrypted enrollment.";
 
 export function workspaceCatalog(raw: unknown = {}) {
@@ -44,7 +61,7 @@ export function workspaceCatalog(raw: unknown = {}) {
     version: 1, scope: "workspace-configuration", interpretation: boundary,
     industries, packs, tools: tools.map(toolSummary),
     current: { businessName: current.businessName, industrySetup: current.industrySetup, workspaceLayout: current.workspaceLayout ?? null },
-    capabilityLimits: taxLimits,
+    capabilities: workspaceCapabilities(), capabilityLimits: taxLimits,
     applyRequires: ["exact plan", "currentDigest", "proposedDigest"],
     navigationDoesNotGrantAccess: true,
   };
@@ -72,15 +89,20 @@ function previewPlan(plan: WorkspacePlan) {
     const missing = (item.requiredToolIds ?? []).filter(id => !shownIds.has(id));
     if (missing.length) throw new Error(`${item.label} (${item.id}) requires visible tools: ${missing.join(", ")}. Add these exact IDs to visibleToolIds, or remove ${item.id} from the plan. No configuration was changed.`);
   }
-  const unsupportedRequests = [
+  const capabilities = workspaceCapabilities();
+  const requiredCapabilities = (plan.requiredCapabilityIds ?? []).map(id => capabilities.find(capability => capability.id === id)!);
+  const unsupportedRequests = [...new Map([
     ...(industry.setup.packs.includes("tax_firm") || /\b(tax|taxes|efile|e-file|mef)\b/i.test(plan.description) ? taxLimits : []),
+    ...requiredCapabilities.filter(capability => capability.status !== "implemented"),
     ...shown.filter(item => item.status === "planned").map(item => ({ id: item.id, status: "not_implemented", detail: `${item.label} is marked planned in the installed catalog; selecting it does not implement that capability.` })),
-  ];
+  ].map(capability => [capability.id, capability])).values()];
   return {
     version: 1, plan, interpretation: boundary,
     currentDigest: digest(current), proposedDigest: digest({ version: 1, plan, proposed }),
     proposed, visibleTools: shown.map(toolSummary), hiddenToolIds: tools.filter(item => !shownIds.has(item.id)).map(item => item.id),
-    unsupportedRequests, connectionsRequiringSeparateAuthorization: industry.connections,
+    unsupportedRequests, requiredCapabilities,
+    requestedGoalComplete: requiredCapabilities.length > 0 && requiredCapabilities.every(capability => capability.status === "implemented" && capability.configured === true && capability.liveVerification),
+    connectionsRequiringSeparateAuthorization: industry.connections,
     navigationDoesNotGrantAccess: true,
   };
 }
@@ -99,7 +121,7 @@ export function applyWorkspace(raw: unknown) {
     if (digest(branding) !== digest(preview.proposed)) throw new Error("Saved workspace differs from the reviewed proposal. Read the current configuration before retrying.");
     const id = `workspace-build:${input.proposedDigest}`;
     const prior = db.prepare("SELECT body FROM documents WHERE id=? AND kind='workspace-build'").get(id) as { body: string } | undefined;
-    const receipt = prior ? JSON.parse(prior.body) : { version: 1, id, appliedAt: new Date().toISOString(), businessContext: input.plan.description, plan: input.plan, currentDigest: input.currentDigest, proposedDigest: input.proposedDigest, configurationDigest: digest(branding), unsupportedRequests: preview.unsupportedRequests, actor: "Authenticated backend" };
+    const receipt = prior ? JSON.parse(prior.body) : { version: 1, id, appliedAt: new Date().toISOString(), businessContext: input.plan.description, plan: input.plan, currentDigest: input.currentDigest, proposedDigest: input.proposedDigest, configurationDigest: digest(branding), unsupportedRequests: preview.unsupportedRequests, requiredCapabilities: preview.requiredCapabilities, requestedGoalComplete: preview.requestedGoalComplete, actor: "Authenticated backend" };
     if (!prior) db.prepare("INSERT INTO documents VALUES(?,'workspace-build',?)").run(id, JSON.stringify(receipt));
     return { ...preview, applied: true, duplicate, receipt, branding };
   }, true);

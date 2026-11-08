@@ -163,6 +163,7 @@ export const workspaceItems: WorkspaceItem[] = [
   item("connections", "Connections & integrations", "/settings", "Setup", "admin"),
   item("integrations", "Integrations hub", "/integrations", "Setup", "admin"),
   item("backend", "Backend & MCP", "/settings/backend", "Setup", "admin"),
+  item("client-access", "Client access & invitations", "/setup/customers", "Setup", "admin"),
   item("shopify", "Shopify connection", "/settings/backend?tab=shopify", "Setup", "admin"),
   item("branding", "Branding & workspace", "/branding", "Setup", "admin"),
   item("developer", "Developer & modules", "/developer", "Setup", "admin"),

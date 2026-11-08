@@ -11,6 +11,7 @@
  * business is likely to already use is listed, grouped by what it's for.
  */
 import { setting } from "../connections/vault";
+import { invoiceDeliveryConnection } from "../accounting/invoice-delivery-provider";
 
 export type IntegrationCategory =
   | "Sales channels" | "Website & domain" | "Payments" | "Marketing"
@@ -55,7 +56,7 @@ export const INTEGRATIONS: IntegrationSpec[] = [
   { id: "square", name: "Square", category: "Payments", managedBy: "hub", keys: ["SQUARE_ACCESS_TOKEN"], icon: "◼️", docsUrl: "https://developer.squareup.com/apps", blurb: "In-person and online payments plus catalog sync." },
   { id: "google-business", name: "Google Business Profile", category: "Marketing", managedBy: "hub", keys: ["GOOGLE_BUSINESS_ACCESS_TOKEN"], icon: "🏪", docsUrl: "https://developers.google.com/my-business", blurb: "Reviews, hours and posts for your storefront listing." },
   { id: "meta", name: "Meta (Facebook & Instagram)", category: "Marketing", managedBy: "hub", keys: ["META_PAGE_ACCESS_TOKEN"], icon: "📸", docsUrl: "https://developers.facebook.com/apps/", blurb: "Page/shop insights and ad spend for social ROAS." },
-  { id: "mailgun", name: "Mailgun / SMTP email", category: "Communication", managedBy: "hub", keys: ["MAILGUN_API_KEY", "MAILGUN_DOMAIN"], icon: "✉️", docsUrl: "https://app.mailgun.com/", blurb: "Send transactional email (receipts, statements, reminders)." },
+  { id: "mailgun", name: "Mailgun invoice email", category: "Communication", managedBy: "hub", keys: ["MAILGUN_API_KEY", "MAILGUN_DOMAIN", "MAILGUN_FROM_EMAIL", "MAILGUN_REGION", "MAILGUN_MODE"], icon: "✉️", docsUrl: "https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/send-http", blurb: "Send explicitly reviewed invoice links. Use a verified domain and matching sender, region US or EU, and mode test or live. Keys stay in the private vault; configured status does not verify delivery." },
   { id: "xero", name: "Xero", category: "Accounting", managedBy: "hub", keys: ["XERO_CLIENT_ID", "XERO_CLIENT_SECRET"], icon: "📗", docsUrl: "https://developer.xero.com/app/manage", blurb: "Alternative to QuickBooks for the general ledger sync." },
 ];
 
@@ -65,6 +66,7 @@ export const CATEGORY_ORDER: IntegrationCategory[] = [
 
 /** Whether a hub-managed provider has all its vault keys set (fail-closed). */
 export function hubConfigured(spec: IntegrationSpec): boolean {
+  if (spec.id === "mailgun") return invoiceDeliveryConnection().ready;
   return spec.managedBy === "hub" && (spec.keys ?? []).length > 0 && (spec.keys ?? []).every((k) => !!setting(k));
 }
 

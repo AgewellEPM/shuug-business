@@ -79,4 +79,19 @@ export class BrowserKeyStore {
   async listKeys() { return (await this.#request('keys','getAll')).map(({keyId,publicKey})=>({keyId,publicKey})); }
   async getBinding(id) { return this.#request('bindings','get',id); }
   async putBinding(value) { return this.#request('bindings','put',value); }
+  /** One read/write transaction serializes the queue across browser tabs. The
+   * updater is synchronous so IndexedDB cannot commit between its get and put. */
+  async updateBinding(id,update) {
+    const db=await this.#open();
+    return new Promise((resolve,reject)=>{
+      const transaction=db.transaction('bindings','readwrite'),store=transaction.objectStore('bindings'),request=store.get(id);let next,failure;
+      request.onsuccess=()=>{
+        try{next=update(request.result);if(!next||next.id!==id||typeof next.then==='function')throw new Error('Use a synchronous update for the same private browser binding.');store.put(next);}
+        catch(error){failure=error;transaction.abort();}
+      };
+      request.onerror=()=>{failure=request.error;};
+      transaction.oncomplete=()=>resolve(next);
+      transaction.onabort=()=>reject(failure??transaction.error??new Error('The atomic private browser update did not complete.'));
+    });
+  }
 }

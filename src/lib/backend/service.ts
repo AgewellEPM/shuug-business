@@ -31,6 +31,45 @@ import { shopifyOperation } from "../shopify-backend/service";
 import { recordDefinitions, definitionFor } from "../workspace/catalog";
 import { listBusinessRecords, saveBusinessRecord, transitionBusinessRecord } from "../workspace/store";
 import { workspaceCatalog, previewWorkspace, applyWorkspace } from "../industry/mcp-builder";
+import { ownerIdentity } from "../auth/identity";
+import { bookIdInput } from "../accounting/book-scope";
+import { bookView, bookCommand } from "../accounting/book-service";
+import { billingSchemas } from "../accounting/billing-model";
+import { invoiceDeliverySchemas } from "../accounting/invoice-delivery-model";
+
+export const billingReadInput = z.object({ bookId: bookIdInput }).strict();
+const billingShareInput = z.object({ id: z.uuid(), revision: z.number().int().positive(), days: z.number().int().min(1).max(90).default(30), reviewed: z.literal(true) }).strict();
+export const billingActionSchemas = {
+  ...billingSchemas, ...invoiceDeliverySchemas,
+  "billing.share": billingShareInput,
+  "billing.share.revoke": billingShareInput,
+  "billing.connection": z.object({ enabled: z.boolean(), secretKey: z.string().max(500).optional(), reviewed: z.literal(true) }).strict(),
+} as const;
+export const billingMcpCommandInput = z.object({
+  bookId: bookIdInput, requestId: z.uuid(),
+  action: z.enum(Object.keys(billingActionSchemas) as [keyof typeof billingActionSchemas, ...(keyof typeof billingActionSchemas)[]]),
+  input: z.record(z.string(), z.unknown()),
+}).strict();
+function billingCatalog(raw: unknown) {
+  z.object({}).strict().parse(raw);
+  return {
+    version: 1, source: "native-client-books", currency: "USD", bookScope: "office or an existing client-book UUID",
+    actions: Object.entries(billingActionSchemas).map(([action, schema]) => ({ action, inputSchema: z.toJSONSchema(schema) })),
+    workflow: ["billing_read", "billing.save", "billing_read", "billing.post", "billing.delivery.preview", "review exact recipient and preview", "billing.delivery.send"],
+    boundaries: [
+      "The authenticated backend credential has owner authority for this workspace. Existing book access, active-client, encryption-enrollment, revision, period and accounting guards remain enforced.",
+      "billing.save creates or edits a draft; billing.post records its balanced native ledger entry. Neither sends an invoice or charges a card.",
+      "billing.settle records an externally verified payment or refund with actual date, reference and evidence; it does not move money or establish provider acceptance.",
+      "billing.share creates a private expiring invoice link. Sharing and delivery expose only the public invoice rendering, excluding private notes; keep the link confidential.",
+      "Delivery preview does not send. Explicit reviewed delivery send can contact the configured mail provider; uncertain attempts require provider review and are never automatically resent. Provider acceptance does not prove mailbox delivery or reading.",
+      "Payment acceptance requires the business's configured Stripe account, a shared posted invoice and verified provider state. Configuring a connection or returning a checkout link is not proof of a charge. Test mode is not a real payment.",
+      "Client books enrolled in offhost encryption remain unavailable through this legacy plaintext billing interface; the MCP token cannot decrypt them.",
+    ],
+  };
+}
+// These operations use the same deliberately owner-authorized backend boundary
+// as the existing MCP commands. Native book services still enforce client scope.
+const backendBillingOwner = () => ({ ...ownerIdentity(), name: "Authenticated backend" });
 
 export const operationSchema = z.object({ operation: z.enum(operations), arguments: z.record(z.string(), z.unknown()).default({}) }).strict();
 export async function executeOperation(operation: string, args: Record<string, unknown> = {}): Promise<unknown> {
@@ -38,6 +77,13 @@ export async function executeOperation(operation: string, args: Record<string, u
   if (operation === "workspace_catalog") return workspaceCatalog(args);
   if (operation === "workspace_preview") return previewWorkspace(args);
   if (operation === "workspace_apply") return applyWorkspace(args);
+  if (operation === "billing_catalog") return billingCatalog(args);
+  if (operation === "billing_read") return bookView(billingReadInput.parse(args).bookId, backendBillingOwner());
+  if (operation === "billing_command") {
+    const { bookId, ...command } = billingMcpCommandInput.parse(args);
+    const input = billingActionSchemas[command.action].parse(command.input);
+    return bookCommand(bookId, { ...command, input }, backendBillingOwner());
+  }
   if (parsed.operation.startsWith("shopify_")) return shopifyOperation(parsed.operation, args);
   if (operation === "expense_catalog") return expenseAccountingCatalog();
   if (operation === "expense_command") return executeExpenseAccountingCommand(args, "Authenticated backend");

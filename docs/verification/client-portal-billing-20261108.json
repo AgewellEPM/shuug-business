@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-08T23:03:52.206Z",
+  "buildId": "9h_nkSWkgyo230eSQ0qzW",
+  "sourceHashes": {
+    "src/lib/accounting/invoice-delivery.ts": "cd061133b4a3f31864d129acbeb012db71bca3f1c32566fc2236729ad22ddc15",
+    "src/lib/accounting/invoice-delivery-model.ts": "6a376e5b8a246517b4669704fe6e8ee3ea2fc1c9db54b6bb4081b7c8d4136685",
+    "src/lib/accounting/invoice-delivery-provider.ts": "356c833b0a1fd9edf1e724dca87fccab789c1ec66dd25c2e5730061b90de46e6",
+    "src/components/accounting/InvoiceDelivery.tsx": "a7feb41cbe1ffb36c70715723806278b7b5c11520488523617235304ce4abcda",
+    "src/lib/accounting/book-service.ts": "eb7af4da88269dec451599c149fdf87faea30aa750ae8714f146294631fd9b6c",
+    "src/lib/backend/service.ts": "4c52b8404029ea09cd2a704395da7dabfd62ce35c2ac6b2bd11891cc76fe3d36",
+    "src/lib/backend/mcp.ts": "1fd30d1f9ff1a0a9de2f3fc22300a383271275dd1681e31ebfbda78ebea5277b",
+    "src/lib/industry/mcp-builder.ts": "aa17553807a14e7123f17f9443dcfb5e52a5776afc504c46671db286d0801e0a",
+    "packages/secure-tax-client/browser/app.mjs": "4f78f6683ea02059c0a8f67e13676b9895dafe55da1c66885120b0b028598c27",
+    "packages/secure-tax-client/browser/client.mjs": "5643a8ee5760e78b23e714d0171abc8ccd97be088fafbe86a31d64e52278c182",
+    "packages/secure-tax-client/browser/custody.mjs": "f6d60719231eca82124c5e70a8f980971b8a10660a9179887d102b6e9ce48543",
+    "packages/secure-tax-client/browser/forms.mjs": "94b5a8c067b5d57b1d031ba14836201e91bae0a48b91fbaade7c2784b6be4cf3",
+    "packages/secure-tax-client/browser/client-portal.mjs": "4379581196a99fca863f5111b6e8b61adf5ab655ea30601ba7db1c09af29826e",
+    "packages/secure-tax-client/browser/client-portal-view.mjs": "cb4fe53e73b7ec8baa823531544ddf8c6e250321196f150eaa8bdda8c0ae0f73",
+    "packages/secure-tax-client/prepare-browser.mjs": "a8145fd393bcf40a564fa2b5eac9335aa81b1c05b3229255aa1afb0b9a90a8ea",
+    "scripts/secure-staff-http-check.mjs": "6da94dc00989d9398f969eb7d3db12f9fc8b97d180d5155182c371f48116c25b",
+    "scripts/workspace-builder-mcp.ts": "31cb94491ca4d5c24a6842e46b776fc3b8cf922d1e16d98c5888c9458dc70bb7",
+    "examples/workspaces/tax-accounting.sample.json": "88e71448ecfe6137d35fc3ba8b29ffb4e54e60f9faf2e5f26e5a0ab9f8f83930",
+    "scripts/billing-mcp-http-check.ts": "cf69256cf8ef4248b7874b719427db61141d3f1e338a08401c571b09eb84d7db"
+  },
+  "focusedVitest": {
+    "passed": 51,
+    "files": 8
+  },
+  "secureClientNodeTests": {
+    "passed": 49,
+    "newPortalTests": 17,
+    "realBrowserUsed": false
+  },
+  "compiledEncryptedClientStaff": {
+    "ok": true,
+    "checks": 54,
+    "syntheticWorkspace": true,
+    "multiFileUploads": 3,
+    "formats": [
+      "CSV",
+      "JPEG",
+      "PDF"
+    ],
+    "exactBytesOpened": true,
+    "lostReceiptRetryUsesSameCiphertextAndMutation": true,
+    "encryptedPendingQueueRestored": true,
+    "authorizedClientRefreshVerified": true,
+    "staffSeesNewFilesAfterSignedSharing": true,
+    "stoppedWriterBackupAndFreshProcessRestoreVerified": true,
+    "backupFiles": 6,
+    "copiedHostPlaintextMarkerAbsent": true,
+    "originalV2EnvelopesPreserved": true,
+    "mandatoryStaffMfaWithGlobalFlagOff": true,
+    "encryptedStaffEditingImplemented": false,
+    "realOffhostCustodyVerified": false,
+    "publicTlsVerified": false,
+    "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture"
+  },
+  "sampleNativeBilling": {
+    "ok": true,
+    "transport": "actual stdio MCP → compiled /api/backend",
+    "buildId": "9h_nkSWkgyo230eSQ0qzW",
+    "toolCount": 45,
+    "syntheticDataOnly": true,
+    "invoiceNumber": "SAMPLE-2026-001",
+    "invoiceStatus": "posted",
+    "invoiceRevision": 3,
+    "totalCents": 25000,
+    "recordedSyntheticPartialCents": 10000,
+    "outstandingCents": 15000,
+    "privateLinkHttpStatus": 200,
+    "privateNotesAbsentFromSharedInvoice": true,
+    "billingUiHttpStatus": 200,
+    "emailSectionRendered": true,
+    "emailConfigured": false,
+    "paymentsConfigured": false,
+    "realEmailSent": false,
+    "realPaymentTaken": false,
+    "providerCallsMade": false
+  },
+  "workspace": {
+    "ok": true,
+    "buildId": "9h_nkSWkgyo230eSQ0qzW",
+    "transport": "real stdio MCP → compiled backend → rendered HTML/assets",
+    "toolCount": 45,
+    "receiptId": "workspace-build:6d50b573be2f7a6316016683c594c706b01a7b63aca88b02890bd6b8d665ecee",
+    "primaryRoutes": [
+      {
+        "id": "tax-office",
+        "href": "/tax-office",
+        "status": 200
+      },
+      {
+        "id": "service-clients",
+        "href": "/modules/service-clients",
+        "status": 200
+      },
+      {
+        "id": "tax-documents",
+        "href": "/tax-documents",
+        "status": 200
+      },
+      {
+        "id": "client-books",
+        "href": "/accounting",
+        "status": 200
+      },
+      {
+        "id": "office-billing",
+        "href": "/accounting/office?tool=billing",
+        "status": 200
+      },
+      {
+        "id": "client-access",
+        "href": "/setup/customers",
+        "status": 200
+      },
+      {
+        "id": "calendar",
+        "href": "/calendar",
+        "status": 200
+      }
+    ],
+    "rootRedirect": "/tax-office",
+    "assetsHttp200": 16,
+    "unrelatedNavigationAbsent": true,
+    "requestedCapabilities": [
+      {
+        "id": "tax-return-calculation",
+        "status": "not_implemented",
+        "detail": "Complete federal/state tax calculation is still required for the requested filing product.",
+        "requiresConfiguration": false,
+        "configured": false,
+        "liveVerification": false
+      },
+      {
+        "id": "tax-return-forms",
+        "status": "not_implemented",
+        "detail": "Shuug does not generate or certify complete filing-ready federal or state return forms.",
+        "requiresConfiguration": false,
+        "configured": false,
+        "liveVerification": false
+      },
+      {
+        "id": "tax-efile-transmission",
+        "status": "not_implemented",
+        "detail": "Shuug does not transmit returns to IRS MeF or state e-file systems. Its filing workflow records reviewed handoff and external acknowledgment evidence.",
+        "requiresConfiguration": false,
+        "configured": false,
+        "liveVerification": false
+      },
+      {
+        "id": "invoice-delivery",
+        "status": "implemented",
+        "requiresConfiguration": true,
+        "configured": false,
+        "liveVerification": false,
+        "mode": null,
+        "detail": "Native invoice email preview, explicit reviewed send and uncertain-attempt resolution are implemented. Mailgun sender/account configuration and actual provider delivery verification remain required; provider acceptance does not prove receipt or reading."
+      },
+      {
+        "id": "online-invoice-payments",
+        "status": "implemented",
+        "requiresConfiguration": true,
+        "configured": null,
+        "liveVerification": false,
+        "detail": "Native posted invoices support private Stripe Checkout payment links and verified provider-state accounting. Each book needs its own approved payment connection; read billing_read.paymentConnection for the selected book. Configuration, test mode and checkout creation do not prove a real payment."
+      },
+      {
+        "id": "client-portal-bulk-uploads",
+        "status": "partial",
+        "requiresConfiguration": true,
+        "configured": null,
+        "liveVerification": false,
+        "detail": "The independently trusted encrypted client supports bounded multi-file statements, receipts and invoice documents with encrypted purpose/notes and durable per-file retry. Signed account/key enrollment, independent frontend activation and real browser verification remain required. These files are not automatically posted into office books."
+      },
+      {
+        "id": "client-business-live-view",
+        "status": "partial",
+        "requiresConfiguration": true,
+        "configured": null,
+        "liveVerification": false,
+        "detail": "The unlocked independent client derives a local business view from its own decrypted records and refreshes while visible. Uploaded client invoices remain documents; complete ledger/receivable/payment binding, office-book synchronization and encrypted staff edits/reviews remain unfinished. Polling is not an instant or push-update guarantee."
+      }
+    ],
+    "requestedGoalComplete": false,
+    "sampleClients": 3,
+    "sampleBooks": 3,
+    "visualAcceptanceVerified": false,
+    "realDataUsed": false,
+    "installedServiceChanged": false
+  },
+  "realClientEnrollmentActivated": false,
+  "realProviderEmailSent": false,
+  "realPaymentTaken": false,
+  "realFilingsTransmitted": false,
+  "installedServiceChanged": false,
+  "visualAcceptanceVerified": false,
+  "remaining": [
+    "Trusted frontend deployment and signed real client/key enrollment",
+    "Separate firm recovery/signing custody",
+    "Signed staff sharing for each new encrypted object; current staff interface is readonly",
+    "Shared client financial projections, office-book synchronization and accountant edits/review",
+    "Verified Mailgun sender/domain and real delivery outcomes",
+    "Configured Stripe account and live provider-confirmed payment",
+    "Full federal/state tax calculation, forms and filing engine"
+  ],
+  "compiledBillingMcp": {
+    "ok": true,
+    "checks": 86,
+    "tools": 45,
+    "compiledOperations": 45,
+    "transport": "SDK Client -> actual stdio MCP -> compiled /api/backend",
+    "syntheticBooks": 3,
+    "exactRetriesVerified": true,
+    "bookNamespaceIsolationVerified": true,
+    "manualPartialSettlementCents": 4000,
+    "remainingReceivableCents": 8500,
+    "stoppedWriterBackupFiles": 3,
+    "freshProcessRestoreVerified": true,
+    "providerCredentialsConfigured": false,
+    "emailSendInvoked": false,
+    "realPaymentExecuted": false,
+    "externalFetchGuard": true,
+    "externalFetchAttempts": 0,
+    "ownedChildrenStopped": true,
+    "syntheticFilesRemoved": true,
+    "installedServiceChanged": false
+  }
+}

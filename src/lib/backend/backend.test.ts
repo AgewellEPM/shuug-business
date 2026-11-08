@@ -52,7 +52,7 @@ it("negotiates a genuine MCP session and invokes actual backend tools", async ()
   try {
     await server.connect(a); await client.connect(b);
     const tools = await client.listTools();
-    expect(tools.tools).toHaveLength(42);
+    expect(tools.tools).toHaveLength(45);
     const result = await client.callTool({ name: "shopify_status", arguments: {} });
     expect(result.isError).not.toBe(true);
     const text = result.content as { type: string; text: string }[];
@@ -113,7 +113,7 @@ it("speaks Streamable HTTP across stateless requests using the SDK client", asyn
       return req.method === "POST" ? mcpPost(req) : new Response(null, { status: 405 });
     },
   });
-  try { await client.connect(transport); expect((await client.listTools()).tools).toHaveLength(42); expect((await client.callTool({ name: "shopify_status", arguments: {} })).isError).not.toBe(true); }
+  try { await client.connect(transport); expect((await client.listTools()).tools).toHaveLength(45); expect((await client.callTool({ name: "shopify_status", arguments: {} })).isError).not.toBe(true); }
   finally { await client.close(); }
 });
 function proxyRequest(customerId: string) {

@@ -16,7 +16,7 @@ import { listBusinessRecords, saveBusinessRecord } from "../workspace/store";
 import { secureTaxRequired } from "../secure-tax/policy";
 import { catalogWithTools, visibleItems } from "../navigation/catalog";
 import { toolLinks } from "../features/store";
-import { previewWorkspace, applyWorkspace, workspaceCatalog } from "./mcp-builder";
+import { previewWorkspace, applyWorkspace, workspaceCatalog, workspaceCapabilityIds } from "./mcp-builder";
 
 let folder: string;
 beforeEach(() => {
@@ -73,6 +73,23 @@ it("rejects unknown, invisible, cross-profile and duplicate tool selections and 
   expect(() => workspaceCatalog({ extra: true })).toThrow();
 });
 
+it("retains every required filing, billing and portal capability without claiming configuration or live-provider proof", () => {
+  const input = { ...plan(), requiredCapabilityIds: [...workspaceCapabilityIds] }, catalog = workspaceCatalog(), preview = previewWorkspace(input);
+  expect(catalog.capabilities.map(capability => capability.id)).toEqual([...workspaceCapabilityIds]);
+  expect(preview.requiredCapabilities.map(capability => capability.id)).toEqual([...workspaceCapabilityIds]);
+  expect(preview.requiredCapabilities.find(capability => capability.id === "invoice-delivery")).toMatchObject({ status: "implemented", requiresConfiguration: true, configured: false, liveVerification: false });
+  expect(preview.requiredCapabilities.find(capability => capability.id === "online-invoice-payments")).toMatchObject({ status: "implemented", requiresConfiguration: true, configured: null, liveVerification: false });
+  expect(preview.requiredCapabilities.find(capability => capability.id === "client-business-live-view")).toMatchObject({ status: "partial", liveVerification: false });
+  const unsupported = preview.unsupportedRequests.map(capability => capability.id);
+  expect(new Set(unsupported).size).toBe(unsupported.length);
+  expect(unsupported).toEqual(expect.arrayContaining(["tax-return-calculation", "tax-return-forms", "tax-efile-transmission", "client-portal-bulk-uploads", "client-business-live-view"]));
+  expect(preview.requestedGoalComplete).toBe(false);
+  const applied = applyWorkspace(command(input));
+  expect(applied.receipt.plan.requiredCapabilityIds).toEqual([...workspaceCapabilityIds]);
+  expect(applied.receipt.requestedGoalComplete).toBe(false);
+  expect(() => previewWorkspace({ ...input, requiredCapabilityIds: ["invented-tax-engine"] })).toThrow();
+});
+
 it("applies through a genuine MCP session, persists a business-context receipt and preserves records, roles, credentials and enrollment", async () => {
   saveBranding({ businessName: "Before", primaryColor: "#112233", logoText: "BT", tagline: "Existing identity" });
   const record = saveBusinessRecord({ kind: "client", title: "Private fixture client", fields: { email: "synthetic@example.test" } }, "Fixture");
@@ -87,7 +104,7 @@ it("applies through a genuine MCP session, persists a business-context receipt a
   try {
     await server.connect(a); await client.connect(b);
     const tools = (await client.listTools()).tools;
-    expect(tools).toHaveLength(42);
+    expect(tools).toHaveLength(45);
     expect(tools.find(item => item.name === "workspace_preview")?.annotations).toMatchObject({ readOnlyHint: true, openWorldHint: false });
     expect(tools.find(item => item.name === "workspace_apply")?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true, openWorldHint: false });
     const catalog = await call("workspace_catalog"); expect(catalog.tools.some((item: { id: string }) => item.id === "client-books")).toBe(true);

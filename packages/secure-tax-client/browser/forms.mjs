@@ -1,6 +1,6 @@
 import { encode64 } from '../envelope.mjs';
 
-export const FORM_TYPES=Object.freeze({document:'Tax document',identity:'Tax identity',intake:'Tax-prep details',income:'Income',expense:'Expense',trip:'Trip / completed work',goals:'Goals',reserves:'Planning reserves','work-settings':'Delivery & shopping settings'});
+export const FORM_TYPES=Object.freeze({document:'Tax document',note:'Business information / note',identity:'Tax identity',intake:'Tax-prep details',income:'Income',expense:'Expense',trip:'Trip / completed work',goals:'Goals',reserves:'Planning reserves','work-settings':'Delivery & shopping settings'});
 const classifications=['unclassified','business','personal'];
 const rideRoles=['ride','delivery','shopping','reposition','other'];
 const businessTypes=['unsure','sole-proprietor','single-member-llc','partnership','corporation'];
@@ -11,6 +11,7 @@ const label=value=>String(value).replaceAll('_',' ').replace(/([a-z])([A-Z])/g,'
 export function formType(data){
   if(data?.version!==1)return null;
   if(data.type==='tax-identity')return 'identity';
+  if(data.type==='business-note')return 'note';
   if(data.type==='coach-intake')return 'intake';if(data.type==='universal-gig-settings')return 'work-settings';
   if(data.type==='driver-record'&&['income','expense','trip'].includes(data.record?.kind))return data.record.kind;
   if(data.type==='driver-goals')return 'goals';if(data.type==='planning-reserves')return 'reserves';return null;
@@ -38,6 +39,10 @@ export function validatedWorkURL(input){
 }
 export function buildFormPayload(kind,values,original=null){
   const base=original?structuredClone(original):{version:1},body={...(original?.record?.body??{})};
+  if(kind==='note'){
+    const title=text(values.title,'Business information title',200);if(!title)throw new Error('Enter a title for this business information.');
+    return {domain:'driver-state',payload:{...base,type:'business-note',title,date:date(values.date),notes:text(values.notes,'Business information',10000)}};
+  }
   if(kind==='intake'){
     const coachIntake={...(original?.coachIntake??{})},year=number(values.taxYear,'Tax year',1900,9999,true),jurisdiction=text(values.jurisdiction,'Jurisdiction',80);
     if(year!==null&&!Number.isInteger(year))throw new Error('Tax year must be a whole year.');
@@ -94,8 +99,8 @@ export async function documentPayload(file){
   const bytes=new Uint8Array(await file.arrayBuffer());
   try{return {domain:'tax-document',payload:{version:1,type:'private-file',filename:file.name,mime:file.type,data:encode64(bytes)}};}finally{bytes.fill(0);}
 }
-export function mountForms(document,container,{onSave,onDelete,run,captureScope=()=>null,isCurrentScope=()=>true}){
-  let original=null,editingId=null,enabled=false;const fields=new Map(),choice=document.createElement('select'),body=document.createElement('div'),notice=document.createElement('p');
+export function mountForms(document,container,{onSave,onDelete,run,captureScope=()=>null,isCurrentScope=()=>true,onDirty=()=>{}}){
+  let original=null,editingId=null,enabled=false,dirty=false;const fields=new Map(),choice=document.createElement('select'),body=document.createElement('div'),notice=document.createElement('p');
   choice.id='private-item-type';for(const [value,name] of Object.entries(FORM_TYPES)){const option=document.createElement('option');option.value=value;option.textContent=name;choice.append(option);}
   const choiceLabel=document.createElement('label');choiceLabel.htmlFor=choice.id;choiceLabel.textContent='What would you like to save?';
   const save=document.createElement('button');save.type='button';save.textContent='Encrypt and save';const clear=document.createElement('button');clear.type='button';clear.className='secondary';clear.textContent='New item';
@@ -113,6 +118,7 @@ export function mountForms(document,container,{onSave,onDelete,run,captureScope=
   function draw(){
     fields.clear();body.replaceChildren();const kind=choice.value,record=original?.record?.body??{};notice.textContent='Saved as a separate encrypted object. Native Journal snapshots stay read-only; automatic merge/reconciliation is not implemented.';
     if(kind==='document'){const input=field('file','Private tax document','','file');input.accept='application/pdf,image/jpeg,image/png';notice.textContent='The whole file, filename and type are encrypted before upload. This saves a private document; it does not complete a staff request or filing.';}
+    if(kind==='note'){field('title','Business information title',original?.title);field('date','Recorded date',original?.date??today(),'date');field('notes','Details for your business records',original?.notes,'textarea');notice.textContent+=' A saved note does not mark a staff request reviewed or authorize a filing.';}
     if(kind==='identity'){
       field('legalName','Legal name',original?.legalName);field('taxYear','Tax year (optional)',original?.taxYear,'number');
       const input=field('ssn','SSN (leave blank to keep the saved value)','','password');input.maxLength=11;
@@ -143,11 +149,13 @@ export function mountForms(document,container,{onSave,onDelete,run,captureScope=
     if(kind==='reserves'){field('taxPercent','Tax planning reserve (%)',original?.reserveSettings?.taxPercent??'','number');field('vehiclePercent','Vehicle planning reserve (%)',original?.reserveSettings?.vehiclePercent??'','number');notice.textContent+=' Planning reserves are estimates, not liabilities, balances or actual transfers.';}
   }
   const api={
-    clear(){original=null;editingId=null;choice.disabled=!enabled;draw();},
+    get dirty(){return dirty||!!editingId;},
+    clear(){original=null;editingId=null;dirty=false;choice.disabled=!enabled;draw();onDirty();},
     setEnabled(value){enabled=value;choice.disabled=!value||!!editingId;save.disabled=!value;clear.disabled=!value;for(const control of body.querySelectorAll('input,select,textarea,button'))control.disabled=!value;},
-    edit(data,id){const kind=formType(data);if(!kind)return false;original=structuredClone(data);editingId=id;choice.value=kind;choice.disabled=true;draw();container.scrollIntoView?.({behavior:'smooth',block:'start'});return true;}
+    edit(data,id){const kind=formType(data);if(!kind)return false;original=structuredClone(data);editingId=id;dirty=false;choice.value=kind;choice.disabled=true;draw();onDirty();container.scrollIntoView?.({behavior:'smooth',block:'start'});return true;}
   };
-  choice.addEventListener('change',()=>{original=null;editingId=null;draw();});clear.addEventListener('click',()=>api.clear());
+  for(const event of ['input','change'])body.addEventListener(event,()=>{dirty=true;onDirty();});
+  choice.addEventListener('change',()=>{original=null;editingId=null;dirty=false;draw();onDirty();});clear.addEventListener('click',()=>api.clear());
   save.addEventListener('click',()=>run(async()=>{const scope=captureScope(),id=editingId;const result=choice.value==='document'?await documentPayload(fields.get('file').files?.[0]):buildFormPayload(choice.value,Object.fromEntries([...fields].map(([key,input])=>[key,input.value])),original);if(!isCurrentScope(scope))throw new Error('The account view changed while preparing this private item. Select the current account key again.');await onSave(result,id);api.clear();}));
   draw();api.setEnabled(false);return api;
 }

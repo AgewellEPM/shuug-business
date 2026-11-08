@@ -13,8 +13,8 @@ const token = process.env.SHUUG_BACKEND_TOKEN || setting("BACKEND_ACCESS_TOKEN")
 if (!token) throw new Error("Run npm run backend:setup first.");
 async function verify(client: Client) {
   const listed = await client.listTools();
-  assert.equal(listed.tools.length, 42);
-  for (const name of ["workspace_catalog", "expense_catalog", "receivable_catalog", "account_catalog", "journal_catalog", "dining_catalog", "restaurant_catalog", "schedule_catalog", "restaurant_report"]) assert.notEqual((await client.callTool({ name, arguments: {} })).isError, true);
+  assert.equal(listed.tools.length, 45);
+  for (const name of ["workspace_catalog", "billing_catalog", "expense_catalog", "receivable_catalog", "account_catalog", "journal_catalog", "dining_catalog", "restaurant_catalog", "schedule_catalog", "restaurant_report"]) assert.notEqual((await client.callTool({ name, arguments: {} })).isError, true);
   for (const resource of ["expense-accounting", "receivables", "accounts", "accounting-journal", "accounting-manual", "auto-repair-inspections", "auto-repair-pricing", "vehicles", "restaurant-credits", "restaurant-stocktakes", "restaurant-specials", "restaurant-dining", "restaurant", "restaurant-accounting", "staff-schedule"]) { const result = await client.callTool({ name: "business_read", arguments: { resource } }); assert.notEqual(result.isError, true, `business_read ${resource} failed: ${JSON.stringify(result.content)}`); }
   const result = await client.callTool({ name: "shopify_status", arguments: {} });
   assert.notEqual(result.isError, true);

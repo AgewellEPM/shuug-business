@@ -22,7 +22,7 @@ async function responseJson(response,maximum,allowChallenge=false) {
   try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw new Error('The ciphertext API returned invalid JSON.');}
 }
 
-// Only public routing/revision metadata and nonextractable key handles persist.
+// Public routing/revision metadata, encrypted upload retries and nonextractable key handles persist.
 // Decrypted records exist in this controller's memory until lock/account change.
 export class VaultClient {
   #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;
@@ -36,6 +36,8 @@ export class VaultClient {
   get enrolled(){return this.status?.enrolled===true;}
   get keyId(){return this.#key?.keyId;}
   get canWrite(){return this.enrolled && !!this.#verified && !!this.#key;}
+  get busy(){return this.#busy;}
+  get scope(){return this.identity&&this.#key?{workspaceId:this.#config.workspaceId,...this.identity,keyId:this.#key.keyId}:null;}
   get pendingMfa(){return this.#mfa?clone(this.#mfa):null;}
   #same(generation){if(generation!==this.#generation)stale();}
   #bindingId(){return `${this.#config.workspaceId}|${this.identity.accountId}`;}
@@ -177,7 +179,7 @@ export class VaultClient {
     return {items:records.size,cursor};
     }finally{if(!committed)for(const bytes of opened)bytes.fill(0);}
   });}
-  async save(domain,plaintext,objectId=crypto.randomUUID()){return this.#exclusive(async()=>{
+  async #prepareSave(domain,plaintext,objectId){
     const generation=this.#guard();
     if(!DOMAINS.includes(domain)||!(plaintext instanceof Uint8Array)||plaintext.length>MAX_CIPHERTEXT_BYTES-16||!validId(objectId))throw new Error('Choose a supported domain and a bounded encrypted payload.');
     const prior=ownVersion(this.#binding.versions??{},objectId), current=this.records.get(objectId);
@@ -187,10 +189,66 @@ export class VaultClient {
     if(current&&current.domain!==domain)throw new Error('An existing item keeps its encrypted domain.');
     const expectedRevision=prior?.revision??0, context=this.#context(objectId,expectedRevision+1,domain);
     const envelope=await sealEnvelope(plaintext,context,this.#verified.recipients,'client',this.#key.privateKey);this.#same(generation);
-    const receipt=await this.#request(`/objects/${encodeURIComponent(objectId)}`,'PUT',{mutationId:crypto.randomUUID(),expectedRevision,envelope});this.#same(generation);
-    if(!validReceipt(receipt)||receipt.objectId!==objectId||receipt.revision!==context.revision||receipt.deleted)throw new Error('The API did not confirm the expected encrypted revision. Refresh before retrying.');
-    await this.#remember({...this.#binding.versions,[objectId]:{revision:receipt.revision,deleted:false}},generation);
-    this.records.set(objectId,{objectId,revision:receipt.revision,domain,plaintext:plaintext.slice()});return receipt;
+    return {version:1,type:'shuug-prepared-client-write',scope:this.scope,objectId,domain,expectedRevision,mutationId:crypto.randomUUID(),envelope};
+  }
+  #checkPrepared(value){
+    this.#guard();
+    if(!value||Object.keys(value).sort().join('|')!==['version','type','scope','objectId','domain','expectedRevision','mutationId','envelope'].sort().join('|')||value.version!==1||value.type!=='shuug-prepared-client-write'||JSON.stringify(value.scope)!==JSON.stringify(this.scope)||!validId(value.objectId)||!validId(value.mutationId)||!integer(value.expectedRevision,0,1e9-1)||!DOMAINS.includes(value.domain))throw new Error('This encrypted upload belongs to another account, key or unsupported format.');
+    const context=this.#context(value.objectId,value.expectedRevision+1,value.domain);validateContext(context);
+    if(JSON.stringify(value.envelope?.context)!==JSON.stringify(context))throw new Error('The prepared upload has a different encrypted context.');
+    return context;
+  }
+  async #openPrepared(value){
+    const generation=this.#guard(),context=this.#checkPrepared(value);
+    const plaintext=await openEnvelope(value.envelope,context,this.#verified.recipients,'client',this.#key.privateKey);
+    try{this.#same(generation);return plaintext;}catch(error){plaintext.fill(0);throw error;}
+  }
+  async prepareSave(domain,plaintext,objectId=crypto.randomUUID()){return this.#exclusive(()=>this.#prepareSave(domain,plaintext,objectId));}
+  async previewPrepared(value){return this.#exclusive(()=>this.#openPrepared(value));}
+  async #savePrepared(value){
+    const generation=this.#guard(),context=this.#checkPrepared(value),prior=ownVersion(this.#binding.versions??{},value.objectId);
+    if(prior&&(prior.deleted||prior.revision>context.revision))throw new Error('This pending upload predates a known changed or deleted item. Keep its encrypted copy for review.');
+    const plaintext=await this.#openPrepared(value);
+    try{
+      const current=this.records.get(value.objectId);
+      if(this.records.size+(current?0:1)>10000||[...this.records.values()].reduce((sum,item)=>sum+item.plaintext.length,0)-(current?.plaintext.length??0)+plaintext.length>64*1024*1024)throw new Error('This browser view exceeds its opened-content limit. Keep the encrypted upload for review.');
+      const receipt=await this.#request(`/objects/${encodeURIComponent(value.objectId)}`,'PUT',{mutationId:value.mutationId,expectedRevision:value.expectedRevision,envelope:value.envelope});this.#same(generation);
+      if(!validReceipt(receipt)||receipt.objectId!==value.objectId||receipt.revision!==context.revision||receipt.deleted)throw new Error('The API did not confirm the expected encrypted revision. Its original encrypted retry was kept.');
+      await this.#remember({...this.#binding.versions,[value.objectId]:{revision:receipt.revision,deleted:false}},generation);this.#same(generation);
+      this.records.get(value.objectId)?.plaintext.fill(0);this.records.set(value.objectId,{objectId:value.objectId,revision:receipt.revision,domain:value.domain,plaintext:plaintext.slice()});return receipt;
+    }finally{plaintext.fill(0);}
+  }
+  async savePrepared(value){return this.#exclusive(()=>this.#savePrepared(value));}
+  async save(domain,plaintext,objectId=crypto.randomUUID()){return this.#exclusive(async()=>this.#savePrepared(await this.#prepareSave(domain,plaintext,objectId)));}
+  #uploadBindingId(){return `portal-uploads:${this.#config.workspaceId}|${this.identity.accountId}|${this.identity.clientId}|${this.#key.keyId}`;}
+  #pendingEntries(value){
+    const entries=value?.entries??[];
+    if(!Array.isArray(entries)||entries.length>20||JSON.stringify(entries).length>48*1024*1024)throw new Error('The encrypted pending-upload cache exceeds its bounds. Keep this browser profile for recovery.');
+    for(const entry of entries)this.#checkPrepared(entry);
+    return clone(entries);
+  }
+  async #pendingUploads(){
+    const generation=this.#guard(),value=await this.#storage.getBinding(this.#uploadBindingId());this.#same(generation);return this.#pendingEntries(value);
+  }
+  async #updateUploads(update){
+    const generation=this.#guard(),id=this.#uploadBindingId();
+    if(typeof this.#storage.updateBinding!=='function')throw new Error('This browser needs atomic private upload storage before sending files. Keep the original selections.');
+    await this.#storage.updateBinding(id,current=>{
+      this.#same(generation);const entries=update(this.#pendingEntries(current));
+      if(entries.length>20||JSON.stringify(entries).length>48*1024*1024)throw new Error('The pending encrypted queue is full. Finish existing uploads before adding more.');
+      return {id,version:1,entries};
+    });this.#same(generation);
+  }
+  async pendingUploads(){return this.#exclusive(()=>this.#pendingUploads());}
+  async keepPendingUpload(value){return this.#exclusive(async()=>{
+    this.#checkPrepared(value);await this.#updateUploads(entries=>{
+      const prior=entries.find(entry=>entry.mutationId===value.mutationId);
+      if(prior&&JSON.stringify(prior)!==JSON.stringify(value))throw new Error('An encrypted upload retry cannot change its original bytes.');
+      if(!prior)entries.push(clone(value));return entries;
+    });
+  });}
+  async forgetPendingUpload(mutationId){return this.#exclusive(async()=>{
+    await this.#updateUploads(entries=>entries.filter(entry=>entry.mutationId!==mutationId));
   });}
   async remove(objectId){return this.#exclusive(async()=>{
     const generation=this.#guard(), item=this.records.get(objectId);if(!item)throw new Error('Sync the item before deleting it.');

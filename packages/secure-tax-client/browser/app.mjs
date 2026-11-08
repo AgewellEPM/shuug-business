@@ -3,12 +3,14 @@ import { VaultClient, encodeJson } from './client.mjs';
 import { decode64, DOMAINS, encode64 } from '../envelope.mjs';
 import { journalSections, renderJournal } from './journal-view.mjs';
 import { mountForms, formType, maskedDisplay } from './forms.mjs';
+import { mountClientPortal } from './client-portal-view.mjs';
 
 const $=id=>document.getElementById(id), labels={
   'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses',
   'driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'
 };
-let client, normalEditor, editing=null, working=false, viewGeneration=0;
+let client, normalEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
+let portal;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
   const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');
@@ -20,8 +22,8 @@ async function readJson(input){
   const file=input.files?.[0];if(!file||file.size>64*1024)throw new Error('Choose a JSON file smaller than 64 KiB.');
   try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}
 }
-function resetEditor(){editing=null;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
-function clearOpened(){viewGeneration++;$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
+function resetEditor(){editing=null;advancedDirty=false;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
+function clearOpened(){viewGeneration++;portal?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
   for(const id of ['connect','key-choice','create-key','import-backup','import-key','signin-password','email','password'])$(id).disabled=!ready||working;
@@ -36,6 +38,7 @@ function refreshControls(){
   for(const id of ['sync','payload','attachment','save','cancel-edit'])$(id).disabled=!writable||working;
   $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending;
   normalEditor?.setEnabled(!!writable&&!working);
+  portal?.refresh();
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
 }
@@ -48,7 +51,7 @@ async function refreshKeys(select){
 async function run(operation){
   if(working)return;working=true;refreshControls();
   try{await operation();}catch(error){message(error instanceof Error?error.message:'This operation could not complete.',true);}
-  finally{working=false;if(!client?.unlocked&&$('groups').childElementCount)clearOpened();statusText();refreshControls();}
+  finally{working=false;if(!client?.unlocked&&($('groups').childElementCount||portal?.active))clearOpened();statusText();refreshControls();}
 }
 function statusText(){
   $('account').textContent=client.identity?`Connected account ${client.identity.accountId}. ${client.enrolled?'Encrypted enrollment exists.':'Encrypted enrollment is not activated.'}`:'No account connected.';
@@ -97,9 +100,13 @@ function renderGroups(){
     }
     $('groups').append(area);
   }
+  portal?.render();
 }
+const canRefresh=()=>!normalEditor?.dirty&&!editing&&!advancedDirty;
+portal=mountClientPortal(document,$('groups').parentElement,{getClient:()=>client,run,onSaved:renderGroups,onLocked:()=>{clearOpened();statusText();if(!client.identity)message('Sign-in expired or access was revoked. Opened information was cleared; sign in again.',true);},onMessage:message,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,canRefresh,confirm:text=>confirm(text)});
+for(const id of ['payload','attachment','domain'])$(id).addEventListener('input',()=>{advancedDirty=true;portal.pending();});
 for(const domain of DOMAINS){const option=document.createElement('option');option.value=domain;option.textContent=labels[domain];$('domain').append(option);}
-normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
+normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onDirty:()=>portal.pending(),onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
 function signedIn(result){
   if(result.mfaRequired){message('Password verified. Complete authenticator verification to access your account.');return;}
   if(result.recoveryCodes?.length){$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;}
@@ -112,7 +119,7 @@ $('signout').addEventListener('click',()=>run(async()=>{clearOpened();await clie
 $('connect').addEventListener('click',()=>run(async()=>{clearOpened();await client.connect();statusText();message('Account connected. Select its local key to verify enrollment or prepare signed setup.');}));
 $('lock').addEventListener('click',()=>{client.lock();clearOpened();refreshControls();message('View locked. Opened content cleared; the nonextractable key handle remains in this browser profile.');});
 $('key-choice').addEventListener('change',()=>{client?.lock();clearOpened();refreshControls();});
-$('unlock').addEventListener('click',()=>run(async()=>{clearOpened();await client.unlock($('key-choice').value);resetEditor();message(client.enrolled?'Client key matches the independently verified signed manifest. You can sync encrypted items.':'Key ready for a public enrollment request. Activation remains unavailable.');}));
+$('unlock').addEventListener('click',()=>run(async()=>{clearOpened();await client.unlock($('key-choice').value);if(client.canWrite)await portal.activate();resetEditor();message(client.enrolled?'Client key matches the independently verified signed manifest. Your portal can upload files and check current encrypted records.':'Key ready for a public enrollment request. Activation remains unavailable.');}));
 $('create-key').addEventListener('click',()=>run(async()=>{
   const value=$('passphrase').value;if(value!==$('passphrase-confirm').value)throw new Error('The new-key backup passphrases do not match.');
   try{const result=await client.createKey(value);client.lock();clearOpened();await refreshKeys(result.keyId);downloadJson(`client-key-${result.keyId.slice(0,12)}.encrypted.json`,result.backup);message('Client key saved as nonextractable. Keep the encrypted backup and its separate passphrase safe. No server enrollment changed.');}
@@ -127,7 +134,7 @@ $('request').addEventListener('click',()=>run(async()=>{downloadJson('public-enr
 $('verify-manifest').addEventListener('click',()=>run(async()=>{
   const result=await client.stageManifest(await readJson($('manifest')));$('manifest').value='';$('manifest-result').textContent=`Signature, independent public pins, account, client key and epoch ${result.epoch} verified. Staged locally only; activation remains unavailable.`;message('Signed manifest verified and staged. No enrollment or data migration was sent to the API.');
 }));
-$('sync').addEventListener('click',()=>run(async()=>{const generation=viewGeneration,result=await client.sync();if(generation!==viewGeneration)return;renderGroups();$('sync-result').textContent=`${result.items} encrypted items opened locally. No legacy records were migrated.`;message('Encrypted items synced and authenticated on this device.');}));
+$('sync').addEventListener('click',()=>run(async()=>{if(!canRefresh())throw new Error('Save or clear the current form before refreshing encrypted records. Your unsaved changes were kept.');const generation=viewGeneration,result=await client.sync();if(generation!==viewGeneration)return;renderGroups();portal.updated();$('sync-result').textContent=`${result.items} encrypted items opened locally. No legacy records were migrated.`;message('Encrypted items synced and authenticated on this device.');}));
 $('cancel-edit').addEventListener('click',()=>{resetEditor();refreshControls();});
 $('save').addEventListener('click',()=>run(async()=>{
   let bytes;const file=$('attachment').files?.[0],generation=viewGeneration;
@@ -140,6 +147,8 @@ $('save').addEventListener('click',()=>run(async()=>{
   try{if(generation!==viewGeneration)throw new Error('The view was locked. Select the account key again.');await client.save($('domain').value,bytes,editing??undefined);if(generation!==viewGeneration)return;resetEditor();renderGroups();message('Item encrypted on this device and saved as ciphertext.');}finally{bytes?.fill(0);}
 }));
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&client?.unlocked){client.lock();clearOpened();refreshControls();message('View locked after leaving this tab. Select the account key again.');}});
+window.addEventListener('pagehide',()=>{client?.lock();clearOpened();});
+window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared){event.preventDefault();event.returnValue='';}});
 try{
   client=await VaultClient.create(trustedConfig,location.origin);$('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
   $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();message('Independent trust configuration loaded. Sign in to the API portal, then connect this client.');

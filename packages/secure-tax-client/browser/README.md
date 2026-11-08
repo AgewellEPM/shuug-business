@@ -114,6 +114,56 @@ tests exercise the actual crypto and protocol controller; they do not establish
 browser persistence, deployed CORS/cookies, a production security review or an
 end-to-end migration.
 
+## Customer portal files and business view
+
+The customer artifact includes a routine multi-file inbox; raw JSON is not
+required. PDFs/JPEGs/PNGs are bounded at 10 MiB each; UTF-8 bank CSV at 2 MiB.
+The queue accepts 20 files/25 MiB of raw selections. Select a purpose and business
+category for the batch or individual unencrypted rows. Filename, MIME, exact file
+bytes, purpose, category, notes and capture time are all inside the encrypted
+payload. CSV is archived unchanged, not evaluated, imported or posted to books.
+Other business information can be entered through the ordinary business-note
+form, retaining unknown fields when an existing typed note is edited.
+
+Before each first PUT, `VaultClient.prepareSave` creates one encrypted envelope
+and mutation ID. `keepPendingUpload` saves that exact ciphertext in the existing
+browser binding store; `savePrepared` authenticates it locally before sending it.
+Ambiguous failures, manual retries and fresh-controller recovery reuse the same
+envelope/mutation ID rather than reencrypting or creating another object. The
+pending cache is limited to 20 entries/48 MiB of encoded ciphertext and has its
+own workspace/account/client/key binding. No raw file name, note, purpose,
+passphrase or session token is persisted beside its ciphertext. Keep original
+files until acknowledgment and independent recovery have been checked; browser
+profile/storage loss can remove pending work. Storage failures send nothing and
+leave an explicit unsent row. Individual failures do not discard other files.
+Queue changes use one IndexedDB readwrite transaction, so another tab cannot
+overwrite an unrelated pending entry with a stale read/modify/write. Injected
+storage adapters must provide the same atomic synchronous-updater contract.
+
+Lock, account/key change, sign-out and tab/page hiding stop refresh timers and
+clear file inputs, transient selections, opened records and dashboard references.
+Encrypted pending work remains in that account/key's browser storage and can be
+recovered after unlocking. Unencrypted selections must be selected again; the UI
+reports that boundary and warns before navigating away with such selections.
+This remains best-effort JS cleanup rather than guaranteed memory erasure.
+
+The local dashboard derives counts and details only from this account's opened
+objects. Uploaded invoice/receipt/statement documents remain distinct from
+entered income, expense, trip and business-note records. Native snapshots are
+kept separate rather than double-counted. Exact integer-cent totals stay separate
+by recorded currency; unsafe aggregate sums are marked unavailable. These are
+recorded facts, not reconciled balances, business-use deductions or tax results.
+
+An eligible unlocked/signed/visible view checks the current ciphertext feed every
+15 seconds, with no overlapping requests. Unsaved normal/advanced form edits
+pause refresh so a stale form cannot silently overwrite a newly refreshed object.
+The view shows last successful check and updates pending; network failures never
+become a fresh-success timestamp. It does not claim instant push delivery or
+accountant review. Actual enrollment, independently trusted delivery, Safari
+IndexedDB/CORS compatibility, full office-book/invoice integration and encrypted
+staff review/write synchronization remain acceptance gates. Activation is still
+disabled for new accounts, and staff grants remain read-only.
+
 ## Encrypted staff reader and device recovery
 
 The same independently distributed artifact now includes `/staff.html`.
