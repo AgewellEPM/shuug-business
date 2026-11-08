@@ -48,10 +48,11 @@ HTTP operations use this envelope:
 
 Successful POST requests return `{"data": ...}`. Errors return `{"error": ...}` with a non-success HTTP status. Send JSON and the bearer header. `GET /api/backend` returns the capabilities object directly.
 
-The MCP exposes 37 tools:
+The MCP exposes 42 tools:
 
 | Tools | Function |
 | --- | --- |
+| `workspace_catalog`, `workspace_preview`, `workspace_apply` | Configure installed industry capabilities and focused navigation from a reviewed business plan; [workflow and limits](WORKSPACE-BUILDER-MCP.md) |
 | `business_capabilities`, `business_read` | Discover capabilities and read the 31 registered business resources |
 | `receivable_catalog`, `receivable_command` | Dated receipt/returned-payment evidence, captured ledger entries and collection follow-up; [instructions](RECEIVABLES.md) |
 | `account_catalog`, `account_command` | Reviewed account creation/edits, 15 classifications, five-level hierarchy and retained changes |

@@ -12,6 +12,7 @@ import { dataDirectory } from "../connections/vault";
 import { z } from "zod";
 import { industrySetupSchema, type IndustrySetup } from "../industry/model";
 import { organizationTypes, serviceTypes, navigationGroups, type OrganizationType, type ServiceType } from "../navigation/catalog";
+import { workspaceLayoutSchema, type WorkspaceLayout } from "../navigation/workspace-layout";
 
 export interface Branding {
   businessName: string;
@@ -36,6 +37,7 @@ export interface Branding {
   serviceTypes: ServiceType[];
   featureVisibility: Record<string, boolean>;
   industrySetup?: IndustrySetup | null;
+  workspaceLayout?: WorkspaceLayout | null;
 }
 
 export const DEFAULT_BRANDING: Branding = {
@@ -75,6 +77,7 @@ export const brandingPatchSchema = z.object({
   organizationTypes: z.array(z.enum(organizationTypes)).min(1).max(3).optional(), serviceTypes: z.array(z.enum(serviceTypes)).max(4).optional(),
   featureVisibility: visibilitySchema.optional(),
   industrySetup: industrySetupSchema.nullable().optional(),
+  workspaceLayout: workspaceLayoutSchema.nullable().optional(),
 }).strict();
 
 function loadFromDisk(): Branding | null {
@@ -83,7 +86,8 @@ function loadFromDisk(): Branding | null {
     if (!v || typeof v.businessName !== "string") return null;
     return { ...DEFAULT_BRANDING, ...v, hiddenSections: Array.isArray(v.hiddenSections) ? v.hiddenSections : [],
       organizationTypes: z.array(z.enum(organizationTypes)).min(1).max(3).parse(v.organizationTypes ?? ["product"]),
-      serviceTypes: z.array(z.enum(serviceTypes)).max(4).parse(v.serviceTypes ?? []), featureVisibility: visibilitySchema.parse(v.featureVisibility ?? {}), industrySetup: industrySetupSchema.nullable().parse(v.industrySetup ?? null) };
+      serviceTypes: z.array(z.enum(serviceTypes)).max(4).parse(v.serviceTypes ?? []), featureVisibility: visibilitySchema.parse(v.featureVisibility ?? {}), industrySetup: industrySetupSchema.nullable().parse(v.industrySetup ?? null),
+      ...(v.workspaceLayout === undefined ? {} : { workspaceLayout: workspaceLayoutSchema.nullable().parse(v.workspaceLayout) }) };
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
     throw new Error("Saved branding could not be read. Restore branding.json before making changes.");
@@ -117,12 +121,14 @@ export interface BrandingPatch {
   serviceTypes?: ServiceType[];
   featureVisibility?: Record<string, boolean>;
   industrySetup?: IndustrySetup | null;
+  workspaceLayout?: WorkspaceLayout | null;
 }
 
 /** Validate + save a branding change; ignores bad colors rather than crashing. */
 export function saveBranding(patch: BrandingPatch): Branding {
   patch = brandingPatchSchema.parse(patch);
   const cur = getBranding();
+  const workspaceLayout = patch.workspaceLayout === undefined ? cur.workspaceLayout : patch.workspaceLayout;
   const next: Branding = {
     businessName: (patch.businessName ?? cur.businessName).slice(0, 40) || cur.businessName,
     tagline: (patch.tagline ?? cur.tagline).slice(0, 40),
@@ -138,6 +144,7 @@ export function saveBranding(patch: BrandingPatch): Branding {
     serviceTypes: [...new Set(patch.serviceTypes ?? cur.serviceTypes)],
     featureVisibility: patch.featureVisibility ?? cur.featureVisibility,
     industrySetup: patch.industrySetup === undefined ? cur.industrySetup : patch.industrySetup,
+    ...(workspaceLayout === undefined ? {} : { workspaceLayout }),
   };
   persist(next);
   return next;

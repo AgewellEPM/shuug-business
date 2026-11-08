@@ -4,6 +4,11 @@ This workstream covers taxpayer protection, a complete office workflow,
 accountant workflows, simpler onboarding and sustainable free hosting.
 It is not complete merely because one milestone passes tests.
 
+Luke's clarified target includes complete tax preparation, calculation, return
+forms and electronic filing within Shuug itself. The workspace is configured
+through [Shuug's MCP builder](WORKSPACE-BUILDER-MCP.md); a companion-only filing
+product is not the target. Those core filing capabilities remain unimplemented.
+
 The [November 8 assessment](SHUUG-READINESS-20261108.md) records current missing
 work, reproduced native snapshot compatibility findings and a firm-owned Mac mini
 hosting path. AWS is optional for application hosting and offhost recovery design.

@@ -12,7 +12,7 @@ it("registers each existing top-level page, with valid destinations for every si
   }
   for (const item of workspaceItems) {
     const pathname = new URL(item.href, "http://local").pathname;
-    const dir = pathname.startsWith("/modules/") ? "modules/[id]" : pathname.startsWith("/m/") ? "m/[id]" : pathname;
+    const dir = pathname.startsWith("/modules/") ? "modules/[id]" : pathname.startsWith("/m/") ? "m/[id]" : pathname.startsWith("/accounting/") ? "accounting/[bookId]" : pathname;
     expect(existsSync(path.join(app, dir, "page.tsx")), item.href).toBe(true);
   }
   expect(new Set(workspaceItems.map(item => item.id)).size).toBe(workspaceItems.length);

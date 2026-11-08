@@ -1,5 +1,11 @@
 # Shuug small-office assessment — November 8, 2026
 
+**Product-direction correction:** Luke subsequently clarified that Shuug is to be
+the complete tax preparation, accounting and filing product, built/configured
+through Shuug's MCP interface. The companion-filing-software recommendation below
+was not his requirement. Current capability findings remain evidence of missing
+work; they do not narrow that goal. See [the MCP builder](WORKSPACE-BUILDER-MCP.md).
+
 Assessed source `785123478eeb89fbd7ed990e34eaf32339f4659e`, branch
 `feat/shuug-free-tax-service-20261107`. This review covers the useful free tax-office
 service and firm-owned Mac mini hosting. AWS account activation is excluded from

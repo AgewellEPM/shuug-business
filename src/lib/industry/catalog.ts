@@ -10,7 +10,7 @@ export const packs = [
   { id: "donations", label: "Donations & funding", tools: ["nonprofit-donors", "nonprofit-donations", "nonprofit-pledges", "nonprofit-acknowledgments", "nonprofit-restrictions", "nonprofit-grants", "nonprofit-reimbursements", "nonprofit-funding", "nonprofit-campaigns", "nonprofit-events"], profiles: ["nonprofit"] },
   { id: "memberships", label: "Memberships", tools: ["nonprofit-memberships"], profiles: [] },
   { id: "time", label: "Payroll, shifts & time", tools: ["people", "timeclock", "worktrack", "performance", "service-time", "service-resources"], profiles: [] },
-  { id: "accounting", label: "Accounting & payments", tools: ["client-books", "finance", "accounting", "chart-of-accounts", "ledger", "balance-sheet", "sales-tax", "cashflow", "collections", "reconciliation", "payments", "expenses", "reports", "service-collections"], profiles: [] },
+  { id: "accounting", label: "Accounting & payments", tools: ["client-books", "office-billing", "finance", "accounting", "chart-of-accounts", "ledger", "balance-sheet", "sales-tax", "cashflow", "collections", "reconciliation", "payments", "expenses", "reports", "service-collections"], profiles: [] },
   { id: "purchasing", label: "Purchasing & suppliers", tools: ["invoice-audit", "expenses"], profiles: [] },
   { id: "marketing", label: "Marketing", tools: ["marketing", "google-ads", "amazon-marketing", "social", "module:customer-feedback"], profiles: [] },
   { id: "portal", label: "Customer portal", tools: ["service-portal"], profiles: ["service"] },

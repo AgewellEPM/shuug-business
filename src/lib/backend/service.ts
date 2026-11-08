@@ -30,10 +30,14 @@ import { QB_FEATURES } from "../quickbooks/features";
 import { shopifyOperation } from "../shopify-backend/service";
 import { recordDefinitions, definitionFor } from "../workspace/catalog";
 import { listBusinessRecords, saveBusinessRecord, transitionBusinessRecord } from "../workspace/store";
+import { workspaceCatalog, previewWorkspace, applyWorkspace } from "../industry/mcp-builder";
 
 export const operationSchema = z.object({ operation: z.enum(operations), arguments: z.record(z.string(), z.unknown()).default({}) }).strict();
 export async function executeOperation(operation: string, args: Record<string, unknown> = {}): Promise<unknown> {
   const parsed = operationSchema.parse({ operation, arguments: args });
+  if (operation === "workspace_catalog") return workspaceCatalog(args);
+  if (operation === "workspace_preview") return previewWorkspace(args);
+  if (operation === "workspace_apply") return applyWorkspace(args);
   if (parsed.operation.startsWith("shopify_")) return shopifyOperation(parsed.operation, args);
   if (operation === "expense_catalog") return expenseAccountingCatalog();
   if (operation === "expense_command") return executeExpenseAccountingCommand(args, "Authenticated backend");

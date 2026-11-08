@@ -9,13 +9,14 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { randomUUID } from "node:crypto";
 import { configureOwnerPassword, signInOwner } from "../src/lib/auth/owner-session";
+import { saveSecrets } from "../src/lib/connections/vault";
 import { importBusinessTemplate } from "../src/lib/branding/templates";
 import { saveBranding } from "../src/lib/branding/store";
 import { gigTaxProsTemplate } from "../src/lib/industry/rideshare-tax-pros";
 import { saveBusinessRecord } from "../src/lib/workspace/store";
 
-async function listen(server: Server) {
-  await new Promise<void>((ok, bad) => { server.once("error", bad); server.listen(0, "127.0.0.1", ok); });
+async function listen(server: Server, port = 0) {
+  await new Promise<void>((ok, bad) => { server.once("error", bad); server.listen(port, "127.0.0.1", ok); });
   return (server.address() as { port: number }).port;
 }
 async function stop(child?: ChildProcess) {
@@ -34,6 +35,13 @@ function samplePdf(label: string) {
 }
 
 async function main() {
+  const requested = new Map<string, number>();
+  for (let i = 2; i < process.argv.length; i += 2) {
+    const name = process.argv[i], value = Number(process.argv[i + 1]);
+    assert(["--port", "--backend-port"].includes(name) && !requested.has(name) && Number.isInteger(value) && value >= 1024 && value <= 65535, "Optional preview ports must be distinct integers from 1024 to 65535.");
+    requested.set(name, value);
+  }
+  assert(!requested.has("--port") || !requested.has("--backend-port") || requested.get("--port") !== requested.get("--backend-port"), "The two preview ports must differ.");
   const buildId = readFileSync(".next/BUILD_ID", "utf8").trim();
   const directory = mkdtempSync(`${tmpdir()}/shuug-workstation-preview-`);
   let child: ChildProcess | undefined, gateway: Server | undefined, stopping = false, startupLog = "";
@@ -54,6 +62,7 @@ async function main() {
     Object.assign(process.env, { DEALDESK_DATA_DIR: directory, DEMO_DATA: "false", DATABASE_URL: "", SHUUG_REQUIRE_MFA: "false" });
     const password = `Sample-only-${randomUUID()}`;
     configureOwnerPassword(password); importBusinessTemplate(gigTaxProsTemplate);
+    saveSecrets({ BACKEND_ACCESS_TOKEN: randomUUID().replaceAll("-", "") + randomUUID().replaceAll("-", "") });
     saveBranding({ businessName: "Shuug Sample Office · DEMO DATA", tagline: "Local workstation preview · fictional records", logoText: "S" });
     const token = signInOwner(password);
     let base = "", backend = "";
@@ -76,8 +85,8 @@ async function main() {
       forwarded.on("error", () => { if (!outgoing.headersSent) outgoing.writeHead(502); outgoing.end("Sample preview is starting or stopped."); });
       incoming.on("aborted", () => forwarded.destroy()); incoming.pipe(forwarded);
     });
-    const gatewayPort = await listen(gateway); base = `http://127.0.0.1:${gatewayPort}`;
-    const reservation = createServer(); const backendPort = await listen(reservation);
+    const gatewayPort = await listen(gateway, requested.get("--port")); base = `http://127.0.0.1:${gatewayPort}`;
+    const reservation = createServer(); const backendPort = await listen(reservation, requested.get("--backend-port"));
     await new Promise<void>(ok => reservation.close(() => ok())); backend = `http://127.0.0.1:${backendPort}`;
     env.APP_BASE_URL = base;
     child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(backendPort)], { env, stdio: ["ignore", "pipe", "pipe"] });
@@ -126,7 +135,7 @@ async function main() {
     assert.equal((await fetch(backend + "/tax-office", { redirect: "manual" })).status, 307, "Actual Next app must still require sign-in.");
     assert.equal((await fetch(base + "/tax-office", { headers: { Origin: "https://foreign.example.invalid" } })).status, 403);
     assert.equal((await fetch(base + "/__preview_status")).headers.has("set-cookie"), false);
-    console.log(JSON.stringify({ ok: true, workstation: base + "/tax-office", clientBooks: base + "/accounting", exampleLedger: `${base}/accounting/${bookIds[1]}`, buildId, sampleClients: 3, dataDirectory: directory, gatewayPid: process.pid, backendPid: child.pid, loopbackOnly: true, actualApplicationAuthEnforced: true, browserSessionCookiesChanged: false, installedServiceChanged: false, encryptedOfficeEditingDemonstrated: false, stop: "Ctrl-C removes this owned preview and its fictional data." }, null, 2));
+    console.log(JSON.stringify({ ok: true, workstation: base + "/tax-office", clientBooks: base + "/accounting", exampleLedger: `${base}/accounting/${bookIds[1]}`, mcpBackend: backend, mcpAccessConfigured: true, buildId, sampleClients: 3, dataDirectory: directory, gatewayPid: process.pid, backendPid: child.pid, loopbackOnly: true, actualApplicationAuthEnforced: true, browserSessionCookiesChanged: false, installedServiceChanged: false, encryptedOfficeEditingDemonstrated: false, stop: "Ctrl-C removes this owned preview and its fictional data." }, null, 2));
     await new Promise<void>(() => {});
   } finally { await cleanup(); }
 }

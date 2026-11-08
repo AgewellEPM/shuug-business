@@ -6,14 +6,26 @@ import { OrganizationHome } from "@/components/OrganizationHome";
 import { Cockpit } from "@/components/Cockpit";
 import { loadCockpitData } from "@/lib/cockpit/data";
 import { getActiveRole } from "@/lib/permissions/active";
+import { getMatrix } from "@/lib/permissions/store";
+import { allowedSections } from "@/lib/permissions/model";
+import { catalogWithTools, visibleItems } from "@/lib/navigation/catalog";
+import { resolveWorkspaceLayout } from "@/lib/navigation/workspace-layout";
+import { toolLinks } from "@/lib/features/store";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
   if (!(await requireIdentity()).isOwner) redirect("/me");
-  const profiles = (await activeWorkspace()).config.organizationTypes ?? ["product"];
+  const { branding, config } = await activeWorkspace();
+  const role = await getActiveRole();
+  if (branding.workspaceLayout) {
+    const shown = visibleItems(config, catalogWithTools(toolLinks(), config), allowedSections(getMatrix(), role));
+    const { home } = resolveWorkspaceLayout(branding.workspaceLayout, shown);
+    if (home) redirect(home.href);
+  }
+  const profiles = config.organizationTypes ?? ["product"];
   if (!profiles.includes("product")) return <OrganizationHome profiles={profiles}/>;
-  const [data, role] = await Promise.all([loadCockpitData(), getActiveRole()]);
+  const data = await loadCockpitData();
 
   return (
     <div className="space-y-6">

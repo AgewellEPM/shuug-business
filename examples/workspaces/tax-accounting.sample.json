@@ -1,0 +1,56 @@
+{
+  "description": "Shuug is the complete tax preparation, accounting and electronic filing software for independent and small family-run tax firms. The product must prepare individual, self-employed and business returns, calculate federal and state tax, produce return forms and diagnostics, collect reviewed client authorization, transmit filings and track official acknowledgments and amendments. It also needs secure client intake and documents, separate client books, bank import and reconciliation, accounting reports, firm invoicing, appointments, quarterly reviews and gig-worker records. Each firm can run its server on its own Mac mini; outside application hosting is optional. Keep staff and recovery key custody separate from the server. Build a focused tax/accounting workstation, with unrelated retail, restaurant, manufacturing and general business-assistant menus hidden. Existing capability gaps must be reported explicitly; a tracker or handoff record is not a tax calculation or transmission engine.",
+  "industry": {
+    "industryId": "tax-firm",
+    "answers": {
+      "appointments": true,
+      "portal": true,
+      "staff": true,
+      "quarterly": true,
+      "rideshare": true,
+      "quickbooks": false,
+      "marketing": false
+    },
+    "addedPacks": [],
+    "removedPacks": [
+      "marketing"
+    ],
+    "templateName": "Tax & accounting workstation",
+    "revision": 3
+  },
+  "layout": {
+    "homeToolId": "tax-office",
+    "primaryToolIds": [
+      "tax-office",
+      "service-clients",
+      "tax-documents",
+      "client-books",
+      "office-billing",
+      "calendar"
+    ]
+  },
+  "visibleToolIds": [
+    "tax-office",
+    "service-clients",
+    "tax-documents",
+    "client-books",
+    "office-billing",
+    "calendar",
+    "notes",
+    "tasks",
+    "rideshare-journal",
+    "module:tax-quarterly-reviews",
+    "service-booking",
+    "service-portal",
+    "timeclock",
+    "people",
+    "roles",
+    "connections",
+    "backend",
+    "branding",
+    "module:tax-engagements",
+    "module:tax-document-requests",
+    "module:tax-filing-handoffs"
+  ],
+  "businessName": "Shuug Tax & Accounting \u00b7 SAMPLE"
+}

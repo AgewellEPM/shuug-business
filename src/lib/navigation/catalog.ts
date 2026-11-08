@@ -33,6 +33,7 @@ export interface WorkspaceItem {
   section: SectionKey; icon?: string; organizations?: OrganizationType[];
   services?: ServiceType[]; status?: "planned" | "workflow"; description?: string; related?: string[];
   capabilityPacks?: string[];
+  requiredToolIds?: string[];
 }
 export interface WorkspaceVisibility {
   organizationTypes?: OrganizationType[]; serviceTypes?: ServiceType[];
@@ -131,10 +132,11 @@ export const workspaceItems: WorkspaceItem[] = [
   item("workorders", "Work orders (guarded)", "/workorders", "Operations", "operations"),
   item("finance", "Money overview", "/finance", "Money", "money"),
   item("accounting", "Accounting / Profit & Loss", "/books", "Money", "money"),
-  { ...item("tax-office", "Tax work", "/tax-office", "Services", "services"), capabilityPacks: ["tax_firm"] },
-  { ...item("tax-documents", "Tax document inbox", "/tax-documents", "Services", "services"), capabilityPacks: ["tax_firm"] },
+  { ...item("tax-office", "Tax work", "/tax-office", "Services", "services"), capabilityPacks: ["tax_firm"], requiredToolIds: ["module:tax-engagements", "module:tax-document-requests"] },
+  { ...item("tax-documents", "Tax document inbox", "/tax-documents", "Services", "services"), capabilityPacks: ["tax_firm"], requiredToolIds: ["module:tax-engagements", "module:tax-document-requests"] },
   { ...item("rideshare-journal", "Driver records", "/rideshare", "Money", "money"), capabilityPacks: ["rideshare_tax"] },
   item("client-books", "Client books", "/accounting", "Money", "money"),
+  item("office-billing", "Firm invoices & bills", "/accounting/office?tool=billing", "Money", "money"),
   item("chart-of-accounts", "Chart of accounts", "/ledger/accounts", "Money", "money"),
   item("ledger", "General ledger (double-entry)", "/ledger", "Money", "money"),
   item("balance-sheet", "Balance sheet", "/books?view=balance-sheet", "Money", "money"),
