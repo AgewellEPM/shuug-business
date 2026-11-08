@@ -4,6 +4,11 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
 }
+val gigTaxGoogleMapsKey=providers.gradleProperty("gigtaxGoogleMapsApiKey").orNull?.trim()?.takeIf {it.isNotEmpty()}
+    ?: providers.environmentVariable("GIGTAX_GOOGLE_MAPS_ANDROID_KEY").orNull?.trim().orEmpty()
+require(gigTaxGoogleMapsKey.isEmpty() || gigTaxGoogleMapsKey.matches(Regex("[A-Za-z0-9_-]{20,256}"))) {
+    "Use an Android-restricted Google Maps SDK key through gigtaxGoogleMapsApiKey or GIGTAX_GOOGLE_MAPS_ANDROID_KEY."
+}
 android {
     namespace = "com.ridesharetaxpros.driver"
     compileSdk = 36
@@ -14,6 +19,8 @@ android {
         versionCode = 1
         versionName = "0.1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["gigtaxGoogleMapsApiKey"]=gigTaxGoogleMapsKey
+        buildConfigField("boolean","GOOGLE_MAPS_KEY_CONFIGURED",gigTaxGoogleMapsKey.isNotEmpty().toString())
     }
     compileOptions { sourceCompatibility = JavaVersion.VERSION_17; targetCompatibility = JavaVersion.VERSION_17 }
     buildFeatures { compose = true; buildConfig = true }
@@ -35,6 +42,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk18on:1.86")
     implementation("com.plaid.link:sdk-core:6.4.0")
     implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.android.gms:play-services-maps:20.1.0")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation(platform("androidx.compose:compose-bom:2025.10.01"))
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")

@@ -24,9 +24,11 @@ import java.util.Locale
 
 @Composable fun StartDriveScreen(start:(String,String)->Unit) {
     var classification by remember {mutableStateOf("unclassified")};var purpose by remember {mutableStateOf("")}
-    Panel("This drive") {Choice("Classification",classification,classifications) {classification=it};Field("Purpose (optional)",purpose,{purpose=it.take(240)})}
-    Text("Android shows its location indicator and a persistent notification while recording. End the drive to save it. Optional automatic assistance is controlled separately in Account. Review missing sections if the app stops or the signal is lost.",color=Muted)
-    Action("Start",{start(classification,purpose)})
+    FormSection("This drive",background=Panel) {Choice("Classification",classification,classifications) {classification=it};Field("Purpose (optional)",purpose,{purpose=it.take(240)})}
+    FormSection {
+        Text("Android shows its location indicator and a persistent notification while recording. End the drive to save it. Optional automatic assistance is controlled separately in Account. Review missing sections if the app stops or the signal is lost.",color=Muted,fontSize=13.sp)
+    }
+    FormSection {Action("Start",{start(classification,purpose)})}
 }
 @Composable fun TripsScreen(repo:DriverRepository,navigate:(String)->Unit) {
     Action("Add manual trip",{navigate("Add manual trip")},false)

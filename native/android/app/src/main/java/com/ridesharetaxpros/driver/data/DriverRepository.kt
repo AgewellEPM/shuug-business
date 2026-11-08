@@ -35,6 +35,11 @@ class DriverRepository(val app: Application) {
     var offerReaderStatus by mutableStateOf("Offer reading is off")
     var requestedOfferReader by mutableStateOf(false)
     private var profileGeneration=0
+    private data class DriveSyncSession(val namespace:String,val origin:String,val accountId:String,val token:String)
+    private var pendingDriveSync:DriveSyncSession?=null
+    private var driveSyncJob:Job?=null
+    private var lastDriveSyncSession:DriveSyncSession?=null
+    private var lastDriveSyncAttempt:Long=0
     val scope get()=connection?.let { PrivateStore.hash(it.origin+"|"+it.session.account.id) } ?: "guest"
     init { try {
         connection=store.read("session","connection.json")?.let { Wire.decodeFromString<Connection>(it.toString(Charsets.UTF_8)) }
@@ -50,6 +55,35 @@ class DriverRepository(val app: Application) {
         if(connection!=null) run { sync() }
     }
     fun run(block: suspend ()->Unit) { jobs.launch { try { block() } catch(error: Exception) { failure=error.message ?: "The operation could not finish. Your records are kept." } } }
+    private fun driveSyncSession():DriveSyncSession?=connection?.let {DriveSyncSession(scope,it.origin,it.session.account.id,it.session.token)}
+    private fun requestDriveSync(immediate:Boolean=false) {
+        val session=driveSyncSession() ?: return
+        if(!storageReady) return
+        val elapsed=android.os.SystemClock.elapsedRealtime()
+        if(!immediate && session==lastDriveSyncSession && elapsed-lastDriveSyncAttempt<15_000L) return
+        // The records are already saved. Coalesce requests rather than creating a
+        // second outbox, and retain a finish request while another sync is busy.
+        pendingDriveSync=session
+        drainDriveSync()
+    }
+    private fun drainDriveSync() {
+        val requested=pendingDriveSync ?: return
+        if(requested!=driveSyncSession() || !storageReady) {pendingDriveSync=null;return}
+        if(busy || updatingProfile || changingAccount || driveSyncJob?.isActive==true) return
+        if(journal.pendingRecords.isEmpty() && journal.pendingReceipts.isEmpty() && journal.active?.pendingMutationId==null) {
+            pendingDriveSync=null;return
+        }
+        pendingDriveSync=null
+        // Assign before starting: Main.immediate can otherwise complete a launch
+        // before its Job has been stored, leaving a completed job in the slot.
+        val scheduled=jobs.launch(start=CoroutineStart.LAZY) {
+            try {if(requested==driveSyncSession() && storageReady) sync()}
+            catch(error:CancellationException) {throw error}
+            catch(error:Exception) {if(requested==driveSyncSession()) failure=error.message ?: "Your drive is saved on this phone and is waiting to sync."}
+            finally {driveSyncJob=null;drainDriveSync()}
+        }
+        driveSyncJob=scheduled;scheduled.start()
+    }
     suspend fun connect(address: String,email: String,password: String) {
         check(connection==null) {"Sign out before connecting a different client account."}
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish."}
@@ -64,7 +98,7 @@ class DriverRepository(val app: Application) {
         store.write("session","connection.json",Wire.encodeToString(next).toByteArray())
         app.stopService(Intent(app,DriveService::class.java)); app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=next; journal=saved; rewards=null; bankStatus=null;profileError=null
-        } finally {changingAccount=false}
+        } finally {changingAccount=false;drainDriveSync()}
         try {sync()}catch(error:CancellationException) {throw error}catch(error:Exception) {failure="Connected. Saved records are waiting to sync: ${error.message}"}
     }
     suspend fun reauthenticate(password:String) {
@@ -76,7 +110,7 @@ class DriverRepository(val app: Application) {
             check(connection?.origin==expected.origin && connection?.session?.token==expected.session.token && journal.activeTripId==null && storageReady) {"Your account or drive changed. Open sign-in again after finishing the drive."}
             val next=sameAccountReauthentication(expected,reply)
             store.write("session","connection.json",Wire.encodeToString(next).toByteArray());connection=next;profileError=null
-        } finally {changingAccount=false}
+        } finally {changingAccount=false;drainDriveSync()}
         try {sync()}catch(error:CancellationException) {throw error}catch(error:Exception) {failure="Signed in again. Saved records are waiting to sync: ${error.message}"}
     }
     suspend fun disconnect() {
@@ -91,7 +125,7 @@ class DriverRepository(val app: Application) {
         store.clearConnection(); app.stopService(Intent(app,DriveService::class.java))
         app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=null; journal=guest; rewards=null; bankStatus=null;profileError=null
-        } finally {changingAccount=false}
+        } finally {changingAccount=false;drainDriveSync()}
         previous?.let {try {WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
     }
     fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false,includeRecords:Boolean=true) {
@@ -118,6 +152,8 @@ class DriverRepository(val app: Application) {
     }
     suspend fun sync() {
         val active=connection ?: return; if(busy || updatingProfile || changingAccount) return; val namespace=scope; busy=true
+        val session=DriveSyncSession(namespace,active.origin,active.session.account.id,active.session.token)
+        lastDriveSyncSession=session;lastDriveSyncAttempt=android.os.SystemClock.elapsedRealtime()
         try {
             val client=WorkspaceClient(active)
             var passes=0
@@ -125,19 +161,24 @@ class DriverRepository(val app: Application) {
                 passes++
                 for(receipt in journal.pendingReceipts) {
                     client.send("receipts/"+receipt.id,"PUT",store.receipt(namespace,receipt.id),receipt.mime)
-                    if(scope!=namespace) return
+                    if(driveSyncSession()!=session) return
                     update { it.copy(receipts=it.receipts.map { item->if(item.id==receipt.id) item.copy(uploaded=true) else item }) }
                 }
-                for(entry in journal.pendingRecords) {
+                // Send at most one active-drive snapshot per sync. Further GPS
+                // edits keep their mutation ID for the next 15-second attempt;
+                // a completed trip rejoins the ordinary bounded outbox passes.
+                val recording=if(passes==1) journal.active?.takeIf {it.pendingMutationId!=null && it.conflict==null} else null
+                val pending=journal.pendingRecords+listOfNotNull(recording)
+                for(entry in pending) {
                     // A new edit can arrive while a request is in flight. Never post a stale
                     // snapshot or an expense whose newly attached receipt is still queued.
                     val current=journal.entries.firstOrNull { it.record.id==entry.record.id } ?: continue
                     if(current.pendingMutationId!=entry.pendingMutationId || current.conflict!=null || !journal.receiptReady(current.record)) continue
                     val mutation=Mutation(current.pendingMutationId!!,current.record)
-                    try { val remote=client.save(mutation); if(scope!=namespace) return; update { it.acknowledge(mutation,remote) } }
-                    catch(error: WorkspaceError) { if(error.status==409 && error.current!=null) { if(scope!=namespace) return; update { it.merge(error.current) } } else throw error }
+                    try { val remote=client.save(mutation); if(driveSyncSession()!=session) return; update { it.acknowledge(mutation,remote) } }
+                    catch(error: WorkspaceError) { if(error.status==409 && error.current!=null) { if(driveSyncSession()!=session) return; update { it.merge(error.current) } } else throw error }
                 }
-                do { val page=client.records(journal.cursor); if(scope!=namespace) return
+                do { val page=client.records(journal.cursor); if(driveSyncSession()!=session) return
                     update { current->page.records.fold(current) { state,row->state.merge(row) }.copy(cursor=page.cursor) }
                 } while(page.hasMore)
                 // Bounded passes flush edits made during network waits without an endless
@@ -145,7 +186,7 @@ class DriverRepository(val app: Application) {
             } while(passes<20 && (journal.pendingReceipts.isNotEmpty() || journal.pendingRecords.isNotEmpty()))
             update { it.copy(lastSyncAt=now()) }
             refreshProfile()
-        } finally { busy=false }
+        } finally { busy=false;drainDriveSync() }
     }
     private fun applyProfile(reply:AccountProfileReply,expected:Connection,namespace:String) {
         check(scope==namespace && connection?.origin==expected.origin && connection?.session?.token==expected.session.token) {"Your account changed before the profile update finished."}
@@ -163,7 +204,7 @@ class DriverRepository(val app: Application) {
         val expected=connection ?: error("Connect your client account first.")
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current sync or profile update to finish."}
         val name=validatedDisplayName(raw);val namespace=scope;profileGeneration++;updatingProfile=true
-        try {applyProfile(WorkspaceClient(expected).profile(name),expected,namespace)} finally {updatingProfile=false}
+        try {applyProfile(WorkspaceClient(expected).profile(name),expected,namespace)} finally {updatingProfile=false;drainDriveSync()}
     }
     suspend fun refreshBanks() {
         val active=connection ?: return; val namespace=scope; val client=WorkspaceClient(active)
@@ -201,9 +242,11 @@ class DriverRepository(val app: Application) {
         if(tracker.consume(fix,clock)) store.appendRoute(scope,active.record.id,fix.copy(startsSegment=anchor==null || tracker.hasGaps && !journal.active!!.record.trip().hasGaps))
         val trip=active.record.trip().copy(distanceMeters=tracker.distanceMeters,hasGaps=tracker.hasGaps,sampleCount=tracker.sampleCount)
         update { it.upsert(DriverRecord.trip(trip,active.record.id,active.record.revision)).copy(tracker=tracker) }
+        requestDriveSync()
     }
     fun endDrive() { val active=journal.active ?: return
         update { it.upsert(DriverRecord.trip(active.record.trip().copy(endedAt=now()),active.record.id,active.record.revision)).copy(activeTripId=null,tracker=null) }
+        requestDriveSync(immediate=true)
     }
     fun pauseDrive() { if(storageReady && journal.activeTripId!=null) update { it.markTrackingInterrupted() } }
     fun resolve(id: String,keepLocal: Boolean) { update { state -> state.copy(entries=state.entries.map { entry ->

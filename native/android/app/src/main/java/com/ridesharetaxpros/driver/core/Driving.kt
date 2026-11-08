@@ -41,6 +41,12 @@ data class RideProfit(val record: DriverRecord, val goals: Goals) {
     val hourly=net?.takeIf { minutes>=1 }?.let { it/(minutes/60) }
     val perMile=net?.takeIf { miles>0 }?.let { it/miles }
 }
+data class RecordedHourlySummary(val hourlyCents:Double?,val timedCount:Int,val timedNetCents:Long,val timedMinutes:Double)
+fun recordedHourlySummary(rides:List<RideProfit>):RecordedHourlySummary {
+    val timed=rides.filter {it.hourly!=null}
+    val minutes=timed.sumOf {it.minutes};val net=timed.sumOf {it.net!!.toLong()}
+    return RecordedHourlySummary(if(minutes>=1)net*60/minutes else null,timed.size,net,minutes)
+}
 data class DayTotals(val date: String, var income: Long=0, var expenses: Long=0, var fuel: Long=0, var net: Long=0, var priced: Int=0, var miles: Double=0.0)
 fun insights(records: List<DriverRecord>, goals: Goals, first: String, last: String): List<DayTotals> {
     val days=sortedMapOf<String,DayTotals>()

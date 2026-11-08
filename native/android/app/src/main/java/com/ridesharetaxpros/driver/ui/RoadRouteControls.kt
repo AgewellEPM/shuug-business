@@ -54,7 +54,7 @@ private data class SelectedRoadPlace(val label: String,val point: PositionPoint)
         else error="Allow location while using Gig Tax Pros in Android Settings, then try again."
     }
     Panel("Your location") {
-        Text("While parked, select the actual destination, pickup and drop-off. Android's place service receives your searches; road routing receives selected endpoints. The street-map provider receives the areas you view. These lookups are not saved to your journal or sent to your firm.",color=Muted,fontSize=12.sp)
+        Text("While parked, select the actual destination, pickup and drop-off. Android's place service receives your searches; road routing receives selected endpoints. The street-map provider receives the areas you view. Requested in-app Google comparisons send selected endpoints through your firm’s authenticated routing service to Google. They are not added to your tax journal.",color=Muted,fontSize=12.sp)
         Action(if(current==null) "Use my current location" else "Update my current location",{
             val granted=ContextCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED
             if(granted) locate() else permission.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
@@ -89,19 +89,26 @@ private data class SelectedRoadPlace(val label: String,val point: PositionPoint)
     }
     beforeCompare()
     Panel("Compare the alternatives") {
+        Action("Directions in Google Maps",{
+            val destination=chosen["Destination"]!!.point
+            val origin=current?.let {PositionPoint(it.latitude,it.longitude)}
+            val stops=if(chosen["Offer pickup"]!=null && chosen["Offer drop-off"]!=null) listOf(chosen["Offer pickup"]!!.point,chosen["Offer drop-off"]!!.point) else emptyList()
+            error=openGoogleMapsDirections(context,destination,origin,stops)
+        },primary=false,enabled=chosen["Destination"]!=null)
+        Text("Directions opens the native Google Maps app. Review the selected stops there; it does not save an in-app comparison.",color=Muted,fontSize=12.sp)
         Action("Calculate the full route",{
             val fix=current!!;val finish=chosen["Destination"]!!;val pickup=chosen["Offer pickup"]!!;val dropoff=chosen["Offer drop-off"]!!
             run("routes") {revision->
                 require(Duration.between(Instant.ofEpochMilli(fix.time),Instant.now()).seconds in 0..120) {"Update your current location before comparing routes."}
                 val origin=PositionPoint(fix.latitude,fix.longitude)
-                val direct=PositionRoadService.route(scope,origin,finish.point);currentCoroutineContext().ensureActive()
-                val toPickup=PositionRoadService.route(scope,origin,pickup.point);currentCoroutineContext().ensureActive()
-                val delivery=PositionRoadService.route(scope,pickup.point,dropoff.point);currentCoroutineContext().ensureActive()
-                val onward=PositionRoadService.route(scope,dropoff.point,finish.point)
+                val direct=PositionRoadService.route(scope,origin,finish.point,repo.connection,repo.app);currentCoroutineContext().ensureActive()
+                val toPickup=PositionRoadService.route(scope,origin,pickup.point,repo.connection,repo.app);currentCoroutineContext().ensureActive()
+                val delivery=PositionRoadService.route(scope,pickup.point,dropoff.point,repo.connection,repo.app);currentCoroutineContext().ensureActive()
+                val onward=PositionRoadService.route(scope,dropoff.point,finish.point,repo.connection,repo.app)
                 if(version==revision && repo.scope==scope) receive(OfferRoadJourney(direct,toPickup,delivery,onward,Instant.ofEpochMilli(fix.time)))
             }
         },enabled=busy==null && current!=null && chosen.size==3)
-        if(BuildConfig.DEBUG) Text("Development preview: deliberate requests use the public OSRM demonstration if no approved routing service is configured. No live traffic guarantee.",fontSize=11.sp,color=Muted)
+        Text("In-app Google comparisons need your firm’s Google connection and in-app map setup. Directions in Google Maps works independently of that setup.",fontSize=11.sp,color=Muted)
         busy?.let {LinearProgressIndicator(Modifier.fillMaxWidth(),color=Pink);Text(if(it=="routes") "Checking all four road legs…" else if(it=="location") "Finding current location…" else "Searching places…",color=Muted,fontSize=12.sp)
             Action("Cancel lookup",{invalidate()},primary=false)}
         error?.let {Text(it,color=Caution,fontSize=13.sp)}
@@ -109,8 +116,8 @@ private data class SelectedRoadPlace(val label: String,val point: PositionPoint)
 }
 
 @Composable internal fun CompleteRoadMap(repo: DriverRepository,roads: OfferRoadJourney) {
-    SharedRoadMap(repo,listOf(RoadMapLine(roads.direct.points,Purple.copy(alpha=.6f),"Direct"),
-        RoadMapLine(roads.pickup.points,Pink,"To pickup"),RoadMapLine(roads.delivery.points,Pink,"Delivery"),RoadMapLine(roads.onward.points,Route,"Onward")),
+    SharedRoadMap(repo,listOf(RoadMapLine(roads.direct.points,Purple.copy(alpha=.6f),"Direct",roads.direct.providerKind),
+        RoadMapLine(roads.pickup.points,Pink,"To pickup",roads.pickup.providerKind),RoadMapLine(roads.delivery.points,Pink,"Delivery",roads.delivery.providerKind),RoadMapLine(roads.onward.points,Route,"Onward",roads.onward.providerKind)),
         listOf(RoadMapMarker(roads.pickup.points.first(),androidx.compose.ui.graphics.Color.White,"Current"),RoadMapMarker(roads.pickup.points.last(),Pink,"Pickup"),
             RoadMapMarker(roads.delivery.points.last(),Pink,"Drop-off"),RoadMapMarker(roads.onward.points.last(),Route,"Destination")),
         description="Road map: direct route compared with pickup, delivery and onward travel")

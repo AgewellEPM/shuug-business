@@ -41,13 +41,14 @@ import kotlinx.coroutines.*
     }
     DisposableEffect(scope,key) {onDispose {job?.cancel()}}
     Panel("Position yourself toward home") {
+        Action("Directions in Google Maps",{error=openGoogleMapsDirections(context,destination)},primary=false)
         Action("Find waiting areas from my job history",{
             direct=null;matches=emptyList()
             val origin=originLocation;val selectedPoint=destination
             run {run->
                 require(Duration.between(Instant.ofEpochMilli(origin.time),Instant.now()).seconds in 0..120) {"Update your current location before finding waiting areas."}
                 val start=PositionPoint(origin.latitude,origin.longitude)
-                val road=PositionRoadService.route(scope,start,selectedPoint)
+                val road=PositionRoadService.route(scope,start,selectedPoint,repo.connection,repo.app)
                 if(run!=generation || repo.scope!=scope) return@run
                 direct=road
                 val cost=repo.journal.goals.vehicleCostCentsPerMile
@@ -80,8 +81,11 @@ import kotlinx.coroutines.*
                 val rows=mutableListOf<PositionedArea>()
                 for(area in candidates.take(3)) {
                     currentCoroutineContext().ensureActive();if(run!=generation || repo.scope!=scope) return@run
-                    val approach=PositionRoadService.route(scope,start,area.origin)
-                    val onward=PositionRoadService.route(scope,area.dropoff,selectedPoint)
+                    val approach=PositionRoadService.route(scope,start,area.origin,repo.connection,repo.app)
+                    val onward=PositionRoadService.route(scope,area.dropoff,selectedPoint,repo.connection,repo.app)
+                    check(road.providerKind==approach.providerKind && road.providerKind==onward.providerKind) {
+                        "The road provider changed. Find waiting areas again before deciding."
+                    }
                     val reposition=BigDecimal.valueOf(approach.meters/1609.344).multiply(BigDecimal.valueOf(cost)).setScale(0,RoundingMode.HALF_UP).toInt()
                     val adjusted=area.averageNetCents-reposition
                     val rate=(adjusted*60/(area.averageMinutes+approach.seconds/60)).roundToInt()
@@ -96,7 +100,7 @@ import kotlinx.coroutines.*
                 }
             }
         },enabled=!busy)
-        if(BuildConfig.DEBUG) Text("Development preview: if no firm routing service is configured, deliberate route requests use the public OSRM demonstration. It has no live traffic or availability guarantee.",fontSize=11.sp,color=Muted)
+        Text("Requested Google comparisons send your selected current/destination and matching historical job endpoints through the firm’s routing service to Google. Results are not added to your tax journal.",fontSize=11.sp,color=Muted)
         Text(status,fontSize=13.sp,color=Muted)
     }
     if(busy) {LinearProgressIndicator(modifier=Modifier.fillMaxWidth(),color=Pink);Action("Cancel waiting-area lookup",{invalidate()},primary=false)}
@@ -111,19 +115,16 @@ import kotlinx.coroutines.*
         Text(String.format(Locale.US,"%.2f mi to position · %s estimated vehicle cost",row.approach.meters/1609.344,usd(row.repositionCents)),color=ExpenseColor,fontSize=13.sp)
         Text("${usd(row.hourlyCents)}/active hour using your matched history and positioning time.",color=Income)
         row.deadlineMarginMinutes?.let {Text("Illustrative ${it.toInt()} min deadline buffer if another job matched the recorded duration. Finding/waiting for a job is excluded.",fontSize=12.sp,color=Route)}
-        Action("Open this waiting area in Maps",{
-            try {context.startActivity(Intent(Intent.ACTION_VIEW,Uri.parse("geo:${row.area.origin.latitude},${row.area.origin.longitude}?q=${row.area.origin.latitude},${row.area.origin.longitude}(${Uri.encode(row.area.name)})")))}
-            catch(problem: Exception) {error="No maps app is installed to open this waiting area."}
-        },primary=false)
+        Action("Directions to this waiting area in Google Maps",{error=openGoogleMapsDirections(context,row.area.origin)},primary=false)
     }}
     Text("Job availability, waiting and future routes are unknown. Historical matches are personal observations; they do not guarantee profitable offers or arrival. Choose a legal, safe place to wait.",fontSize=11.sp,color=Muted)
-    Text("Road data © OpenStreetMap contributors. Road estimates can change; update your location and compare again after conditions change.",fontSize=11.sp,color=Muted)
+    Text("Road estimates can change; update your location and compare again after conditions change.",fontSize=11.sp,color=Muted)
 }
 
 @Composable private fun PositionRoadDiagram(repo: DriverRepository,road: PositionRoad,areas: List<PositionedArea>) {
     val markers=listOf(RoadMapMarker(road.points.first(),Color.White,"Current"),RoadMapMarker(road.points.last(),Pink,"Destination"))+
         areas.map {RoadMapMarker(it.area.origin,Income,it.area.name)}
-    SharedRoadMap(repo,listOf(RoadMapLine(road.points,Route,"Direct route"))+
-        areas.flatMap {listOf(RoadMapLine(it.approach.points,Income,"To waiting area"),RoadMapLine(it.onward.points,Route.copy(alpha=.6f),"From historical drop-off"))},markers,height=240.dp,description="Positioning and waiting-area road map")
+    SharedRoadMap(repo,listOf(RoadMapLine(road.points,Route,"Direct route",road.providerKind))+
+        areas.flatMap {listOf(RoadMapLine(it.approach.points,Income,"To waiting area",it.approach.providerKind),RoadMapLine(it.onward.points,Route.copy(alpha=.6f),"From historical drop-off",it.onward.providerKind))},markers,height=240.dp,description="Positioning and waiting-area road map")
     Text("White: current · Pink: destination · Green: waiting areas",fontSize=10.sp,color=Muted)
 }

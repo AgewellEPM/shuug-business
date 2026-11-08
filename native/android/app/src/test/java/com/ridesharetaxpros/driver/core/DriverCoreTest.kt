@@ -6,6 +6,14 @@ import java.time.Instant
 import kotlinx.serialization.encodeToString
 
 class DriverCoreTest {
+    @Test fun hourlyAggregatesExcludeSubMinutePricesEvenWhenTheirTotalTimeExceedsAMinute() {
+        val start=Instant.parse("2026-11-08T12:00:00Z");val goals=Goals(vehicleCostCentsPerMile=0.0)
+        fun ride(seconds:Long,net:Int)=RideProfit(DriverRecord.trip(Trip(startedAt=start.toString(),endedAt=start.plusSeconds(seconds).toString(),classification="business",earningsCents=net,platformFeesCents=0)),goals)
+        val tiny=ride(1,1000000);assertNull(tiny.hourly)
+        assertNull(recordedHourlySummary(listOf(tiny,ride(59,5000),ride(59,5000))).hourlyCents)
+        val summary=recordedHourlySummary(listOf(tiny,ride(1800,2000)))
+        assertEquals(4000.0,summary.hourlyCents!!,.0001);assertEquals(1,summary.timedCount);assertEquals(2000L,summary.timedNetCents)
+    }
     @Test fun profitRequiresKnownCostsAndKeepsCashflowSeparate() {
         val trip=DriverRecord.trip(Trip(startedAt="2026-11-05T10:00:00Z",endedAt="2026-11-05T10:30:00Z",distanceMeters=16093.44,
             classification="business",localDate="2026-11-05",earningsCents=2000,platformFeesCents=300,rideRole="ride"))

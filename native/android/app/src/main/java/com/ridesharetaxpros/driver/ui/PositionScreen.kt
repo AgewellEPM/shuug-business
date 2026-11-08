@@ -78,14 +78,14 @@ private data class DestinationPlace(val name: String,val point: PositionPoint)
         else error="Allow location while using the app in Android Settings, then try again."
     }
     DisposableEffect(scope) {onDispose {job?.cancel()}}
-    Panel {
-        Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {Icon(Icons.Default.MyLocation,null,tint=Route);Text("Your best next move",fontSize=24.sp,fontWeight=FontWeight.Bold,color=Route)}
+    FormSection {
+        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {Icon(Icons.Default.MyLocation,null,tint=Route,modifier=Modifier.size(34.dp));Text("Your best next move",fontSize=24.sp,fontWeight=FontWeight.Bold,color=Route)}
         Text("Wait where your past jobs have taken you toward home.",fontWeight=FontWeight.Bold)
         Text("Select the actual destination. We compare eligible job starts from your own saved routes, positioning costs and road travel. This does not predict live demand.",fontSize=13.sp,color=Muted)
     }
-    Panel("Your destination") {
+    FormSection("Your destination") {
         Text("While parked, select your destination. Find matching job-start areas from your history. Open an offer's details to compare its pickup, drop-off and full route home.",fontSize=13.sp)
-        Text("Android's place search receives your search terms. Road routing receives selected route endpoints, including historical job starts/drop-offs needed for comparisons. The street-map provider receives the map areas you view. These lookups are not saved to your journal or sent to your firm.",fontSize=12.sp,color=Muted)
+        Text("Android's place search receives your search terms. Road routing receives selected route endpoints, including historical job starts/drop-offs needed for comparisons. The street-map provider receives the map areas you view. Selected road endpoints are sent through your firm’s routing service to Google when Google comparisons are enabled; route lookups are not saved to your tax journal.",fontSize=12.sp,color=Muted)
         Action(if(current==null) "Use my current location" else "Update my current location",{
             val granted=ContextCompat.checkSelfPermission(context,Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(context,Manifest.permission.ACCESS_COARSE_LOCATION)==PackageManager.PERMISSION_GRANTED

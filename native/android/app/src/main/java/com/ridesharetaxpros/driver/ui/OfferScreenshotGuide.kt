@@ -2,6 +2,8 @@ package com.ridesharetaxpros.driver.ui
 
 import android.content.Intent
 import android.net.Uri
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +20,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -64,14 +73,14 @@ import com.ridesharetaxpros.driver.core.*
                     Text("Press Power + Volume down together. Let go right away. Do not hold them down.")
                     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalAlignment=Alignment.CenterVertically) {
                         Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-                            GuideTarget("Volume down",volume,"guide.hardware.volume") {volume=true}
+                            GuideTarget("Volume down",volume,"guide.hardware.volume",compact=true) {volume=true}
                         }
                         Column(Modifier.weight(3f).background(Color.Black,RoundedCornerShape(30.dp))
                             .border(2.dp,Border,RoundedCornerShape(30.dp)).padding(10.dp)) {
                             Text("10:25",Modifier.padding(8.dp),fontSize=10.sp,color=Color.White)
                             GuideOfferImage(Modifier.fillMaxWidth().height(310.dp))
                         }
-                        Column(Modifier.weight(1f)) {GuideTarget("Power",power,"guide.hardware.power") {power=true}}
+                        Column(Modifier.weight(1f)) {GuideTarget("Power",power,"guide.hardware.power",compact=true) {power=true}}
                     }
                     Text("The pink targets show the buttons to use. These taps are practice; use the real buttons on your phone's edge for an actual screenshot.",color=Muted,fontSize=12.sp)
                     Text("This is DoorDash's published offer example. Your app may look different.",color=Muted,fontSize=12.sp)
@@ -162,19 +171,36 @@ import com.ridesharetaxpros.driver.core.*
 }
 
 @Composable private fun GuideOfferImage(modifier: Modifier=Modifier) {
+    val context=LocalContext.current
+    val original=remember {BitmapFactory.decodeResource(context.resources,R.drawable.doordash_offer_reference,
+        BitmapFactory.Options().apply {inScaled=false}).asImageBitmap()}
     Column(modifier,horizontalAlignment=Alignment.CenterHorizontally) {
         Text("DOORDASH EXAMPLE · PRACTICE ONLY",fontSize=8.sp,color=Link,modifier=Modifier.padding(bottom=6.dp))
-        Image(painterResource(R.drawable.doordash_offer_reference),"DoorDash published example: 7.50 dollars, 1.6 miles. Practice only.",
-            Modifier.weight(1f).fillMaxWidth(),contentScale=ContentScale.Fit)
+        // Same viewport as iOS: keep the publisher's original600×586 intact,
+        // showing only the new-design screen at x343,y29,width229,height491.
+        Canvas(Modifier.weight(1f).fillMaxWidth().clip(RoundedCornerShape(16.dp)).semantics {
+            contentDescription="DoorDash published example: 7.50 dollars, 1.6 miles. Practice only."
+        }) {
+            val width=minOf(size.width,size.height*229f/491f);val height=width*491f/229f
+            drawImage(original,srcOffset=IntOffset(343,29),srcSize=IntSize(229,491),
+                dstOffset=IntOffset(((size.width-width)/2).toInt(),((size.height-height)/2).toInt()),
+                dstSize=IntSize(width.toInt(),height.toInt()))
+        }
     }
 }
 
-@Composable private fun GuideTarget(label: String,selected: Boolean,id: String,onClick: ()->Unit) {
+@Composable private fun GuideTarget(label: String,selected: Boolean,id: String,compact:Boolean=false,onClick: ()->Unit) {
     OutlinedButton(onClick=onClick,modifier=Modifier.fillMaxWidth().heightIn(min=48.dp).testTag(id),
         shape=RoundedCornerShape(14.dp),border=androidx.compose.foundation.BorderStroke(2.dp,if(selected) Income else Pink),
+        contentPadding=if(compact) PaddingValues(horizontal=4.dp,vertical=10.dp) else ButtonDefaults.ContentPadding,
         colors=ButtonDefaults.outlinedButtonColors(contentColor=if(selected) Income else Color.White)) {
+        if(compact) Column(horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.spacedBy(5.dp)) {
+            Icon(if(selected) Icons.Default.CheckCircle else Icons.Default.TouchApp,null,tint=if(selected) Income else Pink,modifier=Modifier.size(18.dp))
+            Text(label,fontSize=10.sp,lineHeight=13.sp,textAlign=androidx.compose.ui.text.style.TextAlign.Center)
+        } else {
         Icon(if(selected) Icons.Default.CheckCircle else Icons.Default.TouchApp,null,tint=if(selected) Income else Pink,modifier=Modifier.size(18.dp))
         Text(label,fontSize=13.sp,modifier=Modifier.padding(start=5.dp))
+        }
     }
 }
 

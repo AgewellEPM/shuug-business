@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "recordedAt": "2026-11-08T23:07:44.686339+00:00",
+  "reviewState": "Installed review build; full pixel and physical acceptance remain open.",
+  "apk": {
+    "path": "/Volumes/PRO-G40/AndroidParityBuild-20261107/app/outputs/apk/debug/app-debug.apk",
+    "bytes": 99354018,
+    "sha256": "6d0cd6e78fb7bd16f622b071d3c8ad333ef0959b8a58ca22c7662ddf3b0c0a0e",
+    "package": "com.ridesharetaxpros.driver",
+    "installedBaseApkSha256": "6d0cd6e78fb7bd16f622b071d3c8ad333ef0959b8a58ca22c7662ddf3b0c0a0e",
+    "installedIdentityMatched": true
+  },
+  "unitChecks": {
+    "tests": 100,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "unitResults": "/Volumes/PRO-G40/AndroidParityBuild-20261107/app/test-results/testDebugUnitTest",
+  "buildLogs": [
+    "/private/tmp/gigtax-android-google-final-build.log",
+    "/private/tmp/gigtax-android-final-style-build.log",
+    "/private/tmp/gigtax-android-installed-final-build.log"
+  ],
+  "screens": {
+    "folder": "/Users/lukekist/Desktop/Gig Tax Pros Android Screens - 2026-11-08",
+    "gallery": "Open Android Screen Gallery.html",
+    "completePngCount": 85,
+    "reviewBuildCaptures": [
+      "01-04F2 - Final tour - Fullscreen English soft captions.png",
+      "01-05F2 - Final tour - Landscape English captions.png",
+      "02-01-1F - Final installed Home dashboard.png",
+      "02-02F - Final opaque outlined More tools menu.png",
+      "03-04-1F2 - Final Manual trip - Capsules and date time pills.png",
+      "04-01-1F - Final Go Home grouped planning.png",
+      "04-02-1F - Final Position grouped planning.png",
+      "05-01-1F - Final Earnings icons and charcoal tab bar.png",
+      "08-01-1F - Final Add expense - Cancel Save and dark form.png",
+      "08-01-1F2 - Final Add expense - Capsules date pill receipt icons.png",
+      "10-01-1F2 - Final Offers - Icon actions and charcoal tabs.png",
+      "13-01F2 - Final Screenshot guide - Cropped offer and usable buttons.png",
+      "13-07-1F2 - Final Screenshot guide - Single offer number review.png",
+      "20-01F - Guest verification - Expense saved on phone.png",
+      "20-02F - Guest verification - Edited classification saved.png",
+      "20-03F - Guest verification - Disposable expense removed.png",
+      "20-04F2 - Final navigation - Offer tab and scroll retained.png"
+    ],
+    "logicalWidthDp": 440,
+    "displayPixels": [
+      1320,
+      2868
+    ],
+    "density": 480
+  },
+  "observed": {
+    "guestExpenseSavedEditedDeleted": true,
+    "guestFlowBuild": "F, before the final purely visual capsule/date/icon update",
+    "guestFlowEvidence": [
+      "20-01F",
+      "20-02F",
+      "20-03F"
+    ],
+    "guestCleanupFeedback": "No expenses yet",
+    "finalF2CancelButtonTapped": true,
+    "finalF2EmptySaveClickableAncestorEnabled": false,
+    "finalF2GuideViewportAndHardwareTargets": true,
+    "finalF2NativeLandscapeEnglishCaptions": true,
+    "finalF2SampleOffersTabAndScrollRetainedAfterBack": true,
+    "chapterSeekObserved": false,
+    "audioAudibilityObserved": false,
+    "finalF2DefaultCaptionOnObserved": true,
+    "finalF2CaptionOffObserved": true,
+    "finalF2CaptionReenableTapDispatched": true,
+    "finalF2CaptionReenableReadbackObserved": false
+  },
+  "cleanup": {
+    "ownedEmulatorPid": 99421,
+    "ownedEmulatorSession": 30050,
+    "exitCode": 0,
+    "adbDevicesEmpty": true,
+    "qemuGuestAbsent": true,
+    "displayDensityRotationRestoreCommandsSucceeded": true,
+    "restoredSettingsReadbackObserved": false
+  },
+  "remaining": [
+    "Luke/art-director visual acceptance across every reference surface and native font/icon differences",
+    "Configured physical Google Maps SDK, Google Maps activity and live Google Routes key/billing/API enablement",
+    "Signed-in account, provider/bank linking, protected firm enrollment and live sync",
+    "Physical background GPS/notification permissions and receipt camera/OCR/document flows",
+    "Native narration audibility and chapter-seek check on the target device"
+  ],
+  "googleMapsSdkKeyConfigured": false
+}

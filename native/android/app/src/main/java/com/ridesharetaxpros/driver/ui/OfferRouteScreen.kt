@@ -37,7 +37,7 @@ import kotlinx.coroutines.delay
     Panel {
         Text("Earn on your way home",color=Route,fontSize=25.sp,fontWeight=FontWeight.Bold)
         Text("Compare going directly with completing this entire job first. Confirm the pickup and drop-off in ${offer.platform} while parked.")
-        Text("Android's place service receives your searches. Road routing receives only the endpoints of routes you request. The street-map provider receives the map areas you view. Selected places stay in this screen and are not sent to your firm.",color=Muted,fontSize=12.sp)
+        Text("Android's place service receives your searches. Road routing receives only the endpoints of routes you request. The street-map provider receives the map areas you view. Requested in-app Google comparisons send selected endpoints through your firm’s authenticated routing service to Google; they are not added to your tax journal.",color=Muted,fontSize=12.sp)
     }
     Panel("Your destination & arrival") {
         NavigationRow("Must arrive by",{
@@ -84,6 +84,6 @@ import kotlinx.coroutines.delay
             Text("Extra cash versus going directly: ${money(result.incrementalCash)}")
             Text("Operating costs and your configured reserve are included. Reserve is a planning allocation. Traffic, service delays and availability can change. Verify the actual offer in ${offer.platform} before accepting.",color=Muted,fontSize=12.sp)
         }
-        Text("${roads.direct.provider} · Requested ${roads.direct.measuredAt}. Road data © OpenStreetMap contributors.",color=Muted,fontSize=11.sp)
+        Text("${roads.direct.provider} · Requested ${roads.direct.measuredAt}.",color=Muted,fontSize=11.sp)
     }
 }

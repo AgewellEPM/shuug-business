@@ -23,7 +23,7 @@ def main():
     commands=parser.add_subparsers(dest='command',required=True)
     commands.add_parser('tree')
     capture=commands.add_parser('snapshot');capture.add_argument('label')
-    tap=commands.add_parser('tap');tap.add_argument('label');tap.add_argument('--contains',action='store_true');tap.add_argument('--index',type=int,default=0)
+    tap=commands.add_parser('tap');tap.add_argument('label');tap.add_argument('--contains',action='store_true');tap.add_argument('--index',type=int,default=0);tap.add_argument('--scroll',choices=['up','down'])
     commands.add_parser('back')
     swipe=commands.add_parser('swipe');swipe.add_argument('direction',choices=['up','down']);swipe.add_argument('--fraction',type=float,default=.55)
     text=commands.add_parser('text');text.add_argument('value')
@@ -39,7 +39,10 @@ def main():
         root=ET.fromstring(data)
         # This helper controls only the requested app or an OS consent surface.
         packages={node.get('package') for node in root.iter('node') if node.get('package')}
-        allowed={'com.ridesharetaxpros.driver','com.android.systemui','com.google.android.permissioncontroller','com.android.permissioncontroller'}
+        allowed={'com.ridesharetaxpros.driver','com.android.systemui','com.google.android.permissioncontroller','com.android.permissioncontroller',
+                 'com.android.documentsui','com.google.android.documentsui','com.google.android.providers.media.module',
+                 'com.android.providers.media.module','com.android.camera2','com.android.camera','com.google.android.GoogleCamera',
+                 'com.android.inputmethod.latin','com.google.android.inputmethod.latin'}
         if packages and not packages.issubset(allowed):raise RuntimeError('Unexpected foreground surface: '+', '.join(sorted(packages)))
         return root,data
     def bounds(node):
@@ -51,11 +54,19 @@ def main():
             label=node.get('text') or node.get('content-desc')
             if label and bounds(node):print(json.dumps({'text':label,'bounds':bounds(node),'clickable':node.get('clickable'),'enabled':node.get('enabled')},ensure_ascii=False))
     elif args.command=='tap':
-        root,_=hierarchy();matches=[]
-        for node in root.iter('node'):
-            labels=[node.get('text',''),node.get('content-desc','')]
-            match=any(args.label in label for label in labels) if args.contains else args.label in labels
-            if match and bounds(node) and node.get('enabled')!='false':matches.append(node)
+        matches=[]
+        for attempt in range(5 if args.scroll else 1):
+            root,_=hierarchy();matches=[]
+            for node in root.iter('node'):
+                labels=[node.get('text',''),node.get('content-desc','')]
+                match=any(args.label in label for label in labels) if args.contains else args.label in labels
+                if match and bounds(node) and node.get('enabled')!='false':matches.append(node)
+            if len(matches)>args.index or not args.scroll:break
+            sizes=re.findall(r'(\d+)x(\d+)',adb('shell','wm','size'))
+            if not sizes:break
+            width,height=map(int,sizes[-1]);low,high=int(height*.72),int(height*.30)
+            y1,y2=(low,high) if args.scroll=='up' else (high,low)
+            adb('shell','input','swipe',str(width//2),str(y1),str(width//2),str(y2),'500')
         matches.sort(key=lambda node:node.get('clickable')!='true')
         if args.index<0 or args.index>=len(matches):raise RuntimeError(f'Visible enabled target not found: {args.label!r}; matches={len(matches)}')
         x1,y1,x2,y2=bounds(matches[args.index]);adb('shell','input','tap',str((x1+x2)//2),str((y1+y2)//2))
@@ -80,9 +91,9 @@ def main():
         if not re.fullmatch(r'[A-Za-z0-9 .,@_+:/=-]{1,2000}',args.value):raise RuntimeError('Use plain ASCII form input without shell metacharacters.')
         adb('shell','input','text',args.value.replace(' ','%s'))
     elif args.command=='swipe':
-        size=adb('shell','wm','size');match=re.search(r'(\d+)x(\d+)',size)
-        if not match:raise RuntimeError('Cannot read the selected device display size.')
-        width,height=map(int,match.groups());fraction=max(.1,min(.7,args.fraction));center=int(height*.52);delta=int(height*fraction/2)
+        size=adb('shell','wm','size');matches=re.findall(r'(\d+)x(\d+)',size)
+        if not matches:raise RuntimeError('Cannot read the selected device display size.')
+        width,height=map(int,matches[-1]);fraction=max(.1,min(.7,args.fraction));center=int(height*.52);delta=int(height*fraction/2)
         y1,y2=(center+delta,center-delta) if args.direction=='up' else (center-delta,center+delta)
         adb('shell','input','swipe',str(width//2),str(y1),str(width//2),str(y2),'500')
 

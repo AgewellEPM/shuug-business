@@ -11,6 +11,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
 import kotlinx.serialization.json.*
 
 @Composable fun AccountScreen(repo: DriverRepository,onRewards: ()->Unit,onPrivacy: ()->Unit,onTracking: ()->Unit) {
+    val exportJournal=rememberJournalExport(repo)
     var address by remember {mutableStateOf("")};var email by remember {mutableStateOf("")};var password by remember {mutableStateOf("")};var transfer by remember {mutableStateOf(false)}
     var actionBusy by remember {mutableStateOf(false)};var signOut by remember {mutableStateOf(false)}
     Panel("Your workspace") {
@@ -43,7 +44,7 @@ import kotlinx.serialization.json.*
         Text(repo.trackingStatus)
     }
     Button(onClick=onRewards,Modifier.fillMaxWidth()) {Text("Driver Rewards · $20 + points")}
-    OutlinedButton(onClick={repo.run {shareBytes(repo,exportCSV(repo.journal).toByteArray(),"text/csv","driver-records.csv")}},Modifier.fillMaxWidth()) {Text("Export journal CSV")}
+    OutlinedButton(onClick=exportJournal,Modifier.fillMaxWidth()) {Text("Export journal CSV")}
     TextButton(onClick=onPrivacy) {Text("Privacy & tracking details")}
     if(transfer) AlertDialog(onDismissRequest={transfer=false},title={Text("Copy guest records to this client?")},text={Text("Guest records, receipts and goals will be copied into ${repo.connection?.session?.account?.name}'s journal. They will be sent to the firm on your next sync. The local guest source remains recoverable.")},confirmButton={TextButton(onClick={transfer=false;repo.run {repo.transferGuest()}}) {Text("Copy records")}},dismissButton={TextButton(onClick={transfer=false}) {Text("Cancel")}})
     if(signOut) AlertDialog(onDismissRequest={signOut=false},title={Text("Disconnect this workspace?")},text={Text("The server session will be revoked. Unsynced account records remain separately on this phone; reconnect to sync them later.")},confirmButton={TextButton(onClick={signOut=false;repo.run {repo.disconnect()}}) {Text("Disconnect")}},dismissButton={TextButton(onClick={signOut=false}) {Text("Cancel")}})
@@ -95,7 +96,7 @@ import kotlinx.serialization.json.*
     Panel("Drives you control") {
         Text("The app records drives you start. Optional drive detection and purchase-stop reminders use the location permissions you grant, a visible monitoring notification and battery. Movement can prompt you to start a drive; recording starts when you confirm. Turn both assistance options off and end any active drive to stop recording.")
         Text("Android restrictions, force-stopping, permission changes and poor GPS can leave missing mileage. Review each drive. Detection cannot identify a paid job, business purpose or exact earnings for you.",color=Muted)
-        Text("Historical GPS route files stay in this phone’s private storage and are excluded from ordinary firm record sync. Opening a route comparison in Maps shares the chosen endpoints with your maps provider. Device backup and transfer are disabled for this app.",color=Muted)
+        Text("Historical GPS route files stay in this phone’s private storage and are excluded from ordinary firm record sync. Opening Directions shares the selected endpoints with the Google Maps app. Requested in-app Google comparisons send selected endpoints through the firm’s authenticated routing service to Google; they are not added to tax records. Device backup and transfer are disabled for this app.",color=Muted)
     }
     Panel("Expenses and receipts") {
         Text("You choose the expenses, income entries, receipt photos and scans to save. Receipt text recognition runs on this phone with the bundled ML Kit model. Suggested merchants and amounts need your review; they are not automatically posted.")
@@ -109,7 +110,7 @@ import kotlinx.serialization.json.*
     }
     Panel("Positioning & road comparisons") {
         Text("Destination search uses Android’s Geocoder service. When you request a road comparison, the configured routing service receives the selected endpoints, including historical job starts or drop-offs needed for that comparison. The street-map provider receives the areas you view.")
-        Text("Development builds can use the public OSRM demonstration when a firm routing service is not configured. It has no live traffic or availability guarantee. Release builds require an approved configured routing service. Your lookups are not sent to your firm as ordinary journal records.",color=Muted)
+        Text("Google Maps is the default for in-app road comparisons and needs firm setup. Requested endpoints go through the firm’s authenticated routing service to Google. An explicitly selected OSRM development mode may use a disclosed demonstration without live traffic; it is never a fallback for missing Google setup.",color=Muted)
         Text("Waiting-area matches describe your recorded jobs. They do not predict live demand, guarantee a paying offer or reserve a place to wait.",color=Muted)
     }
     Panel("Offer reading you control") {
@@ -147,15 +148,7 @@ import kotlinx.serialization.json.*
         Text("The workspace maintains referral status, points, reward requests and staff fulfillment records. Referrers cannot view a friend’s tax documents or client details. Staff verifies eligibility before issuing rewards.")
     }
     Panel("Included services") {
-        Text("The app uses Android location and notification services, Android Geocoder, OpenStreetMap office and street maps, a configured road-routing service, bundled on-device ML Kit recognition and Plaid for optional bank linking. No advertising SDK or automatic tax-filing connection is included.")
+        Text("The app uses Android location and notification services, Android Geocoder, OpenStreetMap office maps, native Google Maps when configured, and an authenticated Google Routes service for requested comparisons, bundled on-device ML Kit recognition and Plaid for optional bank linking. No advertising SDK or automatic tax-filing connection is included.")
         Text("Find my firm’s workspace retrieves the public connection address from the firm’s website. Calling, appointment providers, bank linking, your chosen maps app and pages opened in a browser have their own data practices.",color=Muted)
     }
-}
-
-fun exportCSV(journal: Journal): String {
-    fun cell(value: String): String {val safe=if(value.trimStart().firstOrNull() in listOf('=','+','-','@','\t','\r')) "'"+value else value;return "\""+safe.replace("\"","\"\"")+"\""}
-    val header=listOf("id","kind","date","description","amount_cents","classification","category","miles","fare_cents","fees_cents","platform","work_area","bank_source","details_json")
-    return (listOf(header)+journal.visible.map {entry->val r=entry.record;val t=if(r.kind=="trip") r.trip() else null;val e=if(r.kind=="expense") r.expense() else null;val i=if(r.kind=="income") r.income() else null
-        listOf(r.id,r.kind,r.date,r.title,(e?.amountCents ?: i?.amountCents)?.toString() ?: "",e?.classification ?: t?.classification ?: "",e?.category ?: "",t?.let {(it.distanceMeters/1609.344).toString()} ?: "",t?.earningsCents?.toString() ?: "",t?.platformFeesCents?.toString() ?: "",t?.platform ?: i?.platform ?: "",t?.workArea ?: "",r.bankReference?.transactionId ?: "",r.body.toString())
-    }).joinToString("\r\n") {it.joinToString(",",transform=::cell)}+"\r\n"
 }

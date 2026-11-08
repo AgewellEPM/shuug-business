@@ -17,12 +17,16 @@ import kotlinx.serialization.json.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
+import java.util.Locale
 
-@Composable fun BankScreen(repo: DriverRepository,onImport: ()->Unit,onReview: (BankTransaction)->Unit) {
+@Composable fun BankScreen(repo: DriverRepository,onImport: ()->Unit,onReview: (BankTransaction)->Unit,onOpenRecord: ((String)->Unit)?=null) {
+    val accountScope=repo.scope
+    var showAll by rememberSaveable(accountScope) {mutableStateOf(false)}
+    var limit by remember(accountScope,showAll) {mutableIntStateOf(100)}
     var linkId by rememberSaveable {mutableStateOf<String?>(null)}; var linkScope by rememberSaveable {mutableStateOf<String?>(null)}
-    var connecting by remember {mutableStateOf(false)}; var disconnect by remember {mutableStateOf<BankItem?>(null)}
-    var match by remember {mutableStateOf<Pair<BankTransaction,DriverRecord>?>(null)}
-    var notice by remember {mutableStateOf<String?>(null)}
+    var connecting by remember(accountScope) {mutableStateOf(false)}; var disconnect by remember(accountScope) {mutableStateOf<BankItem?>(null)}
+    var match by remember(accountScope) {mutableStateOf<Pair<BankTransaction,DriverRecord>?>(null)}
+    var notice by remember(accountScope) {mutableStateOf<String?>(null)}
     fun cancelPending() {
         val session=linkId;val expected=linkScope;val connection=repo.connection;linkId=null;linkScope=null
         if(session!=null && connection!=null && expected==repo.scope)repo.run {
@@ -56,24 +60,44 @@ import kotlin.math.abs
         item.error?.let {Text("Needs attention: $it")}
         if(item.connected==1) {TextButton(onClick={connect(item)},enabled=!connecting) {Text("Reconnect securely")};TextButton(onClick={disconnect=item}) {Text("Disconnect bank")}}
     }}
-    if(repo.journal.bankTransactions.isEmpty()) Text("Imported transactions appear here for review.")
-    repo.journal.bankTransactions.sortedByDescending {it.date}.take(300).forEach {row->Panel(row.merchant) {
-        Text("${row.date} · ${row.currency} ${"%.2f".format(abs(row.amountCents)/100.0)} · ${if(row.amountCents>0) "Outflow" else "Credit"}")
+    Toggle("Show reviewed, pending & ignored",showAll,{showAll=it})
+    val transactions=repo.journal.bankTransactions.filter {showAll || it.ready || it.needsUpdateReview==true}.sortedByDescending {it.date}
+    val candidates=remember(repo.journal.entries) {repo.journal.visible.map {it.record}.filter {it.kind in setOf("expense","income") && it.bankReference==null}
+        .groupBy {record->if(record.kind=="expense") record.expense().let {Triple("expense",it.currency,it.amountCents)} else record.income().let {Triple("income",it.currency,it.amountCents)}}}
+    if(transactions.isEmpty()) Panel("No transactions to review") {Text("Import a statement or connect an available bank. Nothing is labeled as business automatically.",color=Muted)}
+    transactions.take(limit).forEach {row->Panel(row.merchant) {
+        Text("${row.date} · ${row.currency} ${"%.2f".format(Locale.US,abs(row.amountCents.toLong())/100.0)} · ${if(row.amountCents>0) "Spending" else "Received"}")
         Text(row.accountLabel,color=Muted)
-        Text(when {row.removed->"Removed by bank";row.pending->"Pending · wait for posting";row.needsUpdateReview==true->"Bank details changed: review the linked entry; it has not been overwritten.";row.reviewedRecordId!=null->"Linked to journal";row.ignored==true->"Ignored";row.isTestData==true->"Test transaction";else->"Ready for your review"})
-        if(row.ready && row.currency=="USD" && row.isTestData!=true) {
-            Button(onClick={onReview(row)}) {Text(if(row.amountCents>0) "Create expense" else "Review as income")}
-            val matches=repo.journal.visible.filter {entry->val r=entry.record; r.bankReference==null &&
-                (if(row.amountCents>0) r.kind=="expense" && r.expense().amountCents==row.amountCents else r.kind=="income" && r.income().amountCents== -row.amountCents) &&
-                abs(ChronoUnit.DAYS.between(LocalDate.parse(row.date),LocalDate.parse(r.date)))<=3}
-            matches.take(3).forEach {candidate->OutlinedButton(onClick={match=row to candidate.record}) {Text("Match existing: ${candidate.record.title} · ${candidate.record.date}")}}
+        Text(when {row.needsUpdateReview==true->"Bank details changed—review saved record";row.pending->"Pending—wait for posting";row.removed->"Removed by bank";row.reviewedRecordId!=null->"Linked to journal";row.ignored==true->"Ignored / personal";row.isTestData==true->"Sandbox test transaction";else->"Ready for your review"})
+        row.suggestedCategory?.let {Text("Suggested: ${expenseCategories[it] ?: it}",color=Link)}
+        if(row.pending) Text("Its amount or merchant can change; wait for the posted transaction.",color=Muted)
+        if(row.removed) Text("Your bank removed this transaction. Review any linked journal record; the app has not deleted it.",color=Muted)
+        if(row.isTestData==true) Text("This test transaction cannot be posted to your real journal.",color=Caution)
+        if(row.reviewedRecordId!=null) {
+            onOpenRecord?.let {open->Action("Open saved record",{open(row.reviewedRecordId)},primary=false)}
+            if(row.needsUpdateReview==true) {
+                Text("Compare these updated bank details with your saved entry. Corrections are never silently posted.",color=Muted)
+                TextButton(onClick={repo.run {require(repo.scope==accountScope) {"Your account changed. Reopen bank review."};repo.update {it.copy(bankTransactions=it.bankTransactions.map {b->if(b.id==row.id) b.copy(needsUpdateReview=false) else b})}}}) {Text("I reviewed this bank update")}
+            }
+        } else if(row.ready && row.currency=="USD" && row.isTestData!=true) {
+            if(row.amountCents<0) Text("Money received can be earnings, a refund or a transfer. Record business receipts only when appropriate; ignore transfers between your own accounts.",color=Muted)
+            Button(onClick={onReview(row)}) {Text(if(row.amountCents>0) "Create expense from this transaction" else "Record business income / receipt")}
+            val key=Triple(if(row.amountCents>0) "expense" else "income",row.currency,abs(row.amountCents))
+            val matches=candidates[key].orEmpty().filter {record->runCatching {abs(ChronoUnit.DAYS.between(LocalDate.parse(row.date),LocalDate.parse(record.date)))<=3}.getOrDefault(false)}
+            if(matches.isNotEmpty()) Text("Possible existing records · Same amount within three days. Confirm a match to keep its receipt and avoid another entry.",color=Muted)
+            matches.forEach {candidate->OutlinedButton(onClick={match=row to candidate}) {Text("Match: ${candidate.title} · ${candidate.date}")}}
         }
-        if(row.needsUpdateReview==true) TextButton(onClick={repo.run {repo.update {it.copy(bankTransactions=it.bankTransactions.map {b->if(b.id==row.id) b.copy(needsUpdateReview=false) else b})}}}) {Text("Mark change reviewed")}
-        if(row.reviewedRecordId==null) TextButton(onClick={repo.run {repo.update {it.copy(bankTransactions=it.bankTransactions.map {b->if(b.id==row.id) b.copy(ignored=b.ignored!=true) else b})}}}) {Text(if(row.ignored==true) "Restore to review" else "Ignore transaction")}
+        if(row.reviewedRecordId==null) TextButton(onClick={repo.run {require(repo.scope==accountScope) {"Your account changed. Reopen bank review."};repo.update {it.copy(bankTransactions=it.bankTransactions.map {b->if(b.id==row.id) b.copy(ignored=b.ignored!=true) else b})}}}) {Text(if(row.ignored==true) "Return to review" else "Ignore / personal / transfer")}
     }}
-    if(repo.journal.bankTransactions.size>300) Text("Showing the latest 300 transactions. Your full inbox is kept on this phone.",color=Muted)
-    disconnect?.let {item->AlertDialog(onDismissRequest={disconnect=null},title={Text("Disconnect ${item.label}?")},text={Text("New bank imports will stop. Existing records and source history are kept.")},confirmButton={TextButton(onClick={disconnect=null;repo.run {WorkspaceClient(repo.connection!!).action("banks",mapOf("action" to "disconnect","itemId" to item.id));repo.refreshBanks()}}) {Text("Disconnect")}},dismissButton={TextButton(onClick={disconnect=null}) {Text("Cancel")}})}
-    match?.let { (row,record)->AlertDialog(onDismissRequest={match=null},title={Text("Link to this existing entry?")},text={Text("Confirm the date, merchant and amount refer to the same purchase. Its receipt and details will be kept.")},confirmButton={TextButton(onClick={match=null;repo.run {repo.save(if(record.kind=="expense") DriverRecord.expense(record.expense().copy(bankReference=row.reference),record.id,record.revision) else DriverRecord.income(record.income().copy(bankReference=row.reference),record.id,record.revision))}}) {Text("Link entry")}},dismissButton={TextButton(onClick={match=null}) {Text("Cancel")}})}
+    if(transactions.isNotEmpty()) Text("Showing ${minOf(limit,transactions.size)} of ${transactions.size} transactions",color=Muted)
+    if(transactions.size>limit) Action("Show more transactions",{limit=(limit+100).coerceAtMost(transactions.size)},primary=false)
+    disconnect?.let {item->AlertDialog(onDismissRequest={disconnect=null},title={Text("Disconnect ${item.label}?")},text={Text("New bank imports will stop. Existing records and source history are kept.")},confirmButton={TextButton(onClick={disconnect=null;repo.run {require(repo.scope==accountScope) {"Your account changed. Reopen bank review."};val connection=repo.connection ?: error("Reconnect your workspace first.");WorkspaceClient(connection).action("banks",mapOf("action" to "disconnect","itemId" to item.id));if(repo.scope==accountScope) repo.refreshBanks()}}) {Text("Disconnect")}},dismissButton={TextButton(onClick={disconnect=null}) {Text("Cancel")}})}
+    match?.let { (row,record)->AlertDialog(onDismissRequest={match=null},title={Text("Link to this existing entry?")},text={Text("Confirm the date, merchant and amount refer to the same purchase. Its receipt and details will be kept.")},confirmButton={TextButton(onClick={match=null;repo.run {require(repo.scope==accountScope) {"Your account changed. Reopen bank review."}
+            val current=repo.journal.bankTransactions.firstOrNull {it.id==row.id} ?: error("This transaction is no longer available.")
+            require(current.ready && current.currency=="USD" && current.isTestData!=true && current.amountCents==row.amountCents && current.date==row.date && current.merchant==row.merchant) {"The bank details changed. Review this transaction again."}
+            val saved=repo.journal.visible.firstOrNull {it.record.id==record.id}?.record
+            require(saved!=null && saved==record && saved.bankReference==null) {"The saved entry changed. Review the possible match again."}
+            repo.save(if(record.kind=="expense") DriverRecord.expense(record.expense().copy(bankReference=current.reference),record.id,record.revision) else DriverRecord.income(record.income().copy(bankReference=current.reference),record.id,record.revision))}}) {Text("Link entry")}},dismissButton={TextButton(onClick={match=null}) {Text("Cancel")}})}
 }
 
 @Composable fun BankImport(repo: DriverRepository,done: ()->Unit) {

@@ -1,0 +1,215 @@
+1
+00:00:00,200 --> 00:00:06,133
+Turn your phone sideways. Tap More tools to find your trips, money, account, and help.
+
+2
+00:00:06,433 --> 00:00:09,633
+Choose Trips to see the driving records saved on your phone.
+
+3
+00:00:09,933 --> 00:00:13,233
+Tap Add manual trip to enter mileage from your records.
+
+4
+00:00:13,533 --> 00:00:18,200
+Enter the distance you actually drove. This is a practice example.
+
+5
+00:00:18,500 --> 00:00:25,733
+Add a clear purpose so you can recognize this trip later.
+
+6
+00:00:26,033 --> 00:00:30,933
+Open Classification and choose Business for a business trip.
+
+7
+00:00:31,233 --> 00:00:35,600
+Scroll to earnings and enter the fare plus tips before platform fees.
+
+8
+00:00:35,900 --> 00:00:42,767
+Enter the known platform fees. Use zero only when there were none.
+
+9
+00:00:43,067 --> 00:00:47,267
+Review the details, then tap Save. Your trip appears in history.
+
+10
+00:00:47,567 --> 00:00:50,033
+Tap Done to return to your Home dashboard.
+
+11
+00:00:50,333 --> 00:00:53,000
+Tap Expense to record a purchase for your work.
+
+12
+00:00:53,300 --> 00:00:57,733
+Type the merchant name. This fuel stop is a practice entry.
+
+13
+00:00:58,033 --> 00:01:04,633
+Enter the amount from your receipt, then close the keyboard.
+
+14
+00:01:04,933 --> 00:01:09,800
+Open Category and choose Fuel for this example.
+
+15
+00:01:10,100 --> 00:01:14,700
+Choose Business when the purchase was for your work.
+
+16
+00:01:15,000 --> 00:01:18,400
+Check the amount and category, then save your expense.
+
+17
+00:01:18,700 --> 00:01:21,433
+Tap Offers to check a job before you decide.
+
+18
+00:01:21,733 --> 00:01:25,333
+Open the guide to practice bringing a job screenshot into the app.
+
+19
+00:01:25,633 --> 00:01:28,733
+First, tap Volume up in the practice picture.
+
+20
+00:01:29,033 --> 00:01:33,933
+Tap the Side button, then Next. On your phone, press both buttons together.
+
+21
+00:01:34,233 --> 00:01:37,367
+Tap the practice Save button to open the photo option.
+
+22
+00:01:37,667 --> 00:01:42,000
+Choose Save to Photos, then continue to the import lesson.
+
+23
+00:01:42,300 --> 00:01:47,033
+Choose the screenshot route to bring your picture into Gig Tax Pros.
+
+24
+00:01:47,333 --> 00:01:51,067
+Tap the practice picture, then continue to review the numbers.
+
+25
+00:01:51,367 --> 00:01:56,067
+Check the pay against the picture. Try changing this practice amount.
+
+26
+00:01:56,367 --> 00:02:00,067
+Tap Check this job to see how the changed pay affects the estimate.
+
+27
+00:02:00,367 --> 00:02:04,000
+Tap Done. The practice job was not saved to your records.
+
+28
+00:02:04,300 --> 00:02:08,267
+Tap Earnings to see results from your saved driving records.
+
+29
+00:02:08,567 --> 00:02:11,700
+Open Goals to set your own targets and vehicle cost.
+
+30
+00:02:12,000 --> 00:02:16,600
+Enter your estimated vehicle cost per mile. Use costs that fit your vehicle.
+
+31
+00:02:16,900 --> 00:02:25,400
+Enter your target net pay per driving hour, then close the keyboard.
+
+32
+00:02:25,700 --> 00:02:29,533
+Save your goals. Earnings now uses the vehicle cost you entered.
+
+33
+00:02:29,833 --> 00:02:33,033
+Tap Go Home to plan your destination and finish time.
+
+34
+00:02:33,333 --> 00:02:38,600
+Enter the net earnings you want to work toward during this shift.
+
+35
+00:02:38,900 --> 00:02:42,400
+Check the finish time and destination, then save your mission.
+
+36
+00:02:42,700 --> 00:02:46,633
+Tap Position to explore waiting areas using your saved job history.
+
+37
+00:02:46,933 --> 00:02:51,033
+Type the place you want to finish near before requesting route comparisons.
+
+38
+00:02:51,333 --> 00:02:57,233
+Tap Home to open the tools for your records and goals.
+
+39
+00:02:57,533 --> 00:03:00,267
+Tap the chat icon to open Tax and Goals.
+
+40
+00:03:00,567 --> 00:03:04,800
+Open Tax details to review information you choose to share with your team.
+
+41
+00:03:05,100 --> 00:03:08,667
+Cancel this practice form, then return to Home.
+
+42
+00:03:08,967 --> 00:03:13,133
+Open More tools and choose Ratings and reviews.
+
+43
+00:03:13,433 --> 00:03:16,200
+Tap Add rating to record a score from your gig app.
+
+44
+00:03:16,500 --> 00:03:21,433
+Enter the score you saw. We are using a practice rating.
+
+45
+00:03:21,733 --> 00:03:25,367
+Save the snapshot to your own history, then return to Home.
+
+46
+00:03:25,667 --> 00:03:29,667
+Open More tools and choose Account to find your sign-in options.
+
+47
+00:03:29,967 --> 00:03:34,300
+Expand the workspace address option if your firm supplied a sign-in address.
+
+48
+00:03:34,600 --> 00:03:38,400
+Scroll to App privacy and data to review what stays on your phone.
+
+49
+00:03:38,700 --> 00:03:42,200
+Go back, then tap Done to return to your Home dashboard.
+
+50
+00:03:42,500 --> 00:03:45,700
+Tap Find an office and get help to open the office map.
+
+51
+00:03:46,000 --> 00:03:50,633
+Enter your ZIP code, then close the keyboard to search for nearby offices.
+
+52
+00:03:50,933 --> 00:03:56,133
+Tap Search. Available offices and contact options will appear here.
+
+53
+00:03:56,433 --> 00:03:59,400
+Tap Back to return to Home and choose your next step.
+
+54
+00:03:59,700 --> 00:04:04,033
+Open the sample shift to explore example earnings separately from your records.

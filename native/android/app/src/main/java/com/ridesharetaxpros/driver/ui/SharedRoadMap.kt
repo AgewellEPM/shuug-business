@@ -36,7 +36,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** Geography comes from real street tiles; overlays use the actual saved/returned coordinates. */
-data class RoadMapLine(val points: List<PositionPoint>,val tint: Color,val label: String)
+data class RoadMapLine(val points: List<PositionPoint>,val tint: Color,val label: String,val provider: RoadProvider=RoadProvider.LOCAL)
 data class RoadMapMarker(val point: PositionPoint,val tint: Color,val label: String)
 
 private object StreetTiles {
@@ -92,6 +92,19 @@ private object StreetTiles {
 
 @Composable fun SharedRoadMap(repo: DriverRepository,lines: List<RoadMapLine>,markers: List<RoadMapMarker> = emptyList(),
     height: Dp=240.dp,description: String="Road map") {
+    val sources=lines.map {it.provider}.filter {it!=RoadProvider.LOCAL}.toSet()
+    if(sources.size>1) {Panel("Recalculate this route") {Text("The road provider changed. Recalculate before displaying this comparison.",color=Caution)};return}
+    // Recorded GPS previews remain available without a paid routing setup.
+    // Only returned provider geometry controls the comparison renderer.
+    val provider=sources.singleOrNull() ?: RoadProvider.LOCAL
+    when(provider) {
+        RoadProvider.GOOGLE->GoogleRoadMap(lines,markers,height,description)
+        RoadProvider.OSRM,RoadProvider.LOCAL->OpenStreetRoadMap(repo,lines,markers,height,description)
+    }
+}
+
+@Composable private fun OpenStreetRoadMap(repo: DriverRepository,lines: List<RoadMapLine>,markers: List<RoadMapMarker>,
+    height: Dp,description: String) {
     val density=LocalDensity.current.density
     val points=lines.flatMap {it.points}.filter {it.valid}+markers.map {it.point}.filter {it.valid}
     if(points.isEmpty()) return

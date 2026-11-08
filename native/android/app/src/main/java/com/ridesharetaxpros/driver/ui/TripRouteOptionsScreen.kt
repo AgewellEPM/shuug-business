@@ -37,14 +37,17 @@ import kotlinx.coroutines.*
     Panel("Compare current route options") {
         Text(String.format(Locale.US,"Recorded: %.2f miles",trip.distanceMeters/1609.344),fontWeight=FontWeight.Bold)
         Text("Send the saved start and end points to the configured road service when you tap. Current routes may omit original stops and do not prove which route was best during this trip.",color=Muted,fontSize=12.sp)
-        Text("The street-map provider receives the map areas you view. Saved route points stay on this phone; these lookups are not added to your journal.",color=Muted,fontSize=12.sp)
-        if(BuildConfig.DEBUG) Text("Development preview: deliberate requests use the public OSRM demonstration when no approved road service is configured. It has no live traffic guarantee.",color=Muted,fontSize=11.sp)
+        Text("The map provider receives the areas you view. Requested in-app Google comparisons send these selected endpoints through your firm’s routing service to Google; no saved route history is uploaded or added to tax records.",color=Muted,fontSize=12.sp)
+        Action("Directions in Google Maps",{
+            val saved=review ?: return@Action
+            if(saved.first!=null && saved.last!=null) error=openGoogleMapsDirections(repo.app,saved.last!!,saved.first)
+        },primary=false,enabled=review?.canCompare==true)
         Action("Compare routes for these endpoints",{
             val saved=review ?: return@Action
             if(!saved.canCompare) return@Action
             job?.cancel();val request=++generation;loading=true;error=null
             job=coroutine.launch {
-                try {val alternatives=PositionRoadService.alternatives(scope,saved.first!!,saved.last!!)
+                try {val alternatives=PositionRoadService.alternatives(scope,saved.first!!,saved.last!!,repo.connection,repo.app)
                     if(repo.scope==scope && request==generation) {routes=alternatives;selected=0}}
                 catch(cancelled: CancellationException) {throw cancelled}
                 catch(problem: Exception) {if(repo.scope==scope && request==generation) error=problem.message ?: "Route comparison is unavailable. Your recorded trip is unchanged."}
@@ -60,7 +63,7 @@ import kotlinx.coroutines.*
     if(chosen!=null) {
         SharedRoadMap(repo,
             review!!.segments.map {RoadMapLine(it,Purple.copy(alpha=.65f),"Recorded route")}+
-                routes.mapIndexed {index,road->RoadMapLine(road.points,if(index==selected) Route else Muted.copy(alpha=.5f),road.name)},
+                routes.mapIndexed {index,road->RoadMapLine(road.points,if(index==selected) Route else Muted.copy(alpha=.5f),road.name,road.providerKind)},
             listOf(RoadMapMarker(chosen.points.first(),Color.White,"Saved start"),RoadMapMarker(chosen.points.last(),Pink,"Saved end")),
             description="Saved trip endpoints and current alternative driving routes")
         Text("Purple: recorded · Light: selected current route",color=Muted,fontSize=11.sp)

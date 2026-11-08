@@ -167,7 +167,7 @@ private fun openOfficeLink(repo: DriverRepository,url: String) {
         point?.let {Text("${"%.1f".format(Locale.US,it.milesTo(office.coordinate))} miles away · straight-line",color=Muted,style=MaterialTheme.typography.bodySmall)}
         if(office.contact.shows24x7) Text("Phone help available 24/7",color=Income)
         OfficeContactActions(repo,office.contact)
-        OutlinedButton(onClick={openOfficeLink(repo,"https://www.google.com/maps/dir/?api=1&destination=${office.latitude},${office.longitude}&travelmode=driving")},modifier=Modifier.fillMaxWidth()) {Text("Get directions")}
+        OutlinedButton(onClick={openGoogleMapsDirections(repo.app,PositionPoint(office.latitude,office.longitude))?.let {repo.failure=it}},modifier=Modifier.fillMaxWidth()) {Text("Get directions")}
     }
     updatedAt?.let {Text("Updated ${profileDay(it)}",color=Muted,style=MaterialTheme.typography.labelSmall)}
     TextButton(onClick={openOfficeLink(repo,"https://gigtax.pro")}) {Text("Visit GigTax.pro")}
@@ -200,8 +200,7 @@ private fun decodeOfficeImage(bytes: ByteArray): ImageBitmap? {
     image?.let {Image(it,"Exterior of ${office.name}",Modifier.fillMaxWidth().height(190.dp).clip(RoundedCornerShape(16.dp)))}
         ?: Text(if(fetching) "Loading office exterior…" else "Office exterior photo not available.",color=Muted,style=MaterialTheme.typography.bodySmall)
     TextButton(onClick={
-        val street=Intent(Intent.ACTION_VIEW,Uri.parse("google.streetview:cbll=${office.latitude},${office.longitude}")).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        runCatching {repo.app.startActivity(street)}.onFailure {openOfficeLink(repo,"https://www.google.com/maps/search/?api=1&query=${office.latitude},${office.longitude}")}
+        openGoogleMapsStreetView(repo.app,PositionPoint(office.latitude,office.longitude))?.let {repo.failure=it}
     }) {Text("View street surroundings")}
 }
 

@@ -1,21 +1,10 @@
 package com.ridesharetaxpros.driver.core
 
-import com.ridesharetaxpros.driver.BuildConfig
-import com.ridesharetaxpros.driver.data.boundedRead
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.net.HttpURLConnection
-import java.net.URI
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.*
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.*
 
 data class PositionPoint(val latitude: Double,val longitude: Double) {
     val valid get()=latitude.isFinite() && longitude.isFinite() && latitude in -90.0..90.0 && longitude in -180.0..180.0
@@ -54,7 +43,7 @@ fun historicalWaitingAreas(history: List<HistoricalJob>,current: PositionPoint,d
 }
 
 data class PositionRoad(val meters: Double,val seconds: Double,val points: List<PositionPoint>,
-    val measuredAt: Instant=Instant.now(),val provider: String,val name: String="")
+    val measuredAt: Instant=Instant.now(),val provider: String,val name: String="",val providerKind: RoadProvider=RoadProvider.OSRM)
 data class PositionedArea(val area: HistoricalArea,val approach: PositionRoad,val onward: PositionRoad,
     val repositionCents: Int,val hourlyCents: Int,val deadlineMarginMinutes: Double?)
 
@@ -75,6 +64,7 @@ fun assessOfferRoad(offer: ReviewedGigOffer,journey: OfferRoadJourney,preference
     if(!offer.checked || !offer.fresh(clock) || offer.platform !in preferences.preferredPlatforms)
         return review("Missing current offer or platform preference. Recheck the offer in its original app and review its fields.")
     val legs=listOf(journey.direct,journey.pickup,journey.delivery,journey.onward)
+    if(legs.map {it.providerKind}.distinct().size!=1) return review("The road provider changed. Calculate the complete route again before deciding.")
     if(Duration.between(journey.originCapturedAt,clock).seconds !in 0..120 || legs.any {
         Duration.between(it.measuredAt,clock).seconds !in 0..300 || !it.meters.isFinite() || it.meters !in 0.0..16_093_440.0 ||
             !it.seconds.isFinite() || it.seconds !in 0.0..86400.0
@@ -121,80 +111,4 @@ fun assessOfferRoad(offer: ReviewedGigOffer,journey: OfferRoadJourney,preference
         return result.copy(reason="Travel and wait uncertainty exceed the conservative setting.")
     return if(progress>=0) result.copy(outcome="aligned",reason="Meets the pay target, stays within the deadline and ends at least as close by road.")
         else result.copy(outcome="tradeoff",reason="Profitable within your limits, but the drop-off is farther from your destination.")
-}
-
-/** Explicit requests only. Endpoints can be changed in the public configuration. */
-object PositionRoadService {
-    private val lock=Mutex()
-    private var configAt=Instant.EPOCH
-    private var configured: String?=null
-    private val cache=linkedMapOf<String,List<PositionRoad>>()
-    const val configurationKey="androidRoadRouterUrl"
-    private fun read(url: String,limit: Int): ByteArray {
-        val request=URI(url).toURL().openConnection() as HttpURLConnection
-        try {
-            request.instanceFollowRedirects=false;request.connectTimeout=15000;request.readTimeout=20000
-            request.setRequestProperty("User-Agent","GigTaxPros-Android/0.1 (+https://gigtax.pro)")
-            request.setRequestProperty("Accept","application/json");request.setRequestProperty("Cache-Control","no-store")
-            require(request.responseCode==200) {"Road routing is unavailable right now. Try again later."}
-            return request.inputStream.use {boundedRead(it,limit)}
-        } finally {request.disconnect()}
-    }
-    private fun validEndpoint(value: String): String {
-        val uri=URI(value)
-        val host=uri.host?.lowercase() ?: error("Road routing is not connected.")
-        require(uri.scheme=="https" && uri.userInfo==null && uri.query==null && uri.fragment==null &&
-            uri.port in listOf(-1,443) && host.contains('.') && !host.matches(Regex("[0-9.]+")) &&
-            !host.endsWith(".local") && !host.endsWith(".internal") && !host.endsWith(".localhost") &&
-            !uri.path.split('/').contains("..")) {"The road-routing address is unavailable."}
-        return value.trimEnd('/')
-    }
-    private fun endpoint(): Pair<String,String> {
-        if(Duration.between(configAt,Instant.now()).seconds !in 0..600) {
-            configured=runCatching {
-                Wire.parseToJsonElement(read("https://gigtax.pro/site-config.json",100000).toString(Charsets.UTF_8))
-                    .jsonObject[configurationKey]?.jsonPrimitive?.contentOrNull?.let(::validEndpoint)
-            }.getOrNull()
-            configAt=Instant.now()
-        }
-        configured?.let {return it to "Configured road routing · OpenStreetMap"}
-        check(BuildConfig.DEBUG) {"Road comparisons are not connected yet. You can still open directions in Maps."}
-        return "https://router.project-osrm.org" to "Public OSRM demonstration · No live traffic"
-    }
-    suspend fun route(scope: String,from: PositionPoint,to: PositionPoint): PositionRoad = request(scope,from,to,false).first()
-    suspend fun alternatives(scope: String,from: PositionPoint,to: PositionPoint): List<PositionRoad> =
-        request(scope,from,to,true).sortedBy {it.meters}
-    private suspend fun request(scope: String,from: PositionPoint,to: PositionPoint,alternatives: Boolean): List<PositionRoad> = withContext(Dispatchers.IO) {
-        require(from.valid && to.valid) {"Choose valid route endpoints."}
-        lock.withLock {
-            val (endpoint,provider)=endpoint()
-            currentCoroutineContext().ensureActive()
-            val key="$scope|$endpoint|$alternatives|${from.longitude},${from.latitude};${to.longitude},${to.latitude}"
-            cache[key]?.takeIf {Duration.between(it.first().measuredAt,Instant.now()).seconds in 0..300}?.let {return@withLock it}
-            val url="$endpoint/route/v1/driving/${from.longitude},${from.latitude};${to.longitude},${to.latitude}?overview=full&geometries=geojson&steps=false&alternatives=$alternatives"
-            currentCoroutineContext().ensureActive()
-            val result=parsePositionRoads(read(url,4*1024*1024).toString(Charsets.UTF_8),provider)
-            if(cache.size>=32) cache.remove(cache.keys.first())
-            cache[key]=result;result
-        }
-    }
-}
-
-internal fun parsePositionRoads(json: String,provider: String,clock: Instant=Instant.now()): List<PositionRoad> {
-    val body=Wire.parseToJsonElement(json).jsonObject
-    require(body["code"]?.jsonPrimitive?.content=="Ok") {"No supported road route was found. Choose another place."}
-    val routes=body["routes"]?.jsonArray?.take(3).orEmpty()
-    require(routes.isNotEmpty()) {"No driving routes are available for these endpoints."}
-    return routes.mapIndexed {index,routeElement->
-        val route=routeElement.jsonObject
-        val distance=route["distance"]!!.jsonPrimitive.double;val seconds=route["duration"]!!.jsonPrimitive.double
-        require(distance.isFinite() && distance in 0.0..20_000_000.0 && seconds.isFinite() && seconds in 0.0..864000.0) {"Road estimates are incomplete."}
-        val coordinates=route["geometry"]!!.jsonObject["coordinates"]!!.jsonArray
-        require(coordinates.size in 2..50000) {"This road route is too large to display."}
-        val points=coordinates.map {it.jsonArray.let {p->PositionPoint(p[1].jsonPrimitive.double,p[0].jsonPrimitive.double)}}
-        require(points.all {it.valid}) {"The returned road coordinates are incomplete."}
-        val summary=route["legs"]?.jsonArray.orEmpty().mapNotNull {it.jsonObject["summary"]?.jsonPrimitive?.contentOrNull}
-            .filter {it.isNotBlank()}.joinToString(" · ").take(180)
-        PositionRoad(distance,seconds,points,clock,provider,summary.ifBlank {"Route option ${index+1}"})
-    }.distinctBy {Triple(it.meters,it.seconds,it.points)}
 }

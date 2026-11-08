@@ -9,6 +9,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
@@ -81,8 +84,8 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
     Text("Compare observed offers across your gig apps. Availability is checked in the original app.",color=Muted,fontSize=13.sp)
     ScreenshotHelpCard(navigate)
     Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-        OutlinedButton(onClick={navigate("Offer reader")},Modifier.weight(1f)) {Icon(Icons.Default.DocumentScanner,null);Text("Read an offer")}
-        OutlinedButton(onClick={navigate("Enter offer")},Modifier.weight(1f).testTag("offers.enter")) {Icon(Icons.Default.Add,null);Text("Enter")}
+        OutlinedButton(onClick={navigate("Offer reader")},Modifier.weight(1f).height(48.dp),shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,Border),colors=ButtonDefaults.outlinedButtonColors(contentColor=Color.White)) {Icon(Icons.Default.DocumentScanner,null);Spacer(Modifier.width(8.dp));Text("Read an offer",fontSize=17.sp,fontWeight=FontWeight.SemiBold)}
+        OutlinedButton(onClick={navigate("Enter offer")},Modifier.weight(1f).height(48.dp).testTag("offers.enter"),shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,Border),colors=ButtonDefaults.outlinedButtonColors(contentColor=Color.White)) {Icon(Icons.Default.Add,null);Spacer(Modifier.width(8.dp));Text("Enter",fontSize=17.sp,fontWeight=FontWeight.SemiBold)}
     }
     TextButton(onClick={navigate("Capture diagnostics")}) {Icon(Icons.Default.MonitorHeart,null);Text("Offer Capture Diagnostics")}
     var clock by remember {mutableStateOf(Instant.now())}
@@ -97,16 +100,19 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
         Icon(Icons.Default.MoreTime,null,tint=Pink,modifier=Modifier.size(34.dp))
         Text("Your next offer starts here.",fontSize=23.sp,fontWeight=FontWeight.Bold)
         Text("Share a screenshot or text, or enter an offer while parked. Missing information stays visible for review.",color=Muted)
-        TextButton(onClick={navigate("Sample offers")},Modifier.testTag("offers.sample")) {Text("Explore a sample shift")}
+        TextButton(onClick={navigate("Sample offers")},Modifier.testTag("offers.sample"),contentPadding=PaddingValues(0.dp)) {Text("Explore a sample shift",fontSize=17.sp)}
     } else ranked.forEach { row -> OfferCard(row.offer,row.financial,false,row.kind,row.reason) {navigate("Offer:${row.offer.id}")} }
     TextButton(onClick={navigate("Sample offers")}) {Text("View simulated multi-platform offers")}
 }
 
 @Composable fun ScreenshotHelpCard(navigate: (String)->Unit) {
-    Panel("Is this job worth it?") {
-        Text("Take a screenshot. Bring it here. Check the pay after costs.",fontWeight=FontWeight.SemiBold)
-        Action("Show me how · Try the guide",{navigate("Screenshot guide")})
-        Action("Choose screenshot",{navigate("Choose screenshot")},primary=false)
+    Panel {
+        Row(verticalAlignment=androidx.compose.ui.Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
+            Icon(Icons.Default.DocumentScanner,null,Modifier.size(20.dp));Text("Is this job worth it?",fontSize=17.sp,fontWeight=FontWeight.SemiBold)
+        }
+        Text("Take a screenshot. Bring it here. Check the pay after costs.",fontSize=15.sp,color=Muted)
+        Action("Show me how · Try the guide",{navigate("Screenshot guide")},icon=Icons.Default.TouchApp)
+        Action("Choose screenshot",{navigate("Choose screenshot")},primary=false,icon=Icons.Default.AddPhotoAlternate)
     }
 }
 
@@ -130,7 +136,7 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
 }
 
 @Composable fun SampleOffersScreen(repo: DriverRepository,navigate: (String)->Unit,initialTab: String="Earnings") {
-    var tab by remember {mutableStateOf(initialTab)}
+    var tab by rememberSaveable {mutableStateOf(initialTab)}
     var notice by remember {mutableStateOf(false)}
     val records=remember {sampleShiftRecords()}
     Text("✦ SAMPLE DATA · Your records are separate",color=Link,fontSize=11.sp,fontWeight=FontWeight.Bold)

@@ -51,7 +51,7 @@ import kotlin.math.roundToInt
         val clock=Instant.now();val end=minOf(clock,Instant.parse(mission.deadline));val start=Instant.parse(mission.startedAt)
         val rides=allRides.filter {Instant.parse(it.record.trip().startedAt)>=start && Instant.parse(it.record.trip().endedAt)<=end}
         val net=rides.sumOf {it.net?.toLong() ?: 0L};val missing=rides.count {it.net==null}
-        Panel("Your mission") {
+        FormSection("Your mission") {
             Text("Earn ${usd(mission.targetCents)} and finish by ${Instant.parse(mission.deadline).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, h:mm a"))}",fontWeight=FontWeight.Bold)
             Text("Finish near: ${mission.destination}")
             LinearProgressIndicator(progress={(net.toFloat()/mission.targetCents).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth(),color=Pink)
@@ -62,8 +62,8 @@ import kotlin.math.roundToInt
             TextButton(onClick={repo.run {repo.update {it.copy(mission=null)}}}) {Text("End mission",color=Danger)}
         }
     }
-    Panel(if(mission==null) "Create today's mission" else "Replace mission") {
-        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {listOf(50,100,150,200).forEach {amount->OutlinedButton(onClick={goal=amount.toString()},contentPadding=PaddingValues(8.dp)) {Text("$$amount")}}}
+    FormSection(if(mission==null) "Create today's mission" else "Replace mission") {
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {listOf(50,100,150,200).forEach {amount->Button(onClick={goal=amount.toString()},colors=ButtonDefaults.buttonColors(containerColor=Pink.copy(alpha=.22f),contentColor=Pink),contentPadding=PaddingValues(horizontal=12.dp,vertical=6.dp)) {Text("$$amount",fontSize=17.sp)}}}
         Field("Net earnings goal ($)",goal,{goal=it})
         NavigationRow("Finish by",{
             DatePickerDialog(context,{_,year,month,day->
@@ -80,7 +80,7 @@ import kotlin.math.roundToInt
         }},enabled=repo.storageReady)
         Text("Changing a mission starts a new progress window. It does not delete your drives.",color=Muted,fontSize=12.sp)
     }
-    Panel("Evaluate an offer") {
+    FormSection("Evaluate an offer") {
         Text("Enter the complete job, including pickup miles and your best estimate of unpaid repositioning. These are estimates, not a guarantee.",fontSize=12.sp,color=Muted)
         Field("Offer label or platform (optional)",label,{label=it});Field("Offered payout ($)",payout,{payout=it})
         Field("Fees ($; enter 0 if none)",fees,{fees=it});Field("Total job and unpaid miles",miles,{miles=it})
@@ -107,7 +107,7 @@ import kotlin.math.roundToInt
         }}
         Text("Compare direction, your minimum and the deadline buffer. Availability and actual driving conditions can change; no offers are fetched automatically.",fontSize=12.sp,color=Muted)
     }
-    Panel("Pickup wait history") {
+    FormSection("Pickup wait history") {
         Field("Restaurant or pickup location",pickup,{pickup=it.take(120)});Field("Observed wait (minutes)",observedWait,{observedWait=it})
         Action("Save observed wait",{repo.run {
             val name=pickup.trim();val value=observedWait.toDouble();require(name.isNotEmpty() && value.isFinite() && value in 0.0..240.0) {"Enter a pickup name and wait from 0 to 240 minutes."}
@@ -119,13 +119,13 @@ import kotlin.math.roundToInt
         }
         Text("Your observations stay on this phone. Small samples may not predict your next pickup.",fontSize=12.sp,color=Muted)
     }
-    Panel("Dead Mile Killer") {
+    FormSection("Dead Mile Killer") {
         val unpaid=allRides.filter {it.record.trip().rideRole=="reposition"}.sumOf {it.miles}
         Text(String.format(Locale.US,"%.1f recorded unpaid business miles",unpaid))
         repo.journal.goals.vehicleCostCentsPerMile?.let {Text("Estimated vehicle cost: ${usd((unpaid*it).roundToInt())}")}
         Text("Classify pickup-area and return trips as driving without a paid ride. Consider offers that end nearer your next destination; review safety and actual routes first.",fontSize=12.sp,color=Muted)
     }
-    Panel("Platform comparisons") {
+    FormSection("Platform comparisons") {
         val groups=allRides.filter {it.hourly!=null && !it.record.trip().platform.isNullOrBlank()}.groupBy {it.record.trip().platform!!}
         if(groups.isEmpty()) Text("Add your platform and complete fares, fees and vehicle cost on business drives to compare.")
         groups.toSortedMap().forEach {(name,rows)->val total=rows.sumOf {it.minutes};if(total>0) Text("$name: ${usd((rows.sumOf {it.net ?: 0}*60/total).roundToInt())}/hour · ${rows.size} drives")}

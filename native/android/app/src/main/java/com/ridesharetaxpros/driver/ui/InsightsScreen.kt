@@ -50,7 +50,7 @@ import kotlin.math.*
     val days=(0 until period).map { last.minusDays((period-1-it).toLong()).toString() }.map { totals[it] ?: DayTotals(it) }
     val rides=records.filter { it.kind=="trip" && it.date in first..through && it.trip().classification=="business" && it.trip().endedAt!=null }.map { RideProfit(it,goals) }
     val priced=rides.filter { it.net!=null }; val drivingNet=priced.sumOf { it.net!!.toLong() }
-    val pricedMinutes=priced.sumOf { it.minutes }; val pricedMiles=priced.sumOf { it.miles }
+    val hourly=recordedHourlySummary(priced);val pricedMiles=priced.sumOf { it.miles }
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         Text("Know what your driving earns.",Modifier.weight(1f),fontSize=23.sp,fontWeight=FontWeight.Bold)
         TextButton(onClick=onGoals) { Text("Goals",color=Link) }
@@ -59,9 +59,9 @@ import kotlin.math.*
     EarningsPulse(days,rides,period)
     InsightCard {
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-            EfficiencyMetric("Per recorded hour",if(pricedMinutes>0) usd(drivingNet*60/pricedMinutes) else "—",if(drivingNet<0) Danger else Income,Modifier.weight(1f))
-            EfficiencyMetric("Net per priced mile",if(pricedMiles>0) usd(drivingNet/pricedMiles) else "—",if(drivingNet<0) Danger else Income,Modifier.weight(1f))
-            EfficiencyMetric("Drives priced","${priced.size}/${rides.size}",Route,Modifier.weight(1f))
+            EfficiencyMetric("Per recorded hour",hourly.hourlyCents?.let(::usd) ?: "—",if(hourly.hourlyCents==null)Link else if(hourly.timedNetCents<0)Danger else Income,"clock",Modifier.weight(1f))
+            EfficiencyMetric("Net per priced mile",if(pricedMiles>0) usd(drivingNet/pricedMiles) else "—",if(pricedMiles<=0) Link else if(drivingNet<0) Danger else Income,"road",Modifier.weight(1f))
+            EfficiencyMetric("Drives priced","${priced.size}/${rides.size}",Route,"verified",Modifier.weight(1f))
         }
     }
     MileageMix(rides,goals)
@@ -152,8 +152,30 @@ import kotlin.math.*
         }
     }
 }
-@Composable private fun EfficiencyMetric(title:String,value:String,tint:Color,modifier:Modifier=Modifier) {
-    Column(modifier,verticalArrangement=Arrangement.spacedBy(5.dp)) { Text(value,fontSize=20.sp,fontWeight=FontWeight.Bold,color=tint);Text(title,color=Muted,fontSize=12.sp,lineHeight=15.sp) }
+@Composable private fun EfficiencyMetric(title:String,value:String,tint:Color,icon:String,modifier:Modifier=Modifier) {
+    Row(modifier,verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        EarningsSymbol(icon,tint,Modifier.size(24.dp))
+        Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+            Text(value,fontSize=17.sp,lineHeight=20.sp,fontWeight=FontWeight.SemiBold,color=tint,maxLines=1,softWrap=false)
+            Text(title,color=Muted,fontSize=10.sp,lineHeight=12.sp,fontWeight=FontWeight.Medium,maxLines=2)
+        }
+    }
+}
+@Composable private fun EarningsSymbol(kind:String,tint:Color,modifier:Modifier=Modifier) {
+    Canvas(modifier) {
+        val scale=size.minDimension/24f
+        fun point(x:Float,y:Float)=Offset(x*scale,y*scale)
+        fun line(x:Float,y:Float,endX:Float,endY:Float)=drawLine(tint,point(x,y),point(endX,endY),1.8f*scale,cap=StrokeCap.Round)
+        when(kind) {
+            "clock"->{drawCircle(tint,9f*scale,point(12f,12f),style=Stroke(1.8f*scale));line(12f,5.5f,12f,12f);line(7f,12f,12f,12f)}
+            "road"->{line(6f,4f,1.5f,20f);line(18f,4f,22.5f,20f);line(12f,4f,12f,6.5f);line(12f,10f,12f,13f);line(12f,16.5f,12f,20f)}
+            "verified"->{
+                val seal=Path().apply {for(index in 0 until 16) {val angle=index*PI/8-PI/2;val radius=if(index%2==0)10.5 else 8.5;val x=(12+cos(angle)*radius).toFloat()*scale;val y=(12+sin(angle)*radius).toFloat()*scale;if(index==0)moveTo(x,y) else lineTo(x,y)};close()}
+                drawPath(seal,tint,style=Stroke(1.6f*scale));line(8f,12f,11f,15f);line(11f,15f,16f,8.5f)
+            }
+            else->{line(2f,3f,2f,21f);line(2f,21f,22f,21f);line(3f,14f,8f,10f);line(8f,10f,13f,14f);line(13f,14f,21f,7f);listOf(point(8f,10f),point(13f,14f),point(21f,7f)).forEach {drawCircle(tint,1.5f*scale,it)}}
+        }
+    }
 }
 @Composable private fun EarningsAmount(label:String,value:Long,color:Color) {
     Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(12.dp),verticalAlignment=Alignment.CenterVertically) {
@@ -177,9 +199,14 @@ import kotlin.math.*
                 DropdownMenu(expanded,onDismissRequest={expanded=false},containerColor=Panel) { listOf("Net earnings","Miles","Driving hours").forEach { name->DropdownMenuItem(text={Text(name)},onClick={metric=name;expanded=false}) } }
             }
         }
-        if(rides.isEmpty()) Column(Modifier.heightIn(min=120.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
-            Text("Your graph starts with your first drive",fontWeight=FontWeight.Medium)
-            Text("Completed drives, fares and your vehicle cost power these numbers.",color=Muted,style=MaterialTheme.typography.bodySmall)
+        if(rides.isEmpty()) Box(Modifier.fillMaxWidth().heightIn(min=120.dp),contentAlignment=Alignment.CenterStart) {
+            Column(verticalArrangement=Arrangement.spacedBy(5.dp)) {
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+                    EarningsSymbol("chart",Color.White,Modifier.size(18.dp))
+                    Text("Your graph starts with your first drive",fontSize=13.sp,lineHeight=17.sp,fontWeight=FontWeight.SemiBold)
+                }
+                Text("Completed drives, fares and your vehicle cost power these numbers.",color=Muted,fontSize=12.sp,lineHeight=16.sp)
+            }
         } else {
             EarningsLine(days,values,tint,selected,{ selected=it },metric,::format)
             if(selected!=null) TextButton(onClick={selected=null}) { Text("Show all $period days",color=Link) }

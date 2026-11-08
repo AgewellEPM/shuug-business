@@ -1,7 +1,6 @@
 package com.ridesharetaxpros.driver.ui
 
 import android.content.res.Configuration
-import android.media.MediaFormat
 import android.media.MediaPlayer
 import android.net.Uri
 import android.widget.MediaController
@@ -18,22 +17,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.ridesharetaxpros.driver.data.DriverRepository
 import com.ridesharetaxpros.driver.data.boundedRead
-import java.io.ByteArrayInputStream
+import com.ridesharetaxpros.driver.core.parseTourCaptions
+import com.ridesharetaxpros.driver.core.atPosition
 import java.net.HttpURLConnection
 import java.net.URI
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 
 /** Native app-display playback; English soft captions start selected. */
 @Composable fun NativeTourPlayer(repo:DriverRepository,uri:Uri,start:Double,close:()->Unit) {
@@ -43,16 +50,22 @@ import kotlinx.coroutines.withContext
     var captionsAvailable by remember {mutableStateOf(false)}
     var selectedCaption by remember {mutableIntStateOf(-1)}
     var subtitles by remember {mutableStateOf<ByteArray?>(null)}
-    var subtitleAdded by remember {mutableStateOf(false)}
-    val streams=remember {mutableListOf<ByteArrayInputStream>()}
+    var positionMs by remember {mutableLongStateOf(0)}
+    val cues=remember(subtitles) {subtitles?.let {runCatching {parseTourCaptions(it)}.getOrDefault(emptyList())} ?: emptyList()}
     val lifecycle=LocalLifecycleOwner.current
     fun selectEnglish(target:MediaPlayer) {
         runCatching {
             val tracks=target.trackInfo.mapIndexedNotNull {index,track->
                 if(track.trackType==MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_SUBTITLE || track.trackType==MediaPlayer.TrackInfo.MEDIA_TRACK_TYPE_TIMEDTEXT)index to track else null
             }
-            captionsAvailable=tracks.isNotEmpty()
-            if(captionsEnabled) {
+            captionsAvailable=tracks.isNotEmpty() || cues.isNotEmpty()
+            if(cues.isNotEmpty()) {
+                // OEM VideoView implementations can select an English track while
+                // hiding its renderer. Render our selectable soft cues consistently,
+                // and prevent a second system subtitle renderer from duplicating them.
+                tracks.forEach {(index,_)->runCatching {target.deselectTrack(index)}}
+                selectedCaption=-1
+            } else if(captionsEnabled) {
                 val index=(tracks.lastOrNull {it.second.language.lowercase() in setOf("en","eng","en-us","en-gb")} ?: tracks.lastOrNull())?.first
                 if(index!=null) {target.selectTrack(index);selectedCaption=index}
             } else if(selectedCaption>=0) {target.deselectTrack(selectedCaption);selectedCaption=-1}
@@ -71,23 +84,24 @@ import kotlinx.coroutines.withContext
             } catch(error:CancellationException) {throw error}catch(_:Exception) {null}
         }
     }
-    LaunchedEffect(subtitles,player) {
-        val bytes=subtitles;val view=player
-        if(bytes!=null && view!=null && !subtitleAdded) {
-            val stream=ByteArrayInputStream(bytes);streams+=stream
-            val format=MediaFormat.createSubtitleFormat(MediaFormat.MIMETYPE_TEXT_SUBRIP,"en").apply {
-                setInteger(MediaFormat.KEY_IS_DEFAULT,1);setInteger(MediaFormat.KEY_IS_AUTOSELECT,1)
-            }
-            runCatching {view.addSubtitleSource(stream,format);subtitleAdded=true}.onFailure {stream.close()}
-        }
+    LaunchedEffect(cues,player) {
+        if(cues.isNotEmpty()) captionsAvailable=true
+        media?.let(::selectEnglish)
     }
+    LaunchedEffect(player) {while(true) {positionMs=runCatching {player?.currentPosition?.toLong() ?: 0L}.getOrDefault(0L);delay(80)}}
     LaunchedEffect(captionsEnabled,media) {media?.let(::selectEnglish)}
     DisposableEffect(lifecycle) {
         val observer=LifecycleEventObserver {_,event->if(event==Lifecycle.Event.ON_PAUSE)player?.pause()}
         lifecycle.lifecycle.addObserver(observer)
-        onDispose {lifecycle.lifecycle.removeObserver(observer);player?.stopPlayback();streams.forEach {runCatching {it.close()}};streams.clear()}
+        onDispose {lifecycle.lifecycle.removeObserver(observer);player?.stopPlayback()}
     }
     Dialog(onDismissRequest=close,properties=DialogProperties(usePlatformDefaultWidth=false,decorFitsSystemWindows=false)) {
+        val view=LocalView.current
+        DisposableEffect(view) {
+            val window=(view.parent as? DialogWindowProvider)?.window
+            window?.let {WindowCompat.getInsetsController(it,view).hide(WindowInsetsCompat.Type.systemBars())}
+            onDispose {}
+        }
         Box(Modifier.fillMaxSize().background(Color.Black)) {
             AndroidView(modifier=Modifier.fillMaxSize(),factory={context->VideoView(context).also {view->
                 player=view
@@ -97,6 +111,11 @@ import kotlinx.coroutines.withContext
                 view.setOnErrorListener {_,_,_->repo.failure="The video could not load. The interactive screenshot guide remains available.";close();true}
                 view.setVideoURI(uri)
             }})
+            if(captionsEnabled) cues.atPosition(positionMs)?.let {caption->
+                Text(caption,Modifier.align(Alignment.BottomCenter).navigationBarsPadding().padding(horizontal=28.dp,vertical=20.dp)
+                    .widthIn(max=900.dp).background(Color.Black.copy(alpha=.84f),RoundedCornerShape(6.dp)).padding(horizontal=14.dp,vertical=8.dp),
+                    color=Color.White,fontSize=18.sp,lineHeight=24.sp,textAlign=TextAlign.Center)
+            }
             if(LocalConfiguration.current.orientation!=Configuration.ORIENTATION_LANDSCAPE) {
                 Text("Turn your phone sideways",Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(top=12.dp).background(Color.Black.copy(alpha=.85f),RoundedCornerShape(12.dp)).padding(horizontal=16.dp,vertical=12.dp),color=Color.White,fontWeight=FontWeight.SemiBold)
             }

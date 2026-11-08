@@ -39,6 +39,9 @@ object ProtectedTransportPolicy {
             if(runCatching {java.util.UUID.fromString(id).toString()==id}.getOrDefault(false))return
         }
         if(path=="driver/session" && verb in setOf("POST","DELETE"))return
+        // A parked driver explicitly requests these operational endpoints. This
+        // does not authorize uploading saved journals, routes or other tax data.
+        if(path=="driver/routes" && verb=="POST" && validOperationalRouteRequest(body))return
         if(path=="driver/banks" && verb=="POST" && body!=null) {
             val cancellation=runCatching {
                 val input=Wire.parseToJsonElement(body.toString(Charsets.UTF_8)).jsonObject
@@ -54,3 +57,19 @@ object ProtectedTransportPolicy {
         error(REPLACEMENT_REQUIRED)
     }
 }
+
+internal fun validOperationalRouteRequest(body: ByteArray?): Boolean = runCatching {
+    require(body!=null && body.size in 1..4096)
+    val input=Wire.parseToJsonElement(body.toString(Charsets.UTF_8)).jsonObject
+    require(input.keys==setOf("origin","destination","alternatives"))
+    val alternatives=input["alternatives"]!!.jsonPrimitive
+    require(!alternatives.isString && alternatives.booleanOrNull!=null)
+    for(key in listOf("origin","destination")) {
+        val point=input[key]!!.jsonObject;require(point.keys==setOf("latitude","longitude"))
+        for((coordinate,range) in listOf("latitude" to -90.0..90.0,"longitude" to -180.0..180.0)) {
+            val value=point[coordinate]!!.jsonPrimitive;val number=value.doubleOrNull
+            require(!value.isString && number!=null && number.isFinite() && number in range)
+        }
+    }
+    true
+}.getOrDefault(false)

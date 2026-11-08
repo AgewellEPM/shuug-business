@@ -117,7 +117,7 @@ fun openPublicLink(repo:DriverRepository,url:String) {
     }
     Panel("On your phone") {
         Text("Records save locally before syncing. Signing out keeps each account’s journal separate; reconnect to the same account to see its saved records.",color=Muted)
-        Text("GPS route points are not shared with your firm. Trip details, recorded mileage, expenses, income and the receipts you attach are shared when you connect and sync.",color=Muted)
+        Text("Historical GPS route files stay on this phone and are excluded from ordinary firm sync. Requested Google comparisons send the selected endpoints through the firm to Google. Trip details, recorded mileage, expenses, income and attached receipts are shared when you connect and sync.",color=Muted)
         Text("Bank imports and receipt suggestions need your review. There is no automatic tax filing. Direct bank linking requires your firm’s configured provider.",color=Muted)
         NavigationRow("App privacy & data",{navigate("App privacy & data")})
         NavigationRow("Gig Tax Pros website",{repo.run {openPublicLink(repo,"https://gigtax.pro")}})

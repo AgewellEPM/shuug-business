@@ -1,0 +1,96 @@
+{
+  "duration": 244.13333333333338,
+  "chapters": [
+    {
+      "id": "home",
+      "title": "Welcome to Gig Tax Pros",
+      "start": 0.0,
+      "duration": 9.733333333333334,
+      "narration": "Turn your phone sideways. Tap More tools to find your trips, money, account, and help. Choose Trips to see the driving records saved on your phone."
+    },
+    {
+      "id": "drives",
+      "title": "Keep your driving records",
+      "start": 9.733333333333334,
+      "duration": 37.63333333333333,
+      "narration": "Tap Add manual trip to enter mileage from your records. Enter the distance you actually drove. This is a practice example. Add a clear purpose so you can recognize this trip later. Open Classification and choose Business for a business trip. Scroll to earnings and enter the fare plus tips before platform fees. Enter the known platform fees. Use zero only when there were none. Review the details, then tap Save. Your trip appears in history."
+    },
+    {
+      "id": "money",
+      "title": "Track money and receipts",
+      "start": 47.36666666666667,
+      "duration": 31.133333333333336,
+      "narration": "Tap Done to return to your Home dashboard. Tap Expense to record a purchase for your work. Type the merchant name. This fuel stop is a practice entry. Enter the amount from your receipt, then close the keyboard. Open Category and choose Fuel for this example. Choose Business when the purchase was for your work. Check the amount and category, then save your expense."
+    },
+    {
+      "id": "screenshots",
+      "title": "Learn screenshot import",
+      "start": 78.50000000000001,
+      "duration": 32.666666666666664,
+      "narration": "Tap Offers to check a job before you decide. Open the guide to practice bringing a job screenshot into the app. First, tap Volume up in the practice picture. Tap the Side button, then Next. On your phone, press both buttons together. Tap the practice Save button to open the photo option. Choose Save to Photos, then continue to the import lesson. Choose the screenshot route to bring your picture into Gig Tax Pros. Tap the practice picture, then continue to review the numbers."
+    },
+    {
+      "id": "review",
+      "title": "Check every offer field",
+      "start": 111.1666666666667,
+      "duration": 12.933333333333334,
+      "narration": "Check the pay against the picture. Try changing this practice amount. Tap Check this job to see how the changed pay affects the estimate. Tap Done. The practice job was not saved to your records."
+    },
+    {
+      "id": "earnings",
+      "title": "Set costs and pay goals",
+      "start": 124.10000000000004,
+      "duration": 25.53333333333333,
+      "narration": "Tap Earnings to see results from your saved driving records. Open Goals to set your own targets and vehicle cost. Enter your estimated vehicle cost per mile. Use costs that fit your vehicle. Enter your target net pay per driving hour, then close the keyboard. Save your goals. Earnings now uses the vehicle cost you entered."
+    },
+    {
+      "id": "go_home",
+      "title": "Plan the end of your shift",
+      "start": 149.63333333333338,
+      "duration": 12.866666666666667,
+      "narration": "Tap Go Home to plan your destination and finish time. Enter the net earnings you want to work toward during this shift. Check the finish time and destination, then save your mission."
+    },
+    {
+      "id": "position",
+      "title": "Choose where to wait",
+      "start": 162.50000000000006,
+      "duration": 8.633333333333333,
+      "narration": "Tap Position to explore waiting areas using your saved job history. Type the place you want to finish near before requesting route comparisons."
+    },
+    {
+      "id": "coach",
+      "title": "Ask about your records",
+      "start": 171.13333333333338,
+      "duration": 17.633333333333333,
+      "narration": "Tap Home to open the tools for your records and goals. Tap the chat icon to open Tax and Goals. Open Tax details to review information you choose to share with your team. Cancel this practice form, then return to Home."
+    },
+    {
+      "id": "ratings",
+      "title": "Keep ratings and feedback",
+      "start": 188.7666666666667,
+      "duration": 16.7,
+      "narration": "Open More tools and choose Ratings and reviews. Tap Add rating to record a score from your gig app. Enter the score you saw. We are using a practice rating. Save the snapshot to your own history, then return to Home."
+    },
+    {
+      "id": "account",
+      "title": "Connect your client account",
+      "start": 205.4666666666667,
+      "duration": 16.833333333333332,
+      "narration": "Open More tools and choose Account to find your sign-in options. Expand the workspace address option if your firm supplied a sign-in address. Scroll to App privacy and data to review what stays on your phone. Go back, then tap Done to return to your Home dashboard."
+    },
+    {
+      "id": "help",
+      "title": "Find an office and get help",
+      "start": 222.30000000000004,
+      "duration": 13.933333333333334,
+      "narration": "Tap Find an office and get help to open the office map. Enter your ZIP code, then close the keyboard to search for nearby offices. Tap Search. Available offices and contact options will appear here."
+    },
+    {
+      "id": "finish",
+      "title": "You\u2019re ready to begin",
+      "start": 236.23333333333338,
+      "duration": 7.9,
+      "narration": "Tap Back to return to Home and choose your next step. Open the sample shift to explore example earnings separately from your records."
+    }
+  ]
+}

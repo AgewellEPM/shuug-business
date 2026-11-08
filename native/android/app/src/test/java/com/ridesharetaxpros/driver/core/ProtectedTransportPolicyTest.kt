@@ -28,4 +28,13 @@ class ProtectedTransportPolicyTest {
         for(payload in listOf("""{"action":"disconnect","itemId":"item-1"}""","""{"action":"cancel","sessionId":"session-1"}"""))ProtectedTransportPolicy.assertAllowed(true,"driver/banks","POST",payload.toByteArray())
         for(payload in listOf("""{"action":"sync","itemId":"item-1"}""","""{"action":"disconnect","itemId":"item-1","extra":"data"}""","""{"action":"disconnect","itemId":42}""","""{"action":"cancel","sessionId":""}"""))assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"driver/banks","POST",payload.toByteArray())}.isFailure)
     }
+    @Test fun operationalRoutesAllowOnlyTwoExplicitNumericEndpointsAndAlternatives() {
+        val payload="""{"origin":{"latitude":41.7,"longitude":-72.7},"destination":{"latitude":41.8,"longitude":-72.8},"alternatives":false}"""
+        ProtectedTransportPolicy.assertAllowed(true,"driver/routes","POST",payload.toByteArray())
+        for(value in listOf(payload.replace("41.7","91"),payload.replace("41.7","\"41.7\""),payload.replace("false","\"false\""),
+            payload.dropLast(1)+",\"accountId\":\"other\"}",payload.replace("\"latitude\":41.7","\"savedRoute\":[1,2]"),"{}"))
+            assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"driver/routes","POST",value.toByteArray())}.isFailure)
+        assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"driver/routes","POST",ByteArray(4097))}.isFailure)
+        assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"driver/records","POST",payload.toByteArray())}.isFailure)
+    }
 }
