@@ -1,3 +1,5 @@
+import { platformBar } from './platform-bar.mjs';
+import { mobileHeroArt } from './mobile-hero.mjs';
 import { origin } from './content.mjs';
 import { brand, dialogs, escape as e, footer, quickActions } from './layout.mjs';
 import { publicHeader, publicNavigation } from './public-navigation.mjs';
@@ -25,9 +27,9 @@ function main() {
       ${readable('FOR GIG DRIVERS', 'p')}
       <h1 id="drivers-title" class="drivers-readable">Drive. Earn. Track.<br>Save. File. <em>Grow.</em></h1>
       <p class="drivers-readable drivers-lede">The all-in-one financial platform for Uber, Lyft, DoorDash, Instacart, Amazon Flex, and every gig worker.</p>
-      ${crop([535, 59, 510, 321], 'drivers-hero-art')}
+      ${mobileHeroArt({ artwork, width: 1199, height: 1312, box: [590, 59, 455, 321], className: 'drivers-hero-art' })}
       <div class="drivers-hero-actions">${action('▷ Get Started Free', '/get-started', 'drivers-start')}${action('⌖ Find a Local Office', '/offices', 'drivers-find')}</div>
-      <ul class="drivers-readable drivers-platforms" aria-label="Gig platforms"><li>Uber</li><li>Lyft</li><li>DoorDash</li><li>Instacart</li><li>amazon flex</li><li>+ All Gig Platforms</li></ul>
+      ${platformBar('drivers-platforms')}
     </section>
     <nav class="drivers-features" aria-label="Explore tools and support">${features.map(([title, href, box]) => `<a class="drivers-hit drivers-feature" href="${href}">${crop(box, 'drivers-feature-art')}${readable(e(title))}</a>`).join('')}</nav>
     <div class="drivers-panels">
@@ -64,5 +66,5 @@ function main() {
 
 export function driversPage() {
   const description = 'Free tools for gig drivers, professional tax services when you choose, and local office support. Drive. Earn. Track. Save. File. Grow.';
-  return { slug: 'drivers', label: 'Drivers', file: 'drivers.html', html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>For Gig Drivers | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/drivers"><meta property="og:title" content="For Gig Drivers | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/drivers"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/drivers.css"><link rel="stylesheet" href="/navigation.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="drivers-page"><a class="skip-link" href="#main">Skip to content</a><div class="drivers-sheet">${publicHeader('/drivers', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/drivers')}${dialogs()}</body></html>` };
+  return { slug: 'drivers', label: 'Drivers', file: 'drivers.html', html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>For Gig Drivers | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/drivers"><meta property="og:title" content="For Gig Drivers | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/drivers"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/drivers.css"><link rel="stylesheet" href="/navigation.css"><link rel="stylesheet" href="/hero-mobile.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script><script src="/hero-parallax.js" defer></script></head><body class="drivers-page"><a class="skip-link" href="#main">Skip to content</a><div class="drivers-sheet">${publicHeader('/drivers', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/drivers')}${dialogs()}</body></html>` };
 }

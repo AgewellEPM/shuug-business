@@ -1,3 +1,5 @@
+import { platformBar } from './platform-bar.mjs';
+import { mobileHeroArt } from './mobile-hero.mjs';
 import { origin } from './content.mjs';
 import { brand, dialogs, escape as e, footer, quickActions } from './layout.mjs';
 import { publicHeader, publicNavigation } from './public-navigation.mjs';
@@ -27,10 +29,10 @@ function main() {
       <p class="services-readable services-eyebrow">OUR KEY SERVICES</p>
       <h1 id="services-title" class="services-readable">Everything You Need<br>for Your <em>Gig Work,<br>Taxes &amp; Business.</em></h1>
       <p class="services-readable services-lede">One team. One platform. Year-round support for drivers, contractors, and small business owners.</p>
-      ${crop([391, 49, 633, 314], 'services-hero-art')}
+      ${mobileHeroArt({ artwork, width: 1024, height: 1536, box: [442, 49, 582, 314], className: 'services-hero-art' })}
       <div class="services-hero-actions">${action('Get Started Today →', '/get-started', 'services-hero-start')}${action('▷ Watch How It Works', '#how-it-works', 'services-hero-watch')}</div>
     </section>
-    <ul class="services-readable services-platforms" aria-label="Gig platforms"><li>Uber</li><li>Lyft</li><li>DoorDash</li><li>Instacart</li><li>amazon flex</li><li>+ All Gig Platforms</li></ul>
+    ${platformBar('services-platforms')}
     <section class="services-catalog" aria-labelledby="key-services-title">
       <h2 id="key-services-title" class="services-readable">Key Services <em>at a Glance</em></h2>
       <p class="services-readable services-section-intro">Tax prep, deductions, business setup, and ongoing support — built for the way you work.</p>
@@ -64,6 +66,6 @@ export function servicesPage() {
   const description = 'Everything you need for your gig work, taxes and business. Tax preparation, deductions, quarterly support and local office support.';
   return {
     slug: 'services', label: 'Services', file: 'services.html',
-    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>Services | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/services"><meta property="og:title" content="Services | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/services"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/services.css"><link rel="stylesheet" href="/navigation.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="services-page"><a class="skip-link" href="#main">Skip to content</a><div class="services-sheet">${publicHeader('/services', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/services')}${dialogs()}</body></html>`,
+    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>Services | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/services"><meta property="og:title" content="Services | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/services"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/services.css"><link rel="stylesheet" href="/navigation.css"><link rel="stylesheet" href="/hero-mobile.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script><script src="/hero-parallax.js" defer></script></head><body class="services-page"><a class="skip-link" href="#main">Skip to content</a><div class="services-sheet">${publicHeader('/services', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/services')}${dialogs()}</body></html>`,
   };
 }

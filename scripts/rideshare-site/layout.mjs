@@ -1,3 +1,4 @@
+import { mobileHeroArt } from './mobile-hero.mjs';
 import { origin, sources, reviewed } from './content.mjs';
 import { publicHeader, publicNavigation } from './public-navigation.mjs';
 export const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
@@ -33,7 +34,7 @@ export function renderPage(page) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#05060c"><title>${escape(title)}</title><meta name="description" content="${escape(page.description)}"><link rel="canonical" href="${origin}/${page.slug}"><meta property="og:title" content="${escape(title)}"><meta property="og:description" content="${escape(page.description)}"><meta property="og:url" content="${origin}/${page.slug}"><meta property="og:type" content="website"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/inner-pages.css"><link rel="stylesheet" href="/navigation.css"><script src="/links.js" defer></script><script src="/app.js" defer></script><script src="/inner-pages.js" defer></script></head><body class="inner-page"><a class="skip-link" href="#main">Skip to content</a>${header(page.nav || `/${page.slug}`)}<main id="main" tabindex="-1">${page.main || `${hero}<div class="inner-content">${page.body}</div>`}</main>${footer()}${quickActions()}${navigation(`/${page.slug}`)}${dialogs()}</body></html>`;
 }
 export function renderHome(html) {
-  for (const [marker, value] of [['<!-- SITE_PUBLIC_HEADER -->', publicHeader('/', brand())], ['<!-- SITE_FOOTER -->', footer()], ['<!-- SITE_NAVIGATION -->', publicNavigation('/')]]) {
+  for (const [marker, value] of [['<!-- SITE_HOME_HERO -->', mobileHeroArt({ artwork: '/assets/artwork.png', width: 1086, height: 1448, box: [500, 70, 586, 340], className: 'home-hero-art' })], ['<!-- SITE_PUBLIC_HEADER -->', publicHeader('/', brand())], ['<!-- SITE_FOOTER -->', footer()], ['<!-- SITE_NAVIGATION -->', publicNavigation('/')]]) {
     if (!html.includes(marker)) throw new Error(`Home template is missing ${marker}`);
     html = html.replace(marker, value);
   }

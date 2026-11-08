@@ -1,3 +1,5 @@
+import { platformBar } from './platform-bar.mjs';
+import { mobileHeroArt } from './mobile-hero.mjs';
 import { origin } from './content.mjs';
 import { brand, dialogs, escape as e, footer, quickActions } from './layout.mjs';
 import { publicHeader, publicNavigation } from './public-navigation.mjs';
@@ -37,10 +39,10 @@ function main() {
       <p class="services-readable services-eyebrow">HOW IT WORKS</p>
       <h1 class="services-readable" id="how-title">Use the Tools for Free.<br>Pay Only When You<br><em>Need a Service.</em></h1>
       <p class="services-readable services-lede">Track your gig income, expenses, and deductions all year for free — and only pay when you ask us to prepare, process, file, or handle documents that require signing.</p>
-      ${crop([438, 49, 586, 289], 'how-hero-art')}
+      ${mobileHeroArt({ artwork, width: 1024, height: 1536, box: [447, 49, 577, 289], className: 'how-hero-art' })}
       <div class="how-hero-actions">${action('▷ See It in Action', '#simple-process', 'how-action-start')}${action('Get Started Free', '/get-started', 'how-action-free')}</div>
     </section>
-    <ul class="services-readable services-platforms" aria-label="Gig platforms"><li>Uber</li><li>Lyft</li><li>DoorDash</li><li>Instacart</li><li>amazon flex</li><li>+ All Gig Platforms</li></ul>
+    ${platformBar('services-platforms')}
     <section class="how-process" id="simple-process" aria-labelledby="how-process-title">
       <h2 class="services-readable" id="how-process-title">The Simple <em>Process</em></h2>
       <p class="services-readable how-section-intro">Four easy steps to keep your gig work organized, compliant, and tax-ready all year long.</p>
@@ -70,6 +72,6 @@ export function howItWorksPage() {
   const description = 'Use the tools for free. Pay only when you choose a professional service. See how Gig Tax Pros connects, organizes and supports your gig work.';
   return {
     slug: 'how-it-works', label: 'How it works', file: 'how-it-works.html',
-    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>How It Works | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/how-it-works"><meta property="og:title" content="How It Works | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/how-it-works"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/services.css"><link rel="stylesheet" href="/how-it-works.css"><link rel="stylesheet" href="/navigation.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script></head><body class="services-page how-page"><a class="skip-link" href="#main">Skip to content</a><div class="services-sheet how-sheet">${publicHeader('/how-it-works', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/how-it-works')}${dialogs()}</body></html>`,
+    html: `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#08040e"><title>How It Works | Gig Tax Pros</title><meta name="description" content="${e(description)}"><link rel="canonical" href="${origin}/how-it-works"><meta property="og:title" content="How It Works | Gig Tax Pros"><meta property="og:description" content="${e(description)}"><meta property="og:url" content="${origin}/how-it-works"><meta property="og:type" content="website"><meta property="og:image" content="${origin}${artwork}"><link rel="icon" href="/favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/services.css"><link rel="stylesheet" href="/how-it-works.css"><link rel="stylesheet" href="/navigation.css"><link rel="stylesheet" href="/hero-mobile.css"><link rel="preload" as="image" href="${artwork}"><script src="/links.js" defer></script><script src="/app.js" defer></script><script src="/hero-parallax.js" defer></script></head><body class="services-page how-page"><a class="skip-link" href="#main">Skip to content</a><div class="services-sheet how-sheet">${publicHeader('/how-it-works', brand())}${main()}</div>${footer()}${quickActions()}${publicNavigation('/how-it-works')}${dialogs()}</body></html>`,
   };
 }

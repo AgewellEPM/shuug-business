@@ -1,0 +1,73 @@
+/* Mobile presentation only. Desktop artwork stays in its existing composition. */
+.mobile-hero-frame, .platform-bar { display: none; }
+@media (max-width: 1023px) {
+  :is(.services-hero, .how-hero, .drivers-hero, .about-hero, .app-hero, .public-home .hero) { text-align: center; }
+  :is(.services-lede, .drivers-lede, .about-lede, .app-lede, .public-home .hero .lede) { margin-inline: auto; }
+  .public-home .hero { overflow: visible; }
+  .app-hero .app-checks { text-align: left; }
+  .public-home .hero .eyebrow { white-space: normal; }
+  .mobile-hero-frame {
+    display: block;
+    width: 100vw;
+    max-width: none;
+    margin: 24px calc(50% - 50vw);
+    overflow: hidden;
+    border-radius: 0;
+    isolation: isolate;
+  }
+  .mobile-hero-frame > .mobile-hero-photo {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    transform-origin: center;
+  }
+  .hero-parallax-active > .mobile-hero-photo {
+    transform: translate3d(0, var(--hero-shift, 0px), 0) scale(1.12);
+    will-change: transform;
+  }
+  body .platform-bar {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    width: 100vw;
+    height: auto;
+    margin: 0 calc(50% - 50vw);
+    padding: 18px 20px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: #a849bc #110919;
+    list-style: none;
+    text-align: center;
+  }
+  .platform-bar .platform-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    min-width: 118px;
+    height: 52px;
+    padding: 10px 16px;
+    margin: 0;
+    border: 1px solid #9953a6;
+    border-radius: 10px;
+    background: #09060e;
+    scroll-snap-align: start;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .platform-bar .platform-item img { display: block; max-width: 132px; max-height: 29px; object-fit: contain; }
+  .platform-bar:focus-visible { outline: 2px solid #f3b3f1; outline-offset: -3px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-parallax-active > .mobile-hero-photo { transform: none; will-change: auto; }
+}
+.platform-logo-uber { filter: brightness(0) invert(1); }
