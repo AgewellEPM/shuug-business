@@ -50,9 +50,17 @@ import XCTest
     XCTAssertGreaterThan(elapsed, 0, "Video must advance after opening")
     XCTAssertGreaterThanOrEqual(elapsed, expectedStart, "Chapter must seek to its displayed start: \(position)")
     XCTAssertLessThan(elapsed, expectedStart + 30, "Chapter opened at the wrong time: \(position)")
+    let caption = app.staticTexts["tour.caption"]
+    XCTAssertTrue(caption.waitForExistence(timeout: 5), "The playing instruction must actually be displayed")
     pause.tap()
     let play = app.buttons["Play"].firstMatch
     XCTAssertTrue(play.waitForExistence(timeout: 5), app.debugDescription)
+    XCTAssertTrue(caption.waitForExistence(timeout: 5), "The synchronized instruction must actually be displayed")
+    XCTAssertGreaterThan(caption.label.count, 10)
+    app.buttons["tour.captions"].tap()
+    XCTAssertFalse(caption.exists, "CC must hide the instruction")
+    app.buttons["tour.captions"].tap()
+    XCTAssertTrue(caption.waitForExistence(timeout: 5), "CC must restore the same paused instruction")
     let proof = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
     proof.name = "Native tour playback - \(chapter)"; proof.lifetime = .keepAlways
     add(proof)
