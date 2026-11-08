@@ -1,0 +1,1471 @@
+{
+  "implementation": "2bc9ee2599e6872d4553ed96f7529a6d83e028d0",
+  "deployment": "dpl_9b5LXZ4kvHPsAVoVjVmCpeqByLFd",
+  "sourceArtworkSha256": "547e445e19841d58d6ba43718e51410f53ae01913af145b6f799e0b600c636a6",
+  "local": {
+    "animationClock": "timer substitution for requestAnimationFrame",
+    "blockedExternalNavigations": [],
+    "completed": 8,
+    "engine": "installed macOS system WebKit, unshown NSWindow, NSApplication.prohibited",
+    "failures": 0,
+    "requestedWidths": [
+      320,
+      390,
+      440,
+      768,
+      1023,
+      1024,
+      1199,
+      1440
+    ],
+    "results": [
+      {
+        "bottom": {
+          "background": "linear-gradient(110deg, rgb(100, 255, 55), rgb(38, 230, 128))",
+          "href": "/get-the-app",
+          "rect": {
+            "bottom": 944,
+            "height": 50,
+            "left": 16,
+            "right": 155,
+            "top": 894,
+            "width": 139
+          },
+          "text": "Get The App ↗"
+        },
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1230.53125,
+              "height": 138,
+              "left": 24,
+              "right": 296,
+              "top": 1092.53125,
+              "width": 272
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1386.53125,
+              "height": 138,
+              "left": 24,
+              "right": 296,
+              "top": 1248.53125,
+              "width": 272
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 4385.8125,
+              "height": 88,
+              "left": 24,
+              "right": 151,
+              "top": 4297.8125,
+              "width": 127
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 4385.8125,
+              "height": 88,
+              "left": 169,
+              "right": 296,
+              "top": 4297.8125,
+              "width": 127
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": {
+          "bottom": 236,
+          "height": 114,
+          "left": 24,
+          "right": 296,
+          "text": "Get the FreeGig Tax Pros App",
+          "textAlign": "left",
+          "top": 122,
+          "width": 272
+        },
+        "hero": {
+          "bottom": 909.53125,
+          "height": 184.53125,
+          "left": 0,
+          "right": 320,
+          "top": 725,
+          "width": 320
+        },
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": true,
+        "overflow": {
+          "body": 320,
+          "document": 320,
+          "viewport": 320
+        },
+        "passed": true,
+        "platform": {
+          "count": 5,
+          "images": [
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/uber.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/lyft.png"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/doordash.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/instacart.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/amazon-flex.svg"
+            }
+          ],
+          "last": {
+            "bottom": 979.53125,
+            "height": 52,
+            "left": 175.375,
+            "right": 296.25,
+            "top": 927.53125,
+            "width": 120.875
+          },
+          "rect": {
+            "bottom": 997.53125,
+            "height": 88,
+            "left": 0,
+            "right": 320,
+            "top": 909.53125,
+            "width": 320
+          },
+          "scrollLeft": 513,
+          "scrollWidth": 833
+        },
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 3269.53125,
+            "height": 155,
+            "left": 47,
+            "right": 202,
+            "top": 3114.53125,
+            "width": 155
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 0,
+          "height": 0,
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "width": 0
+        },
+        "requestedWidth": 320,
+        "width": 320
+      },
+      {
+        "bottom": {
+          "background": "linear-gradient(110deg, rgb(100, 255, 55), rgb(38, 230, 128))",
+          "href": "/get-the-app",
+          "rect": {
+            "bottom": 944,
+            "height": 50,
+            "left": 16,
+            "right": 190,
+            "top": 894,
+            "width": 174
+          },
+          "text": "Get The App ↗"
+        },
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1092.890625,
+              "height": 138,
+              "left": 24,
+              "right": 366,
+              "top": 954.890625,
+              "width": 342
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1250.53125,
+              "height": 139.640625,
+              "left": 24,
+              "right": 366,
+              "top": 1110.890625,
+              "width": 342
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 4000,
+              "height": 76,
+              "left": 24,
+              "right": 186,
+              "top": 3924,
+              "width": 162
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 4000,
+              "height": 76,
+              "left": 204,
+              "right": 366,
+              "top": 3924,
+              "width": 162
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": {
+          "bottom": 198,
+          "height": 76,
+          "left": 24,
+          "right": 366,
+          "text": "Get the FreeGig Tax Pros App",
+          "textAlign": "left",
+          "top": 122,
+          "width": 342
+        },
+        "hero": {
+          "bottom": 771.890625,
+          "height": 224.890625,
+          "left": 0,
+          "right": 390,
+          "top": 547,
+          "width": 390
+        },
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": true,
+        "overflow": {
+          "body": 390,
+          "document": 390,
+          "viewport": 390
+        },
+        "passed": true,
+        "platform": {
+          "count": 5,
+          "images": [
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/uber.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/lyft.png"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/doordash.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/instacart.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/amazon-flex.svg"
+            }
+          ],
+          "last": {
+            "bottom": 841.890625,
+            "height": 52,
+            "left": 214,
+            "right": 366,
+            "top": 789.890625,
+            "width": 152
+          },
+          "rect": {
+            "bottom": 859.890625,
+            "height": 88,
+            "left": 0,
+            "right": 390,
+            "top": 771.890625,
+            "width": 390
+          },
+          "scrollLeft": 630,
+          "scrollWidth": 1020
+        },
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 2987.53125,
+            "height": 155,
+            "left": 47,
+            "right": 202,
+            "top": 2832.53125,
+            "width": 155
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 0,
+          "height": 0,
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "width": 0
+        },
+        "requestedWidth": 390,
+        "width": 390
+      },
+      {
+        "bottom": {
+          "background": "linear-gradient(110deg, rgb(100, 255, 55), rgb(38, 230, 128))",
+          "href": "/get-the-app",
+          "rect": {
+            "bottom": 944,
+            "height": 50,
+            "left": 16,
+            "right": 215,
+            "top": 894,
+            "width": 199
+          },
+          "text": "Get The App ↗"
+        },
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1097.71875,
+              "height": 139,
+              "left": 24,
+              "right": 416,
+              "top": 958.71875,
+              "width": 392
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1255.359375,
+              "height": 139.640625,
+              "left": 24,
+              "right": 416,
+              "top": 1115.71875,
+              "width": 392
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 3875.25,
+              "height": 76,
+              "left": 24,
+              "right": 211,
+              "top": 3799.25,
+              "width": 187
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 3875.25,
+              "height": 76,
+              "left": 229,
+              "right": 416,
+              "top": 3799.25,
+              "width": 187
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": {
+          "bottom": 198,
+          "height": 76,
+          "left": 24,
+          "right": 416,
+          "text": "Get the FreeGig Tax Pros App",
+          "textAlign": "left",
+          "top": 122,
+          "width": 392
+        },
+        "hero": {
+          "bottom": 775.71875,
+          "height": 253.71875,
+          "left": 0,
+          "right": 440,
+          "top": 522,
+          "width": 440
+        },
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": true,
+        "overflow": {
+          "body": 440,
+          "document": 440,
+          "viewport": 440
+        },
+        "passed": true,
+        "platform": {
+          "count": 5,
+          "images": [
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/uber.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/lyft.png"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/doordash.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/instacart.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/amazon-flex.svg"
+            }
+          ],
+          "last": {
+            "bottom": 845.71875,
+            "height": 52,
+            "left": 242.09375,
+            "right": 416.3125,
+            "top": 793.71875,
+            "width": 174.21875
+          },
+          "rect": {
+            "bottom": 863.71875,
+            "height": 88,
+            "left": 0,
+            "right": 440,
+            "top": 775.71875,
+            "width": 440
+          },
+          "scrollLeft": 713,
+          "scrollWidth": 1153
+        },
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 2913.359375,
+            "height": 155,
+            "left": 47,
+            "right": 202,
+            "top": 2758.359375,
+            "width": 155
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 0,
+          "height": 0,
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "width": 0
+        },
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bottom": {
+          "background": "linear-gradient(110deg, rgb(100, 255, 55), rgb(38, 230, 128))",
+          "href": "/get-the-app",
+          "rect": {
+            "bottom": 944,
+            "height": 50,
+            "left": 16,
+            "right": 379,
+            "top": 894,
+            "width": 363
+          },
+          "text": "Get The App ↗"
+        },
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1323.875,
+              "height": 148,
+              "left": 48,
+              "right": 720,
+              "top": 1175.875,
+              "width": 672
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1489.875,
+              "height": 148,
+              "left": 48,
+              "right": 720,
+              "top": 1341.875,
+              "width": 672
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 3258.765625,
+              "height": 76,
+              "left": 48,
+              "right": 375,
+              "top": 3182.765625,
+              "width": 327
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 3258.765625,
+              "height": 76,
+              "left": 393,
+              "right": 720,
+              "top": 3182.765625,
+              "width": 327
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": {
+          "bottom": 240,
+          "height": 118,
+          "left": 48,
+          "right": 720,
+          "text": "Get the FreeGig Tax Pros App",
+          "textAlign": "left",
+          "top": 122,
+          "width": 672
+        },
+        "hero": {
+          "bottom": 981.875,
+          "height": 442.875,
+          "left": 0.015625,
+          "right": 768.015625,
+          "top": 539,
+          "width": 768
+        },
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": true,
+        "overflow": {
+          "body": 768,
+          "document": 768,
+          "viewport": 768
+        },
+        "passed": true,
+        "platform": {
+          "count": 5,
+          "images": [
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/uber.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/lyft.png"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/doordash.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/instacart.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/amazon-flex.svg"
+            }
+          ],
+          "last": {
+            "bottom": 1051.875,
+            "height": 52,
+            "left": 564.015625,
+            "right": 744.015625,
+            "top": 999.875,
+            "width": 180
+          },
+          "rect": {
+            "bottom": 1069.875,
+            "height": 88,
+            "left": 0.015625,
+            "right": 768.015625,
+            "top": 981.875,
+            "width": 768
+          },
+          "scrollLeft": 420,
+          "scrollWidth": 1188
+        },
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 2525.875,
+            "height": 155,
+            "left": 71,
+            "right": 226,
+            "top": 2370.875,
+            "width": 155
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 0,
+          "height": 0,
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "width": 0
+        },
+        "requestedWidth": 768,
+        "width": 768
+      },
+      {
+        "bottom": {
+          "background": "linear-gradient(110deg, rgb(100, 255, 55), rgb(38, 230, 128))",
+          "href": "/get-the-app",
+          "rect": {
+            "bottom": 944,
+            "height": 50,
+            "left": 16,
+            "right": 506.5,
+            "top": 894,
+            "width": 490.5
+          },
+          "text": "Get The App ↗"
+        },
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1470.90625,
+              "height": 148,
+              "left": 175.5,
+              "right": 847.5,
+              "top": 1322.90625,
+              "width": 672
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1636.90625,
+              "height": 148,
+              "left": 175.5,
+              "right": 847.5,
+              "top": 1488.90625,
+              "width": 672
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 3428.34375,
+              "height": 76,
+              "left": 175.5,
+              "right": 502.5,
+              "top": 3352.34375,
+              "width": 327
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 3428.34375,
+              "height": 76,
+              "left": 520.5,
+              "right": 847.5,
+              "top": 3352.34375,
+              "width": 327
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": {
+          "bottom": 240,
+          "height": 118,
+          "left": 175.5,
+          "right": 847.5,
+          "text": "Get the FreeGig Tax Pros App",
+          "textAlign": "left",
+          "top": 122,
+          "width": 672
+        },
+        "hero": {
+          "bottom": 1128.90625,
+          "height": 589.90625,
+          "left": 0.015625,
+          "right": 1023,
+          "top": 539,
+          "width": 1022.984375
+        },
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": true,
+        "overflow": {
+          "body": 1023,
+          "document": 1023,
+          "viewport": 1023
+        },
+        "passed": true,
+        "platform": {
+          "count": 5,
+          "images": [
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/uber.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/lyft.png"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/doordash.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/instacart.svg"
+            },
+            {
+              "loaded": true,
+              "src": "http://127.0.0.1:33915/assets/platforms/amazon-flex.svg"
+            }
+          ],
+          "last": {
+            "bottom": 1198.90625,
+            "height": 52,
+            "left": 819.015625,
+            "right": 999.015625,
+            "top": 1146.90625,
+            "width": 180
+          },
+          "rect": {
+            "bottom": 1216.90625,
+            "height": 88,
+            "left": 0.015625,
+            "right": 1023,
+            "top": 1128.90625,
+            "width": 1022.984375
+          },
+          "scrollLeft": 165,
+          "scrollWidth": 1188
+        },
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 2672.90625,
+            "height": 155,
+            "left": 198.5,
+            "right": 353.5,
+            "top": 2517.90625,
+            "width": 155
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 0,
+          "height": 0,
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "width": 0
+        },
+        "requestedWidth": 1023,
+        "width": 1023
+      },
+      {
+        "bottom": null,
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 513.265625,
+              "height": 98.203125,
+              "left": 25.609375,
+              "right": 497.875,
+              "top": 415.0625,
+              "width": 472.265625
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 513.265625,
+              "height": 98.203125,
+              "left": 531.21875,
+              "right": 999.234375,
+              "top": 415.0625,
+              "width": 468.015625
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1074.359375,
+              "height": 54.6875,
+              "left": 713.109375,
+              "right": 860.859375,
+              "top": 1019.671875,
+              "width": 147.75
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1074.359375,
+              "height": 54.6875,
+              "left": 860.875,
+              "right": 1008.625,
+              "top": 1019.671875,
+              "width": 147.75
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": null,
+        "hero": null,
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": false,
+        "overflow": {
+          "body": 1024,
+          "document": 1024,
+          "viewport": 1024
+        },
+        "passed": true,
+        "platform": null,
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 899.3125,
+            "height": 132.40625,
+            "left": 42.6875,
+            "right": 174.265625,
+            "top": 766.90625,
+            "width": 131.578125
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 1120.5,
+          "height": 1120.5,
+          "left": 0,
+          "right": 1024,
+          "top": 0,
+          "width": 1024
+        },
+        "requestedWidth": 1024,
+        "width": 1024
+      },
+      {
+        "bottom": null,
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 600.984375,
+              "height": 114.984375,
+              "left": 29.984375,
+              "right": 582.953125,
+              "top": 486,
+              "width": 552.96875
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 600.984375,
+              "height": 114.984375,
+              "left": 622,
+              "right": 1170,
+              "top": 486,
+              "width": 548
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1257.96875,
+              "height": 64.03125,
+              "left": 834.984375,
+              "right": 1008,
+              "top": 1193.9375,
+              "width": 173.015625
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1257.96875,
+              "height": 64.03125,
+              "left": 1007.984375,
+              "right": 1181,
+              "top": 1193.9375,
+              "width": 173.015625
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": null,
+        "hero": null,
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": false,
+        "overflow": {
+          "body": 1199,
+          "document": 1199,
+          "viewport": 1199
+        },
+        "passed": true,
+        "platform": null,
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 1053,
+            "height": 155.03125,
+            "left": 49.984375,
+            "right": 204.046875,
+            "top": 897.96875,
+            "width": 154.0625
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 1312,
+          "height": 1312,
+          "left": 0,
+          "right": 1199,
+          "top": 0,
+          "width": 1199
+        },
+        "requestedWidth": 1199,
+        "width": 1199
+      },
+      {
+        "bottom": null,
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 721.796875,
+              "height": 138.109375,
+              "left": 36.015625,
+              "right": 700.140625,
+              "top": 583.6875,
+              "width": 664.125
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 721.796875,
+              "height": 138.109375,
+              "left": 747.015625,
+              "right": 1405.15625,
+              "top": 583.6875,
+              "width": 658.140625
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1510.828125,
+              "height": 76.90625,
+              "left": 1002.828125,
+              "right": 1210.609375,
+              "top": 1433.921875,
+              "width": 207.78125
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1510.828125,
+              "height": 76.90625,
+              "left": 1210.59375,
+              "right": 1418.375,
+              "top": 1433.921875,
+              "width": 207.78125
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": null,
+        "hero": null,
+        "interaction": {
+          "after": "http://127.0.0.1:33915/get-the-app.html",
+          "before": "http://127.0.0.1:33915/get-the-app.html",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": false,
+        "overflow": {
+          "body": 1440,
+          "document": 1440,
+          "viewport": 1440
+        },
+        "passed": true,
+        "platform": null,
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 1264.640625,
+            "height": 186.1875,
+            "left": 60.046875,
+            "right": 245.078125,
+            "top": 1078.453125,
+            "width": 185.03125
+          },
+          "src": "http://127.0.0.1:33915/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 1575.703125,
+          "height": 1575.703125,
+          "left": 0,
+          "right": 1440,
+          "top": 0,
+          "width": 1440
+        },
+        "requestedWidth": 1440,
+        "width": 1440
+      }
+    ],
+    "scope": "nonvisual geometry and scripted interaction; no screenshot or physical touch acceptance",
+    "url": "http://127.0.0.1:33915/get-the-app.html"
+  },
+  "live": {
+    "animationClock": "timer substitution for requestAnimationFrame",
+    "blockedExternalNavigations": [],
+    "completed": 2,
+    "engine": "installed macOS system WebKit, unshown NSWindow, NSApplication.prohibited",
+    "failures": 0,
+    "requestedWidths": [
+      440,
+      1199
+    ],
+    "results": [
+      {
+        "bottom": {
+          "background": "linear-gradient(110deg, rgb(100, 255, 55), rgb(38, 230, 128))",
+          "href": "/get-the-app",
+          "rect": {
+            "bottom": 944,
+            "height": 50,
+            "left": 16,
+            "right": 215,
+            "top": 894,
+            "width": 199
+          },
+          "text": "Get The App ↗"
+        },
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1097.71875,
+              "height": 139,
+              "left": 24,
+              "right": 416,
+              "top": 958.71875,
+              "width": 392
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1255.359375,
+              "height": 139.640625,
+              "left": 24,
+              "right": 416,
+              "top": 1115.71875,
+              "width": 392
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 3875.25,
+              "height": 76,
+              "left": 24,
+              "right": 211,
+              "top": 3799.25,
+              "width": 187
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 3875.25,
+              "height": 76,
+              "left": 229,
+              "right": 416,
+              "top": 3799.25,
+              "width": 187
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": {
+          "bottom": 198,
+          "height": 76,
+          "left": 24,
+          "right": 416,
+          "text": "Get the FreeGig Tax Pros App",
+          "textAlign": "left",
+          "top": 122,
+          "width": 392
+        },
+        "hero": {
+          "bottom": 775.71875,
+          "height": 253.71875,
+          "left": 0,
+          "right": 440,
+          "top": 522,
+          "width": 440
+        },
+        "interaction": {
+          "after": "https://gigtax.pro/get-the-app",
+          "before": "https://gigtax.pro/get-the-app",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": true,
+        "overflow": {
+          "body": 440,
+          "document": 440,
+          "viewport": 440
+        },
+        "parallax": {
+          "end": "5.684px",
+          "frame": {
+            "bottom": 303.71875,
+            "height": 253.71875,
+            "left": 0,
+            "right": 440,
+            "top": 50,
+            "width": 440
+          },
+          "height": 253.71875,
+          "photo": {
+            "bottom": 324.6090087890625,
+            "height": 284.1650390625,
+            "left": -26.399999618530273,
+            "right": 466.3999881744385,
+            "top": 40.4439697265625,
+            "width": 492.79998779296875
+          },
+          "start": "3.797px"
+        },
+        "passed": true,
+        "platform": {
+          "count": 5,
+          "images": [
+            {
+              "loaded": true,
+              "src": "https://gigtax.pro/assets/platforms/uber.svg"
+            },
+            {
+              "loaded": true,
+              "src": "https://gigtax.pro/assets/platforms/lyft.png"
+            },
+            {
+              "loaded": true,
+              "src": "https://gigtax.pro/assets/platforms/doordash.svg"
+            },
+            {
+              "loaded": true,
+              "src": "https://gigtax.pro/assets/platforms/instacart.svg"
+            },
+            {
+              "loaded": true,
+              "src": "https://gigtax.pro/assets/platforms/amazon-flex.svg"
+            }
+          ],
+          "last": {
+            "bottom": 845.71875,
+            "height": 52,
+            "left": 242.09375,
+            "right": 416.3125,
+            "top": 793.71875,
+            "width": 174.21875
+          },
+          "rect": {
+            "bottom": 863.71875,
+            "height": 88,
+            "left": 0,
+            "right": 440,
+            "top": 775.71875,
+            "width": 440
+          },
+          "scrollLeft": 713,
+          "scrollWidth": 1153
+        },
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 2913.359375,
+            "height": 155,
+            "left": 47,
+            "right": 202,
+            "top": 2758.359375,
+            "width": 155
+          },
+          "src": "https://gigtax.pro/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 0,
+          "height": 0,
+          "left": 0,
+          "right": 0,
+          "top": 0,
+          "width": 0
+        },
+        "requestedWidth": 440,
+        "width": 440
+      },
+      {
+        "bottom": null,
+        "downloads": [
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 600.984375,
+              "height": 114.984375,
+              "left": 29.984375,
+              "right": 582.953125,
+              "top": 486,
+              "width": 552.96875
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 600.984375,
+              "height": 114.984375,
+              "left": 622,
+              "right": 1170,
+              "top": 486,
+              "width": 548
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "ios",
+            "rect": {
+              "bottom": 1257.96875,
+              "height": 64.03125,
+              "left": 834.984375,
+              "right": 1008,
+              "top": 1193.9375,
+              "width": 173.015625
+            },
+            "visible": true
+          },
+          {
+            "href": "#app-download",
+            "platform": "android",
+            "rect": {
+              "bottom": 1257.96875,
+              "height": 64.03125,
+              "left": 1007.984375,
+              "right": 1181,
+              "top": 1193.9375,
+              "width": 173.015625
+            },
+            "visible": true
+          }
+        ],
+        "failures": [],
+        "heading": null,
+        "hero": null,
+        "interaction": {
+          "after": "https://gigtax.pro/get-the-app",
+          "before": "https://gigtax.pro/get-the-app",
+          "focused": true,
+          "focusTarget": "app-download-status",
+          "status": "iPhone download links are coming soon. Explore the app features while public downloads are prepared."
+        },
+        "mobile": false,
+        "overflow": {
+          "body": 1199,
+          "document": 1199,
+          "viewport": 1199
+        },
+        "parallax": null,
+        "passed": true,
+        "platform": null,
+        "qr": {
+          "loaded": true,
+          "rect": {
+            "bottom": 1053,
+            "height": 155.03125,
+            "left": 49.984375,
+            "right": 204.046875,
+            "top": 897.96875,
+            "width": 154.0625
+          },
+          "src": "https://gigtax.pro/assets/app-download-qr.svg"
+        },
+        "reference": {
+          "bottom": 1312,
+          "height": 1312,
+          "left": 0,
+          "right": 1199,
+          "top": 0,
+          "width": 1199
+        },
+        "requestedWidth": 1199,
+        "width": 1199
+      }
+    ],
+    "scope": "nonvisual geometry and scripted interaction; no screenshot or physical touch acceptance",
+    "url": "https://gigtax.pro/get-the-app.html"
+  },
+  "qr": {
+    "encodedUrl": "https://gigtax.pro/get-the-app#app-download",
+    "correction": "H",
+    "quietZoneModules": 4,
+    "brandedCenter": true,
+    "decodedRasterWidths": [
+      132,
+      616
+    ],
+    "decoder": "installed zbarimg",
+    "result": "https://gigtax.pro/get-the-app#app-download"
+  },
+  "seo": {
+    "exitCode": 0,
+    "checks": 55,
+    "fullToolOutputRetained": false,
+    "limit": "The successful tool response was truncated; no full per-check SEO receipt retained for this run."
+  }
+}
