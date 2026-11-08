@@ -1,0 +1,216 @@
+{
+  "verifiedAt": "2026-11-08T22:40:26.017364+00:00",
+  "sourceCommit": "59f1a3c69622962cd44c9af1dbf8eb8ef6fd082c",
+  "sourceBranch": "feat/shuug-free-tax-service-20261107",
+  "sourceSha256": {
+    "examples/workspaces/tax-accounting.sample.json": "f92d761bdb8e242be31d0361e99728367edc0f109f226a9928788001691ad117",
+    "scripts/backend-smoke.ts": "805b0a732707bb783654de08bce6768540d8ee9374bfde7ff02376390553b410",
+    "scripts/preview-tax-workstation.ts": "2b93b529cd5d5ddc7e9e3beeed7d9ee1bbb65ecdd973ad0eab656f839b57da0e",
+    "scripts/workspace-builder-mcp.ts": "49a9c25a5afedfb3f5d1cbcf3fdf7cdb79e876a7914baf8f1fbbd679bd5b376f",
+    "src/app/page.tsx": "eb3178311342883d526e66ae6892a1f44b6670a581eebe443cc3a78d9a3a0627",
+    "src/app/workspace-home.test.tsx": "87fca6466639b4c3a7a4c64c65f3c116c6e85a0a546fe92f1d43b0a92e674601",
+    "src/components/WorkspaceLayout.test.tsx": "3177510a4d22d0fe77f871e1ef87fb106eb40e451ee1764f1a636a07d5bf2f9b",
+    "src/components/WorkspaceShell.tsx": "e21483a1c0b59bac7e125fbe55e395f9fd3712072873e2b4f5c6887b47343d04",
+    "src/lib/backend/backend.test.ts": "6e17a070132cadb3c878c8fd684b3b891d68dc8a5ea29d46680d1ded60eb9176",
+    "src/lib/backend/catalog.ts": "34a28b634d67c7c740bcb8483c01a7a15285772be09d9cf7cd8a3b2561eb36bb",
+    "src/lib/backend/mcp.ts": "f549cc7b9f7d397e4e7a32d01c03b62383c4f321ac995e3836213af494927399",
+    "src/lib/backend/service.ts": "f31ef3eb7f837bf8c587036ee22736c8c62f64d6e8b896d31861d12d23bf4cc4",
+    "src/lib/branding/store.ts": "8401ee8ef78ee0f0a9d05e2fbc701de54ab86055ac2adf17da428f55f6dfd01a",
+    "src/lib/industry/catalog.ts": "f15589cc164ec4d361a9acae67922ae985b94876a4afbd54e14797cffd7f2fcc",
+    "src/lib/industry/mcp-builder.test.ts": "04c1910fff1e542bc9ab88fc8ac20dba79917e491c4aaff3e7c6e185a2f70a1d",
+    "src/lib/industry/mcp-builder.ts": "82e9adfc80759f4c800b68796fbbc52257c4d6a989e01e550b796e1f307b3d87",
+    "src/lib/navigation/catalog.test.ts": "5e9185b58cfc1af923105aa7aaf71fc03c9c7a8cb47978badae9f917cc56148b",
+    "src/lib/navigation/catalog.ts": "3a4fb8debb0e3bef4a20b338c85c7ea5f7d90fac9bc0cfa180a30beb297f32fb",
+    "src/lib/navigation/workspace-layout.test.ts": "65a679822c5a317716f6cb3a38c1cb78de503aae60a3f52af39b9a1c821e8465",
+    "src/lib/navigation/workspace-layout.ts": "3d622831fb2117e6fe5179feb7a796ef26252f802934be879f2d7566ef3ce40f"
+  },
+  "productDirection": "Complete tax preparation, accounting and filing, configured through real Shuug MCP; companion-only scope rejected.",
+  "initialDiscovery": {
+    "actualStdioMcpConnected": true,
+    "tools": 39,
+    "industryBuilderExposed": false
+  },
+  "implementation": {
+    "tools": 42,
+    "newTools": [
+      "workspace_catalog",
+      "workspace_preview",
+      "workspace_apply"
+    ],
+    "existingIndustryBuilderReused": true,
+    "genericLayoutDrivenBySavedToolIds": true,
+    "customTaxHomepageIntegrated": false,
+    "descriptionInterpretedByConnectedAssistant": true,
+    "arbitraryCodeGeneratedByBuilder": false
+  },
+  "compiledMcpAndScreens": {
+    "ok": true,
+    "buildId": "RExgSdLpAhasnBaIXCQxM",
+    "actualStdioMcpApplyVerified": true,
+    "compiledBackendVerified": true,
+    "toolCount": 42,
+    "receiptId": "workspace-build:1bbf55cf5821fb2ed5d4d3c910de5dca64436c86a3e03ee76b9c8c3243acacad",
+    "visibleTools": 21,
+    "hiddenTools": 122,
+    "rootRedirectsToTaxWork": true,
+    "primary": [
+      {
+        "label": "Tax work",
+        "href": "/tax-office"
+      },
+      {
+        "label": "Clients & service locations",
+        "href": "/modules/service-clients"
+      },
+      {
+        "label": "Tax document inbox",
+        "href": "/tax-documents"
+      },
+      {
+        "label": "Client books",
+        "href": "/accounting"
+      },
+      {
+        "label": "Firm invoices & bills",
+        "href": "/accounting/office?tool=billing"
+      },
+      {
+        "label": "Calendar",
+        "href": "/calendar"
+      }
+    ],
+    "allPrimaryRoutesServe200": true,
+    "staticAssetsChecked": 16,
+    "unrelatedMenuLinksAbsent": true,
+    "sampleRecordsAndBooksUnchanged": true,
+    "missingDependenciesRejectedBeforeApply": true,
+    "duplicateRetryPreservesReceipt": true,
+    "changedPlanAndStaleConfigurationRejected": true,
+    "failedPlansPreserveConfiguration": true,
+    "invalidBearerStatus": 401,
+    "additionalMcpCalls": 6,
+    "browserRuntimeUsed": false,
+    "visualAcceptanceObtained": false,
+    "realInstalledServiceChanged": false,
+    "missingProductCapabilities": [
+      "tax-return-calculation",
+      "tax-return-forms",
+      "tax-efile-transmission"
+    ]
+  },
+  "mcpCalls": [
+    "business_capabilities",
+    "shopify_status",
+    "workspace_catalog",
+    "workspace_apply"
+  ],
+  "businessPlan": {
+    "description": "Shuug is the complete tax preparation, accounting and electronic filing software for independent and small family-run tax firms. The product must prepare individual, self-employed and business returns, calculate federal and state tax, produce return forms and diagnostics, collect reviewed client authorization, transmit filings and track official acknowledgments and amendments. It also needs secure client intake and documents, separate client books, bank import and reconciliation, accounting reports, firm invoicing, appointments, quarterly reviews and gig-worker records. Each firm can run its server on its own Mac mini; outside application hosting is optional. Keep staff and recovery key custody separate from the server. Build a focused tax/accounting workstation, with unrelated retail, restaurant, manufacturing and general business-assistant menus hidden. Existing capability gaps must be reported explicitly; a tracker or handoff record is not a tax calculation or transmission engine.",
+    "industry": {
+      "industryId": "tax-firm",
+      "answers": {
+        "appointments": true,
+        "portal": true,
+        "staff": true,
+        "quarterly": true,
+        "rideshare": true,
+        "quickbooks": false,
+        "marketing": false
+      },
+      "addedPacks": [],
+      "removedPacks": [
+        "marketing"
+      ],
+      "templateName": "Tax & accounting workstation",
+      "revision": 3
+    },
+    "layout": {
+      "homeToolId": "tax-office",
+      "primaryToolIds": [
+        "tax-office",
+        "service-clients",
+        "tax-documents",
+        "client-books",
+        "office-billing",
+        "calendar"
+      ]
+    },
+    "visibleToolIds": [
+      "tax-office",
+      "service-clients",
+      "tax-documents",
+      "client-books",
+      "office-billing",
+      "calendar",
+      "notes",
+      "tasks",
+      "rideshare-journal",
+      "module:tax-quarterly-reviews",
+      "service-booking",
+      "service-portal",
+      "timeclock",
+      "people",
+      "roles",
+      "connections",
+      "backend",
+      "branding",
+      "module:tax-engagements",
+      "module:tax-document-requests",
+      "module:tax-filing-handoffs"
+    ],
+    "businessName": "Shuug Tax & Accounting \u00b7 SAMPLE"
+  },
+  "review": {
+    "currentDigest": "4e8555fc7a103a7d7276b4989bfcf6e22fde5512eb687b056117254fc90745a4",
+    "proposedDigest": "1bbf55cf5821fb2ed5d4d3c910de5dca64436c86a3e03ee76b9c8c3243acacad",
+    "durableReceiptId": "workspace-build:1bbf55cf5821fb2ed5d4d3c910de5dca64436c86a3e03ee76b9c8c3243acacad",
+    "requiredModulesIncluded": [
+      "module:tax-engagements",
+      "module:tax-document-requests"
+    ],
+    "initialMissingDependency404ObservedAndCorrected": true
+  },
+  "verification": {
+    "focusedUnitTests": 53,
+    "focusedFiles": 13,
+    "marketingSiteTestExcluded": "Separate suite requires generated public-site manifest; public site untouched.",
+    "productionBuildPassed": true,
+    "buildUsedDisposableData": true,
+    "officeMfaAccountingCompiledChecks": 141,
+    "officeRestoreFiles": 15,
+    "encryptedStaffCompiledChecks": 38,
+    "encryptedStaffRestoreFiles": 6,
+    "compiledBuildId": "RExgSdLpAhasnBaIXCQxM",
+    "realEmailSent": false,
+    "realPaymentProcessed": false,
+    "filingTransmitted": false,
+    "browserAutomationUsed": false,
+    "visualAcceptanceObtained": false,
+    "normalSafariOpened": true
+  },
+  "installedServiceChanged": false,
+  "publicWebsiteChanged": false,
+  "realFirmEnrollmentPerformed": false,
+  "missingTaxEngineWork": [
+    {
+      "id": "tax-return-calculation",
+      "status": "not_implemented",
+      "detail": "Complete federal/state tax calculation is still required for the requested filing product."
+    },
+    {
+      "id": "tax-return-forms",
+      "status": "not_implemented",
+      "detail": "Shuug does not generate or certify complete filing-ready federal or state return forms."
+    },
+    {
+      "id": "tax-efile-transmission",
+      "status": "not_implemented",
+      "detail": "Shuug does not transmit returns to IRS MeF or state e-file systems. Its filing workflow records reviewed handoff and external acknowledgment evidence."
+    }
+  ],
+  "newFollowupRequirements": [
+    "Client invoice email sending and payment collection",
+    "Private client multi-file intake and near-real-time own business view"
+  ],
+  "followupRequirementsImplementedByThisEvidence": false
+}
