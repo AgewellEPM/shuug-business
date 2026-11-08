@@ -46,7 +46,7 @@ function source(db:DatabaseSync,engagement:ModuleRecord,user:WorkspaceUser,edit=
   const clientId=String(engagement.values.client_id),client=assertTaxClientAccess(db,clientId,user,edit);
   const requests=taxModuleRows(db,"tax-document-requests").filter(r=>!r.archived&&r.values.engagement_id===engagement.id&&r.values.client_id===clientId);
   const files=db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='tax_client_documents'").get()
-    ?db.prepare("SELECT * FROM tax_client_documents WHERE clientId=? AND engagementId=? ORDER BY createdAt,id").all(clientId,engagement.id) as TaxDocument[]:[];
+    ?(db.prepare("SELECT * FROM tax_client_documents WHERE clientId=? AND engagementId=? ORDER BY createdAt,id").all(clientId,engagement.id) as TaxDocument[]).map(file=>({...file})):[];
   const bookRow=db.prepare("SELECT body FROM documents WHERE kind='client-book' AND json_extract(body,'$.clientId')=?").get(clientId) as {body:string}|undefined;
   const book=bookRow?JSON.parse(bookRow.body) as {id:string;name:string}:null;
   const ledger=book?db.prepare("SELECT body FROM documents WHERE id=? AND kind='state'").get(`state:client-journal:${book.id}`) as {body:string}|undefined:null;

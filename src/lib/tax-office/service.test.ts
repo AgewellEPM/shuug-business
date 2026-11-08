@@ -65,6 +65,7 @@ it("requires source review before approval and binds the approved documents to t
   reviewTaxDocument(source, "reviewed", owner.id, owner);
   approve(id, files.returnId, files.authorizationId);
   const manifest = taxPackageManifest(id, owner);
+  for(const request of current(id).requests)for(const file of request.files)expect(Object.getPrototypeOf(file)).toBe(Object.prototype);
   expect(manifest.approval).toMatchObject({ returnDocumentId: files.returnId, authorizationDocumentId: files.authorizationId, digest: manifest.digest });
   expect(current(id).workflow.authorizationBindings).toEqual([expect.objectContaining({ authorizationDocumentId: files.authorizationId, returnDocumentId: files.returnId, digest: manifest.digest })]);
   expect(manifest.filingCapability).toContain("Not an IRS transmission");
