@@ -274,6 +274,16 @@ body.sales-console-page :is(.skip-link, .sdr-skip):focus { top: 12px; }
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .sales-console-page :is(.sales-form, .sales-toolbar, .sales-queue-filter) :is(input, select, textarea):focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-ring); }
+.sales-console-page :is(.sales-form, .sales-toolbar, .sales-queue-filter) select {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 44px;
+  padding-right: 36px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-tertiary) 50%), linear-gradient(135deg, var(--text-tertiary) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
 .sales-console-page :is(input, textarea)::placeholder { color: var(--text-faint); opacity: 1; }
 .sales-console-page :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--accent); }
 .sales-console-page .sales-form textarea { min-height: 100px; resize: vertical; }
@@ -492,14 +502,14 @@ body.sales-console-page :is(.skip-link, .sdr-skip):focus { top: 12px; }
 @media (max-width: 760px) {
   .sales-console-page #sales-workspace { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
   .sales-console-page .sdr-sidebar { position: relative; z-index: 30; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px; padding: 12px 16px 0; overflow: visible; border-right: 0; border-bottom: 1px solid var(--glass-border-muted); }
-  .sales-console-page .sdr-brand { flex: 1 1 auto; font-size: 16px; }
+  .sales-console-page .sdr-brand { order: 0; flex: 1 1 auto; font-size: 16px; }
   .sales-console-page .sdr-brand img { max-height: 38px; }
   .sales-console-page .sdr-sidebar-label { display: none; }
-  .sales-console-page .sdr-sidebar-bottom { flex: 0 0 auto; margin: 0; padding: 0; border: 0; }
+  .sales-console-page .sdr-sidebar-bottom { order: 1; flex: 0 0 auto; margin: 0; padding: 0; border: 0; }
   .sales-console-page .sdr-workspace-indicator { display: none; }
   .sales-console-page .sdr-sidebar-bottom a { font-size: 10px; }
   .sales-console-page .sdr-sidebar-footer { margin: 0; padding: 0; border: 0; max-width: 50%; font-size: 11px; }
-  .sales-console-page .sdr-nav { flex: 1 1 calc(100% + 32px); flex-direction: row; gap: 5px; min-width: 0; margin: 0 -16px; padding: 0 12px 11px; overflow-x: auto; overscroll-behavior-x: contain; scroll-padding: 12px; scrollbar-width: thin; }
+  .sales-console-page .sdr-nav { order: 2; flex: 1 1 calc(100% + 32px); flex-direction: row; flex-wrap: nowrap; gap: 5px; min-width: 0; margin: 0 -16px; padding: 0 12px 11px; overflow-x: auto; overscroll-behavior-x: contain; scroll-padding: 12px; scrollbar-width: thin; }
   .sales-console-page .sdr-nav button { width: auto; flex: 0 0 auto; min-height: 44px; padding: 10px 13px; font-size: 13px; }
   .sales-console-page .sdr-nav button > :is(svg, .sdr-nav-icon) { width: 17px; height: 17px; }
   .sales-console-page .sdr-main { padding: 0 16px 28px; }
