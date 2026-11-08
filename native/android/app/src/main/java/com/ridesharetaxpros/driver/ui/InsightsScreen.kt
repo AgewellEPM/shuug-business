@@ -40,9 +40,12 @@ import java.time.temporal.TemporalAdjusters
 import kotlin.math.*
 
 @Composable fun InsightsScreen(repo: DriverRepository,onGoals: ()->Unit,onTrip: (DriverRecord)->Unit) {
+    EarningsContent(repo.journal.visible.map {it.record},repo.journal.goals,onGoals,onTrip)
+}
+@Composable fun EarningsContent(inputRecords: List<DriverRecord>,goals: Goals,onGoals: ()->Unit,onTrip: (DriverRecord)->Unit) {
     var period by remember { mutableStateOf(7) }
     val last=LocalDate.now(); val first=last.minusDays(period.toLong()-1).toString(); val through=last.toString()
-    val records=repo.journal.visible.map { it.record }.filterNot { it.deleted }; val goals=repo.journal.goals
+    val records=inputRecords.filterNot { it.deleted }
     val totals=insights(records,goals,first,through).associateBy { it.date }
     val days=(0 until period).map { last.minusDays((period-1-it).toLong()).toString() }.map { totals[it] ?: DayTotals(it) }
     val rides=records.filter { it.kind=="trip" && it.date in first..through && it.trip().classification=="business" && it.trip().endedAt!=null }.map { RideProfit(it,goals) }
@@ -157,7 +160,7 @@ import kotlin.math.*
         Text(label,Modifier.weight(1f));Text(usd(value),color=color)
     }
 }
-@Composable private fun EarningsPulse(days:List<DayTotals>,rides:List<RideProfit>,period:Int) {
+@Composable fun EarningsPulse(days:List<DayTotals>,rides:List<RideProfit>,period:Int) {
     var metric by remember { mutableStateOf("Net earnings") };var expanded by remember { mutableStateOf(false) };var selected by remember(period,metric) { mutableStateOf<Int?>(null) }
     fun value(day:DayTotals):Double=when(metric) { "Miles"->day.miles;"Driving hours"->rides.filter { it.record.date==day.date }.sumOf { it.minutes }/60;else->day.net/100.0 }
     val values=days.map(::value);val total=values.sum();val shown=selected?.let { values[it] } ?: total
@@ -287,33 +290,77 @@ import kotlin.math.*
         } catch(failure:Exception) { error=if(failure is IllegalArgumentException || failure is ArithmeticException) "Use positive dollars and cents, or leave a field blank. Vehicle cost must be at most $100 per mile." else failure.message ?: "Goals could not be saved." }
     })
 }
-@Composable fun TripDetail(repo: DriverRepository,original: DriverRecord,onEdit: ()->Unit) {
-    val record=repo.journal.visible.firstOrNull {it.record.id==original.id}?.record ?: original; val trip=record.trip();val profit=RideProfit(record,repo.journal.goals)
-    var route by remember {mutableStateOf<List<LocationFix>>(emptyList())}; var alternate by remember {mutableStateOf("")};var minutes by remember {mutableStateOf("")}
-    LaunchedEffect(record.id) {repo.run {route=repo.store.route(repo.scope,record.id)}}
-    Panel(record.title) {Text("${record.date} · %.2f mi · %.0f minutes".format(profit.miles,profit.minutes));Text("${classifications[trip.classification]} · ${trip.platform ?: "Platform unspecified"}")
-        Text(profit.net?.let {"${usd(it)} estimated net"} ?: "Add fare, fees and vehicle cost to estimate profit.",style=MaterialTheme.typography.headlineSmall)
-        Text("Fare ${profit.fare?.let(::usd) ?: "unknown"} · fees ${profit.fees?.let(::usd) ?: "unknown"} · vehicle ${profit.vehicle?.let(::usd) ?: "unknown"}")
-        profit.hourly?.let {Text("${usd(it)}/hour · ${profit.perMile?.let(::usd) ?: "—"}/mile")}
-        if(trip.hasGaps) Text("GPS gaps: review distance before relying on this estimate.",color=Color(0xFFFFBD73))
-        Button(onClick=onEdit,enabled=repo.journal.activeTripId!=record.id) {Text("Edit trip")}
+@Composable fun TripDetail(repo: DriverRepository,original: DriverRecord,onEdit: ()->Unit,onRouteOptions: ()->Unit,onDeleted: ()->Unit) {
+    val scope=repo.scope
+    val entry=repo.journal.visible.firstOrNull {it.record.id==original.id}
+    if(entry==null || entry.record.kind!="trip") {Text("Trip unavailable");return}
+    val record=entry.record;val trip=record.trip();val profit=RideProfit(record,repo.journal.goals)
+    var review by remember(scope,record.id) {mutableStateOf<SavedRouteReview?>(null)}
+    var routeError by remember(scope,record.id) {mutableStateOf<String?>(null)}
+    var loading by remember(scope,record.id) {mutableStateOf(false)}
+    var deleting by remember(scope,record.id) {mutableStateOf(false)}
+    LaunchedEffect(scope,record.id,trip.sampleCount,trip.endedAt) {
+        loading=true;routeError=null
+        try {val value=kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {reviewSavedRoute(repo.store.route(scope,record.id))}
+            if(repo.scope==scope) {review=value;routeError=value.warning}}
+        catch(cancelled: kotlinx.coroutines.CancellationException) {throw cancelled}
+        catch(_: Exception) {if(repo.scope==scope) {review=null;routeError="The saved route could not be opened. Your mileage record is still available for review."}}
+        finally {if(repo.scope==scope) loading=false}
     }
-    if(route.size>=2) Panel("Your recorded route") {
-        Canvas(Modifier.fillMaxWidth().height(220.dp)) {
-            val latMin=route.minOf {it.latitude};val latSpan=(route.maxOf {it.latitude}-latMin).coerceAtLeast(.00001)
-            val lonMin=route.minOf {it.longitude};val lonSpan=(route.maxOf {it.longitude}-lonMin).coerceAtLeast(.00001)
-            val path=Path();route.forEachIndexed {i,fix->val x=((fix.longitude-lonMin)/lonSpan*(size.width-20)+10).toFloat();val y=(size.height-10-(fix.latitude-latMin)/latSpan*(size.height-20)).toFloat();if(i==0 || fix.startsSegment==true) path.moveTo(x,y) else path.lineTo(x,y)}
-            drawPath(path,Pink,style=Stroke(4f))
-        }
-        Text("Phone-only route sketch. Gaps start a new segment; this is not a street map.",color=Muted)
-        OutlinedButton(onClick={repo.run {val a=route.first();val b=route.last();val uri=Uri.parse("https://www.google.com/maps/dir/?api=1&origin=${a.latitude},${a.longitude}&destination=${b.latitude},${b.longitude}&travelmode=driving")
-            repo.app.startActivity(Intent(Intent.ACTION_VIEW,uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))}}) {Text("Compare current routes in Maps")}
-        Text("Opening Maps shares these endpoints with your chosen maps provider. Current directions do not prove a past ride had a shorter viable route.",color=Muted)
+    val zone=runCatching {ZoneId.of(trip.timeZoneId ?: "UTC")}.getOrDefault(ZoneOffset.UTC)
+    fun time(raw: String)=runCatching {Instant.parse(raw).atZone(zone).format(java.time.format.DateTimeFormatter.ofPattern("MMM d, yyyy · h:mm a"))}.getOrDefault(raw)
+    Panel {
+        Text("%.2f mi".format(java.util.Locale.US,profit.miles),fontSize=34.sp,fontWeight=FontWeight.Bold)
+        Text(classifications[trip.classification] ?: trip.classification)
+        Text(if(entry.conflict!=null) "Review sync conflict" else if(entry.pendingMutationId!=null) "Saved on phone · Sync pending" else "Synced to your firm",
+            color=if(entry.conflict!=null) Danger else if(entry.pendingMutationId!=null) Caution else Income,fontSize=12.sp)
     }
-    Panel("Compare a route option") {Field("Alternative distance (miles)",alternate,{alternate=it});Field("Alternative duration (minutes)",minutes,{minutes=it})
-        val distance=alternate.toDoubleOrNull()?.takeIf {it.isFinite() && it>=0};val duration=minutes.toDoubleOrNull()?.takeIf {it.isFinite() && it>=1};val rate=repo.journal.goals.vehicleCostCentsPerMile
-        if(distance!=null && rate!=null) {Text("Estimated vehicle-cost difference: ${usd((profit.miles-distance)*rate)} saved")
-            if(duration!=null && profit.fare!=null && profit.fees!=null) Text("Same fare and fees: ${usd((profit.fare!!-profit.fees!!-distance*rate)/(duration/60))}/hour")}
-        Text("Enter a current route estimate from Maps. Check traffic, pickup requirements and unpaid travel before choosing.",color=Muted)
+    Panel("Drive details") {
+        Text("Journal date: ${trip.recordedDate}");Text("Started: ${time(trip.startedAt)}")
+        Text(trip.endedAt?.let {"Ended: ${time(it)}"} ?: "Drive in progress")
+        Text("Times use ${zone.id}.",color=Muted,fontSize=12.sp)
+        Text("Source: ${if(trip.source=="gps") "Recorded GPS" else "Manual entry / correction"}")
+        if(trip.purpose.isNotBlank()) Text(trip.purpose)
+        if(trip.notes.isNotBlank()) Text(trip.notes)
+        trip.platform?.takeIf {it.isNotBlank()}?.let {Text("Platform: $it",color=Muted)}
+        trip.workArea?.takeIf {it.isNotBlank()}?.let {Text("Work area: $it",color=Muted)}
     }
+    if(trip.hasGaps) Panel {Text("Review this trip. Missing or imprecise GPS sections were not filled with estimated miles.",color=Caution)}
+    Panel("Ride profitability") {
+        Text("Fare + tips: ${profit.fare?.let(::usd) ?: "Not recorded"}")
+        Text("Platform fees: ${profit.fees?.let(::usd) ?: "Not recorded"}")
+        Text("Estimated vehicle cost: ${profit.vehicle?.let(::usd) ?: "Set cost in Earnings → Goals"}")
+        profit.net?.let {net->
+            Text("Estimated ride net: ${usd(net)}",color=if(net<0) Danger else Link,fontSize=23.sp,fontWeight=FontWeight.Bold)
+            profit.hourly?.let {Text("Net per recorded hour: ${usd(it)}")}
+            profit.perMile?.let {Text("Net per mile: ${usd(it)}")}
+            Text(if(net<0) "This drive falls below break-even using your operating estimate." else "This drive covers your entered vehicle-cost estimate. Unrecorded costs can change the result.",fontSize=13.sp)
+        } ?: Text("Add the fare, fees (0 if none), and vehicle cost to see whether this drive covered its costs.",fontSize=13.sp)
+        Text("Estimated before tax. Uses this drive's recorded time and miles; include unpaid pickup, waiting and repositioning in your day review. Fuel and repairs already included in your per-mile estimate are not deducted twice.",color=Muted,fontSize=12.sp)
+        if(trip.hasGaps) Text("GPS gaps may understate distance and operating cost. Review mileage.",color=Caution,fontSize=12.sp)
+    }
+    if(loading) LinearProgressIndicator(Modifier.fillMaxWidth(),color=Pink)
+    routeError?.let {Panel("Route needs review") {Text(it,color=Caution)}}
+    review?.takeIf {it.segments.isNotEmpty()}?.let {saved->Panel("Route preview · Kept on your phone") {
+        val markers=listOfNotNull(saved.first?.let {RoadMapMarker(it,Color.White,"Start")},saved.last?.let {RoadMapMarker(it,Pink,"End")})
+        SharedRoadMap(repo,saved.segments.map {RoadMapLine(it,Purple,"Recorded section")},markers,description="Recorded trip route with gaps shown as separate sections")
+        Text("Route points are not uploaded to the firm. Gaps are shown as separate sections. Street tiles share only the visible map areas with the map provider.",color=Muted,fontSize=12.sp)
+        if(saved.canCompare && routeError==null) Action("Compare current route options",onRouteOptions,primary=false)
+    }}
+    entry.conflict?.let {remote->Panel("Choose the version to keep") {
+        Text("This record changed on another device. Your phone copy has not overwritten it.")
+        Text("Workspace: ${remote.record.title} · Updated ${time(remote.updatedAt)}",color=Muted)
+        if(remote.record.deleted) Text("Deleted in the workspace",color=Caution)
+        if(remote.record.kind=="trip") {val value=remote.record.trip();Text("%.2f mi · %s".format(java.util.Locale.US,value.distanceMeters/1609.344,classifications[value.classification] ?: value.classification));if(value.notes.isNotBlank()) Text(value.notes)}
+        Action("Keep phone version",{repo.run {check(repo.scope==scope && repo.journal.activeTripId!=record.id);repo.resolve(record.id,true);if(repo.connection!=null) repo.sync()}},primary=false,enabled=repo.journal.activeTripId!=record.id)
+        Action("Use workspace version",{repo.run {check(repo.scope==scope && repo.journal.activeTripId!=record.id);repo.resolve(record.id,false);if(remote.record.deleted) onDeleted();if(repo.connection!=null) repo.sync()}},primary=false,enabled=repo.journal.activeTripId!=record.id)
+    }}
+    if(trip.endedAt!=null && repo.journal.activeTripId!=record.id) Panel {
+        Action("Edit trip",onEdit,primary=false)
+        TextButton(onClick={deleting=true}) {Text("Delete trip",color=Danger)}
+    }
+    if(deleting) AlertDialog(onDismissRequest={deleting=false},title={Text("Delete this trip?")},
+        text={Text("This deletes the trip from your journal and syncs that deletion to your firm.")},
+        confirmButton={TextButton(onClick={deleting=false;repo.run {check(repo.scope==scope);repo.save(record.copy(deleted=true));onDeleted()}}) {Text("Delete trip",color=Danger)}},
+        dismissButton={TextButton(onClick={deleting=false}) {Text("Cancel")}})
 }

@@ -52,7 +52,9 @@ class PositionPlannerTest {
         assertNull(assessOfferRoad(offer,journey().copy(originCapturedAt=clock.minusSeconds(121)),preference,goals,15.0,clock=clock).financial)
         assertNull(assessOfferRoad(offer,journey(),preference.copy(allStopsConfirmed=false),goals,15.0,clock=clock).financial)
         assertNull(assessOfferRoad(offer.copy(repositionMiles=1.0),journey(),preference,goals,15.0,clock=clock).financial)
-        assertEquals("needsReview",assessOfferRoad(offer,journey(),preference,goals,15.0,otherActiveWork=true,clock=clock).outcome)
+        assertEquals("skip",assessOfferRoad(offer,journey(),preference,goals,15.0,otherActiveWork=true,clock=clock).outcome)
+        assertEquals("skip",assessOfferRoad(offer.copy(phase="accepted"),journey(),preference,goals,15.0,clock=clock).outcome)
+        assertEquals("skip",assessOfferRoad(offer.copy(phase="inProgress"),journey(),preference,goals,15.0,clock=clock).outcome)
         assertNull(assessOfferRoad(offer,journey(),preference.copy(preferredPlatforms=setOf("Uber")),goals,15.0,clock=clock).financial)
     }
 }

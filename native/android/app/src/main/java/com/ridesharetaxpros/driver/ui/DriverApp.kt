@@ -62,6 +62,11 @@ import com.ridesharetaxpros.driver.tracking.DriveService
         page.startsWith("Review offer:")->"Review offer fields"
         page.startsWith("Capture:")->page.substringAfter(':')
         page.startsWith("Trip:")->"Trip details"
+        page.startsWith("Trip routes:")->"Current route options"
+        page.startsWith("Money record:")->"Your record"
+        page.startsWith("Add rating:")->"Add rating"
+        page.startsWith("Add review:")->"Add review"
+        page.startsWith("Ratings & reviews:")->"Ratings & reviews"
         page.startsWith("Edit:")->"Edit record"
         page.startsWith("Prompt:")->"Add expense"
         page.startsWith("Bank:")->"Review transaction"
@@ -87,6 +92,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
     }}) {padding->
         key(repo.scope,page ?: tab) {
             if(page=="Screenshot guide") Box(Modifier.padding(padding).fillMaxSize()) {ScreenshotGuideScreen(::navigate,::back)}
+            else if(page=="Tax & Goals") Box(Modifier.padding(padding).fillMaxSize()) {TaxCoachScreen(repo,::navigate)}
             else Column(Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=10.dp),
                 verticalArrangement=Arrangement.spacedBy(14.dp)) {
                 if(!repo.storageReady) Panel("Recording unavailable") {Text(repo.failure ?: "Storage is unavailable.")}
@@ -101,7 +107,8 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                     page=="Getting started"->GettingStartedScreen(repo,{preferences.edit().putBoolean("gettingStartedSeen",true).apply();tourSeen=true;back()},::navigate)
                     page=="Trips"->TripsScreen(repo,::navigate)
                     page=="Money"->MoneyScreen(repo,::navigate)
-                    page=="Spending & review"->SpendingReviewScreen(repo)
+                    page=="Spending & review"->SpendingReviewScreen(repo,::navigate)
+                    page.startsWith("Money record:")->MoneyDetailScreen(repo,page.substringAfter(':'),::navigate,::back)
                     page=="Account"->AccountHubScreen(repo,::navigate,{tracking("ASSIST")})
                     page=="Driving & expense reminders"->AssistanceScreen(repo,{tracking("ASSIST")})
                     page=="Driver Rewards"->ReferralScreen(repo)
@@ -114,7 +121,8 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                     page=="Add income"->RecordEditor(repo,DriverRecord.income(Income(description="",amountCents=0)),null,null,::back)
                     page=="Add manual trip"->RecordEditor(repo,remember {DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual"))},null,null,::back)
                     page.startsWith("Edit:")->RecordEditor(repo,repo.journal.visible.firstOrNull {it.record.id==page.substringAfter(':')}?.record,null,null,::back)
-                    page.startsWith("Trip:")->repo.journal.visible.firstOrNull {it.record.id==page.substringAfter(':')}?.let {TripDetail(repo,it.record,{navigate("Edit:${it.record.id}")})}
+                    page.startsWith("Trip:")->repo.journal.visible.firstOrNull {it.record.id==page.substringAfter(':')}?.let {entry->TripDetail(repo,entry.record,{navigate("Edit:${entry.record.id}")},{navigate("Trip routes:${entry.record.id}")},::back)}
+                    page.startsWith("Trip routes:")->TripRouteOptionsScreen(repo,page.substringAfter(':'))
                     page.startsWith("Prompt:")->RecordEditor(repo,null,null,repo.journal.placePrompts.firstOrNull {it.id==page.substringAfter(':')},::back)
                     page=="Bank inbox"->BankScreen(repo,{navigate("Import statement")},{navigate("Bank:${it.id}")})
                     page.startsWith("Bank:")->RecordEditor(repo,null,repo.journal.bankTransactions.firstOrNull {it.id==page.substringAfter(':')},null,::back)
@@ -127,24 +135,31 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                     page=="Choose screenshot"->ScreenshotImportScreen(repo,::navigate)
                     page=="Screenshot guide"->Unit
                     page=="Sample shift"->SampleOffersScreen(repo,::navigate)
+                    page=="Sample offers"->SampleOffersScreen(repo,::navigate,"Offers")
                     page.startsWith("Offer:")->OfferDetailScreen(repo,page.substringAfter(':'),::navigate)
                     page.startsWith("Offer route:")->OfferRouteScreen(repo,page.substringAfter(':'))
                     page.startsWith("Review offer:")->ManualOfferScreen(repo,::back,page.substringAfter(':'))
                     page=="Capture diagnostics" || page=="Offer Capture Diagnostics"->OfferDiagnosticsScreen(repo,navigate=::navigate)
                     page.startsWith("Capture:")->OfferDiagnosticsScreen(repo,page.substringAfter(':'),navigate=::navigate)
                     page=="Ratings & reviews"->ReputationScreen(repo,::navigate)
+                    page.startsWith("Ratings & reviews:")->ReputationScreen(repo,::navigate,page.substringAfter(':'))
                     page=="Add rating"->ReputationEntryScreen(repo,"rating",::back)
+                    page.startsWith("Add rating:")->ReputationEntryScreen(repo,"rating",::back,page.substringAfter(':'))
                     page=="Add review"->ReputationEntryScreen(repo,"review",::back)
+                    page.startsWith("Add review:")->ReputationEntryScreen(repo,"review",::back,page.substringAfter(':'))
                     page=="Get help"->OfficeHelpScreen(repo,::navigate)
-                    page=="Tax & Goals"->TaxCoachScreen(repo,::navigate)
                     page=="Tax details"->CoachIntakeScreen(repo,::back)
                     page=="Universal Delivery" || page=="In-store Shopper"->UniversalWorkScreen(repo,page,::navigate)
-                    page=="Log shopping job" || page=="Log delivery job"->RecordEditor(repo,remember {DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual",purpose=page,
-                        rideRole=if(page=="Log shopping job") "shopping" else "delivery",distanceMeters=0.0))},null,null,::back)
+                    page=="Log shopping job" || page=="Log delivery job"->RecordEditor(repo,remember {
+                        val shopping=page=="Log shopping job";val work=repo.journal.universalWorkProfiles[if(shopping) "In-store Shopper" else "Universal Delivery"]?.workLabel ?: if(shopping) "In-store Shopper" else "Universal Delivery"
+                        DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual",classification="business",platform=work,
+                            purpose=work+if(shopping) " shopping job" else " delivery job",rideRole=if(shopping) "shopping" else "delivery",distanceMeters=0.0))
+                    },null,null,::back)
                     page=="Connected jobs & pay" || page=="Connected work"->ConnectedWorkScreen(repo)
                     page=="Planning reserves & history" || page=="Planning reserves"->ReserveHistoryScreen(repo)
                     page=="My tax documents & progress"->TaxDocumentsScreen(repo)
                     page=="Protected data"->ProtectedDataScreen(repo)
+                    page=="Protected Journal"->ProtectedJournalScreen(repo)
                 }
                 Spacer(Modifier.height(24.dp))
             }

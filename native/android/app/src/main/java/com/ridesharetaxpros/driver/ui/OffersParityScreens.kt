@@ -37,6 +37,7 @@ import java.io.ByteArrayInputStream
 import java.time.Duration
 import java.time.Instant
 import java.util.Locale
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -84,6 +85,9 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
         OutlinedButton(onClick={navigate("Enter offer")},Modifier.weight(1f).testTag("offers.enter")) {Icon(Icons.Default.Add,null);Text("Enter")}
     }
     TextButton(onClick={navigate("Capture diagnostics")}) {Icon(Icons.Default.MonitorHeart,null);Text("Offer Capture Diagnostics")}
+    var clock by remember {mutableStateOf(Instant.now())}
+    LaunchedEffect(repo.scope) {while(true) {delay(5000);clock=Instant.now()}}
+    val ranked=rankReviewedOffers(repo.journal,clock)
     val all = reviewedOffers(repo.journal)
     all.firstOrNull {it.isActiveWork()}?.let {active->Panel("Current work") {
         Text("${active.platform} · ${if(active.phase=="accepted") "Accepted" else "Started"} · Your report",color=Route)
@@ -93,9 +97,9 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
         Icon(Icons.Default.MoreTime,null,tint=Pink,modifier=Modifier.size(34.dp))
         Text("Your next offer starts here.",fontSize=23.sp,fontWeight=FontWeight.Bold)
         Text("Share a screenshot or text, or enter an offer while parked. Missing information stays visible for review.",color=Muted)
-        TextButton(onClick={navigate("Sample shift")},Modifier.testTag("offers.sample")) {Text("Explore a sample shift")}
-    } else all.forEach { offer -> OfferCard(offer,assessment(repo,offer),false) {navigate("Offer:${offer.id}")} }
-    TextButton(onClick={navigate("Sample shift")}) {Text("View simulated multi-platform offers")}
+        TextButton(onClick={navigate("Sample offers")},Modifier.testTag("offers.sample")) {Text("Explore a sample shift")}
+    } else ranked.forEach { row -> OfferCard(row.offer,row.financial,false,row.kind,row.reason) {navigate("Offer:${row.offer.id}")} }
+    TextButton(onClick={navigate("Sample offers")}) {Text("View simulated multi-platform offers")}
 }
 
 @Composable fun ScreenshotHelpCard(navigate: (String)->Unit) {
@@ -106,7 +110,7 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
     }
 }
 
-@Composable private fun OfferCard(offer: ReviewedGigOffer,value: ReviewedOfferAssessment,sample: Boolean,onClick: ()->Unit) {
+@Composable private fun OfferCard(offer: ReviewedGigOffer,value: ReviewedOfferAssessment,sample: Boolean,kind: String,reason: String,onClick: ()->Unit) {
     Surface(onClick=onClick,color=Color.Transparent,modifier=Modifier.fillMaxWidth().testTag("offer.card.${offer.platform}")) {
         Panel {
             PlatformHeader(offer.platform,if(sample) "SIMULATED" else "OBSERVED")
@@ -118,21 +122,32 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
                 Column(Modifier.weight(1f)) {Text(moneyBand(value.cash),color=offerTint(value),fontWeight=FontWeight.Bold);Text("Cash after reserve",color=Muted,fontSize=11.sp)}
                 Column(Modifier.weight(1f)) {Text(moneyBand(value.hourly),color=offerTint(value),fontWeight=FontWeight.Bold);Text("Per working hour",color=Muted,fontSize=11.sp)}
             }
-            Text(offerOutcome(value),color=offerTint(value),fontWeight=FontWeight.Bold)
-            if(value.issues.isNotEmpty()) Text(value.issues.first(),color=Muted,fontSize=12.sp)
+            Text(when(kind) {"recommended"->"Fits your trip home";"tradeoff"->"Profitable, with a route tradeoff";"skip"->"Skip this opportunity";else->"Review before deciding"},color=when(kind) {"recommended"->Income;"tradeoff"->ExpenseColor;"skip"->Danger;else->Caution},fontWeight=FontWeight.Bold)
+            Text(reason,color=Muted,fontSize=12.sp)
             if(!sample) Text(if(offer.fresh()) "Within 60-second review window" else "Older observation · recheck in the gig app",color=Muted,fontSize=11.sp)
         }
     }
 }
 
-@Composable fun SampleOffersScreen(repo: DriverRepository,navigate: (String)->Unit) {
+@Composable fun SampleOffersScreen(repo: DriverRepository,navigate: (String)->Unit,initialTab: String="Earnings") {
+    var tab by remember {mutableStateOf(initialTab)}
+    var notice by remember {mutableStateOf(false)}
+    val records=remember {sampleShiftRecords()}
     Text("✦ SAMPLE DATA · Your records are separate",color=Link,fontSize=11.sp,fontWeight=FontWeight.Bold)
-    Panel("Home · West Hartford") {
-        Text("Paused scenario · 5:00 PM → arrive by 6:00 PM",color=Muted,fontSize=12.sp)
-        Text("$20/hr cash target · $0.50/mi cost · 15% planning reserve",color=Link,fontSize=12.sp)
-        Text("Five observed examples, ranked through the same calculations used by your offer reader. Roads and travel times below are simulated.",color=Muted,fontSize=12.sp)
+    SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+        listOf("Earnings","Offers").forEachIndexed {index,label->SegmentedButton(tab==label,{tab=label},SegmentedButtonDefaults.itemShape(index,2)) {Text(label)}}
     }
-    sampleOfferJourneys().forEach {example->OfferCard(example.offer,sampleAssessment(example.offer),true) {navigate("Offer:${example.offer.id}")} }
+    if(tab=="Earnings") EarningsContent(records,sampleShiftGoals,{notice=true},{notice=true})
+    else {
+        Panel("Home · West Hartford") {
+            Text("Paused scenario · 5:00 PM → arrive by 6:00 PM",color=Muted,fontSize=12.sp)
+            Text("$20/hr cash target · $0.50/mi cost · 15% planning reserve",color=Link,fontSize=12.sp)
+            Text("Five observed examples, ranked through the same calculations used by your offer reader. Roads and travel times below are simulated.",color=Muted,fontSize=12.sp)
+        }
+        sampleOfferJourneys().forEach {example->val kind=if(example.recommended) "recommended" else if(example.offer.id=="sample:DoorDashIncomplete") "needsReview" else "skip"
+            OfferCard(example.offer,sampleAssessment(example.offer),true,kind,example.reason) {navigate("Offer:${example.offer.id}")}}
+    }
+    if(notice) AlertDialog(onDismissRequest={notice=false},title={Text("Sample data")},text={Text("These are simulated records and goals. Return to your own Earnings or Trips to review and edit your actual records.")},confirmButton={TextButton(onClick={notice=false}) {Text("Got it")}})
 }
 
 @Composable fun ManualOfferScreen(repo: DriverRepository,done: ()->Unit,offerId: String? = null,draft: ReviewedGigOffer? = null) {
@@ -188,13 +203,13 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
             val next=original.copy(platform=platform,payoutCents=quote,guaranteedCents=guaranteed,additionalCostsCents=cash(fees),
                 totalMiles=number(miles,10000.0),workingMinutes=number(minutes,2880.0),waitMinutes=number(wait,240.0),
                 repositionMiles=number(reposition,10000.0),pickup=pickup.trim().take(500),dropoff=dropoff.trim().take(500),
-                checked=checked,observedAt=if(checked) now() else original.observedAt)
+                checked=checked,observedAt=if(checked && !original.withdrawn && (original.expiresAt?.let {runCatching {Instant.parse(it)>Instant.now()}.getOrDefault(false)} ?: true)) now() else original.observedAt)
             repo.update {current->
                 val saved=current.saveReviewedOffer(next)
                 if(next.source=="sharedScreenshot" && current.observedOffers.none {it.id==next.id}) saved.copy(
                     observedOffers=(saved.observedOffers+ObservedGigOffer(id=next.id,platform=next.platform,
                         source="sharedScreenshot",observedAt=original.observedAt,readerSession=current.offerReader.id,
-                        payoutCents=original.payoutCents,miles=original.displayedMiles,minutes=original.displayedMinutes)).takeLast(100))
+                        payoutCents=original.payoutCents,miles=original.displayedMiles,minutes=original.displayedMinutes,expiresAt=original.expiresAt,withdrawn=original.withdrawn)).takeLast(100))
                 else saved
             };done()
         } catch(problem: Exception) {error=problem.message ?: "Check the entered values."}
@@ -228,9 +243,10 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
                         if(repo.scope==scope) {
                             val settings=OfferReaderSettings(enabled=true,platform=selectedPlatform,expiresAt=Instant.now().plusSeconds(60).toString())
                             val captured=GigOfferTextReader.read(result.text,settings,"sharedScreenshot")
+                            val availability=capturedOfferAvailability(result.text,Instant.now())
                             if(captured==null) problem="No reliable offer values were found. You can enter the fields manually."
                             draft=ReviewedGigOffer(platform=selectedPlatform,source="sharedScreenshot",payoutCents=captured?.payoutCents,
-                                displayedMiles=captured?.miles,displayedMinutes=captured?.minutes)
+                                displayedMiles=captured?.miles,displayedMinutes=captured?.minutes,expiresAt=captured?.expiresAt ?: availability.expiresAt,withdrawn=captured?.withdrawn ?: availability.withdrawn)
                         }
                     }.addOnFailureListener {problem="The screenshot could not be read. Enter the offer manually."}
                         .addOnCompleteListener {bitmap.recycle();scanner.close();scanning=false}
@@ -278,28 +294,20 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
         Panel(if(example.recommended) "Fits your trip home" else offerOutcome(value)) {
             example.additionalMiles?.let {OfferLine("Miles versus going directly",String.format(Locale.US,"%+.1f to %+.1f mi",it,it),Route)}
             example.additionalMinutes?.let {OfferLine("Additional travel time",String.format(Locale.US,"%+.0f to %+.0f min",it,it),Route)}
+            OfferLine("Extra cash versus going directly",example.incrementalCash?.let {usd(it)} ?: "—",Income)
             example.arrival?.let {OfferLine("Latest estimated arrival",it,Route)}
             Text(example.reason,color=Muted,fontSize=13.sp)
         }
         Text("All offers, routes and earnings here are examples. Return to your data to analyze a real offer.",color=Muted,fontSize=12.sp)
     } else {
-        OfferWorkActions(repo,offer)
         Action("Review extracted fields",{navigate("Review offer:${offer.id}")},primary=false)
-        Panel("Compare the full route home") {
-            Text("Confirm pickup, drop-off and your final destination. Missing or unverified road travel stays unknown.",color=Muted)
-            Text("Pickup: ${offer.pickup.ifBlank {"Not entered"}}")
-            Text("Drop-off: ${offer.dropoff.ifBlank {"Not entered"}}")
-            Action("Compare pickup, drop-off & route home",{navigate("Offer route:${offer.id}")},primary=false)
-            Action("Open route in Maps",{
-                if(offer.pickup.isBlank() || offer.dropoff.isBlank()) repo.failure="Enter and confirm pickup and drop-off addresses first."
-                else openOfferLink(repo,"https://www.google.com/maps/dir/?api=1&origin=${Uri.encode(offer.pickup)}&destination=${Uri.encode(offer.dropoff)}")
-            },primary=false)
-        }
+        Action("Compare the full route home",{navigate("Offer route:${offer.id}")})
         Text("Use the app switcher to return to ${offer.platform} and accept or decline there. Gig Tax Pros records your advice choices locally.",color=Muted,fontSize=13.sp)
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedButton(onClick={repo.run {repo.update {it.saveReviewedOffer(offer.copy(advice="consider"))}}}) {Text("Keep advice")}
             OutlinedButton(onClick={repo.run {repo.update {it.saveReviewedOffer(offer.copy(advice="skipAdvice"))}}}) {Text("Skip advice")}
         }
+        OfferWorkActions(repo,offer)
         offer.advice?.let {Text(if(it=="consider") "Advice saved on this phone." else "Advice skipped. The offer in your gig app is unchanged.",color=Income)}
     }
 }
@@ -364,45 +372,54 @@ private fun openOfferLink(repo: DriverRepository,url: String) {
 }
 
 @Composable fun OfferDiagnosticsScreen(repo: DriverRepository,platform: String?=null,navigate: (String)->Unit) {
+    var clock by remember {mutableStateOf(Instant.now())}
+    LaunchedEffect(repo.scope) {while(true) {delay(2000);clock=Instant.now()}}
+    fun report(name: String): OfferCaptureReport {
+        val latest=repo.journal.observedOffers.filter {it.platform==name && it.source in setOf("sharedScreenshot","sharedText","screenShare") && runCatching {Instant.parse(it.observedAt)<=clock}.getOrDefault(false)}.maxByOrNull {it.observedAt}
+        return offerCaptureReport(repo.journal,name,latest?.let {OfferRouteEvidenceCache.get(repo.scope,it.id)},clock)
+    }
     if(platform==null) {
         Panel("Check each app separately") {Text("See provider access, captured offers, readable fields and the evidence Shuug needs for advice. Each app has its own results.",color=Muted)}
-        gigPlatforms.keys.forEach {name->Panel {
+        gigPlatforms.keys.forEach {name->val value=report(name);Panel {
             PlatformHeader(name)
-            val captures=repo.journal.observedOffers.filter {it.platform==name}
             Text("Provider: No authorized live-offer connector",color=Muted,fontSize=12.sp)
-            Text(if(captures.isEmpty()) "No captured offer saved" else "Offer detected · ${captures.size} saved captures",color=if(captures.isEmpty()) Muted else Route,fontSize=12.sp)
-            Text("Shuug: ${if(captures.any {raw->assessment(repo,reviewedOffers(repo.journal).first {it.id==raw.id}).issues.isEmpty()}) "Reviewed financial fields available; route evidence still required" else "more evidence needed"}",color=Color(0xFFFFE66D),fontSize=12.sp)
+            Text(if(value.captures.isEmpty()) "No captured offer saved" else "Offer detected · ${value.captures.size} saved captures",color=if(value.captures.isEmpty()) Muted else Route,fontSize=12.sp)
+            Text(if(value.sufficient) "Shuug: enough evidence for advice" else "Shuug: more evidence needed",color=if(value.sufficient) Income else Caution,fontSize=12.sp)
             Action("View $name diagnostics",{navigate("Capture:$name")},primary=false)
         }}
         Panel("What this verifies") {Text("A saved capture confirms that some visible fields were read under the selected platform. A screenshot's source app and current availability still need your review. Reading one app does not verify another.",color=Muted,fontSize=13.sp)
             Text("Manual offers and sample shifts do not count as detected offers. Full screenshots and screen transcripts are not stored.",color=Muted,fontSize=13.sp)
             Text("Live screen capture and notification access require your explicit Android permission. A simulator or chosen image does not verify another app's live offers.",color=Muted,fontSize=12.sp)}
     } else {
-        val capture=repo.journal.observedOffers.filter {it.platform==platform}.maxByOrNull {it.observedAt}
-        val reviewed=capture?.let {raw->reviewedOffers(repo.journal).firstOrNull {it.id==raw.id}}
+        val value=report(platform);val capture=value.captures.firstOrNull();val reviewed=value.reviewed
         PlatformHeader(platform)
         Panel("1 · Connection & capture") {
             OfferLine("Provider account","No live-offer connector")
-            OfferLine("Reader for this shift",if(repo.journal.offerReader.active() && repo.journal.offerReader.platform==platform) "Enabled for $platform" else "Not selected")
+            OfferLine("Reader for this shift",if(repo.journal.offerReader.active(clock) && repo.journal.offerReader.platform==platform) "Enabled for $platform" else "Not selected")
             Text(repo.offerReaderStatus,color=Muted,fontSize=12.sp)
             Text("Android requires an explicit screen-sharing session or selected notification access. Choosing a platform does not grant provider account access.",color=Muted,fontSize=12.sp)
             Action("Test $platform capture",{navigate("Offer reader:$platform")},primary=false)
         }
         Panel("2 · Actual offer detection") {OfferLine("Detected offer",if(capture==null) "None saved" else "Captured fields found")
             capture?.let {OfferLine("Source",it.source);Text("Last captured: ${it.observedAt}",color=Muted,fontSize=12.sp)
-                OfferLine("Capture freshness",if(it.fresh()) "Within 60-second review window" else "Stale or expired")
+                OfferLine("Capture freshness",if(runCatching {it.fresh(clock)}.getOrDefault(false)) "Within 60-second review window" else "Stale or expired")
+                OfferLine("Platform attribution",if(it.source=="screenShare") "Selected platform visible in text" else "Platform selected by you")
                 Text("Detection establishes readable fields, not an authenticated provider connection or an available job.",color=Muted,fontSize=12.sp)} }
         capture?.let {raw->Panel("3 · Fields from the capture") {
             OfferLine("Quoted payout",raw.payoutCents?.let {usd(it)} ?: "Not extracted")
             OfferLine("Miles shown",raw.miles?.toString() ?: "Not extracted")
             OfferLine("Minutes shown",raw.minutes?.toString() ?: "Not extracted")
+            OfferLine("Known expiration",raw.expiresAt ?: "Not extracted")
+            OfferLine("Withdrawal text",if(raw.withdrawn) "Offer reported withdrawn" else "Not detected")
             Text("These retained values precede your manual edits. Displayed totals do not establish complete working mileage or time.",color=Muted,fontSize=12.sp)
         }}
         Panel("4 · Shuug recommendation") {
-            OfferLine("Enough evidence","Needs route and availability review")
-            reviewed?.let {current->val value=assessment(repo,current);Text("Estimated cash after reserve: ${moneyBand(value.cash)}",color=offerTint(value))
-                value.issues.forEach {Text(it,color=Color(0xFFFFE66D),fontSize=13.sp)}
-                Action("Review this offer & its route",{navigate("Offer:${current.id}")},primary=false)}
+            OfferLine("Enough evidence",if(value.sufficient) "Yes · calculated for driver review" else "No · needs review")
+            value.financial?.let {financial->Text("Estimated cash after reserve: ${moneyBand(financial.cash)}",color=offerTint(financial))
+                financial.issues.forEach {Text(it,color=Caution,fontSize=13.sp)}}
+            value.blockers.forEach {Text(it,color=Caution,fontSize=13.sp)}
+            if(value.sufficient) value.recommendation?.let {advice->Text(when(advice.outcome) {"aligned"->"Fits your trip home";"tradeoff"->"Profitable, with a route tradeoff";else->"Skip this opportunity"},color=if(advice.outcome=="skip") Danger else Income,fontWeight=FontWeight.Bold);Text(advice.reason,fontSize=13.sp)}
+            reviewed?.let {current->Action("Review this offer & its route",{navigate("Offer:${current.id}")},primary=false)}
             Action("Review vehicle cost & hourly target",{navigate("Goals")},primary=false)
             Text("Complete, reviewed fields, fresh road estimates and your costs are required. Estimates can change; accept or decline in the original gig app.",color=Muted,fontSize=12.sp)
         }

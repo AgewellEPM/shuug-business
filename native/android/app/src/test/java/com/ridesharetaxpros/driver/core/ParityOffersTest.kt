@@ -64,4 +64,25 @@ class ParityOffersTest {
         assertTrue(completed.entries.isEmpty())
         assertEquals("accepted",completed.reportOfferWork("second","accepted").offerReviews.last().phase)
     }
+    @Test fun trimmingOldOfferReviewsPreservesCurrentWork() {
+        var journal=Journal().saveReviewedOffer(ReviewedGigOffer(id="active")).reportOfferWork("active","accepted")
+        repeat(150) {journal=journal.saveReviewedOffer(ReviewedGigOffer(id="offer-$it"))}
+        assertEquals(100,journal.offerReviews.size)
+        assertTrue(journal.offerReviews.first {it.id=="active"}.isActiveWork())
+        assertTrue(journal.entries.isEmpty())
+        val complete=journal.reportOfferWork("active","completed")
+        assertFalse(complete.offerReviews.first {it.id=="active"}.isActiveWork())
+    }
+    @Test fun inboxCannotRecommendWithoutRoadEvidenceOrIgnoreActiveWork() {
+        val clock=Instant.parse("2026-11-07T17:00:00Z")
+        val offer=ReviewedGigOffer(id="fresh",observedAt=clock.toString(),payoutCents=2000,guaranteedCents=2000,
+            additionalCostsCents=0,totalMiles=5.0,workingMinutes=30.0,checked=true)
+        val journal=Journal(goals=Goals(targetHourlyCents=2000,vehicleCostCentsPerMile=50.0),offerReviews=listOf(offer))
+        val row=rankReviewedOffers(journal,clock).single()
+        assertEquals("meetsGoal",row.financial.outcome);assertEquals("needsReview",row.kind)
+        assertEquals("skip",rankReviewedOffers(journal,clock.plusSeconds(61)).single().kind)
+        val active=journal.saveReviewedOffer(offer.copy(id="active",phase="accepted"))
+        val candidate=rankReviewedOffers(active,clock).first {it.offer.id=="fresh"}
+        assertEquals("skip",candidate.kind);assertTrue(candidate.reason.contains("Conflicts"))
+    }
 }

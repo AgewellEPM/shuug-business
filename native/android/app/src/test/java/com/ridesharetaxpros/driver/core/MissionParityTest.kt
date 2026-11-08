@@ -32,4 +32,14 @@ class MissionParityTest {
         val copy=Wire.decodeFromString<Journal>(Wire.encodeToString(Journal.serializer(),journal))
         assertEquals(offer,copy.missionOffers.single());assertTrue(copy.entries.isEmpty())
     }
+    @Test fun simpleRoadDeadlineNeedsConfirmedStopsKnownWaitAndFreshOrigin() {
+        fun road(meters: Double,seconds: Double)=PositionRoad(meters,seconds,listOf(PositionPoint(41.0,-72.0),PositionPoint(41.1,-72.1)),clock,"Fixture")
+        val roads=OfferRoadJourney(road(20000.0,1800.0),road(2000.0,300.0),road(8000.0,900.0),road(15000.0,900.0),clock)
+        val result=missionRoadComparison(roads,5.0,true,"2026-11-07T18:00:00Z",clock)!!
+        assertEquals(5000.0,result.distanceChangeMeters,0.0);assertEquals(300.0,result.extraTravelSeconds,0.0)
+        assertEquals(1200.0,result.deadlineBufferSeconds!!,0.0)
+        assertNull(missionRoadComparison(roads,null,true,"2026-11-07T18:00:00Z",clock)!!.deadlineBufferSeconds)
+        assertNull(missionRoadComparison(roads,0.0,false,"2026-11-07T18:00:00Z",clock)!!.deadlineBufferSeconds)
+        assertTrue(missionRoadComparison(roads,5.0,true,"2026-11-07T18:00:00Z",clock.plusSeconds(121))!!.stale)
+    }
 }

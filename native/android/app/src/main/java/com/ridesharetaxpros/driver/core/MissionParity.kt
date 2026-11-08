@@ -28,3 +28,17 @@ fun ComparedMissionOffer.activeHourEstimate(goals: Goals,deadline: String?,clock
     }.getOrNull() else null
     return ActiveHourOfferEstimate(net,minimum,net*60/total,payoutCents>=minimum,buffer)
 }
+
+data class MissionRoadComparison(val distanceChangeMeters: Double,val extraTravelSeconds: Double,
+    val deadlineBufferSeconds: Double?,val stale: Boolean)
+fun missionRoadComparison(roads: OfferRoadJourney,waitMinutes: Double?,complete: Boolean,deadline: String?,clock: Instant=Instant.now()): MissionRoadComparison? {
+    val legs=listOf(roads.direct,roads.pickup,roads.delivery,roads.onward)
+    if(legs.any {!it.meters.isFinite() || it.meters<0 || !it.seconds.isFinite() || it.seconds<0}) return null
+    val stale=Duration.between(roads.originCapturedAt,clock).seconds !in 0..120 ||
+        legs.any {Duration.between(it.measuredAt,clock).seconds !in 0..300}
+    val waiting=waitMinutes?.takeIf {complete && it.isFinite() && it in 0.0..240.0}?.times(60)
+    val deadlineTime=deadline?.let {runCatching {Instant.parse(it)}.getOrNull()}
+    val driving=roads.pickup.seconds+roads.delivery.seconds+roads.onward.seconds
+    val buffer=if(!stale && waiting!=null && deadlineTime!=null) Duration.between(clock,deadlineTime).toMillis()/1000.0-driving-waiting else null
+    return MissionRoadComparison(roads.direct.meters-roads.onward.meters,driving-roads.direct.seconds,buffer,stale)
+}

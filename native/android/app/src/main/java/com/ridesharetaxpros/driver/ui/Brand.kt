@@ -40,10 +40,10 @@ fun usd(cents: Number): String=NumberFormat.getCurrencyInstance(Locale.US).forma
         surfaceVariant=Color(0xFF18131F),onSurface=Color.White,onBackground=Color.White,onPrimary=Color.White,outline=Border),
         shapes=Shapes(small=RoundedCornerShape(14.dp),medium=RoundedCornerShape(18.dp),large=RoundedCornerShape(22.dp)),content=content)
 }
-@Composable fun Panel(title: String?=null,content: @Composable ColumnScope.()->Unit) {
+@Composable fun Panel(title: String?=null,accent:Color=Pink,highlight:Boolean=false,inset:androidx.compose.ui.unit.Dp=16.dp,content: @Composable ColumnScope.()->Unit) {
     Column(Modifier.fillMaxWidth().background(panelGradient,RoundedCornerShape(22.dp))
-        .border(0.8.dp,Brush.linearGradient(listOf(Pink.copy(alpha=.55f),Purple.copy(alpha=.35f),Border.copy(alpha=.35f))),RoundedCornerShape(22.dp))
-        .padding(16.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {
+        .border(if(highlight)1.4.dp else .8.dp,Brush.linearGradient(listOf(accent.copy(alpha=if(highlight).95f else .55f),Purple.copy(alpha=.35f),Border.copy(alpha=.35f))),RoundedCornerShape(22.dp))
+        .padding(inset),verticalArrangement=Arrangement.spacedBy(12.dp)) {
         title?.let { Text(it,fontSize=17.sp,fontWeight=FontWeight.SemiBold) }; content()
     }
 }

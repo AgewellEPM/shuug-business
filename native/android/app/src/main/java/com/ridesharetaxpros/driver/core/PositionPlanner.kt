@@ -9,6 +9,8 @@ import java.net.URI
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -52,7 +54,7 @@ fun historicalWaitingAreas(history: List<HistoricalJob>,current: PositionPoint,d
 }
 
 data class PositionRoad(val meters: Double,val seconds: Double,val points: List<PositionPoint>,
-    val measuredAt: Instant=Instant.now(),val provider: String)
+    val measuredAt: Instant=Instant.now(),val provider: String,val name: String="")
 data class PositionedArea(val area: HistoricalArea,val approach: PositionRoad,val onward: PositionRoad,
     val repositionCents: Int,val hourlyCents: Int,val deadlineMarginMinutes: Double?)
 
@@ -109,8 +111,9 @@ fun assessOfferRoad(offer: ReviewedGigOffer,journey: OfferRoadJourney,preference
     fun cash(profit: Int)=profit-BigDecimal.valueOf(max(0,profit).toLong()).multiply(BigDecimal.valueOf(reservePercent))
         .divide(BigDecimal(100)).setScale(0,RoundingMode.HALF_UP).intValueExact()
     result=result.copy(incrementalCash=OfferMoneyBand(cash(profit.lower-extraCost),cash(profit.upper-extraCost)))
-    if(otherActiveWork) return result.copy(reason="You reported another active job. Review that commitment before considering overlapping work.")
-    if(offer.phase in setOf("completed","canceled")) return result.copy(reason="This job is already ${offer.phase} in your reports. Review a current offer instead.")
+    if(otherActiveWork) return result.copy(outcome="skip",reason="Conflicts with accepted work. Simultaneous jobs are not assumed.")
+    if(offer.isActiveWork() || offer.phase=="completed") return result.copy(outcome="skip",reason="This offer is already recorded as accepted or completed.")
+    if(offer.phase=="canceled") return result.copy(reason="This job is already canceled in your reports. Review a current offer instead.")
     if(offer.guaranteedCents==null || hourly==null) return result.copy(reason="Guaranteed pay or complete earnings evidence is unknown.")
     if(profit.lower<=0 || hourly.lower<(goals.targetHourlyCents ?: Int.MAX_VALUE) || profit.lower-extraCost<=0)
         return result.copy(outcome="skip",reason="The job does not conservatively meet your earnings target and improve cash versus going directly.")
@@ -125,7 +128,7 @@ object PositionRoadService {
     private val lock=Mutex()
     private var configAt=Instant.EPOCH
     private var configured: String?=null
-    private val cache=linkedMapOf<String,PositionRoad>()
+    private val cache=linkedMapOf<String,List<PositionRoad>>()
     const val configurationKey="androidRoadRouterUrl"
     private fun read(url: String,limit: Int): ByteArray {
         val request=URI(url).toURL().openConnection() as HttpURLConnection
@@ -158,25 +161,40 @@ object PositionRoadService {
         check(BuildConfig.DEBUG) {"Road comparisons are not connected yet. You can still open directions in Maps."}
         return "https://router.project-osrm.org" to "Public OSRM demonstration · No live traffic"
     }
-    suspend fun route(scope: String,from: PositionPoint,to: PositionPoint): PositionRoad = withContext(Dispatchers.IO) {
+    suspend fun route(scope: String,from: PositionPoint,to: PositionPoint): PositionRoad = request(scope,from,to,false).first()
+    suspend fun alternatives(scope: String,from: PositionPoint,to: PositionPoint): List<PositionRoad> =
+        request(scope,from,to,true).sortedBy {it.meters}
+    private suspend fun request(scope: String,from: PositionPoint,to: PositionPoint,alternatives: Boolean): List<PositionRoad> = withContext(Dispatchers.IO) {
         require(from.valid && to.valid) {"Choose valid route endpoints."}
         lock.withLock {
             val (endpoint,provider)=endpoint()
-            val key="$scope|$endpoint|${from.longitude},${from.latitude};${to.longitude},${to.latitude}"
-            cache[key]?.takeIf {Duration.between(it.measuredAt,Instant.now()).seconds in 0..300}?.let {return@withLock it}
-            val url="$endpoint/route/v1/driving/${from.longitude},${from.latitude};${to.longitude},${to.latitude}?overview=full&geometries=geojson&steps=false"
-            val body=Wire.parseToJsonElement(read(url,2*1024*1024).toString(Charsets.UTF_8)).jsonObject
-            require(body["code"]?.jsonPrimitive?.content=="Ok") {"No supported road route was found. Choose another place."}
-            val route=body["routes"]?.jsonArray?.firstOrNull()?.jsonObject ?: error("No road route was returned.")
-            val distance=route["distance"]!!.jsonPrimitive.double;val seconds=route["duration"]!!.jsonPrimitive.double
-            require(distance.isFinite() && distance in 0.0..20_000_000.0 && seconds.isFinite() && seconds in 0.0..864000.0)
-            val coordinates=route["geometry"]!!.jsonObject["coordinates"]!!.jsonArray
-            require(coordinates.size in 2..50000) {"This road route is too large to display."}
-            val points=coordinates.map {it.jsonArray.let {p->PositionPoint(p[1].jsonPrimitive.double,p[0].jsonPrimitive.double)}}
-            require(points.all {it.valid})
-            val result=PositionRoad(distance,seconds,points,provider=provider)
+            currentCoroutineContext().ensureActive()
+            val key="$scope|$endpoint|$alternatives|${from.longitude},${from.latitude};${to.longitude},${to.latitude}"
+            cache[key]?.takeIf {Duration.between(it.first().measuredAt,Instant.now()).seconds in 0..300}?.let {return@withLock it}
+            val url="$endpoint/route/v1/driving/${from.longitude},${from.latitude};${to.longitude},${to.latitude}?overview=full&geometries=geojson&steps=false&alternatives=$alternatives"
+            currentCoroutineContext().ensureActive()
+            val result=parsePositionRoads(read(url,4*1024*1024).toString(Charsets.UTF_8),provider)
             if(cache.size>=32) cache.remove(cache.keys.first())
             cache[key]=result;result
         }
     }
+}
+
+internal fun parsePositionRoads(json: String,provider: String,clock: Instant=Instant.now()): List<PositionRoad> {
+    val body=Wire.parseToJsonElement(json).jsonObject
+    require(body["code"]?.jsonPrimitive?.content=="Ok") {"No supported road route was found. Choose another place."}
+    val routes=body["routes"]?.jsonArray?.take(3).orEmpty()
+    require(routes.isNotEmpty()) {"No driving routes are available for these endpoints."}
+    return routes.mapIndexed {index,routeElement->
+        val route=routeElement.jsonObject
+        val distance=route["distance"]!!.jsonPrimitive.double;val seconds=route["duration"]!!.jsonPrimitive.double
+        require(distance.isFinite() && distance in 0.0..20_000_000.0 && seconds.isFinite() && seconds in 0.0..864000.0) {"Road estimates are incomplete."}
+        val coordinates=route["geometry"]!!.jsonObject["coordinates"]!!.jsonArray
+        require(coordinates.size in 2..50000) {"This road route is too large to display."}
+        val points=coordinates.map {it.jsonArray.let {p->PositionPoint(p[1].jsonPrimitive.double,p[0].jsonPrimitive.double)}}
+        require(points.all {it.valid}) {"The returned road coordinates are incomplete."}
+        val summary=route["legs"]?.jsonArray.orEmpty().mapNotNull {it.jsonObject["summary"]?.jsonPrimitive?.contentOrNull}
+            .filter {it.isNotBlank()}.joinToString(" · ").take(180)
+        PositionRoad(distance,seconds,points,clock,provider,summary.ifBlank {"Route option ${index+1}"})
+    }.distinctBy {Triple(it.meters,it.seconds,it.points)}
 }

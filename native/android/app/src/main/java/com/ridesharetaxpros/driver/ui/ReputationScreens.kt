@@ -20,15 +20,15 @@ import java.time.ZoneOffset
 import kotlinx.coroutines.launch
 
 private data class ProfileDeletion(val id: String,val review: Boolean,val scope: String)
-@Composable fun ReputationScreen(repo: DriverRepository,navigate: (String)->Unit) {
-    var platform by rememberSaveable { mutableStateOf("all") }
+@Composable fun ReputationScreen(repo: DriverRepository,navigate: (String)->Unit,initialPlatform:String?=null) {
+    var platform by rememberSaveable { mutableStateOf(initialPlatform ?: "all") }
     var guidance by rememberSaveable { mutableStateOf(false) }
     var status by remember(repo.scope) { mutableStateOf("Saved on this phone · Connect to share with your tax team") }
     var busy by remember { mutableStateOf(false) }
     var deletion by remember { mutableStateOf<ProfileDeletion?>(null) }
     val scope=rememberCoroutineScope()
     suspend fun refresh() { busy=true; try { status=repo.syncProfileReputation() } finally { busy=false } }
-    LaunchedEffect(repo.scope) { platform="all";deletion=null;refresh() }
+    LaunchedEffect(repo.scope) { platform=initialPlatform ?: "all";deletion=null;refresh() }
     val state=repo.journal.reputationState
     val selected=platform.takeUnless { it=="all" }
     Panel {
@@ -37,8 +37,8 @@ private data class ProfileDeletion(val id: String,val review: Boolean,val scope:
         Text(status,color=Route,style=MaterialTheme.typography.labelSmall,modifier=Modifier.testTag("reputation.status"))
         if(repo.connection!=null) TextButton(enabled=!busy,onClick={scope.launch { refresh() }}) { Text(if(busy) "Sharing your entries…" else "Sync my personal entries") }
         Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(enabled=repo.storageReady,onClick={navigate("Add rating")},modifier=Modifier.weight(1f).testTag("reputation.addRating")) { Text("☆ Add rating") }
-            OutlinedButton(enabled=repo.storageReady,onClick={navigate("Add review")},modifier=Modifier.weight(1f).testTag("reputation.addReview")) { Text("Add review") }
+            OutlinedButton(enabled=repo.storageReady,onClick={navigate("Add rating"+(selected?.let {":$it"} ?: ""))},modifier=Modifier.weight(1f).testTag("reputation.addRating")) { Text("☆ Add rating") }
+            OutlinedButton(enabled=repo.storageReady,onClick={navigate("Add review"+(selected?.let {":$it"} ?: ""))},modifier=Modifier.weight(1f).testTag("reputation.addReview")) { Text("Add review") }
         }
     }
     Panel {
@@ -95,10 +95,10 @@ private data class ProfileDeletion(val id: String,val review: Boolean,val scope:
     deletion?.let { item -> AlertDialog(onDismissRequest={deletion=null},title={Text("Delete this saved entry?")},text={Text("This removes your personal copy from this history and, when connected, from this client account. It does not remove a review or rating in any gig app.")},confirmButton={TextButton(onClick={deletion=null;if(item.scope==repo.scope) runCatching {repo.saveProfileMutation(ReputationMutation(action=if(item.review) "deleteReview" else "deleteRating",id=item.id));scope.launch {refresh()} }.onFailure {repo.failure=it.message}}) {Text("Delete entry",color=Pink)}},dismissButton={TextButton(onClick={deletion=null}) {Text("Cancel")}}) }
 }
 
-@Composable fun ReputationEntryScreen(repo: DriverRepository,kind: String,done: ()->Unit) {
+@Composable fun ReputationEntryScreen(repo: DriverRepository,kind: String,done: ()->Unit,initialPlatform:String?=null) {
     val context=LocalContext.current; val loadedScope=remember {repo.scope}; val rating=kind!="review"
     val recordedTime=remember {java.time.LocalTime.now()}
-    var platform by rememberSaveable {mutableStateOf(reputationPlatforms.keys.first())}
+    var platform by rememberSaveable {mutableStateOf(initialPlatform ?: reputationPlatforms.keys.first())}
     var customName by rememberSaveable {mutableStateOf("")}; var date by rememberSaveable {mutableStateOf(today())}
     var score by rememberSaveable {mutableStateOf("")};var scale by rememberSaveable {mutableStateOf("5")};var count by rememberSaveable {mutableStateOf("")}
     var notes by rememberSaveable {mutableStateOf("")};var text by rememberSaveable {mutableStateOf("")};var sentiment by rememberSaveable {mutableStateOf("unreviewed")}

@@ -40,6 +40,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
 import com.ridesharetaxpros.driver.core.*
 import com.ridesharetaxpros.driver.data.DriverRepository
@@ -114,6 +117,12 @@ private fun openOfficeLink(repo: DriverRepository,url: String) {
         finally {loading=false}
     }
     LaunchedEffect(Unit) {refresh()}
+    val lifecycle=LocalLifecycleOwner.current
+    DisposableEffect(lifecycle) {
+        val observer=LifecycleEventObserver {_,event->if(event==Lifecycle.Event.ON_RESUME)scope.launch {refresh()}}
+        lifecycle.lifecycle.addObserver(observer)
+        onDispose {lifecycle.lifecycle.removeObserver(observer)}
+    }
     DisposableEffect(Unit) {onDispose {generation++;stopLocation()}}
     Text("A local office. A real person.",style=MaterialTheme.typography.headlineLarge,fontWeight=FontWeight.Bold)
     Text("Find a Gig Tax Pros office, get help, or arrange an appointment.",color=Muted)
@@ -207,7 +216,16 @@ private fun inverseMap(x: Double,y: Double,z: Int): OfficeCoordinate {val size=(
     var center by remember {mutableStateOf(OfficeCoordinate(39.8,-98.6))}
     val images=remember {mutableStateMapOf<String,ImageBitmap>()}
     var loading by remember {mutableStateOf(false)};var failed by remember {mutableStateOf(false)}
-    LaunchedEffect(point) {if(point!=null) {center=point;zoom=9}}
+    LaunchedEffect(point,offices.map {Triple(it.id,it.latitude,it.longitude)},size) {
+        if(size.width>0 && size.height>0) {
+            val nearest=if(point!=null)offices.take(3) else offices
+            val points=nearest.map {PositionPoint(it.latitude,it.longitude)}+listOfNotNull(point?.let {PositionPoint(it.latitude,it.longitude)})
+            if(points.isNotEmpty()) {
+                val fitted=RoadMapProjection.fit(points,size.width/density.toDouble(),size.height/density.toDouble())
+                center=OfficeCoordinate(fitted.center.latitude,fitted.center.longitude);zoom=floor(fitted.zoom).toInt()
+            }
+        }
+    }
     val worldX=mapX(center.longitude,zoom);val worldY=mapY(center.latitude,zoom)
     val width=size.width/density;val height=size.height/density
     val firstX=floor((worldX-width/2)/256).toInt();val firstY=floor((worldY-height/2)/256).toInt();val count=1 shl zoom

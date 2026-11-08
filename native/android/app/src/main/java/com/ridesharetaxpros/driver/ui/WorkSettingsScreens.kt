@@ -42,23 +42,42 @@ import kotlinx.serialization.json.*
 @Composable fun ReserveHistoryScreen(repo:DriverRepository) {
     var vehicle by remember(repo.scope) {mutableStateOf(repo.journal.vehicleReservePercent?.toString() ?: "")}
     var tax by remember(repo.scope) {mutableStateOf(repo.journal.taxReservePercent?.toString() ?: "")}
-    Panel("Planning reserves") {
-        Field("Vehicle health savings %",vehicle,{vehicle=it});Field("Tax planning reserve %",tax,{tax=it})
-        Text("Choose your own percentages. These are planning allocations and do not move money or calculate tax owed. Vehicle health savings are separate from operating costs and are not deducted twice.",color=Muted)
-        Action("Save planning percentages",{repo.run {
-            fun checked(value:String)=value.takeIf {it.isNotBlank()}?.toDouble()?.also {require(it.isFinite() && it in 0.0..100.0) {"Use percentages from 0 to 100."}}
-            repo.update {it.copy(vehicleReservePercent=checked(vehicle),taxReservePercent=checked(tax))}
+    val first=java.time.LocalDate.now().minusDays(90).toString();val last=today()
+    val records=repo.journal.visible.map {it.record}.filter {it.date in first..last}
+    val rides=records.filter {it.kind=="trip" && it.trip().classification=="business" && it.trip().endedAt!=null}
+        .map {RideProfit(it,repo.journal.goals)}.filter {it.net!=null && it.minutes>=1}
+    fun hourly(rows:List<RideProfit>):Int?=rows.sumOf {it.minutes}.takeIf {it>0}?.let {minutes->kotlin.math.round(rows.sumOf {it.net!!.toLong()}*60/minutes).toInt()}
+    Panel("Shift planner & two-hour estimate") {
+        rides.groupBy {ride->val trip=ride.record.trip();java.time.Instant.parse(trip.startedAt).atZone(java.time.ZoneId.of(trip.timeZoneId ?: "UTC")).hour}.toSortedMap().forEach {(hour,rows)->
+            hourly(rows)?.let {Text("%02d:00: %s/active hour · %d drives".format(java.util.Locale.US,hour,usd(it),rows.size))}
+        }
+        val rate=hourly(rides)
+        if(rate!=null && rides.size>=3) {
+            Text("Two active hours at your recorded average: ${usd(rate.toLong()*2)} estimated net",fontWeight=FontWeight.Bold)
+            Text("Based on ${rides.size} completed drives in the last 90 days. It assumes two continuously booked hours; it does not predict demand, idle time, traffic or future earnings.",color=Muted)
+        } else Text("Record at least three priced business drives to see a two-hour illustration. More observations improve context, not certainty.",color=Muted)
+    }
+    Panel("Neighborhood opportunities") {
+        val groups=rides.filter {!it.record.trip().workArea.isNullOrBlank()}.groupBy {it.record.trip().workArea!!}
+        if(groups.isEmpty())Text("Add a work area to completed drives to compare your recorded neighborhoods.",color=Muted)
+        groups.toSortedMap().forEach {(area,rows)->hourly(rows)?.let {Text("$area · ${usd(it)}/active hour · ${rows.size} drives")}}
+        Text("Your named areas are not live demand. A map of actual opportunities requires consented location and sufficient data.",color=Muted)
+    }
+    Panel("Vehicle health and tax reserves") {
+        Text("Set your own percentages of recorded gross income to plan money to set aside. These are planning amounts only; no money moves and this is not a tax estimate or deduction determination.",color=Muted)
+        Field("Tax reserve percent",tax,{tax=it});Field("Vehicle health percent",vehicle,{vehicle=it})
+        Action("Save reserve targets",{repo.run {
+            val taxPercent=tax.toDoubleOrNull();val vehiclePercent=vehicle.toDoubleOrNull()
+            require(taxPercent!=null && vehiclePercent!=null && taxPercent.isFinite() && vehiclePercent.isFinite() && taxPercent in 0.0..100.0 && vehiclePercent in 0.0..100.0 && taxPercent+vehiclePercent<=100) {"Enter percentages from 0 to 100, with a combined total no greater than 100%."}
+            repo.update {it.copy(vehicleReservePercent=vehiclePercent,taxReservePercent=taxPercent)}
         }})
-    }
-    Panel("Saved job history") {
-        val trips=repo.journal.visible.map {it.record}.filter {it.kind=="trip" && it.trip().endedAt!=null}
-        if(trips.isEmpty()) Text("Completed jobs you record appear here. Actual earnings and mileage must be entered separately from an offer estimate.",color=Muted)
-        trips.take(100).forEach {r->val t=r.trip();Text("${r.date} · ${t.platform ?: r.title}");Text("%.2f mi · %s".format(java.util.Locale.US,t.distanceMeters/1609.344,t.earningsCents?.let(::usd) ?: "Earnings not entered"),color=Muted)}
-    }
-    Panel("Decisions recorded on this phone") {
-        val saved=repo.journal.offerReviews
-        if(saved.isEmpty()) Text("Your offer reviews will appear here. A saved review does not accept a job or record earnings.",color=Muted)
-        Text("${saved.size} offer reviews saved",fontSize=20.sp,fontWeight=FontWeight.SemiBold)
+        val savedTax=repo.journal.taxReservePercent;val savedVehicle=repo.journal.vehicleReservePercent
+        if(savedTax!=null && savedVehicle!=null) {
+            val gross=records.filter {it.kind=="income"}.sumOf {it.income().amountCents.toLong()}
+            Text("Last 90 days of recorded income: ${usd(gross)}")
+            Text("Tax planning: ${usd(kotlin.math.round(gross*savedTax/100).toLong())} · vehicle health: ${usd(kotlin.math.round(gross*savedVehicle/100).toLong())}")
+            Text("Payout entries may include transfers or duplicated earnings. Review them before using reserve targets.",color=Muted)
+        }
     }
 }
 @Composable fun ConnectedWorkScreen(repo:DriverRepository) {

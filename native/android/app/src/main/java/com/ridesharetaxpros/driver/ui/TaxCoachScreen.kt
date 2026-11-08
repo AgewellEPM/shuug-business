@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
@@ -22,6 +23,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.ridesharetaxpros.driver.core.*
@@ -39,11 +41,13 @@ import kotlinx.coroutines.launch
     var busy by remember {mutableStateOf(false)}
     var milestonesOpen by rememberSaveable {mutableStateOf(false)}
     val scope=rememberCoroutineScope()
+    val focus=LocalFocusManager.current
+    val transcript=rememberScrollState()
     val through=today()
     val from=if(period=="0") LocalDate.now().withDayOfYear(1).toString() else LocalDate.now().minusDays(period.toLong()-1).toString()
     fun ask(text: String) {
         val question=text.trim(); if(busy || question.isEmpty() || question.length>2000) return
-        busy=true; draft=""
+        busy=true; draft="";focus.clearFocus()
         scope.launch {
             try {status=repo.askTaxCoach(question,from,through)}
             catch(error: Exception) {if(error is CancellationException) throw error;repo.failure=error.message;if(draft.isBlank()) draft=question}
@@ -56,6 +60,11 @@ import kotlinx.coroutines.launch
             delay(20_000)
         }
     }
+    LaunchedEffect(repo.journal.coachMessages.lastOrNull()?.id,transcript.maxValue) {
+        if(repo.journal.coachMessages.isNotEmpty()) transcript.animateScrollTo(transcript.maxValue)
+    }
+    Column(Modifier.fillMaxSize().imePadding()) {
+    Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(transcript).padding(horizontal=16.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(14.dp)) {
     Panel {
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {Icon(Icons.Default.Chat,null,tint=Route);Text("Your records. Your next step.",fontWeight=FontWeight.Bold,color=Route)}
         Text(status,color=Muted,style=MaterialTheme.typography.labelMedium,modifier=Modifier.testTag("coach.status"))
@@ -104,12 +113,16 @@ import kotlinx.coroutines.launch
     }
     if(repo.journal.coachMessages.isNotEmpty()) CoachPrompts(!busy,::ask)
     Text("Recorded profit is not taxable income or tax owed. Confirm tax details and review documents with your firm. No return or payment is filed by chatting.",color=Muted,style=MaterialTheme.typography.labelSmall)
+    }
+    Column(Modifier.fillMaxWidth().background(Ink).padding(horizontal=16.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(5.dp)) {
     if(draft.length>2000) Text("Keep this question under 2,000 characters.",color=ExpenseColor)
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.Bottom,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
         OutlinedTextField(draft,{draft=it},label={Text("Ask about jobs, taxes or goals…")},modifier=Modifier.weight(1f).testTag("coach.question"),minLines=1,maxLines=5)
         FilledIconButton(enabled=!busy && repo.storageReady && draft.trim().length in 1..2000,onClick={ask(draft)},modifier=Modifier.size(48.dp).testTag("coach.send")) {Icon(Icons.Default.Send,"Send question")}
     }
     Text(if(repo.connection==null) "Phone-only · Choose whether to copy this chat when connecting" else "Sending shares this conversation and your chosen cost/goal assumptions with your firm’s workspace.",color=Muted,style=MaterialTheme.typography.labelSmall)
+    }
+    }
 }
 @Composable private fun CoachPrompts(enabled: Boolean,ask: (String)->Unit) {
     Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {

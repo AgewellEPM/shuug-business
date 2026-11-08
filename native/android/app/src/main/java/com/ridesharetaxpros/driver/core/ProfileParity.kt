@@ -130,10 +130,7 @@ fun Journal.copyGuestReputation(source: Journal): Journal {
     return state
 }
 
-val reputationPlatforms = linkedMapOf("lyft-driver" to "Lyft Driver", "uber-driver" to "Uber Driver", "doordash-dasher" to "Dasher",
-    "spark-driver" to "Spark Driver", "instacart-shopper" to "Instacart Shopper", "amazon-flex" to "Amazon Flex",
-    "grubhub-driver" to "Grubhub Driver", "roadie-driver" to "Roadie Driver", "shipt-shopper" to "Shipt Shopper",
-    "gopuff-driver" to "Gopuff Driver", "universal-delivery" to "Universal Delivery", "in-store-shopper" to "In-store Shopper")
+val reputationPlatforms = gigAppCatalog.associateTo(linkedMapOf()) {it.id to it.name}
 fun reputationOptions(state: ReputationState): Map<String,String> = reputationPlatforms.toMutableMap().apply {
     state.ratings.filterNot { it.deleted }.forEach { put(it.platformID,it.platformName) }
     state.reviews.filterNot { it.deleted }.forEach { put(it.platformID,it.platformName) }

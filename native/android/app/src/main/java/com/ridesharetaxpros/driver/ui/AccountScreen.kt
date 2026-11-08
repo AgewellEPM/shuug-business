@@ -90,11 +90,66 @@ import kotlinx.serialization.json.*
 }
 
 @Composable fun PrivacyScreen() {
-    Panel("Your records") {Text("Journals, receipts, sessions and GPS route samples are encrypted with an Android Keystore key in private app storage. Device backup is disabled. Uninstalling or losing this phone can remove unsynced records; sync or export regularly.")}
-    Panel("What is shared") {Text("Connecting a client workspace and choosing Sync sends journal entries and receipts to your firm. Route coordinates stay on this phone. Optional nearby-stop lookup sends the current stopped location to OpenStreetMap Overpass; opening Maps shares route endpoints with your maps provider. Receipt text recognition runs on the phone using the bundled ML Kit model.")}
-    Panel("Bank records") {Text("Secure linking uses Plaid and your bank's consent flow. Bank passwords do not pass through the firm. The firm stores encrypted access tokens for permitted transaction access. Imported transactions remain for review; pending, unknown-currency and test transactions cannot be posted. Disconnecting stops future bank access; it does not erase records already imported.")}
-    Panel("Tracking limits") {Text("GPS can be inaccurate, interrupted or stopped by Android. Automatic detection cannot identify a paid ride, business purpose, or exact earnings. Review each trip and expense. Profit uses the fare, fees and vehicle-cost assumption you enter; tax treatment requires your preparer's review.")}
-    Panel("Rewards") {Text("Your workspace maintains referral status, points, reward requests and staff fulfillment records. Referrers cannot view a friend's tax documents or client details. Staff verifies eligibility before issuing rewards.")}
+    val context=androidx.compose.ui.platform.LocalContext.current
+    var linkError by remember { mutableStateOf<String?>(null) }
+    Panel("Drives you control") {
+        Text("The app records drives you start. Optional drive detection and purchase-stop reminders use the location permissions you grant, a visible monitoring notification and battery. Movement can prompt you to start a drive; recording starts when you confirm. Turn both assistance options off and end any active drive to stop recording.")
+        Text("Android restrictions, force-stopping, permission changes and poor GPS can leave missing mileage. Review each drive. Detection cannot identify a paid job, business purpose or exact earnings for you.",color=Muted)
+        Text("Historical GPS route files stay in this phone’s private storage and are excluded from ordinary firm record sync. Opening a route comparison in Maps shares the chosen endpoints with your maps provider. Device backup and transfer are disabled for this app.",color=Muted)
+    }
+    Panel("Expenses and receipts") {
+        Text("You choose the expenses, income entries, receipt photos and scans to save. Receipt text recognition runs on this phone with the bundled ML Kit model. Suggested merchants and amounts need your review; they are not automatically posted.")
+        Text("Nearby purchase-stop reminders send a stopped location to the public OpenStreetMap Overpass service only when that assistance option is enabled. A nearby place is a suggestion, not proof of a purchase or deductible expense.",color=Muted)
+        Text("Private PDF and image previews stay inside the app. PDF preview uses a temporary private descriptor that is removed after use. Save a copy writes the unchanged bytes only to the location you choose.",color=Muted)
+    }
+    Panel("Office help & appointments") {
+        Text("The app refreshes public office addresses, hours, exterior photos and contact options from GigTax.pro. Nearby-office location is requested only when you choose it; distance sorting happens on your phone. Android’s Geocoder service receives ZIP searches. OpenStreetMap receives the map areas you view, and map tiles are cached on this phone.")
+        Text("Opening directions or street surroundings shares the requested location with your chosen maps provider. Your office-search location is not added to the tax journal or sent to your firm.",color=Muted)
+        Text("Calling opens the phone’s call flow. Booking opens the office’s appointment provider, where you choose what to submit and confirm the appointment.",color=Muted)
+    }
+    Panel("Positioning & road comparisons") {
+        Text("Destination search uses Android’s Geocoder service. When you request a road comparison, the configured routing service receives the selected endpoints, including historical job starts or drop-offs needed for that comparison. The street-map provider receives the areas you view.")
+        Text("Development builds can use the public OSRM demonstration when a firm routing service is not configured. It has no live traffic or availability guarantee. Release builds require an approved configured routing service. Your lookups are not sent to your firm as ordinary journal records.",color=Muted)
+        Text("Waiting-area matches describe your recorded jobs. They do not predict live demand, guarantee a paying offer or reserve a place to wait.",color=Muted)
+    }
+    Panel("Offer reading you control") {
+        Text("Optional screen reading uses Android’s screen-capture permission and a visible foreground notification. Captured frames are read locally using the bundled ML Kit text-recognition model. Turn off screen reading to end the capture session.")
+        Text("Detected offer details and your review decisions are saved in this phone’s journal. Review the platform, pay, route, time and missing details before relying on an estimate. The app does not accept or decline work in a provider’s app.",color=Muted)
+    }
+    Panel("Optional firm connection") {
+        Text("After you sign in to your invited client account, queued trip details, mileage totals, classifications, notes, income, expenses and chosen receipts sync to that firm’s private workspace. Staff with financial-record access can review them. Historical route files are excluded from these uploads.")
+        Text("The app does not save your sign-in password. Its session credential and account journals are encrypted in private app storage with an Android Keystore key. Accounts have separate phone journals. Signing out hides the connected account’s records until the same account is connected again.",color=Muted)
+        Text("Ratings and reviews are personal entries you choose to record; providers do not send them here automatically. Connected entries can be shared with this client account. Guest reputation and chat are copied into an account only when you explicitly choose those options.",color=Muted)
+    }
+    Panel("Protected Journal & older workspace data") {
+        Text("Protected Journal requires public keys independently included in the signed app, verified firm approval for this device’s client key, and matching active workspace enrollment. Its client-encrypted snapshot can be opened by the approved client and firm recovery keys. Without those requirements, no encrypted snapshot is uploaded.")
+        Text("The dedicated client-key copy is wrapped by an OS-enforced unlocked-device Android Keystore key, requires Android 9 or newer and a secure screen lock, and is excluded from device backup. Explicitly rewrapping an earlier key keeps its original encrypted file with its previous storage protections for recovery review.",color=Muted)
+        Text("A snapshot includes the saved Journal, goals, offer and review history, chat and current tracking/settings state. Current tracking state can contain a recent location. Historical route files, receipt contents and server-only tax/profile/provider data are separate. Preview and import review do not restore or replace your live records.",color=Muted)
+        Text("Encrypted-object routing metadata, recipient public keys, revisions and deletion state remain visible to the host. Encryption does not migrate older plaintext workspace records or erase retained exports and backups. A matching independently bundled pin blocks legacy app uploads; it does not retroactively protect old data or pages opened in another app.",color=Muted)
+        Text("A server acknowledgment does not prove independent backup or recovery. Deleting a remote archive keeps the local Journal, attachments and any retained historical backups.",color=Muted)
+    }
+    Panel("Banks, statements & estimates") {
+        Text("CSV, OFX and QFX statement imports stay in the phone’s review inbox until you save entries. Approved entries, bank source references and selected receipts join your synced journal. Goals and vehicle-cost estimates stay on the phone unless you explicitly send them with a coach question or encrypted Journal snapshot.")
+        Text("Optional direct bank linking uses Plaid’s SDK and your bank’s consent flow. Bank passwords are not received by this app. The firm stores encrypted provider access tokens and downloaded transactions; authorized workspace administrators control that storage. This app downloads the feed for review. Updates are periodic and can include corrections.",color=Muted)
+        Text("Disconnect in Money → Banks & statement imports → Connect a bank to revoke future provider access. Previously imported history and journal entries remain; ask your firm about retention. Pending, unsupported-currency and sandbox test transactions cannot be posted to the real journal.",color=Muted)
+        TextButton(onClick={runCatching {context.startActivity(Intent(Intent.ACTION_VIEW,android.net.Uri.parse("https://plaid.com/legal/#end-user-privacy-policy")))}.onFailure {linkError="The Plaid privacy policy could not be opened."}}) {Text("Plaid privacy policy",color=Link)}
+        linkError?.let {Text(it,color=Caution,style=MaterialTheme.typography.bodySmall)}
+    }
+    Panel("Tax & Goals chat") {
+        Text("Phone guidance uses the records and assumptions you saved. Sending a connected question shares its text, selected period and applicable cost/goal assumptions with your firm’s workspace. Replies identify phone analysis or record-based workspace guidance and include source links when available.")
+        Text("Tax-prep details change only when you confirm them. Chat does not calculate tax owed or file a return or payment. Keep passwords, verification codes, full Social Security numbers and bank credentials out of chat.",color=Muted)
+    }
+    Panel("Your choices") {
+        Text("You can review, correct, classify, export and delete journal entries. Deletions sync as deleted records so another device does not restore an old copy; the firm may retain historical records. Ask your firm about access and retention.")
+        Text("CSV export sends the selected journal through Android’s share/save flow. The app’s device backup is disabled. Uninstalling, reinstalling or losing this phone can erase phone-only records and its client key. Export important records and verify any approved recovery arrangement before removing the app.",color=Muted)
+    }
+    Panel("Rewards") {
+        Text("The workspace maintains referral status, points, reward requests and staff fulfillment records. Referrers cannot view a friend’s tax documents or client details. Staff verifies eligibility before issuing rewards.")
+    }
+    Panel("Included services") {
+        Text("The app uses Android location and notification services, Android Geocoder, OpenStreetMap office and street maps, a configured road-routing service, bundled on-device ML Kit recognition and Plaid for optional bank linking. No advertising SDK or automatic tax-filing connection is included.")
+        Text("Find my firm’s workspace retrieves the public connection address from the firm’s website. Calling, appointment providers, bank linking, your chosen maps app and pages opened in a browser have their own data practices.",color=Muted)
+    }
 }
 
 fun exportCSV(journal: Journal): String {

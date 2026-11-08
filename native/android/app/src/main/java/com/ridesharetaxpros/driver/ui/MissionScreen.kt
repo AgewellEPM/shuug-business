@@ -98,11 +98,7 @@ import kotlin.math.roundToInt
             Action("Add to offer comparison",{repo.run {val value=draft() ?: error("Check the entered offer details.");require(value.activeHourEstimate(repo.journal.goals,repo.journal.mission?.deadline)!=null);repo.update {it.copy(missionOffers=(it.missionOffers+value).takeLast(20))}}},primary=false)
         } else Text("Enter payout, known fees, miles, minutes and wait. Set your own hourly target and vehicle cost in Earnings → Goals.",fontSize=12.sp,color=Muted)
     }
-    Panel("Get paid going home") {
-        Text("While parked, select your actual destination and compare your historical job-start areas using current road routes.",fontSize=13.sp,color=Muted)
-        Action("Choose destination & waiting areas",{navigate("Position")},primary=false)
-        Text("Your route and location may change. Compare again after conditions change.",fontSize=12.sp,color=Muted)
-    }
+    MissionRoadSection(repo,wait.toDoubleOrNull(),navigate)
     if(repo.journal.missionOffers.isNotEmpty()) Panel("Compare your entered offers") {
         repo.journal.missionOffers.forEach {offer->offer.activeHourEstimate(repo.journal.goals,mission?.deadline)?.let {value->
             Text("${offer.label} · ${usd(value.netCents)} net · ${usd(value.hourlyCents.roundToInt())}/active hour",fontWeight=FontWeight.SemiBold)

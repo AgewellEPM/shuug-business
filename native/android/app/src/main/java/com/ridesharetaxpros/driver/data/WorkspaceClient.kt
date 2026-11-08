@@ -24,6 +24,7 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
     suspend fun customer(path: String,method: String="GET",body: ByteArray?=null,mime: String="application/json",maximum:Int=8*1024*1024): ByteArray = request(path,method,body,mime,maximum)
     private suspend fun request(path: String,method: String,body: ByteArray?,mime: String,maximum:Int): ByteArray = withContext(Dispatchers.IO) {
         require(!path.startsWith("/") && !path.contains("..") && !path.contains("#")) {"Invalid workspace path."}
+        ProtectedTransportPolicy.assertAllowed(ProtectedTransportPolicy.requiresProtected(address),path,method,body)
         val url=URI(address+"/api/website/customer/"+path).toURL()
         val request=url.openConnection() as HttpURLConnection
         try {
@@ -48,10 +49,15 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
     }
     suspend fun records(after: Long): SyncPage = Wire.decodeFromString(send("records?after=$after").toString(Charsets.UTF_8))
     suspend fun save(mutation: Mutation): ServerRecord = Wire.decodeFromString(send("records","POST",Wire.encodeToString(mutation).toByteArray()).toString(Charsets.UTF_8))
-    suspend fun banks(): BankStatus = Wire.decodeFromString(send("banks?platform=android").toString(Charsets.UTF_8))
+    suspend fun banks(): BankStatus {
+        val status=Wire.decodeFromString<BankStatus>(send("banks?platform=android").toString(Charsets.UTF_8))
+        return if(ProtectedTransportPolicy.requiresProtected(address))status.copy(ready=false,reason=ProtectedTransportPolicy.REPLACEMENT_REQUIRED) else status
+    }
     suspend fun bankFeed(after: Long): BankFeed = Wire.decodeFromString(send("banks?after=$after").toString(Charsets.UTF_8))
     suspend fun action(path: String,values: Map<String,String>): JsonObject = Wire.parseToJsonElement(send(path,"POST",Wire.encodeToString(values).toByteArray()).toString(Charsets.UTF_8)).jsonObject
     suspend fun referrals(): JsonObject = Wire.parseToJsonElement(send("referrals").toString(Charsets.UTF_8)).jsonObject
+    suspend fun profile(name:String?=null):AccountProfileReply=Wire.decodeFromString(send("profile",if(name==null) "GET" else "PATCH",
+        name?.let {Wire.encodeToString(mapOf("name" to validatedDisplayName(it))).toByteArray()}).toString(Charsets.UTF_8))
     companion object {
         fun origin(raw: String): String {
             val url=URI(raw.trim()); val host=url.host?.lowercase() ?: error("Use your firm's public HTTPS workspace address.")

@@ -11,7 +11,13 @@ import kotlinx.serialization.json.*
 
 private val classificationsForDrive=setOf("unclassified","business","personal")
 
-class DriverApplication: Application() { val repository by lazy { DriverRepository(this) } }
+class DriverApplication: Application() {
+    val repository by lazy { DriverRepository(this) }
+    override fun onCreate() {
+        super.onCreate()
+        ProtectedTransportPolicy.configurationSource={try {assets.open("SecureTaxTrustedPins.json").use {boundedRead(it,16384)}}catch(_:java.io.FileNotFoundException) {null}}
+    }
+}
 class DriverRepository(val app: Application) {
     val store=PrivateStore(app)
     private val jobs=CoroutineScope(SupervisorJob()+Dispatchers.Main.immediate)
@@ -20,6 +26,9 @@ class DriverRepository(val app: Application) {
     var failure by mutableStateOf<String?>(null)
     var storageReady by mutableStateOf(false); private set
     var busy by mutableStateOf(false); private set
+    var updatingProfile by mutableStateOf(false); private set
+    var changingAccount by mutableStateOf(false); private set
+    var profileError by mutableStateOf<String?>(null); private set
     var bankStatus by mutableStateOf<BankStatus?>(null); private set
     var rewards by mutableStateOf<JsonObject?>(null); private set
     var trackingStatus by mutableStateOf("Tracking is off")
@@ -41,46 +50,71 @@ class DriverRepository(val app: Application) {
     }
     fun run(block: suspend ()->Unit) { jobs.launch { try { block() } catch(error: Exception) { failure=error.message ?: "The operation could not finish. Your records are kept." } } }
     suspend fun connect(address: String,email: String,password: String) {
+        check(connection==null) {"Sign out before connecting a different client account."}
+        check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish."}
         check(journal.activeTripId==null) { "End your current drive before switching accounts." }; check(storageReady)
+        changingAccount=true
+        try {
         val origin=WorkspaceClient.origin(address); val reply=WorkspaceClient(address=origin).login(email.trim(),password)
         val next=Connection(origin,reply); val namespace=PrivateStore.hash(origin+"|"+reply.account.id)
         val saved=store.journal(namespace).let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
         store.save(namespace,saved)
         store.write("session","connection.json",Wire.encodeToString(next).toByteArray())
         app.stopService(Intent(app,DriveService::class.java)); app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
-        connection=next; journal=saved; rewards=null; bankStatus=null
+        connection=next; journal=saved; rewards=null; bankStatus=null;profileError=null
+        } finally {changingAccount=false}
+        sync()
+    }
+    suspend fun reauthenticate(password:String) {
+        val expected=connection ?: error("Connect your client account first.")
+        check(!busy && !updatingProfile && !changingAccount && journal.activeTripId==null) {"Finish the current drive or account operation before signing in again."}
+        changingAccount=true
+        try {
+            val reply=WorkspaceClient(address=expected.origin).login(expected.session.account.email,password)
+            check(connection==expected) {"Your account changed. Open sign-in again."}
+            val next=sameAccountReauthentication(expected,reply)
+            store.write("session","connection.json",Wire.encodeToString(next).toByteArray());connection=next;profileError=null
+        } finally {changingAccount=false}
         sync()
     }
     suspend fun disconnect() {
+        check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish before signing out."}
         check(journal.activeTripId==null) { "End your current drive before disconnecting." }
-        connection?.let { WorkspaceClient(it).send("session","DELETE") }
+        val previous=connection
+        changingAccount=true
+        try {
         val guest=store.journal("guest").let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
         store.save("guest",guest)
         // An empty encrypted optional value is understood as signed out at next launch.
         store.clearConnection(); app.stopService(Intent(app,DriveService::class.java))
         app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
-        connection=null; journal=guest; rewards=null; bankStatus=null
+        connection=null; journal=guest; rewards=null; bankStatus=null;profileError=null
+        } finally {changingAccount=false}
+        previous?.let {try {WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
     }
-    fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false) {
+    fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false,includeRecords:Boolean=true) {
         check(connection!=null && journal.activeTripId==null); val guest=store.journal("guest"); check(guest.activeTripId==null)
-        guest.receipts.forEach { store.saveReceipt(scope,it.id,store.receipt("guest",it.id)) }
-        guest.entries.filter { it.record.kind=="trip" && journal.entries.none { old->old.record.id==it.record.id } }.forEach { store.copyRoute("guest",scope,it.record.id) }
+        if(includeRecords) {
+            guest.receipts.forEach { store.saveReceipt(scope,it.id,store.receipt("guest",it.id)) }
+            guest.entries.filter { it.record.kind=="trip" && journal.entries.none { old->old.record.id==it.record.id } }.forEach { store.copyRoute("guest",scope,it.record.id) }
+        }
         update { current -> var next=current
-            guest.visible.forEach { entry -> if(next.entries.none { it.record.id==entry.record.id }) next=next.upsert(entry.record.copy(revision=0)) }
-            next.copy(receipts=(next.receipts+guest.receipts.map { it.copy(uploaded=false) }).distinctBy { it.id },
+            if(includeRecords) {
+                guest.visible.forEach { entry -> if(next.entries.none { it.record.id==entry.record.id }) next=next.upsert(entry.record.copy(revision=0)) }
+                next=next.copy(receipts=(next.receipts+guest.receipts.map { it.copy(uploaded=false) }).distinctBy { it.id },
                 bankTransactions=mergeBank(next.bankTransactions,guest.bankTransactions),goals=guest.goals,assistance=guest.assistance,
                 placePrompts=(next.placePrompts+guest.placePrompts).distinctBy { it.id }.takeLast(100),
                 mission=next.mission ?: guest.mission,waitSamples=(next.waitSamples+guest.waitSamples).distinct().takeLast(1000),
-                vehicleReservePercent=next.vehicleReservePercent ?: guest.vehicleReservePercent,taxReservePercent=next.taxReservePercent ?: guest.taxReservePercent).let {copied ->
-                    var result=copied
-                    if(includeReputation) result=result.copyGuestReputation(guest)
-                    if(includeCoach) result=result.copyGuestCoach(guest)
-                    result
-                } }
+                vehicleReservePercent=next.vehicleReservePercent ?: guest.vehicleReservePercent,taxReservePercent=next.taxReservePercent ?: guest.taxReservePercent)
+            }
+            if(includeReputation) next=next.copyGuestReputation(guest)
+            if(includeCoach) next=next.copyGuestCoach(guest)
+            next
+        }
         // Keep the guest source as a recoverable copy; stable record IDs make repeats safe.
     }
     suspend fun sync() {
-        val active=connection ?: return; if(busy) return; val namespace=scope; busy=true
+        val active=connection ?: return; if(busy || updatingProfile || changingAccount) return; val namespace=scope; busy=true
         try {
             val client=WorkspaceClient(active)
             var passes=0
@@ -107,7 +141,25 @@ class DriverRepository(val app: Application) {
                 // retry loop. Failed requests leave the durable queue intact.
             } while(passes<20 && (journal.pendingReceipts.isNotEmpty() || journal.pendingRecords.isNotEmpty()))
             update { it.copy(lastSyncAt=now()) }
+            refreshProfile()
         } finally { busy=false }
+    }
+    private fun applyProfile(reply:AccountProfileReply,expected:Connection,namespace:String) {
+        check(scope==namespace && connection?.origin==expected.origin && connection?.session?.token==expected.session.token) {"Your account changed before the profile update finished."}
+        val next=reply.applyTo(expected)
+        store.write("session","connection.json",Wire.encodeToString(next).toByteArray());connection=next;profileError=null
+    }
+    suspend fun refreshProfile() {
+        val expected=connection ?: return;if(updatingProfile || changingAccount) return;val namespace=scope
+        try {applyProfile(WorkspaceClient(expected).profile(),expected,namespace)}
+        catch(error:CancellationException) {throw error}
+        catch(error:Exception) {if(scope==namespace && connection?.session?.token==expected.session.token)profileError=error.message}
+    }
+    suspend fun updateProfileName(raw:String) {
+        val expected=connection ?: error("Connect your client account first.")
+        check(!busy && !updatingProfile && !changingAccount) {"Wait for the current sync or profile update to finish."}
+        val name=validatedDisplayName(raw);val namespace=scope;updatingProfile=true
+        try {applyProfile(WorkspaceClient(expected).profile(name),expected,namespace)} finally {updatingProfile=false}
     }
     suspend fun refreshBanks() {
         val active=connection ?: return; val namespace=scope; val client=WorkspaceClient(active)

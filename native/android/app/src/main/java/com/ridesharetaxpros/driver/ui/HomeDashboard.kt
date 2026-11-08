@@ -3,6 +3,7 @@ package com.ridesharetaxpros.driver.ui
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -18,6 +19,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -33,7 +37,6 @@ import java.util.Locale
         Image(painterResource(R.drawable.brand_mark),null,Modifier.size(if(compact) 42.dp else 52.dp))
         Column(verticalArrangement=Arrangement.spacedBy(4.dp)) {
             Text("Gig Tax Pros",fontWeight=FontWeight.Bold,fontSize=if(compact) 20.sp else 22.sp,letterSpacing=(-.6).sp)
-            Text("POWERED BY SHUUG",fontSize=9.sp,letterSpacing=1.3.sp,color=Link)
         }
     }
 }
@@ -43,18 +46,27 @@ import java.util.Locale
         Column {Text(value,fontSize=17.sp,fontWeight=FontWeight.SemiBold,color=tint);Text(title,fontSize=10.sp,color=Muted)}
     }
 }
-@Composable private fun QuickAction(title:String,icon:ImageVector,tint:Color,onClick:()->Unit,modifier:Modifier=Modifier) {
-    Column(modifier.height(72.dp).background(panelGradient,RoundedCornerShape(17.dp)).border(.8.dp,Border.copy(alpha=.6f),RoundedCornerShape(17.dp))
+@Composable private fun QuickAction(title:String,icon:ImageVector,tint:Color,onClick:()->Unit,modifier:Modifier=Modifier,count:Int=0) {
+    Box(modifier) {
+    Column(Modifier.fillMaxWidth().height(72.dp).background(panelGradient,RoundedCornerShape(17.dp)).border(.8.dp,Border.copy(alpha=.6f),RoundedCornerShape(17.dp))
         .clickable(onClick=onClick),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
         Icon(icon,title,Modifier.size(27.dp),tint=tint);Spacer(Modifier.height(8.dp));Text(title,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
     }
+    if(count>0)Badge(Modifier.align(Alignment.TopEnd),containerColor=tint,contentColor=Ink) {Text(count.coerceAtMost(99).toString())}
+    }
 }
-val homeTools=listOf("Trips","Money","Account","Alerts & reminders","Offer Capture Diagnostics","Tax & Goals","Ratings & reviews","Get help","Getting started","Sample shift")
+private val homeTools=listOf("Trips" to "Trips","Money" to "Money","Account" to "Account","Alerts & reminders" to "Alerts & reminders",
+    "Offer Capture Diagnostics" to "Offer Capture Diagnostics","Tax & Goals chat" to "Tax & Goals","Ratings & reviews" to "Ratings & reviews",
+    "Find an office & get help" to "Get help","Getting-started video" to "Getting started","Explore a sample shift" to "Sample shift")
 @Composable fun HomeDashboard(repo:DriverRepository,navigate:(String)->Unit,selectTab:(String)->Unit,endDrive:()->Unit) {
     var menu by remember {mutableStateOf(false)}
     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
         Box {IconButton(onClick={menu=true},Modifier.size(28.dp)) {Icon(Icons.Default.Menu,"More tools")}
-            DropdownMenu(menu,onDismissRequest={menu=false},containerColor=Panel) {homeTools.forEach {label->DropdownMenuItem(text={Text(label)},onClick={menu=false;navigate(label)})}}}
+            DropdownMenu(menu,onDismissRequest={menu=false},containerColor=Panel) {homeTools.forEach {(label,route)->DropdownMenuItem(text={Text(label)},leadingIcon={Icon(when(route) {
+                "Trips"->Icons.Default.DirectionsCar;"Money"->Icons.Default.ReceiptLong;"Account"->Icons.Default.AccountCircle;"Alerts & reminders"->Icons.Default.NotificationsNone
+                "Offer Capture Diagnostics"->Icons.Default.MonitorHeart;"Tax & Goals"->Icons.Default.Forum;"Ratings & reviews"->Icons.Default.Reviews
+                "Get help"->Icons.Default.Map;"Getting started"->Icons.Default.PlayCircle;else->Icons.Default.AutoAwesome
+            },null,tint=Pink)},onClick={menu=false;navigate(route)})}}}
         Box(Modifier.weight(1f)) {BrandHeader(true)}
         IconButton(onClick={navigate("Tax & Goals")},Modifier.size(30.dp)) {Icon(Icons.Default.Forum,"Tax & Goals chat",tint=Route)}
         IconButton(onClick={navigate("Alerts & reminders")},Modifier.size(30.dp)) {Icon(Icons.Default.NotificationsNone,"Alerts and reminders")}
@@ -64,47 +76,61 @@ val homeTools=listOf("Trips","Money","Account","Alerts & reminders","Offer Captu
         QuickAction("Trips",Icons.Default.DirectionsCar,Route,{navigate("Trips")},Modifier.weight(1f))
         QuickAction("Expense",Icons.Default.ReceiptLong,ExpenseColor,{navigate("Add expense")},Modifier.weight(1f))
         QuickAction("Income",Icons.Default.Paid,Income,{navigate("Add income")},Modifier.weight(1f))
-        QuickAction("Alerts",Icons.Default.Notifications,Caution,{navigate("Alerts & reminders")},Modifier.weight(1f))
+        QuickAction("Alerts",Icons.Default.Notifications,Caution,{navigate("Alerts & reminders")},Modifier.weight(1f),repo.journal.tripAlerts.count {it.scope==repo.scope && it.handledAt==null && runCatching {java.time.Instant.parse(it.expiresAt)>java.time.Instant.now()}.getOrDefault(false)})
     }
     val todayRecords=repo.journal.visible.map {it.record}.filter {it.date==today()}
     val rides=todayRecords.filter {it.kind=="trip" && it.trip().classification=="business" && it.trip().endedAt!=null}.map {RideProfit(it,repo.journal.goals)}
-    val priced=rides.filter {it.net!=null};val net=priced.sumOf {it.net!!.toLong()};val minutes=priced.sumOf {it.minutes}
-    Panel {
-        Row {Text("Today’s driving",Modifier.weight(1f),fontWeight=FontWeight.SemiBold);Text(if(repo.journal.active!=null) "● Recording" else "✓ Saved records",fontSize=10.sp,color=Link)}
+    val priced=rides.filter {it.net!=null};val dailyNet=priced.sumOf {it.net!!.toLong()};val minutes=priced.sumOf {it.minutes}
+    val mission=repo.journal.mission
+    val net=mission?.let {active->val first=java.time.Instant.parse(active.startedAt);val end=minOf(java.time.Instant.now(),java.time.Instant.parse(active.deadline))
+        repo.journal.visible.map {it.record}.filter {it.kind=="trip" && it.trip().classification=="business" && it.trip().endedAt!=null}
+            .filter {java.time.Instant.parse(it.trip().startedAt)>=first && java.time.Instant.parse(it.trip().endedAt)<=end}.sumOf {RideProfit(it,repo.journal.goals).net?.toLong() ?: 0L}
+    } ?: dailyNet
+    val target=mission?.targetCents ?: repo.journal.goals.dailyNetCents
+    Panel(accent=if(net<0)Danger else Income,highlight=true) {
+        Row {Text(if(mission==null) "Today’s driving" else "Your shift mission",Modifier.weight(1f),fontWeight=FontWeight.SemiBold);Text(if(repo.journal.active!=null) "● Recording" else "✓ Saved records",fontSize=10.sp,color=Link,modifier=Modifier.background(Purple.copy(alpha=.13f),RoundedCornerShape(50)).padding(horizontal=9.dp,vertical=5.dp))}
         Row(verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {Text(usd(net),fontSize=39.sp,fontWeight=FontWeight.Bold,color=if(net<0) Danger else Income);Text("Estimated net",fontSize=12.sp,color=Muted)}
-            Column(horizontalAlignment=Alignment.End,modifier=Modifier.clickable {navigate("Goals")}) {Text(repo.journal.goals.dailyNetCents?.let {usd(it)} ?: "Set a goal",fontSize=20.sp,fontWeight=FontWeight.Bold,color=Link);Text("Net earnings target",fontSize=12.sp,color=Muted)}
+            Column(horizontalAlignment=Alignment.End,modifier=Modifier.clickable {navigate("Goals")}) {Text(target?.let {usd(it)} ?: "Set a goal",fontSize=20.sp,fontWeight=FontWeight.Bold,color=Link);Text("Net earnings target",fontSize=12.sp,color=Muted)}
         }
-        repo.journal.goals.dailyNetCents?.takeIf {it>0}?.let {goal->
+        target?.takeIf {it>0}?.let {goal->
             LinearProgressIndicator(progress={(net.toFloat()/goal).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth().height(13.dp),color=Pink,trackColor=Color.White.copy(alpha=.12f))
             Text("${(net*100/goal).coerceIn(0,100)}% of goal · ${usd((goal-net).coerceAtLeast(0))} to go",fontSize=12.sp,color=Muted)
         }
         HorizontalDivider(color=Border.copy(alpha=.3f))
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-            Metric("Per recorded\nhour",if(minutes>0) usd(net*60/minutes) else "—",Icons.Default.Paid,if(minutes>0) Income else Link,Modifier.weight(1f))
+            Metric("Per recorded\nhour",if(minutes>0) usd(dailyNet*60/minutes) else "—",Icons.Default.Paid,if(minutes>0) {if(dailyNet<0)Danger else Income} else Link,Modifier.weight(1f))
             Metric("Recorded\nwork time","${minutes.toInt()/60}h ${minutes.toInt()%60}m",Icons.Default.Schedule,Link,Modifier.weight(1f))
             Metric("Business\nmiles","%.1f mi".format(Locale.US,rides.sumOf {it.miles}),Icons.Default.AddRoad,Route,Modifier.weight(1f))
         }
         Text(if(priced.size<rides.size || priced.isEmpty()) "Add fares, known fees and vehicle cost to complete your profit picture." else "Recorded driving only; unrecorded idle time and tax are excluded.",fontSize=12.sp,color=Muted)
     }
-    Panel {NavigationRow("Find an office & get help",{navigate("Get help")},"Locations · Phone help · Appointments")}
-    Panel {Row(Modifier.clickable {selectTab("Go Home")},verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+    Panel {Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
+        Icon(Icons.Default.Map,null,Modifier.size(30.dp),tint=Pink)
+        Box(Modifier.weight(1f)) {NavigationRow("Find an office & get help",{navigate("Get help")},"Locations · Phone help · Appointments")}
+    }}
+    Box(Modifier.fillMaxWidth().background(panelGradient,RoundedCornerShape(22.dp)).border(1.dp,Route.copy(alpha=.65f),RoundedCornerShape(22.dp)).clickable {selectTab("Go Home")}) {
+    Row(Modifier.fillMaxWidth().padding(16.dp).padding(bottom=12.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
         Icon(Icons.Default.Home,null,Modifier.size(32.dp),tint=Route)
         Column(Modifier.weight(1f)) {Text("Get Paid Going Home",fontWeight=FontWeight.Bold,fontSize=18.sp);Text(repo.journal.mission?.let {"Finish near ${it.destination}. Earn on the way."} ?: "Set your destination. Earn on the way.",fontSize=12.sp,color=Muted)}
         Icon(Icons.Default.ChevronRight,null,tint=Route)
+    }
+    Canvas(Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(28.dp)) {for(index in 0..6) {
+        val start=index/6f*size.width;val line=Path().apply {moveTo(start,size.height);cubicTo(start,size.height*.4f,size.width*.68f,size.height*.5f,size.width*.58f,0f)}
+        drawPath(line,Brush.linearGradient(listOf(Purple.copy(alpha=.3f),Pink.copy(alpha=.85f))),style=Stroke(if(index==3)2.dp.toPx() else .7.dp.toPx()))
     }}
+    }
     PlatformLaunchers(repo,navigate)
     Panel("Is this job worth it?") {
         Text("Take a screenshot. Bring it here. Check the pay after costs.",color=Muted)
         Action("Show me how · Try the guide",{navigate("Screenshot guide")})
         Action("Choose screenshot",{navigate("Choose screenshot")},false)
     }
-    Panel("Your last 7 days") {
-        Text(usd(net),fontSize=34.sp,fontWeight=FontWeight.Bold,color=Income)
-        if(rides.isEmpty()) {Icon(Icons.Default.ShowChart,null,tint=Muted);Text("Your graph starts with your first drive",fontWeight=FontWeight.SemiBold,color=Muted)}
-        else Bars(insights(repo.journal.visible.map {it.record},repo.journal.goals,java.time.LocalDate.now().minusDays(6).toString(),today()).map {it.net.toDouble()})
-        Text("Completed drives, fares and your vehicle cost power these numbers.",fontSize=12.sp,color=Muted)
-    }
+    val weekFirst=java.time.LocalDate.now().minusDays(6);val allRecords=repo.journal.visible.map {it.record}
+    val weekTotals=insights(allRecords,repo.journal.goals,weekFirst.toString(),today()).associateBy {it.date}
+    val weekDays=(0..6).map {weekFirst.plusDays(it.toLong()).toString()}.map {weekTotals[it] ?: DayTotals(it)}
+    val weekRides=allRecords.filter {it.kind=="trip" && it.date in weekFirst.toString()..today() && it.trip().classification=="business" && it.trip().endedAt!=null}.map {RideProfit(it,repo.journal.goals)}
+    EarningsPulse(weekDays,weekRides,7)
     TextButton(onClick={navigate("Sample shift")}) {Icon(Icons.Default.AutoAwesome,null);Spacer(Modifier.width(8.dp));Text("Explore charts & offers with sample data")}
     val active=repo.journal.active?.record?.trip()
     Panel(if(active==null) "Ready for your next drive" else "Drive in progress") {
@@ -121,7 +147,7 @@ val homeTools=listOf("Trips","Money","Account","Alerts & reminders","Offer Captu
     }
     Text(if(repo.connection==null) "Saved on this phone" else "${repo.journal.entries.count {it.pendingMutationId!=null}} changes waiting to sync",fontSize=12.sp,color=Muted)
     Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-        PanelMetric("Business miles today","%.2f".format(Locale.US,rides.sumOf {it.miles}),Route,Modifier.weight(1f))
+        PanelMetric("Business miles today","%.2f".format(Locale.US,todayRecords.filter {it.kind=="trip" && it.trip().classification=="business"}.sumOf {it.trip().distanceMeters}/1609.344),Route,Modifier.weight(1f))
         PanelMetric("Expenses today",usd(todayRecords.filter {it.kind=="expense"}.sumOf {it.expense().amountCents}),ExpenseColor,Modifier.weight(1f))
     }
     PanelMetric("Income today",usd(todayRecords.filter {it.kind=="income"}.sumOf {it.income().amountCents}),Income)
@@ -142,23 +168,27 @@ private fun Modifier.alignCenter()=fillMaxWidth().wrapContentWidth(Alignment.Cen
     Column(modifier.background(panelGradient,RoundedCornerShape(20.dp)).padding(16.dp)) {Text(title,fontSize=12.sp,color=Muted);Text(value,fontSize=24.sp,fontWeight=FontWeight.Bold,color=tint)}
 }
 @Composable fun PlatformLaunchers(repo:DriverRepository,navigate:(String)->Unit) {
-    val names=listOf("Lyft Driver","Uber Driver","Dasher","Spark Driver","Instacart Shopper","Amazon Flex","Grubhub Driver","Roadie Driver","Shipt Shopper","Gopuff Driver","Tasker","Rover","Wag! Caregiver","Favor Runner","Curri Driver","GoShare Driver","Veho Driver","Dispatch","Skipcart","Universal Delivery","In-store Shopper")
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(16.dp)) {names.forEach {name->
+    val names=gigAppCatalog.map {it.name}+listOf("Universal Delivery","In-store Shopper")
+    Panel(inset=12.dp) {Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(14.dp)) {names.forEach {name->
         Column(Modifier.width(64.dp).clickable {
             if(name=="Universal Delivery" || name=="In-store Shopper") navigate(name) else {
-                val match=repo.app.packageManager.queryIntentActivities(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_LAUNCHER),0)
-                    .firstOrNull {it.loadLabel(repo.app.packageManager).toString().equals(name,true)}
-                val launch=match?.activityInfo?.packageName?.let {repo.app.packageManager.getLaunchIntentForPackage(it)}
-                if(launch!=null) repo.app.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
-                else repo.failure="$name is not installed. Install the provider’s official Android app, then return here to open it."
+                val app=gigAppCatalog.first {it.name==name}
+                val launch=repo.app.packageManager.getLaunchIntentForPackage(app.packageName)
+                runCatching {
+                    if(launch!=null)repo.app.startActivity(launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                    else {
+                        val market=Intent(Intent.ACTION_VIEW,Uri.parse("market://details?id=${app.packageName}")).setPackage("com.android.vending").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        try {repo.app.startActivity(market)}catch(_:android.content.ActivityNotFoundException) {openPublicLink(repo,app.storeURL)}
+                    }
+                }.onFailure {repo.failure="$name and its official store listing could not be opened. Check your installed apps and connection."}
             }
         },horizontalAlignment=Alignment.CenterHorizontally) {
             val asset=platformAsset(name)
             val bitmap=remember(asset) {runCatching {repo.app.assets.open("platforms/$asset").use {android.graphics.BitmapFactory.decodeStream(it)}}.getOrNull()}
             if(bitmap!=null) Image(bitmap.asImageBitmap(),null,Modifier.size(38.dp))
             else Icon(if(name=="In-store Shopper") Icons.Default.ShoppingBasket else Icons.Default.LocalShipping,null,Modifier.size(38.dp),tint=if(name=="In-store Shopper") Income else Route)
-            Spacer(Modifier.height(8.dp));Text(name,fontSize=10.sp,maxLines=2);Text(if(name.startsWith("Universal") || name=="In-store Shopper") "Work profile" else "Open app",fontSize=9.sp,color=Muted)
+            Spacer(Modifier.height(6.dp));Text(name,fontSize=10.sp,maxLines=2,modifier=Modifier.heightIn(min=24.dp));Text(if(name.startsWith("Universal") || name=="In-store Shopper") "Configure" else "Open app",fontSize=9.sp,color=Link)
         }
-    }}
+    }}}
 }
-private fun platformAsset(name:String)=mapOf("Lyft Driver" to "PlatformLyftIcon.jpg","Uber Driver" to "PlatformUberIcon.jpg","Dasher" to "PlatformDoorDashIcon.jpg","Spark Driver" to "PlatformSparkIcon.jpg","Instacart Shopper" to "PlatformInstacartIcon.jpg","Tasker" to "GigAppTaskrabbitTaskerIcon.jpg","Dispatch" to "GigAppDispatchDriverIcon.jpg","Skipcart" to "GigAppSkipcartDriverIcon.jpg")[name] ?: "GigApp${name.replace(" ","").replace("!","")}Icon.jpg"
+private fun platformAsset(name:String)=gigAppCatalog.firstOrNull {it.name==name}?.iconFile ?: ""

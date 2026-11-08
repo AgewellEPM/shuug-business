@@ -17,10 +17,12 @@ object TripAlertNotifications {
     fun expense(repo: DriverRepository,prompt: ExpensePrompt)=publish(repo,"expense","Purchase near ${prompt.merchant}?","Reply with an amount to save for review, or choose Not a purchase.",promptId=prompt.id)
     fun completed(repo: DriverRepository,id: String)=publish(repo,"classify","Drive saved. Business or personal?","Choose the classification here without opening the app.",tripId=id)
     private fun publish(repo: DriverRepository,kind: String,title: String,text: String,tripId: String?=null,promptId: String?=null) {
-        if(Build.VERSION.SDK_INT>=33 && repo.app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) return
         val (next,token)=repo.journal.prepareTripAlert(kind,repo.scope,tripId,promptId)
         if(next==repo.journal) return
         repo.update {next}
+        // Permission controls system delivery; the same real prompt remains
+        // actionable in the app when notifications are unavailable.
+        if(Build.VERSION.SDK_INT>=33 && repo.app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) return
         val manager=repo.app.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(NotificationChannel("trip-actions","Trip and expense actions",NotificationManager.IMPORTANCE_HIGH))
         val open=PendingIntent.getActivity(repo.app,0,Intent(repo.app,MainActivity::class.java),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -45,12 +47,12 @@ object TripAlertNotifications {
         }
         manager.notify(token.id.hashCode(),notification.build())
     }
-    fun perform(repo: DriverRepository,intent: Intent): String {
+    fun perform(repo: DriverRepository,intent: Intent,reply:String?=null): String {
         val scope=intent.getStringExtra("scope") ?: error("The alert account is unavailable.")
         require(scope==repo.scope) {"This alert belongs to another account."}
         val id=intent.getStringExtra("alertId") ?: error("The alert is unavailable.")
         val action=intent.getStringExtra("alertAction") ?: error("Choose a trip action.")
-        val value=RemoteInput.getResultsFromIntent(intent)?.getCharSequence("value")?.toString()
+        val value=reply ?: RemoteInput.getResultsFromIntent(intent)?.getCharSequence("value")?.toString()
         val result=repo.journal.applyTripAlert(id,action,scope,value)
         if(result.result=="already") return "already"
         repo.update {result.journal}

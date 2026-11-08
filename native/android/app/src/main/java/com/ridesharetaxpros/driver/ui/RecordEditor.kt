@@ -39,7 +39,7 @@ import kotlin.math.abs
     var miles by remember { mutableStateOf(trip?.let { "%.3f".format(java.util.Locale.US,it.distanceMeters/1609.344) } ?: "") }
     var fare by remember { mutableStateOf(trip?.earningsCents?.let { "%.2f".format(java.util.Locale.US,it/100.0) } ?: "") }
     var fees by remember { mutableStateOf(trip?.platformFeesCents?.let { "%.2f".format(java.util.Locale.US,it/100.0) } ?: "") }
-    var role by remember { mutableStateOf(trip?.rideRole ?: "ride") }; var platform by remember { mutableStateOf(trip?.platform ?: income?.platform ?: if(kind=="income") "other" else "") }
+    var role by remember { mutableStateOf(trip?.rideRole ?: "other") }; var platform by remember { mutableStateOf(trip?.platform ?: income?.platform ?: if(kind=="income") "uber" else "") }
     var area by remember { mutableStateOf(trip?.workArea ?: "") }
     val zone=trip?.timeZoneId?.let(ZoneId::of) ?: if(trip!=null) ZoneOffset.UTC else ZoneId.systemDefault()
     fun time(value: String?)=value?.let { Instant.parse(it).atZone(zone).format(DateTimeFormatter.ofPattern("HH:mm")) } ?: ""
@@ -48,6 +48,8 @@ import kotlin.math.abs
     var duplicateConfirmed by remember { mutableStateOf(false) }; var showDelete by remember { mutableStateOf(false) }
     var receiptBytes by remember { mutableStateOf<ByteArray?>(null) }; var ocr by remember { mutableStateOf("") }; var scanning by remember { mutableStateOf(false) }
     var receiptResent by remember { mutableStateOf(false) }; var detailsExpanded by remember {mutableStateOf(false)}
+    var preview by remember {mutableStateOf<DocumentPreviewData?>(null)}
+    val currency=expense?.currency ?: income?.currency ?: "USD"
     fun attach(uri: Uri) { repo.run {
         val mime=repo.app.contentResolver.getType(uri) ?: "image/jpeg"; require(mime in listOf("image/jpeg","image/png","application/pdf")) { "Choose a JPEG, PNG or PDF receipt." }
         val bytes=repo.app.contentResolver.openInputStream(uri)!!.use { boundedRead(it,5*1024*1024) }
@@ -68,7 +70,7 @@ import kotlin.math.abs
             Field("Purpose",title,{title=it.take(240)})
         } else {
             Field(if(kind=="expense") "Merchant" else "Description",title,{title=it.take(160)})
-            Field("Amount · USD (12.34)",amount,{amount=it})
+            Field("Amount · $currency (12.34)",amount,{amount=it})
             DateField("Date",date) {date=it}
             if(kind=="expense") {
                 Choice("Category",category,expenseCategories) {category=it}
@@ -79,11 +81,12 @@ import kotlin.math.abs
         (bank?.reference ?: original?.bankReference)?.let { Text("Source: ${it.accountLabel} · ${it.provider}",color=Muted) }
     }
     if(kind=="trip") Panel("Ride earnings · optional") {
-        Choice("Drive type",role,linkedMapOf("ride" to "Paid ride","delivery" to "Delivery","shopping" to "In-store shopping","reposition" to "Driving without a paid ride","other" to "Other")) {role=it}
+        Choice("Drive type",role,linkedMapOf("ride" to "Passenger ride","delivery" to "Delivery","shopping" to "In-store shopping","reposition" to "Driving without a paid ride","other" to "Other / review")) {role=it}
         Field("Fare + tips before fees · USD",fare,{fare=it});Field("Platform fees · USD (0 if none)",fees,{fees=it})
         Field("Platform (Uber, Lyft…)",platform,{platform=it.take(80)});Field("Work area / neighborhood",area,{area=it.take(120)})
         Text("Use the actual ride breakdown. If you enter take-home pay after fees, enter 0 for fees so they are not subtracted twice. A bank payout is not an individual ride fare. Leave unknown values blank.",color=Muted)
         Text("To analyze pickup and unpaid travel, save those legs as Driving without a paid ride. Automatically detected drives may contain multiple rides; split or correct them using your platform records.",color=Muted)
+        Text("Times use ${zone.id}. Enter observed mileage from your own records. A changed GPS distance is recorded as a manual correction for review.",color=Muted)
     }
     if(kind=="expense") Panel("Receipt") {
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -91,6 +94,7 @@ import kotlin.math.abs
             OutlinedButton(onClick={try {camera.launch(cameraUri)} catch(_: Exception) {repo.failure="No camera app is available. Choose a receipt file instead."}}) {Text("Scan receipt")}
         }
         receiptBytes?.let { bytes -> val bitmap=remember(bytes) { BitmapFactory.decodeByteArray(bytes,0,bytes.size) }
+            Action("Preview private receipt",{repo.run {preview=DocumentPreviewData("Receipt",bytes,validatedDocumentMime(bytes))}},false)
             if(bitmap!=null) { Image(bitmap.asImageBitmap(),"Attached receipt",Modifier.fillMaxWidth().heightIn(max=300.dp))
                 Button(enabled=!scanning,onClick={scanning=true; val scanner=TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
                     scanner.process(InputImage.fromBitmap(bitmap,0)).addOnSuccessListener {ocr=it.text}.addOnFailureListener {repo.failure="Text recognition could not finish. Enter the receipt details manually."}.addOnCompleteListener {scanning=false;scanner.close()} }) {Text(if(scanning) "Reading…" else "Read receipt on this phone")} }
@@ -133,7 +137,7 @@ import kotlin.math.abs
         }
     }
     val candidateCents=runCatching {StatementImport.cents(amount)}.getOrNull()
-    val similar=kind!="trip" && candidateCents!=null && repo.journal.visible.any {it.record.id!=original?.id && it.record.kind==kind && it.record.date==date && (if(kind=="expense")it.record.expense().amountCents else it.record.income().amountCents)==candidateCents}
+    val similar=kind=="expense" && candidateCents!=null && Expense(date=date,merchant=title,amountCents=candidateCents,currency=currency).hasPossibleDuplicate(repo.journal.visible.map {it.record},original?.id)
     if(similar) Toggle("I checked the similar existing entry",duplicateConfirmed) {duplicateConfirmed=it}
     Button(onClick={repo.run {
         val parsedDate=LocalDate.parse(date); val id=original?.id ?: uuid(); val revision=original?.revision ?: 0
@@ -141,18 +145,18 @@ import kotlin.math.abs
         val record=when(kind) {
             "trip" -> { require(original?.id!=repo.journal.activeTripId) {"End the current drive before editing it."}
                 val begin=parsedDate.atTime(LocalTime.parse(start)).atZone(zone).toInstant(); val finish=LocalDate.parse(endDate).atTime(LocalTime.parse(end)).atZone(zone).toInstant(); require(finish>=begin) {"End time must follow start time."}
-                val distance=miles.toDouble()*1609.344; require(distance.isFinite() && distance in 0.0..10_000_000.0) {"Check the trip distance."}
+                val recordedMiles=miles.toDouble();require(recordedMiles.isFinite() && recordedMiles in 0.0..6213.0) {"Check the trip distance."};val distance=recordedMiles*1609.344
                 fun optionalCents(value: String)=value.takeIf {it.isNotBlank()}?.let {StatementImport.cents(it).also {require(it>=0)}}
                 DriverRecord.trip((trip ?: Trip()).copy(startedAt=begin.toString(),endedAt=finish.toString(),distanceMeters=distance,localDate=date,timeZoneId=zone.id,
-                    classification=classification,purpose=title,notes=notes,earningsCents=optionalCents(fare),platformFeesCents=optionalCents(fees),rideRole=role,platform=platform,workArea=area),id,revision) }
+                    classification=classification,purpose=title,notes=notes,source=if(trip!=null && abs(distance-trip.distanceMeters)<1)trip.source else "manual",
+                    earningsCents=if(role=="reposition")0 else optionalCents(fare),platformFeesCents=if(role=="reposition")0 else optionalCents(fees),rideRole=role,platform=platform,workArea=area),id,revision) }
             "expense" -> { val cents=StatementImport.cents(amount); require(cents>0 && title.isNotBlank()) {"Enter a merchant and positive amount."}
                 val use=percent.takeIf {it.isNotBlank()}?.toInt()?.also {require(it in 0..100)}; val meter=odometer.takeIf {it.isNotBlank()}?.toDouble()?.also {require(it.isFinite() && it in 0.0..2_000_000.0)}
-                DriverRecord.expense(Expense(date,title,category,cents,classification=classification,notes=notes,receiptId=receiptId,businessPurpose=purpose,businessUsePercent=use,mealContext=meal,vehicle=vehicle,odometerMiles=meter,paymentMethod=payment,place=place,bankReference=reference),id,revision) }
-            else -> {val cents=StatementImport.cents(amount); require(cents>0 && title.isNotBlank()) {"Enter a description and positive amount."}; DriverRecord.income(Income(date,platform,title,cents,notes=notes,bankReference=reference),id,revision)}
+                DriverRecord.expense(Expense(date,title,category,cents,currency=currency,classification=classification,notes=notes,receiptId=receiptId,businessPurpose=purpose,businessUsePercent=use,mealContext=meal,vehicle=vehicle,odometerMiles=meter,paymentMethod=payment,place=place,bankReference=reference),id,revision) }
+            else -> {val cents=StatementImport.cents(amount); require(cents>0 && title.isNotBlank()) {"Enter a description and positive amount."}; DriverRecord.income(Income(date,platform,title,cents,currency=currency,notes=notes,bankReference=reference),id,revision)}
         }
-        if(kind!="trip") {
-            val cost=if(kind=="expense") record.expense().amountCents else record.income().amountCents
-            val duplicates=repo.journal.visible.any {it.record.id!=id && it.record.kind==kind && it.record.date==date && (if(kind=="expense") it.record.expense().amountCents else it.record.income().amountCents)==cost}
+        if(kind=="expense") {
+            val duplicates=record.expense().hasPossibleDuplicate(repo.journal.visible.map {it.record},id)
             require(!duplicates || duplicateConfirmed) {"A same-day entry has this amount. Review it, then confirm above if this is a separate purchase."}
         }
         require(bank==null || bank.currency=="USD" && bank.isTestData!=true && bank.ready) {"Only posted US-dollar transactions can be recorded. Test transactions cannot enter your journal."}
@@ -162,6 +166,7 @@ import kotlin.math.abs
     }},Modifier.fillMaxWidth()) {Text("Save ${if(kind=="trip") "trip" else kind}")}
     if(original!=null && repo.journal.entries.any {it.record.id==original.id}) TextButton(onClick={showDelete=true}) {Text("Delete entry")}
     if(showDelete) AlertDialog(onDismissRequest={showDelete=false},title={Text("Delete this entry?")},text={Text("Deletion will sync to the firm. Attached source files remain available for recovery.")},confirmButton={TextButton(onClick={repo.run {require(original!!.id!=repo.journal.activeTripId);repo.save(original.copy(deleted=true));done()};showDelete=false}) {Text("Delete")}},dismissButton={TextButton(onClick={showDelete=false}) {Text("Keep")}})
+    preview?.let {NativeDocumentPreview(repo,it) {preview=null}}
 }
 
 fun shareBytes(repo: DriverRepository,bytes: ByteArray,mime: String,name: String) {

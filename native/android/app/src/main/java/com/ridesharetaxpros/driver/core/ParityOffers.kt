@@ -15,15 +15,13 @@ import kotlinx.serialization.Serializable
     val waitMinutes: Double? = null, val repositionMiles: Double? = null,
     val pickup: String = "", val dropoff: String = "", val checked: Boolean = false,
     val advice: String? = null, val phase: String? = null, val startedAt: String? = null,
-    val completedRecordId: String? = null
+    val completedRecordId: String? = null,val expiresAt: String?=null,val withdrawn: Boolean=false
 ) {
-    fun fresh(clock: Instant = Instant.now()) = runCatching {
-        Duration.between(Instant.parse(observedAt), clock).seconds in 0..60
-    }.getOrDefault(false)
+    fun fresh(clock: Instant = Instant.now()) = offerObservationFresh(observedAt,expiresAt,withdrawn,clock)
     companion object {
         fun captured(value: ObservedGigOffer) = ReviewedGigOffer(id=value.id, platform=value.platform,
             source=value.source, observedAt=value.observedAt, payoutCents=value.payoutCents,
-            displayedMiles=value.miles, displayedMinutes=value.minutes)
+            displayedMiles=value.miles, displayedMinutes=value.minutes,expiresAt=value.expiresAt,withdrawn=value.withdrawn)
     }
 }
 
@@ -79,35 +77,57 @@ fun assessReviewedOffer(offer: ReviewedGigOffer, costPerMile: Double?, hourlyGoa
 
 data class SampleOfferJourney(val offer: ReviewedGigOffer, val additionalMiles: Double? = null,
     val additionalMinutes: Double? = null, val arrival: String? = null, val reason: String,
-    val recommended: Boolean = false)
+    val recommended: Boolean = false,val incrementalCash: Int? = null)
 
 /** The same deterministic paused examples as iOS; never saved in a real journal. */
 fun sampleOfferJourneys(): List<SampleOfferJourney> {
-    fun offer(id: String, platform: String, pay: Int, miles: Double?, minutes: Double?) =
+    fun offer(id: String, platform: String, pay: Int, miles: Double?, minutes: Double?,wait: Double?=5.0) =
         ReviewedGigOffer(id=id, platform=platform, source="simulation", payoutCents=pay,
             guaranteedCents=if(miles!=null) pay else null, additionalCostsCents=if(miles!=null) 0 else null,
-            totalMiles=miles, workingMinutes=minutes, waitMinutes=if(miles!=null) 5.0 else null,
+            totalMiles=miles, workingMinutes=minutes, waitMinutes=if(miles!=null) wait else null,
             repositionMiles=0.0, pickup="Example pickup", dropoff="Example drop-off", checked=true)
     return listOf(
-        SampleOfferJourney(offer("sample:Uber","Uber",2800,9.0,34.0),-5.0,13.0,"5:48 PM",
-            "Meets the pay target, stays within the deadline and ends at least as close by road.",true),
+        SampleOfferJourney(offer("sample:Uber","Uber",2800,9.0,34.0,4.0),-5.0,13.0,"5:48 PM",
+            "Meets the pay target, stays within the deadline and ends at least as close by road.",true,2592),
         SampleOfferJourney(offer("sample:DoorDash","DoorDash",2400,7.0,30.0),-5.0,10.0,"5:45 PM",
-            "Meets the pay target, stays within the deadline and ends at least as close by road.",true),
+            "Meets the pay target, stays within the deadline and ends at least as close by road.",true,2252),
         SampleOfferJourney(offer("sample:DoorDashIncomplete","DoorDash",1950,null,null),reason=
             "Missing current offer, matching destination or platform preference."),
-        SampleOfferJourney(offer("sample:Spark","Spark",3800,18.0,77.0),16.0,72.0,"6:47 PM",
+        SampleOfferJourney(offer("sample:Spark","Spark",3800,18.0,77.0,10.0),16.0,72.0,"6:47 PM",
             "The full job plus onward travel exceeds the required arrival time."),
-        SampleOfferJourney(offer("sample:Instacart","Instacart",400,13.0,50.0),5.0,35.0,"6:10 PM",
+        SampleOfferJourney(offer("sample:Instacart","Instacart",400,13.0,50.0,10.0),5.0,35.0,"6:10 PM",
             "Estimated operating loss or break-even result.")
     )
 }
 
+data class ReviewedDispatch(val offer: ReviewedGigOffer,val financial: ReviewedOfferAssessment,val kind: String,val reason: String)
+/** No route evidence is retained in the inbox; a financial estimate alone cannot recommend a journey. */
+fun rankReviewedOffers(journal: Journal,clock: Instant=Instant.now()): List<ReviewedDispatch> {
+    val all=reviewedOffers(journal)
+    return all.map {offer->
+        val financial=assessReviewedOffer(offer,journal.goals.vehicleCostCentsPerMile,journal.goals.targetHourlyCents,journal.taxReservePercent ?: 0.0)
+        val reason=when {
+            !offer.fresh(clock)->"Observation is stale, expired or withdrawn."
+            financial.outcome=="loss"->"Estimated operating loss or break-even result."
+            offer.isActiveWork() || offer.phase=="completed"->"This offer is already recorded as accepted or completed."
+            all.any {it.id!=offer.id && it.isActiveWork()}->"Conflicts with accepted work. Simultaneous jobs are not assumed."
+            !offer.checked->"Recheck the offer and extracted fields in its original app. A screenshot is not live availability."
+            else->"Missing current offer, matching destination or platform preference."
+        }
+        val skip=!offer.fresh(clock) || financial.outcome=="loss" || offer.isActiveWork() || offer.phase=="completed" || all.any {it.id!=offer.id && it.isActiveWork()}
+        ReviewedDispatch(offer,financial,if(skip) "skip" else "needsReview",reason)
+    }.sortedWith(compareBy<ReviewedDispatch> {if(it.kind=="skip") 1 else 0}.thenByDescending {it.financial.hourly?.lower ?: Int.MIN_VALUE}.thenBy {it.offer.id})
+}
+
 fun reviewedOffers(journal: Journal): List<ReviewedGigOffer> =
-    (journal.offerReviews + journal.observedOffers.filter { raw -> journal.offerReviews.none { it.id == raw.id } }
+    (journal.offerReviews.map {review->journal.observedOffers.firstOrNull {it.id==review.id}?.let {raw->review.copy(expiresAt=earliestOfferExpiry(review.expiresAt,raw.expiresAt),withdrawn=review.withdrawn || raw.withdrawn)} ?: review} + journal.observedOffers.filter { raw -> journal.offerReviews.none { it.id == raw.id } }
         .map(ReviewedGigOffer::captured)).sortedByDescending { it.observedAt }
 
-fun Journal.saveReviewedOffer(offer: ReviewedGigOffer): Journal = copy(
-    offerReviews=(offerReviews.filterNot { it.id == offer.id } + offer).takeLast(100))
+fun Journal.saveReviewedOffer(offer: ReviewedGigOffer): Journal {
+    val rows=offerReviews.filterNot {it.id==offer.id}+offer
+    val active=rows.filter {it.isActiveWork()}
+    return copy(offerReviews=(rows.filterNot {it.isActiveWork()}.takeLast((100-active.size).coerceAtLeast(0))+active).takeLast(100))
+}
 
 fun ReviewedGigOffer.isActiveWork() = phase in setOf("accepted","inProgress","started")
 
