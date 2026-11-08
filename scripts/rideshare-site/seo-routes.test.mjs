@@ -18,3 +18,12 @@ test('canonical redirects cover indexable aliases without intercepting APIs, ass
 test('alternate build origins do not redirect to the production host', () => {
   assert(canonicalRedirects(['services'], 'https://rideshare-tax-pros.pages.dev').vercel.every(route => !route.has));
 });
+
+test('the previous App Features links redirect to the distinct About The App page', () => {
+  const { vercel } = canonicalRedirects(['get-the-app', 'about-the-app'], 'https://gigtax.pro');
+  for (const path of ['/app-features', '/app-features.html']) {
+    const route = vercel.find(route => !route.has && new RegExp(route.src).test(path));
+    assert.equal(route?.status, 308);
+    assert.equal(route?.headers.Location, '/about-the-app');
+  }
+});

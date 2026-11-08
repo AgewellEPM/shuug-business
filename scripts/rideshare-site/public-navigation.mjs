@@ -1,6 +1,7 @@
 const primary = [
   ['Home', '/'], ['About', '/about'], ['Services', '/services'],
   ['How It Works', '/how-it-works'], ['Drivers', '/drivers'], ['Offices', '/offices'],
+  ['About The App', '/about-the-app'],
 ];
 const current = (active, href) => active === href ? ' aria-current="page"' : '';
 const person = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="7" r="4"/><path d="M3 22v-3a9 9 0 0 1 18 0v3Z"/></svg>';

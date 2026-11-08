@@ -78,4 +78,4 @@ export function innerPages() {
   ];
 }
 
-export function renderedPages() { return [servicesPage(), howItWorksPage(), driversPage(), appDownloadPage(), getTheAppPage({ slug: 'app-features', label: 'App Features' }), officesPage(), resourcesPage(resources), aboutPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
+export function renderedPages() { return [servicesPage(), howItWorksPage(), driversPage(), appDownloadPage(), getTheAppPage({ slug: 'about-the-app', label: 'About The App' }), officesPage(), resourcesPage(resources), aboutPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }

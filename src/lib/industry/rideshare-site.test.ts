@@ -19,7 +19,7 @@ it("connects the customer pages with valid internal links, unique headings and n
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
   const customerAliases = manifest.aliases.filter((slug: string) => !["sales", "office-signup"].includes(slug));
   expect(customerAliases).toHaveLength(22);
-  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "get-the-app", "app-features", "resources", "about"]));
+  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "get-the-app", "about-the-app", "resources", "about"]));
   expect(manifest.aliases).toEqual(expect.arrayContaining(["sales", "office-signup"]));
   for (const slug of ["", ...customerAliases]) {
     const dom = page(slug); const d = dom.window.document;
@@ -30,7 +30,7 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.body.textContent).not.toMatch(/client portal/i);
       expect(d.querySelector('.public-services')).toBeNull();
       expect(d.querySelector('nav[aria-label="Primary"] a[href="/services"]')).not.toBeNull();
-      expect([...d.querySelectorAll('nav[aria-label="Primary"] a')].map(a => a.textContent?.trim())).toEqual(['Home', 'About', 'Services', 'How It Works', 'Drivers', 'Offices']);
+      expect([...d.querySelectorAll('nav[aria-label="Primary"] a')].map(a => a.textContent?.trim())).toEqual(['Home', 'About', 'Services', 'How It Works', 'Drivers', 'Offices', 'About The App']);
       expect(d.querySelector<HTMLAnchorElement>('.public-ready')!.getAttribute('href')).toBe('/get-the-app');
       expect(d.querySelector('.public-ready')!.textContent).toContain('Get The App');
       expect(d.querySelector('#navigation a[href="/resources"]')).toBeNull();
@@ -116,7 +116,7 @@ it('keeps unavailable store controls local and presents availability when tapped
     expect(d.querySelector('#app-download-status')!.textContent).toContain('iPhone download links are coming soon');
     expect(d.activeElement).toBe(d.querySelector('#app-download-status'));
     expect(scroll).toHaveBeenCalledOnce();
-    expect(d.querySelector('a[href="/app-features"]')).not.toBeNull();
+    expect(d.querySelector('a[href="/about-the-app"]')).not.toBeNull();
     expect(d.querySelector('.download-qr img')!.getAttribute('src')).toBe('/assets/app-download-qr.svg');
   } finally { w.close(); }
 });

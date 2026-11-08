@@ -4,6 +4,7 @@ import { seoIndexable } from './seo.mjs';
 export function canonicalRedirects(aliases, origin) {
   const paths = [
     ['/index.html', '/'],
+    ...(aliases.includes('about-the-app') ? [['/app-features', '/about-the-app'], ['/app-features.html', '/about-the-app']] : []),
     ...aliases.filter(seoIndexable).map(slug => [`/${slug}.html`, `/${slug}`]),
     ['/tour/index.html', '/tour/'],
     ['/tour', '/tour/'],

@@ -22,6 +22,7 @@ async function redirect(from, to) {
 }
 for (const [from, to] of [
   ['/index.html', '/'],
+  ...(aliases.includes('about-the-app') ? [['/app-features', '/about-the-app'], ['/app-features.html', '/about-the-app']] : []),
   ...aliases.filter(seoIndexable).map(slug => [`/${slug}.html`, `/${slug}`]),
   ['/tour/index.html', '/tour/'], ['/tour', '/tour/'],
 ]) await redirect(`${from}?source=seo-check&step=1`, `${to}?source=seo-check&step=1`);
