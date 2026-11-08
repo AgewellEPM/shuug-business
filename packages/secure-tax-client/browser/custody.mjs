@@ -49,12 +49,16 @@ export async function createClientKey(value) {
   return importEncryptedBackup(bundle,value);
 }
 export class BrowserKeyStore {
-  #database;
+  #database; #name;
+  constructor({databaseName='shuug-secure-tax-client-v1'}={}){
+    if(!['shuug-secure-tax-client-v1','shuug-secure-tax-staff-v1'].includes(databaseName))throw new Error('Use a supported private browser key namespace.');
+    this.#name=databaseName;
+  }
   async #open() {
     if(this.#database) return this.#database;
     if(!globalThis.indexedDB) throw new Error('This browser cannot persist nonextractable keys. No key has been uploaded.');
     this.#database=await new Promise((resolve,reject)=>{
-      const request=indexedDB.open('shuug-secure-tax-client-v1',1);
+      const request=indexedDB.open(this.#name,1);
       request.onupgradeneeded=()=>{request.result.createObjectStore('keys',{keyPath:'keyId'});request.result.createObjectStore('bindings',{keyPath:'id'});};
       request.onsuccess=()=>resolve(request.result); request.onerror=()=>reject(request.error);
       request.onblocked=()=>reject(new Error('Close other vault tabs before opening browser key storage.'));

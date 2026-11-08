@@ -79,12 +79,12 @@ export async function sealEnvelope(plaintext,context,trusted,authorRole,authorPr
     return {version:2,suite:SUITE,contentAlgorithm:CONTENT_ALGORITHM,hpkeMode:'auth',author,context:{...context},nonce:encode64(nonce),ciphertext:encode64(ciphertext),recipients};
   }finally{contentBytes.fill(0);}
 }
-export async function openEnvelope(envelope,expectedContext,trusted,role,privateKey) {
+async function validatedEnvelope(envelope,expectedContext,trusted) {
   validateContext(expectedContext);
   exactKeys(envelope,['version','suite','contentAlgorithm','hpkeMode','author','context','nonce','ciphertext','recipients']);
   exactKeys(envelope.author,['role','keyId']);
   validateContext(envelope.context);
-  if(envelope.version!==2||envelope.hpkeMode!=='auth'||envelope.suite!==SUITE||envelope.contentAlgorithm!==CONTENT_ALGORITHM||!roles.includes(role)||!roles.includes(envelope.author.role))fail();
+  if(envelope.version!==2||envelope.hpkeMode!=='auth'||envelope.suite!==SUITE||envelope.contentAlgorithm!==CONTENT_ALGORITHM||!roles.includes(envelope.author.role))fail();
   const ids=await trustedRecipientIds(trusted);if(envelope.author.keyId!==ids[roles.indexOf(envelope.author.role)])fail();
   const auth=aad(expectedContext,ids,envelope.author);
   if(JSON.stringify([...aad(envelope.context,ids,envelope.author)])!==JSON.stringify([...auth]))fail();
@@ -94,16 +94,55 @@ export async function openEnvelope(envelope,expectedContext,trusted,role,private
     if(slot.role!==roles[i]||slot.keyId!==ids[i]||slot.publicKey!==(i===0?trusted.clientPublicKey:trusted.firmRecoveryPublicKey))fail();
     decode64(slot.encapsulatedKey,65);decode64(slot.wrappedKey,48);
   }
+  const senderPublicKey=await hpke.kem.deserializePublicKey(decode64(envelope.author.role==='client'?trusted.clientPublicKey:trusted.firmRecoveryPublicKey,65));
+  decode64(envelope.nonce,12);decode64(envelope.ciphertext,16,MAX_CIPHERTEXT_BYTES);
+  return {auth,senderPublicKey};
+}
+async function unwrapOriginalKey(envelope,validated,role,privateKey){
   const slot=envelope.recipients[roles.indexOf(role)];
   const publicKey=await hpke.kem.deserializePublicKey(decode64(slot.publicKey,65));
-  const senderPublicKey=await hpke.kem.deserializePublicKey(decode64(envelope.author.role==='client'?trusted.clientPublicKey:trusted.firmRecoveryPublicKey,65));
+  const {auth,senderPublicKey}=validated;
   const recipient=await hpke.createRecipientContext({recipientKey:{privateKey,publicKey},senderPublicKey,enc:decode64(slot.encapsulatedKey,65),info});
-  const raw=new Uint8Array(await recipient.open(decode64(slot.wrappedKey,48),auth));
+  return new Uint8Array(await recipient.open(decode64(slot.wrappedKey,48),auth));
+}
+async function openContent(envelope,auth,raw){
+  if(raw.length!==32)fail();
+  const contentKey=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
+  return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:decode64(envelope.nonce,12),additionalData:contentAad(auth,envelope.recipients),tagLength:128},contentKey,decode64(envelope.ciphertext,16,MAX_CIPHERTEXT_BYTES)));
+}
+export async function openEnvelope(envelope,expectedContext,trusted,role,privateKey) {
+  if(!roles.includes(role))fail();
+  const validated=await validatedEnvelope(envelope,expectedContext,trusted);
+  const raw=await unwrapOriginalKey(envelope,validated,role,privateKey);
   try {
-    if(raw.length!==32)fail();
-    const contentKey=await crypto.subtle.importKey('raw',raw,'AES-GCM',false,['decrypt']);
-    return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:decode64(envelope.nonce,12),additionalData:contentAad(auth,envelope.recipients),tagLength:128},contentKey,decode64(envelope.ciphertext,16,MAX_CIPHERTEXT_BYTES)));
+    return await openContent(envelope,validated.auth,raw);
   }finally{raw.fill(0);}
+}
+const staffInfo=utf8.encode('shuug/secure-tax-staff-key/v1');
+const staffBinding=value=>{if(!(value instanceof Uint8Array)||!value.length||value.length>65536)fail();return value;};
+/** Offhost-only use: authenticates the original object before delegating its key.
+ * No original recipient or ciphertext changes, and no raw key leaves this call. */
+export async function delegateEnvelopeKey(envelope,expectedContext,trusted,recoveryPrivateKey,staffPublicKey,binding){
+  staffBinding(binding);await publicKeyId(staffPublicKey);
+  const validated=await validatedEnvelope(envelope,expectedContext,trusted),raw=await unwrapOriginalKey(envelope,validated,'firm-recovery',recoveryPrivateKey);
+  let checked;
+  try{
+    checked=await openContent(envelope,validated.auth,raw);
+    const publicKey=await hpke.kem.deserializePublicKey(decode64(trusted.firmRecoveryPublicKey,65));
+    const sender=await hpke.createSenderContext({recipientPublicKey:await hpke.kem.deserializePublicKey(decode64(staffPublicKey,65)),senderKey:{privateKey:recoveryPrivateKey,publicKey},info:staffInfo});
+    return {suite:SUITE,mode:'auth',encapsulatedKey:encode64(new Uint8Array(sender.enc)),wrappedKey:encode64(new Uint8Array(await sender.seal(raw,binding)))};
+  }finally{raw.fill(0);checked?.fill(0);}
+}
+/** The caller MUST first verify the signed capsule and exact envelope digest.
+ * A delegated data key by itself is not proof of the original author's identity. */
+export async function openDelegatedEnvelope(envelope,expectedContext,trusted,wrap,staffPublicKey,staffPrivateKey,binding){
+  staffBinding(binding);await publicKeyId(staffPublicKey);exactKeys(wrap,['suite','mode','encapsulatedKey','wrappedKey']);
+  if(wrap.suite!==SUITE||wrap.mode!=='auth')fail();
+  const validated=await validatedEnvelope(envelope,expectedContext,trusted);
+  const publicKey=await hpke.kem.deserializePublicKey(decode64(staffPublicKey,65)),senderPublicKey=await hpke.kem.deserializePublicKey(decode64(trusted.firmRecoveryPublicKey,65));
+  const recipient=await hpke.createRecipientContext({recipientKey:{privateKey:staffPrivateKey,publicKey},senderPublicKey,enc:decode64(wrap.encapsulatedKey,65),info:staffInfo});
+  const raw=new Uint8Array(await recipient.open(decode64(wrap.wrappedKey,48),binding));
+  try{return await openContent(envelope,validated.auth,raw);}finally{raw.fill(0);}
 }
 export async function generateRecipientKeyPair(){
   // Private CryptoKey is nonextractable. Persisting/recovery custody is a

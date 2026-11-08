@@ -19,7 +19,7 @@ export function ownerSessionValid(token: string | undefined) {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) return false;
   return workspaceDatabase(db => { initialize(db); return Boolean(db.prepare("SELECT 1 FROM owner_sessions WHERE token_hash=? AND expires>?").get(digest(token), Date.now())) && mfaSessionAllowed(db, { kind: "owner", id: "workspace-owner" }, digest(token)); });
 }
-export function signInOwner(password: string): string {
+export function signInOwner(password: string, requireMfa = false): string {
   const hash = setting("WORKSPACE_OWNER_PASSWORD_HASH");
   if (!hash) throw new Error("Owner sign-in needs setup. Run npm run workspace:setup on the server.");
   const result = workspaceDatabase(db => {
@@ -33,7 +33,7 @@ export function signInOwner(password: string): string {
       return { error: "Incorrect password." };
     }
     db.exec("DELETE FROM owner_login_attempts WHERE bucket='owner'");
-    const challenge = beginLoginFactor(db, { kind: "owner", id: "workspace-owner" }, hash);
+    const challenge = beginLoginFactor(db, { kind: "owner", id: "workspace-owner" }, hash, requireMfa);
     if (challenge) return { challenge };
     const token = randomBytes(32).toString("hex");
     db.prepare("INSERT INTO owner_sessions VALUES(?,?)").run(digest(token), now + SESSION_TTL_SECONDS * 1000); return { token };

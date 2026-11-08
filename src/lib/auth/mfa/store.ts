@@ -27,9 +27,9 @@ function allowed(db: DatabaseSync, subject: MfaSubject, now: number) {
 }
 /** Called only after successful password verification, within its write transaction.
  * The caller returns this result before throwing, so the challenge is committed. */
-export function beginLoginFactor(db: DatabaseSync, subject: MfaSubject, passwordHash: string): MfaChallenge | null {
+export function beginLoginFactor(db: DatabaseSync, subject: MfaSubject, passwordHash: string, required = false): MfaChallenge | null {
   init(db); const current = factor(db, subject), now = Date.now();
-  if (!current && !mfaEnforced()) return null;
+  if (!current && !required && !mfaEnforced()) return null;
   if (!allowed(db, subject, now)) throw new MfaError("Too many verification attempts. Try again in 15 minutes.", 429);
   db.prepare("DELETE FROM mfa_challenges WHERE expires<=?").run(now);
   db.prepare("DELETE FROM mfa_session_grants WHERE expires<=?").run(now);
@@ -66,6 +66,15 @@ export function mfaSessionAllowed(db: DatabaseSync, subject: MfaSubject, tokenHa
   init(db); const current = factor(db, subject);
   if (!current) return !mfaEnforced();
   return !!db.prepare("SELECT 1 FROM mfa_session_grants WHERE token_hash=? AND kind=? AND account_id=? AND revision=? AND expires>?")
+    .get(tokenHash, subject.kind, subject.id, current.revision, Date.now());
+}
+/** Protected device access requires an actual completed factor even when the
+ * ordinary workspace's enrollment switch is off. Never grants a bypass. */
+export function mfaSessionVerified(db: DatabaseSync, subject: MfaSubject, tokenHash: string): boolean {
+  if (!db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='mfa_factors'").get()
+    || !db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='mfa_session_grants'").get()) return false;
+  const current = factor(db, subject);
+  return !!current && !!db.prepare("SELECT 1 FROM mfa_session_grants WHERE token_hash=? AND kind=? AND account_id=? AND revision=? AND expires>?")
     .get(tokenHash, subject.kind, subject.id, current.revision, Date.now());
 }
 function issueSession(db: DatabaseSync, subject: MfaSubject, token: string, now: number) {

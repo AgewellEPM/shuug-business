@@ -5,7 +5,7 @@ import path from 'node:path';
 import { validateTrustedConfig } from './browser/config.mjs';
 
 const source=fileURLToPath(new URL('.',import.meta.url));
-const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css'];
+const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs'];
 export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
   if(config)await validateTrustedConfig(config,config.uiOrigin);
   const existing=await readdir(output).catch(error=>{if(error.code==='ENOENT')return [];throw error;});
@@ -20,6 +20,7 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   await mkdir(path.join(output,'browser'),{recursive:true});
   for(const file of browserFiles)await cp(path.join(source,'browser',file),path.join(output,'browser',file));
   await cp(path.join(source,'envelope.mjs'),path.join(output,'envelope.mjs'));
+  for(const file of ['staff-contract.mjs','staff-grants.mjs'])await cp(path.join(source,file),path.join(output,file));
   for(const [name] of vendor){
     await mkdir(path.join(output,'vendor',name),{recursive:true});
     await cp(path.join(source,'node_modules',name,'esm'),path.join(output,'vendor',name,'esm'),{recursive:true});
@@ -32,6 +33,8 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   let html=await readFile(path.join(source,'browser','index.html'),'utf8');
   html=html.replace('<!-- BUILD_CSP -->',`<meta http-equiv="Content-Security-Policy" content="${csp}">`).replace('<!-- BUILD_IMPORTMAP -->',`<script type="importmap">${importmap}</script>`).replace('href="./style.css"','href="./browser/style.css"').replace('src="./app.mjs"','src="./browser/app.mjs"');
   await writeFile(path.join(output,'index.html'),html);
+  const staff=await readFile(path.join(source,'browser','staff.html'),'utf8');
+  await writeFile(path.join(output,'staff.html'),staff.replace('<!-- BUILD_CSP -->',`<meta http-equiv="Content-Security-Policy" content="${csp}">`).replace('<!-- BUILD_IMPORTMAP -->',`<script type="importmap">${importmap}</script>`).replace('href="./style.css"','href="./browser/style.css"').replace('src="./staff-app.mjs"','src="./browser/staff-app.mjs"'));
   await writeFile(path.join(output,'_headers'),`/*\n  Content-Security-Policy: ${csp}; frame-ancestors 'none'\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Cross-Origin-Opener-Policy: same-origin\n  Cache-Control: no-store\n`);
   await writeFile(path.join(output,'vercel.json'),JSON.stringify({headers:[{source:'/(.*)',headers:[{key:'Content-Security-Policy',value:`${csp}; frame-ancestors 'none'`},{key:'X-Content-Type-Options',value:'nosniff'},{key:'Referrer-Policy',value:'no-referrer'},{key:'Permissions-Policy',value:'camera=(), microphone=(), geolocation=()'},{key:'Cross-Origin-Opener-Policy',value:'same-origin'},{key:'Cache-Control',value:'no-store'}]}]},null,2));
   await writeFile(path.join(output,'build-public.json'),JSON.stringify({version:1,configured:!!config,dependencies:Object.fromEntries(vendor),activationAvailable:false},null,2));

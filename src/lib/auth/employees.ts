@@ -82,7 +82,7 @@ export function updateEmployeeAccount(id: string, name: string, email: string) {
   }, true);
 }
 const dummyHash = hashPassword("not-a-real-account-password");
-export function signInEmployee(email: string, password: string): string {
+export function signInEmployee(email: string, password: string, requireMfa = false): string {
   const normalized = email.trim().toLowerCase().slice(0, 200);
   const result = workspaceDatabase(db => { init(db); const now = Date.now();
     db.prepare("DELETE FROM employee_sessions WHERE expires<=?").run(now);
@@ -95,7 +95,7 @@ export function signInEmployee(email: string, password: string): string {
       db.prepare("INSERT INTO employee_attempts VALUES(?,1,?) ON CONFLICT(bucket) DO UPDATE SET failures=failures+1").run(bucket, now + 900000);
       return { error: "Email or password is incorrect, or your account is unavailable." };
     }
-    const challenge = beginLoginFactor(db, { kind: "employee", id: account.id }, account.passwordHash!);
+    const challenge = beginLoginFactor(db, { kind: "employee", id: account.id }, account.passwordHash!, requireMfa);
     if (challenge) return { challenge };
     const token = randomBytes(32).toString("hex");
     db.prepare("INSERT INTO employee_sessions VALUES(?,?,?)").run(hash(token), account.id, now + SESSION_TTL_SECONDS * 1000);

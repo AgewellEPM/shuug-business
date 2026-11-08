@@ -113,3 +113,54 @@ real IndexedDB/browser compatibility and visual acceptance remain open. Node
 tests exercise the actual crypto and protocol controller; they do not establish
 browser persistence, deployed CORS/cookies, a production security review or an
 end-to-end migration.
+
+## Encrypted staff reader and device recovery
+
+The same independently distributed artifact now includes `/staff.html`.
+`StaffVaultClient` uses its own staff MFA/session endpoints and never substitutes
+a staff identity for the customer identity in `VaultClient`. Its device keys use
+the existing nonextractable ECDH custody and passphrase-encrypted backup, with a separate IndexedDB namespace from customer keys. The
+public key fingerprint is the cryptographic device identity; importing its backup
+retains that identity and does not bypass revoked or withdrawn server approval.
+No staff password, API token or opened record is stored in localStorage.
+
+Sign in with a password and mandatory authenticator verification, create or
+recover a local staff device key, then save its public request. A separately
+trusted firm operator independently verifies the staff identity and fingerprint,
+selects the client scope/domains, and signs a read grant in a separately controlled key environment. The owner can
+verify and publish those signed public grants/capsules in the trusted staff UI.
+Publication is explicit encrypted read assignment; withdrawal denies new API
+reads and same-epoch reactivation. Account recovery codes recover sign-in only.
+
+The reader verifies the independent firm signature, grant/client/device bindings,
+expiry and locally observed epochs before opening items. Signed per-object
+capsules delegate only the data key for an exact original v2 envelope/revision;
+customer envelopes and native interoperability remain unchanged. A current
+revision without a matching capsule is pending sharing, never a fallback to old
+content. Views are read-only: private files, masked JSON and native Journal
+groups can be opened or explicitly downloaded; object edits and filing are absent.
+
+Switching clients/keys, sign-out, tab hiding, revoked access or sync failure clears
+opened memory and DOM references on a best-effort basis. A final grant check
+before committing a sync detects a grant changed during download. Local history
+retains observed object revisions and tombstones across signed grant renewals or
+domain narrowing. Only a separately verified changed grant resets the objects
+required to appear in the next complete authorized view; an unchanged grant
+still rejects missing previously observed objects. Every sync scans source
+sequence zero again, including empty pages filtered by domain, so newly published
+capsules are retried even when the original encrypted object has not changed.
+Signed revoked notices returned by the API or independently imported are retained
+as epoch checkpoints, including after their original expiry, before active grants
+are considered. Owner withdrawal alone is an API denial, not a signed checkpoint.
+A fresh device still cannot establish current authority
+against a host withholding new revocation information without an independently
+provided authority checkpoint. Already downloaded ciphertext/keys or readable
+copies cannot be recalled.
+
+After device loss, restore the encrypted device-key backup and separately held
+passphrase, or create a distinct replacement key and public request. The firm
+operator withdraws the old device and uses the separately controlled recovery/signing workflow
+to verify source ciphertext and issue fresh grants/capsules to the replacement.
+Neither the recovery nor signing private key is imported into this browser. Real
+offhost key custody, trusted deployment, migration and office-user acceptance
+remain operational gates; development tests use only disposable synthetic keys.

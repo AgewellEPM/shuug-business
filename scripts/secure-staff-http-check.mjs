@@ -1,0 +1,152 @@
+/** Compiled synthetic encrypted-staff proof. Never uses the installed data.
+ * Browser code uses explicit HTTPS test origins mapped to this owned loopback
+ * HTTP fixture; this does not establish public TLS or physical offhost custody. */
+import assert from 'node:assert/strict';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+import {createServer} from 'node:net';
+import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,readdirSync,rmSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
+import {randomUUID} from 'node:crypto';
+import {configureOwnerPassword,signInOwner} from '../src/lib/auth/owner-session.ts';
+import {createEmployeeAccount,issueEmployeeInvitation,acceptEmployeeInvitation,setEmployeeEnabled} from '../src/lib/auth/employees.ts';
+import {addMember} from '../src/lib/team/store.ts';
+import {assignRole} from '../src/lib/permissions/store.ts';
+import {saveBusinessRecord} from '../src/lib/workspace/store.ts';
+import {importBusinessTemplate} from '../src/lib/branding/templates.ts';
+import {gigTaxProsTemplate} from '../src/lib/industry/rideshare-tax-pros.ts';
+import {createLinkedCustomer,saveCustomerSettings} from '../src/lib/customer-access/service.ts';
+import {acceptCustomerInvitation,issueCustomerInvitation,signInCustomer} from '../src/lib/customer-access/accounts.ts';
+import {totp} from '../src/lib/auth/mfa/crypto.ts';
+import {backupWorkspace,restoreWorkspace} from '../src/lib/workspace/backup.ts';
+import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../packages/secure-tax-client/firm-recovery.mjs';
+import {signStaffGrant,createStaffCapsule} from '../packages/secure-tax-client/firm-staff.mjs';
+import {generateRecipientKeyPair,publicKeyId,sealEnvelope} from '../packages/secure-tax-client/envelope.mjs';
+import {openStaffCapsule} from '../packages/secure-tax-client/staff-grants.mjs';
+import {StaffVaultClient} from '../packages/secure-tax-client/browser/staff-client.mjs';
+
+class MemoryKeys {
+  keys=new Map();bindings=new Map();
+  async putKey(value){this.keys.set(value.keyId,structuredClone(value));}
+  async getKey(id){return this.keys.get(id);}
+  async listKeys(){return [...this.keys.values()].map(({keyId,publicKey})=>({keyId,publicKey}));}
+  async putBinding(value){this.bindings.set(value.id,structuredClone(value));}
+  async getBinding(id){return structuredClone(this.bindings.get(id));}
+}
+async function freePort(){const s=createServer();await new Promise((ok,bad)=>{s.once('error',bad);s.listen(0,'127.0.0.1',ok);});const port=s.address().port;await new Promise(ok=>s.close(ok));return port;}
+async function stop(child){if(!child?.pid||child.exitCode!==null||child.signalCode!==null)return;const exited=once(child,'exit'),timer=setTimeout(()=>child.kill('SIGKILL'),5000);child.kill('SIGTERM');try{await exited;}finally{clearTimeout(timer);}}
+const root=mkdtempSync(`${tmpdir()}/shuug-secure-staff-proof-`),host=path.join(root,'host'),trusted=path.join(root,'trusted');
+mkdirSync(host,{mode:0o700});mkdirSync(trusted,{mode:0o700});
+let child,log='',checks=0;
+try{
+  process.env.DEALDESK_DATA_DIR=host;process.env.DEMO_DATA='false';process.env.DATABASE_URL='';process.env.SHUUG_REQUIRE_MFA='false';
+  const password=`Synthetic-password-${randomUUID()}`,firmPassphrase=`Synthetic offhost backup ${randomUUID()}`,backupPassword=`Synthetic device backup ${randomUUID()}`;
+  configureOwnerPassword(password);importBusinessTemplate(gigTaxProsTemplate);
+  saveCustomerSettings({enabled:true,pricing:false,ordering:false,orderStatus:false,servicePortal:true,booking:false});
+  const member=addMember({name:'Synthetic encrypted preparer',email:'protected-staff@example.invalid',role:'Manager'});assignRole(member.id,'Manager');
+  const employee=createEmployeeAccount({memberId:member.id,name:member.name,email:member.email});acceptEmployeeInvitation(issueEmployeeInvitation(employee.id),password);
+  const client=saveBusinessRecord({kind:'client',title:'Synthetic protected household',fields:{email:'protected-client@example.invalid'}},'workspace-owner');
+  const account=await createLinkedCustomer({name:'Synthetic protected household',email:'protected-client@example.invalid',clientId:client.id,customerId:null});
+  acceptCustomerInvitation(issueCustomerInvitation(account.id),password);
+  const clientToken=signInCustomer(account.email,password),weakOwnerToken=signInOwner(password);
+  const {bundle,publicPins}=await createFirmBundle(randomUUID(),firmPassphrase),firm=await unlockFirmBundle(bundle,firmPassphrase,publicPins),clientKey=await generateRecipientKeyPair();
+  writeFileSync(path.join(trusted,'firm.json'),JSON.stringify(bundle),{mode:0o600});writeFileSync(path.join(trusted,'pins.json'),JSON.stringify(publicPins),{mode:0o600});
+  const manifest=await signEnrollmentRequest({version:1,workspaceId:publicPins.workspaceId,accountId:account.id,clientId:client.id,client:{keyId:await publicKeyId(clientKey.publicKey),publicKey:clientKey.publicKey}},firm,{epoch:1});
+  const base=`http://127.0.0.1:${await freePort()}`,uiOrigin='https://trusted-staff.example.invalid';
+  const config={version:1,uiOrigin,apiOrigin:'https://ciphertext-api.example.invalid',...publicPins};
+  const env={...process.env,NODE_ENV:'production',APP_BASE_URL:base,AUTH_ENABLED:'true',WORKSPACE_ACCESS_TOKEN:`Synthetic-host-token-${randomUUID()}`,BACKEND_ACCESS_TOKEN:'',PPC_WORKSPACE_ACCESS_TOKEN:'',
+    SHUUG_SECURE_TAX_TRUSTED_ORIGIN:uiOrigin,SHUUG_SECURE_TAX_WORKSPACE_ID:publicPins.workspaceId,SHUUG_SECURE_TAX_SIGNER_PUBLIC_KEY:publicPins.signerPublicKey,SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY:publicPins.firmRecoveryPublicKey};
+  const prefix='/api/website/customer/secure';
+  async function request(route,{token,method='GET',body,origin=uiOrigin}={}){return fetch(base+prefix+route,{method,redirect:'manual',signal:AbortSignal.timeout(15000),headers:{Origin:origin,...(token?{Authorization:`Bearer ${token}`}:{}) ,...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});}
+  async function json(route,options={},status=200){const response=await request(route,options),value=await response.json();assert.equal(response.status,status,value.error);checks++;return value;}
+  async function start(){
+    child=spawn(process.execPath,['node_modules/next/dist/bin/next','start','--hostname','127.0.0.1','--port',new URL(base).port],{env,stdio:['ignore','pipe','pipe']});
+    for(const stream of [child.stdout,child.stderr])stream.on('data',data=>{log=(log+String(data)).slice(-4000);});
+    for(let i=0;i<150;i++){try{if((await fetch(base+'/api/auth/login')).ok)return;}catch{}assert.equal(child.exitCode,null,log);await new Promise(ok=>setTimeout(ok,100));}throw new Error('Owned encrypted-staff server did not start.');
+  }
+  const tokens=new Map();
+  async function vault(label,storage=new MemoryKeys()){
+    const fetcher=async(url,options)=>{
+      const u=new URL(url);assert.equal(u.origin,config.apiOrigin);
+      if(options.headers.Authorization)tokens.set(label,options.headers.Authorization.slice(7));
+      return fetch(base+u.pathname+u.search,{...options,headers:{...options.headers,Origin:uiOrigin}});
+    };
+    return {storage,client:await StaffVaultClient.create(config,uiOrigin,{storage,fetcher})};
+  }
+  async function login(v,email,code){assert.deepEqual(await v.signIn(email,password),{mfaRequired:true});const pending=v.pendingMfa;const result=await v.verifySignIn(code??totp(pending.secret,Math.floor(Date.now()/30000)));checks++;return result;}
+  await start();
+  await json('/staff/status',{token:weakOwnerToken},401);
+  await json('/staff/status',{token:env.WORKSPACE_ACCESS_TOKEN},401);
+  await json('/staff/session',{method:'POST',body:{email:member.email,password},origin:'https://untrusted.example.invalid'},403);
+  const owner=await vault('owner'),ownerSession=await login(owner.client,'');assert(owner.client.isOwner);assert.equal(ownerSession.mfaVerified,true);
+  const first=await vault('first'),firstSession=await login(first.client,member.email);assert.equal(firstSession.mfaVerified,true);
+  const device=await first.client.createKey(backupPassword);await first.client.unlock(device.keyId);
+  const deviceBackup=await first.client.encryptedBackup(device.keyId),deviceRequest=first.client.publicRequest();
+  const grant=await signStaffGrant({...deviceRequest,accountId:account.id,clientId:client.id},firm,{epoch:1,domains:['tax-document','driver-record']});
+  await json('/enroll',{token:clientToken,method:'POST',body:manifest});
+  const marker=`SYNTHETIC PRIVATE TAX DATA ${randomUUID()}`,bookBytes=new TextEncoder().encode(JSON.stringify({type:'synthetic-protected-books',privateNote:marker,cashCents:12345})),pdfBytes=new TextEncoder().encode(`%PDF-1.7\n${marker}\n%%EOF`);
+  const recipients={clientPublicKey:clientKey.publicKey,firmRecoveryPublicKey:publicPins.firmRecoveryPublicKey};
+  const objects=[];
+  for(const [domain,bytes] of [['driver-record',bookBytes],['tax-document',pdfBytes]]){
+    const context={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:randomUUID(),revision:1,domain};
+    const envelope=await sealEnvelope(bytes,context,recipients,'client',clientKey.privateKey);
+    await json(`/objects/${context.objectId}`,{token:clientToken,method:'PUT',body:{mutationId:randomUUID(),expectedRevision:0,envelope}});
+    objects.push({context,envelope,bytes});
+  }
+  const ungrantedContext={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:randomUUID(),revision:1,domain:'driver-state'};
+  const ungrantedEnvelope=await sealEnvelope(new TextEncoder().encode(marker),ungrantedContext,recipients,'client',clientKey.privateKey);
+  await json(`/objects/${ungrantedContext.objectId}`,{token:clientToken,method:'PUT',body:{mutationId:randomUUID(),expectedRevision:0,envelope:ungrantedEnvelope}});
+  const expected=(grant,object)=>({accountId:account.id,clientId:client.id,staffAccountId:employee.id,staffKeyId:grant.staff.keyId,minimumGrantEpoch:grant.epoch,minimumManifestEpoch:1,objectId:object.context.objectId,revision:object.context.revision,domain:object.context.domain});
+  await owner.client.installGrant(grant);checks++;
+  for(const object of objects){object.capsule=await createStaffCapsule(object.envelope,manifest,grant,firm,expected(grant,object));await owner.client.installCapsule(object.capsule);checks++;}
+  await first.client.selectGrant(grant.grantId);assert.equal((await first.client.sync()).items,2);
+  assert(!first.client.records.has(ungrantedContext.objectId));checks++;
+  for(const object of objects)assert.deepEqual(first.client.records.get(object.context.objectId).plaintext,object.bytes);checks++;
+  assert.equal((await request('/staff/objects/'+objects[0].context.objectId+'?grantId='+grant.grantId,{token:tokens.get('owner')})).status,403);checks++;
+  const recovered=await vault('backup-recovered');await login(recovered.client,member.email,firstSession.recoveryCodes[0]);
+  await recovered.client.importKey(deviceBackup,backupPassword);await recovered.client.unlock(device.keyId);await recovered.client.selectGrant(grant.grantId);
+  assert.equal((await recovered.client.sync()).items,2);checks++;
+  const replacement=await vault('replacement');await login(replacement.client,member.email,firstSession.recoveryCodes[1]);
+  const newDevice=await replacement.client.createKey(backupPassword);await replacement.client.unlock(newDevice.keyId);
+  const replacementRequest={...replacement.client.publicRequest(),accountId:account.id,clientId:client.id};
+  for(const [name,value] of Object.entries({prior:grant,request:replacementRequest,manifest,envelope:objects[0].envelope,expected:expected({staff:{keyId:newDevice.keyId},epoch:1},objects[0])}))writeFileSync(path.join(trusted,name+'.json'),JSON.stringify(value),{mode:0o600});
+  const offline=spawn(process.execPath,['packages/secure-tax-client/staff-offline-cli.mjs','recover-device','--confirm-off-host','--passphrase-fd','3','--bundle',path.join(trusted,'firm.json'),'--public-pins',path.join(trusted,'pins.json'),'--prior-grant',path.join(trusted,'prior.json'),'--request',path.join(trusted,'request.json'),'--epoch','1','--manifest',path.join(trusted,'manifest.json'),'--envelope',path.join(trusted,'envelope.json'),'--expected',path.join(trusted,'expected.json'),'--grant-out',path.join(trusted,'new-grant.json'),'--capsule-out',path.join(trusted,'new-capsule.json'),'--revoke-out',path.join(trusted,'revoked.json')],{stdio:['ignore','pipe','pipe','pipe']});
+  let offlineError='';offline.stderr.on('data',data=>{offlineError+=String(data);});offline.stdio[3].end(firmPassphrase);
+  const timer=setTimeout(()=>offline.kill('SIGKILL'),30000);let offlineResult;
+  try{[offlineResult]=await once(offline,'exit');}finally{clearTimeout(timer);}
+  assert.equal(offlineResult,0,offlineError);checks++;
+  const newGrant=JSON.parse(readFileSync(path.join(trusted,'new-grant.json'),'utf8')),revoked=JSON.parse(readFileSync(path.join(trusted,'revoked.json'),'utf8'));
+  await owner.client.installGrant(revoked);checks++;
+  await owner.client.installGrant(newGrant);checks++;
+  for(const [index,object] of objects.entries()){const capsule=index===0?JSON.parse(readFileSync(path.join(trusted,'new-capsule.json'),'utf8')):await createStaffCapsule(object.envelope,manifest,newGrant,firm,expected(newGrant,object));await owner.client.installCapsule(capsule);checks++;
+    await assert.rejects(openStaffCapsule(capsule,object.envelope,manifest,newGrant,expected(newGrant,object),publicPins,(await first.storage.getKey(device.keyId)).privateKey));checks++;}
+  await replacement.client.selectGrant(newGrant.grantId);assert.equal((await replacement.client.sync()).items,2);checks++;
+  await json('/staff/objects/'+objects[0].context.objectId+'?grantId='+grant.grantId,{token:tokens.get('replacement')},403);
+  await json('/staff/grants',{token:tokens.get('owner'),method:'POST',body:grant},409);
+  const changed=objects[0];changed.context={...changed.context,revision:2};changed.bytes=new TextEncoder().encode(JSON.stringify({type:'synthetic-protected-books',privateNote:marker,cashCents:45678}));
+  changed.envelope=await sealEnvelope(changed.bytes,changed.context,recipients,'client',clientKey.privateKey);
+  await json(`/objects/${changed.context.objectId}`,{token:clientToken,method:'PUT',body:{mutationId:randomUUID(),expectedRevision:1,envelope:changed.envelope}});
+  await assert.rejects(replacement.client.sync());assert.equal(replacement.client.records.size,0);checks++;
+  const fresh=await createStaffCapsule(changed.envelope,manifest,newGrant,firm,expected(newGrant,changed));await owner.client.installCapsule(fresh);checks++;
+  await replacement.client.unlock(newDevice.keyId);await replacement.client.selectGrant(newGrant.grantId);assert.equal((await replacement.client.sync()).items,2);
+  assert.deepEqual(replacement.client.records.get(changed.context.objectId).plaintext,changed.bytes);checks++;
+  await stop(child);child=null;
+  const copied=backupWorkspace(host,path.join(root,'backup')),restored=path.join(root,'restored');restoreWorkspace(path.join(root,'backup'),restored);
+  env.DEALDESK_DATA_DIR=restored;process.env.DEALDESK_DATA_DIR=restored;await start();
+  const afterRestore=await vault('after-restore',replacement.storage);await login(afterRestore.client,member.email,firstSession.recoveryCodes[2]);
+  await afterRestore.client.unlock(newDevice.keyId);await afterRestore.client.selectGrant(newGrant.grantId);assert.equal((await afterRestore.client.sync()).items,2);checks++;
+  assert.deepEqual(afterRestore.client.records.get(changed.context.objectId).plaintext,changed.bytes);checks++;
+  await json('/staff/objects/'+changed.context.objectId+'?grantId='+grant.grantId,{token:tokens.get('after-restore')},403);
+  setEmployeeEnabled(employee.id,false);await assert.rejects(afterRestore.client.sync());assert.equal(afterRestore.client.records.size,0);checks++;
+  await stop(child);child=null;
+  function hostFiles(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?hostFiles(path.join(dir,entry.name)):[path.join(dir,entry.name)]);}
+  const files=hostFiles(restored);
+  for(const filename of files){const bytes=readFileSync(filename);assert(!bytes.includes(Buffer.from(marker)), 'Host copy contains protected plaintext.');assert(!filename.startsWith(trusted));}
+  checks++;
+  console.log(JSON.stringify({ok:true,checks,buildId:readFileSync('.next/BUILD_ID','utf8').trim(),syntheticWorkspace:true,freshClientHadNoLegacyBooks:true,mandatoryStaffMfaVerifiedWithGlobalFlagOff:true,
+    originalV2ClientEnvelopesPreserved:true,staffOpenedProtectedBooksAndDocumentBytes:true,encryptedDeviceBackupRecovered:true,newDeviceGrantedAfterOriginalRevocation:true,
+    oldDeviceCannotOpenReplacementCapsules:true,newProcessFirmRecoveryCliVerified:true,staleRevisionFailsClosed:true,restoredDataAndRevocationVerified:true,backupFiles:copied.files,copiedHostPlaintextMarkerAbsent:true,
+    realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
+}catch(error){console.error('Owned fixture diagnostics:\n'+log);throw error;}
+finally{await stop(child);rmSync(root,{recursive:true,force:true});}
