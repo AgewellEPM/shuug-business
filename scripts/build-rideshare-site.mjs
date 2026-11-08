@@ -52,6 +52,7 @@ if (cloudflare) {
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
   { src: '/\\.well-known/apple-app-site-association', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' }, continue: true },
   { src: '/bank-return', headers: { 'Referrer-Policy': 'no-referrer' }, dest: '/bank-return.html' },
+  { src: '/tour/?', dest: '/tour/index.html' },
   { src: '/pricing(?:\\.html)?', status: 308, headers: { Location: '/free' } },
   { src: '/api/sales', dest: '/api/sales' },
   { src: '/api/offices', dest: '/api/offices' },

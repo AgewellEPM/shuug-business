@@ -27,6 +27,7 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.querySelector('meta[name="viewport"]')).not.toBeNull();
       if(slug) expect(d.querySelectorAll("h1")).toHaveLength(1);
       expect(d.querySelector('input[type="password"]')).toBeNull();
+      expect(d.body.textContent).not.toMatch(/client portal/i);
       expect(d.querySelector('.public-services')).toBeNull();
       expect(d.querySelector('nav[aria-label="Primary"] a[href="/services"]')).not.toBeNull();
       expect([...d.querySelectorAll('nav[aria-label="Primary"] a')].map(a => a.textContent?.trim())).toEqual(['Home', 'Services', 'How It Works', 'Drivers', 'Offices', 'About']);
@@ -43,6 +44,30 @@ it("connects the customer pages with valid internal links, unique headings and n
       expect(d.querySelectorAll('.mobile-action-bar a')).toHaveLength(2);
     } finally { dom.window.close(); }
   }
+});
+
+it('opens the homepage video on request, pauses on close, and returns focus', async () => {
+  const dom = page(); const w = dom.window;
+  try {
+    const play = vi.spyOn(w.HTMLMediaElement.prototype, 'play').mockResolvedValue();
+    const pause = vi.spyOn(w.HTMLMediaElement.prototype, 'pause').mockImplementation(() => {});
+    w.eval(readFileSync(path.join(source, 'home-tour.js'), 'utf8'));
+    const triggers = [...w.document.querySelectorAll<HTMLAnchorElement>('[data-home-tour]')];
+    expect(triggers).toHaveLength(2);
+    expect(triggers.every(a => a.textContent?.includes('See How It Works') && a.getAttribute('href') === '/tour/')).toBe(true);
+    expect(play).not.toHaveBeenCalled();
+    triggers[0].click();
+    expect(w.document.querySelector<HTMLDialogElement>('#home-tour')!.open).toBe(true);
+    expect(play).toHaveBeenCalledTimes(1);
+    w.document.querySelector<HTMLButtonElement>('[data-tour-close]')!.click();
+    expect(w.document.querySelector<HTMLDialogElement>('#home-tour')!.open).toBe(false);
+    expect(pause).toHaveBeenCalledTimes(1);
+    expect(w.document.activeElement).toBe(triggers[0]);
+    play.mockRejectedValueOnce(new Error('Playback unavailable'));
+    triggers[1].click(); await Promise.resolve();
+    expect(w.document.querySelector('[data-tour-status]')!.textContent).toContain('Press play');
+    expect(w.document.querySelector('#home-tour')!.textContent).toContain('Turn it sideways');
+  } finally { dom.window.close(); vi.restoreAllMocks(); }
 });
 
 it('offers only configured public app downloads and leaves missing download availability explicit', async () => {

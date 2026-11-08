@@ -1,0 +1,96 @@
+{
+  "duration": 258.62322,
+  "chapters": [
+    {
+      "id": "home",
+      "title": "Welcome to Gig Tax Pros",
+      "narration": "Before we begin, turn your iPhone sideways to landscape so the app screens and captions are easier to see. If the screen does not rotate, turn off Portrait Orientation Lock in Control Center. Welcome to Gig Tax Pros. Start on Home to see your day and reach the tools you use most. The five tabs are Home, Offers, Go Home, Position, and Earnings. The menu opens your trips, money, account, alerts, and other tools. You can explore before connecting an account.",
+      "start": 0.0,
+      "duration": 29.8
+    },
+    {
+      "id": "drives",
+      "title": "Keep your driving records",
+      "narration": "While parked, tap Start a drive and choose the details for that trip. End the drive when you arrive, then review its mileage and classification. Trips keeps your saved history, and you can add a missed trip manually. Optional driving and expense reminders are controlled in Account.",
+      "start": 29.8,
+      "duration": 16.3
+    },
+    {
+      "id": "money",
+      "title": "Track money and receipts",
+      "narration": "Use the Home shortcuts to add income or an expense. Enter the amount and category, and attach a receipt if you have one. The app can read a chosen receipt on your iPhone. Always review the suggested information before saving. The Money screen brings income, expenses, statement imports, and available bank connections together.",
+      "start": 46.1,
+      "duration": 20.133333333333333
+    },
+    {
+      "id": "screenshots",
+      "title": "Learn screenshot import",
+      "narration": "Offers helps you review a job before deciding. Open the screenshot guide and follow the pink arrows. It shows which iPhone buttons to press, how to save the picture, and how to bring it into Gig Tax Pros. This DoorDash screen is a published example. The guide uses clearly stated practice costs and time, and never saves a practice job to your records.",
+      "start": 66.23333333333333,
+      "duration": 21.366666666666667
+    },
+    {
+      "id": "review",
+      "title": "Check every offer field",
+      "narration": "For your own screenshot, choose its gig app, then select the picture from Photos. Review the pay, guaranteed amount, total working miles, time, and additional costs. A delivery deadline is not the whole trip duration. Include unpaid driving and waiting. Cancel if the picture is wrong, or save your corrected numbers. Your choice to accept a job stays in the gig app.",
+      "start": 87.6,
+      "duration": 23.233333333333334
+    },
+    {
+      "id": "earnings",
+      "title": "Set costs and pay goals",
+      "narration": "Earnings shows results from the records you have saved. Open Goals to set daily, weekly, and hourly targets and your estimated vehicle cost per mile. These values affect offer estimates. Use costs that fit your vehicle, and remember that missing information can change the result. Sample views are marked as examples.",
+      "start": 110.83333333333333,
+      "duration": 18.9
+    },
+    {
+      "id": "go_home",
+      "title": "Plan the end of your shift",
+      "narration": "Go Home helps you plan around an earnings goal, destination, and time to finish. Enter the full job and waiting time when comparing an offer. When you request route comparisons, check the pickup, drop-off, and onward trip. Review the estimates while parked; traffic and extra stops can change your arrival time.",
+      "start": 129.73333333333332,
+      "duration": 19.266666666666666
+    },
+    {
+      "id": "position",
+      "title": "Choose where to wait",
+      "narration": "Position helps you explore waiting areas using your saved job history and destination. Choose your current location and destination before asking for comparisons. A new account may not have enough history yet. These are estimates from available records, not a promise that another gig will arrive.",
+      "start": 149.0,
+      "duration": 17.1
+    },
+    {
+      "id": "coach",
+      "title": "Ask about your records",
+      "narration": "Tax and Goals is where you can ask questions about your recorded work and goals. Review the context shown with each answer. Tax details you choose to save need your confirmation. For filing decisions or questions about your situation, use Get help to reach your tax team.",
+      "start": 166.1,
+      "duration": 16.3
+    },
+    {
+      "id": "ratings",
+      "title": "Keep ratings and feedback",
+      "narration": "Ratings and reviews keeps the scores and feedback you choose to record for each gig platform. Add a rating snapshot or review, then look at the history and guidance. Leave customer names and private details out. These are your saved records; entering them does not change a rating in the gig platform.",
+      "start": 182.4,
+      "duration": 17.4
+    },
+    {
+      "id": "account",
+      "title": "Connect your client account",
+      "narration": "In Account, activate your tax team\u2019s invitation and sign in with that client account. Review which phone records you want to copy and sync. Optional bank and work-account connections depend on your firm\u2019s setup. Work-account updates are not a live feed of incoming offers. Account also contains privacy information and your reminder controls.",
+      "start": 199.8,
+      "duration": 19.966666666666665
+    },
+    {
+      "id": "help",
+      "title": "Find an office and get help",
+      "narration": "Get help opens the office map. As approved locations join, they appear here without an app update. Use your location or ZIP code, check an office\u2019s address and exterior photo, and use street view where available. Open driving directions in Apple Maps. Call the listed number or open its appointment link. A twenty-four-seven label appears only for a confirmed staffed line.",
+      "start": 219.76666666666668,
+      "duration": 22.633333333333333
+    },
+    {
+      "id": "finish",
+      "title": "You\u2019re ready to begin",
+      "narration": "Start with one real drive, income entry, or expense, and build your records as you work. Review anything read from a picture before saving. You can replay this tour from Help and return to the interactive screenshot guide whenever you need it. Your next step starts on Home.",
+      "start": 242.4,
+      "duration": 16.2
+    }
+  ]
+}
