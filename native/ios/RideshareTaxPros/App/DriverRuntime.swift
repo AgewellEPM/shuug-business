@@ -22,6 +22,12 @@ import UIKit
 }
 
 @MainActor final class DriverAppDelegate: NSObject, UIApplicationDelegate {
+  func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
+    #if DEBUG
+    if UUID(uuidString: UserDefaults.standard.string(forKey: "tourRecordingSession") ?? "") != nil { return .landscapeRight }
+    #endif
+    return [.portrait, .landscapeLeft, .landscapeRight]
+  }
   func application(_ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
     _ = DriverRuntime.shared

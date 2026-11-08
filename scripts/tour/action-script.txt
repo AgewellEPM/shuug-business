@@ -1,0 +1,54 @@
+home-menu|home|Open More tools|Turn your phone sideways. Tap More tools to find your trips, money, account, and help.
+home-trips|home|Open Trips|Choose Trips to see the driving records saved on your phone.
+trip-add|drives|Add a manual trip|Tap Add manual trip to enter mileage from your records.
+trip-miles|drives|Enter the miles|Enter the distance you actually drove. This is a practice example.
+trip-purpose|drives|Describe the trip|Add a clear purpose so you can recognize this trip later.
+trip-business|drives|Choose Business|Open Classification and choose Business for a business trip.
+trip-fare|drives|Enter fare and tips|Scroll to earnings and enter the fare plus tips before platform fees.
+trip-fees|drives|Enter platform fees|Enter the known platform fees. Use zero only when there were none.
+trip-save|drives|Save the trip|Review the details, then tap Save. Your trip appears in history.
+money-home|money|Return to Home|Tap Done to return to your Home dashboard.
+money-expense|money|Add an expense|Tap Expense to record a purchase for your work.
+money-merchant|money|Enter the merchant|Type the merchant name. This fuel stop is a practice entry.
+money-amount|money|Enter the amount|Enter the amount from your receipt, then close the keyboard.
+money-category|money|Choose the category|Open Category and choose Fuel for this example.
+money-business|money|Classify the expense|Choose Business when the purchase was for your work.
+money-save|money|Save the expense|Check the amount and category, then save your expense.
+offers-open|screenshots|Open Offers|Tap Offers to check a job before you decide.
+guide-open|screenshots|Try the screenshot guide|Open the guide to practice bringing a job screenshot into the app.
+guide-volume|screenshots|Practice Volume up|First, tap Volume up in the practice picture.
+guide-side|screenshots|Practice the Side button|Tap the Side button, then Next. On your phone, press both buttons together.
+guide-save-menu|screenshots|Open Save|Tap the practice Save button to open the photo option.
+guide-save-photo|screenshots|Save to Photos|Choose Save to Photos, then continue to the import lesson.
+guide-choose-route|screenshots|Choose screenshot import|Choose the screenshot route to bring your picture into Gig Tax Pros.
+guide-choose-picture|screenshots|Select the job picture|Tap the practice picture, then continue to review the numbers.
+review-pay|review|Check and correct the pay|Check the pay against the picture. Try changing this practice amount.
+review-check|review|Check the job after costs|Tap Check this job to see how the changed pay affects the estimate.
+review-finish|review|Finish the practice|Tap Done. The practice job was not saved to your records.
+earnings-open|earnings|Open Earnings|Tap Earnings to see results from your saved driving records.
+earnings-goals|earnings|Open Goals|Open Goals to set your own targets and vehicle cost.
+earnings-cost|earnings|Set your cost per mile|Enter your estimated vehicle cost per mile. Use costs that fit your vehicle.
+earnings-hourly|earnings|Set an hourly target|Enter your target net pay per driving hour, then close the keyboard.
+earnings-save|earnings|Save your goals|Save your goals. Earnings now uses the vehicle cost you entered.
+mission-open|go_home|Open Go Home|Tap Go Home to plan your destination and finish time.
+mission-goal|go_home|Set a shift target|Enter the net earnings you want to work toward during this shift.
+mission-save|go_home|Save the mission|Check the finish time and destination, then save your mission.
+position-open|position|Open Position|Tap Position to explore waiting areas using your saved job history.
+position-destination|position|Enter your destination|Type the place you want to finish near before requesting route comparisons.
+coach-home|coach|Return to Home|Tap Home to open the tools for your records and goals.
+coach-open|coach|Open Tax and Goals|Tap the chat icon to open Tax and Goals.
+coach-details|coach|Review Tax details|Open Tax details to review information you choose to share with your team.
+coach-close|coach|Close without saving|Cancel this practice form, then return to Home.
+ratings-menu|ratings|Open Ratings and reviews|Open More tools and choose Ratings and reviews.
+ratings-add|ratings|Add a rating snapshot|Tap Add rating to record a score from your gig app.
+ratings-score|ratings|Enter the score|Enter the score you saw. We are using a practice rating.
+ratings-save|ratings|Save your snapshot|Save the snapshot to your own history, then return to Home.
+account-menu|account|Open Account|Open More tools and choose Account to find your sign-in options.
+account-address|account|Use your firm’s address|Expand the workspace address option if your firm supplied a sign-in address.
+account-privacy|account|Read the privacy details|Scroll to App privacy and data to review what stays on your phone.
+account-close|account|Return to Home|Tap Done to close Account and return to your dashboard.
+help-open|help|Open Get help|Tap Find an office and get help to open the office map.
+help-zip|help|Enter your ZIP code|Enter your ZIP code to look for an available office nearby.
+help-search|help|Search available offices|Tap Search. Available offices and contact options will appear here.
+finish-home|finish|Return to your dashboard|Tap Done to return to Home and choose your next step.
+finish-sample|finish|Explore the sample shift|Open the sample shift to explore example earnings separately from your records.

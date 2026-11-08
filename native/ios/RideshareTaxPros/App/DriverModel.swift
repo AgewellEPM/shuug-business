@@ -28,8 +28,21 @@ import Network
   private var namespace = "guest", lastAttempt = Date.distantPast
   private let monitor = NWPathMonitor()
   var importedCaptureIDs = Set<String>()
+  // A debug recording uses a separate guest journal, never the user's account.
+  private var rehearsalID: String? {
+    #if DEBUG
+    let value = UserDefaults.standard.string(forKey: "tourRecordingSession") ?? ""
+    return UUID(uuidString: value)?.uuidString
+    #else
+    return nil
+    #endif
+  }
   private var root: URL {
-    FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    if let rehearsalID {
+      return FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+        .appendingPathComponent("TourRehearsals/\(rehearsalID)", isDirectory: true)
+    }
+    return FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
       .appendingPathComponent("RideshareTaxPros", isDirectory: true)
   }
   var guest: Bool { namespace == "guest" }
@@ -40,7 +53,7 @@ import Network
   }
   init() {
     do {
-      connection = try SessionKeychain.read()
+      if rehearsalID == nil { connection = try SessionKeychain.read() }
       namespace = connection.map(Self.scope) ?? "guest"
       disk = try JournalDiskStore(directory: root.appendingPathComponent(namespace))
       journal = try disk.load()

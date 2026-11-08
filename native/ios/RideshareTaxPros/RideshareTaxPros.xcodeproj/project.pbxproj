@@ -70,6 +70,7 @@
 		82DA92E995B6DC573995FEAF /* ReferralWire.swift in Sources */ = {isa = PBXBuildFile; fileRef = D34AC156EB56DF0359A34459 /* ReferralWire.swift */; };
 		832743508EE851F8C59C8BB7 /* GigConnectionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B66B374B7BBA61C36CBA2422 /* GigConnectionsView.swift */; };
 		83374FA02D9AEF1D3008C4C9 /* HomeDashboardPanels.swift in Sources */ = {isa = PBXBuildFile; fileRef = E57576534AE23D3836BDD688 /* HomeDashboardPanels.swift */; };
+		87CED408B9ED0EE6D67A0410 /* TourActionRecordingFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7FB1974EF28642E386169F21 /* TourActionRecordingFlows.swift */; };
 		886E454402F281E35DE86B95 /* OfferScreenshotImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FC1743C9CF562B5B0DE161 /* OfferScreenshotImportView.swift */; };
 		8A37631442C4F9D959E4E2ED /* WaitingAreaPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AACCE76C8CCDFBB25D5716B /* WaitingAreaPlanner.swift */; };
 		8C29AB17FA7EBAB5F0DBE50A /* GettingStartedFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E2FE4F8E87A95871C562500 /* GettingStartedFlows.swift */; };
@@ -228,6 +229,7 @@
 		79F6E30F51AE03EF7A8237B8 /* ReceiptCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReceiptCapture.swift; sourceTree = "<group>"; };
 		7A6E5E3D526067D4F7777505 /* SampleHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampleHandler.swift; sourceTree = "<group>"; };
 		7F6817E98F079C56DC792E37 /* DriverSynchronization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverSynchronization.swift; sourceTree = "<group>"; };
+		7FB1974EF28642E386169F21 /* TourActionRecordingFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TourActionRecordingFlows.swift; sourceTree = "<group>"; };
 		806A24C2D320EB0630D00C88 /* TripViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripViews.swift; sourceTree = "<group>"; };
 		892D31B4A1DBDDF69F0E96A0 /* GigOfferShare.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = GigOfferShare.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		8B1B1F20D201AE688FE4A9C9 /* ForegroundNotice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForegroundNotice.swift; sourceTree = "<group>"; };
@@ -471,6 +473,7 @@
 				EBE38B18B41494DD15D9DC0F /* ScreenCatalogMoneyFlows.swift */,
 				A2C42C28B72798E43383B418 /* ScreenCatalogOffersFlows.swift */,
 				0589FDD6984FBFDF3C295CEC /* ScreenshotGuideFlows.swift */,
+				7FB1974EF28642E386169F21 /* TourActionRecordingFlows.swift */,
 				CC8B4948C9AF3A5A22DE1074 /* TourRecordingFlows.swift */,
 			);
 			path = UITests;
@@ -723,6 +726,7 @@
 				329784177BCDFF822218F991 /* ScreenCatalogMoneyFlows.swift in Sources */,
 				F8077996C17CC67F0E4CAD55 /* ScreenCatalogOffersFlows.swift in Sources */,
 				0E7F566C2E67CCCCD5996E1C /* ScreenshotGuideFlows.swift in Sources */,
+				87CED408B9ED0EE6D67A0410 /* TourActionRecordingFlows.swift in Sources */,
 				BF51D3512A227FB145094CEF /* TourRecordingFlows.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
