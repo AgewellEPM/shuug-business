@@ -1,133 +1,139 @@
 package com.ridesharetaxpros.driver.ui
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.ridesharetaxpros.driver.core.*
 import com.ridesharetaxpros.driver.data.DriverRepository
 import java.time.*
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import kotlin.math.roundToInt
 
-@Composable fun MissionScreen(repo: DriverRepository) {
+@Composable fun MissionScreen(repo: DriverRepository,navigate: (String)->Unit) {
+    val scope=repo.scope;val context=LocalContext.current
     val mission=repo.journal.mission
-    var target by remember { mutableStateOf(mission?.targetCents?.let { (it/100).toString() } ?: "100") }
-    var date by remember { mutableStateOf(mission?.deadline?.let { Instant.parse(it).atZone(ZoneId.systemDefault()).toLocalDate().toString() } ?: LocalDate.now().toString()) }
-    var time by remember { mutableStateOf(mission?.deadline?.let { Instant.parse(it).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("HH:mm")) } ?: "18:00") }
-    var destination by remember { mutableStateOf(mission?.destination?.takeIf {it=="Home" || it=="Work"} ?: if(mission==null) "Home" else "Custom") }
-    var customDestination by remember { mutableStateOf(mission?.destination?.takeUnless {it=="Home" || it=="Work"} ?: "") }
-    var editing by remember { mutableStateOf(mission==null) }
-    var payout by remember { mutableStateOf("") }; var fees by remember { mutableStateOf("0") }
-    var pickup by remember { mutableStateOf("") }; var jobMiles by remember { mutableStateOf("") }
-    var driving by remember { mutableStateOf("") }; var wait by remember { mutableStateOf("0") }
-    var home by remember { mutableStateOf("") }; var homeMiles by remember { mutableStateOf("") }; var direct by remember { mutableStateOf("") }
-    var homeNow by remember { mutableStateOf("") }; var homeAfter by remember { mutableStateOf("") }
-    var restaurant by remember { mutableStateOf("") }; var observedWait by remember { mutableStateOf("") }
-    var vehicleReserve by remember { mutableStateOf(repo.journal.vehicleReservePercent?.toString() ?: "") }
-    var taxReserve by remember { mutableStateOf(repo.journal.taxReservePercent?.toString() ?: "") }
-    var estimate by remember { mutableStateOf<OfferEstimate?>(null) }
-    if(editing) Panel("Create today's mission") {
-        Text("How much net do you want to earn?")
-        Row(horizontalArrangement=Arrangement.SpaceEvenly,modifier=Modifier.fillMaxWidth()) { listOf("50","100","150","200").forEach { value -> TextButton(onClick={target=value}) { Text("$$value") } } }
-        Field("Net target ($)",target,{target=it}); Field("Finish date (YYYY-MM-DD)",date,{date=it}); Field("Finish time (HH:mm)",time,{time=it})
-        Choice("End at",destination,linkedMapOf("Home" to "Home","Work" to "Work","Custom" to "Custom")) {destination=it}
-        if(destination=="Custom") Field("Destination label",customDestination,{customDestination=it.take(120)})
-        Text("Destination is a label. This version uses the route estimates you enter; it does not find live offers or guarantee arrival.",color=Muted)
-        Button(onClick={repo.run {
-            val cents=StatementImport.cents(target); require(cents in 1..100_000_000) {"Enter a positive target."}
-            val end=LocalDate.parse(date).atTime(LocalTime.parse(time)).atZone(ZoneId.systemDefault()).toInstant()
-            require(end>Instant.now()) {"Choose a future finish time."}
-            val label=if(destination=="Custom") customDestination.trim().also {require(it.isNotEmpty()) {"Enter a destination label."}} else destination
-            repo.update {it.copy(mission=ShiftMission(cents,end.toString(),label,mission?.startedAt ?: now()))};editing=false;estimate=null
-        }}) {Text("Start mission")}
+    var goal by remember(scope) {mutableStateOf("100")}
+    var deadline by remember(scope) {mutableStateOf(ZonedDateTime.now().plusHours(4))}
+    var destination by remember(scope) {mutableStateOf("Home")}
+    var custom by remember(scope) {mutableStateOf("")}
+    var label by remember(scope) {mutableStateOf("")}
+    var payout by remember(scope) {mutableStateOf("")};var fees by remember(scope) {mutableStateOf("")}
+    var miles by remember(scope) {mutableStateOf("")};var minutes by remember(scope) {mutableStateOf("")}
+    var wait by remember(scope) {mutableStateOf("")};var homeMinutes by remember(scope) {mutableStateOf("")}
+    var direction by remember(scope) {mutableStateOf("Unknown")}
+    var pickup by remember(scope) {mutableStateOf("")};var observedWait by remember(scope) {mutableStateOf("")}
+    val records=repo.journal.visible.map {it.record}
+    val allRides=records.filter {it.kind=="trip" && it.trip().classification=="business" && it.trip().endedAt!=null}.map {RideProfit(it,repo.journal.goals)}
+    fun draft(): ComparedMissionOffer? = runCatching {
+        ComparedMissionOffer(label=label.trim().take(100).ifBlank {"Offer"},direction=direction,
+            payoutCents=StatementImport.cents(payout),feesCents=StatementImport.cents(fees),
+            miles=miles.toDouble(),minutes=minutes.toDouble(),waitMinutes=wait.toDouble(),
+            homeMinutes=homeMinutes.takeIf {it.isNotBlank()}?.toDouble())
+    }.getOrNull()
+    val result=draft()?.activeHourEstimate(repo.journal.goals,mission?.deadline)
+    Panel {
+        Row(horizontalArrangement=Arrangement.spacedBy(14.dp)) {Icon(Icons.Default.Home,null,tint=Pink,modifier=Modifier.size(30.dp))
+            Column {Text("Get paid on the way.",fontSize=23.sp,fontWeight=FontWeight.Bold);Text("Your destination. Your finish time.",color=Muted,fontSize=14.sp)}}
+        Text("Set a mission, find a historical waiting-area match, and check each offer's real costs and road route.",color=Muted,fontSize=12.sp)
+        TextButton(onClick={navigate("Offers")}) {Text("Read an incoming offer")}
     }
-    if(mission!=null && !editing) {
-        val records=repo.journal.visible.map {it.record}.filter {it.kind=="trip" && it.trip().classification=="business" && it.trip().endedAt!=null && Instant.parse(it.trip().startedAt)>=Instant.parse(mission.startedAt)}
-        val profit=records.map {RideProfit(it,repo.journal.goals)}; val priced=profit.filter {it.net!=null}; val net=priced.sumOf {it.net!!.toLong()}
+    if(mission!=null) {
+        val clock=Instant.now();val end=minOf(clock,Instant.parse(mission.deadline));val start=Instant.parse(mission.startedAt)
+        val rides=allRides.filter {Instant.parse(it.record.trip().startedAt)>=start && Instant.parse(it.record.trip().endedAt)<=end}
+        val net=rides.sumOf {it.net?.toLong() ?: 0L};val missing=rides.count {it.net==null}
         Panel("Your mission") {
-            Text("Earn ${usd(mission.targetCents)} and finish by ${Instant.parse(mission.deadline).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, h:mm a"))}",style=MaterialTheme.typography.titleLarge)
-            Text("Final destination: ${mission.destination}")
-            Text("${usd(net)} estimated net · ${usd((mission.targetCents-net).coerceAtLeast(0))} remaining")
-            LinearProgressIndicator(progress={(net.toFloat()/mission.targetCents).coerceIn(0f,1f)},Modifier.fillMaxWidth(),color=Pink)
-            Text("${profit.size-priced.size} completed business drives lack fare, fees or vehicle cost and are excluded. These are estimates, not payouts.",color=Muted)
-            OutlinedButton(onClick={editing=true}) {Text("Change mission")}
-            TextButton(onClick={repo.run {repo.update {it.copy(mission=null)}}}) {Text("End mission")}
-        }
-        val unpaid=profit.filter {it.record.trip().rideRole=="reposition"}.sumOf {it.miles}
-        Panel("Dead Mile Killer") {
-            Text("%.1f recorded unpaid miles this mission".format(unpaid))
-            val rate=repo.journal.goals.vehicleCostCentsPerMile
-            Text(if(rate==null) "Set a vehicle cost per mile in Insights to see the cost." else "Estimated vehicle cost ${usd(unpaid*rate)}")
-            Text("Classify unpaid trips as business and choose Unpaid driving. Combine pickups or take an offer toward your destination when practical; unrecorded miles are not included.",color=Muted)
-        }
-        Panel("Evaluate an offer while parked") {
-            Text("Enter an offer and current route estimates. No platform data is read automatically.",color=Muted)
-            Field("Offered pay ($)",payout,{payout=it;estimate=null});Field("Platform fees ($)",fees,{fees=it;estimate=null})
-            Field("Unpaid pickup miles",pickup,{pickup=it;estimate=null});Field("Job miles",jobMiles,{jobMiles=it;estimate=null})
-            Field("Driving time including pickup (minutes)",driving,{driving=it;estimate=null});Field("Expected restaurant wait (minutes)",wait,{wait=it;estimate=null})
-            Field("From drop-off to destination (minutes)",home,{home=it;estimate=null});Field("From drop-off to destination (miles)",homeMiles,{homeMiles=it;estimate=null});Field("Direct to destination now (minutes)",direct,{direct=it;estimate=null})
-            Field("Distance to destination now, optional (miles)",homeNow,{homeNow=it;estimate=null});Field("Distance to destination after job, optional (miles)",homeAfter,{homeAfter=it;estimate=null})
-            Button(onClick={repo.run {
-                val cost=repo.journal.goals.vehicleCostCentsPerMile ?: error("Set your vehicle cost per mile in Insights first.")
-                val hourly=repo.journal.goals.targetHourlyCents ?: error("Set your hourly target in Insights first.")
-                fun optional(value:String)=value.takeIf {it.isNotBlank()}?.toDouble()
-                estimate=estimateOffer(Offer(StatementImport.cents(payout),StatementImport.cents(fees),pickup.toDouble(),jobMiles.toDouble(),driving.toDouble(),wait.toDouble(),home.toDouble(),homeMiles.toDouble(),direct.toDouble(),optional(homeNow),optional(homeAfter)),mission,cost,hourly)
-            }}) {Text("Calculate offer")}
-            estimate?.let {result ->
-                Text("${usd(result.netCents)} estimated net through destination · ${usd(result.hourlyCents)}/hour including return",style=MaterialTheme.typography.titleMedium)
-                Text("Minimum offer for your hourly goal: ${usd(result.minimumPayoutCents)}")
-                Text("Unpaid pickup and onward trip cost about ${usd(result.deadMileCostCents)}")
-                Text(if(result.deadlineMarginMinutes>=0) "Estimated arrival margin: %.0f minutes".format(result.deadlineMarginMinutes) else "Estimated arrival: %.0f minutes late".format(-result.deadlineMarginMinutes))
-                Text(if(result.additionalMinutesVsDirect>=0) "Job and return add %.0f minutes compared with going directly.".format(result.additionalMinutesVsDirect) else "Job and return take %.0f fewer minutes than your direct estimate; check your inputs.".format(-result.additionalMinutesVsDirect))
-                result.homeProgressMiles?.let { Text(if(it>=0) "Drop-off is %.1f miles closer to your destination".format(it) else "Drop-off is %.1f miles farther from your destination".format(-it)) }
-                Text("Includes pickup, job, wait and onward travel in cost and hourly rate. Direct trip: $direct minutes. Traffic and waits can change.",color=Muted)
-            }
-        }
-        Panel("Restaurant wait history") {
-            Text("Record your own actual waits, then use the average in an offer estimate.",color=Muted)
-            Field("Pickup location",restaurant,{restaurant=it.take(160)});Field("Actual wait (minutes)",observedWait,{observedWait=it})
-            averageWait(repo.journal.waitSamples,restaurant)?.let { (average,count)->
-                Text("Your average: %.1f minutes from %d recorded waits".format(average,count))
-                TextButton(onClick={wait="%.1f".format(java.util.Locale.US,average);estimate=null}) {Text("Use this wait in offer")}
-            }
-            Button(onClick={repo.run {val minutes=observedWait.toDouble();require(restaurant.isNotBlank() && minutes.isFinite() && minutes in 0.0..240.0) {"Enter a location and wait from 0 to 240 minutes."}
-                repo.update {it.copy(waitSamples=(it.waitSamples+WaitSample(restaurant.trim(),minutes)).takeLast(1000))};observedWait=""
-            }}) {Text("Save actual wait")}
-        }
-        Panel("Where has your time paid off?") {
-            val groups=profit.filter {it.net!=null && it.minutes>=1}.groupBy {it.record.trip().platform?.ifBlank {"Unspecified"} ?: "Unspecified"}
-            if(groups.isEmpty()) Text("Add completed business trips with platform, fares, fees and costs to compare platforms.")
-            groups.map { (name,rows)-> Triple(name,rows.sumOf {it.net!!.toDouble()}/(rows.sumOf {it.minutes}/60),rows.size) }.sortedByDescending {it.second}.forEach { (name,hourly,count)->Text("$name · ${usd(hourly)}/hour · $count drives") }
-            Text("Your own recorded sample, not live demand or a guarantee. Waiting between trips may not be included.",color=Muted)
-        }
-        val history=repo.journal.visible.map {it.record}.filter {it.kind=="trip" && it.trip().classification=="business" && it.trip().endedAt!=null}
-            .map {RideProfit(it,repo.journal.goals)}.filter {it.net!=null && it.minutes>=1}
-        Panel("Shift planner & opportunity areas") {
-            if(history.size<3) Text("Record at least three priced business drives to compare your history. No live demand feed is connected.")
-            else {
-                history.groupBy { row ->
-                    val trip=row.record.trip(); val hour=Instant.parse(trip.startedAt).atZone(ZoneId.of(trip.timeZoneId ?: "UTC")).hour
-                    "${trip.workArea?.takeIf {it.isNotBlank()} ?: "Unspecified area"} · ${hour.toString().padStart(2,'0')}:00"
-                }.map { (name,rows)->Triple(name,rows.sumOf {it.net!!.toDouble()}/(rows.sumOf {it.minutes}/60),rows.size) }
-                    .sortedByDescending {it.second}.take(8).forEach { (name,rate,count)->Text("$name · ${usd(rate)}/hour · $count drives") }
-                val hourly=history.sumOf {it.net!!.toDouble()}/(history.sumOf {it.minutes}/60)
-                Text("Two-hour scenario at your recorded rate: ${usd(hourly*2)} estimated net from ${history.size} drives.")
-                Text("Historical driving time only; idle time, traffic, demand and changing costs may make the next shift very different. Areas are labels, not a live map.",color=Muted)
-            }
-        }
-        Panel("Reserve planning") {
-            Text("Choose your own percentages; these are planning estimates and do not move money or determine tax deductions.",color=Muted)
-            Field("Vehicle health fund (% of recorded income)",vehicleReserve,{vehicleReserve=it})
-            Field("Tax reserve (% of positive estimated net)",taxReserve,{taxReserve=it})
-            Button(onClick={repo.run {
-                fun percent(value: String)=value.takeIf {it.isNotBlank()}?.toDouble()?.also {require(it.isFinite() && it in 0.0..100.0) {"Enter a percentage between 0 and 100."}}
-                val v=percent(vehicleReserve);val t=percent(taxReserve);repo.update {it.copy(vehicleReservePercent=v,taxReservePercent=t)}
-            }}) {Text("Save reserve rates")}
-            val startDay=day(mission.startedAt,ZoneId.systemDefault().id)
-            val income=repo.journal.visible.map {it.record}.filter {it.kind=="income" && it.income().date>=startDay}.sumOf {it.income().amountCents.toLong()}
-            repo.journal.vehicleReservePercent?.let {Text("Vehicle fund: ${usd(income*it/100)} from ${usd(income)} recorded income on mission dates.")}
-            repo.journal.taxReservePercent?.let {Text("Tax planning: ${usd(net.coerceAtLeast(0)*it/100)} from ${usd(net.coerceAtLeast(0))} estimated mission ride net.")}
-            Text("Your tax situation may differ. Review estimates with your tax preparer; missing records and unpriced drives are excluded.",color=Muted)
+            Text("Earn ${usd(mission.targetCents)} and finish by ${Instant.parse(mission.deadline).atZone(ZoneId.systemDefault()).format(DateTimeFormatter.ofPattern("MMM d, h:mm a"))}",fontWeight=FontWeight.Bold)
+            Text("Finish near: ${mission.destination}")
+            LinearProgressIndicator(progress={(net.toFloat()/mission.targetCents).coerceIn(0f,1f)},modifier=Modifier.fillMaxWidth(),color=Pink)
+            Text("${usd(net)} estimated net · ${usd(maxOf(0L,mission.targetCents-net))} remaining")
+            Text(String.format(Locale.US,"%.1f unpaid miles during this mission",rides.filter {it.record.trip().rideRole=="reposition"}.sumOf {it.miles}),fontSize=13.sp)
+            if(missing>0) Text("$missing completed drives need fare, fees or vehicle cost before they count.",color=Caution,fontSize=13.sp)
+            if(clock>Instant.parse(mission.deadline)) Text("Deadline passed. Update or end this mission.",color=Caution)
+            TextButton(onClick={repo.run {repo.update {it.copy(mission=null)}}}) {Text("End mission",color=Danger)}
         }
     }
+    Panel(if(mission==null) "Create today's mission" else "Replace mission") {
+        Row(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.SpaceEvenly) {listOf(50,100,150,200).forEach {amount->OutlinedButton(onClick={goal=amount.toString()},contentPadding=PaddingValues(8.dp)) {Text("$$amount")}}}
+        Field("Net earnings goal ($)",goal,{goal=it})
+        NavigationRow("Finish by",{
+            DatePickerDialog(context,{_,year,month,day->
+                val selected=deadline.withDayOfMonth(1).withYear(year).withMonth(month+1).withDayOfMonth(day)
+                TimePickerDialog(context,{_,hour,minute->deadline=selected.withHour(hour).withMinute(minute)},deadline.hour,deadline.minute,false).show()
+            },deadline.year,deadline.monthValue-1,deadline.dayOfMonth).show()
+        },deadline.format(DateTimeFormatter.ofPattern("MMM d, h:mm a")))
+        Choice("End near",destination,linkedMapOf("Home" to "Home","Work" to "Work","Custom" to "Custom")) {destination=it}
+        if(destination=="Custom") {Field("Custom destination label",custom,{custom=it.take(100)});Text("Use the offer calculator below to enter your own travel time toward your chosen destination.",color=Muted,fontSize=12.sp)}
+        Action("Save mission",{repo.run {
+            val cents=StatementImport.cents(goal);require(cents>0 && deadline.toInstant()>Instant.now()) {"Enter a positive goal and future deadline."}
+            val name=if(destination=="Custom") custom.trim().also {require(it.isNotEmpty()) {"Enter a custom destination label."}} else destination
+            repo.update {it.copy(mission=ShiftMission(cents,deadline.toInstant().toString(),name),missionOffers=emptyList())}
+        }},enabled=repo.storageReady)
+        Text("Changing a mission starts a new progress window. It does not delete your drives.",color=Muted,fontSize=12.sp)
+    }
+    Panel("Evaluate an offer") {
+        Text("Enter the complete job, including pickup miles and your best estimate of unpaid repositioning. These are estimates, not a guarantee.",fontSize=12.sp,color=Muted)
+        Field("Offer label or platform (optional)",label,{label=it});Field("Offered payout ($)",payout,{payout=it})
+        Field("Fees ($; enter 0 if none)",fees,{fees=it});Field("Total job and unpaid miles",miles,{miles=it})
+        Field("Job and pickup minutes",minutes,{minutes=it});Field("Pickup wait minutes",wait,{wait=it})
+        Field("Minutes from drop-off to destination",homeMinutes,{homeMinutes=it})
+        Choice("Direction after drop-off",direction,linkedMapOf("Unknown" to "Unknown","Toward" to "Toward destination","Away" to "Away from destination")) {direction=it}
+        if(result!=null) {
+            Text("Estimated net ${usd(result.netCents)} · ${usd(result.hourlyCents.roundToInt())}/active hour",fontWeight=FontWeight.Bold)
+            Text("Minimum payout for your hourly goal: ${usd(result.minimumCents)}")
+            Text("Hourly rate and minimum use the entered pickup, job and wait time. They exclude the drive to your destination. Include any additional unpaid miles above.",fontSize=12.sp,color=Muted)
+            Text(if(result.meetsGoal) "Meets your entered hourly goal" else "Below your entered hourly goal",color=if(result.meetsGoal) Income else Caution)
+            val buffer=result.deadlineMinutesRemaining
+            Text(if(buffer==null) "Enter travel time to your destination to check the deadline." else if(buffer>=0) "Estimated ${buffer.toInt()} minutes of deadline buffer" else "Estimated ${(-buffer).toInt()} minutes past your deadline",fontSize=13.sp,color=if(buffer!=null && buffer<0) Danger else Muted)
+            Text(if(direction=="Unknown") "Direction not assessed." else "Direction is your assessment: ${if(direction=="Toward") "toward" else "away from"} your destination.",fontSize=12.sp,color=Muted)
+            Action("Add to offer comparison",{repo.run {val value=draft() ?: error("Check the entered offer details.");require(value.activeHourEstimate(repo.journal.goals,repo.journal.mission?.deadline)!=null);repo.update {it.copy(missionOffers=(it.missionOffers+value).takeLast(20))}}},primary=false)
+        } else Text("Enter payout, known fees, miles, minutes and wait. Set your own hourly target and vehicle cost in Earnings → Goals.",fontSize=12.sp,color=Muted)
+    }
+    Panel("Get paid going home") {
+        Text("While parked, select your actual destination and compare your historical job-start areas using current road routes.",fontSize=13.sp,color=Muted)
+        Action("Choose destination & waiting areas",{navigate("Position")},primary=false)
+        Text("Your route and location may change. Compare again after conditions change.",fontSize=12.sp,color=Muted)
+    }
+    if(repo.journal.missionOffers.isNotEmpty()) Panel("Compare your entered offers") {
+        repo.journal.missionOffers.forEach {offer->offer.activeHourEstimate(repo.journal.goals,mission?.deadline)?.let {value->
+            Text("${offer.label} · ${usd(value.netCents)} net · ${usd(value.hourlyCents.roundToInt())}/active hour",fontWeight=FontWeight.SemiBold)
+            Text("${offer.direction} · ${if(value.meetsGoal) "meets goal" else "below goal"} · ${value.deadlineMinutesRemaining?.let {if(it>=0) "estimated within deadline" else "estimated after deadline"} ?: "deadline unknown"}",fontSize=12.sp,color=Muted)
+            TextButton(onClick={repo.run {repo.update {it.copy(missionOffers=it.missionOffers.filterNot {row->row.id==offer.id})}}}) {Text("Remove offer",color=Danger)}
+        }}
+        Text("Compare direction, your minimum and the deadline buffer. Availability and actual driving conditions can change; no offers are fetched automatically.",fontSize=12.sp,color=Muted)
+    }
+    Panel("Pickup wait history") {
+        Field("Restaurant or pickup location",pickup,{pickup=it.take(120)});Field("Observed wait (minutes)",observedWait,{observedWait=it})
+        Action("Save observed wait",{repo.run {
+            val name=pickup.trim();val value=observedWait.toDouble();require(name.isNotEmpty() && value.isFinite() && value in 0.0..240.0) {"Enter a pickup name and wait from 0 to 240 minutes."}
+            repo.update {it.copy(waitSamples=(it.waitSamples+WaitSample(name,value)).takeLast(500))};observedWait=""
+        }},primary=false)
+        if(pickup.isNotBlank()) averageWait(repo.journal.waitSamples,pickup)?.let {(average,count)->
+            Text(String.format(Locale.US,"Your average: %.1f min across %d recorded waits",average,count),fontSize=13.sp)
+            TextButton(onClick={wait=String.format(Locale.US,"%.1f",average)}) {Text("Use this average in offer")}
+        }
+        Text("Your observations stay on this phone. Small samples may not predict your next pickup.",fontSize=12.sp,color=Muted)
+    }
+    Panel("Dead Mile Killer") {
+        val unpaid=allRides.filter {it.record.trip().rideRole=="reposition"}.sumOf {it.miles}
+        Text(String.format(Locale.US,"%.1f recorded unpaid business miles",unpaid))
+        repo.journal.goals.vehicleCostCentsPerMile?.let {Text("Estimated vehicle cost: ${usd((unpaid*it).roundToInt())}")}
+        Text("Classify pickup-area and return trips as driving without a paid ride. Consider offers that end nearer your next destination; review safety and actual routes first.",fontSize=12.sp,color=Muted)
+    }
+    Panel("Platform comparisons") {
+        val groups=allRides.filter {it.hourly!=null && !it.record.trip().platform.isNullOrBlank()}.groupBy {it.record.trip().platform!!}
+        if(groups.isEmpty()) Text("Add your platform and complete fares, fees and vehicle cost on business drives to compare.")
+        groups.toSortedMap().forEach {(name,rows)->val total=rows.sumOf {it.minutes};if(total>0) Text("$name: ${usd((rows.sumOf {it.net ?: 0}*60/total).roundToInt())}/hour · ${rows.size} drives")}
+        Text("Only your recorded completed drives are compared. Idle time, demand and platform availability may differ.",fontSize=12.sp,color=Muted)
+    }
+    ReserveHistoryScreen(repo)
 }

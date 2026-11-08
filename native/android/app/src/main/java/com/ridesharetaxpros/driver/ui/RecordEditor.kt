@@ -47,7 +47,7 @@ import kotlin.math.abs
     var endDate by remember { mutableStateOf(trip?.endedAt?.let { day(it,zone.id) } ?: date) }
     var duplicateConfirmed by remember { mutableStateOf(false) }; var showDelete by remember { mutableStateOf(false) }
     var receiptBytes by remember { mutableStateOf<ByteArray?>(null) }; var ocr by remember { mutableStateOf("") }; var scanning by remember { mutableStateOf(false) }
-    var receiptResent by remember { mutableStateOf(false) }
+    var receiptResent by remember { mutableStateOf(false) }; var detailsExpanded by remember {mutableStateOf(false)}
     fun attach(uri: Uri) { repo.run {
         val mime=repo.app.contentResolver.getType(uri) ?: "image/jpeg"; require(mime in listOf("image/jpeg","image/png","application/pdf")) { "Choose a JPEG, PNG or PDF receipt." }
         val bytes=repo.app.contentResolver.openInputStream(uri)!!.use { boundedRead(it,5*1024*1024) }
@@ -59,36 +59,36 @@ import kotlin.math.abs
     val cameraUri=remember { FileProvider.getUriForFile(repo.app,repo.app.packageName+".files",cameraFile) }
     val camera=rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) { if(it) { attach(cameraUri) } }
     LaunchedEffect(receiptId) { receiptId?.let { repo.run { receiptBytes=repo.receipt(it) } } }
-    Panel(if(kind=="trip") "Trip details" else if(kind=="expense") "Expense details" else "Income details") {
-        Field(if(kind=="trip") "Trip purpose" else if(kind=="expense") "Merchant" else "Description",title,{title=it.take(if(kind=="trip") 240 else 160)})
-        Field("Date (YYYY-MM-DD)",date,{date=it})
-        if(kind!="income") Choice("Classification",classification,classifications) {classification=it}
+    Panel(if(kind=="trip") "Trip" else if(kind=="expense") "Expense" else "Income") {
         if(kind=="trip") {
-            Field("Miles",miles,{miles=it}); Field("Start time (HH:mm)",start,{start=it}); Field("End date (YYYY-MM-DD)",endDate,{endDate=it}); Field("End time (HH:mm)",end,{end=it})
-            Text("Recorded time zone: ${zone.id}",color=Muted)
-            Choice("Drive type",role,linkedMapOf("ride" to "Paid ride","delivery" to "Delivery","reposition" to "Unpaid driving","other" to "Other")) {role=it}
-            Field("Fare + tips, before platform fees ($)",fare,{fare=it}); Field("Platform fees ($)",fees,{fees=it})
-            Text("Leave unknown amounts empty. Enter 0 when you know there were no fees.",color=Muted)
-            Field("Platform",platform,{platform=it.take(80)}); Field("Work area",area,{area=it.take(120)})
+            DateField("Start date",date) {date=it};TimeField("Start time",start) {start=it}
+            DateField("End date",endDate) {endDate=it};TimeField("End time",end) {end=it}
+            Field("Miles",miles,{miles=it})
+            Choice("Classification",classification,classifications) {classification=it}
+            Field("Purpose",title,{title=it.take(240)})
         } else {
-            Field("Amount ($)",amount,{amount=it})
-            if(kind=="income") { Choice("Platform",platform,linkedMapOf("uber" to "Uber","lyft" to "Lyft","doordash" to "DoorDash","instacart" to "Instacart","spark" to "Spark","other" to "Other")) {platform=it}; Text("Check deposits before recording income; transfers and refunds are not automatically earnings.",color=Muted) }
-            else {
+            Field(if(kind=="expense") "Merchant" else "Description",title,{title=it.take(160)})
+            Field("Amount · USD (12.34)",amount,{amount=it})
+            DateField("Date",date) {date=it}
+            if(kind=="expense") {
                 Choice("Category",category,expenseCategories) {category=it}
-                Field("Business purpose",purpose,{purpose=it.take(500)},true); Field("Business use % (optional)",percent,{percent=it})
-                if(category=="meals") { Field("People and business context",meal,{meal=it.take(500)},true); Text("Food during an ordinary workday is not automatically a business deduction. Keep the context for your preparer.",color=Muted) }
-                Field("Vehicle",vehicle,{vehicle=it.take(80)}); Field("Odometer miles (optional)",odometer,{odometer=it})
-                Choice("Paid with",payment,linkedMapOf("cash" to "Cash","card" to "Card","bank" to "Bank","platform" to "Platform","other" to "Other")) {payment=it}
-                Field("Place",place,{place=it.take(240)})
-            }
+                Choice("Classification",classification,classifications) {classification=it}
+            } else Choice("Platform",platform,linkedMapOf("uber" to "Uber / Uber Eats","lyft" to "Lyft","doordash" to "DoorDash","instacart" to "Instacart","spark" to "Spark","other" to "Other gig work")) {platform=it}
         }
         Field("Notes",notes,{notes=it.take(2000)},true)
         (bank?.reference ?: original?.bankReference)?.let { Text("Source: ${it.accountLabel} · ${it.provider}",color=Muted) }
     }
+    if(kind=="trip") Panel("Ride earnings · optional") {
+        Choice("Drive type",role,linkedMapOf("ride" to "Paid ride","delivery" to "Delivery","shopping" to "In-store shopping","reposition" to "Driving without a paid ride","other" to "Other")) {role=it}
+        Field("Fare + tips before fees · USD",fare,{fare=it});Field("Platform fees · USD (0 if none)",fees,{fees=it})
+        Field("Platform (Uber, Lyft…)",platform,{platform=it.take(80)});Field("Work area / neighborhood",area,{area=it.take(120)})
+        Text("Use the actual ride breakdown. If you enter take-home pay after fees, enter 0 for fees so they are not subtracted twice. A bank payout is not an individual ride fare. Leave unknown values blank.",color=Muted)
+        Text("To analyze pickup and unpaid travel, save those legs as Driving without a paid ride. Automatically detected drives may contain multiple rides; split or correct them using your platform records.",color=Muted)
+    }
     if(kind=="expense") Panel("Receipt") {
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-            OutlinedButton(onClick={picker.launch(arrayOf("image/jpeg","image/png","application/pdf"))}) {Text("Choose receipt")}
-            OutlinedButton(onClick={try {camera.launch(cameraUri)} catch(_: Exception) {repo.failure="No camera app is available. Choose a receipt file instead."}}) {Text("Camera")}
+            OutlinedButton(onClick={picker.launch(arrayOf("image/jpeg","image/png","application/pdf"))}) {Text("Choose receipt photo")}
+            OutlinedButton(onClick={try {camera.launch(cameraUri)} catch(_: Exception) {repo.failure="No camera app is available. Choose a receipt file instead."}}) {Text("Scan receipt")}
         }
         receiptBytes?.let { bytes -> val bitmap=remember(bytes) { BitmapFactory.decodeByteArray(bytes,0,bytes.size) }
             if(bitmap!=null) { Image(bitmap.asImageBitmap(),"Attached receipt",Modifier.fillMaxWidth().heightIn(max=300.dp))
@@ -118,7 +118,23 @@ import kotlin.math.abs
             }
         }
     }
-    Toggle("I checked any similar existing entry",duplicateConfirmed) {duplicateConfirmed=it}
+    if(kind=="expense") Panel {
+        NavigationRow("Business & vehicle details",{detailsExpanded=!detailsExpanded})
+        if(detailsExpanded) {
+            Field("Business purpose",purpose,{purpose=it.take(500)},true)
+            Field("Business use % (optional)",percent,{percent=it})
+            if(category=="meals") {
+                Field("People and business context",meal,{meal=it.take(500)},true)
+                Text("Food during an ordinary workday is not automatically a business deduction. Keep the context for your preparer.",color=Muted)
+            }
+            Field("Vehicle",vehicle,{vehicle=it.take(80)});Field("Odometer miles (optional)",odometer,{odometer=it})
+            Choice("Paid with",payment,linkedMapOf("cash" to "Cash","card" to "Card","bank" to "Bank","platform" to "Platform","other" to "Other")) {payment=it}
+            Field("Place",place,{place=it.take(240)})
+        }
+    }
+    val candidateCents=runCatching {StatementImport.cents(amount)}.getOrNull()
+    val similar=kind!="trip" && candidateCents!=null && repo.journal.visible.any {it.record.id!=original?.id && it.record.kind==kind && it.record.date==date && (if(kind=="expense")it.record.expense().amountCents else it.record.income().amountCents)==candidateCents}
+    if(similar) Toggle("I checked the similar existing entry",duplicateConfirmed) {duplicateConfirmed=it}
     Button(onClick={repo.run {
         val parsedDate=LocalDate.parse(date); val id=original?.id ?: uuid(); val revision=original?.revision ?: 0
         val reference=bank?.reference ?: original?.bankReference

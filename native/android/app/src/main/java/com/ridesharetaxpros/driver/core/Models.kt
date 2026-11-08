@@ -69,15 +69,23 @@ fun day(instant: String, zone: String = "UTC"): String = Instant.parse(instant).
     val ready get() = !pending && !removed && ignored != true && reviewedRecordId == null && amountCents != 0
     val reference get() = BankReference(id, provider, accountLabel)
 }
+@Serializable data class UniversalWorkProfile(val workLabel:String, val appURL:String?=null)
+
 @Serializable data class Journal(val version: Int = 1, val cursor: Long = 0, val entries: List<LocalEntry> = emptyList(),
     val receipts: List<LocalReceipt> = emptyList(), val activeTripId: String? = null, val tracker: TripAccumulator? = null,
     val lastSyncAt: String? = null, val goals: Goals = Goals(), val assistance: Assistance = Assistance(),
     val bankTransactions: List<BankTransaction> = emptyList(), val placePrompts: List<ExpensePrompt> = emptyList(),
     val bankCursor: Long = 0, val bankUpdatedAt: String? = null,
-    val mission: ShiftMission? = null, val waitSamples: List<WaitSample> = emptyList(),
+    val mission: ShiftMission? = null, val missionOffers: List<ComparedMissionOffer> = emptyList(), val waitSamples: List<WaitSample> = emptyList(),
     val vehicleReservePercent: Double? = null, val taxReservePercent: Double? = null,
     val offerReader: OfferReaderSettings = OfferReaderSettings(), val observedOffers: List<ObservedGigOffer> = emptyList(),
-    val tripAlerts: List<TripAlertToken> = emptyList()) {
+    val tripAlerts: List<TripAlertToken> = emptyList(),
+    val offerReviews: List<ReviewedGigOffer> = emptyList(),
+    val universalWorkProfiles: Map<String,UniversalWorkProfile> = emptyMap(),
+    val reputationState: ReputationState = ReputationState(), val reputationOutbox: List<ReputationMutation> = emptyList(),
+    val coachMessages: List<CoachMessage> = emptyList(), val coachOutbox: List<CoachPendingMessage> = emptyList(),
+    val coachIntake: CoachIntake = CoachIntake(), val coachIntakeMutationId: String? = null,
+    val coachMilestones: List<CoachMilestone> = emptyList(), val coachEngine: CoachEngine? = null) {
     val visible get() = entries.filter { !it.record.deleted }.sortedByDescending { it.record.date }
     val active get() = entries.firstOrNull { it.record.id == activeTripId }
     // A receipt selected in an editor is not yet an expense. If the editor is

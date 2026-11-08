@@ -19,8 +19,8 @@ import com.ridesharetaxpros.driver.data.*
 import com.ridesharetaxpros.driver.offers.*
 import java.time.Instant
 
-@Composable fun OfferReaderScreen(repo: DriverRepository) {
-    var platform by remember {mutableStateOf(repo.journal.offerReader.platform)}
+@Composable fun OfferReaderScreen(repo: DriverRepository,startingPlatform:String?=null) {
+    var platform by remember {mutableStateOf(startingPlatform ?: repo.journal.offerReader.platform)}
     var fees by remember {mutableStateOf(repo.journal.offerReader.feesCents?.let {"%.2f".format(java.util.Locale.US,it/100.0)} ?: "")}
     var wait by remember {mutableStateOf(repo.journal.offerReader.waitMinutes?.toString() ?: "")}
     var installed by remember {mutableStateOf<Map<String,String>>(emptyMap())}

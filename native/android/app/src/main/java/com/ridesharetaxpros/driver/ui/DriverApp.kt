@@ -3,9 +3,10 @@ package com.ridesharetaxpros.driver.ui
 import android.Manifest
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,93 +16,140 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
-import com.ridesharetaxpros.driver.R
 import com.ridesharetaxpros.driver.core.*
 import com.ridesharetaxpros.driver.data.*
 import com.ridesharetaxpros.driver.tracking.DriveService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable fun DriverApp(repo: DriverRepository) {
-    var tab by rememberSaveable { mutableStateOf("Today") }; var page by rememberSaveable { mutableStateOf<String?>(null) }
-    var editing by remember { mutableStateOf<DriverRecord?>(null) }; var bank by remember { mutableStateOf<BankTransaction?>(null) }
-    var prompt by remember { mutableStateOf<ExpensePrompt?>(null) }; var serviceAction by remember { mutableStateOf("START") }
-    LaunchedEffect(repo.requestedOfferReader) {if(repo.requestedOfferReader) {page="Offer reader";repo.requestedOfferReader=false}}
-    val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted ->
-        if(granted[Manifest.permission.ACCESS_FINE_LOCATION]==true) try { ContextCompat.startForegroundService(repo.app,Intent(repo.app,DriveService::class.java).setAction(serviceAction)) } catch(error: Exception) { repo.failure=error.message }
+    var tab by rememberSaveable { mutableStateOf("Home") }
+    var stack by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var serviceAction by rememberSaveable {mutableStateOf("START")}
+    var driveClass by rememberSaveable {mutableStateOf("unclassified")}
+    var drivePurpose by rememberSaveable {mutableStateOf("")}
+    val preferences=remember {repo.app.getSharedPreferences("onboarding",0)}
+    var tourSeen by rememberSaveable {mutableStateOf(preferences.getBoolean("gettingStartedSeen",false))}
+    fun navigate(route:String) {stack=stack+route}
+    fun back() {stack=stack.dropLast(1)}
+    fun endDrive() {repo.run {
+        repo.endDrive()
+        if(!repo.journal.assistance.automaticDrives && !repo.journal.assistance.placeReminders) repo.app.stopService(Intent(repo.app,DriveService::class.java))
+        else ContextCompat.startForegroundService(repo.app,Intent(repo.app,DriveService::class.java).setAction("STOP"))
+    }}
+    val permissions=rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { granted->
+        if(granted[Manifest.permission.ACCESS_FINE_LOCATION]==true) try {
+            ContextCompat.startForegroundService(repo.app,Intent(repo.app,DriveService::class.java).setAction(serviceAction)
+                .putExtra("classification",driveClass).putExtra("purpose",drivePurpose))
+        } catch(error:Exception) {repo.failure=error.message}
         else repo.failure="Precise location is needed to measure miles. Manual trips are available."
     }
-    fun tracking(action: String) { serviceAction=action; permissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION)+if(Build.VERSION.SDK_INT>=33) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray()) }
-    fun edit(record: DriverRecord) { editing=record; bank=null; prompt=null; page="Edit" }
-    BrandTheme { Scaffold(containerColor=Ink,topBar={ TopAppBar(title={ Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
-        Image(painterResource(R.drawable.brand_mark),null,Modifier.size(32.dp)); Text(page ?: "Gig Tax Pros",style=MaterialTheme.typography.titleLarge)
-    } },navigationIcon={ if(page!=null) IconButton(onClick={page=null;editing=null;bank=null;prompt=null}) { Icon(Icons.Default.ArrowBack,"Back") } }) },bottomBar={ if(page==null) NavigationBar(containerColor=Panel) {
-        listOf("Today" to Icons.Default.Home,"Trips" to Icons.Default.DirectionsCar,"Money" to Icons.Default.ReceiptLong,"Insights" to Icons.Default.BarChart,"Account" to Icons.Default.Person).forEach { (name,icon)->
-            NavigationBarItem(selected=tab==name,onClick={tab=name},icon={Icon(icon,name)},label={Text(name)}) }
-    } }) { padding ->
-        Column(Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(16.dp)) {
-            if(!repo.storageReady) Panel("Recording unavailable") { Text(repo.failure ?: "Storage is unavailable.") }
-            else when(page) {
-                "Edit" -> RecordEditor(repo,editing,bank,prompt) { page=null; editing=null; bank=null; prompt=null }
-                "Trip" -> editing?.let { TripDetail(repo,it,onEdit={page="Edit"}) }
-                "Goals" -> GoalEditor(repo) { page=null }
-                "Shift Mission" -> MissionScreen(repo)
-                "Offer reader" -> OfferReaderScreen(repo)
-                "Import statement" -> BankImport(repo) { page="Bank inbox" }
-                "Bank inbox" -> BankScreen(repo,onImport={page="Import statement"},onReview={bank=it;editing=null;prompt=null;page="Edit"})
-                "Driver Rewards" -> ReferralScreen(repo)
-                "Privacy" -> PrivacyScreen()
-                else -> when(tab) {
-                    "Today" -> {
-                        Panel("Shift Mission") {
-                            Text("Set your destination → choose where to wait → evaluate offers → earn toward home.",color=Muted)
-                            Button(onClick={page="Shift Mission"},Modifier.fillMaxWidth()) {Text(if(repo.journal.mission==null) "Create today's mission" else "Open my mission")}
-                            OutlinedButton(onClick={page="Offer reader"},Modifier.fillMaxWidth()) {Text("Should I take this job? · Read an offer")}
-                        }
-                        Panel("Drive with a clearer picture") {
-                            Text("Your miles. Your money. Your next goal.",color=Muted)
-                            val active=repo.journal.active?.record
-                            Text("%.2f mi".format((active?.trip()?.distanceMeters ?: 0.0)/1609.344),style=MaterialTheme.typography.displaySmall)
-                            Text(repo.trackingStatus,color=Muted)
-                            if(active==null) Button(onClick={tracking("START")},Modifier.fillMaxWidth()) { Text("Start drive") }
-                            else { Button(onClick={repo.run { repo.endDrive(); if(!repo.journal.assistance.automaticDrives && !repo.journal.assistance.placeReminders) repo.app.stopService(Intent(repo.app,DriveService::class.java)) else tracking("STOP") }},Modifier.fillMaxWidth()) { Text("End drive") }
-                                OutlinedButton(onClick={tracking("RESUME")}) { Text("Resume location tracking") } }
-                            Text("Detected drives need your review. A moving phone cannot identify a paid Uber or Lyft ride.",style=MaterialTheme.typography.bodySmall,color=Muted)
-                        }
-                        val total=insights(repo.journal.visible.map { it.record },repo.journal.goals,today(),today()).firstOrNull()
-                        Panel("Today at a glance") { Text("Income ${usd(total?.income ?: 0)} · business spending ${usd(total?.expenses ?: 0)}")
-                            Text("${repo.journal.visible.count { it.record.kind=="trip" && it.record.trip().classification=="unclassified" }} drives need review") }
-                        repo.journal.placePrompts.filterNot { it.dismissed }.reversed().take(6).forEach { item->Panel("Near ${item.merchant}") {
-                            Text("Did you make a purchase? ${expenseCategories[item.category]}")
-                            Button(onClick={prompt=item;editing=null;bank=null;page="Edit"}) { Text("Log expense") }
-                            TextButton(onClick={repo.run { repo.update { it.copy(placePrompts=it.placePrompts.map { p->if(p.id==item.id) p.copy(dismissed=true) else p }) } }}) { Text("Not a purchase") }
-                        } }
-                        Button(onClick={page="Driver Rewards"},Modifier.fillMaxWidth()) { Text("Invite a friend · earn $20 + points") }
-                    }
-                    "Trips" -> {
-                        Button(onClick={edit(DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual")))}) { Text("Add manual trip") }
-                        repo.journal.visible.filter { it.record.kind=="trip" }.forEach { entry-> val record=entry.record; Panel(record.title) {
-                            Text("${record.date} · %.2f mi · ${classifications[record.trip().classification]}".format(record.trip().distanceMeters/1609.344))
-                            TextButton(onClick={editing=record;page="Trip"}) { Text("Review trip") }
-                        } }
-                    }
-                    "Money" -> {
-                        Row(horizontalArrangement=Arrangement.spacedBy(12.dp)) { Button(onClick={edit(DriverRecord.expense(Expense(merchant="",amountCents=0)))}) { Text("Add expense") }; Button(onClick={edit(DriverRecord.income(Income(description="",amountCents=0)))}) { Text("Add income") } }
-                        OutlinedButton(onClick={page="Bank inbox"},Modifier.fillMaxWidth()) { Text("Banks & statement imports") }
-                        repo.journal.visible.filter { it.record.kind!="trip" }.forEach { entry->Panel(entry.record.title) {
-                            val r=entry.record; Text("${r.date} · ${usd(if(r.kind=="expense") r.expense().amountCents else r.income().amountCents)}")
-                            if(r.kind=="expense") Text("${expenseCategories[r.expense().category]} · ${classifications[r.expense().classification]}",color=Muted)
-                            TextButton(onClick={edit(r)}) { Text("Review details") }
-                        } }
-                    }
-                    "Insights" -> InsightsScreen(repo,onGoals={page="Goals"},onTrip={editing=it;page="Trip"})
-                    "Account" -> AccountScreen(repo,onRewards={page="Driver Rewards"},onPrivacy={page="Privacy"},onTracking={tracking("ASSIST")})
-                }
+    fun tracking(action:String) {
+        serviceAction=action
+        permissions.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION)+
+            if(Build.VERSION.SDK_INT>=33) arrayOf(Manifest.permission.POST_NOTIFICATIONS) else emptyArray())
+    }
+    LaunchedEffect(repo.requestedOfferReader) {if(repo.requestedOfferReader) {navigate("Offers");repo.requestedOfferReader=false}}
+    LaunchedEffect(Unit) {if(!tourSeen) navigate("Getting started")}
+    val page=stack.lastOrNull()
+    BackHandler(stack.isNotEmpty()) {back()}
+    val title=when {
+        page==null->when(tab) {"Position"->"Positioning";else->tab}
+        page.startsWith("Offer:")->"Offer details"
+        page.startsWith("Offer route:")->"Offer route home"
+        page.startsWith("Review offer:")->"Review offer fields"
+        page.startsWith("Capture:")->page.substringAfter(':')
+        page.startsWith("Trip:")->"Trip details"
+        page.startsWith("Edit:")->"Edit record"
+        page.startsWith("Prompt:")->"Add expense"
+        page.startsWith("Bank:")->"Review transaction"
+        else->page
+    }
+    BrandTheme {Scaffold(containerColor=Ink,topBar={if(page!=null || tab!="Home") {
+        CenterAlignedTopAppBar(title={Text(title,style=MaterialTheme.typography.titleMedium)},
+            colors=TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor=Ink),
+            navigationIcon={if(page!=null) IconButton(onClick={back()}) {Icon(Icons.Default.ArrowBack,"Back")}},
+            actions={if(page!=null) TextButton(onClick={
+                if(page=="Getting started") {preferences.edit().putBoolean("gettingStartedSeen",true).apply();tourSeen=true}
+                stack=emptyList()
+            }) {Text(if(page=="Getting started" && !tourSeen) "Skip for now" else "Done",color=Pink)}})
+    }},bottomBar={if(page==null) {
+        NavigationBar(containerColor=Color(0xFF16131F),tonalElevation=0.dp) {
+            listOf("Home" to Icons.Default.Home,"Offers" to Icons.Default.Bolt,"Go Home" to Icons.Default.Navigation,
+                "Position" to Icons.Default.MyLocation,"Earnings" to Icons.Default.BarChart).forEach { (name,icon)->
+                NavigationBarItem(selected=tab==name,onClick={tab=name},icon={Icon(icon,name)},label={Text(name)},
+                    colors=NavigationBarItemDefaults.colors(selectedIconColor=Color.White,selectedTextColor=Color.White,
+                        unselectedIconColor=Color.White.copy(alpha=.72f),unselectedTextColor=Color.White.copy(alpha=.72f),indicatorColor=Color.White.copy(alpha=.13f)))
             }
-            Spacer(Modifier.height(24.dp))
         }
-        repo.failure?.let { error -> AlertDialog(onDismissRequest={repo.failure=null},title={Text("Please review")},text={Text(error)},confirmButton={TextButton(onClick={repo.failure=null}) { Text("OK") }}) }
-    } }
+    }}) {padding->
+        key(repo.scope,page ?: tab) {
+            if(page=="Screenshot guide") Box(Modifier.padding(padding).fillMaxSize()) {ScreenshotGuideScreen(::navigate,::back)}
+            else Column(Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal=16.dp,vertical=10.dp),
+                verticalArrangement=Arrangement.spacedBy(14.dp)) {
+                if(!repo.storageReady) Panel("Recording unavailable") {Text(repo.failure ?: "Storage is unavailable.")}
+                else when {
+                    page==null->when(tab) {
+                        "Home"->HomeDashboard(repo,::navigate,{tab=it},::endDrive)
+                        "Offers"->OffersInboxScreen(repo,::navigate)
+                        "Go Home"->MissionScreen(repo,::navigate)
+                        "Position"->PositionScreen(repo)
+                        "Earnings"->InsightsScreen(repo,{navigate("Goals")},{navigate("Trip:${it.id}")})
+                    }
+                    page=="Getting started"->GettingStartedScreen(repo,{preferences.edit().putBoolean("gettingStartedSeen",true).apply();tourSeen=true;back()},::navigate)
+                    page=="Trips"->TripsScreen(repo,::navigate)
+                    page=="Money"->MoneyScreen(repo,::navigate)
+                    page=="Spending & review"->SpendingReviewScreen(repo)
+                    page=="Account"->AccountHubScreen(repo,::navigate,{tracking("ASSIST")})
+                    page=="Driving & expense reminders"->AssistanceScreen(repo,{tracking("ASSIST")})
+                    page=="Driver Rewards"->ReferralScreen(repo)
+                    page=="App privacy & data" || page=="Privacy"->PrivacyScreen()
+                    page=="Alerts & reminders"->AlertsScreen(repo,::navigate)
+                    page=="Goals"->GoalEditor(repo,::back)
+                    page=="Position"->PositionScreen(repo)
+                    page=="Start a drive"->StartDriveScreen {classification,purpose->driveClass=classification;drivePurpose=purpose;tracking("START");back()}
+                    page=="Add expense"->RecordEditor(repo,DriverRecord.expense(Expense(merchant="",amountCents=0)),null,null,::back)
+                    page=="Add income"->RecordEditor(repo,DriverRecord.income(Income(description="",amountCents=0)),null,null,::back)
+                    page=="Add manual trip"->RecordEditor(repo,remember {DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual"))},null,null,::back)
+                    page.startsWith("Edit:")->RecordEditor(repo,repo.journal.visible.firstOrNull {it.record.id==page.substringAfter(':')}?.record,null,null,::back)
+                    page.startsWith("Trip:")->repo.journal.visible.firstOrNull {it.record.id==page.substringAfter(':')}?.let {TripDetail(repo,it.record,{navigate("Edit:${it.record.id}")})}
+                    page.startsWith("Prompt:")->RecordEditor(repo,null,null,repo.journal.placePrompts.firstOrNull {it.id==page.substringAfter(':')},::back)
+                    page=="Bank inbox"->BankScreen(repo,{navigate("Import statement")},{navigate("Bank:${it.id}")})
+                    page.startsWith("Bank:")->RecordEditor(repo,null,repo.journal.bankTransactions.firstOrNull {it.id==page.substringAfter(':')},null,::back)
+                    page=="Import statement"->BankImport(repo,::back)
+                    page=="Offers"->OffersInboxScreen(repo,::navigate)
+                    page=="Offer settings"->OfferPlatformsScreen(repo,::navigate)
+                    page=="Offer reader"->OfferReaderScreen(repo)
+                    page.startsWith("Offer reader:")->OfferReaderScreen(repo,page.substringAfter(':'))
+                    page=="Enter offer"->ManualOfferScreen(repo,::back)
+                    page=="Choose screenshot"->ScreenshotImportScreen(repo,::navigate)
+                    page=="Screenshot guide"->Unit
+                    page=="Sample shift"->SampleOffersScreen(repo,::navigate)
+                    page.startsWith("Offer:")->OfferDetailScreen(repo,page.substringAfter(':'),::navigate)
+                    page.startsWith("Offer route:")->OfferRouteScreen(repo,page.substringAfter(':'))
+                    page.startsWith("Review offer:")->ManualOfferScreen(repo,::back,page.substringAfter(':'))
+                    page=="Capture diagnostics" || page=="Offer Capture Diagnostics"->OfferDiagnosticsScreen(repo,navigate=::navigate)
+                    page.startsWith("Capture:")->OfferDiagnosticsScreen(repo,page.substringAfter(':'),navigate=::navigate)
+                    page=="Ratings & reviews"->ReputationScreen(repo,::navigate)
+                    page=="Add rating"->ReputationEntryScreen(repo,"rating",::back)
+                    page=="Add review"->ReputationEntryScreen(repo,"review",::back)
+                    page=="Get help"->OfficeHelpScreen(repo,::navigate)
+                    page=="Tax & Goals"->TaxCoachScreen(repo,::navigate)
+                    page=="Tax details"->CoachIntakeScreen(repo,::back)
+                    page=="Universal Delivery" || page=="In-store Shopper"->UniversalWorkScreen(repo,page,::navigate)
+                    page=="Log shopping job" || page=="Log delivery job"->RecordEditor(repo,remember {DriverRecord.trip(Trip.local().copy(endedAt=now(),source="manual",purpose=page,
+                        rideRole=if(page=="Log shopping job") "shopping" else "delivery",distanceMeters=0.0))},null,null,::back)
+                    page=="Connected jobs & pay" || page=="Connected work"->ConnectedWorkScreen(repo)
+                    page=="Planning reserves & history" || page=="Planning reserves"->ReserveHistoryScreen(repo)
+                    page=="My tax documents & progress"->TaxDocumentsScreen(repo)
+                    page=="Protected data"->ProtectedDataScreen(repo)
+                }
+                Spacer(Modifier.height(24.dp))
+            }
+        }
+        repo.failure?.let {error->AlertDialog(onDismissRequest={repo.failure=null},title={Text("Please review")},text={Text(error)},
+            confirmButton={TextButton(onClick={repo.failure=null}) {Text("OK")}})}
+    }}
 }

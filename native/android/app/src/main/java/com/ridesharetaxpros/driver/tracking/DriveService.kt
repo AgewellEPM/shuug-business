@@ -47,7 +47,7 @@ class DriveService: Service(),LocationListener {
             }
             if(intent?.action=="STOP") { repo.endDrive(); suppressedUntil=Instant.now().plusSeconds(300) }
             if(intent?.action=="OFF") { stopSelf(); return START_NOT_STICKY }
-            if(intent?.action=="START" && repo.journal.activeTripId==null) repo.startDrive()
+            if(intent?.action=="START" && repo.journal.activeTripId==null) repo.startDrive(classification=intent.getStringExtra("classification") ?: "unclassified",purpose=intent.getStringExtra("purpose") ?: "")
             if(repo.journal.activeTripId==null && !repo.journal.assistance.automaticDrives && !repo.journal.assistance.placeReminders) { stopSelf(); return START_NOT_STICKY }
             check(repo.storageReady); require(checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)==PackageManager.PERMISSION_GRANTED) { "Allow precise location while using the app, then start tracking again." }
             startForeground(1,notification("Location tracking active",if(repo.journal.activeTripId==null) "Watching for driving and nearby stops" else "Recording your drive. Tap to review or end."))

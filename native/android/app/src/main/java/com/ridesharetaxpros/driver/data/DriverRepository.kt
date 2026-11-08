@@ -9,6 +9,8 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 
+private val classificationsForDrive=setOf("unclassified","business","personal")
+
 class DriverApplication: Application() { val repository by lazy { DriverRepository(this) } }
 class DriverRepository(val app: Application) {
     val store=PrivateStore(app)
@@ -59,7 +61,7 @@ class DriverRepository(val app: Application) {
         app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=null; journal=guest; rewards=null; bankStatus=null
     }
-    fun transferGuest() {
+    fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false) {
         check(connection!=null && journal.activeTripId==null); val guest=store.journal("guest"); check(guest.activeTripId==null)
         guest.receipts.forEach { store.saveReceipt(scope,it.id,store.receipt("guest",it.id)) }
         guest.entries.filter { it.record.kind=="trip" && journal.entries.none { old->old.record.id==it.record.id } }.forEach { store.copyRoute("guest",scope,it.record.id) }
@@ -69,7 +71,12 @@ class DriverRepository(val app: Application) {
                 bankTransactions=mergeBank(next.bankTransactions,guest.bankTransactions),goals=guest.goals,assistance=guest.assistance,
                 placePrompts=(next.placePrompts+guest.placePrompts).distinctBy { it.id }.takeLast(100),
                 mission=next.mission ?: guest.mission,waitSamples=(next.waitSamples+guest.waitSamples).distinct().takeLast(1000),
-                vehicleReservePercent=next.vehicleReservePercent ?: guest.vehicleReservePercent,taxReservePercent=next.taxReservePercent ?: guest.taxReservePercent) }
+                vehicleReservePercent=next.vehicleReservePercent ?: guest.vehicleReservePercent,taxReservePercent=next.taxReservePercent ?: guest.taxReservePercent).let {copied ->
+                    var result=copied
+                    if(includeReputation) result=result.copyGuestReputation(guest)
+                    if(includeCoach) result=result.copyGuestCoach(guest)
+                    result
+                } }
         // Keep the guest source as a recoverable copy; stable record IDs make repeats safe.
     }
     suspend fun sync() {
@@ -128,8 +135,8 @@ class DriverRepository(val app: Application) {
             val bytes=WorkspaceClient(active).send("receipts/$id"); check(namespace==scope); store.saveReceipt(namespace,id,bytes); bytes
         }
     }
-    fun startDrive(automatic: Boolean=false,startedAt: String=now()) {
-        check(journal.activeTripId==null); val record=DriverRecord.trip(Trip.local(startedAt).copy(automaticallyDetected=automatic))
+    fun startDrive(automatic: Boolean=false,startedAt: String=now(),classification: String="unclassified",purpose: String="") {
+        check(journal.activeTripId==null); val record=DriverRecord.trip(Trip.local(startedAt).copy(automaticallyDetected=automatic,classification=classification.takeIf {it in classificationsForDrive} ?: "unclassified",purpose=purpose.take(240)))
         update { it.upsert(record).copy(activeTripId=record.id,tracker=TripAccumulator()) }
     }
     fun observe(fix: LocationFix,clock: java.time.Instant=java.time.Instant.now()) {

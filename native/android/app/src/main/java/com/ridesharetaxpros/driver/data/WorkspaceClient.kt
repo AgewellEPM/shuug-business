@@ -20,8 +20,11 @@ class WorkspaceError(val status: Int,message: String,val current: ServerRecord? 
 @Serializable data class BankFeed(val transactions: List<BankTransaction>,val cursor: Long,val hasMore: Boolean)
 
 class WorkspaceClient(val connection: Connection? = null,private val address: String = connection?.origin ?: "") {
-    suspend fun send(path: String,method: String="GET",body: ByteArray?=null,mime: String="application/json"): ByteArray = withContext(Dispatchers.IO) {
-        val url=URI(address+"/api/website/customer/driver/"+path).toURL()
+    suspend fun send(path: String,method: String="GET",body: ByteArray?=null,mime: String="application/json"): ByteArray = request("driver/"+path,method,body,mime,8*1024*1024)
+    suspend fun customer(path: String,method: String="GET",body: ByteArray?=null,mime: String="application/json",maximum:Int=8*1024*1024): ByteArray = request(path,method,body,mime,maximum)
+    private suspend fun request(path: String,method: String,body: ByteArray?,mime: String,maximum:Int): ByteArray = withContext(Dispatchers.IO) {
+        require(!path.startsWith("/") && !path.contains("..") && !path.contains("#")) {"Invalid workspace path."}
+        val url=URI(address+"/api/website/customer/"+path).toURL()
         val request=url.openConnection() as HttpURLConnection
         try {
             request.instanceFollowRedirects=false; request.requestMethod=method; request.connectTimeout=20000; request.readTimeout=60000
@@ -30,8 +33,8 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
             body?.let { request.doOutput=true; request.setRequestProperty("Content-Type",mime); request.setFixedLengthStreamingMode(it.size); request.outputStream.use { stream -> stream.write(it) } }
             val status=request.responseCode
             val stream=if(status in 200..299) request.inputStream else request.errorStream
-            val data=stream?.use { boundedRead(it,8*1024*1024) } ?: byteArrayOf()
-            require(data.size<=8*1024*1024) { "The workspace response is too large." }
+            val data=stream?.use { boundedRead(it,maximum) } ?: byteArrayOf()
+            require(data.size<=maximum) { "The workspace response is too large." }
             if(status !in 200..299) {
                 val failure=runCatching { Wire.decodeFromString<Failure>(data.toString(Charsets.UTF_8)) }.getOrNull()
                 throw WorkspaceError(status,failure?.error ?: "Workspace request failed ($status). Saved records are kept.",failure?.current)
@@ -58,7 +61,7 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
             return "https://$host"
         }
         suspend fun discover(): String? = withContext(Dispatchers.IO) {
-            val request=URI("https://rideshare-tax-pros.pages.dev/site-config.json").toURL().openConnection() as HttpURLConnection
+            val request=URI("https://gigtax.pro/site-config.json").toURL().openConnection() as HttpURLConnection
             try {
                 request.instanceFollowRedirects=false; request.connectTimeout=15000; request.readTimeout=15000
                 require(request.responseCode==200)

@@ -36,7 +36,7 @@ data class RideProfit(val record: DriverRecord, val goals: Goals) {
     val minutes=trip.endedAt?.let { max(0.0,Duration.between(Instant.parse(trip.startedAt),Instant.parse(it)).toMillis()/60000.0) } ?: 0.0
     val fare=if(trip.rideRole=="reposition") 0 else trip.earningsCents
     val fees=if(trip.rideRole=="reposition") 0 else trip.platformFeesCents
-    val vehicle=goals.vehicleCostCentsPerMile?.takeIf { it.isFinite() && it in 0.0..10000.0 }?.let { (it*miles).roundToInt() }
+    val vehicle=if(miles==0.0 && trip.rideRole=="shopping") 0 else goals.vehicleCostCentsPerMile?.takeIf { it.isFinite() && it in 0.0..10000.0 }?.let { (it*miles).roundToInt() }
     val net=if(fare!=null && fees!=null && vehicle!=null) fare-fees-vehicle else null
     val hourly=net?.takeIf { minutes>=1 }?.let { it/(minutes/60) }
     val perMile=net?.takeIf { miles>0 }?.let { it/miles }
