@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T22:10:30.060Z",
+  "scope": "Live public first-party website via actual DNS-pinned researchOffice transport; read-only, no CRM writes or outreach",
+  "officialSource": "https://murraystax.com/",
+  "moduleSha256": "bbeebb4a1497115b43bfd59c2ff2955d325da2a15ede6b52f5588d371bfd4f3b",
+  "checks": {
+    "publishedEmail": true,
+    "publishedOfficePhone": true,
+    "publishedNamedContact": true,
+    "faxNotProposed": true,
+    "ownershipNotAutoConfirmed": true,
+    "firstPartyOnly": true,
+    "noIssues": true
+  },
+  "limits": {
+    "maxPages": 3,
+    "maxBytesPerPage": 262144,
+    "totalTimeoutMs": 20000,
+    "rendering": "Server HTML only; external CSS/JS not rendered",
+    "identity": "Published contact/role are evidence candidates; independent ownership still requires explicit human confirmation"
+  },
+  "sideEffects": {
+    "databaseWrites": false,
+    "outreachSent": false,
+    "paymentOperations": false,
+    "browserRuntime": false
+  }
+}

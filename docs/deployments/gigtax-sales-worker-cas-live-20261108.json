@@ -1,0 +1,86 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T22:47:07.426Z",
+  "scope": "Sanitized publication and artifact verification for the conditional board-row update. No credentials, raw settings or Worker bundle are included.",
+  "worker": "tinkyspeak-tiles",
+  "publication": {
+    "method": "content-only PUT",
+    "previousVersion": "94bc5a75-8f80-4dd8-b9a0-762c1acb56a6",
+    "previousDeployment": "66b85d27-00ed-4b93-9901-e09e588014e0",
+    "version": "2a2efa04-4987-4456-98ce-fde58b03426b",
+    "deployment": "010e0b3e-e410-4c97-8aff-ce70bdb29f6c",
+    "trafficPercent": 100,
+    "rollbackVersion": "94bc5a75-8f80-4dd8-b9a0-762c1acb56a6",
+    "freshDeploymentAndConfigurationGuardPassed": true,
+    "liveBundleMatchesCandidate": true
+  },
+  "artifact": {
+    "targetFunction": "handlePatchBoardRow",
+    "sourceCheckpoint": "73869ea",
+    "baseline": "Exact downloaded active Worker bundle; equivalence of the complete local source tree was not assumed.",
+    "previousBytes": 2093300,
+    "bytes": 2094084,
+    "previousSha256": "89e30e901989a537dac9cd0c4f64038796e5372c78e25fa3f680b2238053b557",
+    "sha256": "37ebd23c057baddf40ea13e08029d19faab4c8d67cad1a84edbec05e20070139",
+    "targetBaselineAstMatches": true,
+    "candidateMatchesTestedFunction": true,
+    "outsideTargetByteIdentical": true,
+    "unchangedPrefixBytes": 623894,
+    "unchangedSuffixBytes": 1466439,
+    "outsideTargetSha256": "bb0c9e79eb033d61b6113c9adc689f1240ce77297a2661b30079fd4aa37759f6",
+    "independentArtifactReviewPassed": true
+  },
+  "configuration": {
+    "allOperationalSettingsPreserved": true,
+    "bindingCount": 13,
+    "allBindingDefinitionsPreserved": true,
+    "compatibilityDate": "2024-09-25",
+    "compatibilityFlags": [],
+    "migrationTag": "v2",
+    "migrationPreserved": true,
+    "fullSettingsObjectIdentical": false,
+    "automaticMetadataChange": {
+      "field": "annotations.workers/triggered_by",
+      "before": "version_upload",
+      "after": "upload",
+      "classification": "Cloudflare-generated deployment-origin annotation; no operational configuration or binding changed."
+    }
+  },
+  "verification": {
+    "exactCandidateRuntime": "Installed Cloudflare local Worker runtime with synthetic D1 storage; entrypoint was the staged live-bundle candidate.",
+    "focusedTestsPassed": 47,
+    "focusedTestsFailed": 0,
+    "testFiles": [
+      "worker/test/boards_rows_cas.test.js",
+      "worker/test/boards_router.test.js"
+    ],
+    "candidateTestsIncluded": [
+      "Two competing updates with the same notes snapshot produce exactly one success and one conflict.",
+      "A failed precondition does not change notes, status, timestamp or audit history.",
+      "NULL and empty notes are distinct; tenant and board boundaries remain enforced.",
+      "Legacy requests without expected_notes preserve their response contract."
+    ],
+    "warning": "The existing deployed bundle references an unavailable source map. This warning did not fail the candidate tests."
+  },
+  "downstream": {
+    "evidence": "gigtax-sales-backend-proof-20261108.json",
+    "ok": true,
+    "verifiedAt": "2026-11-08T22:47:38.241Z",
+    "checksPassed": 7,
+    "uniqueHartfordCandidates": 161,
+    "diagnosticBoardsArchived": 4,
+    "realOfficesModified": false,
+    "contactsSent": false,
+    "paymentsMade": false
+  },
+  "cleanup": {
+    "temporaryCallbackHelpersExited": true,
+    "callbackListenerClosed": true,
+    "callbackPort": 8976,
+    "localCandidateTestRuntimeExited": true
+  },
+  "limits": [
+    "This receipt does not establish Stripe or mail-provider activation. No payment or outreach was performed.",
+    "Candidate runtime tests used synthetic storage; separate downstream evidence records the isolated real-backend checks."
+  ]
+}

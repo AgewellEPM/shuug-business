@@ -1,0 +1,26 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T22:47:38.241Z",
+  "checks": [
+    "same-snapshot conditional D1 writes produce one success and one conflict",
+    "real stored agent credentials authenticate",
+    "fresh adapter reads persisted ZIP, assignment, sourced contact, explicit proof, draft and follow-up",
+    "synthetic invitation retains exact terms and missing Stripe prevents activation without payment",
+    "persisted do-not-contact blocks research, drafts and invitation access",
+    "real assignment isolation and persisted agent revocation",
+    "real IRS directory reaches every unique candidate across all pages"
+  ],
+  "scope": "Actual Worker/D1, isolated synthetic boards and injected research; no outreach or payment.",
+  "discovery": {
+    "state": "CT",
+    "city": "Hartford",
+    "total": 161,
+    "uniqueCandidatesReached": 161
+  },
+  "diagnosticBoardsArchived": [
+    "b_mi6y2l0kw3",
+    "b_h42n392wss",
+    "b_z3glpc0jz1",
+    "b_juht3rsyb3"
+  ]
+}

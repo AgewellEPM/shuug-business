@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "deployment": "dpl_33EqKAuAutyS6v4ReoGu8jQu9Uzu",
+  "verifiedAt": "2026-11-08T22:49:21.759Z",
+  "checks": [
+    "anonymous denial and authenticated owner bootstrap with protected session cookie",
+    "all real IRS discovery pages reachable with stable unique IDs and no inferred ownership",
+    "seven private sales assets match the prepared deployment byte for byte",
+    "apex and www preserve the exact current public homepage",
+    "foreign-origin requests and unsigned webhooks denied; public directory remains readable"
+  ],
+  "scope": "Read-only deployed API and exact private assets/public homepage; no prospect writes, outreach or payment.",
+  "workspace": {
+    "offices": 0,
+    "agents": 0,
+    "paymentsConfigured": false,
+    "termsPublished": true
+  },
+  "discovery": {
+    "total": 161,
+    "uniqueCandidatesReached": 161,
+    "pages": 4,
+    "withPhone": 161,
+    "withNamedContact": 161
+  },
+  "publishedOfficeCount": 0,
+  "probeLogoutStatus": 200,
+  "limits": "No real mailbox or Stripe credentials configured; sending, checkout, recurring billing and physical-phone acceptance remain unverified."
+}

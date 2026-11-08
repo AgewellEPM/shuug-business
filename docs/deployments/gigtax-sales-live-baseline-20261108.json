@@ -1,0 +1,478 @@
+{
+  "retrievedAt": "2026-11-08T22:47:21.050433+00:00",
+  "deploymentId": "dpl_5H37bhiFyQ3x4ch7Q1ApW2PmE4sC",
+  "deploymentURL": "https://rideshare-tax-pros-qaelr5bh4-lukekist-2968s-projects.vercel.app",
+  "projectId": "prj_bOMkaHb4SWjMAgwXfEJa7mQfjRrz",
+  "orgId": "team_KbZcSA3vllTFUuB0DJJVeW83",
+  "source": "Authenticated read-only Vercel GET /v6/deployments/{id}/files; file uid verified against SHA1 of each local artifact.",
+  "artifacts": [
+    {
+      "path": "config.json",
+      "sha1": "3f44ce06a5ccda7e38313c0763c4d4a55f749f8f"
+    },
+    {
+      "path": "functions/api/offices.func/.vc-config.json",
+      "sha1": "e49aa2b9a1564771194e44f89bfc719c0afca8be"
+    },
+    {
+      "path": "functions/api/offices.func/backend.mjs",
+      "sha1": "0bba65388d4fc7e5ee684100e71d4c43c425be55"
+    },
+    {
+      "path": "functions/api/offices.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf"
+    },
+    {
+      "path": "functions/api/offices.func/directory.mjs",
+      "sha1": "787799b94936e93775454c25a28ad9cbedcc6b12"
+    },
+    {
+      "path": "functions/api/offices.func/discovery.mjs",
+      "sha1": "39732f1d30b3f2a49512b536a24ff9621f3facb2"
+    },
+    {
+      "path": "functions/api/offices.func/handler.mjs",
+      "sha1": "1386078fce3694acdb89ddb8d5ff098cd6a9373f"
+    },
+    {
+      "path": "functions/api/offices.func/model.mjs",
+      "sha1": "404d701da06659eb6600b2199672c403c97c775b"
+    },
+    {
+      "path": "functions/api/offices.func/payments.mjs",
+      "sha1": "cff43df85685004530e2a062f7e36e5399d48530"
+    },
+    {
+      "path": "functions/api/offices.func/service.mjs",
+      "sha1": "06bf29cbbc387386caf8d9a2fe599ff42f91287a"
+    },
+    {
+      "path": "functions/api/offices.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b"
+    },
+    {
+      "path": "functions/api/offices.func/webhook.mjs",
+      "sha1": "2bdff8060b2974e736c6f0b227af2893e541d6c2"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/.vc-config.json",
+      "sha1": "f85e669b9d5ce1a72604192972fcebf62a93ca2b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/backend.mjs",
+      "sha1": "0bba65388d4fc7e5ee684100e71d4c43c425be55"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/directory.mjs",
+      "sha1": "787799b94936e93775454c25a28ad9cbedcc6b12"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/discovery.mjs",
+      "sha1": "39732f1d30b3f2a49512b536a24ff9621f3facb2"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/handler.mjs",
+      "sha1": "1386078fce3694acdb89ddb8d5ff098cd6a9373f"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/model.mjs",
+      "sha1": "404d701da06659eb6600b2199672c403c97c775b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/payments.mjs",
+      "sha1": "cff43df85685004530e2a062f7e36e5399d48530"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/service.mjs",
+      "sha1": "06bf29cbbc387386caf8d9a2fe599ff42f91287a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/webhook.mjs",
+      "sha1": "2bdff8060b2974e736c6f0b227af2893e541d6c2"
+    },
+    {
+      "path": "functions/api/sales.func/.vc-config.json",
+      "sha1": "0bc56e78c1fd8bf24593772569ba97ac9664a017"
+    },
+    {
+      "path": "functions/api/sales.func/backend.mjs",
+      "sha1": "0bba65388d4fc7e5ee684100e71d4c43c425be55"
+    },
+    {
+      "path": "functions/api/sales.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf"
+    },
+    {
+      "path": "functions/api/sales.func/directory.mjs",
+      "sha1": "787799b94936e93775454c25a28ad9cbedcc6b12"
+    },
+    {
+      "path": "functions/api/sales.func/discovery.mjs",
+      "sha1": "39732f1d30b3f2a49512b536a24ff9621f3facb2"
+    },
+    {
+      "path": "functions/api/sales.func/handler.mjs",
+      "sha1": "1386078fce3694acdb89ddb8d5ff098cd6a9373f"
+    },
+    {
+      "path": "functions/api/sales.func/model.mjs",
+      "sha1": "404d701da06659eb6600b2199672c403c97c775b"
+    },
+    {
+      "path": "functions/api/sales.func/payments.mjs",
+      "sha1": "cff43df85685004530e2a062f7e36e5399d48530"
+    },
+    {
+      "path": "functions/api/sales.func/service.mjs",
+      "sha1": "06bf29cbbc387386caf8d9a2fe599ff42f91287a"
+    },
+    {
+      "path": "functions/api/sales.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b"
+    },
+    {
+      "path": "functions/api/sales.func/webhook.mjs",
+      "sha1": "2bdff8060b2974e736c6f0b227af2893e541d6c2"
+    },
+    {
+      "path": "static/.well-known/apple-app-site-association",
+      "sha1": "07e815340879c78ac6dcc8fdbecb4ac6c663454c"
+    },
+    {
+      "path": "static/404.html",
+      "sha1": "580ad0c1935fee30f87d2f104067b5fa5950b308"
+    },
+    {
+      "path": "static/about.css",
+      "sha1": "1fba8f327897d4700d1f0b11e5bbdd76d8133e35"
+    },
+    {
+      "path": "static/about.html",
+      "sha1": "2679a9b90edd1521eab401384682d9bcce09290e"
+    },
+    {
+      "path": "static/accessibility.html",
+      "sha1": "a93e6a88bb20b899af5b2169231f0ab629fb75bc"
+    },
+    {
+      "path": "static/app-download.css",
+      "sha1": "db2705d7edac47e9e55605bf49bc7c37f200fa2b"
+    },
+    {
+      "path": "static/app-download.js",
+      "sha1": "3b6bb4a63c289bd56c79b970aba6da5aec1d55a0"
+    },
+    {
+      "path": "static/app-features.html",
+      "sha1": "a471b23fdd3c4f73e01f3005ed604cf989b61a8c"
+    },
+    {
+      "path": "static/app.js",
+      "sha1": "002a962480fa7af68c1968e5de3b6f85d0326c7b"
+    },
+    {
+      "path": "static/assets/about-reference.png",
+      "sha1": "22b7ca4ce7ad93489824a2744721ef4216cf81ea"
+    },
+    {
+      "path": "static/assets/app-download-qr.svg",
+      "sha1": "2e45b4b3fdf1945eba199103c67d4048b25990d4"
+    },
+    {
+      "path": "static/assets/app-download-reference.png",
+      "sha1": "43d041dbedd50b96921514fc6d2f2caf838bebd4"
+    },
+    {
+      "path": "static/assets/artwork.png",
+      "sha1": "9542c99ba9e74cfdd2352ae87d0ec6ca49017f99"
+    },
+    {
+      "path": "static/assets/brand-mark.svg",
+      "sha1": "3397bf910cb4a6e482c30404188752e5c77c3f1d"
+    },
+    {
+      "path": "static/assets/drivers-reference.png",
+      "sha1": "aaadddc72ad22f2875e47690db161f55b7babf16"
+    },
+    {
+      "path": "static/assets/get-the-app-reference.png",
+      "sha1": "7c6589de73726c8616ddde6dcf03ec1e3a3cb701"
+    },
+    {
+      "path": "static/assets/how-it-works-reference.png",
+      "sha1": "798406d6a56f991f84c4c04c8f801bfcf9bb1d1a"
+    },
+    {
+      "path": "static/assets/platforms/SOURCES.md",
+      "sha1": "464c7ef2781c7e7b67d663bad0994fa929045cd6"
+    },
+    {
+      "path": "static/assets/platforms/amazon-flex.svg",
+      "sha1": "d3eaebed08f963b247d8c4b11cd314cd0c357622"
+    },
+    {
+      "path": "static/assets/platforms/doordash.svg",
+      "sha1": "285b9753f5232734b24fb91ea97c271a38894a88"
+    },
+    {
+      "path": "static/assets/platforms/instacart.svg",
+      "sha1": "ada4ef5475ae55bd49653a244be0db2b7e700b8b"
+    },
+    {
+      "path": "static/assets/platforms/lyft.png",
+      "sha1": "da0f90d13420bf9e9245a21dd43b7717f2e7d13b"
+    },
+    {
+      "path": "static/assets/platforms/uber.svg",
+      "sha1": "021f52e8447d09d5113eb2b29c813d75aee1f6f8"
+    },
+    {
+      "path": "static/assets/services-reference.png",
+      "sha1": "2fcdec0ea6d2cfc43a8ed5a8554f0046b3d06aaf"
+    },
+    {
+      "path": "static/assets/us-national-vision.svg",
+      "sha1": "b7952bdf393eeaee49c193c0f237fd28ebf3d520"
+    },
+    {
+      "path": "static/bank-return.html",
+      "sha1": "2647aeffc1d6d56612e3d2a506e9a1f319655bfe"
+    },
+    {
+      "path": "static/bookkeeping.html",
+      "sha1": "3c8868a8f5ecd0accffeefd069f141b65c8912b4"
+    },
+    {
+      "path": "static/client-portal.html",
+      "sha1": "bf80b5f6d66592d7e486737df4886c7347f5beb5"
+    },
+    {
+      "path": "static/contact.html",
+      "sha1": "78d8ace5c28278ad50160b7fdb9230b4dd3513d9"
+    },
+    {
+      "path": "static/directory-admin.js",
+      "sha1": "52d465addedac4b209fe3eed3b1c349b4ca89493"
+    },
+    {
+      "path": "static/document-checklist.html",
+      "sha1": "ee8d3e3a5ecda1fa30ad4b28625368960b981dfe"
+    },
+    {
+      "path": "static/drivers.css",
+      "sha1": "9a5db8852ef8fcb9a96923ce965d23d25ef77c7c"
+    },
+    {
+      "path": "static/drivers.html",
+      "sha1": "4bcc5bcde028d58553dca93b4dc21feeee2fd1b7"
+    },
+    {
+      "path": "static/faq.html",
+      "sha1": "36097a32c6473870c62c49f52c91395faa2fef03"
+    },
+    {
+      "path": "static/favicon.svg",
+      "sha1": "ff23d42d3cd289e5827516c4207fc0c89884ebab"
+    },
+    {
+      "path": "static/free.html",
+      "sha1": "0a3ee69b4d9d5ae2a2e05fc029fd8fff0d1a743f"
+    },
+    {
+      "path": "static/get-started.html",
+      "sha1": "d4ff65534407e8ecbd126ffd8650c3c5b2cdbbd7"
+    },
+    {
+      "path": "static/get-the-app.css",
+      "sha1": "6c66e78b1c3676817a5187ba5846b608f0eeeac0"
+    },
+    {
+      "path": "static/get-the-app.html",
+      "sha1": "b05ecf1187cd5356446037382caaef165dc3de62"
+    },
+    {
+      "path": "static/get-the-app.js",
+      "sha1": "910e2a29bc2ebb4a85819257a8a6a17f23dfd493"
+    },
+    {
+      "path": "static/guides/uber-lyft-tax-forms.html",
+      "sha1": "8e44c6cc0a366c8563d0ab2c71c52a0dfda19a17"
+    },
+    {
+      "path": "static/hero-mobile.css",
+      "sha1": "229d76a30e148f0292f10c34a11b0aa2e3f8de74"
+    },
+    {
+      "path": "static/hero-parallax.js",
+      "sha1": "e578cf861ccce72ba69e797ec638ec2e3f5f5de3"
+    },
+    {
+      "path": "static/home-tour.css",
+      "sha1": "6a5ea9cad278e8f31538daaf740e4ecae993efb5"
+    },
+    {
+      "path": "static/home-tour.js",
+      "sha1": "1a106c58ac415e4d4d1a6da2525cf3cc7526b957"
+    },
+    {
+      "path": "static/how-it-works.css",
+      "sha1": "573773afd59611cda7399540fb8ecda051b3c16b"
+    },
+    {
+      "path": "static/how-it-works.html",
+      "sha1": "1626f603398b07c0a16454c3f4dfe2e8180f2d55"
+    },
+    {
+      "path": "static/index.html",
+      "sha1": "856c736c9c7fbf0da3f193a9d3f7bd1fecbf9e2b"
+    },
+    {
+      "path": "static/inner-pages.css",
+      "sha1": "0011699caf7cd6e7d46a5c3e1b04a3958f7ae8ea"
+    },
+    {
+      "path": "static/inner-pages.js",
+      "sha1": "9dcbd578dca6e3a011689d31f05f17005017ccfc"
+    },
+    {
+      "path": "static/links.js",
+      "sha1": "c3f9e8312ebaa5d4cf147716ae47e4a54196d877"
+    },
+    {
+      "path": "static/marketing-pages.css",
+      "sha1": "c972e65f65b99e5681306e7353b7aa346c4e1098"
+    },
+    {
+      "path": "static/mileage-and-expenses.html",
+      "sha1": "d8bfd9948cc9e6158e989adbfc30238511b3af8f"
+    },
+    {
+      "path": "static/national-vision.css",
+      "sha1": "dd1042503c7742bd254e30849a37bb5711fb4b56"
+    },
+    {
+      "path": "static/navigation.css",
+      "sha1": "781497d1a6f4eaffea8182d834f60385d670434b"
+    },
+    {
+      "path": "static/office-signup.html",
+      "sha1": "635a78dc7804bbfe0f1a581d5716d6298250386b"
+    },
+    {
+      "path": "static/offices.html",
+      "sha1": "9c9dcfe244f09fe6a6725b96aed64905a78057c3"
+    },
+    {
+      "path": "static/offices.js",
+      "sha1": "43dc59b9ef235af4c3856cec296b804edca22c3d"
+    },
+    {
+      "path": "static/privacy.html",
+      "sha1": "f5ebe5be953ff5deed0325e4c78356c61233601f"
+    },
+    {
+      "path": "static/quarterly-taxes.html",
+      "sha1": "04986787de5c5b6948dcb5a6ebf35fa0a462a7e9"
+    },
+    {
+      "path": "static/resources.html",
+      "sha1": "0b1b5a9daf94c40140b9142e336ff73867f9da72"
+    },
+    {
+      "path": "static/robots.txt",
+      "sha1": "9b7e28b4a9bf7ee1cfc158fcd0e42301c9345217"
+    },
+    {
+      "path": "static/sales.css",
+      "sha1": "721caaa7fea557de0dfaa61ff121c94b2949e48a"
+    },
+    {
+      "path": "static/sales.html",
+      "sha1": "2e03fcfe7c5ce4ce33574bc46a86facc77dff7b2"
+    },
+    {
+      "path": "static/sales.js",
+      "sha1": "1ccb307fb1787d9b147e871ca0c5b027ff1eb951"
+    },
+    {
+      "path": "static/services.css",
+      "sha1": "64708c50dbaf399f6f4ed475f8dd90774c436d59"
+    },
+    {
+      "path": "static/services.html",
+      "sha1": "21c8a63706d2b526834cb616bf618060e1e308c8"
+    },
+    {
+      "path": "static/site-config.json",
+      "sha1": "c3f0ea4441ccbc2819633e2de2bcb1e4ea9baf23"
+    },
+    {
+      "path": "static/site-manifest.json",
+      "sha1": "407fe7ec1eb7f8012bd5237650b00a75d3dd250c"
+    },
+    {
+      "path": "static/sitemap.xml",
+      "sha1": "2b6e15ec8eb71e04f7966af7113185dd98b64a65"
+    },
+    {
+      "path": "static/styles.css",
+      "sha1": "c78bada4bfda0ec5f5aa9230f6bd7ca29478f93b"
+    },
+    {
+      "path": "static/tax-preparation.html",
+      "sha1": "176149ef4fe1da46abcd6066a60acaaf74207e4b"
+    },
+    {
+      "path": "static/terms.html",
+      "sha1": "1c8ac19a539632bd5a4af41e63597f2274114ce6"
+    },
+    {
+      "path": "static/tour/README.txt",
+      "sha1": "823cb803b5985520c3ae4ada9a01c6c8fe7fec0f"
+    },
+    {
+      "path": "static/tour/brand.svg",
+      "sha1": "ff23d42d3cd289e5827516c4207fc0c89884ebab"
+    },
+    {
+      "path": "static/tour/captions.en.vtt",
+      "sha1": "2934afdc97faee28cc14f00e6dad5059c01cb043"
+    },
+    {
+      "path": "static/tour/chapters.json",
+      "sha1": "b0b0d6860a03ba0a6c60399ce51aa353b7d6a372"
+    },
+    {
+      "path": "static/tour/getting-started.mp4",
+      "sha1": "f8b9ba35ab3bdc3124e6e5f19b15a9214c00cde0"
+    },
+    {
+      "path": "static/tour/index.html",
+      "sha1": "0f59a6af3cbdc07a69801c9a15d25508998cfc55"
+    },
+    {
+      "path": "static/tour/mobile.css",
+      "sha1": "6392e537b881d63a1fe6e5b43ea62566a504c321"
+    },
+    {
+      "path": "static/tour/player.css",
+      "sha1": "fa86f2acdeb4e53bbad9b03114a51e354fbf347d"
+    },
+    {
+      "path": "static/tour/player.js",
+      "sha1": "fb89398c7f9abb69e55d69ce36c9af5e03f14e3c"
+    },
+    {
+      "path": "static/tour/poster.jpg",
+      "sha1": "e4557709d127c2f45d7ac0d8fe957f00bc89b3dc"
+    }
+  ]
+}
