@@ -229,6 +229,11 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return {pending:true,checkoutUrl:checkout.url,checkoutId:checkout.id};
   }
   function receipt(row,info){return {active:true,receipt:row.id,acceptedAt:info.acceptedAt,office:info.officeName,signature:info.signature,termsHash:info.terms.hash,payment:info.payment};}
+  async function activateOffice(leadId) {
+    const office = await db.get('offices', leadId);
+    if (!office || ['do_not_contact', 'not_interested'].includes(office.status) || !independenceVerified(metadata(office))) throw new HttpError(409, 'Payment was recorded. The office needs owner review before activation because its contact status or ownership verification changed.');
+    if (office.status !== 'active') await patchReviewed(db, 'offices', office, { status: 'active' });
+  }
   async function fulfill(id,sessionId){
     const row=await db.get('enrollments',id);if(!row)throw new HttpError(404,'Enrollment not found.');const info=metadata(row);
     if(!info.signature||!info.acceptedAt||!['payment_pending','active'].includes(row.status))throw new HttpError(409,'Terms acceptance has not been recorded.');
@@ -237,7 +242,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       await reconcile(env,db,row.id);
       const latest = await db.get('enrollments',row.id), saved = metadata(latest), eligible = enrollmentEligibility(latest);
       if (!eligible.eligible) throw new HttpError(409,eligible.reason);
-      const office = await db.get('offices',info.leadId); if (office.status !== 'active') await patchReviewed(db,'offices',office,{status:'active'});return receipt(latest,saved);
+      await activateOffice(info.leadId); return receipt(latest,saved);
     }
     const verified=await payment.verify(row,info,sessionId||info.checkoutId);
     if(!verified.live)throw new HttpError(409,'Test payment verified. A test payment does not activate a live office.');
@@ -246,7 +251,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     await reconcile(env,db,row.id);
     const latest = await db.get('enrollments',row.id), saved = metadata(latest), eligible = enrollmentEligibility(latest);
     if (!eligible.eligible) throw new HttpError(409,eligible.reason);
-    const office = await db.get('offices',info.leadId); if (office.status !== 'active') await patchReviewed(db,'offices',office,{status:'active'});
+    await activateOffice(info.leadId);
     return receipt(latest,saved);
   }
   return { identity, login, dispatch, signup, fulfill };

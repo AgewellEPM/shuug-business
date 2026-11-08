@@ -96,6 +96,37 @@ test('owner accepts exact terms, durable receipt is written first, and retries r
   const saved=metadata(rows.enrollments[0]); assert.equal(saved.signature,'Test Owner'); assert.equal(saved.terms.text,view.terms.text); assert(saved.acceptedAt);
   await db.patch('offices',office.id,{status:'invited'}); const retry=await app.signup('accept',body); assert.equal(retry.receipt,result.receipt); assert.equal(rows.offices[0].status,'active');
 });
+for (const change of ['do_not_contact', 'ownership_unverified']) {
+  test(`payment verification preserves a concurrent ${change} office decision and retains its payment receipt`, async () => {
+    const { office, body } = await invite(), view = await app.signup('view', body);
+    await app.signup('accept', { ...body, email: view.email, signature: 'Test Owner', accepted: true, authorized: true, independent: true, termsHash: view.terms.hash });
+    const receipt = { live: true, checkoutId: 'cs_synthetic', subscriptionId: 'sub_synthetic', customerId: 'cus_synthetic', invoiceId: 'in_synthetic', initialAmountCents: 50000, currency: 'USD', verifiedAt: new Date().toISOString(), billingEndsAt: new Date(Date.now()+365*86400000).toISOString(), paidThroughAt: new Date(Date.now()+30*86400000).toISOString() };
+    const racing = service(env, db, { configured: () => true, verify: async () => {
+      const current = await db.get('offices', office.id);
+      await db.patch('offices', office.id, change === 'do_not_contact' ? { status: change } : { notes: JSON.stringify({ ...metadata(current), independence: 'unverified' }) });
+      return receipt;
+    } }, { billingReconciler: async (_env, adapter, enrollmentId) => {
+      const current = await adapter.get('enrollments', enrollmentId), info = metadata(current), billing = initialBilling(info.payment);
+      await adapter.patch('enrollments', enrollmentId, { status: billing.status, notes: JSON.stringify({ ...info, billing }) });
+    } });
+    await assert.rejects(racing.signup('confirm', body), error => error.status === 409);
+    assert.deepEqual(metadata(rows.enrollments[0]).payment, receipt, 'An activation block must retain the verified payment for owner review.');
+    assert.notEqual(rows.offices[0].status, 'active');
+    if (change === 'do_not_contact') assert.equal(rows.offices[0].status, change);
+    else assert.equal(metadata(rows.offices[0]).independence, 'unverified');
+  });
+  test(`a direct fulfillment receipt retry does not reactivate a ${change} office`, async () => {
+    const { office, body } = await invite(), view = await app.signup('view', body);
+    await app.signup('accept', { ...body, email: view.email, signature: 'Test Owner', accepted: true, authorized: true, independent: true, termsHash: view.terms.hash });
+    await app.signup('confirm', body);
+    const payment = structuredClone(metadata(rows.enrollments[0]).payment), current = await db.get('offices', office.id);
+    await db.patch('offices', office.id, change === 'do_not_contact' ? { status: change } : { status: 'interested', notes: JSON.stringify({ ...metadata(current), independence: 'unverified' }) });
+    await assert.rejects(app.fulfill(rows.enrollments[0].id), error => error.status === 409);
+    assert.deepEqual(metadata(rows.enrollments[0]).payment, payment); assert.notEqual(rows.offices[0].status, 'active');
+    if (change === 'do_not_contact') assert.equal(rows.offices[0].status, change);
+    else assert.equal(metadata(rows.offices[0]).independence, 'unverified');
+  });
+}
 test('invitation tokens, expiry and do-not-contact are enforced',async()=>{
   const {office,body}=await invite();
   await assert.rejects(app.signup('view',{...body,token:'x'.repeat(43)}),/not found/);

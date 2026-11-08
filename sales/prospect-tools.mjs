@@ -13,7 +13,7 @@ const source = value => {
 export { independenceVerified } from './model.mjs';
 
 export function verificationUpdate(body, before, user, now = Date.now()) {
-  const info = { ...metadata(before) };
+  const prior = metadata(before), info = { ...prior };
   let changed = false;
   const has = key => Object.prototype.hasOwnProperty.call(body, key);
   if (has('contact') && body.contact.trim() !== before.contact_name) { info.contactVerified = false; info.contactRole = 'unverified'; changed = true; }
@@ -34,10 +34,11 @@ export function verificationUpdate(body, before, user, now = Date.now()) {
   }
   if (has('verificationSource')) { info.verificationSource = body.verificationSource ? source(body.verificationSource) : ''; changed = true; }
   if (has('verificationNote')) { info.verificationNote = text(body.verificationNote || '', 900); changed = true; }
-  if (!info.verificationSource || !info.verificationNote) {
+  if (info.verificationSource !== prior.verificationSource || info.verificationNote !== prior.verificationNote || !info.verificationSource || !info.verificationNote) {
     if (body.contactVerified !== true) info.contactVerified = false;
     if (body.emailVerified !== true) info.emailVerified = false;
   }
+  if (info.contactRole === 'unverified' && body.contactVerified !== true) info.contactVerified = false;
   if ((body.contactVerified === true || body.emailVerified === true) && (!info.verificationSource || !info.verificationNote)) throw new HttpError(400, 'Record the source and what you checked before confirming contact details.');
   if (body.contactVerified === true && (!(body.contact ?? before.contact_name) || !info.contactRole || info.contactRole === 'unverified')) throw new HttpError(400, 'Add the contact name and verified role first.');
   if (body.emailVerified === true && !(body.email ?? before.contact_email)) throw new HttpError(400, 'Add the published business email first.');

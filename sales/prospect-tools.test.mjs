@@ -114,6 +114,15 @@ test('changing contact name or email resets the associated verification flags wi
   assert.equal(next.contactVerified, false); assert.equal(next.contactRole, 'unverified'); assert.equal(next.emailVerified, false); assert.equal(next.verificationBy, user.id); assert.equal(next.verificationAt, '2023-11-14T22:13:20.000Z');
   assert.equal(verificationUpdate({}, row, user), null); assert.equal(metadata(row).contactVerified, true);
 });
+test('partial role or proof changes clear stale contact confirmations', () => {
+  const row = initial();
+  assert.equal(verificationUpdate({ contactRole: 'unverified' }, row, user).contactVerified, false);
+  for (const body of [{ verificationSource: `${website}/about` }, { verificationNote: 'A different source review.' }]) {
+    const updated = verificationUpdate(body, row, user);
+    assert.equal(updated.contactVerified, false); assert.equal(updated.emailVerified, false);
+  }
+  assert.throws(() => verificationUpdate({ contactRole: 'unverified', contactVerified: true }, row, user), /verified role/);
+});
 
 test('confirming contact/email requires explicit source evidence and contact role', () => {
   const row = { ...initial(), notes: JSON.stringify({ website, independence: 'unverified' }) };
