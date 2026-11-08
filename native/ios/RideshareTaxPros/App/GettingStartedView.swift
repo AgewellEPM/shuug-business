@@ -103,14 +103,16 @@ private struct NativeTourPlayer: UIViewControllerRepresentable {
   let url: URL, start: Double
   func makeUIViewController(context: Context) -> AVPlayerViewController {
     let controller = AVPlayerViewController(), player = AVPlayer(url: url)
-    // The designed captions are already in the picture. Keep the selectable
-    // subtitle track available, without automatically drawing a second copy.
+    // The app fills the picture. Show one native caption at a time so viewers
+    // can resize or turn off the synchronized instructions.
     player.appliesMediaSelectionCriteriaAutomatically = false
     controller.player = player; controller.showsPlaybackControls = true
     controller.view.accessibilityIdentifier = "tour.player"
     Task { @MainActor [weak player] in
       guard let player, let item = player.currentItem else { return }
-      if let group = try? await item.asset.loadMediaSelectionGroup(for: .legible) { item.select(nil, in: group) }
+      if let group = try? await item.asset.loadMediaSelectionGroup(for: .legible) {
+        item.select(group.defaultOption ?? group.options.first, in: group)
+      }
       guard player.currentItem === item else { return }
       let ready = await player.seek(to: CMTime(seconds: start, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
       if ready && player.currentItem === item { player.play() }

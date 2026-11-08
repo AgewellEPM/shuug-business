@@ -46,9 +46,9 @@ ratings-save|ratings|Save your snapshot|Save the snapshot to your own history, t
 account-menu|account|Open Account|Open More tools and choose Account to find your sign-in options.
 account-address|account|Use your firm’s address|Expand the workspace address option if your firm supplied a sign-in address.
 account-privacy|account|Read the privacy details|Scroll to App privacy and data to review what stays on your phone.
-account-close|account|Return to Home|Tap Done to close Account and return to your dashboard.
+account-close|account|Return to Home|Go back, then tap Done to return to your Home dashboard.
 help-open|help|Open Get help|Tap Find an office and get help to open the office map.
-help-zip|help|Enter your ZIP code|Enter your ZIP code to look for an available office nearby.
+help-zip|help|Enter your ZIP code|Enter your ZIP code, then close the keyboard to search for nearby offices.
 help-search|help|Search available offices|Tap Search. Available offices and contact options will appear here.
-finish-home|finish|Return to your dashboard|Tap Done to return to Home and choose your next step.
+finish-home|finish|Return to your dashboard|Tap Back to return to Home and choose your next step.
 finish-sample|finish|Explore the sample shift|Open the sample shift to explore example earnings separately from your records.

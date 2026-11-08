@@ -11,7 +11,16 @@ import XCTest
     XCTAssertTrue(element.exists && element.isHittable, app.debugDescription)
   }
 
-  private func checkPlayback(in app: XCUIApplication, chapter: String) {
+  private func chapterStart(_ chapter: XCUIElement) -> Int {
+    let text = chapter.label as NSString
+    let pattern = try! NSRegularExpression(pattern: #"(\d+):(\d{2})"#)
+    guard let match = pattern.firstMatch(in: text as String, range: NSRange(location: 0, length: text.length)) else {
+      XCTFail("Chapter is missing its displayed start time: \(text)"); return 0
+    }
+    return (Int(text.substring(with: match.range(at: 1))) ?? 0) * 60 + (Int(text.substring(with: match.range(at: 2))) ?? 0)
+  }
+
+  private func checkPlayback(in app: XCUIApplication, chapter: String, expectedStart: Int = 0) {
     XCTAssertTrue(app.buttons["tour.player.done"].waitForExistence(timeout: 15), app.debugDescription)
     let rotate = app.descendants(matching: .any)["tour.rotate.player"].firstMatch
     XCTAssertTrue(rotate.waitForExistence(timeout: 5), app.debugDescription)
@@ -29,14 +38,24 @@ import XCTest
     XCTAssertTrue(timeline.exists, app.debugDescription)
     let position = timeline.value as? String ?? ""
     print("TOUR_PLAYBACK|\(chapter)|\(position)")
-    if chapter == "screenshots" {
-      XCTAssertTrue(position.hasPrefix("1 minute"), "Chapter must seek to the screenshot lesson: \(position)")
-    } else {
-      XCTAssertTrue(position.contains("seconds elapsed") && !position.hasPrefix("0 seconds"), "Video must advance after opening: \(position)\n\(app.debugDescription)")
+    let elapsedText = (position.components(separatedBy: "elapsed").first ?? "") as NSString
+    let elapsedPattern = try! NSRegularExpression(pattern: #"(\d+)\s+(hour|minute|second)"#)
+    let matches = elapsedPattern.matches(in: elapsedText as String, range: NSRange(location: 0, length: elapsedText.length))
+    let elapsed = matches.reduce(0) { total, match in
+      let value = Int(elapsedText.substring(with: match.range(at: 1))) ?? 0
+      let unit = elapsedText.substring(with: match.range(at: 2))
+      return total + value * (unit == "hour" ? 3600 : unit == "minute" ? 60 : 1)
     }
+    XCTAssertFalse(matches.isEmpty, "Playback time is unavailable: \(position)")
+    XCTAssertGreaterThan(elapsed, 0, "Video must advance after opening")
+    XCTAssertGreaterThanOrEqual(elapsed, expectedStart, "Chapter must seek to its displayed start: \(position)")
+    XCTAssertLessThan(elapsed, expectedStart + 30, "Chapter opened at the wrong time: \(position)")
     pause.tap()
     let play = app.buttons["Play"].firstMatch
     XCTAssertTrue(play.waitForExistence(timeout: 5), app.debugDescription)
+    let proof = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
+    proof.name = "Native tour playback - \(chapter)"; proof.lifetime = .keepAlways
+    add(proof)
     play.tap()
     XCTAssertTrue(pause.waitForExistence(timeout: 5))
     XCUIDevice.shared.orientation = .portrait
@@ -55,8 +74,8 @@ import XCTest
     reveal(watch, in: app); watch.tap()
     checkPlayback(in: app, chapter: "start")
     let chapter = app.buttons["tour.chapter.screenshots"]
-    reveal(chapter, in: app); chapter.tap()
-    checkPlayback(in: app, chapter: "screenshots")
+    reveal(chapter, in: app); let start = chapterStart(chapter); chapter.tap()
+    checkPlayback(in: app, chapter: "screenshots", expectedStart: start)
   }
 
   func testFirstLaunchPlaybackSkipRelaunchAndHelpReplay() throws {
@@ -82,8 +101,8 @@ import XCTest
     XCTAssertTrue(app.buttons["help.tour"].waitForExistence(timeout: 10), app.debugDescription)
     app.buttons["help.tour"].tap()
     let chapter = app.buttons["tour.chapter.screenshots"]
-    reveal(chapter, in: app); chapter.tap()
-    checkPlayback(in: app, chapter: "screenshots")
+    reveal(chapter, in: app); let start = chapterStart(chapter); chapter.tap()
+    checkPlayback(in: app, chapter: "screenshots", expectedStart: start)
 
     let guide = app.buttons["Try the interactive screenshot guide"]
     reveal(guide, in: app); guide.tap()

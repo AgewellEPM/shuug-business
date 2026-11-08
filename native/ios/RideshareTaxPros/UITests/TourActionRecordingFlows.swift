@@ -8,14 +8,30 @@ import XCTest
   private let rehearsalID = UUID().uuidString
   private var events: [[String: Any]] = []
   private var finishedEarly = false
+  override func reveal(_ element: XCUIElement, in app: XCUIApplication) {
+    for _ in 0..<36 {
+      if element.exists {
+        let footer = app.buttons["guide.back"].exists ? app.buttons["guide.back"] : app.buttons["guide.next"]
+        let tab = app.tabBars.firstMatch
+        let lower = footer.exists ? footer.frame.minY - 10 : tab.exists && tab.isHittable ? tab.frame.minY - 12 : app.frame.maxY - 40
+        let navigation = app.navigationBars.firstMatch
+        let upper = navigation.exists ? navigation.frame.maxY + 4 : 64
+        let header = ["dashboard.menu", "dashboard.coach", "guide.next", "guide.back", "guide.done", "guide.close"].contains(element.identifier)
+        if element.isHittable && (header || element.frame.midY > upper && element.frame.midY < lower) { return }
+        if element.frame.midY <= upper { scroll(app, down: false); continue }
+      }
+      scroll(app)
+    }
+    XCTAssertTrue(element.exists && element.isHittable, app.debugDescription)
+  }
   override func scroll(_ app: XCUIApplication, down: Bool = true) {
     let keyboard = app.keyboards.firstMatch
     let startY = min(app.frame.height * 0.78, keyboard.exists ? keyboard.frame.minY - 20 : app.frame.height * 0.78)
-    let endY = min(app.frame.height * 0.27, startY - 120)
-    let x = app.frame.width > app.frame.height ? 0.14 : 0.08
+    let endY = max(90, startY - 130)
+    let x = app.frame.width > app.frame.height ? 0.30 : 0.08
     let from = app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: down ? startY / app.frame.height : endY / app.frame.height))
     let to = app.coordinate(withNormalizedOffset: CGVector(dx: x, dy: down ? endY / app.frame.height : startY / app.frame.height))
-    from.press(forDuration: 0.05, thenDragTo: to)
+    from.press(forDuration: 0.05, thenDragTo: to, withVelocity: .slow, thenHoldForDuration: 0.15)
   }
   private func write(_ value: [String: Any], _ file: String) {
     try! FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -30,19 +46,28 @@ import XCTest
     while !FileManager.default.fileExists(atPath: ack.path) && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
     XCTAssertTrue(FileManager.default.fileExists(atPath: ack.path), "Host did not start recording \(id)")
     let config = try! JSONSerialization.jsonObject(with: Data(contentsOf: ack)) as! [String: Any]
-    started = Date(); Thread.sleep(forTimeInterval: 0.55); body()
+    if config["skipBody"] as? Bool == true {
+      write(["id": id, "state": "done", "events": [], "elapsed": 0], "done-\(id).json")
+      finishedEarly = config["last"] as? Bool ?? false
+      return
+    }
+    started = Date(); Thread.sleep(forTimeInterval: 0.55)
+    body()
     let minimum = config["duration"] as! Double
     Thread.sleep(forTimeInterval: max(0.8, minimum - Date().timeIntervalSince(started)))
     write(["id": id, "state": "done", "events": events, "elapsed": Date().timeIntervalSince(started)], "done-\(id).json")
     finishedEarly = config["last"] as? Bool ?? false
   }
   private func touch(_ element: XCUIElement, app: XCUIApplication) {
+    if !element.exists { reveal(element, in: app) }
     let navigation = app.navigationBars.buttons.matching(NSPredicate(format: "identifier == %@ OR label == %@", element.identifier, element.label))
     let tab = app.tabBars.firstMatch
+    let isTab = tab.buttons.matching(NSPredicate(format: "identifier == %@ OR label == %@", element.identifier, element.label)).count > 0
     let footer = app.buttons["guide.next"].exists ? app.buttons["guide.next"] : app.buttons["guide.done"]
-    let fixed = ["guide.next", "guide.back", "guide.done"].contains(element.identifier)
+    let fixed = ["dashboard.menu", "dashboard.coach", "guide.next", "guide.back", "guide.done", "guide.keyboard.done", "entry.dismissKeyboard", "expense.dismissKeyboard", "reputation.dismissKeyboard", "mission.dismissKeyboard", "help.dismissKeyboard", "Return"].contains(element.identifier)
     let visible = element.exists && element.isHittable && element.frame.midY >= 0 && element.frame.midY < app.frame.height
-    if !(visible && (fixed || navigation.count > 0 || tab.exists && element.frame.midY >= tab.frame.minY || !footer.exists || element.frame.midY < footer.frame.minY - 8)) { reveal(element, in: app) }
+    if !(visible && (fixed || navigation.count > 0 || isTab || !footer.exists || element.frame.midY < footer.frame.minY - 8)) { reveal(element, in: app) }
+    XCTAssertTrue(element.isEnabled, "Control is not ready: \(element.identifier)")
     let frame = element.frame, before = Date().timeIntervalSince(started)
     let bounds = app.windows.firstMatch.frame
     element.tap()
@@ -52,7 +77,7 @@ import XCTest
   private func button(_ id: String, _ app: XCUIApplication) { touch(app.buttons[id].firstMatch, app: app) }
   private func type(_ id: String, _ text: String, _ app: XCUIApplication) {
     if app.keyboards.firstMatch.exists {
-      let dismissIDs = ["entry.dismissKeyboard", "expense.dismissKeyboard", "guide.keyboard.done", "reputation.dismissKeyboard", "mission.dismissKeyboard"]
+      let dismissIDs = ["entry.dismissKeyboard", "expense.dismissKeyboard", "guide.keyboard.done", "reputation.dismissKeyboard", "mission.dismissKeyboard", "help.dismissKeyboard"]
       if let dismiss = dismissIDs.map({ app.buttons[$0] }).first(where: { $0.exists && $0.isHittable }) {
         touch(dismiss, app: app)
       }
@@ -66,6 +91,11 @@ import XCTest
   func testRecordInteractiveTour() throws {
     let app = XCUIApplication()
     XCUIDevice.shared.orientation = .landscapeLeft
+    write(["id": "prepare-session", "state": "ready", "rehearsalID": rehearsalID], "ready.json")
+    let prepared = directory.appendingPathComponent("prepare-ack.json")
+    let deadline = Date().addingTimeInterval(120)
+    while !FileManager.default.fileExists(atPath: prepared.path) && Date() < deadline { Thread.sleep(forTimeInterval: 0.05) }
+    XCTAssertTrue(FileManager.default.fileExists(atPath: prepared.path), "Host did not prepare the practice journal")
     app.launchArguments = ["-AppleLanguages", "(en)", "-AppleLocale", "en_US", "-gettingStartedSeen", "YES", "-tourRecordingSession", rehearsalID]
     app.launch(); XCTAssertTrue(app.buttons["dashboard.menu"].waitForExistence(timeout: 20))
     step("home-menu") { self.button("dashboard.menu", app) }
@@ -104,8 +134,17 @@ import XCTest
     step("mission-goal") { self.type("Net earnings goal ($)", "150", app); if app.buttons["mission.dismissKeyboard"].exists { self.button("mission.dismissKeyboard", app) } else { app.swipeDown() } }
     step("mission-save") { self.button("mission.save", app) }
     step("position-open") { self.touch(app.tabBars.buttons["Position"], app: app) }
-    step("position-destination") { self.type("Destination address or place", "West Hartford", app); app.swipeDown() }
-    step("coach-home") { self.touch(app.tabBars.buttons["Home"], app: app) }
+    step("position-destination") {
+      self.type("Destination address or place", "West Hartford", app)
+      if app.keyboards.buttons["Return"].exists { self.touch(app.keyboards.buttons["Return"], app: app) }
+      else { app.swipeDown() }
+    }
+    step("coach-home") {
+      self.touch(app.tabBars.buttons["Home"], app: app)
+      let hourly = app.descendants(matching: .any).matching(identifier: "dashboard.hourly").firstMatch
+      self.reveal(hourly, in: app)
+      XCTAssertTrue(hourly.label.contains("—"), "A trip without a full minute of recorded time must not show an hourly rate: \(hourly.label)")
+    }
     step("coach-open") { self.button("dashboard.coach", app) }
     step("coach-details") { self.button("coach.intake", app) }
     step("coach-close") { self.nav("Tax details", "Cancel", app); self.button("tools.close", app) }
@@ -116,11 +155,14 @@ import XCTest
     step("account-menu") { self.button("dashboard.menu", app); self.button("Account", app) }
     step("account-address") { self.button("Use an address supplied by my firm", app) }
     step("account-privacy") { self.button("App privacy & data", app) }
-    step("account-close") { self.button("tools.close", app) }
+    step("account-close") {
+      self.touch(app.navigationBars["App privacy & data"].buttons.firstMatch, app: app)
+      self.button("tools.close", app)
+    }
     step("help-open") { self.button("help.open", app) }
-    step("help-zip") { self.type("ZIP code", "10001", app); app.swipeDown() }
-    step("help-search") { self.button("Search", app) }
-    step("finish-home") { self.button("tools.close", app) }
+    step("help-zip") { self.type("help.zip", "10001", app); self.button("help.dismissKeyboard", app) }
+    step("help-search") { self.button("help.search", app) }
+    step("finish-home") { self.touch(app.navigationBars["Get help"].buttons.firstMatch, app: app) }
     step("finish-sample") { self.button("dashboard.sample", app) }
     write(["state": "complete"], "complete.json")
   }

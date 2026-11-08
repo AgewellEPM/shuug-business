@@ -27,9 +27,7 @@
       });
     }
     video.addEventListener('loadedmetadata', () => {
-      // Designed captions are already visible in the picture. Native caption
-      // controls remain available if the viewer chooses an additional track.
-      for (const track of video.textTracks || []) track.mode = 'disabled';
+      Array.from(video.textTracks || []).forEach((track, index) => { track.mode = index === 0 ? 'showing' : 'disabled'; });
       if (Number.isFinite(video.duration)) runtime.textContent = `${timestamp(video.duration)} · ${chapters.length} chapters`;
       playChapter();
     });

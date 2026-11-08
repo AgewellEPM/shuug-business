@@ -76,7 +76,7 @@ struct OfficeHelpView: View {
       }
       .onDisappear { model.cancelLocation() }
       .toolbar {
-        ToolbarItem(placement: .keyboard) { Button("Done") { editingZIP = false } }
+        ToolbarItem(placement: .keyboard) { Button("Done") { editingZIP = false }.accessibilityIdentifier("help.dismissKeyboard") }
         ToolbarItem(placement: .topBarTrailing) {
           Button { Task { await model.refresh() } } label: { Image(systemName: "arrow.clockwise") }
             .accessibilityLabel("Refresh office directory").accessibilityIdentifier("help.refresh").disabled(model.loading)

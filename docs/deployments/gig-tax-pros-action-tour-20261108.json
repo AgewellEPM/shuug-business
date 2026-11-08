@@ -1,0 +1,718 @@
+{
+  "ok": true,
+  "duration": 244.13333333333338,
+  "actions": 54,
+  "chapterCount": 13,
+  "sha256": "bbf9518e89d11f9e603096d7e0ecc336e16a5010c0d78335dadc2306811cc6dc",
+  "sizeBytes": 18772265,
+  "fullAppDisplay": true,
+  "editorialFreezeFrames": false,
+  "normalJournalPreserved": true,
+  "restoredRecorderIdleSeconds": 38.4196301650874,
+  "reviewedCuts": {},
+  "actionsTimeline": [
+    {
+      "id": "home-menu",
+      "start": 0.0,
+      "duration": 6.233333333333333,
+      "sourceRanges": [
+        [
+          0.41734499931335445,
+          6.650678332646688
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "1bd2130f0daca75b63f729f0fa81165e7f94a03c077ad6df15adef2a881aa088"
+    },
+    {
+      "id": "home-trips",
+      "start": 6.233333333333333,
+      "duration": 3.5,
+      "sourceRanges": [
+        [
+          0.38148195743560787,
+          3.881481957435608
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "53321eb8e86f312cfdb65cb0c2de5494b88150b5e9bd4ee07feb6ccd0698bf2a"
+    },
+    {
+      "id": "trip-add",
+      "start": 9.733333333333334,
+      "duration": 3.6,
+      "sourceRanges": [
+        [
+          0.30151696205139156,
+          3.9015169620513914
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "b3093d95ccb35cb393d2230e7f658a3b0a86c0242280ec4dd4a32d7bd059efc5"
+    },
+    {
+      "id": "trip-miles",
+      "start": 13.333333333333334,
+      "duration": 4.966666666666667,
+      "sourceRanges": [
+        [
+          0.8850709915161132,
+          5.85173765818278
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "89f1416115da58464b5605842b5cc2152b51da344bf53a883eafb78747fcc5f9"
+    },
+    {
+      "id": "trip-purpose",
+      "start": 18.3,
+      "duration": 7.533333333333333,
+      "sourceRanges": [
+        [
+          1.1962279796600341,
+          8.729561312993367
+        ]
+      ],
+      "tapCount": 3,
+      "sourceSHA256": "73f620b1b5caa5ee47d6d3e2acbf8c109f7f5996be32c3455702c8ec3de3e18a"
+    },
+    {
+      "id": "trip-business",
+      "start": 25.833333333333336,
+      "duration": 5.2,
+      "sourceRanges": [
+        [
+          1.1421110153198242,
+          6.342111015319825
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "6710ba24b81b42a55ba675d2f5a315c31ae6221835c61a8746570c79e1684c22"
+    },
+    {
+      "id": "trip-fare",
+      "start": 31.033333333333335,
+      "duration": 4.666666666666667,
+      "sourceRanges": [
+        [
+          1.167972993850708,
+          5.834639660517375
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "bb65e109c5a84d6309ea521a73d73696785d7e14787301bc70360812efb3ebed"
+    },
+    {
+      "id": "trip-fees",
+      "start": 35.7,
+      "duration": 7.166666666666667,
+      "sourceRanges": [
+        [
+          1.227674913406372,
+          8.39434158007304
+        ]
+      ],
+      "tapCount": 3,
+      "sourceSHA256": "f6c79d8143687359f069f9e0718947faba39571fbd2f66f8a3243ecf64f68265"
+    },
+    {
+      "id": "trip-save",
+      "start": 42.86666666666667,
+      "duration": 4.5,
+      "sourceRanges": [
+        [
+          0.46025009155273433,
+          4.9602500915527346
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "ac6be13b866618425d73db220c76549524342589679d1159f4a0d459ca175834"
+    },
+    {
+      "id": "money-home",
+      "start": 47.36666666666667,
+      "duration": 2.7666666666666666,
+      "sourceRanges": [
+        [
+          0.41007692813873287,
+          3.1767435948053997
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "9284e2dcf574f6a8bd574d01395aa301236126517e9e1dd9a18b5e19711f5aa9"
+    },
+    {
+      "id": "money-expense",
+      "start": 50.13333333333333,
+      "duration": 2.966666666666667,
+      "sourceRanges": [
+        [
+          0.6364920854568481,
+          3.603158752123515
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "50a5f79eda5f61f8d6867a2a197ac81c494d1fd51ab6c5df1f8f2f45e8d80fe2"
+    },
+    {
+      "id": "money-merchant",
+      "start": 53.1,
+      "duration": 4.733333333333333,
+      "sourceRanges": [
+        [
+          0.7679919719696044,
+          5.501325305302938
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "a4a3e9535e8deb378ce19ec8902679904138de8cc4221c5ee82c6dbee72e0632"
+    },
+    {
+      "id": "money-amount",
+      "start": 57.833333333333336,
+      "duration": 6.9,
+      "sourceRanges": [
+        [
+          1.5786450624465942,
+          8.478645062446594
+        ]
+      ],
+      "tapCount": 3,
+      "sourceSHA256": "1ec8f62908ff9f3f733c942023a56a95511052f11eae0b667a0c82f5a9284f27"
+    },
+    {
+      "id": "money-category",
+      "start": 64.73333333333333,
+      "duration": 5.166666666666667,
+      "sourceRanges": [
+        [
+          0.8646130084991455,
+          6.031279675165813
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "5bd099466d5e655a5974c399c2b8d9906be32d9da6e31d88d334a19102391aef"
+    },
+    {
+      "id": "money-business",
+      "start": 69.9,
+      "duration": 4.9,
+      "sourceRanges": [
+        [
+          0.8979720592498779,
+          5.7979720592498785
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "dc7517736edb7dc1d8efe7dc8206ca380c864ab3b7050f0f08f7a5c50aa44db5"
+    },
+    {
+      "id": "money-save",
+      "start": 74.80000000000001,
+      "duration": 3.7,
+      "sourceRanges": [
+        [
+          0.424120020866394,
+          4.124120020866394
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "ff7184040562fc1cd1e6bf27e16883757f6fb026f7ba9b477840a196d503a926"
+    },
+    {
+      "id": "offers-open",
+      "start": 78.50000000000001,
+      "duration": 3.033333333333333,
+      "sourceRanges": [
+        [
+          0.6753490686416626,
+          3.708682401974996
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "a8531423aad92cf919ed175595c8c9ee1fad48f8dccafd1b9cb157592ccdf096"
+    },
+    {
+      "id": "guide-open",
+      "start": 81.53333333333335,
+      "duration": 3.9,
+      "sourceRanges": [
+        [
+          0.39584393501281734,
+          4.295843935012817
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "4212b413da64830ee0415a9209e4c395598e17ca85d0bde40f30e04fd158e9dd"
+    },
+    {
+      "id": "guide-volume",
+      "start": 85.43333333333335,
+      "duration": 3.4,
+      "sourceRanges": [
+        [
+          2.4224979821243284,
+          5.822497982124329
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "15c76e1424222a8b3c0523d3cea57aadba0ab38a6ec75cf074660b7628d278bb"
+    },
+    {
+      "id": "guide-side",
+      "start": 88.83333333333336,
+      "duration": 5.2,
+      "sourceRanges": [
+        [
+          0.5936179876327514,
+          5.793617987632752
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "79e60131bbedd023d96842776ef756ded64447893916818f36c869b80a1b4474"
+    },
+    {
+      "id": "guide-save-menu",
+      "start": 94.03333333333336,
+      "duration": 3.433333333333333,
+      "sourceRanges": [
+        [
+          4.458936034675598,
+          7.892269368008931
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "4a124b721c5339bb22cff36d0a38d217172fb2d38ba23590c520dfc0cb146881"
+    },
+    {
+      "id": "guide-save-photo",
+      "start": 97.4666666666667,
+      "duration": 4.633333333333334,
+      "sourceRanges": [
+        [
+          0.5869929313659668,
+          5.220326264699301
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "17664a4f857e141d2cea5e124d75d9843ce2c1f03e2cfb7d9a4dd29c015a5c53"
+    },
+    {
+      "id": "guide-choose-route",
+      "start": 102.10000000000004,
+      "duration": 5.033333333333333,
+      "sourceRanges": [
+        [
+          0.49404699802398677,
+          5.52738033135732
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "6d8de2417ff0c91748440a7a7c092677133a0b4f8fca618a80a89d034d0a0080"
+    },
+    {
+      "id": "guide-choose-picture",
+      "start": 107.13333333333337,
+      "duration": 4.033333333333333,
+      "sourceRanges": [
+        [
+          3.8841950416564943,
+          7.9175283749898275
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "e5b8ab391a449f83ecd177675ef88913c0ce8cb66e749d44f6630486750955f2"
+    },
+    {
+      "id": "review-pay",
+      "start": 111.1666666666667,
+      "duration": 5.0,
+      "sourceRanges": [
+        [
+          11.354668927192687,
+          16.354668927192687
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "9b1f58b43004216c83a5bfdadc4b8f238acf052e3d97338a21bc0a47071d169b"
+    },
+    {
+      "id": "review-check",
+      "start": 116.1666666666667,
+      "duration": 4.0,
+      "sourceRanges": [
+        [
+          0.39136893749237056,
+          4.391368937492371
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "1884e7602b9d6b34fe872fb05d6e383d5e624e408abf44481038515726de60dd"
+    },
+    {
+      "id": "review-finish",
+      "start": 120.1666666666667,
+      "duration": 3.933333333333333,
+      "sourceRanges": [
+        [
+          0.518290114402771,
+          4.451623447736104
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "253686835a96a5b9baf3ce1aaef130a15ce796a9e13f386c56c97a53d52001e6"
+    },
+    {
+      "id": "earnings-open",
+      "start": 124.10000000000004,
+      "duration": 4.266666666666667,
+      "sourceRanges": [
+        [
+          0.5116250038146972,
+          4.778291670481364
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "781a27dcbcea21a57aa3901dcaa73ebbba6fab0a108a8cd7e6a6fcf661b2e117"
+    },
+    {
+      "id": "earnings-goals",
+      "start": 128.3666666666667,
+      "duration": 3.433333333333333,
+      "sourceRanges": [
+        [
+          0.9651089429855346,
+          4.3984422763188675
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "fe6bb5d247f2ef88b6e396ac89f64227b014e58d2a1746ba61aed2421d5b01e0"
+    },
+    {
+      "id": "earnings-cost",
+      "start": 131.80000000000004,
+      "duration": 4.9,
+      "sourceRanges": [
+        [
+          1.5046569694900513,
+          6.404656969490052
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "891dc4744c0ca8283d73c71a9673a48b9b980d7c891a5c3a72c6c0a6722a75bf"
+    },
+    {
+      "id": "earnings-hourly",
+      "start": 136.70000000000005,
+      "duration": 8.8,
+      "sourceRanges": [
+        [
+          1.4021549940109252,
+          10.202154994010925
+        ]
+      ],
+      "tapCount": 3,
+      "sourceSHA256": "a180f7bdec7a418f33da8fa47a887ed30ea15c72fe9e02f131f292be1339f8cd"
+    },
+    {
+      "id": "earnings-save",
+      "start": 145.50000000000006,
+      "duration": 4.133333333333334,
+      "sourceRanges": [
+        [
+          0.5871749639511108,
+          4.720508297284445
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "91a731b1c8af1569ce7816e84f1ff15c39507493b3ecbb78b64d21bcf258da73"
+    },
+    {
+      "id": "mission-open",
+      "start": 149.63333333333338,
+      "duration": 3.5,
+      "sourceRanges": [
+        [
+          0.5781390190124511,
+          4.078139019012451
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "1abf6230745ee21a058610dd608ef16de9c1110bbbcb16bcf0f21ea4f78357f6"
+    },
+    {
+      "id": "mission-goal",
+      "start": 153.13333333333338,
+      "duration": 5.566666666666666,
+      "sourceRanges": [
+        [
+          0.5961020708084106,
+          6.162768737475077
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "5c369e95f7509a822605adc557b0c29c10d84c0f480cb9fec4e42e9eb9742431"
+    },
+    {
+      "id": "mission-save",
+      "start": 158.70000000000005,
+      "duration": 3.8,
+      "sourceRanges": [
+        [
+          2.0733129723281856,
+          5.873312972328185
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "760bca55a715f8020c3c9aa01b876b7f8a2937a1676891bf8b694eaeeed355a9"
+    },
+    {
+      "id": "position-open",
+      "start": 162.50000000000006,
+      "duration": 4.233333333333333,
+      "sourceRanges": [
+        [
+          0.30580611228942867,
+          4.539139445622762
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "3120e7c27a4478f5071cec6f1b706d2269c78c9a6e4f3c8e7e97079db55e0ca3"
+    },
+    {
+      "id": "position-destination",
+      "start": 166.73333333333338,
+      "duration": 4.4,
+      "sourceRanges": [
+        [
+          5.027130079269409,
+          9.42713007926941
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "2b96f704f9d6e16d71b7242fc65ae42f9e9bb8633a7cb34217617107821936d5"
+    },
+    {
+      "id": "coach-home",
+      "start": 171.13333333333338,
+      "duration": 6.2,
+      "sourceRanges": [
+        [
+          0.37134892940521236,
+          6.571348929405213
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "5147b47b016c19d4a1808c1712a8ae9aafd1b92ceeb7a2e65aef707214028bac"
+    },
+    {
+      "id": "coach-open",
+      "start": 177.33333333333337,
+      "duration": 3.033333333333333,
+      "sourceRanges": [
+        [
+          2.140128058525085,
+          5.173461391858418
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "88ba03a1ca401b089f1f3b412ccad19b95e00228fa6ee998850be41936571746"
+    },
+    {
+      "id": "coach-details",
+      "start": 180.3666666666667,
+      "duration": 4.533333333333333,
+      "sourceRanges": [
+        [
+          0.7445979833602905,
+          5.277931316693624
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "667a3877b6a7057e106c69fe548f35ef6b99a36015dae2b39b9a6c68ab851f27"
+    },
+    {
+      "id": "coach-close",
+      "start": 184.90000000000003,
+      "duration": 3.8666666666666667,
+      "sourceRanges": [
+        [
+          0.6264060258865356,
+          4.493072692553202
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "507b414e6b7f3d6caaf3344464393ddf10d79cd76790a0c2bafa3e1788497c73"
+    },
+    {
+      "id": "ratings-menu",
+      "start": 188.7666666666667,
+      "duration": 4.466666666666667,
+      "sourceRanges": [
+        [
+          0.41405196189880367,
+          4.880718628565471
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "549a7492c27a78c2ec5ecdaf681d5f325efbd4826d916a6cd0245f370f391058"
+    },
+    {
+      "id": "ratings-add",
+      "start": 193.23333333333338,
+      "duration": 3.066666666666667,
+      "sourceRanges": [
+        [
+          0.8095319986343383,
+          3.876198665301005
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "4192a805e0c5752a4e36f133bc778dd7f8ae7d2ad1239f0d8ab3fbb6155cd2fb"
+    },
+    {
+      "id": "ratings-score",
+      "start": 196.30000000000004,
+      "duration": 5.233333333333333,
+      "sourceRanges": [
+        [
+          4.592330050468445,
+          9.825663383801778
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "7b05dec3a01939f7eb600db4a0818dba05bd2b9a0bbd60e31c693251339e3194"
+    },
+    {
+      "id": "ratings-save",
+      "start": 201.53333333333336,
+      "duration": 3.933333333333333,
+      "sourceRanges": [
+        [
+          4.7970500707626345,
+          8.730383404095967
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "01db8a67ec1a3de2d23b360e148717590ec08a2d4be5054d8f7d0ba464748096"
+    },
+    {
+      "id": "account-menu",
+      "start": 205.4666666666667,
+      "duration": 4.3,
+      "sourceRanges": [
+        [
+          0.4333060503005981,
+          4.733306050300598
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "c421c49cac1a4435161e009c56e0c5d10b2a136c9165a3b9feec42cf510e3db3"
+    },
+    {
+      "id": "account-address",
+      "start": 209.7666666666667,
+      "duration": 4.633333333333334,
+      "sourceRanges": [
+        [
+          1.5048809478607177,
+          6.138214281194052
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "e71f0553f490a9dbded3c50f53bc454affcba5053a177a4faf7cad2f01430f6f"
+    },
+    {
+      "id": "account-privacy",
+      "start": 214.40000000000003,
+      "duration": 4.1,
+      "sourceRanges": [
+        [
+          28.427804025154114,
+          32.52780402515411
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "33af64aa88be765ab3f29cbd373596aaa2e38e716763c9e96d7b7b9cca90623f"
+    },
+    {
+      "id": "account-close",
+      "start": 218.50000000000003,
+      "duration": 3.8,
+      "sourceRanges": [
+        [
+          0.37301309108734126,
+          4.173013091087341
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "9739c5013a75fcbe1183e87f422afb3305dd8dfca4789a3d1932886cedb1522b"
+    },
+    {
+      "id": "help-open",
+      "start": 222.30000000000004,
+      "duration": 3.5,
+      "sourceRanges": [
+        [
+          3.6777390463562014,
+          7.177739046356201
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "16571e79f84b3c783beac546d49927ae4716978e0850cdbfbbd26eaf1664518c"
+    },
+    {
+      "id": "help-zip",
+      "start": 225.80000000000004,
+      "duration": 4.933333333333334,
+      "sourceRanges": [
+        [
+          0.5623479604721069,
+          5.495681293805441
+        ]
+      ],
+      "tapCount": 2,
+      "sourceSHA256": "de6fca015613a478e341cea4b262ea67d1feb3ec988755017e9c52e680b2bf8d"
+    },
+    {
+      "id": "help-search",
+      "start": 230.73333333333338,
+      "duration": 5.5,
+      "sourceRanges": [
+        [
+          0.534568977355957,
+          6.034568977355957
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "abb2cc184ce7a2de9d4b32744942f4d7d8609b6c3b815bd844cd4c58b574d159"
+    },
+    {
+      "id": "finish-home",
+      "start": 236.23333333333338,
+      "duration": 3.2666666666666666,
+      "sourceRanges": [
+        [
+          0.3674929857254028,
+          3.6341596523920696
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "31ac4cef429912c452f8fee8db2876e29dd895deb8a03a45917cd31b41350b42"
+    },
+    {
+      "id": "finish-sample",
+      "start": 239.50000000000006,
+      "duration": 4.633333333333334,
+      "sourceRanges": [
+        [
+          12.203083966712951,
+          16.836417300046286
+        ]
+      ],
+      "tapCount": 1,
+      "sourceSHA256": "9adfa56d85f37f6b98c470b9a39a97253efdc584736993ec5a34153c8d3359b5"
+    }
+  ],
+  "design": "App display only. Real taps and typing. One synchronized instruction per action. Native selectable captions. No panels, phone bezel or artwork."
+}
