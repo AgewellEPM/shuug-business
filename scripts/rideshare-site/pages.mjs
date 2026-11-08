@@ -3,6 +3,7 @@ import { servicesPage } from './services.mjs';
 import { howItWorksPage } from './how-it-works.mjs';
 import { driversPage } from './drivers.mjs';
 import { getTheAppPage } from './get-the-app.mjs';
+import { appDownloadPage } from './app-download.mjs';
 import { officesPage, resourcesPage } from './community-pages.mjs';
 import { aboutPage } from './about.mjs';
 import { services, faqs, checklistGroups } from './content.mjs';
@@ -77,4 +78,4 @@ export function innerPages() {
   ];
 }
 
-export function renderedPages() { return [servicesPage(), howItWorksPage(), driversPage(), getTheAppPage(), officesPage(), resourcesPage(resources), aboutPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }
+export function renderedPages() { return [servicesPage(), howItWorksPage(), driversPage(), appDownloadPage(), getTheAppPage({ slug: 'app-features', label: 'App Features' }), officesPage(), resourcesPage(resources), aboutPage(), ...innerPages().map(item=>({...item,html:renderPage(item),file:`${item.slug}.html`})), ...salesPages()]; }

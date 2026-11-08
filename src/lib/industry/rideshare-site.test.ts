@@ -18,8 +18,8 @@ function page(slug = "", config = {}, hash = "") {
 it("connects the customer pages with valid internal links, unique headings and no password intake", () => {
   const manifest = JSON.parse(readFileSync(path.join(source,"site-manifest.json"),"utf8"));
   const customerAliases = manifest.aliases.filter((slug: string) => !["sales", "office-signup"].includes(slug));
-  expect(customerAliases).toHaveLength(21);
-  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "get-the-app", "resources", "about"]));
+  expect(customerAliases).toHaveLength(22);
+  expect(customerAliases).toEqual(expect.arrayContaining(["drivers", "offices", "get-the-app", "app-features", "resources", "about"]));
   expect(manifest.aliases).toEqual(expect.arrayContaining(["sales", "office-signup"]));
   for (const slug of ["", ...customerAliases]) {
     const dom = page(slug); const d = dom.window.document;
@@ -83,18 +83,42 @@ it('offers only configured public app downloads and leaves missing download avai
   ]) {
     const dom = page('get-the-app', config);
     try {
-      dom.window.eval(readFileSync(path.join(source, 'get-the-app.js'), 'utf8'));
+      dom.window.eval(readFileSync(path.join(source, 'app-download.js'), 'utf8'));
       await new Promise(resolve => setTimeout(resolve, 0));
       const links = [...dom.window.document.querySelectorAll<HTMLAnchorElement>('#app-download-links a')];
       if (config.iosDownloadUrl.startsWith('https://example.com')) {
         expect(links.map(a => a.href)).toEqual([config.iosDownloadUrl, config.androidDownloadUrl]);
         expect(dom.window.document.querySelector('#app-download-status')!.textContent).toContain('Choose your device');
+        for (const control of dom.window.document.querySelectorAll<HTMLAnchorElement>('[data-app-download="ios"]')) {
+          expect(control.href).toBe(config.iosDownloadUrl);
+          expect(control.dataset.available).toBe('true');
+        }
+        expect(dom.window.document.querySelector('.download-footer-ios .download-rating-correction')!.textContent).toBe('View app');
       } else {
         expect(links).toHaveLength(0);
         expect(dom.window.document.querySelector('#app-download-status')!.textContent).toContain('coming soon');
       }
     } finally { dom.window.close(); }
   }
+});
+it('keeps unavailable store controls local and presents availability when tapped', async () => {
+  const dom = page('get-the-app'); const w = dom.window; const d = w.document;
+  try {
+    const scroll = vi.fn();
+    d.querySelector<HTMLElement>('#app-download')!.scrollIntoView = scroll;
+    w.eval(readFileSync(path.join(source, 'app-download.js'), 'utf8'));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    const control = d.querySelector<HTMLAnchorElement>('[data-app-download="ios"]')!;
+    const click = new w.MouseEvent('click', { bubbles: true, cancelable: true });
+    control.dispatchEvent(click);
+    expect(click.defaultPrevented).toBe(true);
+    expect(control.getAttribute('href')).toBe('#app-download');
+    expect(d.querySelector('#app-download-status')!.textContent).toContain('iPhone download links are coming soon');
+    expect(d.activeElement).toBe(d.querySelector('#app-download-status'));
+    expect(scroll).toHaveBeenCalledOnce();
+    expect(d.querySelector('a[href="/app-features"]')).not.toBeNull();
+    expect(d.querySelector('.download-qr img')!.getAttribute('src')).toBe('/assets/app-download-qr.svg');
+  } finally { w.close(); }
 });
 it("takes a service choice into a filtered checklist and updates actual print/export progress", async () => {
   const start = page('get-started'); const d = start.window.document;
