@@ -96,7 +96,7 @@ function fixture() {
 test('private sales UI discovers, reviews sourced contacts, verifies ownership and saves drafts/follow-ups through the real handler', async () => {
   const f = fixture(), { w, d, rows, submit, waitFor } = f;
   try {
-    for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales.js']) w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
+    for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales-console.js', 'sales.js']) w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
     await new Promise(resolve => setTimeout(resolve, 10));
     assert.equal(d.querySelector('#sales-workspace').hidden, true);
     const login = d.querySelector('#sales-login-form');
@@ -216,7 +216,7 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 async function signIn(f) {
-  for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales.js']) f.w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
+  for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales-console.js', 'sales.js']) f.w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
   await new Promise(resolve => setTimeout(resolve, 10));
   const login = f.d.querySelector('#sales-login-form'); login.elements.code.value = 'synthetic-workflow-owner'; f.submit(login);
   await f.waitFor(() => !f.d.querySelector('#sales-workspace').hidden, 'Owner sign-in');
@@ -224,6 +224,45 @@ async function signIn(f) {
 function seededOffice(id, name = `Synthetic Office ${id}`, info = {}) {
   return { id, town: name, locality: 'Hartford', state: 'CT', status: 'new', assigned_to: 'owner', contact_name: 'Synthetic Contact', contact_email: 'owner@office.example.test', contact_phone: '+18602045588', notes: JSON.stringify({ address: '100 Example Street', postalCode: '06103', website, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, ...info }) };
 }
+
+test('the rich console connects its Census map and board to the guarded office drawer without writing records', async () => {
+  const f = fixture(), { w, d, waitFor } = f;
+  f.rows.offices.push(seededOffice(40, 'Synthetic console office'));
+  const original = clone(f.rows.offices);
+  try {
+    await signIn(f);
+    assert.equal(d.querySelector('#sales-gate').hidden, true);
+    assert.equal(d.querySelector('[data-tab-panel="home"]').hidden, false);
+    assert.equal(d.querySelector('#sales-view-title').textContent, 'Overview');
+    d.querySelector('[data-tab="territories"]').click();
+    const paths = [...d.querySelectorAll('[data-sales-state-map] path[data-state]')];
+    assert.equal(paths.length, 51);
+    const connecticut = paths.find(path => path.dataset.state === 'CT');
+    const shape = connecticut.getAttribute('d');
+    connecticut.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    assert.equal(d.querySelector('#sales-discover').elements.state.value, 'CT');
+    assert.equal(d.querySelector('[data-tab-panel="discover"]').hidden, false);
+    assert.equal(connecticut.getAttribute('d'), shape, 'Map interactions preserve the real state boundary');
+    d.querySelector('[data-tab="pipeline"]').click();
+    assert.equal(d.querySelector('#sales-board').hidden, false);
+    d.querySelector('[data-console-office="40"]').click();
+    await waitFor(() => d.querySelector('#sales-detail h2')?.textContent === 'Synthetic console office', 'Board card opens the real office handler');
+    assert.equal(d.querySelector('#sales-detail-drawer').hidden, false);
+    assert.equal(d.querySelector('.sdr-main').inert, true);
+    assert.equal(d.activeElement.id, 'sales-detail-close');
+    d.dispatchEvent(new w.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(d.querySelector('#sales-detail-drawer').hidden, true);
+    assert.equal(d.querySelector('.sdr-main').inert, false);
+    assert.equal(d.activeElement.closest('#sales-detail-drawer'), null);
+    const slow = deferred(); f.officeGates.set('40', slow);
+    d.querySelector('[data-console-office="40"]').click();
+    d.querySelector('#sales-detail-close').click(); slow.resolve();
+    await waitFor(() => f.requests.filter(request => request.action === 'office').length === 2, 'A closed drawer can finish its pending read');
+    assert.equal(d.querySelector('#sales-detail-drawer').hidden, true, 'A late office response cannot reopen a closed drawer');
+    assert.deepEqual(f.rows.offices, original); assert.equal(f.rows.events.length, 0);
+    assert(f.requests.every(request => ['login', 'bootstrap', 'office', 'directory-settings'].includes(request.action)));
+  } finally { f.close(); }
+});
 
 test('discovery recovers its paging controls after failure and ignores stale failed searches', async () => {
   const f = fixture(), { d, submit, waitFor } = f;

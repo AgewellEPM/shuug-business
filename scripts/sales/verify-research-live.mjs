@@ -3,10 +3,11 @@ import { homedir } from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import assert from 'node:assert/strict';
+import { PRIVATE_STATIC } from './prepare-private-overlay.mjs';
 
 // Read-only deployed verification. Only this probe's sign-in cookie is created
 // and cleared; no office, contact, draft, invitation or payment is written.
-const [deployment, staticRoot] = process.argv.slice(2);
+const [deployment, staticRoot, output = 'docs/deployments/gigtax-sales-research-deployed-20261108.json'] = process.argv.slice(2);
 if (!/^dpl_[A-Za-z0-9]+$/.test(deployment || '') || !staticRoot) throw new Error('Pass the confirmed deployment ID and its prepared static directory.');
 const origin = 'https://gigtax.pro', checks = [];
 const receipt = { ok: false, deployment, verifiedAt: new Date().toISOString(), checks, scope: 'Read-only deployed API and exact private assets/public homepage; no prospect writes, outreach or payment.' };
@@ -41,11 +42,11 @@ try {
   receipt.discovery = { total: first.data.total, uniqueCandidatesReached: all.length, pages: Math.ceil(all.length / 50), withPhone: all.filter(row => row.phone).length, withNamedContact: all.filter(row => row.contact).length };
   assert.equal((await api('search', { city: 'Hartford', state: 'CT', offset: -1 })).response.status, 400);
   checks.push('all real IRS discovery pages reachable with stable unique IDs and no inferred ownership');
-  for (const file of ['sales.html', 'office-signup.html', 'sales.css', 'sales.js', 'sales-research.js', 'sales-workflows.js', 'directory-admin.js']) {
+  for (const file of PRIVATE_STATIC) {
     const response = await fetch(origin + '/' + file, { cache: 'no-store', signal: AbortSignal.timeout(25000) });
     assert.equal(response.status, 200); assert.equal(sha(Buffer.from(await response.arrayBuffer())), sha(readFileSync(path.join(staticRoot, file))));
   }
-  checks.push('seven private sales assets match the prepared deployment byte for byte');
+  checks.push(`${PRIVATE_STATIC.length} private sales assets match the prepared deployment byte for byte`);
   for (const base of [origin, 'https://www.gigtax.pro']) {
     const response = await fetch(base, { cache: 'no-store', signal: AbortSignal.timeout(25000) });
     assert.equal(response.status, 200); assert.equal(sha(Buffer.from(await response.arrayBuffer())), sha(readFileSync(path.join(staticRoot, 'index.html'))));
@@ -62,6 +63,6 @@ try {
 finally {
   if (cookie) { try { receipt.probeLogoutStatus = (await api('logout')).response.status; } catch { receipt.probeLogoutStatus = 'unconfirmed'; } }
   receipt.limits = 'No real mailbox or Stripe credentials configured; sending, checkout, recurring billing and physical-phone acceptance remain unverified.';
-  writeFileSync('docs/deployments/gigtax-sales-research-deployed-20261108.json', JSON.stringify(receipt, null, 2) + '\n');
+  writeFileSync(output, JSON.stringify(receipt, null, 2) + '\n');
   console.log(JSON.stringify(receipt, null, 2)); process.exitCode = receipt.ok ? 0 : 1;
 }

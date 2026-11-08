@@ -5,7 +5,12 @@
   const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
   const meta = row => { try { return JSON.parse(row.notes || '{}'); } catch { return {}; } };
   const title = value => String(value).replaceAll('_', ' ');
-  const status = (message, error = false, signup = false) => { const el = $(signup ? '#signup-message' : '#sales-message'); el.textContent = message; el.dataset.error = error; };
+  const status = (message, error = false, signup = false) => {
+    const targets = [$(signup ? '#signup-message' : '#sales-message')];
+    if (!signup && $('#sales-gate') && !$('#sales-gate').hidden) targets.push($('#sales-login-status'));
+    if (!signup && $('#sales-detail-drawer') && !$('#sales-detail-drawer').hidden) targets.push($('#sales-detail-status'));
+    targets.filter(Boolean).forEach(el => { el.textContent = message; el.dataset.error = error; });
+  };
   async function api(action, body = {}) {
     const r = await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', body: JSON.stringify({ ...body, action }) });
     const result = await r.json();
@@ -22,17 +27,54 @@
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
-    const tab = name => { $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner')); $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name)); };
+    let data, selected, consoleUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    const tab = name => {
+      if (name === 'team' && data?.user.role !== 'owner') name = 'home';
+      $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', territories: 'Territories', discover: 'Find offices', team: 'Sales team' })[name] || 'Workspace';
+      $('#sales-stats').hidden = name === 'home';
+      consoleUI?.navigate(name);
+    };
+    function closeDetail() {
+      const drawer = $('#sales-detail-drawer'); if (!drawer) return;
+      drawer.hidden = true; $('#sales-detail-backdrop').hidden = true;
+      document.body.dataset.detailOpen = 'false';
+      $$('.sdr-sidebar,.sdr-main').forEach(element => element.inert = false);
+      const priorOffice = selected;
+      selected = undefined; officeRequest++; if (data) renderList();
+      const replacement = $$('[data-office]').find(button => button.dataset.office === priorOffice && !button.closest('[hidden]'));
+      const priorFocusable = detailFocus?.isConnected && detailFocus.matches('button,a[href],input,select,textarea,[tabindex]') && !detailFocus.closest('#sales-detail-drawer,[hidden]');
+      const focusTarget = priorFocusable ? detailFocus : replacement || $('[data-tab][aria-pressed="true"]');
+      focusTarget?.focus();
+    }
+    $('#sales-detail-close')?.addEventListener('click', closeDetail);
+    $('#sales-detail-backdrop')?.addEventListener('click', closeDetail);
+    document.addEventListener('keydown', event => {
+      const drawer = $('#sales-detail-drawer'); if (!drawer || drawer.hidden) return;
+      if (event.key === 'Escape') { event.preventDefault(); closeDetail(); return; }
+      if (event.key === 'Tab') {
+        const controls = $$('button:not([disabled]),a[href],input:not([type="hidden"]):not([disabled]),select:not([disabled]),textarea:not([disabled]),summary,[tabindex="0"]', drawer).filter(element => {
+          if (element.closest('[hidden]')) return false;
+          const closed = element.closest('details:not([open])');
+          return !closed || closed.querySelector(':scope > summary') === element;
+        });
+        const first = controls[0], last = controls.at(-1);
+        if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) { event.preventDefault(); (event.shiftKey ? last : first)?.focus(); }
+      }
+    });
     function renderList() {
       const filter = $('#sales-filter').value.toLowerCase(), stage = $('#sales-stage-filter').value;
+      if ($('#sales-nav-count')) $('#sales-nav-count').textContent = data.offices.length;
       const offices = data.offices.filter(o => (!stage || o.status === stage) && [o.town,o.locality,o.state,o.contact_name,o.contact_email].join(' ').toLowerCase().includes(filter));
       $('#sales-offices').innerHTML = offices.length ? offices.map(o => `<button class="sales-office" data-office="${e(o.id)}" aria-pressed="${String(o.id) === selected}"><strong>${e(o.town)}</strong><small>${e(o.locality)}, ${e(o.state)} · ${e(title(o.status))}</small><small>${e(o.contact_name || 'Public contact needed')}${o.meeting_date ? ` · Follow up ${e(o.meeting_date)}` : ''}</small></button>`).join('') : '<p class="sales-empty">No offices in this view. Find an office to start your pipeline.</p>';
       $$('[data-office]').forEach(b => b.onclick = run(() => showOffice(b.dataset.office)));
+      if (data) consoleUI?.render(data);
     }
     async function refresh() {
       data = await api('bootstrap');
       $('#sales-login').hidden = true; $('#sales-workspace').hidden = false; $('#sales-identity').hidden = false; $('#sales-name').textContent = data.user.name;
+      if ($('#sales-gate')) $('#sales-gate').hidden = true;
       $$('[data-owner-only]').forEach(el => { el.hidden = data.user.role !== 'owner'; });
       $$('[data-states]').forEach(s => { const previous = s.value; const states = data.user.states.length ? data.user.states : data.states; s.innerHTML = states.map(v => `<option>${e(v)}</option>`).join(''); if (states.includes(previous)) s.value = previous; });
       $$('[data-agents]').forEach(s => { s.innerHTML = '<option value="owner">Workspace owner</option>' + data.agents.map(a => `<option value="${e(a.id)}">${e(a.name)}</option>`).join(''); });
@@ -57,6 +99,14 @@
     }
     async function showOffice(id) {
       const requestId = ++officeRequest, target = $('#sales-detail');
+      const drawer = $('#sales-detail-drawer');
+      if (drawer) {
+        if (drawer.hidden) detailFocus = document.activeElement;
+        drawer.hidden = false; $('#sales-detail-backdrop').hidden = false;
+        document.body.dataset.detailOpen = 'true';
+        $$('.sdr-sidebar,.sdr-main').forEach(element => element.inert = true);
+        $('#sales-detail-status').textContent = ''; $('#sales-detail-close').focus();
+      }
       selected = String(id); renderList();
       target.setAttribute('aria-busy', 'true'); target.innerHTML = '<h2>Loading office record…</h2>';
       let record;
@@ -68,6 +118,7 @@
       if (requestId !== officeRequest) return;
       target.removeAttribute('aria-busy');
       const o = record.office, m = meta(o), panel = $('#sales-detail');
+      if ($('#sales-detail-title')) $('#sales-detail-title').textContent = o.town;
       panel.innerHTML = `<p class="eyebrow">${e(o.state)} · ${e(title(o.status))}</p><h2>${e(o.town)}</h2><p>${e(m.address)}<br>${e(o.locality)}, ${e(o.state)}</p><div class="sales-actions">${link(m.website,'Office website ↗')}${link(m.source,'Research source ↗')}</div>
       <form id="sales-update-office" class="sales-form"><label>Public contact / decision maker (verify role)<input name="contact" value="${e(o.contact_name)}" maxlength="140"></label><label>Business email<input name="email" type="email" value="${e(o.contact_email)}"></label><label>Phone<input name="phone" type="tel" value="${e(o.contact_phone)}" maxlength="60"></label><label>Stage<select name="stage" ${o.status === 'active' ? 'disabled' : ''}>${data.stages.filter(s => !['active','invited'].includes(s) || s === o.status).map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${e(title(s))}</option>`).join('')}</select></label><label>Next follow-up<input type="date" name="nextFollowup" value="${e((o.meeting_date || '').slice(0,10))}"></label><label>Office website<input name="website" type="url" value="${e(m.website || '')}" maxlength="1200"></label><label>ZIP code<input name="postalCode" value="${e(m.postalCode || '')}" maxlength="10"></label><p>Ownership: <strong>${e(m.independence || 'unverified')}</strong>. Use the ownership verification tool below to record evidence.</p>${data.user.role === 'owner' ? `<label>Assigned agent<select name="assignedTo"><option value="owner">Workspace owner</option>${data.agents.map(a => `<option value="${e(a.id)}" ${String(o.assigned_to) === a.id ? 'selected' : ''}>${e(a.name)}</option>`).join('')}</select></label>` : ''}<button class="button primary">Save changes</button></form>
       <h3>Conversation tools</h3><p>Editable starting points. Review the office facts and current offer before using them.</p>${Object.entries(record.drafts).map(([name,text]) => `<details><summary>${e(title(name.replace('callScript','call script')))}</summary><pre class="sales-draft">${e(text)}</pre></details>`).join('')}
@@ -88,7 +139,7 @@
     const agreementForm = $('#sales-agreement');
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
-    const login = $('#sales-login-form'); login.onsubmit = run(async () => { await api('login',Object.fromEntries(new FormData(login))); login.reset(); await refresh(); tab('pipeline'); status('Signed in.'); },login);
+    const login = $('#sales-login-form'); login.onsubmit = run(async () => { await api('login',Object.fromEntries(new FormData(login))); login.reset(); await refresh(); tab('home'); status('Signed in.'); },login);
     $('#sales-logout').onclick = run(async () => { await api('logout'); location.reload(); });
     $$('[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList;
@@ -131,8 +182,13 @@
     $('#sales-results-next')?.addEventListener('click', run(() => discoveryState.query && findOffices(discoveryState.query, discoveryState.offset + discoveryState.limit)));
     const create = $('#sales-create-office'); create.onsubmit = run(async () => { const result = await api('create-office',Object.fromEntries(new FormData(create))); create.reset(); selected = String(result.office.id); await refresh(); tab('pipeline'); status(result.duplicate ? 'Opened the office already in your pipeline.' : 'Office saved to your pipeline.'); },create);
     const agentForm = $('#sales-create-agent'); agentForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agentForm)); input.states = input.states.split(/[\s,]+/).filter(Boolean).map(s=>s.toUpperCase()); const result = await api('create-agent',input); await refresh(); tab('team'); const panel = $('#sales-agent-code'); panel.hidden = false; panel.innerHTML = '<p>Share this access code privately with the agent. It is shown once.</p><code class="sales-secret"></code><button class="button secondary">Copy access code</button>'; $('code',panel).textContent = result.code; $('button',panel).onclick = run(async () => { await navigator.clipboard.writeText(result.code); status('Agent access code copied.'); }); agentForm.reset(); status('Agent created. Save the access code before leaving this page.'); },agentForm);
+    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onSearch: async input => {
+      for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
+      tab('discover');
+      return findOffices(Object.fromEntries(new FormData(discovery)), 0);
+    } });
     (async () => {
-      try { const params = new URLSearchParams(location.hash.slice(1)); if (params.has('owner-code')) { const code = params.get('owner-code'); history.replaceState(null,'',location.pathname); await api('login',{code}); } await refresh(); tab('pipeline'); }
+      try { const params = new URLSearchParams(location.hash.slice(1)); if (params.has('owner-code')) { const code = params.get('owner-code'); history.replaceState(null,'',location.pathname); await api('login',{code}); } await refresh(); tab('home'); }
       catch (err) { if (err.status !== 401) status(err.message,true); }
     })();
   }
