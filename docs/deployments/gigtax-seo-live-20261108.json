@@ -1,0 +1,317 @@
+{
+  "ok": true,
+  "origin": "https://gigtax.pro",
+  "verifiedAt": "2026-11-08T18:56:51.218Z",
+  "checks": [
+    {
+      "url": "https://gigtax.pro/index.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/services.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/services?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/how-it-works.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/how-it-works?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/drivers.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/drivers?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/get-the-app.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/get-the-app?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/offices.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/offices?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/resources.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/resources?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/about.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/about?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/tax-preparation.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/tax-preparation?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/mileage-and-expenses.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/mileage-and-expenses?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/quarterly-taxes.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/quarterly-taxes?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/bookkeeping.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/bookkeeping?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/free.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/free?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/get-started.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/get-started?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/document-checklist.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/document-checklist?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/guides/uber-lyft-tax-forms.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/guides/uber-lyft-tax-forms?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/faq.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/faq?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/contact.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/contact?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/privacy.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/privacy?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/terms.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/terms?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/accessibility.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/accessibility?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/tour/index.html?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/tour/?source=seo-check&step=1"
+    },
+    {
+      "url": "https://gigtax.pro/tour?source=seo-check&step=1",
+      "status": 308,
+      "location": "https://gigtax.pro/tour/?source=seo-check&step=1"
+    },
+    {
+      "url": "https://www.gigtax.pro/",
+      "status": 308,
+      "location": "https://gigtax.pro/"
+    },
+    {
+      "url": "https://www.gigtax.pro/services?source=seo-check",
+      "status": 308,
+      "location": "https://gigtax.pro/services?source=seo-check"
+    },
+    {
+      "url": "https://www.gigtax.pro/tour/",
+      "status": 308,
+      "location": "https://gigtax.pro/tour/"
+    },
+    {
+      "url": "https://gigtax.pro/",
+      "status": 200,
+      "canonical": "https://gigtax.pro/",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/services",
+      "status": 200,
+      "canonical": "https://gigtax.pro/services",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/how-it-works",
+      "status": 200,
+      "canonical": "https://gigtax.pro/how-it-works",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/drivers",
+      "status": 200,
+      "canonical": "https://gigtax.pro/drivers",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/get-the-app",
+      "status": 200,
+      "canonical": "https://gigtax.pro/get-the-app",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/offices",
+      "status": 200,
+      "canonical": "https://gigtax.pro/offices",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/resources",
+      "status": 200,
+      "canonical": "https://gigtax.pro/resources",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/about",
+      "status": 200,
+      "canonical": "https://gigtax.pro/about",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/tax-preparation",
+      "status": 200,
+      "canonical": "https://gigtax.pro/tax-preparation",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/mileage-and-expenses",
+      "status": 200,
+      "canonical": "https://gigtax.pro/mileage-and-expenses",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/quarterly-taxes",
+      "status": 200,
+      "canonical": "https://gigtax.pro/quarterly-taxes",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/bookkeeping",
+      "status": 200,
+      "canonical": "https://gigtax.pro/bookkeeping",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/free",
+      "status": 200,
+      "canonical": "https://gigtax.pro/free",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/get-started",
+      "status": 200,
+      "canonical": "https://gigtax.pro/get-started",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/document-checklist",
+      "status": 200,
+      "canonical": "https://gigtax.pro/document-checklist",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/guides/uber-lyft-tax-forms",
+      "status": 200,
+      "canonical": "https://gigtax.pro/guides/uber-lyft-tax-forms",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/faq",
+      "status": 200,
+      "canonical": "https://gigtax.pro/faq",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/contact",
+      "status": 200,
+      "canonical": "https://gigtax.pro/contact",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/privacy",
+      "status": 200,
+      "canonical": "https://gigtax.pro/privacy",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/terms",
+      "status": 200,
+      "canonical": "https://gigtax.pro/terms",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/accessibility",
+      "status": 200,
+      "canonical": "https://gigtax.pro/accessibility",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/tour/",
+      "status": 200,
+      "canonical": "https://gigtax.pro/tour/",
+      "userAgent": "Googlebot",
+      "structuredDataAllowed": true
+    },
+    {
+      "url": "https://gigtax.pro/client-portal",
+      "status": 200,
+      "noindex": true
+    },
+    {
+      "url": "https://gigtax.pro/sales",
+      "status": 200,
+      "noindex": true
+    },
+    {
+      "url": "https://gigtax.pro/office-signup",
+      "status": 200,
+      "noindex": true
+    },
+    {
+      "url": "https://gigtax.pro/bank-return",
+      "status": 200,
+      "noindex": true
+    },
+    {
+      "url": "https://gigtax.pro/__seo-missing-page-check",
+      "status": 404,
+      "noindex": true
+    }
+  ],
+  "limits": "HTTP and metadata checks do not establish Google indexing, rankings or visual acceptance."
+}
