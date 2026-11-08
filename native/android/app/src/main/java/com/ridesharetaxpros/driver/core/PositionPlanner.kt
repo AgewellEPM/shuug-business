@@ -91,7 +91,7 @@ fun assessOfferRoad(offer: ReviewedGigOffer,journey: OfferRoadJourney,preference
     val routed=offer.copy(totalMiles=workMiles,workingMinutes=workMinutes,waitMinutes=wait,repositionMiles=0.0)
     val fast=assessReviewedOffer(routed,goals.vehicleCostCentsPerMile,goals.targetHourlyCents,reservePercent)
     val slow=assessReviewedOffer(routed.copy(workingMinutes=workMinutes+delay*2/3),goals.vehicleCostCentsPerMile,goals.targetHourlyCents,reservePercent)
-    val hourly=if(slow.hourly!=null && fast.hourly!=null) OfferMoneyBand(slow.hourly.lower,fast.hourly.upper) else null
+    val hourly=if(slow.hourly!=null && fast.hourly!=null) OfferMoneyBand(min(slow.hourly.lower,fast.hourly.lower),max(slow.hourly.upper,fast.hourly.upper)) else null
     val financial=fast.copy(hourly=hourly)
     val extraMiles=workMiles+(journey.onward.meters-journey.direct.meters)/1609.344
     val extraTime=workMinutes+(journey.onward.seconds-journey.direct.seconds)/60
@@ -114,7 +114,7 @@ fun assessOfferRoad(offer: ReviewedGigOffer,journey: OfferRoadJourney,preference
     if(otherActiveWork) return result.copy(outcome="skip",reason="Conflicts with accepted work. Simultaneous jobs are not assumed.")
     if(offer.isActiveWork() || offer.phase=="completed") return result.copy(outcome="skip",reason="This offer is already recorded as accepted or completed.")
     if(offer.phase=="canceled") return result.copy(reason="This job is already canceled in your reports. Review a current offer instead.")
-    if(offer.guaranteedCents==null || hourly==null) return result.copy(reason="Guaranteed pay or complete earnings evidence is unknown.")
+    if(hourly==null) return result.copy(reason="Guaranteed pay or complete earnings evidence is unknown.")
     if(profit.lower<=0 || hourly.lower<(goals.targetHourlyCents ?: Int.MAX_VALUE) || profit.lower-extraCost<=0)
         return result.copy(outcome="skip",reason="The job does not conservatively meet your earnings target and improve cash versus going directly.")
     if(preferences.conservative && delay*2/3>max(10.0,workMinutes*.5))

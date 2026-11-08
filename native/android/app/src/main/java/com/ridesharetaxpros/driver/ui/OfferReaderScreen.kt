@@ -49,7 +49,7 @@ import java.time.Instant
         Choice("Platform on shared screen",platform,gigPlatforms) {platform=it}
         Field("Fee estimate per offer ($; 0 only if known)",fees,{fees=it})
         Field("Expected pickup wait in minutes",wait,{wait=it})
-        Text("Set your hourly goal and vehicle cost in Insights. These fee/wait estimates apply to selected apps; verify each offer’s actual total miles, time and fees.",color=Muted)
+        Text("Set your hourly goal and vehicle cost in Earnings → Goals. These fee/wait estimates apply to selected apps; verify each offer’s actual total miles, time and fees.",color=Muted)
         if(installed.isEmpty()) Text("No other launchable apps were found. Screenshot import still works.")
         else {
             Choice("Installed gig app",selected,linkedMapOf("" to "Choose an app").apply {putAll(installed)}) {selected=it}
@@ -88,7 +88,9 @@ import java.time.Instant
             Text("${offer.miles?.let {"$it mi shown"} ?: "Miles unknown"} · ${offer.minutes?.let {"$it min shown"} ?: "Time unknown"}")
             offer.estimate(repo.journal.offerReader,repo.journal.goals)?.let {estimate->
                 Text("${usd(estimate.netCents)} estimated net · ${usd(estimate.hourlyCents)}/active hour")
-                Text(if(estimate.meetsGoal) "Meets your pay target; destination impact unknown." else "Below your entered pay target.",color=Muted)
+                Text(when {estimate.meetsGoal->"Meets your pay target; destination impact unknown."
+                    estimate.hourlyCents>=(repo.journal.goals.targetHourlyCents ?: Int.MAX_VALUE)->"Pay uncertainty needs review; destination impact unknown."
+                    else->"Below your entered pay target."},color=Muted)
                 OutlinedButton(enabled=offer.fresh() && offer.comparisonSavedAt==null,onClick={repo.run {OfferAlerts.confirm(repo,offer.id,repo.scope,offer.readerSession)}}) {Text("Confirm total miles/time & save comparison")}
             }
             if(offer.comparisonSavedAt!=null) Text("Saved comparison · no gig accepted or earnings posted",color=Muted)

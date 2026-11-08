@@ -15,13 +15,21 @@ import kotlinx.serialization.Serializable
     val waitMinutes: Double? = null, val repositionMiles: Double? = null,
     val pickup: String = "", val dropoff: String = "", val checked: Boolean = false,
     val advice: String? = null, val phase: String? = null, val startedAt: String? = null,
-    val completedRecordId: String? = null,val expiresAt: String?=null,val withdrawn: Boolean=false
+    val completedRecordId: String? = null,val expiresAt: String?=null,val withdrawn: Boolean=false,
+    val currency: String?="USD",val pickupMiles: Double?=null,val deliveryMiles: Double?=null,val travelMinutes: Double?=null,
+    val durationCoverage: String="unknown",val confirmedTipCents: Int?=null,val unconfirmedTipCents: Int?=null,
+    val tipTreatment: String="unknown",val captureFields: CapturedOfferFields?=null
 ) {
     fun fresh(clock: Instant = Instant.now()) = offerObservationFresh(observedAt,expiresAt,withdrawn,clock)
     companion object {
         fun captured(value: ObservedGigOffer) = ReviewedGigOffer(id=value.id, platform=value.platform,
             source=value.source, observedAt=value.observedAt, payoutCents=value.payoutCents,
-            displayedMiles=value.miles, displayedMinutes=value.minutes,expiresAt=value.expiresAt,withdrawn=value.withdrawn)
+            displayedMiles=value.miles, displayedMinutes=value.minutes,expiresAt=value.expiresAt,withdrawn=value.withdrawn,
+            currency=value.fields.currency,guaranteedCents=value.fields.guaranteedCents,additionalCostsCents=value.fields.additionalCostsCents,
+            totalMiles=value.fields.completeMiles,workingMinutes=value.fields.completeMinutes,pickup=value.fields.pickup ?: "",dropoff=value.fields.dropoff ?: "",
+            pickupMiles=value.fields.pickupMiles,deliveryMiles=value.fields.deliveryMiles,repositionMiles=value.fields.repositionMiles,
+            waitMinutes=value.fields.waitMinutes,travelMinutes=value.fields.travelMinutes,durationCoverage=value.fields.durationCoverage,
+            confirmedTipCents=value.fields.confirmedTipCents,unconfirmedTipCents=value.fields.unconfirmedTipCents,tipTreatment=value.fields.tipTreatment,captureFields=value.fields)
     }
 }
 
@@ -35,15 +43,18 @@ data class ReviewedOfferAssessment(
 /** Decimal cents and conservative pay bounds mirror the iOS profitability engine. */
 fun assessReviewedOffer(offer: ReviewedGigOffer, costPerMile: Double?, hourlyGoal: Int?, reservePercent: Double = 0.0): ReviewedOfferAssessment {
     fun missing(message: String) = ReviewedOfferAssessment(issues=listOf(message))
+    if(offer.currency!="USD") return missing("Only confirmed USD offers can be compared with this cost profile.")
     val quote = offer.payoutCents ?: return missing("Quoted payout is missing.")
     if (quote !in 0..100_000_000 || !reservePercent.isFinite() || reservePercent !in 0.0..100.0)
         return missing("Check the dollar amounts and reserve setting.")
     val cost = costPerMile?.takeIf { it.isFinite() && it in 0.0..10000.0 }
         ?: return missing("Set your estimated vehicle cost per mile.")
     val goal = hourlyGoal?.takeIf { it in 1..1_000_000 } ?: return missing("Set your hourly earnings target.")
-    val miles = offer.totalMiles?.takeIf { it.isFinite() && it in 0.0..10000.0 }
+    val legMiles=if(offer.pickupMiles!=null && offer.deliveryMiles!=null && offer.repositionMiles!=null && listOf(offer.pickupMiles,offer.deliveryMiles,offer.repositionMiles).all {it.isFinite() && it in 0.0..10000.0}) offer.pickupMiles+offer.deliveryMiles+offer.repositionMiles else null
+    val miles = (offer.totalMiles ?: legMiles)?.takeIf { it.isFinite() && it in 0.0..10000.0 }
         ?: return missing("Review all working miles, including unpaid driving.")
-    val minutes = offer.workingMinutes?.takeIf { it.isFinite() && it in 1.0..2880.0 }
+    val travelAndWait=if(offer.durationCoverage=="travelExcludingWait" && offer.travelMinutes!=null && offer.waitMinutes!=null && offer.travelMinutes.isFinite() && offer.travelMinutes in 0.0..1440.0 && offer.waitMinutes.isFinite() && offer.waitMinutes in 0.0..240.0) offer.travelMinutes+offer.waitMinutes else null
+    val minutes = (offer.workingMinutes ?: travelAndWait)?.takeIf { it.isFinite() && it in 1.0..2880.0 }
         ?: return missing("Review all working time, including pickup and waiting.")
     val additional = offer.additionalCostsCents?.takeIf { it in 0..100_000_000 }
         ?: return missing("Enter additional costs; enter 0 only if known.")
@@ -51,8 +62,15 @@ fun assessReviewedOffer(offer: ReviewedGigOffer, costPerMile: Double?, hourlyGoa
     if (guarantee != null && guarantee !in 0..quote) return missing("Guaranteed pay cannot exceed the quote.")
     fun rounded(value: BigDecimal, mode: RoundingMode = RoundingMode.HALF_UP) = value.setScale(0, mode).intValueExact()
     val vehicle = rounded(BigDecimal.valueOf(cost).multiply(BigDecimal.valueOf(miles)))
-    val lowProfit = (guarantee ?: 0) - vehicle - additional
-    val highProfit = quote - vehicle - additional
+    val confirmed=offer.confirmedTipCents ?: 0;val uncertain=offer.unconfirmedTipCents ?: 0
+    if(confirmed !in 0..100_000_000 || uncertain !in 0..100_000_000 || (offer.tipTreatment=="includedInQuote" && confirmed.toLong()+uncertain>quote)) return missing("Check the tip amounts against the quote.")
+    val separateConfirmed=if(offer.tipTreatment=="separateFromQuote") confirmed else 0
+    val separateUncertain=if(offer.tipTreatment=="separateFromQuote") uncertain else 0
+    val includedFloor=if(offer.tipTreatment=="includedInQuote" && offer.unconfirmedTipCents!=null) quote-uncertain else null
+    val lowPay=(guarantee ?: includedFloor ?: 0)+separateConfirmed
+    val highPay=quote+separateConfirmed+separateUncertain
+    val lowProfit = lowPay - vehicle - additional
+    val highProfit = highPay - vehicle - additional
     fun reserve(profit: Int) = rounded(BigDecimal.valueOf(maxOf(0, profit).toLong())
         .multiply(BigDecimal.valueOf(reservePercent)).divide(BigDecimal(100)))
     val lowReserve = reserve(lowProfit); val highReserve = reserve(highProfit)
@@ -61,7 +79,7 @@ fun assessReviewedOffer(offer: ReviewedGigOffer, costPerMile: Double?, hourlyGoa
         .divide(BigDecimal.valueOf(minutes), 12, mode), mode)
     val hourlyLow = hourly(lowCash, RoundingMode.FLOOR); val hourlyHigh = hourly(highCash, RoundingMode.CEILING)
     val issues = mutableListOf<String>()
-    if (guarantee == null) issues += "The guaranteed part of the quoted payout is unknown."
+    if (guarantee == null && includedFloor==null) issues += "The guaranteed part of the quoted payout is unknown."
     if (lowCash != highCash) issues += "Pay uncertainty changes the estimate."
     val outcome = when {
         highProfit <= 0 -> "loss"

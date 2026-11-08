@@ -57,4 +57,13 @@ class PositionPlannerTest {
         assertEquals("skip",assessOfferRoad(offer.copy(phase="inProgress"),journey(),preference,goals,15.0,clock=clock).outcome)
         assertNull(assessOfferRoad(offer,journey(),preference.copy(preferredPlatforms=setOf("Uber")),goals,15.0,clock=clock).financial)
     }
+    @Test fun negativeCashAcrossDelayRangeKeepsConservativeHourlyBoundsOrdered() {
+        val loss=offer.copy(payoutCents=400,guaranteedCents=400)
+        val route=OfferRoadJourney(road(20.0,35.0),road(3.0,10.0),road(10.0,30.0),road(12.0,20.0),clock)
+        val result=assessOfferRoad(loss,route,preference.copy(waitMinutes=10.0,delayMinutes=30.0,
+            deadline=clock.plusSeconds(3*3600),maximumExtraMiles=100.0,maximumExtraMinutes=180.0),goals,0.0,clock=clock)
+        val hourly=result.financial!!.hourly!!
+        assertEquals(-300,hourly.lower);assertEquals(-214,hourly.upper)
+        assertTrue(hourly.lower<=hourly.upper);assertEquals("skip",result.outcome)
+    }
 }

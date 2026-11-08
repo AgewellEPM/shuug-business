@@ -22,10 +22,17 @@ import kotlin.math.abs
     var linkId by rememberSaveable {mutableStateOf<String?>(null)}; var linkScope by rememberSaveable {mutableStateOf<String?>(null)}
     var connecting by remember {mutableStateOf(false)}; var disconnect by remember {mutableStateOf<BankItem?>(null)}
     var match by remember {mutableStateOf<Pair<BankTransaction,DriverRecord>?>(null)}
+    var notice by remember {mutableStateOf<String?>(null)}
+    fun cancelPending() {
+        val session=linkId;val expected=linkScope;val connection=repo.connection;linkId=null;linkScope=null
+        if(session!=null && connection!=null && expected==repo.scope)repo.run {
+            WorkspaceClient(connection).action("banks",mapOf("action" to "cancel","sessionId" to session))
+        }
+    }
     val link=rememberLauncherForActivityResult(OpenPlaidLink()) {result->connecting=false
         if(result is LinkSuccess) repo.run {val connection=repo.connection ?: error("Reconnect your workspace first.");require(linkScope==repo.scope && linkId!=null) {"Your account changed. Open bank linking again."}
             WorkspaceClient(connection).action("banks",mapOf("action" to "exchange","sessionId" to linkId!!,"publicToken" to result.publicToken));linkId=null;repo.refreshBanks()}
-        else {linkId=null;repo.failure="Bank linking closed. No bank password is stored by this app."}
+        else {cancelPending();notice="Bank linking closed. No bank password is stored by this app."}
     }
     fun connect(item: BankItem?=null) {if(connecting) return;connecting=true;repo.run {try {
         val connection=repo.connection ?: error("Connect your client workspace first."); val scope=repo.scope
@@ -33,11 +40,12 @@ import kotlin.math.abs
         require(repo.scope==scope);linkId=response["sessionId"]!!.jsonPrimitive.content;linkScope=scope
         val configuration=linkTokenConfiguration {token=response["linkToken"]!!.jsonPrimitive.content}
         link.launch(Plaid.createPlaidLinkSession(repo.app,configuration))
-    } catch(error: Exception) {connecting=false;throw error}}}
+    } catch(error: Exception) {connecting=false;cancelPending();throw error}}}
     LaunchedEffect(repo.scope) {repo.run {repo.refreshBanks()}}
     Panel("Connect or import") {
         Text("Review transactions before recording expenses or income. Bank availability and update timing depend on the bank.",color=Muted)
         Text(repo.bankStatus?.reason ?: if(repo.connection==null) "Connect your invited workspace to use bank linking. Statement imports work offline." else "Loading bank connection status…")
+        notice?.let {Text(it,color=Muted)}
         if(repo.bankStatus?.environment=="sandbox") Text("Sandbox banks are test data and cannot be posted to your journal.",color=Muted)
         Button(enabled=repo.bankStatus?.ready==true && !connecting,onClick={connect()}) {Text(if(connecting) "Opening secure bank link…" else "Connect a bank")}
         OutlinedButton(onClick=onImport) {Text("Import CSV, OFX or QFX")}
@@ -74,7 +82,7 @@ import kotlin.math.abs
     var split by remember {mutableStateOf(false)};var preview by remember {mutableStateOf<ImportPreview?>(null)}
     val picker=rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {uri->if(uri!=null) repo.run {
         source=repo.app.contentResolver.openInputStream(uri)!!.use {boundedRead(it,5*1024*1024)}.toString(Charsets.UTF_8)
-        ofx=source.contains("<OFX",true);headers=if(ofx) emptyList() else StatementImport.csv(source).first();columns=ColumnMap();preview=null
+        ofx=source.contains("<OFX",true);headers=if(ofx) emptyList() else StatementImport.csv(source).firstOrNull() ?: error("This statement has no readable CSV rows.");columns=ColumnMap();preview=null
     }}
     Panel("Statement import") {
         Text("Export CSV, OFX or QFX from your bank. USD is required for journal posting. Imports stay in an inbox until reviewed.")

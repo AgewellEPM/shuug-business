@@ -34,6 +34,7 @@ class DriverRepository(val app: Application) {
     var trackingStatus by mutableStateOf("Tracking is off")
     var offerReaderStatus by mutableStateOf("Offer reading is off")
     var requestedOfferReader by mutableStateOf(false)
+    private var profileGeneration=0
     val scope get()=connection?.let { PrivateStore.hash(it.origin+"|"+it.session.account.id) } ?: "guest"
     init { try {
         connection=store.read("session","connection.json")?.let { Wire.decodeFromString<Connection>(it.toString(Charsets.UTF_8)) }
@@ -56,6 +57,7 @@ class DriverRepository(val app: Application) {
         changingAccount=true
         try {
         val origin=WorkspaceClient.origin(address); val reply=WorkspaceClient(address=origin).login(email.trim(),password)
+        check(connection==null && journal.activeTripId==null && storageReady) {"Your account or drive changed while signing in. Finish the drive and try again."}
         val next=Connection(origin,reply); val namespace=PrivateStore.hash(origin+"|"+reply.account.id)
         val saved=store.journal(namespace).let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
         store.save(namespace,saved)
@@ -63,7 +65,7 @@ class DriverRepository(val app: Application) {
         app.stopService(Intent(app,DriveService::class.java)); app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=next; journal=saved; rewards=null; bankStatus=null;profileError=null
         } finally {changingAccount=false}
-        sync()
+        try {sync()}catch(error:CancellationException) {throw error}catch(error:Exception) {failure="Connected. Saved records are waiting to sync: ${error.message}"}
     }
     suspend fun reauthenticate(password:String) {
         val expected=connection ?: error("Connect your client account first.")
@@ -71,11 +73,11 @@ class DriverRepository(val app: Application) {
         changingAccount=true
         try {
             val reply=WorkspaceClient(address=expected.origin).login(expected.session.account.email,password)
-            check(connection==expected) {"Your account changed. Open sign-in again."}
+            check(connection?.origin==expected.origin && connection?.session?.token==expected.session.token && journal.activeTripId==null && storageReady) {"Your account or drive changed. Open sign-in again after finishing the drive."}
             val next=sameAccountReauthentication(expected,reply)
             store.write("session","connection.json",Wire.encodeToString(next).toByteArray());connection=next;profileError=null
         } finally {changingAccount=false}
-        sync()
+        try {sync()}catch(error:CancellationException) {throw error}catch(error:Exception) {failure="Signed in again. Saved records are waiting to sync: ${error.message}"}
     }
     suspend fun disconnect() {
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish before signing out."}
@@ -93,6 +95,7 @@ class DriverRepository(val app: Application) {
         previous?.let {try {WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
     }
     fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false,includeRecords:Boolean=true) {
+        check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish before copying phone-only records."}
         check(connection!=null && journal.activeTripId==null); val guest=store.journal("guest"); check(guest.activeTripId==null)
         if(includeRecords) {
             guest.receipts.forEach { store.saveReceipt(scope,it.id,store.receipt("guest",it.id)) }
@@ -151,14 +154,15 @@ class DriverRepository(val app: Application) {
     }
     suspend fun refreshProfile() {
         val expected=connection ?: return;if(updatingProfile || changingAccount) return;val namespace=scope
-        try {applyProfile(WorkspaceClient(expected).profile(),expected,namespace)}
+        val generation=++profileGeneration
+        try {val reply=WorkspaceClient(expected).profile();if(generation==profileGeneration)applyProfile(reply,expected,namespace)}
         catch(error:CancellationException) {throw error}
-        catch(error:Exception) {if(scope==namespace && connection?.session?.token==expected.session.token)profileError=error.message}
+        catch(error:Exception) {if(generation==profileGeneration && scope==namespace && connection?.session?.token==expected.session.token)profileError=error.message}
     }
     suspend fun updateProfileName(raw:String) {
         val expected=connection ?: error("Connect your client account first.")
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current sync or profile update to finish."}
-        val name=validatedDisplayName(raw);val namespace=scope;updatingProfile=true
+        val name=validatedDisplayName(raw);val namespace=scope;profileGeneration++;updatingProfile=true
         try {applyProfile(WorkspaceClient(expected).profile(name),expected,namespace)} finally {updatingProfile=false}
     }
     suspend fun refreshBanks() {

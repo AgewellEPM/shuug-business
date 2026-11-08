@@ -17,12 +17,11 @@ object OfferAlerts {
         if(repo.scope!=scope || repo.journal.offerReader.id!=session || !repo.storageReady) return
         val settings=platform?.let {repo.journal.offerReader.copy(platform=it)} ?: repo.journal.offerReader
         val offer=GigOfferTextReader.read(text,settings,source) ?: return
-        val previous=repo.journal.observedOffers.lastOrNull {it.fingerprint==offer.fingerprint &&
-                runCatching {java.time.Duration.between(Instant.parse(it.observedAt),Instant.now()).seconds in 0..120}.getOrDefault(false)}
-        val merged=previous?.let {mergeObservedOffer(it,offer)} ?: offer
-        if(merged==previous) return
-        repo.update {it.copy(observedOffers=(it.observedOffers.filterNot {raw->raw.id==merged.id}+merged).takeLast(100))}
-        if(previous==null || previous.withdrawn!=merged.withdrawn || previous.expiresAt!=merged.expiresAt) publish(repo,merged)
+        val result=repo.journal.ingestCapture(offer)
+        if(!result.changed) return
+        repo.update {result.journal}
+        OfferRouteEvidenceCache.remove(scope,result.observation.id)
+        if(result.notify) publish(repo,result.observation)
     }
     private fun publish(repo: DriverRepository,offer: ObservedGigOffer) {
         val app=repo.app; val manager=app.getSystemService(NotificationManager::class.java)
@@ -31,7 +30,7 @@ object OfferAlerts {
         val estimate=offer.estimate(repo.journal.offerReader,repo.journal.goals)
         val title="${offer.platform}: ${offer.payoutCents?.let {money(it)} ?: "payout unknown"}"
         val details=if(!offer.fresh()) "This captured offer is expired, withdrawn or old. Recheck it in the original gig app."
-            else if(estimate!=null) "${money(estimate.netCents)} estimated net · ${money(estimate.hourlyCents)}/active hour. Confirm ${offer.miles} total mi, ${offer.minutes} min, ${money(repo.journal.offerReader.feesCents!!)} fees, ${repo.journal.offerReader.waitMinutes} min wait. Home impact unknown."
+            else if(estimate!=null) "${money(estimate.netCents)} estimated net · ${money(estimate.hourlyCents)}/active hour. Confirm ${estimate.totalMiles} total mi, ${estimate.totalMinutes} working min including wait, and ${money(estimate.feesCents)} fees. Home impact unknown."
             else "Some payout, total miles, time or cost settings are missing. Review before calculating."
         val open=PendingIntent.getActivity(app,0,Intent(app,MainActivity::class.java).putExtra("openOfferReader",true),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val notification=Notification.Builder(app,"offers").setSmallIcon(R.drawable.brand_mark).setContentTitle(title)

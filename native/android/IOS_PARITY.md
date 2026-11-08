@@ -1,6 +1,6 @@
 # iOS mirror implementation and remaining evidence
 
-Updated 2026-11-07. Reference is the current `native/ios/RideshareTaxPros/App`
+Updated 2026-11-08. Reference is the current `native/ios/RideshareTaxPros/App`
 source and the 139 reference PNGs in `~/Desktop/Gig Tax Pros Screens - 2026-11-07`.
 The target is the same navigation, card ordering, actions, recorded state and
 meaning as iOS. Android uses native Compose and Android permission/media/picker
@@ -15,7 +15,7 @@ and actual state/API behavior; it is not a claim that live external APIs passed.
 | iOS screen/source | Android implementation | Implementation / remaining gap |
 | --- | --- | --- |
 | RootView / TodayView / HomeDashboardPanels / DashboardStyle | DriverApp / HomeDashboard / Brand | Home, Offers, Go Home, Position, Earnings; matching card sequence and copied publisher assets implemented. Screenshot spacing/typography comparison pending. |
-| GettingStartedView | GettingStartedScreen | Native full-screen video, chapters/transcript and guide entry implemented. Replacement video belongs to concurrent tour work; no obsolete video copied into Android. |
+| GettingStartedView | GettingStartedScreen / TourPlayer | Native full-screen video, default English selectable soft captions, precise chapter seeking/transcript, manifest runtime, landscape instruction and guide entry implemented. Replacement MP4/SRT/manifest/poster belong to concurrent tour work and must be bundled/verified together; no obsolete video copied into Android. |
 | TripsView / StartDriveView | RecordScreens | Drive classification/purpose, tracking start/stop, trip list/detail/edit implemented. Background physical-device tracking remains unverified. |
 | TripDetail / RideProfitDetails / RouteOptionsView | InsightsScreen TripDetail / TripRouteOptionsScreen / Driving | Actual ride profit, source/timezone details, scoped encrypted route read, damage/gap warnings, street basemap with separated segments, current alternate road routes/cost comparison, conflict actions and confirmed deletion implemented. |
 | TripEditor | RecordEditor / DateFields | Dates, times, distance, classification, notes, ride earnings/platform/area implemented. Native OS picker styling differs. |
@@ -24,7 +24,7 @@ and actual state/API behavior; it is not a claim that live external APIs passed.
 | ExpenseReviewView | SpendingReviewScreen / ExpenseReview | Calendar month/year/all dates, spending/categories, actionable individual review prompts and recordkeeping guidance implemented. |
 | BankConnectionView / BankReviewView / BankTransactionView | BankScreen | Native Plaid, reconnect/disconnect, refresh, record creation/matching/ignore implemented. Exact visual form separation differs; real provider readiness and account API validation pending. |
 | BankImportView | BankImport | CSV/OFX/QFX mapping, preview, issues, dedup and inbox implemented. |
-| OfferInboxView / UnifiedOfferCard / GigOfferDetailView | OffersParityScreens / ParityOffers | Inbox dispatch guards/ranking, reviewed fields, conservative pay bands/net/hour, explicit expiration/withdrawal, report-only work status and confirmation guards implemented. Automatic extraction of all labeled financial/route fields remains in progress; unknown fields require explicit review. |
+| OfferInboxView / UnifiedOfferCard / GigOfferDetailView | OffersParityScreens / ParityOffers / OfferNormalization | Inbox guards/ranking, exact conservative pay bands/net/hour, labeled payout/guarantee/currency/locations/legs/reposition/wait/fees/tips/time coverage, stable platform/provider identity and preserved expiry/withdrawal implemented. Contradictory/partial OCR values stay unknown. Changed terms invalidate prior field/route review while preserving active-work reports. |
 | GigOfferEditor | ManualOfferScreen | Manual fields and screenshot-correction flow implemented. |
 | OfferScreenshotImportView | ScreenshotImportScreen | Explicit chosen image/on-device OCR/current-account capture integration implemented. |
 | OfferScreenshotGuide / ScreenshotGuideArtwork | OfferScreenshotGuide | All six practice steps, bounded scroll plus fixed Back/Next, real reference image/provenance implemented; practice never writes a job. |
@@ -75,11 +75,13 @@ it has not been deployed as part of this change.
 Use `./native/android/build-parity.sh` to build the APK and run JVM tests, keeping
 all build/project-cache outputs on PRO-G40. No new emulator has been launched;
 the existing iPhone recording session has exclusive guest use until coordinated.
-Build evidence is `/private/tmp/gigtax-android-parity-complete-build.log`; unit results are
+Build evidence is `/private/tmp/gigtax-android-parity-final-build.log`; unit results are
 `/Volumes/PRO-G40/AndroidParityBuild-20261107/app/test-results/testDebugUnitTest`.
 
-The latest integrated APK/JVM pass completed75checks with zero failures/skips,
-including the route/expiry/catalog/Home controls. Reproduce
+The latest integrated APK/JVM pass completed82checks with zero failures/skips,
+including normalized identity/pay bounds, native player/tab/account corrections,
+and six real CryptoKit/Kotlin decryptions. No source file was newer than the
+packaged APK after that pass. Reproduce
 the real cross-runtime proof by compiling current native sources:
 
 ```
@@ -91,7 +93,7 @@ The interoperability test skips without that native helper; the observed run
 had zero skips and six authenticated cross-runtime decryptions using synthetic
 keys/data. This is protocol interoperability, not real firm enrollment/recovery.
 
-Next: complete automatic offer-field normalization; coordinate one
+Next: bundle the verified replacement tour assets; coordinate one
 Android guest with the iOS recorder owner; install this exact APK; execute every
 feature path and compare screenshots to all references. Signed-in APIs, real
 provider linking, trusted firm enrollment, route service and physical location

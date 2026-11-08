@@ -242,7 +242,7 @@ fun DriverRepository.saveProfileMutation(mutation: ReputationMutation) { update 
 suspend fun DriverRepository.syncProfileReputation(): String = ProfileLocks.forRepo(this).withLock {
     val profile=connection ?: return@withLock "Saved on this phone · Connect to share with your tax team"
     val expected=scope; val client=WorkspaceClient(profile)
-    fun same()=scope==expected && connection==profile
+    fun same()=scope==expected && connection?.origin==profile.origin && connection?.session?.token==profile.session.token
     try {
         for(operation in journal.reputationOutbox.toList()) {
             val state=Wire.decodeFromString<ReputationState>(client.send("reputation","POST",Wire.encodeToString(operation).toByteArray()).toString(Charsets.UTF_8))
@@ -272,7 +272,7 @@ private fun Journal.mergeCoach(state: CoachState,intakeMutation: String? = null,
 suspend fun DriverRepository.syncTaxCoach(from: String,through: String): String = ProfileLocks.forRepo(this,true).withLock {
     val profile=connection ?: return@withLock "On this phone · Connect to share with your firm"
     val expected=scope; val client=WorkspaceClient(profile)
-    fun same()=scope==expected && connection==profile
+    fun same()=scope==expected && connection?.origin==profile.origin && connection?.session?.token==profile.session.token
     try {
         sync()
         if(!same()) return@withLock "Account changed. Saved records were kept."

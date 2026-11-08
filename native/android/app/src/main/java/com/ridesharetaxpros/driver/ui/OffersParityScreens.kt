@@ -153,6 +153,7 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
 @Composable fun ManualOfferScreen(repo: DriverRepository,done: ()->Unit,offerId: String? = null,draft: ReviewedGigOffer? = null) {
     val original = remember(offerId,draft) {draft ?: reviewedOffers(repo.journal).firstOrNull {it.id==offerId} ?: ReviewedGigOffer()}
     val openedScope = remember {repo.scope}
+    val openedCapture=remember(original.id) {repo.journal.observedOffers.firstOrNull {it.id==original.id}}
     fun amount(cents: Int?) = cents?.let {String.format(Locale.US,"%.2f",it/100.0)} ?: ""
     var platform by remember(original.id) {mutableStateOf(original.platform)}
     var payout by remember(original.id) {mutableStateOf(amount(original.payoutCents))}
@@ -171,6 +172,7 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
         Text("Check these against the picture. Fill in the complete job totals below.",color=Muted,fontSize=12.sp)
         original.displayedMiles?.let {OfferLine("Miles shown",it.toString())}
         original.displayedMinutes?.let {OfferLine("Minutes shown",it.toString())}
+        original.pickupMiles?.let {OfferLine("Pickup miles shown",it.toString())};original.deliveryMiles?.let {OfferLine("Delivery miles shown",it.toString())}
         Text("These may leave out waiting or unpaid driving.",color=Muted,fontSize=12.sp)
     }
     Panel("Offer visible in your gig app · USD") {
@@ -203,14 +205,19 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
             val next=original.copy(platform=platform,payoutCents=quote,guaranteedCents=guaranteed,additionalCostsCents=cash(fees),
                 totalMiles=number(miles,10000.0),workingMinutes=number(minutes,2880.0),waitMinutes=number(wait,240.0),
                 repositionMiles=number(reposition,10000.0),pickup=pickup.trim().take(500),dropoff=dropoff.trim().take(500),
+                currency="USD",travelMinutes=null,durationCoverage=if(minutes.trim().isNotEmpty()) "allWorkingTime" else "unknown",
                 checked=checked,observedAt=if(checked && !original.withdrawn && (original.expiresAt?.let {runCatching {Instant.parse(it)>Instant.now()}.getOrDefault(false)} ?: true)) now() else original.observedAt)
             repo.update {current->
-                val saved=current.saveReviewedOffer(next)
-                if(next.source=="sharedScreenshot" && current.observedOffers.none {it.id==next.id}) saved.copy(
-                    observedOffers=(saved.observedOffers+ObservedGigOffer(id=next.id,platform=next.platform,
+                require(openedCapture==null || current.observedOffers.firstOrNull {it.id==openedCapture.id}?.fingerprint==openedCapture.fingerprint) {"This offer changed while you were editing. Reopen it and review the current fields."}
+                if(next.source=="sharedScreenshot" && current.observedOffers.none {it.id==next.id}) {
+                    val capture=ObservedGigOffer(id=next.id,platform=next.platform,
                         source="sharedScreenshot",observedAt=original.observedAt,readerSession=current.offerReader.id,
-                        payoutCents=original.payoutCents,miles=original.displayedMiles,minutes=original.displayedMinutes,expiresAt=original.expiresAt,withdrawn=original.withdrawn)).takeLast(100))
-                else saved
+                        payoutCents=original.payoutCents,miles=original.displayedMiles,minutes=original.displayedMinutes,expiresAt=original.expiresAt,withdrawn=original.withdrawn,fields=original.captureFields ?: CapturedOfferFields())
+                    val merged=current.ingestCapture(capture);val priorStatus=merged.journal.offerReviews.firstOrNull {it.id==merged.observation.id}
+                    OfferRouteEvidenceCache.remove(repo.scope,merged.observation.id)
+                    merged.journal.saveReviewedOffer(next.copy(id=merged.observation.id,expiresAt=earliestOfferExpiry(next.expiresAt,merged.observation.expiresAt),withdrawn=next.withdrawn || merged.observation.withdrawn,
+                        phase=priorStatus?.phase ?: next.phase,startedAt=priorStatus?.startedAt ?: next.startedAt,completedRecordId=priorStatus?.completedRecordId ?: next.completedRecordId))
+                } else current.saveReviewedOffer(next)
             };done()
         } catch(problem: Exception) {error=problem.message ?: "Check the entered values."}
     },enabled=repo.storageReady)
@@ -245,8 +252,9 @@ private fun sampleAssessment(offer: ReviewedGigOffer) = assessReviewedOffer(offe
                             val captured=GigOfferTextReader.read(result.text,settings,"sharedScreenshot")
                             val availability=capturedOfferAvailability(result.text,Instant.now())
                             if(captured==null) problem="No reliable offer values were found. You can enter the fields manually."
-                            draft=ReviewedGigOffer(platform=selectedPlatform,source="sharedScreenshot",payoutCents=captured?.payoutCents,
-                                displayedMiles=captured?.miles,displayedMinutes=captured?.minutes,expiresAt=captured?.expiresAt ?: availability.expiresAt,withdrawn=captured?.withdrawn ?: availability.withdrawn)
+                            val sourceCapture=captured ?: ObservedGigOffer(platform=selectedPlatform,source="sharedScreenshot",readerSession=settings.id,payoutCents=null,miles=null,minutes=null,
+                                expiresAt=availability.expiresAt,withdrawn=availability.withdrawn,fields=normalizeCaptureFields(result.text).fields)
+                            draft=ReviewedGigOffer.captured(sourceCapture)
                         }
                     }.addOnFailureListener {problem="The screenshot could not be read. Enter the offer manually."}
                         .addOnCompleteListener {bitmap.recycle();scanner.close();scanning=false}
@@ -409,6 +417,20 @@ private fun openOfferLink(repo: DriverRepository,url: String) {
             OfferLine("Quoted payout",raw.payoutCents?.let {usd(it)} ?: "Not extracted")
             OfferLine("Miles shown",raw.miles?.toString() ?: "Not extracted")
             OfferLine("Minutes shown",raw.minutes?.toString() ?: "Not extracted")
+            OfferLine("Guaranteed pay",raw.fields.guaranteedCents?.let {usd(it)} ?: "Not extracted")
+            OfferLine("Provider offer ID",raw.fields.providerOfferId ?: "Not extracted")
+            OfferLine("Currency · text or reader setting",raw.fields.currency ?: "Unknown")
+            OfferLine("Pickup",raw.fields.pickup ?: "Not extracted");OfferLine("Drop-off",raw.fields.dropoff ?: "Not extracted")
+            OfferLine("Pickup miles",raw.fields.pickupMiles?.toString() ?: "Not extracted");OfferLine("Delivery miles",raw.fields.deliveryMiles?.toString() ?: "Not extracted")
+            OfferLine("Complete working miles",raw.fields.completeMiles?.toString() ?: "Not extracted")
+            OfferLine("Reposition miles",raw.fields.repositionMiles?.toString() ?: "Not extracted")
+            OfferLine("Complete working minutes",raw.fields.completeMinutes?.toString() ?: "Not extracted")
+            OfferLine("Time coverage",when(raw.fields.durationCoverage) {"allWorkingTime"->"All working time";"travelExcludingWait"->"Travel excludes wait";else->"Unknown"})
+            OfferLine("Pickup/service wait",raw.fields.waitMinutes?.toString() ?: "Not extracted")
+            OfferLine("Additional costs",raw.fields.additionalCostsCents?.let {usd(it)} ?: "Not extracted")
+            OfferLine("Confirmed tip",raw.fields.confirmedTipCents?.let {usd(it)} ?: "Not extracted")
+            OfferLine("Unconfirmed tip",raw.fields.unconfirmedTipCents?.let {usd(it)} ?: "Not extracted")
+            OfferLine("Tip treatment",when(raw.fields.tipTreatment) {"includedInQuote"->"Included in quote";"separateFromQuote"->"Separate from quote";else->"Unknown"})
             OfferLine("Known expiration",raw.expiresAt ?: "Not extracted")
             OfferLine("Withdrawal text",if(raw.withdrawn) "Offer reported withdrawn" else "Not detected")
             Text("These retained values precede your manual edits. Displayed totals do not establish complete working mileage or time.",color=Muted,fontSize=12.sp)

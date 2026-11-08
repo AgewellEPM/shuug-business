@@ -7,6 +7,9 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -16,8 +19,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.ridesharetaxpros.driver.core.*
 import com.ridesharetaxpros.driver.data.*
@@ -81,12 +89,17 @@ import com.ridesharetaxpros.driver.tracking.DriveService
                 stack=emptyList()
             }) {Text(if(page=="Getting started" && !tourSeen) "Skip for now" else "Done",color=Pink)}})
     }},bottomBar={if(page==null) {
-        NavigationBar(containerColor=Color(0xFF16131F),tonalElevation=0.dp) {
+        Row(Modifier.fillMaxWidth().padding(horizontal=8.dp,vertical=6.dp).navigationBarsPadding().height(64.dp)
+            .clip(RoundedCornerShape(50)).background(Brush.verticalGradient(listOf(Color(0xEE24212E),Color(0xE93F174F))))
+            .border(1.dp,Border.copy(alpha=.55f),RoundedCornerShape(50)),verticalAlignment=Alignment.CenterVertically) {
             listOf("Home" to Icons.Default.Home,"Offers" to Icons.Default.Bolt,"Go Home" to Icons.Default.Navigation,
                 "Position" to Icons.Default.MyLocation,"Earnings" to Icons.Default.BarChart).forEach { (name,icon)->
-                NavigationBarItem(selected=tab==name,onClick={tab=name},icon={Icon(icon,name)},label={Text(name)},
-                    colors=NavigationBarItemDefaults.colors(selectedIconColor=Color.White,selectedTextColor=Color.White,
-                        unselectedIconColor=Color.White.copy(alpha=.72f),unselectedTextColor=Color.White.copy(alpha=.72f),indicatorColor=Color.White.copy(alpha=.13f)))
+                Column(Modifier.weight(1f).fillMaxHeight().padding(3.dp).clip(RoundedCornerShape(50))
+                    .background(if(tab==name)Color.White.copy(alpha=.14f) else Color.Transparent)
+                    .selectable(tab==name,role=Role.Tab,onClick={tab=name}),horizontalAlignment=Alignment.CenterHorizontally,verticalArrangement=Arrangement.Center) {
+                    Icon(icon,null,Modifier.size(29.dp),tint=Color.White.copy(alpha=if(tab==name)1f else .8f))
+                    Text(name,fontSize=11.sp,color=Color.White.copy(alpha=if(tab==name)1f else .72f))
+                }
             }
         }
     }}) {padding->
