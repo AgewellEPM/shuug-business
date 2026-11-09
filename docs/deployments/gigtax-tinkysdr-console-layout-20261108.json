@@ -1,0 +1,1097 @@
+{
+  "ok": true,
+  "verifiedAt": "2026-11-08T23:55:17.606Z",
+  "engine": "installed macOS system WebKit, unshown NSWindow, NSApplication.prohibited",
+  "scope": "Nonvisual private console geometry and scripted interactions with synthetic read-only API responses; no real CRM auth/data, screenshots or physical touch acceptance",
+  "source": "a2a3c14",
+  "animationClock": "Timer-backed requestAnimationFrame; finite CSS animations explicitly finished before final geometry measurements. Physical animation/touch feel is not claimed.",
+  "ownedHelpersStopped": true,
+  "results": [
+    {
+      "width": 320,
+      "passed": true,
+      "failures": [],
+      "controlProblems": [],
+      "runtimeErrors": [],
+      "writeAttempts": [],
+      "sidebar": {
+        "bottom": 124,
+        "height": 124,
+        "left": 0,
+        "right": 320,
+        "top": 0,
+        "width": 320
+      },
+      "nav": {
+        "bottom": 123,
+        "height": 55,
+        "left": 0,
+        "right": 320,
+        "top": 68,
+        "width": 320
+      },
+      "views": [
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "home",
+          "viewport": 320
+        },
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "pipeline",
+          "viewport": 320
+        },
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "territories",
+          "viewport": 320
+        },
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "CT selection",
+          "viewport": 320
+        },
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "pipeline",
+          "viewport": 320
+        },
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "drawer",
+          "viewport": 320
+        },
+        {
+          "body": 320,
+          "document": 320,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 320,
+            "top": 124,
+            "width": 320
+          },
+          "view": "home",
+          "viewport": 320
+        }
+      ],
+      "map": {
+        "paths": 51,
+        "rect": {
+          "bottom": 813.296875,
+          "height": 170.296875,
+          "left": 29,
+          "right": 291,
+          "top": 643,
+          "width": 262
+        },
+        "stateCards": 51,
+        "viewBox": "0 0 1000 650"
+      },
+      "drawer": {
+        "clientHeight": 956,
+        "close": {
+          "bottom": 218,
+          "height": 44,
+          "left": 18,
+          "right": 62,
+          "top": 174,
+          "width": 44
+        },
+        "closeHit": "sales-detail-close",
+        "rect": {
+          "bottom": 956,
+          "height": 956,
+          "left": 0,
+          "right": 320,
+          "top": 0,
+          "width": 320
+        },
+        "scrollHeight": 9259,
+        "scrollTop": 8303
+      },
+      "board": {
+        "clientWidth": 296,
+        "lanes": 9,
+        "lastLane": {
+          "bottom": 1455.78125,
+          "height": 319,
+          "left": 66,
+          "right": 306,
+          "top": 1136.78125,
+          "width": 240
+        },
+        "rect": {
+          "bottom": 1473.78125,
+          "height": 339,
+          "left": 12,
+          "right": 308,
+          "top": 1134.78125,
+          "width": 296
+        },
+        "scrollLeft": 1964,
+        "scrollWidth": 2260
+      }
+    },
+    {
+      "width": 390,
+      "passed": true,
+      "failures": [],
+      "controlProblems": [],
+      "runtimeErrors": [],
+      "writeAttempts": [],
+      "sidebar": {
+        "bottom": 124,
+        "height": 124,
+        "left": 0,
+        "right": 390,
+        "top": 0,
+        "width": 390
+      },
+      "nav": {
+        "bottom": 123,
+        "height": 55,
+        "left": 0,
+        "right": 390,
+        "top": 68,
+        "width": 390
+      },
+      "views": [
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "home",
+          "viewport": 390
+        },
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "pipeline",
+          "viewport": 390
+        },
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "territories",
+          "viewport": 390
+        },
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "CT selection",
+          "viewport": 390
+        },
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "pipeline",
+          "viewport": 390
+        },
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "drawer",
+          "viewport": 390
+        },
+        {
+          "body": 390,
+          "document": 390,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 390,
+            "top": 124,
+            "width": 390
+          },
+          "view": "home",
+          "viewport": 390
+        }
+      ],
+      "map": {
+        "paths": 51,
+        "rect": {
+          "bottom": 830.6875,
+          "height": 206.6875,
+          "left": 36,
+          "right": 354,
+          "top": 624,
+          "width": 318
+        },
+        "stateCards": 51,
+        "viewBox": "0 0 1000 650"
+      },
+      "drawer": {
+        "clientHeight": 956,
+        "close": {
+          "bottom": 190,
+          "height": 44,
+          "left": 18,
+          "right": 62,
+          "top": 146,
+          "width": 44
+        },
+        "closeHit": "sales-detail-close",
+        "rect": {
+          "bottom": 956,
+          "height": 956,
+          "left": 0,
+          "right": 390,
+          "top": 0,
+          "width": 390
+        },
+        "scrollHeight": 8641,
+        "scrollTop": 7685
+      },
+      "board": {
+        "clientWidth": 358,
+        "lanes": 9,
+        "lastLane": {
+          "bottom": 1293.78125,
+          "height": 319,
+          "left": 132,
+          "right": 372,
+          "top": 974.78125,
+          "width": 240
+        },
+        "rect": {
+          "bottom": 1311.78125,
+          "height": 339,
+          "left": 16,
+          "right": 374,
+          "top": 972.78125,
+          "width": 358
+        },
+        "scrollLeft": 1902,
+        "scrollWidth": 2260
+      }
+    },
+    {
+      "width": 440,
+      "passed": true,
+      "failures": [],
+      "controlProblems": [],
+      "runtimeErrors": [],
+      "writeAttempts": [],
+      "sidebar": {
+        "bottom": 124,
+        "height": 124,
+        "left": 0,
+        "right": 440,
+        "top": 0,
+        "width": 440
+      },
+      "nav": {
+        "bottom": 123,
+        "height": 55,
+        "left": 0,
+        "right": 440,
+        "top": 68,
+        "width": 440
+      },
+      "views": [
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "home",
+          "viewport": 440
+        },
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "pipeline",
+          "viewport": 440
+        },
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "territories",
+          "viewport": 440
+        },
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "CT selection",
+          "viewport": 440
+        },
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "pipeline",
+          "viewport": 440
+        },
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "drawer",
+          "viewport": 440
+        },
+        {
+          "body": 440,
+          "document": 440,
+          "main": {
+            "bottom": 956,
+            "height": 832,
+            "left": 0,
+            "right": 440,
+            "top": 124,
+            "width": 440
+          },
+          "view": "home",
+          "viewport": 440
+        }
+      ],
+      "map": {
+        "paths": 51,
+        "rect": {
+          "bottom": 863.1875,
+          "height": 239.1875,
+          "left": 36,
+          "right": 404,
+          "top": 624,
+          "width": 368
+        },
+        "stateCards": 51,
+        "viewBox": "0 0 1000 650"
+      },
+      "drawer": {
+        "clientHeight": 956,
+        "close": {
+          "bottom": 190,
+          "height": 44,
+          "left": 18,
+          "right": 62,
+          "top": 146,
+          "width": 44
+        },
+        "closeHit": "sales-detail-close",
+        "rect": {
+          "bottom": 956,
+          "height": 956,
+          "left": 0,
+          "right": 440,
+          "top": 0,
+          "width": 440
+        },
+        "scrollHeight": 8328,
+        "scrollTop": 7372
+      },
+      "board": {
+        "clientWidth": 408,
+        "lanes": 9,
+        "lastLane": {
+          "bottom": 1242.78125,
+          "height": 319,
+          "left": 182,
+          "right": 422,
+          "top": 923.78125,
+          "width": 240
+        },
+        "rect": {
+          "bottom": 1260.78125,
+          "height": 339,
+          "left": 16,
+          "right": 424,
+          "top": 921.78125,
+          "width": 408
+        },
+        "scrollLeft": 1852,
+        "scrollWidth": 2260
+      }
+    },
+    {
+      "width": 768,
+      "passed": true,
+      "failures": [],
+      "controlProblems": [],
+      "runtimeErrors": [],
+      "writeAttempts": [],
+      "sidebar": {
+        "bottom": 956,
+        "height": 956,
+        "left": 0,
+        "right": 220,
+        "top": 0,
+        "width": 220
+      },
+      "nav": {
+        "bottom": 377,
+        "height": 250,
+        "left": 16,
+        "right": 203,
+        "top": 127,
+        "width": 187
+      },
+      "views": [
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "home",
+          "viewport": 768
+        },
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "pipeline",
+          "viewport": 768
+        },
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "territories",
+          "viewport": 768
+        },
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "CT selection",
+          "viewport": 768
+        },
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "pipeline",
+          "viewport": 768
+        },
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "drawer",
+          "viewport": 768
+        },
+        {
+          "body": 768,
+          "document": 768,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 768,
+            "top": 0,
+            "width": 548
+          },
+          "view": "home",
+          "viewport": 768
+        }
+      ],
+      "map": {
+        "paths": 51,
+        "rect": {
+          "bottom": 775.09375,
+          "height": 295.09375,
+          "left": 267,
+          "right": 721,
+          "top": 480,
+          "width": 454
+        },
+        "stateCards": 51,
+        "viewBox": "0 0 1000 650"
+      },
+      "drawer": {
+        "clientHeight": 956,
+        "close": {
+          "bottom": 166,
+          "height": 44,
+          "left": 273,
+          "right": 317,
+          "top": 122,
+          "width": 44
+        },
+        "closeHit": "sales-detail-close",
+        "rect": {
+          "bottom": 956,
+          "height": 956,
+          "left": 248,
+          "right": 768,
+          "top": 0,
+          "width": 520
+        },
+        "scrollHeight": 7794,
+        "scrollTop": 6838
+      },
+      "board": {
+        "clientWidth": 504,
+        "lanes": 9,
+        "lastLane": {
+          "bottom": 1097.390625,
+          "height": 319,
+          "left": 504,
+          "right": 744,
+          "top": 778.390625,
+          "width": 240
+        },
+        "rect": {
+          "bottom": 1115.390625,
+          "height": 339,
+          "left": 242,
+          "right": 746,
+          "top": 776.390625,
+          "width": 504
+        },
+        "scrollLeft": 1772,
+        "scrollWidth": 2276
+      }
+    },
+    {
+      "width": 1280,
+      "passed": true,
+      "failures": [],
+      "controlProblems": [],
+      "runtimeErrors": [],
+      "writeAttempts": [],
+      "sidebar": {
+        "bottom": 956,
+        "height": 956,
+        "left": 0,
+        "right": 220,
+        "top": 0,
+        "width": 220
+      },
+      "nav": {
+        "bottom": 377,
+        "height": 250,
+        "left": 16,
+        "right": 203,
+        "top": 127,
+        "width": 187
+      },
+      "views": [
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "home",
+          "viewport": 1280
+        },
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "pipeline",
+          "viewport": 1280
+        },
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "territories",
+          "viewport": 1280
+        },
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "CT selection",
+          "viewport": 1280
+        },
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "pipeline",
+          "viewport": 1280
+        },
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "drawer",
+          "viewport": 1280
+        },
+        {
+          "body": 1280,
+          "document": 1280,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1280,
+            "top": 0,
+            "width": 1060
+          },
+          "view": "home",
+          "viewport": 1280
+        }
+      ],
+      "map": {
+        "paths": 51,
+        "rect": {
+          "bottom": 774,
+          "height": 430,
+          "left": 275,
+          "right": 1225,
+          "top": 344,
+          "width": 950
+        },
+        "stateCards": 51,
+        "viewBox": "0 0 1000 650"
+      },
+      "drawer": {
+        "clientHeight": 956,
+        "close": {
+          "bottom": 166,
+          "height": 44,
+          "left": 785,
+          "right": 829,
+          "top": 122,
+          "width": 44
+        },
+        "closeHit": "sales-detail-close",
+        "rect": {
+          "bottom": 956,
+          "height": 956,
+          "left": 760,
+          "right": 1280,
+          "top": 0,
+          "width": 520
+        },
+        "scrollHeight": 7794,
+        "scrollTop": 6838
+      },
+      "board": {
+        "clientWidth": 1000,
+        "lanes": 9,
+        "lastLane": {
+          "bottom": 853.390625,
+          "height": 319,
+          "left": 1008,
+          "right": 1248,
+          "top": 534.390625,
+          "width": 240
+        },
+        "rect": {
+          "bottom": 871.390625,
+          "height": 339,
+          "left": 250,
+          "right": 1250,
+          "top": 532.390625,
+          "width": 1000
+        },
+        "scrollLeft": 1276,
+        "scrollWidth": 2276
+      }
+    },
+    {
+      "width": 1440,
+      "passed": true,
+      "failures": [],
+      "controlProblems": [],
+      "runtimeErrors": [],
+      "writeAttempts": [],
+      "sidebar": {
+        "bottom": 956,
+        "height": 956,
+        "left": 0,
+        "right": 220,
+        "top": 0,
+        "width": 220
+      },
+      "nav": {
+        "bottom": 377,
+        "height": 250,
+        "left": 16,
+        "right": 203,
+        "top": 127,
+        "width": 187
+      },
+      "views": [
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "home",
+          "viewport": 1440
+        },
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "pipeline",
+          "viewport": 1440
+        },
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "territories",
+          "viewport": 1440
+        },
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "CT selection",
+          "viewport": 1440
+        },
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "pipeline",
+          "viewport": 1440
+        },
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "drawer",
+          "viewport": 1440
+        },
+        {
+          "body": 1440,
+          "document": 1440,
+          "main": {
+            "bottom": 956,
+            "height": 956,
+            "left": 220,
+            "right": 1440,
+            "top": 0,
+            "width": 1220
+          },
+          "view": "home",
+          "viewport": 1440
+        }
+      ],
+      "map": {
+        "paths": 51,
+        "rect": {
+          "bottom": 774,
+          "height": 430,
+          "left": 275,
+          "right": 1385,
+          "top": 344,
+          "width": 1110
+        },
+        "stateCards": 51,
+        "viewBox": "0 0 1000 650"
+      },
+      "drawer": {
+        "clientHeight": 956,
+        "close": {
+          "bottom": 166,
+          "height": 44,
+          "left": 945,
+          "right": 989,
+          "top": 122,
+          "width": 44
+        },
+        "closeHit": "sales-detail-close",
+        "rect": {
+          "bottom": 956,
+          "height": 956,
+          "left": 920,
+          "right": 1440,
+          "top": 0,
+          "width": 520
+        },
+        "scrollHeight": 7794,
+        "scrollTop": 6838
+      },
+      "board": {
+        "clientWidth": 1160,
+        "lanes": 9,
+        "lastLane": {
+          "bottom": 853.390625,
+          "height": 319,
+          "left": 1168,
+          "right": 1408,
+          "top": 534.390625,
+          "width": 240
+        },
+        "rect": {
+          "bottom": 871.390625,
+          "height": 339,
+          "left": 250,
+          "right": 1410,
+          "top": 532.390625,
+          "width": 1160
+        },
+        "scrollLeft": 1116,
+        "scrollWidth": 2276
+      }
+    }
+  ]
+}
