@@ -1,0 +1,31 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-10T02:26:12.077Z",
+  "deploymentId": "dpl_CfeDYTeMqZZTpH7hK3xYGqp1EsF7",
+  "readyState": "READY",
+  "publishedArtifactMatches": 133,
+  "checks": [
+    {
+      "script": "scripts/verify-rideshare-site.mjs",
+      "ok": true,
+      "checks": 112
+    },
+    {
+      "script": "scripts/verify-rideshare-seo.mjs",
+      "ok": true,
+      "checks": 57
+    },
+    {
+      "script": "scripts/sales/verify-research-live.mjs",
+      "ok": true,
+      "checks": 5,
+      "workspace": {
+        "offices": 0,
+        "agents": 0,
+        "paymentsConfigured": false,
+        "termsPublished": true
+      },
+      "discovery": 161
+    }
+  ]
+}
