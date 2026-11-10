@@ -135,15 +135,14 @@
   <!-- SITE_QUICK_ACTIONS -->
 
   <dialog id="home-tour" class="home-tour-dialog" aria-labelledby="home-tour-title">
-    <div class="dialog-top"><h2 id="home-tour-title">See how it works</h2><button class="close-button" type="button" data-tour-close aria-label="Close video">×</button></div>
-    <p class="home-tour-rotate">On your phone? <strong>Turn it sideways</strong> to see the app and captions clearly.</p>
-    <video controls playsinline preload="none" poster="/tour/poster.jpg" aria-label="Getting started with Gig Tax Pros">
-      <source src="/tour/getting-started.mp4" type="video/mp4">
-      <track kind="captions" src="/tour/captions.en.vtt" srclang="en" label="English">
-      <a href="/tour/getting-started.mp4">Watch the video</a>
+    <h2 id="home-tour-title" class="sr-only">See how it works</h2>
+    <button class="close-button home-tour-close" type="button" data-tour-close aria-label="Close video">×</button>
+    <video controls playsinline preload="none" poster="/tour/poster.jpg?v=bbf9518e89d1" aria-label="Getting started with Gig Tax Pros">
+      <source src="/tour/getting-started.mp4?v=bbf9518e89d1" type="video/mp4">
+      <track kind="captions" src="/tour/captions.en.vtt?v=bbf9518e89d1" srclang="en" label="English" default>
+      <a href="/tour/">Watch the walkthrough with chapters and transcript</a>
     </video>
     <p data-tour-status role="status" aria-live="polite"></p>
-    <p class="home-tour-more"><span>Narrated and captioned · About 4 minutes</span><a href="/tour/">Chapters &amp; transcript ↗</a></p>
   </dialog>
   <!-- SITE_NAVIGATION -->
   <dialog id="information" class="information" aria-labelledby="information-title" aria-describedby="information-description">
