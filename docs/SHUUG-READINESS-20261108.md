@@ -1,5 +1,13 @@
 # Shuug small-office assessment — November 8, 2026
 
+**Historical assessment.** The [November 10 status](FREE-TAX-SERVICE.md) supersedes
+the current-capability claims below. Native snapshot reputation fields, staff
+grant pagination and source packaging were fixed. A 2025 federal draft engine,
+partial official forms and firm-approved encrypted return corrections now exist;
+complete encrypted office operation and filing remain unfinished. Preserve the
+dated reproduction evidence below rather than treating repaired defects as a
+current work list.
+
 **Product-direction correction:** Luke subsequently clarified that Shuug is to be
 the complete tax preparation, accounting and filing product, built/configured
 through Shuug's MCP interface. The companion-filing-software recommendation below

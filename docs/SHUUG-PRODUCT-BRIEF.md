@@ -15,8 +15,10 @@ trust pins or treating separate key initializations as a migration.
 
 Shuug is intended to be the complete tax preparation, accounting and filing
 software. It is not scoped as merely a companion to another return product.
-Current absence of calculation, forms and transmission is missing implementation,
-not permission to remove those requirements.
+The current draft calculator and partial forms do not complete the required tax
+coverage; transmission remains absent. These are remaining implementation
+requirements, not permission to narrow the product. The
+[current assessment](FREE-TAX-SERVICE.md) distinguishes them from completed work.
 
 ## Build the business workspace through Shuug
 
@@ -43,7 +45,7 @@ modules, existing records and authorization boundaries.
 - Useful everyday operation for independent and small family-run tax practices.
 
 Current capability limits and defects are recorded in
-[the assessment](SHUUG-READINESS-20261108.md). Existing handoff-only functionality
+[the current assessment](FREE-TAX-SERVICE.md). Existing handoff-only functionality
 must not be advertised as completed tax computation or electronic filing.
 
 ## Client billing
