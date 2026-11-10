@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('.',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs'];
+const files=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
 async function walk(directory,prefix=''){
   const result=[];
   for(const name of (await readdir(path.join(directory,prefix))).sort()){const relative=path.posix.join(prefix,name),info=await lstat(path.join(directory,relative));if(info.isSymbolicLink())throw new Error('Offline kit dependencies must be regular reviewed files.');if(info.isDirectory())result.push(...await walk(directory,relative));else if(info.isFile())result.push(relative);else throw new Error('Unsupported offline kit input.');}return result;
@@ -48,6 +48,24 @@ explicit inputs and review confirmations. The resulting firm approval contains
 one new revision-1 envelope and signed read capsule. Owner publication rejects
 existing or deleted object IDs; it never overwrites an earlier return. Review
 identity, content and assignment on the trusted device before approving.
+
+Private office cases use case-offline-cli.mjs and prepare-case-job.mjs with the
+same explicit offhost/review/file-hash inputs. Review the before/after case,
+command and selected evidence on the trusted computer. The worker reopens the
+actual certified source and selected encrypted evidence, reapplies the command
+and reconstructs the commitment. Actions, request titles, notes, selected source
+links and readable evidence remain encrypted in the job. A case review is not
+client filing authorization or an IRS/state acceptance.
+
+Before attesting review, use:
+node inspect-case-review.mjs --public-pins PUBLIC_PINS.json --kit PRIVATE_KIT.json --out NEW_PRIVATE_DIRECTORY
+It creates a private700 directory with exact private-kit.json bytes, review.json,
+kit-sha256.txt and, when selected, an ordinary PDF/JPEG/PNG/CSV evidence file or
+selected-draft.json. It uses no keys, network, approval or automatic file opening.
+These are candidate private copies, not proof the readable review matches the
+encrypted proposal. Review the fields and actual file; final firm approval
+reconstructs their correspondence. Then use that copied private-kit.json and
+its exact kit-sha256.txt hash for approval. Existing directories are refused.
 
 Shuug also supplies a separately controlled cloud key-service deployment package.
 These are two supported custody options. They must preserve the chosen firm's

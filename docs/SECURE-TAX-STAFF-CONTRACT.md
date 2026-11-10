@@ -187,6 +187,31 @@ before/after review files stay off the app/data host. See the
 [return-correction workflow](SHUUG_RETURN_CORRECTIONS_20261109.md) for both
 custody paths, strict packet contracts and verification limits.
 
+## Separately approved encrypted cases
+
+The case extension keeps the existing v1 read grant/capsule and native v2 wires.
+Its four private actions create a case, add a request, review an exact uploaded
+file (including replacement requests), or link a matching draft. Actions, notes,
+history and dependency references stay encrypted. A dedicated private ES256
+certificate binds the entire case body and full object/client/version context;
+neither a firm HPKE author field nor a read capsule establishes case review.
+Certificates remain historical; current read authorization retains its expiry.
+
+`POST /secure/staff/cases` requires owner MFA before reading the selected public
+`{approval,envelope,capsule}` packet, validates the current assignment/enrollment/
+grant and firm approval, and commits case ciphertext plus capsule atomically.
+Updates require exact source version/digest and case registry ownership. Reserved
+`shuug-case:` IDs are unavailable to generic writes/retries/deletes, including
+before first publication. Readers also reject ordinary payload substitution there.
+Exact retries cannot replace later history. No action/evidence relationship is
+added to server metadata. Case archival requires a future explicit workflow.
+
+Both readers derive review/draft freshness from exact currently opened envelope
+references. Changed, deleted or unshared sources cannot establish completion.
+All notes/history are client-visible within encryption; staff target dates are
+not statutory deadlines. This supplies no client filing authorization. See
+[the full case protocol and operator workflow](SHUUG_ENCRYPTED_CASES_20261110.md).
+
 ## Limits
 
 Revocation denies honest API access and stops new capsule publication. It cannot

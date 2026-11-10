@@ -165,7 +165,7 @@ test('staff artifact retains strict headers and excludes firm private-key toolin
   const directory=await mkdtemp(path.join(tmpdir(),'shuug-staff-artifact-'));
   try{
     await prepareBrowser({output:directory});const html=await readFile(path.join(directory,'staff.html'),'utf8'),files=await readdir(directory);
-    assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'self';/);assert(!html.includes('unsafe-inline'));for(const file of ['firm-staff.mjs','firm-recovery.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs'])assert(!files.includes(file));
+    assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'self';/);assert(!html.includes('unsafe-inline'));for(const file of ['firm-staff.mjs','firm-recovery.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs'])assert(!files.includes(file));
     const app=await readFile(path.join(directory,'browser/staff-app.mjs'),'utf8'),updates=await readFile(path.join(directory,'browser/staff-updates.mjs'),'utf8');assert(!app.includes('localStorage'));assert(!app.includes('innerHTML'));assert.match(app,/mountStaffUpdates/);assert.match(updates,/visibilitychange/);assert.match(updates,/pagehide/);assert.match(html,/No firm recovery or signing private key/);
   }finally{await rm(directory,{recursive:true,force:true});}
 });
@@ -244,6 +244,7 @@ test('the actual staff entrypoint wires updates and stays disabled without indep
     await import('../browser/staff-app.mjs?synthetic-disabled-staff-updates-proof');
     assert(dom.window.document.querySelector('#staff-freshness'));assert.match(dom.window.document.querySelector('#message').textContent,/no independently supplied/);
     for(const id of ['staff-email','staff-password','staff-signin','staff-sync','staff-new-return','staff-publish-return-edit'])assert.equal(dom.window.document.getElementById(id).disabled,true);
+    assert(dom.window.document.querySelector('#staff-case-editor #case-preparation'));assert.equal(dom.window.document.getElementById('case-title').disabled,true);
     assert.equal(dom.window.document.querySelector('#staff-records').childElementCount,0);
   }finally{for(const [name,descriptor]of saved)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];dom.window.close();}
 });

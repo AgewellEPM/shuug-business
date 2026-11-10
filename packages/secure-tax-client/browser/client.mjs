@@ -1,6 +1,8 @@
 import { DOMAINS, MAX_CIPHERTEXT_BYTES, openEnvelope, sealEnvelope, validateContext, verifyEnrollmentManifest } from '../envelope.mjs';
 import { BrowserKeyStore, assertPrivateKey, createClientKey, importEncryptedBackup } from './custody.mjs';
 import { validateTrustedConfig } from './config.mjs';
+import { assertClientWritablePayload, openedRecordMetadata } from './opened-record.mjs';
+import { isCaseObjectId } from '../case-contract.mjs';
 
 const prefix='/api/website/customer/secure', encoder=new TextEncoder();
 const validId=value=>typeof value==='string' && value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]===value;
@@ -163,7 +165,8 @@ export class VaultClient {
         if(item.deleted){records.delete(item.objectId);versions[item.objectId]={revision:item.revision,deleted:true};continue;}
         const context=this.#context(item.objectId,item.revision,item.envelope?.context?.domain);validateContext(context);
         const plaintext=await openEnvelope(item.envelope,context,this.#verified.recipients,'client',this.#key.privateKey);opened.push(plaintext);this.#same(generation);
-        records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:context.domain,plaintext});
+        let metadata;try{metadata=await openedRecordMetadata(plaintext,item.envelope,this.identity.clientId,this.#config);this.#same(generation);}catch(error){if(generation===this.#generation)this.#reset();throw error;}
+        records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:context.domain,plaintext,...metadata});
         versions[item.objectId]={revision:item.revision,deleted:false};
       }
       if(page.changes.length && page.cursor!==previousSequence)throw new Error('The change cursor skipped an item.');
@@ -182,7 +185,9 @@ export class VaultClient {
   async #prepareSave(domain,plaintext,objectId){
     const generation=this.#guard();
     if(!DOMAINS.includes(domain)||!(plaintext instanceof Uint8Array)||plaintext.length>MAX_CIPHERTEXT_BYTES-16||!validId(objectId))throw new Error('Choose a supported domain and a bounded encrypted payload.');
+    assertClientWritablePayload(plaintext,objectId);
     const prior=ownVersion(this.#binding.versions??{},objectId), current=this.records.get(objectId);
+    if(current?.verifiedCase)throw new Error('Firm-reviewed case work changes only through the reviewed firm workflow. Client edits cannot replace its requests or history.');
     if(this.records.size+(current?0:1)>10000||[...this.records.values()].reduce((sum,item)=>sum+item.plaintext.length,0)-(current?.plaintext.length??0)+plaintext.length>64*1024*1024)throw new Error('This browser preview is limited to 10,000 opened items and 64 MiB.');
     if(prior?.deleted)throw new Error('Deleted items cannot be resurrected. Create a new item.');
     if(prior&&!current)throw new Error('Sync this item before editing it.');
@@ -207,15 +212,18 @@ export class VaultClient {
   async previewPrepared(value){return this.#exclusive(()=>this.#openPrepared(value));}
   async #savePrepared(value){
     const generation=this.#guard(),context=this.#checkPrepared(value),prior=ownVersion(this.#binding.versions??{},value.objectId);
+    if(this.records.get(value.objectId)?.verifiedCase)throw new Error('Firm-reviewed case work changes only through the reviewed firm workflow. This pending client write was not uploaded.');
     if(prior&&(prior.deleted||prior.revision>context.revision))throw new Error('This pending upload predates a known changed or deleted item. Keep its encrypted copy for review.');
     const plaintext=await this.#openPrepared(value);
     try{
+      assertClientWritablePayload(plaintext,value.objectId);
+      const metadata=await openedRecordMetadata(plaintext,value.envelope,this.identity.clientId,this.#config);this.#same(generation);
       const current=this.records.get(value.objectId);
       if(this.records.size+(current?0:1)>10000||[...this.records.values()].reduce((sum,item)=>sum+item.plaintext.length,0)-(current?.plaintext.length??0)+plaintext.length>64*1024*1024)throw new Error('This browser view exceeds its opened-content limit. Keep the encrypted upload for review.');
       const receipt=await this.#request(`/objects/${encodeURIComponent(value.objectId)}`,'PUT',{mutationId:value.mutationId,expectedRevision:value.expectedRevision,envelope:value.envelope});this.#same(generation);
       if(!validReceipt(receipt)||receipt.objectId!==value.objectId||receipt.revision!==context.revision||receipt.deleted)throw new Error('The API did not confirm the expected encrypted revision. Its original encrypted retry was kept.');
       await this.#remember({...this.#binding.versions,[value.objectId]:{revision:receipt.revision,deleted:false}},generation);this.#same(generation);
-      this.records.get(value.objectId)?.plaintext.fill(0);this.records.set(value.objectId,{objectId:value.objectId,revision:receipt.revision,domain:value.domain,plaintext:plaintext.slice()});return receipt;
+      this.records.get(value.objectId)?.plaintext.fill(0);this.records.set(value.objectId,{objectId:value.objectId,revision:receipt.revision,domain:value.domain,plaintext:plaintext.slice(),...metadata});return receipt;
     }finally{plaintext.fill(0);}
   }
   async savePrepared(value){return this.#exclusive(()=>this.#savePrepared(value));}
@@ -251,7 +259,8 @@ export class VaultClient {
     await this.#updateUploads(entries=>entries.filter(entry=>entry.mutationId!==mutationId));
   });}
   async remove(objectId){return this.#exclusive(async()=>{
-    const generation=this.#guard(), item=this.records.get(objectId);if(!item)throw new Error('Sync the item before deleting it.');
+    const generation=this.#guard();if(isCaseObjectId(objectId))throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');const item=this.records.get(objectId);if(!item)throw new Error('Sync the item before deleting it.');
+    if(item.verifiedCase)throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');
     const receipt=await this.#request(`/objects/${encodeURIComponent(objectId)}`,'DELETE',{expectedRevision:item.revision});this.#same(generation);
     if(!validReceipt(receipt)||receipt.objectId!==objectId||receipt.revision!==item.revision+1||!receipt.deleted)throw new Error('The API did not confirm the deletion. Refresh before retrying.');
     await this.#remember({...this.#binding.versions,[objectId]:{revision:receipt.revision,deleted:true}},generation);

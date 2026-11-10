@@ -31,6 +31,9 @@ import { GET as readScopeRoute } from "@/app/api/website/customer/secure/staff/s
 import { POST as publishCreationRoute } from "@/app/api/website/customer/secure/staff/return-creations/route";
 import { canonicalReturnCreationApproval } from "../../../packages/secure-tax-client/return-create-contract.mjs";
 import type { ReturnCreationApproval } from "./return-creations";
+import { POST as publishCaseRoute } from "@/app/api/website/customer/secure/staff/cases/route";
+import { canonicalCaseApproval } from "../../../packages/secure-tax-client/case-contract.mjs";
+import type { CaseApproval } from "./cases";
 
 const origin = "https://trusted.example.net", base = "https://workspace.example.com", password = "Synthetic-staff-vault-password";
 const pair = () => {
@@ -97,6 +100,18 @@ function approvedCreation(g: StaffGrant, objectId = "preparer-created-return") {
     reviewReference: "synthetic-reviewed-initial-return", issuedAt: new Date().toISOString(), expiresAt: g.expiresAt,
     signature: {} as StaffGrant["signature"] } as ReturnCreationApproval, canonicalReturnCreationApproval);
   return { approval, envelope: first, capsule: capsule(g, first) };
+}
+function approvedCase(g: StaffGrant, source?: SecureTaxEnvelope, objectId = source?.context.objectId ?? "shuug-case:encrypted-case") {
+  // Header/signature fixture. Separate crypto/HTTP tests verify private case
+  // transition semantics and content certificates with real encryption.
+  const next = envelope((source?.context.revision ?? 0) + 1, objectId, "tax-document"); next.author = { role: "firm-recovery", keyId: recovery.keyId };
+  const approval = signed({ version: 1, type: "shuug-secure-tax-case-approval", approvalId: randomUUID(), proposalId: randomUUID(),
+    workspaceId: g.workspaceId, accountId: g.accountId, clientId: g.clientId, objectId, sourceRevision: source?.context.revision ?? 0, sourceEnvelopeDigest: source ? staffEnvelopeDigest(source) : null,
+    manifestId: manifest.manifestId, manifestEpoch: manifest.epoch, grantId: g.grantId, grantEpoch: g.epoch, grantDigest: staffGrantDigest(g),
+    staffAccountId: g.staffAccountId, staffKeyId: g.staff.keyId, proposalDigest: randomBytes(32).toString("base64url"), reviewCommitment: randomBytes(32).toString("base64url"),
+    newEnvelopeDigest: staffEnvelopeDigest(next), reviewReference: "synthetic-reviewed-case-transition", issuedAt: new Date().toISOString(), expiresAt: g.expiresAt,
+    signature: {} as StaffGrant["signature"] } as CaseApproval, canonicalCaseApproval);
+  return { approval, envelope: next, capsule: capsule(g, next) };
 }
 const request = (path: string, token?: string, body?: unknown, from = origin, method = body ? "POST" : "GET") => new Request(base + "/api/website/customer/secure/staff" + path, {
   method, headers: { Origin: from, ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined,
@@ -260,6 +275,60 @@ it("rechecks current initial-return grant, enrollment, roles and signed expiry a
   const renewed = grant({ grantId: g.grantId, epoch: 2, domains: ["tax-document"] }); publishStaffGrant(ownerToken, renewed); expect((await publishCreationRoute(request("/return-creations", ownerToken, packet))).status).toBe(409);
   const current = approvedCreation(renewed); manifest = enrollment(2); enrollSecureTax(account.token, manifest); expect((await publishCreationRoute(request("/return-creations", ownerToken, current))).status).toBe(409);
   const expired = approvedCreation(renewed); vi.advanceTimersByTime(600001); expect((await publishCreationRoute(request("/return-creations", ownerToken, expired))).status).toBe(409);
+  expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM secure_tax_objects").get())).toMatchObject({ n: 0 });
+});
+it("publishes approved case creation/updates atomically and preserves newer approved history on old retries", async () => {
+  const g = grant({ domains: ["tax-document"] }); publishStaffGrant(ownerToken, g); const first = approvedCase(g);
+  expect(() => writeSecureTaxObject(account.token, first.approval.objectId, { mutationId: "unpublished-firm-case", expectedRevision: 0, envelope: first.envelope })).toThrow(/Firm-managed/);
+  expect(() => writeSecureTaxObject(account.token, first.approval.objectId, { mutationId: "unpublished-client-reencryption", expectedRevision: 0, envelope: envelope(1, first.approval.objectId, "tax-document") })).toThrow(/Firm-managed/);
+  expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM secure_tax_objects").get())).toMatchObject({ n: 0 });
+  expect(await (await publishCaseRoute(request("/cases", ownerToken, first))).json()).toMatchObject({ revision: 1, duplicate: false });
+  expect(readStaffObject(staffToken, g.grantId, first.approval.objectId)).toMatchObject({ envelope: first.envelope, capsule: first.capsule });
+  const next = approvedCase(g, first.envelope); expect(await (await publishCaseRoute(request("/cases", ownerToken, next))).json()).toMatchObject({ revision: 2, duplicate: false });
+  expect(readSecureTaxObject(account.token, first.approval.objectId)).toMatchObject({ envelope: next.envelope });
+  const later = approvedCase(g, next.envelope); expect((await publishCaseRoute(request("/cases", ownerToken, later))).status).toBe(200);
+  expect(() => writeSecureTaxObject(account.token, first.approval.objectId, { mutationId: "ordinary-client-overwrite", expectedRevision: 3, envelope: envelope(4, first.approval.objectId, "tax-document") })).toThrow(/Firm-managed/);
+  expect(() => deleteSecureTaxObject(account.token, first.approval.objectId, { expectedRevision: 3 })).toThrow(/Firm-managed/);
+  expect((await publishEditRoute(request("/return-edits", ownerToken, approvedEdit(g, later.envelope)))).status).toBe(403);
+  for (const packet of [first, next]) expect(await (await publishCaseRoute(request("/cases", ownerToken, packet))).json()).toMatchObject({ revision: packet.envelope.context.revision, duplicate: true });
+  expect(readStaffObject(staffToken, g.grantId, first.approval.objectId)).toMatchObject({ envelope: later.envelope, capsule: later.capsule });
+  const rows = workspaceDatabase(db => db.prepare("SELECT actor,snapshot FROM audit WHERE action='secure-tax.case.approved'").all()) as { actor: string; snapshot: string }[];
+  expect(rows).toHaveLength(3); for (const [index, row] of rows.entries()) { expect(row.actor).toBe("workspace-owner"); const packet = [first, next, later][index]; expect(JSON.parse(row.snapshot)).toEqual({ approval: packet.approval, sharingCapsuleId: packet.capsule.capsuleId }); }
+  const removed = envelope(1, "prior-deleted-target", "tax-document"); writeSecureTaxObject(account.token, removed.context.objectId, { mutationId: "unmanaged-create", expectedRevision: 0, envelope: removed }); deleteSecureTaxObject(account.token, removed.context.objectId, { expectedRevision: 1 });
+  const archivedId = "shuug-case:prior-deleted-target"; workspaceDatabase(db => db.prepare("UPDATE secure_tax_objects SET id=? WHERE accountId=? AND id=?").run(archivedId, account.id, removed.context.objectId), true);
+  expect((await publishCaseRoute(request("/cases", ownerToken, approvedCase(g, undefined, archivedId)))).status).toBe(409);
+});
+it("requires owner MFA before consuming case uploads and excludes private action/review fields", async () => {
+  for (const token of [undefined, staffToken, account.token, passwordOnlyOwner, passwordOnlyStaff]) {
+    const input = request("/cases", token, { unsupported: "must not be read" }), response = await publishCaseRoute(input); expect(response.status).toBe(token === staffToken ? 403 : 401); expect(input.bodyUsed).toBe(false);
+  }
+  expect((await publishCaseRoute(request("/cases", ownerToken, { version: 1, type: "shuug-private-case-review-kit", privateReview: { title: "private" } }))).status).toBe(400);
+  const g = grant({ domains: ["tax-document"] }); publishStaffGrant(ownerToken, g); const packet = approvedCase(g);
+  expect((await publishCaseRoute(request("/cases", ownerToken, { ...packet, command: { type: "document.review" } }))).status).toBe(400);
+  expect((await publishCaseRoute(request("/cases", ownerToken, approvedCreation(g)))).status).toBe(400);
+  expect((await publishCreationRoute(request("/return-creations", ownerToken, packet))).status).toBe(400);
+});
+it("refuses case ID collisions and forged or wrong source/capsule approvals without partial writes", async () => {
+  const g = grant({ domains: ["tax-document"] }); publishStaffGrant(ownerToken, g); const packet = approvedCase(g);
+  const forged = structuredClone(packet); forged.approval.signature.value = randomBytes(64).toString("base64url"); expect((await publishCaseRoute(request("/cases", ownerToken, forged))).status).toBe(403);
+  const badCapsule = structuredClone(packet); badCapsule.capsule.signature.value = randomBytes(64).toString("base64url"); expect((await publishCaseRoute(request("/cases", ownerToken, badCapsule))).status).toBe(403);
+  expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM secure_tax_objects").get())).toMatchObject({ n: 0 });
+  expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(200);
+  expect((await publishCaseRoute(request("/cases", ownerToken, approvedCase(g)))).status).toBe(409);
+  const wrongSource = approvedCase(g, packet.envelope); wrongSource.approval.sourceEnvelopeDigest = randomBytes(32).toString("base64url"); signed(wrongSource.approval, canonicalCaseApproval);
+  expect((await publishCaseRoute(request("/cases", ownerToken, wrongSource))).status).toBe(409);
+  const stale = approvedCase(g, packet.envelope), next = approvedCase(g, packet.envelope); expect((await publishCaseRoute(request("/cases", ownerToken, next))).status).toBe(200); expect((await publishCaseRoute(request("/cases", ownerToken, stale))).status).toBe(409);
+  expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM audit WHERE action='secure-tax.case.approved'").get())).toMatchObject({ n: 2 });
+});
+it("rechecks current case assignment, enrollment, client links, active staff and publication expiry", async () => {
+  const g = grant({ domains: ["tax-document"] }); publishStaffGrant(ownerToken, g); const packet = approvedCase(g);
+  workspaceDatabase(db => db.prepare("UPDATE customer_accounts SET clientId=? WHERE id=?").run(randomUUID(), account.id), true); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(403);
+  workspaceDatabase(db => db.prepare("UPDATE customer_accounts SET clientId=? WHERE id=?").run(account.clientId, account.id), true);
+  setEmployeeEnabled(staff.id, false); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(403); setEmployeeEnabled(staff.id, true); acceptEmployeeInvitation(issueEmployeeInvitation(staff.id), password);
+  withdrawStaffGrant(ownerToken, { grantId: g.grantId, expectedEpoch: 1 }); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(403);
+  const renewed = grant({ grantId: g.grantId, epoch: 2, domains: ["tax-document"] }); publishStaffGrant(ownerToken, renewed); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(409);
+  const current = approvedCase(renewed); manifest = enrollment(2); enrollSecureTax(account.token, manifest); expect((await publishCaseRoute(request("/cases", ownerToken, current))).status).toBe(409);
+  const expired = approvedCase(renewed); vi.advanceTimersByTime(600001); expect((await publishCaseRoute(request("/cases", ownerToken, expired))).status).toBe(409);
   expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM secure_tax_objects").get())).toMatchObject({ n: 0 });
 });
 it("rechecks active real staff, current role and client links on every access", () => {

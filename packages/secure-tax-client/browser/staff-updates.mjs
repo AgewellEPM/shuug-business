@@ -6,12 +6,12 @@ import { renderStaffRecords } from './staff-view.mjs';
 export function mountStaffUpdates(document,target,{
   getClient,isWorking=()=>false,setWorking=()=>{},refreshControls=()=>{},
   captureScope=()=>0,isCurrentScope=()=>true,onLocked=()=>{},onMessage=()=>{},
-  download=()=>{},run=operation=>operation(),timers={},canRefresh=()=>true,onReturnEdit=null,
+  download=()=>{},run=operation=>operation(),timers={},canRefresh=()=>true,onReturnEdit=null,onRecords=()=>{},
 }={}){
   const status=document.createElement('p');status.id='staff-freshness';status.setAttribute('role','status');status.setAttribute('aria-live','polite');target.before(status);
   const ready=()=>{const client=getClient();return !!client?.identity&&client.unlocked&&!!client.selectedGrant&&!document.hidden;};
   let poller;
-  const draw=state=>{status.textContent=!ready()?'Select a verified client scope to check current records.':!canRefresh()?'Update checks paused while a return proposal is open. Save or discard that input before refreshing shared records.':state.checking?'Checking current shared client records…':`${state.lastUpdated?`Last checked ${new Date(state.lastUpdated).toLocaleString()}.`:'No successful update check in this client view.'} ${state.updatesPending?'Updates pending or not yet checked.':'Latest requested refresh completed.'} Automatic checks run every 60 seconds while visible and unlocked. Newly changed items require fresh sharing approval.`;};
+  const draw=state=>{status.textContent=!ready()?'Select a verified client scope to check current records.':!canRefresh()?'Update checks paused while return or case input is open. Save or discard that input before refreshing shared records.':state.checking?'Checking current shared client records…':`${state.lastUpdated?`Last checked ${new Date(state.lastUpdated).toLocaleString()}.`:'No successful update check in this client view.'} ${state.updatesPending?'Updates pending or not yet checked.':'Latest requested refresh completed.'} Automatic checks run every 60 seconds while visible and unlocked. Newly changed items require fresh sharing approval.`;};
   async function sync(){
     if(!ready()||isWorking()||!canRefresh())return false;
     const client=getClient(),generation=captureScope();setWorking(true);refreshControls();
@@ -20,7 +20,7 @@ export function mountStaffUpdates(document,target,{
       if(!isCurrentScope(generation)||client!==getClient()||!ready())return false;
       const grant=client.selectedGrant;
       const view=renderStaffRecords(document,client.records,{workspaceId:client.config.workspaceId,accountId:grant.accountId,clientId:grant.clientId},{download,run,onReturnEdit});
-      target.replaceChildren(view);return true;
+      target.replaceChildren(view);onRecords();return true;
     }catch(error){
       if(isCurrentScope(generation)&&client===getClient()){client.lock();target.replaceChildren();onMessage(error instanceof Error?error.message:'Shared records could not be refreshed.',true);}
       throw error;

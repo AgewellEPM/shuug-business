@@ -17,6 +17,9 @@ export function validateTemplate(template=cloudFormation()){
   assert(r.CustodyKey.Properties.KeyPolicy.Statement.some(s=>s.Effect==='Deny'&&s.Condition?.StringEquals?.['aws:PrincipalAccount']?.Ref==='DataHostAccountId'));
   assert.equal(r.CustodyKey.Properties.EnableKeyRotation,true);assert.equal(r.CustodyKey.DeletionPolicy,'Retain');
   assert.equal(r.Worker.Properties.Runtime,'nodejs24.x');assert.equal(r.Worker.Properties.ReservedConcurrentExecutions,1);
+  // The 10-MiB case evidence fixture exceeds the old 512-MiB allocation.
+  // This prepared headroom is not a substitute for actual AWS qualification.
+  assert(r.Worker.Properties.MemorySize>=2048);
   assert.equal(r.Worker.Properties.Environment.Variables.REVIEWED_S3_SDK_VERSION.Ref,'ReviewedS3SdkVersion');
   assert.equal(r.Worker.Properties.Environment.Variables.CONFIGURATION_REVISION.Ref,'ConfigurationRevision');
   assert.equal(template.Parameters.ReviewedS3SdkVersion.Default,'REVIEW_REQUIRED');

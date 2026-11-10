@@ -7,6 +7,7 @@ import { mountClientPortal } from './client-portal-view.mjs';
 import { mountReturnEditor } from './return-editor.mjs';
 import { isTaxReturn,renderReturn } from './return-view.mjs';
 import { saveReturn } from './return-save.mjs';
+import { renderCase } from './case-view.mjs';
 
 const $=id=>document.getElementById(id), labels={
   'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses',
@@ -76,7 +77,9 @@ function renderGroups(){
       meta.textContent=`Item ${item.objectId} · revision ${item.revision}`;row.append(title,meta);
       const file=data?.version===1&&data?.type==='private-file'&&typeof data?.data==='string';
       const journal=journalSections(data,{workspaceId:client.config.workspaceId,...client.identity,objectId:item.objectId,domain:item.domain});
-      if(item.domain==='tax-document'&&isTaxReturn(data)){
+      if(item.verifiedCase||data?.type==='tax-case'){
+        title.textContent='Your client case';row.append(renderCase(document,item,client.records));
+      }else if(item.domain==='tax-document'&&isTaxReturn(data)){
         title.textContent=`${data.year} Form ${data.kind} draft`;const generation=viewGeneration;
         row.append(renderReturn(document,data,{run,download,isCurrent:()=>generation===viewGeneration&&client?.canWrite&&!document.hidden&&row.isConnected}));
         row.append(button('Edit return',async()=>{taxEditor.edit(data,item.objectId);},'secondary'));
@@ -100,7 +103,7 @@ function renderGroups(){
         },'secondary'));
         row.append(button('Download readable JSON',async()=>{download(`${item.objectId}.json`,item.plaintext);message('Readable JSON downloaded at your request. Its Downloads copy is outside this vault.');},'secondary'));
       }
-      row.append(button('Delete encrypted item',async()=>{
+      if(!item.verifiedCase&&data?.type!=='tax-case')row.append(button('Delete encrypted item',async()=>{
         if(!confirm('Delete this encrypted item from the live API? Older ciphertext can remain in backups or filesystem history. This cannot remove readable files you downloaded.'))return;
         const generation=viewGeneration;await client.remove(item.objectId);if(generation!==viewGeneration)return;
         if(editing===item.objectId)resetEditor();if(taxEditor?.editingId===item.objectId)taxEditor.clear();renderGroups();message('Live ciphertext and object retry records deleted. A content-free sync tombstone remains; backups and prior downloads may retain copies.');

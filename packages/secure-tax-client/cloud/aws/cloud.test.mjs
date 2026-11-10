@@ -14,6 +14,9 @@ import {openStaffCapsule} from '../../staff-grants.mjs';
 import {prepareReturnProposal} from '../../return-proposals.mjs';
 import {prepareReturnCreation} from '../../return-creations.mjs';
 import {verifyReturnCreationApproval} from '../../return-create-approval.mjs';
+import {prepareCaseTransition} from '../../case-proposals.mjs';
+import {verifyCaseApproval} from '../../case-approval.mjs';
+import {verifyCasePayload} from '../../case-certificate.mjs';
 import {newReturn} from '../../../tax-engine/index.mjs';
 const workspaceId='synthetic-aws-key-custody',config={workspaceId,keyAccountId:'111111111111',dataHostAccountId:'222222222222'};
 const context={invokedFunctionArn:'arn:aws:lambda:us-east-1:111111111111:function:synthetic-key-server:approved'};
@@ -33,6 +36,7 @@ function fixture(){const provider=new Provider(),handler=createHandler(provider,
 test('template separates accounts, excludes the data host, requires MFA and has no public endpoint',()=>{
   const value=validateTemplate();assert.equal(value.ok,true);assert.equal(value.awsServiceValidationPerformed,false);
   const t=cloudFormation();assert.equal(t.Resources.Worker.Properties.RuntimeManagementConfig.UpdateRuntimeOn,'FunctionUpdate');
+  const undersized=structuredClone(t);undersized.Resources.Worker.Properties.MemorySize=512;assert.throws(()=>validateTemplate(undersized));
   const operator=t.Resources.OperatorPolicy.Properties.PolicyDocument.Statement;
   assert(operator.some(s=>s.Effect==='Deny'&&s.Action.includes('kms:Decrypt')));
   assert(!Object.values(t.Resources).some(r=>['AWS::Lambda::Url','AWS::ApiGateway::RestApi','AWS::EC2::Instance'].includes(r.Type)));
@@ -120,4 +124,19 @@ test('reviewed cloud creation issues a new client-readable return and preparer c
   assert.equal((await f.run('approve-return-create',{...input,reviewedCommitment:'A'.repeat(43)},staffRequest.staff.keyId,reviewReference)).response.ok,false);
   assert.equal((await f.run('approve-return-create',input,staffRequest.staff.keyId,'different-review')).response.ok,false);
   assert.equal((await f.run('approve-return-create',{...input,privateReview:prepared.privateReview},staffRequest.staff.keyId,reviewReference)).response.ok,false);
+});
+test('cloud case transitions keep commands and selected evidence encrypted while issuing client-readable certified history',async()=>{
+  const f=fixture(),pins=(await f.run('initialize',{})).result.publicPins,client=await generateRecipientKeyPair(),staff=await generateRecipientKeyPair();
+  const request={version:1,workspaceId,accountId:'synthetic-case-account',clientId:'synthetic-case-client',client:{keyId:await publicKeyId(client.publicKey),publicKey:client.publicKey}},manifest=(await f.run('enroll',{expectedPins:pins,request,epoch:1},request.client.keyId)).result.manifest;
+  const staffRequest={version:1,workspaceId,accountId:request.accountId,clientId:request.clientId,staffAccountId:'synthetic-preparer',staff:{keyId:await publicKeyId(staff.publicKey),publicKey:staff.publicKey}},grant=(await f.run('grant',{expectedPins:pins,request:staffRequest,options:{epoch:1,domains:['tax-document']}},staffRequest.staff.keyId)).result.grant,recipients={clientPublicKey:client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey};let packet=null,lastJob;
+  const perform=async(type,input,evidence=null)=>{
+    const expected={accountId:request.accountId,clientId:request.clientId,staffAccountId:staffRequest.staffAccountId,staffKeyId:staffRequest.staff.keyId,objectId:'shuug-case:synthetic-case',revision:packet?.envelope.context.revision??0,domain:'tax-document'},command={actionId:crypto.randomUUID(),type,input},prepared=await prepareCaseTransition({envelope:packet?.envelope??null,capsule:packet?.capsule??null,manifest,grant,expected,pins,staffPrivateKey:staff.privateKey,command,evidenceEnvelope:evidence?.envelope??null,evidenceCapsule:evidence?.capsule??null}),reviewReference='synthetic-cloud-case-review',jobInput={expectedPins:pins,proposal:prepared.proposal,sourceEnvelope:packet?.envelope??null,manifest,grant,expected,reviewedCommitment:prepared.proposal.reviewCommitment,reviewReference};
+    const approved=await f.run('approve-case-transition',jobInput,staffRequest.staff.keyId,reviewReference);assert.equal(approved.response.ok,true);packet=approved.result.approvedCase;await verifyCaseApproval(packet,pins);lastJob={approved,jobInput};const wire=JSON.stringify({job:approved.job,result:approved.result});for(const value of ['SYNTHETIC PRIVATE',type,'synthetic-source-evidence','synthetic-request',prepared.privateReview.reviewSalt])assert(!wire.includes(value));
+  };
+  await perform('case.create',{title:'SYNTHETIC PRIVATE CLOUD CASE',year:2025,kind:'1120'});await perform('request.add',{requestId:'synthetic-request',title:'SYNTHETIC PRIVATE REQUEST',due:'',notes:'SYNTHETIC PRIVATE NOTES'});
+  const bytes=utf8.encode('%PDF-SYNTHETIC PRIVATE CLOUD SOURCE'),payload={version:1,type:'private-file',filename:'source.pdf',mime:'application/pdf',data:Buffer.from(bytes).toString('base64url'),byteLength:bytes.length,purpose:'tax-document',category:'tax',notes:'SYNTHETIC PRIVATE SOURCE',savedAt:new Date().toISOString()},eContext={workspaceId,accountId:request.accountId,objectId:'synthetic-source-evidence',revision:1,domain:'tax-document'},envelope=await sealEnvelope(utf8.encode(JSON.stringify(payload)),eContext,recipients,'client',client.privateKey),expected={accountId:request.accountId,clientId:request.clientId,staffAccountId:staffRequest.staffAccountId,staffKeyId:staffRequest.staff.keyId,objectId:eContext.objectId,revision:1,domain:'tax-document'},capsule=(await f.run('share',{expectedPins:pins,envelope,manifest,grant,expected},staffRequest.staff.keyId)).result.capsule;
+  await perform('document.review',{requestId:'synthetic-request',document:{objectId:eContext.objectId,revision:1,envelopeDigest:capsule.envelopeDigest,domain:'tax-document'},decision:'reviewed',notes:'SYNTHETIC PRIVATE REVIEW'},{envelope,capsule});
+  const opened=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);try{const body=await verifyCasePayload(JSON.parse(text.decode(opened)),{...packet.envelope.context,clientId:request.clientId},pins);assert.equal(body.history.length,3);assert.equal(body.requests[0].review.decision,'reviewed');}finally{opened.fill(0);}
+  assert.equal((await f.run('approve-case-transition',{...lastJob.jobInput,command:{private:'never clear'}},staffRequest.staff.keyId,'synthetic-cloud-case-review')).response.ok,false);
+  assert.equal((await f.run('approve-case-transition',lastJob.jobInput,staffRequest.staff.keyId,'different-review')).response.ok,false);
 });

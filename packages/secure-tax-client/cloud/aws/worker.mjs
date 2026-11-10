@@ -4,6 +4,7 @@ import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../../fir
 import {signStaffGrant,createStaffCapsule,revokeStaffGrant} from '../../firm-staff.mjs';
 import {approveReturnEdit} from '../../firm-return-edits.mjs';
 import {approveReturnCreation} from '../../firm-return-creations.mjs';
+import {approveCaseTransition} from '../../firm-cases.mjs';
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 const utf8=new TextEncoder(),text=new TextDecoder('utf-8',{fatal:true});
 const fail=()=>{throw new Error('Key custody request failed.');};
@@ -14,7 +15,7 @@ function approved(job){
   exact(job,['version','jobId','workspaceId','operation','approval','input']);
   exact(job.approval,['reviewed','reviewReference','recipientKeyId']);
   if(job.version!==1||!id(job.jobId)||!id(job.workspaceId)||job.approval.reviewed!==true||!id(job.approval.reviewReference))fail();
-  if(!['initialize','enroll','grant','share','recover-device','revoke','approve-return-edit','approve-return-create'].includes(job.operation))fail();
+  if(!['initialize','enroll','grant','share','recover-device','revoke','approve-return-edit','approve-return-create','approve-case-transition'].includes(job.operation))fail();
   const key=job.operation==='initialize'?null:job.operation==='enroll'?job.input.request?.client?.keyId:['grant','recover-device'].includes(job.operation)?job.input.request?.staff?.keyId:job.input.grant?.staff?.keyId;
   if(job.approval.recipientKeyId!==key)fail();
 }
@@ -42,6 +43,11 @@ async function perform(job,unlocked){
     exact(input,['expectedPins','proposal','manifest','grant','expected','reviewedCommitment','reviewReference']);
     if(input.reviewReference!==job.approval.reviewReference)fail();
     return {approvedReturnCreation:await approveReturnCreation({...input,unlocked})};
+  }
+  if(job.operation==='approve-case-transition'){
+    exact(input,['expectedPins','proposal','sourceEnvelope','manifest','grant','expected','reviewedCommitment','reviewReference']);
+    if(input.reviewReference!==job.approval.reviewReference)fail();
+    return {approvedCase:await approveCaseTransition({...input,envelope:input.sourceEnvelope,unlocked})};
   }
   if(job.operation==='revoke'){
     exact(input,['expectedPins','grant','epoch','archiveValidAt']);

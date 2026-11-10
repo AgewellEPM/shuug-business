@@ -133,6 +133,73 @@ owner MFA publication refuses an existing or deleted ID and exact retries
 preserve later client changes. The browser never uploads the private kit.
 The cloud operation is `approve-return-create`; both custody packages include it.
 
+## Private case workflow and operator review
+
+Encrypted cases now support `case.create`, `request.add`, `document.review` and
+`draft.link` for the declared 2025 individual/self-employed and business return
+families. Request titles, dates, notes, decisions, exact evidence references and
+retained command history stay inside the encrypted case. A preparer proposes a
+transition; separate firm approval and owner MFA publish its exact new ciphertext
+and fresh read capsule atomically. The staff grant remains read-only. See the
+[encrypted case workflow](../../docs/SHUUG_ENCRYPTED_CASES_20261110.md).
+
+The private review kit contains readable before/command/after state and selected
+evidence. Keep it on trusted preparer/operator devices; never send it to the
+app/data host or cloud job bucket. Prepare ordinary files for human review with:
+
+```sh
+node inspect-case-review.mjs --public-pins PUBLIC_PINS.json --kit PRIVATE_KIT.json --out NEW_PRIVATE_REVIEW_DIRECTORY
+```
+
+This inspector uses no firm key, network, approval or automatic file opening. It
+exclusively creates a mode0700 directory with mode0600 `private-kit.json` (exact
+original bytes), `review.json`, `kit-sha256.txt`, and, when selected,
+`selected-evidence.pdf`, `.jpg`, `.png`, `.csv`, or `selected-draft.json`. Output
+names are fixed; embedded client filenames never choose a filesystem path.
+Review the actual extracted file and case fields. These are candidate private
+copies: public framing/commitment checks cannot establish that readable evidence
+matches the encrypted proposal. Final firm approval reconstructs that match.
+
+After review, use the **copied** `private-kit.json` and its exact hash from
+`kit-sha256.txt` for either custody path:
+
+```sh
+node case-offline-cli.mjs --confirm-off-host --confirm-fields-reviewed --passphrase-fd 3 --bundle FIRM_BUNDLE.json --public-pins PUBLIC_PINS.json --kit NEW_PRIVATE_REVIEW_DIRECTORY/private-kit.json --reviewed-sha256 REVIEWED_KIT_SHA256 --review-reference OPAQUE_REVIEW_ID --out NEW_APPROVED_CASE.json
+node prepare-case-job.mjs --confirm-fields-reviewed --public-pins PUBLIC_PINS.json --kit NEW_PRIVATE_REVIEW_DIRECTORY/private-kit.json --reviewed-sha256 REVIEWED_KIT_SHA256 --review-reference OPAQUE_REVIEW_ID --job-id UNIQUE_JOB_ID --out NEW_OPAQUE_JOB.json
+```
+
+The offline approver takes the existing bundle passphrase only through the chosen
+private descriptor. Cloud preparation uses no private key and performs no upload.
+The `approve-case-transition` worker accepts exactly `expectedPins`, `proposal`,
+`sourceEnvelope`, `manifest`, `grant`, `expected`, `reviewedCommitment` and
+`reviewReference`. The command and selected evidence envelope/capsule are inside
+the encrypted proposal, never clear job fields. Its result is
+`approvedCase: {approval,envelope,capsule}`. Publish that three-field packet through
+the owner's trusted client, rather than uploading the private kit or worker receipt.
+
+The firm reopens the actual source and selected evidence, verifies current signed
+assignment/sharing, reapplies the command and reconstructs the salted commitment.
+Its private `shuug-private-tax-case-certificate` uses the signing purpose
+`shuug/private-tax-case-certificate` to bind the whole body and retained command
+history to workspace, account, client, case object, revision, domain, actor and
+issue time. This historical certificate has no expiry and grants no API access;
+current enrollment, grant and capsule leases remain separate requirements.
+
+Case IDs use the reserved `shuug-case:` prefix and nonempty valid suffix. The
+server's firm-managed registry and reserved-ID checks refuse generic client
+writes/deletion and return-creation/correction publication into that namespace,
+including before the first case publication. Case certificates reject relocation
+to a different context. Source compare-and-swap checks and exact retries preserve
+later firm revisions and read capsules. Ordinary native v2/read v1 contracts stay
+unchanged.
+
+Case readiness is source-review freshness, not client filing authorization or tax
+accuracy. Changed/unavailable evidence is shown as stale/unavailable after refresh;
+the ciphertext host cannot inspect private dependency links to lock those files
+during publication. Final review, authorization/signatures, filing, broader books
+and billing workflows, trusted activation/migration and independent review remain
+unfinished. No case transition establishes an IRS/state acknowledgment.
+
 `public-config.mjs --pins PUBLIC-ONLY.json --api-origin https://api.example
 --ui-origin https://client.example --output NEW-DIRECTORY` prepares consistent
 public-only files for the API environment, signed native resource and independent

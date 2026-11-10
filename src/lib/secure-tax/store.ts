@@ -8,6 +8,7 @@ import { SecureTaxError, verifyRecipientManifest, validateEnvelopePins } from ".
 import { trustedPublicPins } from "./manifest";
 import { secureTaxRequired } from "./policy";
 import { legacySecureTaxData } from "./legacy";
+import { CASE_OBJECT_PREFIX } from "../../../packages/secure-tax-client/case-contract.mjs";
 
 const ACCOUNT_CIPHERTEXT_BYTES = 512 * 1024 * 1024, WORKSPACE_CIPHERTEXT_BYTES = 2 * 1024 * 1024 * 1024;
 // The final live envelope remains deletable. A content-free tombstone can use
@@ -97,8 +98,10 @@ export function writeSecureTaxObject(token: string | undefined, rawId: string, r
 }
 /** Internal transaction primitive. Callers establish live account/owner authority
  * and signed enrollment before reaching this shared CAS/capacity boundary. */
-export function commitSecureTaxEnvelope(db: DatabaseSync, account: { id: string; clientId: string }, manifest: SignedRecipientManifest, rawId: string, raw: unknown) {
+export function commitSecureTaxEnvelope(db: DatabaseSync, account: { id: string; clientId: string }, manifest: SignedRecipientManifest, rawId: string, raw: unknown, options: { approvedCaseWrite?: boolean } = {}) {
     const id = secureTaxId.parse(rawId), input = mutationInput.parse(raw);
+    const caseTable = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='secure_tax_case_objects'").get();
+    if (!options.approvedCaseWrite && (id.startsWith(CASE_OBJECT_PREFIX) || caseTable && db.prepare("SELECT 1 FROM secure_tax_case_objects WHERE accountId=? AND id=?").get(account.id, id))) throw new SecureTaxError(403, "Firm-managed case records require a separately approved case transition.");
     const size = validateEnvelopePins(input.envelope, manifest);
     if (input.envelope.context.objectId !== id || input.envelope.context.revision !== input.expectedRevision + 1) throw new SecureTaxError(409, "The encrypted context does not match this object and revision.");
     const digest = createHash("sha256").update(JSON.stringify([id, input.expectedRevision, input.envelope])).digest("hex");
@@ -148,6 +151,8 @@ export function deleteSecureTaxObject(token: string | undefined, rawId: string, 
     const { account } = scoped(db, token);
     const row = db.prepare("SELECT * FROM secure_tax_objects WHERE accountId=? AND clientId=? AND id=?").get(account.id, account.clientId, id) as ObjectRow | undefined;
     if (!row) throw new SecureTaxError(404, "Encrypted object unavailable.");
+    const caseTable = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='secure_tax_case_objects'").get();
+    if (id.startsWith(CASE_OBJECT_PREFIX) || caseTable && db.prepare("SELECT 1 FROM secure_tax_case_objects WHERE accountId=? AND id=?").get(account.id, id)) throw new SecureTaxError(403, "Firm-managed case history cannot be deleted through ordinary client object controls.");
     if (row.deleted && [row.revision, row.revision - 1].includes(input.expectedRevision)) return { ...receipt(row), liveCiphertextPurged: true, backupRetention: "Existing backups or filesystem history may retain older ciphertext; this operation does not erase those copies." };
     if (row.revision !== input.expectedRevision || row.revision > MAX_ENCRYPTED_REVISION) throw new SecureTaxError(409, "The encrypted object changed. Refresh before deleting.");
     const revision = row.revision + 1, sequence = nextSequence(db, account.id);

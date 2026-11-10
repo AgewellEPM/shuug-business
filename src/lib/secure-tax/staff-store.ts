@@ -15,6 +15,7 @@ import { verifyStaffGrantDocument, verifyStaffCapsuleDocument, parseStaffCapsule
 import { staffGrantDigest, staffEnvelopeDigest } from "./staff-model";
 import { verifyReturnEditPacket } from "./return-edits";
 import { verifyReturnCreationPacket } from "./return-creations";
+import { verifyCasePacket } from "./cases";
 import { commitSecureTaxEnvelope } from "./store";
 
 type GrantRow = { grantId: string; accountId: string; clientId: string; staffAccountId: string; epoch: number; approved: number; deniedEpoch: number; body: string };
@@ -29,7 +30,9 @@ function init(db: DatabaseSync) {
     CREATE INDEX IF NOT EXISTS secure_tax_staff_grants_staff ON secure_tax_staff_grants(staffAccountId);
     CREATE TABLE IF NOT EXISTS secure_tax_staff_capsules (
       grantId TEXT NOT NULL,objectId TEXT NOT NULL,capsuleId TEXT NOT NULL UNIQUE,body TEXT NOT NULL,
-      PRIMARY KEY(grantId,objectId));`);
+      PRIMARY KEY(grantId,objectId));
+    CREATE TABLE IF NOT EXISTS secure_tax_case_objects (
+      accountId TEXT NOT NULL,id TEXT NOT NULL,PRIMARY KEY(accountId,id));`);
 }
 function roleAccess(user: WorkspaceUser, grant: StaffGrant) {
   const matrix = getMatrix();
@@ -176,6 +179,42 @@ export function publishApprovedReturnCreation(token: string, raw: unknown) {
     if (!receipt.duplicate) {
       db.prepare("INSERT INTO secure_tax_staff_capsules VALUES(?,?,?,?) ON CONFLICT(grantId,objectId) DO UPDATE SET capsuleId=excluded.capsuleId,body=excluded.body").run(grant.grantId, approval.objectId, capsule.capsuleId, JSON.stringify(capsule));
       db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(approval.objectId, user.id, "secure-tax.return-create.approved", new Date().toISOString(), JSON.stringify({ approval, sharingCapsuleId: capsule.capsuleId }));
+    }
+    return { ...receipt, approvedBy: user.id, staffAccountId: grant.staffAccountId };
+  }, true);
+}
+/** Publish a separately approved encrypted case transition. No case fields or
+ * dependency relationships enter the host's metadata or authorization model. */
+export function publishApprovedCase(token: string, raw: unknown) {
+  return workspaceDatabase(db => {
+    init(db); const { user } = secureStaffIdentity(db, token); must(user.isOwner, "Only the verified owner can publish a separately approved case revision.");
+    const { approval, envelope, capsule: rawCapsule } = verifyCasePacket(raw), { grant, manifest } = scopedGrant(db, approval.grantId, targetStaff(db, approval.staffAccountId));
+    must(grant.workspaceId === approval.workspaceId && grant.accountId === approval.accountId && grant.clientId === approval.clientId
+      && grant.epoch === approval.grantEpoch && grant.staff.keyId === approval.staffKeyId && staffGrantDigest(grant) === approval.grantDigest
+      && grant.domains.includes("tax-document") && manifest.manifestId === approval.manifestId && manifest.epoch === approval.manifestEpoch,
+    "The case assignment or enrollment changed. Obtain a new reviewed approval.", 409);
+    must(Date.parse(approval.issuedAt) >= Math.max(Date.parse(grant.issuedAt), Date.parse(manifest.issuedAt)) && Date.parse(approval.expiresAt) <= Math.min(Date.parse(grant.expiresAt), Date.parse(manifest.expiresAt)), "The case publication approval outlives its signed authorization.", 409);
+    must(hasTable(db, "secure_tax_objects"), "The encrypted client storage is unavailable. Review its enrollment before publishing.", 409);
+    const current = db.prepare("SELECT * FROM secure_tax_objects WHERE accountId=? AND id=?").get(grant.accountId, approval.objectId) as ObjectRow | undefined;
+    must(!current?.deleted, "A deleted encrypted case cannot be restored under its old ID.", 409);
+    const previous = db.prepare("SELECT 1 FROM secure_tax_mutations WHERE accountId=? AND id=?").get(grant.accountId, approval.approvalId);
+    const managed = db.prepare("SELECT 1 FROM secure_tax_case_objects WHERE accountId=? AND id=?").get(grant.accountId, approval.objectId);
+    if (previous || approval.sourceRevision > 0) must(managed, "The case ownership checkpoint is unavailable. Review the encrypted case history.", 409);
+    else must(!managed && !current, "An initial case must use a new object ID.", 409);
+    if (!previous && approval.sourceRevision > 0) {
+      must(current && current.clientId === grant.clientId && current.revision === approval.sourceRevision, "The encrypted case changed after review. Reopen its current revision.", 409);
+      const original = originalEnvelope(current, manifest);
+      must(original.context.domain === "tax-document" && staffEnvelopeDigest(original) === approval.sourceEnvelopeDigest, "The case approval does not cover the current encrypted source.", 409);
+    }
+    const capsule = verifyStaffCapsuleDocument(rawCapsule, grant, manifest, envelope);
+    const priorCapsule = db.prepare("SELECT grantId,objectId FROM secure_tax_staff_capsules WHERE capsuleId=?").get(capsule.capsuleId) as { grantId: string; objectId: string } | undefined;
+    must(!priorCapsule || (priorCapsule.grantId === grant.grantId && priorCapsule.objectId === approval.objectId), "The signed sharing capsule ID is already used for another scope.", 409);
+    const receipt = commitSecureTaxEnvelope(db, { id: grant.accountId, clientId: grant.clientId }, manifest, approval.objectId,
+      { mutationId: approval.approvalId, expectedRevision: approval.sourceRevision, envelope }, { approvedCaseWrite: true });
+    if (!receipt.duplicate) {
+      db.prepare("INSERT OR IGNORE INTO secure_tax_case_objects VALUES(?,?)").run(grant.accountId, approval.objectId);
+      db.prepare("INSERT INTO secure_tax_staff_capsules VALUES(?,?,?,?) ON CONFLICT(grantId,objectId) DO UPDATE SET capsuleId=excluded.capsuleId,body=excluded.body").run(grant.grantId, approval.objectId, capsule.capsuleId, JSON.stringify(capsule));
+      db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(approval.objectId, user.id, "secure-tax.case.approved", new Date().toISOString(), JSON.stringify({ approval, sharingCapsuleId: capsule.capsuleId }));
     }
     return { ...receipt, approvedBy: user.id, staffAccountId: grant.staffAccountId };
   }, true);

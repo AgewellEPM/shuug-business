@@ -1,7 +1,8 @@
 # Isolated AWS key custody for encrypted staff access
 
 This package prepares a separate AWS key account for firm enrollment, staff grants,
-read capsules and lost-device recovery. It uses the existing signed native v2
+read capsules, lost-device recovery and reviewed encrypted return/case transitions.
+It uses the existing signed native v2
 envelopes unchanged. Deployment and production key initialization have **not**
 occurred. The account discovery attempt on 2026-11-07 returned
 `InvalidClientTokenId`; no authenticated account or live AWS behavior was verified.
@@ -233,6 +234,7 @@ attestation; they do not perform identity verification or two-person approval.
 | `share` | `expectedPins`, `envelope`, `manifest`, `grant`, `expected` | Signed read-only `capsule` |
 | `approve-return-edit` | `expectedPins`, `proposal`, `sourceEnvelope`, `manifest`, `grant`, `expected`, `reviewedCommitment`, `reviewReference` | `approvedReturnEdit: {approval,envelope,capsule}` |
 | `approve-return-create` | `expectedPins`, `proposal`, `manifest`, `grant`, `expected`, `reviewedCommitment`, `reviewReference` | `approvedReturnCreation: {approval,envelope,capsule}` |
+| `approve-case-transition` | `expectedPins`, `proposal`, `sourceEnvelope`, `manifest`, `grant`, `expected`, `reviewedCommitment`, `reviewReference` | `approvedCase: {approval,envelope,capsule}` |
 | `revoke` | `expectedPins`, `grant`, `epoch`, `archiveValidAt` | Signed `revoked` grant at the selected greater epoch |
 | `recover-device` | `expectedPins`, prior `grant`, new `request`, `epoch`, `envelope`, `manifest`, `expected`, `archiveValidAt` | New `grant`, new `capsule`, old `revoked` at prior epoch + 1 |
 
@@ -257,6 +259,73 @@ and opaque-job rules, with no source envelope. Use `prepare-return-create-job.mj
 on the operator computer after reviewing the exact private new-return kit. The
 worker decrypts that proposal and verifies the salted reviewed draft commitment;
 the owner API independently checks that its target object ID is unused.
+
+For `approve-case-transition`, `recipientKeyId` is the assigned preparer's grant
+key, and the input `reviewReference` must equal the job approval's reference.
+`sourceEnvelope` is `null` for a new case and the exact current encrypted case for
+an update. `expected` contains `accountId`, `clientId`, `staffAccountId`,
+`staffKeyId`, `objectId`, source `revision` (0 for creation), `domain:tax-document`
+and optional `minimumGrantEpoch`/`minimumManifestEpoch`. New case IDs use the
+reserved `shuug-case:` prefix and a nonempty valid suffix. The owner API enforces
+unused IDs at creation, firm-managed registry membership on updates and exact
+source revision/digest checks. Generic client writes/deletion and return writes
+cannot occupy that namespace, even before initial case publication.
+
+The supported private commands are `case.create`, `request.add`,
+`document.review` and `draft.link`; they cover declared 2025 individual/self-employed
+and business draft cases. Actions, request titles, due dates, notes, decisions and
+selected evidence links never appear in clear job fields. The proposal encrypts
+the command and the actual selected evidence envelope/capsule. The worker verifies
+sharing scope, decrypts source/evidence, verifies the historical private case
+certificate, reapplies the command and reconstructs the exact reviewed commitment.
+It does not accept an arbitrary proposed after-state.
+
+Prepare human review **on the trusted operator computer**, before asserting that
+fields were reviewed:
+
+```sh
+node inspect-case-review.mjs --public-pins PUBLIC_PINS.json --kit PRIVATE_KIT.json --out NEW_PRIVATE_REVIEW_DIRECTORY
+```
+
+This operator-only inspector requires no key, passphrase, approval confirmation,
+network or automatic file opening. It creates a new mode0700 directory containing
+mode0600 `private-kit.json` with the exact input bytes, `review.json`,
+`kit-sha256.txt` and an ordinary selected PDF/JPEG/PNG/CSV file or draft JSON.
+Files use fixed names; existing output directories are refused. Review the fields
+and actual extracted file. They are candidate private copies: inspection checks
+public framing, scope and the commitment but cannot decrypt the proposal to prove
+correspondence. That check occurs during final firm approval.
+
+After review, prepare the opaque job using the **copied** kit and its exact hash:
+
+```sh
+node prepare-case-job.mjs --confirm-fields-reviewed --public-pins PUBLIC_PINS.json --kit NEW_PRIVATE_REVIEW_DIRECTORY/private-kit.json --reviewed-sha256 REVIEWED_KIT_SHA256 --review-reference OPAQUE_REVIEW_ID --job-id UNIQUE_JOB_ID --out NEW_OPAQUE_JOB.json
+```
+
+Upload only that opaque job using the immutable-version/MFA procedure below.
+Never upload the private kit, extracted evidence or review directory to the app
+host or job bucket. A separate-computer approver instead uses `case-offline-cli.mjs`
+with the same reviewed kit/hash plus `--confirm-off-host --passphrase-fd N
+--bundle FIRM_BUNDLE.json --out NEW_APPROVED_CASE.json`; it also requires
+`--confirm-fields-reviewed`, `--public-pins` and `--review-reference`.
+
+The returned private content certificate has type
+`shuug-private-tax-case-certificate` and signing purpose
+`shuug/private-tax-case-certificate`. It binds the complete case/history to
+workspace, account, client, object, revision, domain, actor and issue time. It is
+encrypted inside the native v2 envelope and has no expiry; it does not grant API
+access or replace current enrollment/grant/capsule checks. Only the public
+`{approval,envelope,capsule}` packet from `approvedCase` goes to owner-MFA
+publication. Publication stores the exact case ciphertext and fresh capsule
+atomically; idempotent retries preserve later firm revisions/capsules.
+
+This is source-review workflow, not client filing authorization, a complete tax
+review or an official acknowledgment. Private evidence links let clients detect
+stale/unavailable sources after refresh; they do not let the ciphertext API lock
+every dependency during publication. Archive/deletion actions, broader office
+work, real custody activation/migration, independent review and IRS/state filing
+remain separate gates. See the
+[encrypted case workflow](SHUUG_ENCRYPTED_CASES_20261110.md).
 
 For each job, while using the operator role:
 
@@ -294,6 +363,20 @@ application's current authorization and the signed grant epochs remain necessary
 the key worker does not consult the storage host's account/employee database.
 
 ## Operations, cost and compliance limits
+
+The prepared worker now allocates 2,048 MiB, keeps a 60-second timeout and allows
+one concurrent execution. The former 512-MiB allocation is below the observed
+large-case workload. On November 10 a fresh local worker process approved an
+opaque 24,865,900-byte job for one 10-MiB selected file in 5,197 ms, with peak RSS
+1,411,612,672 bytes (1,346.2 MiB), reported by `process.resourceUsage().maxRSS`.
+Parent fixture preparation is excluded. This uses synthetic wrapped custody and
+local providers, not AWS SDK/KMS/S3 or Lambda; an independent accounting comparison
+was not performed. Actual AWS memory/runtime/cost qualification remains required
+before activation. No resources or production keys were created. Reproduce the
+local boundary with `node scripts/secure-case-worker-resource-check.mjs` from the
+repository root. The fixture privately stages only synthetic material and cleans
+its owned process/files on completion. See
+`verification/encrypted-cases-20261110.json` for the checkpoint evidence.
 
 There is no EC2 instance, public recovery listener or NAT gateway in this template.
 Cost comes from [Lambda requests and execution](https://aws.amazon.com/lambda/pricing/),

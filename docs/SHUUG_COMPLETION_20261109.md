@@ -135,6 +135,33 @@ V8/DOM model. Exact build ID, source hashes, package locations and evidence:
 `verification/return-corrections-20261109.json`. The installed service and real
 key accounts remain unchanged; no production firm keys were initialized.
 
+## Encrypted case checkpoint — November 10
+
+Preparers can now originate a draft for both return families, then prepare
+encrypted cases with document requests, exact-source reviews/replacement
+decisions and matching draft links. Private command history is retained and
+replayed; a purpose-specific firm ES256 certificate binds the complete body to
+its exact client/object/version. Owner MFA publication atomically installs the
+approved case and read capsule. Reserved case IDs cannot be claimed or replaced
+through generic client uploads, including before publication.
+
+Both readers show changed files/drafts as stale and missing/deleted sources as
+unavailable. Replacement decisions retain prior facts. A case completion display
+is not filing authorization. Ordinary case forms label every note client-visible,
+pause refresh for unsaved work and clear it on scope change/lock. The separate
+operator inspector extracts exact evidence into private files for actual review;
+both custody options approve only the hash of the exact reviewed kit.
+
+The final client/custody/model/tax suite passes 148 checks with no skips,
+including actual Swift/CryptoKit case decryption and a 10-MiB selected file.
+The compiled service passes 171 synthetic HTTP checks on build
+`5MU8AwN75LCZWR1MP9AUk`, including 11 approved case transitions, changed/deleted
+sources, both-family readers and restore. The full operator path and current
+package/resource evidence are recorded in
+[the case workflow](SHUUG_ENCRYPTED_CASES_20261110.md) and
+[receipt](verification/encrypted-cases-20261110.json). This is not an installed
+upgrade, actual cloud execution, visual acceptance or independent certification.
+
 ## Remaining acceptance gates
 
 Broader encrypted staff editing/review, shared firm-book/invoice/payment projections,

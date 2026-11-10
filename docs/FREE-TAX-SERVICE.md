@@ -52,9 +52,19 @@ functionality, not real activation or an installed upgrade.
 
 ## Remaining work, in implementation order
 
+November 10 case continuation: encrypted cases now connect preparer-originated
+returns, document requests, exact-revision file reviews/replacement decisions and
+matching draft links. Both client and staff verify a private firm signature and
+show changed/missing sources as incomplete. Retained private history, separate
+operator review and owner MFA publication are implemented. This closes the
+document-review/link portion of row 1 below; encrypted books, balances and
+exact-package client authorization remain open. See
+[the case workflow](SHUUG_ENCRYPTED_CASES_20261110.md) and
+[execution receipt](verification/encrypted-cases-20261110.json).
+
 | Order | Confirmed gap | Observable completion criterion |
 | --- | --- | --- |
-| 1 | **One complete encrypted office workflow.** Ordinary Tax work and Client books still reject enrolled clients at tax-office/access.ts:13 and accounting/client-books.ts:19,31. Staff corrections require an existing shared return; preparers cannot originate one. Normal client uploads still need fresh trusted sharing capsules. Broader encrypted document review, ledger edits and package approval are missing. | An assigned preparer starts an individual and an entity return, reviews/replaces uploaded records, adjusts books, prepares/reviews the return and obtains exact-package client authorization. Client-visible state, approval invalidation, sharing, revocation, restart and recovery work without readable taxpayer data on the app host. |
+| 1 | **One complete encrypted office workflow.** Ordinary Tax work and Client books still reject enrolled clients at tax-office/access.ts:13 and accounting/client-books.ts:19,31. Preparer origination and encrypted case/document review now work in the independent client. Normal uploads still need fresh trusted sharing capsules. Encrypted ledger edits, balances and exact-package client approval remain missing. | An assigned preparer starts an individual and an entity return, reviews/replaces uploaded records, adjusts books, prepares/reviews the return and obtains exact-package client authorization. Client-visible state, approval invalidation, sharing, revocation, restart and recovery work without readable taxpayer data on the app host. |
 | 2 | **Trusted enrollment, migration and recovery.** Independent trust config defaults to disabled; actual client activation is unavailable. Migration exports selected copied data but explicitly reports migration/recovery incomplete. Staff-device replacement is not lost-client-key recovery or firm-key rotation. Old readable copies/provider tokens and remaining generic link/export/automation access paths need review. | Independently deliver the trusted client/public pins; initialize custody in the selected separate environment; enroll real devices; reconcile/import a verified migration; recover a lost client device; verify history and deliberate legacy retention/removal. Review provider ingestion/access boundaries. Preserve the plaintext prohibition. |
 | 3 | **Install the complete build safely.** Port3126 still runs Telemetry build -orrIlj9ul0XV8ixITvtV, lacking accounting, tax-office and secure staff routes. The branches have 24/19 exclusive commits plus unrelated dirty Telemetry work. Hosted Compose enables passwords but does not itself require general MFA; secure staff routes enforce their own factor. The live stored general MFA setting was not inspected. | Reconcile both feature sets, install with rollback, explicitly enable/verify the intended MFA policy and exercise actual desktop/native/web/WordPress paths over the intended TLS setup. Test startup/update/recovery. Connect the public workspace after that path works. |
 | 4 | **Complete tax coverage and final forms.** Current calculations are 2025/federal/ordinary-income drafts. Individual dependents/credits, age rules, Schedule 1-A, capital/qualified dividends, retirement, rentals, assets and other treatments remain incomplete. Entities need full K/K-1 separately stated items, capital/basis, disclosures and book-to-tax workpapers. Other years, states, amendments and fiscal/short-year cases are missing. | Publish the supported-case matrix, finish both families' intended cases and required forms/disclosures. Independently check calculations and actual form lines against authoritative reference cases. Establish reviewed annual rule/form updates. |
@@ -112,8 +122,8 @@ separate synthetic legacy-workflow proof, not proof of encrypted integration.
 These suites were not rerun during this assessment. No new exploitable bypass
 or new calculation defect was established by this read-only pass.
 
-The next software milestone is the protected office case model connecting
-documents, preparer-created returns, books, billing and approval history, while
-custody activation and the reconciled installation are prepared. Completion
+The next software milestone extends the protected case workflow into encrypted
+books, billing and exact-package client authorization, while custody activation
+and the reconciled installation are prepared. Completion
 requires the actual installed end-to-end office journey and declared filing
 capability, not a readiness percentage or more passing tests alone.

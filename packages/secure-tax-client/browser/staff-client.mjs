@@ -6,6 +6,10 @@ import { calculateReturn } from '@shuug/tax-engine';
 import { verifyReturnEditApproval } from '../return-edit-approval.mjs';
 import { prepareReturnCreation } from '../return-creations.mjs';
 import { verifyReturnCreationApproval } from '../return-create-approval.mjs';
+import { prepareCaseTransition } from '../case-proposals.mjs';
+import { verifyCaseApproval } from '../case-approval.mjs';
+import { CASE_OBJECT_PREFIX } from '../case-contract.mjs';
+import { openedRecordMetadata } from './opened-record.mjs';
 
 const prefix='/api/website/customer/secure/staff';
 const id=value=>typeof value==='string'&&value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]===value;
@@ -209,6 +213,29 @@ export class StaffVaultClient {
   }
   async installApprovedReturnEdit(packet){if(!this.isOwner)throw new Error('Only the verified owner can publish a separately approved return correction.');const generation=this.#generation;await verifyReturnEditApproval(packet,this.#config);this.#same(generation);return this.#request('/return-edits','POST',packet);}
   async installApprovedReturnCreation(packet){if(!this.isOwner)throw new Error('Only the verified owner can publish a separately approved new return.');const generation=this.#generation;await verifyReturnCreationApproval(packet,this.#config);this.#same(generation);return this.#request('/return-creations','POST',packet);}
+  async prepareCaseAction(objectId,command,evidenceObjectId=null){
+    if(this.#busy)throw new Error('Wait for the current staff operation.');
+    if(!this.#selection||!this.#key||!this.identity||!this.#selection.domains.includes('tax-document'))throw new Error('Select a current signed tax-document grant before preparing client case work.');
+    const original=objectId===null?null:this.records.get(objectId),evidence=evidenceObjectId===null?null:this.records.get(evidenceObjectId);
+    if(objectId!==null&&(!original?.verifiedCase||original.domain!=='tax-document'))throw new Error('Open the case’s current verified firm review before changing its work.');
+    if(evidenceObjectId!==null&&(!evidence||!['tax-document','driver-receipt'].includes(evidence.domain)||!evidence.envelopeDigest))throw new Error('Open the current shared document or draft before selecting it as evidence.');
+    const action=clone(command),generation=this.#generation,selected=clone(this.#selection);this.#busy=true;
+    try{
+      await this.refreshGrants();this.#same(generation);const observedManifest=await this.#storage.getBinding(this.#manifestBindingId(selected));this.#same(generation);
+      const expected={staffAccountId:this.identity.staffAccountId,staffKeyId:this.#key.keyId,accountId:selected.accountId,clientId:selected.clientId,minimumGrantEpoch:this.#binding.minimumGrantEpoch,minimumManifestEpoch:Math.max(this.#binding.minimumManifestEpoch??1,observedManifest?.minimumManifestEpoch??1),objectId:objectId??CASE_OBJECT_PREFIX+crypto.randomUUID(),revision:original?.revision??0,domain:'tax-document'};
+      const scope=await this.#request(`/scope?grantId=${encodeURIComponent(selected.grantId)}`);this.#same(generation);
+      if(!scope||Object.keys(scope).sort().join('|')!=='grant|manifest')throw new Error('The selected client enrollment is unavailable.');
+      const checked=await verifyStaffGrant(scope.grant,expected,this.#config);this.#same(generation);
+      if(scope.grant.grantId!==selected.grantId||checked.grantDigest!==this.#binding.grantDigest)throw new Error('The selected client assignment changed. Select its current signed grant.');
+      const fresh=async(record)=>{if(!record)return null;const item=await this.#request(`/objects/${encodeURIComponent(record.objectId)}?grantId=${encodeURIComponent(selected.grantId)}`,'GET',undefined,24*1024*1024);this.#same(generation);if(item.deleted||item.objectId!==record.objectId||item.revision!==record.revision||item.capsule?.envelopeDigest!==record.envelopeDigest)throw new Error('The case or selected evidence changed. Reopen current shared records before review.');return item;};
+      const source=await fresh(original),selectedEvidence=await fresh(evidence);
+      const prepared=await prepareCaseTransition({envelope:source?.envelope??null,manifest:scope.manifest,grant:scope.grant,capsule:source?.capsule??null,expected,pins:this.#config,staffPrivateKey:this.#key.privateKey,command:action,evidenceEnvelope:selectedEvidence?.envelope??null,evidenceCapsule:selectedEvidence?.capsule??null});this.#same(generation);
+      await this.refreshGrants();this.#same(generation);const minimumManifestEpoch=Math.max(expected.minimumManifestEpoch,prepared.proposal.manifestEpoch),binding={...this.#binding,minimumManifestEpoch};
+      await this.#rememberManifestEpoch(selected,minimumManifestEpoch,generation);await this.#storage.putBinding(binding);this.#same(generation);this.#binding=binding;
+      return {version:1,type:'shuug-private-case-review-kit',proposal:prepared.proposal,sourceEnvelope:source?.envelope??null,manifest:scope.manifest,grant:scope.grant,expected,privateReview:prepared.privateReview};
+    }catch(error){if(generation===this.#generation)this.#clear();throw error;}finally{this.#busy=false;}
+  }
+  async installApprovedCase(packet){if(!this.isOwner)throw new Error('Only the verified owner can publish separately approved client case work.');const generation=this.#generation;await verifyCaseApproval(packet,this.#config);this.#same(generation);return this.#request('/cases','POST',packet);}
   async sync(){
     if(this.#busy)throw new Error('Wait for the current staff operation.');if(!this.#selection||!this.#key||!this.identity)throw new Error('Select a signed client grant first.');this.#busy=true;
     const generation=this.#generation,selected=clone(this.#selection),oldBinding=clone(this.#binding),opened=[];let committed=false;
@@ -233,7 +260,8 @@ export class StaffVaultClient {
           if(item.deleted||item.objectId!==change.objectId||item.revision!==change.revision||item.sequence!==change.sequence)throw new Error('Staff ciphertext changed during sync. Retry the current revision.');
           const expected={staffAccountId:this.identity.staffAccountId,staffKeyId:this.#key.keyId,accountId:current.accountId,clientId:current.clientId,minimumGrantEpoch:oldBinding.minimumGrantEpoch,minimumManifestEpoch,objectId:item.objectId,revision:item.revision,domain:item.envelope?.context?.domain};
           const plaintext=await openStaffCapsule(item.capsule,item.envelope,item.manifest,current,expected,this.#config,this.#key.privateKey);opened.push(plaintext);this.#same(generation);
-          minimumManifestEpoch=Math.max(minimumManifestEpoch,item.manifest.epoch);records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:expected.domain,envelopeDigest:item.capsule.envelopeDigest,plaintext});setVersion(versions,item.objectId,{revision:item.revision,deleted:false});
+          const metadata=await openedRecordMetadata(plaintext,item.envelope,current.clientId,this.#config);this.#same(generation);
+          minimumManifestEpoch=Math.max(minimumManifestEpoch,item.manifest.epoch);records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:expected.domain,plaintext,...metadata});setVersion(versions,item.objectId,{revision:item.revision,deleted:false});
         }
         // The account cursor includes scanned objects outside this grant's domains.
         // Visible changes stay ordered within that cursor; filtered pages may be empty.
