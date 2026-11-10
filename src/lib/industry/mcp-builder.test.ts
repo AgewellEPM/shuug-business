@@ -80,6 +80,8 @@ it("retains every required filing, billing and portal capability without claimin
   expect(preview.requiredCapabilities.find(capability => capability.id === "invoice-delivery")).toMatchObject({ status: "implemented", requiresConfiguration: true, configured: false, liveVerification: false });
   expect(preview.requiredCapabilities.find(capability => capability.id === "online-invoice-payments")).toMatchObject({ status: "implemented", requiresConfiguration: true, configured: null, liveVerification: false });
   expect(preview.requiredCapabilities.find(capability => capability.id === "client-business-live-view")).toMatchObject({ status: "partial", liveVerification: false });
+  expect(preview.requiredCapabilities.find(capability => capability.id === "tax-return-calculation")).toMatchObject({ status: "partial", configured: false, liveVerification: false });
+  expect(preview.requiredCapabilities.find(capability => capability.id === "tax-return-forms")).toMatchObject({ status: "partial", configured: false });
   const unsupported = preview.unsupportedRequests.map(capability => capability.id);
   expect(new Set(unsupported).size).toBe(unsupported.length);
   expect(unsupported).toEqual(expect.arrayContaining(["tax-return-calculation", "tax-return-forms", "tax-efile-transmission", "client-portal-bulk-uploads", "client-business-live-view"]));

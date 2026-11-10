@@ -4,12 +4,15 @@ import { decode64, DOMAINS, encode64 } from '../envelope.mjs';
 import { journalSections, renderJournal } from './journal-view.mjs';
 import { mountForms, formType, maskedDisplay } from './forms.mjs';
 import { mountClientPortal } from './client-portal-view.mjs';
+import { mountReturnEditor } from './return-editor.mjs';
+import { isTaxReturn,renderReturn } from './return-view.mjs';
+import { saveReturn } from './return-save.mjs';
 
 const $=id=>document.getElementById(id), labels={
   'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses',
   'driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'
 };
-let client, normalEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
+let client, normalEditor, taxEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
 let portal;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
@@ -23,7 +26,7 @@ async function readJson(input){
   try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}
 }
 function resetEditor(){editing=null;advancedDirty=false;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
-function clearOpened(){viewGeneration++;portal?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
+function clearOpened(){viewGeneration++;portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
   for(const id of ['connect','key-choice','create-key','import-backup','import-key','signin-password','email','password'])$(id).disabled=!ready||working;
@@ -38,6 +41,7 @@ function refreshControls(){
   for(const id of ['sync','payload','attachment','save','cancel-edit'])$(id).disabled=!writable||working;
   $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending;
   normalEditor?.setEnabled(!!writable&&!working);
+  taxEditor?.setEnabled(!!writable&&!working);
   portal?.refresh();
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
@@ -51,7 +55,7 @@ async function refreshKeys(select){
 async function run(operation){
   if(working)return;working=true;refreshControls();
   try{await operation();}catch(error){message(error instanceof Error?error.message:'This operation could not complete.',true);}
-  finally{working=false;if(!client?.unlocked&&($('groups').childElementCount||portal?.active))clearOpened();statusText();refreshControls();}
+  finally{working=false;if(!client?.unlocked&&($('groups').childElementCount||portal?.active||taxEditor?.active))clearOpened();statusText();refreshControls();}
 }
 function statusText(){
   $('account').textContent=client.identity?`Connected account ${client.identity.accountId}. ${client.enrolled?'Encrypted enrollment exists.':'Encrypted enrollment is not activated.'}`:'No account connected.';
@@ -72,7 +76,11 @@ function renderGroups(){
       meta.textContent=`Item ${item.objectId} · revision ${item.revision}`;row.append(title,meta);
       const file=data?.version===1&&data?.type==='private-file'&&typeof data?.data==='string';
       const journal=journalSections(data,{workspaceId:client.config.workspaceId,...client.identity,objectId:item.objectId,domain:item.domain});
-      if(journal){
+      if(item.domain==='tax-document'&&isTaxReturn(data)){
+        title.textContent=`${data.year} Form ${data.kind} draft`;const generation=viewGeneration;
+        row.append(renderReturn(document,data,{run,download,isCurrent:()=>generation===viewGeneration&&client?.canWrite&&!document.hidden&&row.isConnected}));
+        row.append(button('Edit return',async()=>{taxEditor.edit(data,item.objectId);},'secondary'));
+      }else if(journal){
         title.textContent='Device Journal snapshot';row.append(renderJournal(document,journal));
         row.append(button('Download readable snapshot',async()=>{download(`${item.objectId}.journal.json`,item.plaintext);message('Readable Journal snapshot downloaded at your request. No device state was restored or replayed.');},'secondary'));
       }else if(file){
@@ -95,18 +103,19 @@ function renderGroups(){
       row.append(button('Delete encrypted item',async()=>{
         if(!confirm('Delete this encrypted item from the live API? Older ciphertext can remain in backups or filesystem history. This cannot remove readable files you downloaded.'))return;
         const generation=viewGeneration;await client.remove(item.objectId);if(generation!==viewGeneration)return;
-        if(editing===item.objectId)resetEditor();renderGroups();message('Live ciphertext and object retry records deleted. A content-free sync tombstone remains; backups and prior downloads may retain copies.');
+        if(editing===item.objectId)resetEditor();if(taxEditor?.editingId===item.objectId)taxEditor.clear();renderGroups();message('Live ciphertext and object retry records deleted. A content-free sync tombstone remains; backups and prior downloads may retain copies.');
       },'danger'));area.append(row);
     }
     $('groups').append(area);
   }
   portal?.render();
 }
-const canRefresh=()=>!normalEditor?.dirty&&!editing&&!advancedDirty;
+const canRefresh=()=>!normalEditor?.dirty&&!taxEditor?.dirty&&!editing&&!advancedDirty;
 portal=mountClientPortal(document,$('groups').parentElement,{getClient:()=>client,run,onSaved:renderGroups,onLocked:()=>{clearOpened();statusText();if(!client.identity)message('Sign-in expired or access was revoked. Opened information was cleared; sign in again.',true);},onMessage:message,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,canRefresh,confirm:text=>confirm(text)});
 for(const id of ['payload','attachment','domain'])$(id).addEventListener('input',()=>{advancedDirty=true;portal.pending();});
 for(const domain of DOMAINS){const option=document.createElement('option');option.value=domain;option.textContent=labels[domain];$('domain').append(option);}
 normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onDirty:()=>portal.pending(),onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
+taxEditor=mountReturnEditor(document,$('return-editor'),{run,download,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration&&!!client?.canWrite,onDirty:()=>portal.pending(),onSave:async(value,id,onPrepared)=>{const generation=viewGeneration;try{await saveReturn(client,value,id??undefined,{onPrepared});if(generation!==viewGeneration)return;renderGroups();message('Return input encrypted and saved. Calculations can be reopened from these inputs; no return was transmitted.');}catch(error){if(generation===viewGeneration&&client.canWrite)await portal.queue?.restore();throw error;}}});
 function signedIn(result){
   if(result.mfaRequired){message('Password verified. Complete authenticator verification to access your account.');return;}
   if(result.recoveryCodes?.length){$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;}
@@ -148,7 +157,7 @@ $('save').addEventListener('click',()=>run(async()=>{
 }));
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&client?.unlocked){client.lock();clearOpened();refreshControls();message('View locked after leaving this tab. Select the account key again.');}});
 window.addEventListener('pagehide',()=>{client?.lock();clearOpened();});
-window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared){event.preventDefault();event.returnValue='';}});
+window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared||taxEditor?.dirty){event.preventDefault();event.returnValue='';}});
 try{
   client=await VaultClient.create(trustedConfig,location.origin);$('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
   $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();message('Independent trust configuration loaded. Sign in to the API portal, then connect this client.');

@@ -1,0 +1,429 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-10 04:13:30 UTC",
+  "baseCommit": "ec44f36b645a5029254444bdee703e8e57bf4539",
+  "scope": "2025 federal individual/self-employed and business-entity encrypted draft preparation; both custody packaging options",
+  "verification": {
+    "returnAndBrowserTests": {
+      "passed": 79,
+      "failed": 0,
+      "skipped": 0
+    },
+    "standaloneOfflineKitTests": {
+      "passed": 1,
+      "failed": 0
+    },
+    "existingOfflineAndCloudCustodyTests": {
+      "passed": 7,
+      "failed": 0
+    },
+    "workspaceAndPackagingVitest": {
+      "passed": 9,
+      "failed": 0
+    },
+    "nextBuildPassed": true,
+    "compiledHttp": {
+      "ok": true,
+      "checks": 81,
+      "buildId": "QFI2btOq40m6havJzidbX",
+      "syntheticWorkspace": true,
+      "freshClientHadNoLegacyBooks": true,
+      "mandatoryStaffMfaVerifiedWithGlobalFlagOff": true,
+      "originalV2ClientEnvelopesPreserved": true,
+      "staffOpenedProtectedBooksAndDocumentBytes": true,
+      "encryptedDeviceBackupRecovered": true,
+      "newDeviceGrantedAfterOriginalRevocation": true,
+      "oldDeviceCannotOpenReplacementCapsules": true,
+      "newProcessFirmRecoveryCliVerified": true,
+      "staleRevisionFailsClosed": true,
+      "restoredDataAndRevocationVerified": true,
+      "backupFiles": 6,
+      "copiedHostPlaintextMarkerAbsent": true,
+      "portal": {
+        "multiFileUploads": 3,
+        "exactBytesOpened": true,
+        "lostReceiptRetryUsesSameCiphertext": true,
+        "encryptedPendingQueueRestored": true,
+        "localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts": true,
+        "authorizedClientRefreshVerified": true,
+        "staffSeesFilesAfterSignedSharing": true,
+        "automaticStaffRefreshAndSharedSummaryVerified": true,
+        "unsharedNewItemClearsStaffView": true,
+        "approvedRevisionRefreshVerified": true,
+        "pageExitClearsStaffView": true,
+        "cleanRestoreVerified": true,
+        "restoreFiles": 6,
+        "instantPushVerified": false,
+        "staffEditingImplemented": false
+      },
+      "largeGrantList": {
+        "activeGrants": 131,
+        "pagesRead": 6,
+        "boundedPageBytes": 65536,
+        "completeSnapshotVerified": true
+      },
+      "returnProof": {
+        "year": 2025,
+        "kinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "encryptedSaveClientReopenStaffRead": true,
+        "exported": [
+          {
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 118364
+          },
+          {
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 375378
+          },
+          {
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 350426
+          },
+          {
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 254559
+          }
+        ],
+        "unsharedRevisionClearsStaffView": true,
+        "correctedClientInputVisibleAfterSharing": true,
+        "staffAuthoringImplemented": false,
+        "productionFilingPerformed": false
+      },
+      "workspaceBuilder": {
+        "realStdioMcp": true,
+        "compiledBackend": true,
+        "tools": 45,
+        "previewAndApplyVerified": true,
+        "partialTaxPreparationReported": true,
+        "requestedGoalComplete": false
+      },
+      "realOffhostCustodyVerified": false,
+      "publicTlsVerified": false,
+      "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture",
+      "realClientDataUsed": false,
+      "installedServiceChanged": false
+    },
+    "packagedClient": {
+      "ok": true,
+      "artifact": "/Users/lukekist/BuildCache/ShuugCompletion-20261109/tax-client-v2",
+      "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+      "modules": 70,
+      "defaultConfigDisabled": true,
+      "noAccountRequest": true,
+      "publicTemplateFetches": 4,
+      "xfasRemoved": 4,
+      "exported": [
+        {
+          "kind": "1040",
+          "bytes": 118488
+        },
+        {
+          "kind": "1065",
+          "bytes": 238473
+        },
+        {
+          "kind": "1120S",
+          "bytes": 212315
+        },
+        {
+          "kind": "1120",
+          "bytes": 254770
+        }
+      ],
+      "safariVerified": false,
+      "visualAcceptance": false,
+      "publicTlsVerified": false
+    }
+  },
+  "custodyPackages": {
+    "separateComputer": {
+      "path": "/Users/lukekist/BuildCache/ShuugCompletion-20261109/separate-computer-key-kit-v1",
+      "files": 373,
+      "containsPrivateKeys": false,
+      "initialized": false,
+      "packagedSigningRecoveryVerifiedWithSyntheticData": true
+    },
+    "cloud": {
+      "path": "/Users/lukekist/BuildCache/ShuugCompletion-20261109/cloud-key-service-v1",
+      "files": 372,
+      "artifactSha256": "bbb4746868d6171e7da9fbfb2e4a6d0f98cd414ff8486927071ea4a8c814e9f0",
+      "provisioned": false,
+      "productionKeysInitialized": false,
+      "authenticatedKeyAccountSelected": false
+    }
+  },
+  "limits": {
+    "productionFilingPerformed": false,
+    "completeTaxCoverage": false,
+    "staffAuthoringImplemented": false,
+    "installedServiceChanged": false,
+    "publicTlsVerified": false,
+    "realOffhostCustodyVerified": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "paymentActivationDeferred": true
+  },
+  "sourceHashes": [
+    {
+      "file": "packages/secure-tax-client/browser/app.mjs",
+      "sha256": "1110ab78f57bf3d522266beb6655141755d024965e8631c007670858856ea5f9"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/client-portal.mjs",
+      "sha256": "a989fbbf2ee457bc83633ac371510286ede0d92e458f60fc1482f2790750d3aa"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/forms.mjs",
+      "sha256": "2eda08440c5c69764250dff7db46bbbfbe2b4fda1a742efa9a0410818a39805b"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/index.html",
+      "sha256": "2666e9e279952b7100106fcd0d5ea8cfbbb0c4bbbb4a7e10518a309c0214e8cc"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/return-editor.mjs",
+      "sha256": "8422e40640c858e7295434290e2da17edfb0e0ffa51df47d253886ca26ea36b1"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/return-save.mjs",
+      "sha256": "a2d63e2182d56f9fb8046bf3a8e5bdb10d0d3496d2b160f3076ef7ed3aa546fd"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/return-view.mjs",
+      "sha256": "f1d86d5392ea91cba3425d627557fe5a5ecbf6b882378ac07bd4b0bf9a65125c"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-view.mjs",
+      "sha256": "a48894e9b713b8455c1acf7e0bef1205ed973d20f20b5dc239c2149ba34070a1"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/style.css",
+      "sha256": "a2615988ddb55a7dfdf02014b85f0489c9cb195b390b935c04376f4d873d027c"
+    },
+    {
+      "file": "packages/secure-tax-client/build-offline-kit.mjs",
+      "sha256": "603e07ed7d5ba078c0040e65ecba96206256d44b0a84c3dfab2f41415808a5a8"
+    },
+    {
+      "file": "packages/secure-tax-client/package-lock.json",
+      "sha256": "eb24c9e52583e1174caec983fcb33ab5b704fae6e59f000ff133f31916b23d2a"
+    },
+    {
+      "file": "packages/secure-tax-client/package.json",
+      "sha256": "e7e06fad98619913f6417b30c6b9bad71ccd47f6bfab314140fd25e7dc7cdbd8"
+    },
+    {
+      "file": "packages/secure-tax-client/prepare-browser.mjs",
+      "sha256": "8940950e0d8e7b260982629eab3ca049c9df201f39d53bc8e2eee97b76caa697"
+    },
+    {
+      "file": "packages/secure-tax-client/test/browser.test.mjs",
+      "sha256": "3808a8617d13d48cf7b6113513f731be8bee78dc5c7563d94b7fbcbdf17a2614"
+    },
+    {
+      "file": "packages/secure-tax-client/test/client-portal.test.mjs",
+      "sha256": "0d4f87349c79e7b36fa208668a94ef769b1117ac668c9b7f6d34efb3bd0fa86d"
+    },
+    {
+      "file": "packages/secure-tax-client/test/offline-kit.test.mjs",
+      "sha256": "a71d5ff6f982fab5d027b1c4dfded4cf85991bdb1f61b8885392846b7b6ec02c"
+    },
+    {
+      "file": "packages/secure-tax-client/test/returns.test.mjs",
+      "sha256": "d500db239620e1ab2a141511eb11852591b98487476ded7379b0f10c55e9572a"
+    },
+    {
+      "file": "packages/secure-tax-client/test/staff-browser.test.mjs",
+      "sha256": "322882cc9587fef8e9908b3d12bd97753d6f9753cba342498c4de403798dc25b"
+    },
+    {
+      "file": "packages/tax-engine/business.mjs",
+      "sha256": "bff185145da22b5ff7efe786db35b439d5bc7d359f4575c8b1190cce76805474"
+    },
+    {
+      "file": "packages/tax-engine/catalog.mjs",
+      "sha256": "6b65d0e70e1d413062b28265e0ad566fcd2dc249b106917674977978f445198d"
+    },
+    {
+      "file": "packages/tax-engine/data/2025-tax-table.mjs",
+      "sha256": "2f1a50bc511fbb663db6ab7d3f6ae01614e0dec38f0eacb9100d8bc695d351f9"
+    },
+    {
+      "file": "packages/tax-engine/form-maps.mjs",
+      "sha256": "bf560ebb58e36bbe941c54dbc1344ef4a8b2cbd33a909abcc79ebcbd9400a706"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040.fields.json",
+      "sha256": "c636501708bc009e89367455e502556d835059173a5564edd36042aef3940c1c"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040.pdf",
+      "sha256": "3d31c226df0d189ced80e039d01cf0f8820c1019681a0f0ca6264de277b7e982"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040s1.fields.json",
+      "sha256": "6b59a9edae56a5c9795c649e97a05bf72b769e9b9ab2c5e54a28610069a1dbb3"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040s1.pdf",
+      "sha256": "8dafec719f6a4716c259a2bdaca546d9bb9e262d1eabef885fe116a7327458fa"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040s2.fields.json",
+      "sha256": "b37f1142cb67567763dde8c98d6005c6e34ba248e0b101052f3e4d31d279be58"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040s2.pdf",
+      "sha256": "64d867b683334cfc533993e37ccb0d143449ec29428a78206be2e4de333941e8"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040sc.fields.json",
+      "sha256": "d9c4b806e342fe1642e1a2f0e7b900350a66c3849b54b3e119c6df6d62c263c9"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040sc.pdf",
+      "sha256": "ddf401dbe060467d39f90ad2abf645df1de31512821a150dc68a3882bbf19716"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040sse.fields.json",
+      "sha256": "e2273061cd0fd5881f5958ed5b9b1ad76d58f76c3534e344b5a78a70d206070e"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1040sse.pdf",
+      "sha256": "05bc2b3e1dfca65d8c6fc6d652af4fa3736e953c6575d6e9f82590484677d347"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1065.fields.json",
+      "sha256": "0ab620c6285cc374d2f84e0c87475688357a227c746951627c693ac7d0e1bb6d"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1065.pdf",
+      "sha256": "0f19f556e12ef53c41ba27e5930b4373103f3abcf64693c4ea686451b2a8f56f"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1065sk1.fields.json",
+      "sha256": "f4acd1d7aa958c2779691c0c9425dbb32f4f631081103455e2320aba2906c86f"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1065sk1.pdf",
+      "sha256": "66098d4d48537ce2dac1f093d6351567957896e5843d8c524823b380068f6547"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1120.fields.json",
+      "sha256": "3f5667b82457be18068880f0a7af540ff3e66175b2ae25779d40c7646a0ff83f"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1120.pdf",
+      "sha256": "016c7fb4042a565c23a98014b17019af7ddc89e3260dd3f926b84d6688b7be6e"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1120s.fields.json",
+      "sha256": "5e79b5dcbfdf0f1dff669e716d9f6a9075d9d455c3f1622f25b6adaf1ea0dc9e"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1120s.pdf",
+      "sha256": "c4b7cae7f2283a2e3225523ea001a710109fee34aad909461421025b287cd18d"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1120ssk.fields.json",
+      "sha256": "d02179e4759808e341ec2341ffb99d67646010b129e5477329fbccc7395620c5"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f1120ssk.pdf",
+      "sha256": "104ac7b1137cb78c9051d4e3424630dca233887f17928b311fef6fd578baacd0"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f8995.fields.json",
+      "sha256": "0d5c477a9c93edf8dc3b80f0949ad0e4d61dc8e6ac8aa1b9a39faef045d3d36f"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/f8995.pdf",
+      "sha256": "55380ad230303e1586ce97f0f224265b8337ad18c9204f0fb7325e95a76b5cde"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/manifest.json",
+      "sha256": "5423950421d58612c95ef9972462cfe75a4daac0f77a57687feab411c9e912f3"
+    },
+    {
+      "file": "packages/tax-engine/forms/2025/templates.mjs",
+      "sha256": "50f11871bdf9e8f4aa47328628f5b6b0c5299c32baece1c8f0ce7483026016a0"
+    },
+    {
+      "file": "packages/tax-engine/index.mjs",
+      "sha256": "564489c8971496e54096ec4b2f96b8bab5e7c4c46481ecec8f55ac9f1199f3e3"
+    },
+    {
+      "file": "packages/tax-engine/individual.mjs",
+      "sha256": "b3dd0ec7e80af1776fefd31112af891593fa689de4831d713b486c2cf2cc3f6c"
+    },
+    {
+      "file": "packages/tax-engine/model.mjs",
+      "sha256": "93d49e8eca6eeef4dd722a7d932be7b99e5e9a4f2c2daf540cc1de488365701b"
+    },
+    {
+      "file": "packages/tax-engine/money.mjs",
+      "sha256": "7945cec17d0ccaaaec95adb8024883ecd1137ea192ac433c464d5de001d814dd"
+    },
+    {
+      "file": "packages/tax-engine/ordinary-tax.mjs",
+      "sha256": "b887e214b4fb5bd865abd6ba3f43ba79f608ef374660e35fa86daae61321b879"
+    },
+    {
+      "file": "packages/tax-engine/package-lock.json",
+      "sha256": "9335ada2c79cca1b42a0280d764070effb50ad6398fcd617a925277691479762"
+    },
+    {
+      "file": "packages/tax-engine/package.json",
+      "sha256": "11ef5eff720eb5c5dc5a05085c8a6de1e2eea6a0d18c1e34fd933fa80bbc85d1"
+    },
+    {
+      "file": "packages/tax-engine/pdf.mjs",
+      "sha256": "007259049d8c9c228b5e744f5bbe71884950cd6ce0cbf3ead71896696720f60b"
+    },
+    {
+      "file": "packages/tax-engine/schedule-c.mjs",
+      "sha256": "99d211a3ee90571db7eabcbb0c3cc2137822f7936e33f2533c90b90e62fdf4e7"
+    },
+    {
+      "file": "packages/tax-engine/test/calculations.test.mjs",
+      "sha256": "dcc619473f9b3ef69f2d431ba58170dd6b2ac595af10f3fc3146a1ba2480b642"
+    },
+    {
+      "file": "packages/tax-engine/test/fixtures.mjs",
+      "sha256": "855ee8782d7d1c6dcd808a2b3b8b235015d6c7a37e9665769cf1980dea8486b5"
+    },
+    {
+      "file": "packages/tax-engine/test/forms.test.mjs",
+      "sha256": "8a584de768e7b61d3f0466e85b145839b6c7dc10f12c58c4cad69a6029bccb44"
+    },
+    {
+      "file": "scripts/secure-staff-http-check.mjs",
+      "sha256": "2498b7dc23959da0dbb8d383b5046d0ea65184961c39354bef2c4806c0798e92"
+    },
+    {
+      "file": "scripts/tax/import_irs_tax_table.py",
+      "sha256": "7b023242cb06cb8df575bd6ecb9efc6f55190125508d06187f1fdbcdecdf85ba"
+    },
+    {
+      "file": "scripts/tax/verify_browser_artifact.mjs",
+      "sha256": "ce0f7ff3cf3abfb8677bbec2f5327648c14e6bee51427f0e4b1744ae211253cb"
+    },
+    {
+      "file": "src/lib/industry/mcp-builder.test.ts",
+      "sha256": "a804e89724041f17cae1819c87d8596070d998023ef98fe2af5e7730d0f20627"
+    },
+    {
+      "file": "src/lib/industry/mcp-builder.ts",
+      "sha256": "e9ce09dab1b71bdb5285110544d0e7e957db17323a53a624cd1b9a6abf599db4"
+    }
+  ]
+}

@@ -7,6 +7,8 @@ import {VaultClient,encodeJson} from '../browser/client.mjs';
 import {PortalUploadQueue,PortalRefresh,portalFilePayload,portalSnapshot,formatPortalMoney} from '../browser/client-portal.mjs';
 import {mountClientPortal,renderPortalDashboard} from '../browser/client-portal-view.mjs';
 import {buildFormPayload,formType,mountForms} from '../browser/forms.mjs';
+import {saveReturn} from '../browser/return-save.mjs';
+import {newReturn,calculateReturn} from '@shuug/tax-engine';
 
 class MemoryStorage{
   keys=new Map();bindings=new Map();failPending=false;
@@ -185,8 +187,20 @@ test('actual customer entrypoint mounts the portal with disabled configuration a
   try{
     for(const [name,value]of Object.entries({window:dom.window,document:dom.window.document,location:dom.window.location})){saved.set(name,Object.getOwnPropertyDescriptor(globalThis,name));Object.defineProperty(globalThis,name,{configurable:true,writable:true,value});}
     await import('../browser/app.mjs?synthetic-disabled-portal-proof');
-    assert(dom.window.document.querySelector('#client-portal'));assert.match(dom.window.document.querySelector('#message').textContent,/no independently supplied/);
+    assert(dom.window.document.querySelector('#client-portal'));assert(dom.window.document.querySelector('#tax-preparation'));assert.equal(dom.window.document.querySelector('#return-kind').disabled,true);assert([...dom.window.document.querySelectorAll('#tax-preparation input,#tax-preparation button')].every(control=>control.disabled));assert.match(dom.window.document.querySelector('#message').textContent,/no independently supplied/);
     for(const id of ['portal-files','portal-purpose','portal-upload-notes','signin-password','create-key'])assert.equal(dom.window.document.getElementById(id).disabled,true);
     assert.equal(dom.window.document.querySelectorAll('script[src^="http"]').length,0);
   }finally{for(const [name,descriptor]of saved)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];dom.window.close();}
+});
+test('return saves survive a lost acknowledgment and reopen from identical encrypted retry bytes',async()=>{
+  const f=await fixture(),input=newReturn('1120');input.party.name='SYNTHETIC ENCRYPTED RETURN';input.party.taxId='000123456';input.entity.receiptsCents=10000000;let failed=false,id;
+  f.setHook(async(url,options)=>{if(options.method==='PUT'&&!failed){failed=true;await f.commit(url,options);throw new Error('Synthetic lost return acknowledgment.');}});
+  await assert.rejects(()=>saveReturn(f.vault,input,undefined,{onPrepared:value=>{id=value;}}),/lost return acknowledgment/);assert(id);assert.equal(f.objects.size,1);assert.equal((await f.vault.pendingUploads()).length,1);
+  const pending=JSON.stringify([...f.storage.bindings.values()]);assert(!pending.includes('SYNTHETIC ENCRYPTED RETURN'));assert(!pending.includes('000123456'));
+  const changed=structuredClone(input);changed.entity.receiptsCents++;await assert.rejects(()=>saveReturn(f.vault,changed,id),/unresolved encrypted save/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,1);
+  f.vault.lock();f.setHook(null);const reopened=await f.make(),queue=new PortalUploadQueue(reopened);await queue.restore();assert.equal(queue.rows[0].name,'2025 Form 1120 draft return');await queue.flush();assert.equal(queue.rows[0].status,'complete');assert.equal(f.objects.size,1);assert.equal((await reopened.pendingUploads()).length,0);
+  const puts=f.calls.filter(call=>call.options.method==='PUT');assert.equal(puts[0].options.body,puts[1].options.body);await reopened.sync();const restored=JSON.parse(new TextDecoder().decode(reopened.records.get(id).plaintext));assert.deepEqual(restored,input);assert.equal(calculateReturn(restored).summary.totalTaxCents,2100000);
+});
+test('return storage failure or unsupported year sends no taxpayer write',async()=>{
+  const f=await fixture(),input=newReturn();f.storage.failPending=true;await assert.rejects(()=>saveReturn(f.vault,input),/storage unavailable/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);f.storage.failPending=false;input.year=2026;await assert.rejects(()=>saveReturn(f.vault,input),/Correct the return/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);
 });

@@ -2,6 +2,17 @@
 
 Updated November 8, 2026 from Luke's explicit corrections and additions.
 
+November 9 continuation: Luke explicitly chose individual/self-employed and
+business-entity returns **both from the start**. The first implemented draft
+calculation/form pack declares 2025 federal coverage; it does not remove the
+remaining years, schedules, state returns or filing requirements below. Payment
+activation remains deferred under his explicit instruction.
+He also selected a separate cloud key service for setup and then required both
+custody options. Preserve a separately controlled firm-computer kit and the
+separate-account cloud service. Neither option puts recovery/signing keys on
+the application/data host. This does not authorize replacing an existing firm's
+trust pins or treating separate key initializations as a migration.
+
 Shuug is intended to be the complete tax preparation, accounting and filing
 software. It is not scoped as merely a companion to another return product.
 Current absence of calculation, forms and transmission is missing implementation,

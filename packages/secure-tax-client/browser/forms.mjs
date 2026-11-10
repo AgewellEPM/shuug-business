@@ -19,7 +19,7 @@ export function formType(data){
 export function maskedDisplay(value,depth=0){
   if(depth>12)return '[Nested private detail]';
   if(Array.isArray(value))return value.map(item=>maskedDisplay(item,depth+1));
-  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,/ssn|social.?security|taxpayer.?id/i.test(key)?typeof item==='string'?`•••-••-${item.replace(/\D/g,'').slice(-4)}`:'[Private ID hidden]':maskedDisplay(item,depth+1)]));
+  if(value&&typeof value==='object')return Object.fromEntries(Object.entries(value).map(([key,item])=>[key,/ssn|social.?security|taxpayer.?id|tax.?id|^ein$/i.test(key)?typeof item==='string'?`•••-••-${item.replace(/\D/g,'').slice(-4)}`:'[Private ID hidden]':maskedDisplay(item,depth+1)]));
   return value;
 }
 const number=(value,name,min,max,optional=false)=>{

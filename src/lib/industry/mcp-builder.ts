@@ -34,14 +34,14 @@ function canonical(value: unknown): string {
 const digest = (value: unknown) => createHash("sha256").update(canonical(value)).digest("hex");
 const toolSummary = ({ id, label, href, group, section, status, description, requiredToolIds }: WorkspaceItem) => ({ id, label, href, group, section, status: status ?? "installed", ...(description ? { description } : {}), ...(requiredToolIds?.length ? { requiredToolIds: [...requiredToolIds] } : {}) });
 const taxLimits = [
-  { id: "tax-return-calculation", status: "not_implemented", detail: "Complete federal/state tax calculation is still required for the requested filing product." },
-  { id: "tax-return-forms", status: "not_implemented", detail: "Shuug does not generate or certify complete filing-ready federal or state return forms." },
+  { id: "tax-return-calculation", status: "partial", detail: "The independent encrypted client prepares 2025 federal ordinary-income drafts for 1040/Schedule C, 1065, 1120-S and 1120, with calculation diagnostics and exact owner allocations. Complete schedules, state/year coverage, authorized staff editing and trusted client activation remain required. No complete filing product is claimed." },
+  { id: "tax-return-forms", status: "partial", detail: "The independent client fills pinned official 2025 federal PDF templates and produces visibly marked draft packets with workpapers and missing-coverage diagnostics. These partially populated forms are not complete filing-ready returns; signatures, disclosures and unsupported schedules remain unfinished." },
   { id: "tax-efile-transmission", status: "not_implemented", detail: "Shuug does not transmit returns to IRS MeF or state e-file systems. Its filing workflow records reviewed handoff and external acknowledgment evidence." },
 ] as const;
 function workspaceCapabilities() {
   const delivery = invoiceDeliveryConnection();
   return [
-    ...taxLimits.map(capability => ({ ...capability, requiresConfiguration: false, configured: false, liveVerification: false })),
+    ...taxLimits.map(capability => ({ ...capability, requiresConfiguration: capability.status === "partial", configured: false, liveVerification: false })),
     { id: "invoice-delivery", status: "implemented", requiresConfiguration: true, configured: delivery.ready, liveVerification: false, mode: delivery.mode,
       detail: "Native invoice email preview, explicit reviewed send and uncertain-attempt resolution are implemented. Mailgun sender/account configuration and actual provider delivery verification remain required; provider acceptance does not prove receipt or reading." },
     { id: "online-invoice-payments", status: "implemented", requiresConfiguration: true, configured: null, liveVerification: false,

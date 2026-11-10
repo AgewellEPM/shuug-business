@@ -108,7 +108,7 @@ test('staff artifact retains strict headers and excludes firm private-key toolin
   const directory=await mkdtemp(path.join(tmpdir(),'shuug-staff-artifact-'));
   try{
     await prepareBrowser({output:directory});const html=await readFile(path.join(directory,'staff.html'),'utf8'),files=await readdir(directory);
-    assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'none'/);assert(!html.includes('unsafe-inline'));assert(!files.includes('firm-staff.mjs'));assert(!files.includes('firm-recovery.mjs'));
+    assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'self';/);assert(!html.includes('unsafe-inline'));assert(!files.includes('firm-staff.mjs'));assert(!files.includes('firm-recovery.mjs'));
     const app=await readFile(path.join(directory,'browser/staff-app.mjs'),'utf8'),updates=await readFile(path.join(directory,'browser/staff-updates.mjs'),'utf8');assert(!app.includes('localStorage'));assert(!app.includes('innerHTML'));assert.match(app,/mountStaffUpdates/);assert.match(updates,/visibilitychange/);assert.match(updates,/pagehide/);assert.match(html,/No firm recovery or signing private key/);
   }finally{await rm(directory,{recursive:true,force:true});}
 });

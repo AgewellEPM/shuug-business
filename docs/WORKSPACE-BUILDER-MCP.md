@@ -3,8 +3,10 @@
 Luke's intended product is complete tax preparation, accounting and filing
 software for independent firms, with a firm-owned Mac mini hosting option. The
 earlier recommendation to make it a companion to another filing product was
-not his requirement. This is the current product direction; implemented tax
-calculation, filing-ready forms and IRS/state transmission are still missing.
+not his requirement. This remains the product direction. The November 9 draft
+pack now calculates selected 2025 federal individual/self-employed and entity
+returns and populates official draft PDFs inside the independent encrypted client.
+Complete filing-ready coverage and IRS/state transmission remain unfinished.
 
 The correct workspace-building path is Shuug's own MCP interface. The original
 server exposed 39 tools but not its existing industry builder. Three tools now
@@ -22,8 +24,9 @@ connect that builder to MCP, with generic data-driven workspace navigation:
    plans fail. Exact retries are safe only while that configuration remains current.
 
 The builder configures actual existing tools; it does not synthesize arbitrary
-source code or implement a missing tax engine. A request to calculate or file
-returns remains explicitly unimplemented. Navigation visibility never grants
+source code or implement a missing tax engine. The catalog reports the installed
+draft calculation/form pack as partial and transmission as unimplemented.
+Navigation visibility never grants
 employee permissions, alters encryption enrollment or supplies provider authority.
 Business descriptions must not contain taxpayer information, credentials or keys.
 

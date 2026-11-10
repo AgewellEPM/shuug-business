@@ -1,0 +1,105 @@
+{
+  "fetchedAt": "2026-11-10T03:19:48.000Z",
+  "source": "Official IRS prior-year 2025 PDFs; unmodified blank templates.",
+  "forms": [
+    {
+      "id": "f1040",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040--2025.pdf",
+      "sha256": "3d31c226df0d189ced80e039d01cf0f8820c1019681a0f0ca6264de277b7e982",
+      "bytes": 220237,
+      "pages": 2,
+      "fieldCount": 199
+    },
+    {
+      "id": "f1040s1",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s1--2025.pdf",
+      "sha256": "8dafec719f6a4716c259a2bdaca546d9bb9e262d1eabef885fe116a7327458fa",
+      "bytes": 99940,
+      "pages": 2,
+      "fieldCount": 73
+    },
+    {
+      "id": "f1040s2",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s2--2025.pdf",
+      "sha256": "64d867b683334cfc533993e37ccb0d143449ec29428a78206be2e4de333941e8",
+      "bytes": 96526,
+      "pages": 2,
+      "fieldCount": 63
+    },
+    {
+      "id": "f1040sc",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sc--2025.pdf",
+      "sha256": "ddf401dbe060467d39f90ad2abf645df1de31512821a150dc68a3882bbf19716",
+      "bytes": 122589,
+      "pages": 2,
+      "fieldCount": 105
+    },
+    {
+      "id": "f1040sse",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sse--2025.pdf",
+      "sha256": "05bc2b3e1dfca65d8c6fc6d652af4fa3736e953c6575d6e9f82590484677d347",
+      "bytes": 80290,
+      "pages": 2,
+      "fieldCount": 27
+    },
+    {
+      "id": "f1065",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1065--2025.pdf",
+      "sha256": "0f19f556e12ef53c41ba27e5930b4373103f3abcf64693c4ea686451b2a8f56f",
+      "bytes": 334608,
+      "pages": 6,
+      "fieldCount": 440
+    },
+    {
+      "id": "f1065sk1",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1065sk1--2025.pdf",
+      "sha256": "66098d4d48537ce2dac1f093d6351567957896e5843d8c524823b380068f6547",
+      "bytes": 106155,
+      "pages": 1,
+      "fieldCount": 111
+    },
+    {
+      "id": "f1120",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120--2025.pdf",
+      "sha256": "016c7fb4042a565c23a98014b17019af7ddc89e3260dd3f926b84d6688b7be6e",
+      "bytes": 340034,
+      "pages": 6,
+      "fieldCount": 481
+    },
+    {
+      "id": "f1120s",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120s--2025.pdf",
+      "sha256": "c4b7cae7f2283a2e3225523ea001a710109fee34aad909461421025b287cd18d",
+      "bytes": 267113,
+      "pages": 5,
+      "fieldCount": 390
+    },
+    {
+      "id": "f1120ssk",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120ssk--2025.pdf",
+      "sha256": "104ac7b1137cb78c9051d4e3424630dca233887f17928b311fef6fd578baacd0",
+      "bytes": 83544,
+      "pages": 1,
+      "fieldCount": 114
+    },
+    {
+      "id": "f8995",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f8995--2025.pdf",
+      "sha256": "55380ad230303e1586ce97f0f224265b8337ad18c9204f0fb7325e95a76b5cde",
+      "bytes": 72273,
+      "pages": 1,
+      "fieldCount": 33
+    }
+  ]
+}

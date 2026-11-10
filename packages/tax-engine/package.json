@@ -1,0 +1,10 @@
+{
+  "name": "@shuug/tax-engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {".":"./index.mjs","./pdf":"./pdf.mjs"},
+  "scripts": { "test": "node --test test/*.test.mjs" },
+  "dependencies": { "pdf-lib": "1.17.1" },
+  "engines": { "node": ">=22.13.0" }
+}

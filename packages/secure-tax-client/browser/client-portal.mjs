@@ -1,4 +1,5 @@
 import { encode64 } from '../envelope.mjs';
+import { calculateReturn } from '@shuug/tax-engine';
 
 export const UPLOAD_PURPOSES=Object.freeze({'bank-statement':'Bank statement',receipt:'Receipt',invoice:'Invoice','tax-document':'Tax document','business-record':'Other business information'});
 export const UPLOAD_CATEGORIES=Object.freeze({banking:'Banking',sales:'Sales',purchases:'Purchases',payroll:'Payroll',tax:'Tax',general:'General business'});
@@ -54,7 +55,7 @@ export class PortalUploadQueue {
     for(const prepared of entries){
       if(this.#rows.some(row=>row.prepared?.mutationId===prepared.mutationId))continue;
       let value=null,error='';
-      try{const bytes=await this.#client.previewPrepared(prepared);try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}finally{bytes.fill(0);}this.#check(generation);if(value?.version!==1||value.type!=='private-file')throw new Error('This encrypted pending item needs separate review.');metadata(value);}
+      try{const bytes=await this.#client.previewPrepared(prepared);try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));if(value?.version===1&&value.type==='tax-return'&&prepared.domain==='tax-document'&&calculateReturn(value).calculationAvailable)value={filename:`${value.year} Form ${value.kind} draft return`,byteLength:bytes.length,purpose:'tax-document',category:'tax',notes:''};else{if(value?.version!==1||value.type!=='private-file')throw new Error('This encrypted pending item needs separate review.');metadata(value);}}finally{bytes.fill(0);}this.#check(generation);}
       catch(failure){this.#check(generation);error=failure.message;}
       this.#rows.push({id:prepared.mutationId,file:null,prepared,name:value?.filename??'Encrypted pending file',size:value?.byteLength??0,purpose:value?.purpose??'business-record',category:value?.category??'general',notes:value?.notes??'',status:error?'failed':'pending',error});
     }

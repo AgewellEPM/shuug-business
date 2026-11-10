@@ -105,6 +105,18 @@ it excludes firm private-key tooling. See the
 and revocation limits. The [AWS package](../../docs/SECURE-TAX-AWS-KEY-SERVER.md)
 prepares isolated cloud custody but has not been deployed or initialized.
 
+Both custody deployment options are retained. `node build-offline-kit.mjs
+--output /new/absolute/directory` prepares a separate-computer kit with only the
+firm CLIs, crypto modules, locked local dependencies and a SHA-256 inventory.
+It excludes the tax engine, app/browser, account configuration and private keys.
+It needs no npm download at runtime. Use the generated instructions on the
+separately trusted device; original outputs remain exclusive and are never
+overwritten. The standalone kit's actual CLI signing/recovery path is tested
+outside the source checkout. This is synthetic execution, not physical custody.
+The cloud package remains a distinct deployment option, with its existing
+separate-account/MFA/runtime guards. Existing firms need an explicit migration
+design before switching custody; unrelated initialization creates different pins.
+
 `public-config.mjs --pins PUBLIC-ONLY.json --api-origin https://api.example
 --ui-origin https://client.example --output NEW-DIRECTORY` prepares consistent
 public-only files for the API environment, signed native resource and independent

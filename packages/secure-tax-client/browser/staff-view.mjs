@@ -2,6 +2,7 @@ import { decode64, DOMAINS } from '../envelope.mjs';
 import { maskedDisplay } from './forms.mjs';
 import { journalSections, renderJournal } from './journal-view.mjs';
 import { renderPortalDashboard } from './client-portal-view.mjs';
+import { isTaxReturn,renderReturn } from './return-view.mjs';
 
 export const STAFF_LABELS=Object.freeze({'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses','driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'});
 const parse=item=>{try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(item.plaintext));}catch{return null;}};
@@ -20,7 +21,8 @@ export function renderStaffRecords(document,records,binding,{download=()=>{},run
       title.textContent=typeof data?.title==='string'?data.title.slice(0,200):typeof data?.filename==='string'?data.filename.slice(0,200):STAFF_LABELS[domain];meta.textContent=`Item ${item.objectId} · revision ${item.revision}`;row.append(title,meta);
       const journal=journalSections(maskedDisplay(data),{...binding,objectId:item.objectId,domain:item.domain});
       const button=(text,action)=>{const node=document.createElement('button');node.type='button';node.className='secondary';node.textContent=text;node.addEventListener('click',()=>run(action));row.append(node);};
-      if(journal){title.textContent='Device Journal snapshot';row.append(renderJournal(document,journal));button('Download readable snapshot',()=>download(`${item.objectId}.journal.json`,item.plaintext,'application/json'));}
+      if(item.domain==='tax-document'&&isTaxReturn(data)){title.textContent=`${data.year} Form ${data.kind} draft`;row.append(renderReturn(document,data,{download,run,isCurrent:()=>container.isConnected&&!document.hidden}));}
+      else if(journal){title.textContent='Device Journal snapshot';row.append(renderJournal(document,journal));button('Download readable snapshot',()=>download(`${item.objectId}.journal.json`,item.plaintext,'application/json'));}
       else if(data?.version===1&&data.type==='private-file'&&typeof data.data==='string'){
         const note=document.createElement('p');note.textContent='Reviewed access to an encrypted attachment. Downloading creates a readable copy outside this vault.';row.append(note);
         button('Download readable file',async()=>{const bytes=decode64(data.data,1,10*1024*1024);try{await download(filename(data.filename),bytes,['application/pdf','image/jpeg','image/png'].includes(data.mime)?data.mime:'application/octet-stream');}finally{bytes.fill(0);}});
