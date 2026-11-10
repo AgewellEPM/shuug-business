@@ -43,7 +43,7 @@ async function freePort(){const s=createServer();await new Promise((ok,bad)=>{s.
 async function stop(child){if(!child?.pid||child.exitCode!==null||child.signalCode!==null)return;const exited=once(child,'exit'),timer=setTimeout(()=>child.kill('SIGKILL'),5000);child.kill('SIGTERM');try{await exited;}finally{clearTimeout(timer);}}
 const root=mkdtempSync(`${tmpdir()}/shuug-secure-staff-proof-`),host=path.join(root,'host'),trusted=path.join(root,'trusted');
 mkdirSync(host,{mode:0o700});mkdirSync(trusted,{mode:0o700});
-let child,log='',checks=0;
+let child,log='',checks=0,grantPageRequests=0,largeGrantList=null;
 try{
   process.env.DEALDESK_DATA_DIR=host;process.env.DEMO_DATA='false';process.env.DATABASE_URL='';process.env.SHUUG_REQUIRE_MFA='false';
   const password=`Synthetic-password-${randomUUID()}`,firmPassphrase=`Synthetic offhost backup ${randomUUID()}`,backupPassword=`Synthetic device backup ${randomUUID()}`;
@@ -74,6 +74,7 @@ try{
   async function vault(label,storage=new MemoryKeys()){
     const fetcher=async(url,options)=>{
       const u=new URL(url);assert.equal(u.origin,config.apiOrigin);
+      if(u.pathname.endsWith('/staff/grants')&&options.method==='GET'&&u.searchParams.get('limit')==='25')grantPageRequests++;
       if(options.headers.Authorization)tokens.set(label,options.headers.Authorization.slice(7));
       return fetch(base+u.pathname+u.search,{...options,headers:{...options.headers,Origin:uiOrigin}});
     };
@@ -203,6 +204,9 @@ try{
   env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,8);
   assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,9900);assert.equal((await afterRestore.client.sync()).items,7);checks++;
   portal.lock();assert.equal(portal.records.size,0);assert.equal(queue.clear().unpreparedDiscarded,0);retriedQueue.clear();remote.lock();checks++;
+  for(let index=0;index<130;index++)await owner.client.installGrant(await signStaffGrant({...replacementRequest},firm,{grantId:`synthetic-paged-access-${String(index).padStart(3,'0')}`,epoch:1,domains:['tax-document']}));
+  const beforePages=grantPageRequests,completeGrants=await afterRestore.client.refreshGrants();assert(completeGrants.length>=131);checks++;
+  const pagesRead=grantPageRequests-beforePages;assert(pagesRead>=6);largeGrantList={activeGrants:completeGrants.length,pagesRead,boundedPageBytes:65536,completeSnapshotVerified:true};checks++;
   await stop(child);child=null;
   function hostFiles(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?hostFiles(path.join(dir,entry.name)):[path.join(dir,entry.name)]);}
   const files=hostFiles(env.DEALDESK_DATA_DIR);
@@ -212,6 +216,6 @@ try{
     originalV2ClientEnvelopesPreserved:true,staffOpenedProtectedBooksAndDocumentBytes:true,encryptedDeviceBackupRecovered:true,newDeviceGrantedAfterOriginalRevocation:true,
     oldDeviceCannotOpenReplacementCapsules:true,newProcessFirmRecoveryCliVerified:true,staleRevisionFailsClosed:true,restoredDataAndRevocationVerified:true,backupFiles:copied.files,copiedHostPlaintextMarkerAbsent:true,
     portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,automaticStaffRefreshAndSharedSummaryVerified:true,unsharedNewItemClearsStaffView:true,approvedRevisionRefreshVerified:true,pageExitClearsStaffView:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffEditingImplemented:false},
-    realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
+    largeGrantList,realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
 }catch(error){console.error('Owned fixture diagnostics:\n'+log);throw error;}
 finally{await stop(child);rmSync(root,{recursive:true,force:true});}

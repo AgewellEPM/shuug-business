@@ -1,4 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import type { WorkspaceUser } from "../auth/identity";
 import { ownerIdentity } from "../auth/identity";
@@ -109,12 +110,20 @@ export function withdrawStaffGrant(token: string, raw: unknown) {
     return { grantId: row.grantId, epoch: row.epoch, approved: false };
   }, true);
 }
-export function listStaffGrants(token: string) {
+const grantPage = z.object({ limit: z.coerce.number().int().min(1).max(25).default(25), after: secureTaxId.optional(), snapshot: z.string().regex(/^[a-f0-9]{64}$/).optional() }).strict();
+export function listStaffGrants(token: string, rawPage?: unknown) {
+  const page = rawPage === undefined ? null : grantPage.parse(rawPage);
+  if (page?.after && !page.snapshot) throw new SecureTaxError(400, "A staff-list continuation requires its original snapshot.");
   return workspaceDatabase(db => {
     init(db); const { user } = secureStaffIdentity(db, token);
     const rows = db.prepare("SELECT * FROM secure_tax_staff_grants WHERE staffAccountId=? ORDER BY grantId").all(user.id) as GrantRow[];
+    const snapshot = createHash("sha256").update(JSON.stringify([user.id, rows.map(row => [row.grantId, row.epoch, row.approved, row.deniedEpoch, row.body])])).digest("hex");
+    if (page?.snapshot && page.snapshot !== snapshot) throw new SecureTaxError(409, "Staff access changed during pagination. Refresh the complete list.");
+    if (page?.after && !rows.some(row => row.grantId === page.after)) throw new SecureTaxError(409, "The staff-list continuation is unavailable. Refresh the complete list.");
+    const remaining = page ? rows.filter(row => !page.after || row.grantId > page.after) : rows;
+    const selected = page ? remaining.slice(0, page.limit) : remaining;
     const grants: StaffGrant[] = [], revocations: StaffGrant[] = [];
-    for (const row of rows) try {
+    for (const row of selected) try {
       const document = verifyStaffGrantDocument(JSON.parse(row.body));
       if (document.status === "revoked") {
         // Expired signed revocation notices remain useful monotonic evidence.
@@ -123,7 +132,7 @@ export function listStaffGrants(token: string) {
           && document.accountId === row.accountId && document.clientId === row.clientId) revocations.push(document);
       } else grants.push(scopedGrant(db, row.grantId, user).grant);
     } catch { /* A malformed or inaccessible record never grants access. */ }
-    return { grants, revocations };
+    return page ? { grants, revocations, snapshot, nextCursor: remaining.length > selected.length ? selected.at(-1)!.grantId : null } : { grants, revocations };
   });
 }
 function sourceObject(db: DatabaseSync, grant: StaffGrant, objectId: string) {

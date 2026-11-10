@@ -22,7 +22,7 @@ struct SecureTaxJournalSnapshot: Codable {
     "lastSyncAt", "goals", "bankTransactions", "placePrompts", "assistance", "bankCursor", "bankUpdatedAt", "mission",
     "pickupWaits", "reserveSettings", "missionOffers", "driverAlerts", "observedOffers", "gigOffers", "gigDecisions",
     "gigCommitments", "gigOfferLogs", "coachMessages", "coachOutbox", "coachIntake", "coachIntakeMutationId",
-    "coachMilestones", "coachEngine", "universalGigSettings"]
+    "coachMilestones", "coachEngine", "universalGigSettings", "reputationState", "reputationOutbox"]
   static func encoder() -> JSONEncoder {
     let encoder = JSONEncoder()
     encoder.dateEncodingStrategy = .millisecondsSince1970

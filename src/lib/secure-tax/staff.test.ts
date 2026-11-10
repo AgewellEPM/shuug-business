@@ -22,7 +22,7 @@ import { secureStaffStatus, secureStaffSignIn, secureStaffSignOut } from "./staf
 import { publishStaffGrant, publishStaffCapsule, withdrawStaffGrant, listStaffGrants, listStaffChanges, readStaffObject } from "./staff-store";
 import { staffGrantDigest, staffEnvelopeDigest, type StaffGrant, type StaffCapsule } from "./staff-model";
 import { canonicalStaffGrant, canonicalStaffCapsule } from "../../../packages/secure-tax-client/staff-contract.mjs";
-import { POST as publishGrantRoute } from "@/app/api/website/customer/secure/staff/grants/route";
+import { GET as listGrantRoute, POST as publishGrantRoute } from "@/app/api/website/customer/secure/staff/grants/route";
 import { GET as readObjectRoute } from "@/app/api/website/customer/secure/staff/objects/[id]/route";
 
 const origin = "https://trusted.example.net", base = "https://workspace.example.com", password = "Synthetic-staff-vault-password";
@@ -177,4 +177,25 @@ it("returns only the signed-in staff member's genuine signed revocation notices,
   publishStaffGrant(ownerToken, grant({ grantId: "other-revocation", staffAccountId: other.id, epoch: 2, status: "revoked", ...times }));
   expect(listStaffGrants(staffToken)).toEqual({ grants: [], revocations: [own] });
   expect(() => readStaffObject(staffToken, own.grantId, "opaque-object")).toThrow(/revoked/);
+});
+it("pages a signed staff history larger than one response and rejects changed or ambiguous continuations", async () => {
+  for (let index = 0; index < 130; index++) publishStaffGrant(ownerToken, grant({ grantId: `paged-${String(index).padStart(3, "0")}`, status: index < 3 ? "revoked" : "active" }));
+  expect(Buffer.byteLength(JSON.stringify(listStaffGrants(staffToken)))).toBeGreaterThan(65536);
+  const headers = { Origin: origin, Authorization: `Bearer ${staffToken}` };
+  let after = "", snapshot = "", pages = 0; const ids: string[] = [];
+  do {
+    const query = new URLSearchParams({ limit: "25", ...(after ? { after, snapshot } : {}) });
+    const response = await listGrantRoute(new Request(`${base}/api/website/customer/secure/staff/grants?${query}`, { headers }));
+    expect(response.status).toBe(200); const body = await response.text(); expect(Buffer.byteLength(body)).toBeLessThan(65536);
+    const page = JSON.parse(body); if (snapshot) expect(page.snapshot).toBe(snapshot); snapshot = page.snapshot;
+    ids.push(...page.grants.map((value: StaffGrant) => value.grantId), ...page.revocations.map((value: StaffGrant) => value.grantId));
+    after = page.nextCursor; pages++;
+  } while (after);
+  expect(pages).toBe(6); expect(new Set(ids).size).toBe(130);
+  expect(listStaffGrants(ownerToken, { limit: 25 })).toMatchObject({ grants: [], revocations: [], nextCursor: null });
+  for (const query of ["limit=26", "limit=1&limit=2", "after=paged-024", "unexpected=true"]) {
+    const response = await listGrantRoute(new Request(`${base}/api/website/customer/secure/staff/grants?${query}`, { headers })); expect(response.status).toBe(400);
+  }
+  withdrawStaffGrant(ownerToken, { grantId: "paged-129", expectedEpoch: 1 });
+  expect(() => listStaffGrants(staffToken, { after: "paged-024", snapshot, limit: 25 })).toThrow(/changed during pagination/);
 });

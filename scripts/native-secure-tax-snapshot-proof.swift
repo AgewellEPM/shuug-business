@@ -97,6 +97,10 @@ import Foundation
     journal.coachEngine = .init()
     journal.universalGigSettings = .init(delivery: .init(workLabel: "Synthetic delivery", appURL: "https://delivery.invalid"),
       shopping: .init(workLabel: "Synthetic shopping", appURL: "https://shopping.invalid"))
+    let rating = ReputationRating(platformID: "synthetic", platformName: "Synthetic platform", recordedAt: now, score: 4.8, reviewCount: 105)
+    let review = ReputationReview(platformID: "synthetic", platformName: "Synthetic platform", recordedAt: now, text: "Synthetic private feedback", sentiment: "mixed", topics: ["communication"])
+    journal.reputationState = .init(ratings: [rating], reviews: [review])
+    journal.reputationOutbox = [.init(action: .addRating, rating: rating), .init(action: .addReview, review: review)]
     var shopping = Trip(startedAt: now.addingTimeInterval(-3600), endedAt: now.addingTimeInterval(-1800),
       classification: .business, purpose: "Synthetic shopping work", source: "manual")
     shopping.rideRole = .shopping; shopping.earningsCents = 2500; shopping.platformFeesCents = 0
@@ -126,8 +130,8 @@ import Foundation
     }
     var checks: [String] = []
     let payload = try JSONSerialization.jsonObject(with: snapshot.encoded()) as! [String: Any], encodedJournal = payload["journal"] as! [String: Any]
-    try require(encodedJournal.count == 30 && encodedJournal["lastSyncAt"] is NSNumber && encodedJournal["gigCommitments"] != nil && encodedJournal["tracker"] != nil && encodedJournal["coachOutbox"] != nil && encodedJournal["universalGigSettings"] != nil, "Full native fixture did not populate every Journal Codable field")
-    checks.append("all30 committed Journal Codable fields including coach and universal shopping settings use milliseconds dates in the encrypted payload")
+    try require(encodedJournal.count == 32 && encodedJournal["lastSyncAt"] is NSNumber && encodedJournal["gigCommitments"] != nil && encodedJournal["tracker"] != nil && encodedJournal["coachOutbox"] != nil && encodedJournal["universalGigSettings"] != nil && encodedJournal["reputationState"] != nil && encodedJournal["reputationOutbox"] != nil, "Full native fixture did not populate every Journal Codable field")
+    checks.append("all32 committed Journal Codable fields including personal ratings/reviews and their pending mutations survive the encrypted payload")
     let opened = try SecureTaxJournalSnapshot.open(envelope, scope: scope, objectId: snapshot.binding.objectId, revision: 1, trustedRecipients: trusted, privateKey: client)
     let recovered = try SecureTaxJournalSnapshot.open(envelope, scope: scope, objectId: snapshot.binding.objectId, revision: 1, trustedRecipients: trusted, role: .firmRecovery, privateKey: firm)
     let originalBytes = try SecureTaxJournalSnapshot.encoder().encode(journal)

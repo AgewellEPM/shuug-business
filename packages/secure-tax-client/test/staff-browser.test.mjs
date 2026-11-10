@@ -243,3 +243,25 @@ test('API signed revocation checkpoints survive expiry, list withholding and old
   f.setHook((url)=>new URL(url).pathname.endsWith('/grants')?f.respond({grants:[second],revocations:[revoked]}):null);
   await f.vault.unlock(f.staffKey.keyId);await f.vault.selectGrant(second.grantId);assert.equal(f.vault.selectedGrant.grantId,second.grantId);
 });
+test('large signed staff histories fit bounded pages and never commit a mixed snapshot',async()=>{
+  const f=await fixture(),documents=[f.grant],requests=[];
+  for(let index=0;index<130;index++)documents.push(await signStaffGrant(f.grantRequest,f.unlocked,{grantId:`synthetic-page-${String(index).padStart(3,'0')}`,epoch:1,domains:['tax-identity']}));
+  documents.sort((a,b)=>a.grantId<b.grantId?-1:a.grantId>b.grantId?1:0);assert(JSON.stringify({grants:documents}).length>65536);let changed=false;
+  f.setHook(url=>{
+    const parsed=new URL(url);if(!parsed.pathname.endsWith('/grants'))return;
+    const after=parsed.searchParams.get('after')??'';requests.push(after);assert.equal(parsed.searchParams.get('limit'),'25');
+    if(after)assert.equal(parsed.searchParams.get('snapshot'),'a'.repeat(64));
+    const remaining=documents.filter(value=>value.grantId>after),selected=remaining.slice(0,25);
+    return f.respond({grants:selected,revocations:[],snapshot:changed&&after?'b'.repeat(64):'a'.repeat(64),nextCursor:remaining.length>25?selected.at(-1).grantId:null});
+  });
+  assert.equal((await f.vault.refreshGrants()).length,131);assert.equal(requests.length,6);
+  changed=true;await assert.rejects(()=>f.vault.refreshGrants(),/snapshot or continuation/);assert.equal(f.vault.unlocked,false);assert.equal(f.vault.records.size,0);
+});
+test('a signed denial on an earlier page remains remembered if a later continuation fails',async()=>{
+  const f=await fixture(),old=await signStaffGrant(f.grantRequest,f.unlocked,{grantId:'a-earlier-signed-denial',epoch:1,domains:['tax-identity']}),revoked=await revokeStaffGrant(old,f.unlocked,{epoch:2});
+  f.setHook(url=>{
+    const parsed=new URL(url);if(!parsed.pathname.endsWith('/grants'))return;
+    return parsed.searchParams.has('after')?f.respond({grants:[],revocations:[],snapshot:'b'.repeat(64),nextCursor:null}):f.respond({grants:[],revocations:[revoked],snapshot:'a'.repeat(64),nextCursor:revoked.grantId});
+  });
+  await assert.rejects(()=>f.vault.refreshGrants(),/snapshot or continuation/);await f.vault.unlock(f.staffKey.keyId);await assert.rejects(()=>f.vault.stageGrant(old));
+});

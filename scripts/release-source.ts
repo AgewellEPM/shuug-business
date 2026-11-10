@@ -1,21 +1,12 @@
 import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { existsSync, readdirSync, lstatSync, readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, rmSync } from "node:fs";
 import path from "node:path";
 import { tmpdir } from "node:os";
+import { sourceReleaseFiles } from "../src/lib/release/source-files";
 const root = process.cwd();
-const directories = ["src", "prisma", "public", "scripts", "docs", "integrations", ".github"];
-const files = ["README.md", "LICENSE", "package.json", "package-lock.json", "next.config.ts", "tsconfig.json", "postcss.config.mjs", "eslint.config.mjs", "prisma.config.ts", "vitest.config.mts", "vitest.setup.ts", "Dockerfile.backend", "compose.backend.yaml", ".dockerignore", ".gitignore", ".env.example", ".nvmrc"];
-function collect(directory: string): string[] {
-  return readdirSync(path.join(root, directory)).flatMap(name => {
-    const relative = path.join(directory, name), stat = lstatSync(path.join(root, relative));
-    if (stat.isSymbolicLink()) throw new Error(`Release contains a symlink: ${relative}`);
-    if (/^(\.data|\.git|node_modules|\.next|dist)$/.test(name) || /\.(key|pem|sqlite|db|log|tar|gz|zip)$/.test(name) || (name.startsWith(".env") && name !== ".env.example")) throw new Error(`Private or generated file found in source: ${relative}`);
-    return stat.isDirectory() ? collect(relative) : stat.isFile() ? [relative] : [];
-  });
-}
 function main() {
-  const list = [...files.filter(f => existsSync(path.join(root, f))), ...directories.filter(d => existsSync(path.join(root, d))).flatMap(collect)].sort();
+  const list = sourceReleaseFiles(root);
   const version = JSON.parse(readFileSync("package.json", "utf8")).version;
   const output = path.join(root, "dist", `shuug-business-${version}-source.tar.gz`);
   mkdirSync(path.dirname(output), { recursive: true });

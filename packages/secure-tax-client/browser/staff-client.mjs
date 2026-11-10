@@ -94,13 +94,30 @@ export class StaffVaultClient {
   async refreshGrants(){
     if(!this.identity||!this.#key)throw new Error('Verify sign-in and unlock your staff device key first.');const generation=this.#generation;
     try{
-    const result=await this.#request('/grants');this.#same(generation);if(!Array.isArray(result.grants)||result.grants.length>1000||!Array.isArray(result.revocations??[])||(result.revocations??[]).length>1000)throw new Error('Invalid staff grant list.');
-    // Persist signed denials before accepting an active list from this host.
-    for(const notice of result.revocations??[]){
-      if(notice?.staff?.keyId!==this.#key.keyId)continue;
-      if(notice.status!=='revoked')throw new Error('Invalid signed staff revocation list.');
-      await this.stageGrant(notice,{clearUnselected:false});this.#same(generation);
-    }
+    const result={grants:[]},seen=new Set();let after='',snapshot=null,pages=0,total=0;
+    do{
+      if(++pages>401)throw new Error('This staff list exceeds the supported workspace capacity.');
+      const query=new URLSearchParams({limit:'25',...(after?{after,snapshot}:{})});
+      const page=await this.#request('/grants?'+query);this.#same(generation);
+      if(!Array.isArray(page.grants)||!Array.isArray(page.revocations??[]))throw new Error('Invalid staff grant list.');
+      const paginated=Object.hasOwn(page,'snapshot')||Object.hasOwn(page,'nextCursor');
+      if(paginated){
+        if(!/^[a-f0-9]{64}$/.test(page.snapshot??'')||snapshot&&snapshot!==page.snapshot||page.nextCursor!==null&&(!id(page.nextCursor)||page.nextCursor<=after)||page.grants.length+(page.revocations??[]).length>25)throw new Error('The staff-list snapshot or continuation changed.');
+        snapshot=page.snapshot;
+      }else if(pages!==1||page.grants.length>1000||(page.revocations??[]).length>1000)throw new Error('Invalid unpaginated staff grant list.');
+      // Remember signed denials as soon as their page arrives, even if a later
+      // page fails. Never expose a partial list as the complete authorization.
+      for(const notice of page.revocations??[]){
+        if(notice?.staff?.keyId!==this.#key.keyId)continue;
+        if(notice.status!=='revoked')throw new Error('Invalid signed staff revocation list.');
+        await this.stageGrant(notice,{clearUnselected:false});this.#same(generation);
+      }
+      for(const document of [...page.grants,...(page.revocations??[])]){
+        if(!id(document?.grantId)||seen.has(document.grantId)||paginated&&(document.grantId<=after||page.nextCursor!==null&&document.grantId>page.nextCursor)||++total>10000)throw new Error('Invalid or repeated staff grant in the complete list.');
+        seen.add(document.grantId);
+      }
+      result.grants.push(...page.grants);after=paginated?page.nextCursor:null;
+    }while(after!==null);
     const grants=[],verifiedById=new Map();
     for(const grant of result.grants){
       if(grant?.staff?.keyId!==this.#key.keyId)continue;
