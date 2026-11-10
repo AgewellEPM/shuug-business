@@ -125,6 +125,14 @@ The browser validates the public packet before upload and refuses private kits.
 Read grants remain read-only. See the
 [correction workflow](../../docs/SHUUG_RETURN_CORRECTIONS_20261109.md).
 
+`firm-return-creations.mjs` and the separate creation CLIs add preparer-originated
+initial returns without weakening correction source checks. A signed assignment
+can produce a private new-return review kit even when no client object exists.
+The separately reviewed firm approval creates revision 1 and its read capsule;
+owner MFA publication refuses an existing or deleted ID and exact retries
+preserve later client changes. The browser never uploads the private kit.
+The cloud operation is `approve-return-create`; both custody packages include it.
+
 `public-config.mjs --pins PUBLIC-ONLY.json --api-origin https://api.example
 --ui-origin https://client.example --output NEW-DIRECTORY` prepares consistent
 public-only files for the API environment, signed native resource and independent

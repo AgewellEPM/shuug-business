@@ -12,6 +12,8 @@ import {buildArtifact} from './build-artifact.mjs';
 import {generateRecipientKeyPair,publicKeyId,sealEnvelope,openEnvelope} from '../../envelope.mjs';
 import {openStaffCapsule} from '../../staff-grants.mjs';
 import {prepareReturnProposal} from '../../return-proposals.mjs';
+import {prepareReturnCreation} from '../../return-creations.mjs';
+import {verifyReturnCreationApproval} from '../../return-create-approval.mjs';
 import {newReturn} from '../../../tax-engine/index.mjs';
 const workspaceId='synthetic-aws-key-custody',config={workspaceId,keyAccountId:'111111111111',dataHostAccountId:'222222222222'};
 const context={invokedFunctionArn:'arn:aws:lambda:us-east-1:111111111111:function:synthetic-key-server:approved'};
@@ -104,4 +106,18 @@ test('reviewed cloud correction binds decrypted original and proposed values wit
   const publicData=JSON.stringify({job:approved.job,result:approved.result});assert(!publicData.includes('SYNTHETIC CLOUD RETURN PRIVATE'));assert(!publicData.includes('000123456'));assert(!publicData.includes(prepared.privateReview.reviewSalt));
   assert.equal((await f.run('approve-return-edit',{...input,reviewedCommitment:'A'.repeat(43)},staffRequest.staff.keyId,reviewReference)).response.ok,false);
   assert.equal((await f.run('approve-return-edit',input,staffRequest.staff.keyId,'different-review')).response.ok,false);
+});
+test('reviewed cloud creation issues a new client-readable return and preparer capsule without a source object or readable job values',async()=>{
+  const f=fixture(),pins=(await f.run('initialize',{})).result.publicPins,client=await generateRecipientKeyPair(),staff=await generateRecipientKeyPair();
+  const request={version:1,workspaceId,accountId:'synthetic-create-account',clientId:'synthetic-create-client',client:{keyId:await publicKeyId(client.publicKey),publicKey:client.publicKey}},manifest=(await f.run('enroll',{expectedPins:pins,request,epoch:1},request.client.keyId)).result.manifest;
+  const staffRequest={version:1,workspaceId,accountId:request.accountId,clientId:request.clientId,staffAccountId:'synthetic-preparer',staff:{keyId:await publicKeyId(staff.publicKey),publicKey:staff.publicKey}},grant=(await f.run('grant',{expectedPins:pins,request:staffRequest,options:{epoch:1,domains:['tax-document']}},staffRequest.staff.keyId)).result.grant;
+  const after=newReturn('1120');after.party.name='SYNTHETIC CLOUD CREATION PRIVATE';after.party.taxId='000123456';after.entity.receiptsCents=10000000;
+  const expected={accountId:request.accountId,clientId:request.clientId,staffAccountId:staffRequest.staffAccountId,staffKeyId:staffRequest.staff.keyId,objectId:'synthetic-new-return',revision:1,domain:'tax-document'},recipients={clientPublicKey:client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey};
+  const prepared=await prepareReturnCreation({after,manifest,grant,expected,pins,staffPrivateKey:staff.privateKey}),reviewReference='synthetic-cloud-create-review',input={expectedPins:pins,proposal:prepared.proposal,manifest,grant,expected,reviewedCommitment:prepared.proposal.reviewCommitment,reviewReference};
+  const approved=await f.run('approve-return-create',input,staffRequest.staff.keyId,reviewReference);assert.equal(approved.response.ok,true);const packet=approved.result.approvedReturnCreation;await verifyReturnCreationApproval(packet,pins);
+  const clientBytes=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey),staffBytes=await openStaffCapsule(packet.capsule,packet.envelope,manifest,grant,expected,pins,staff.privateKey);try{assert.deepEqual(JSON.parse(text.decode(clientBytes)),after);assert.deepEqual(JSON.parse(text.decode(staffBytes)),after);}finally{clientBytes.fill(0);staffBytes.fill(0);}
+  const publicData=JSON.stringify({job:approved.job,result:approved.result});for(const value of ['SYNTHETIC CLOUD CREATION PRIVATE','000123456',prepared.privateReview.reviewSalt])assert(!publicData.includes(value));
+  assert.equal((await f.run('approve-return-create',{...input,reviewedCommitment:'A'.repeat(43)},staffRequest.staff.keyId,reviewReference)).response.ok,false);
+  assert.equal((await f.run('approve-return-create',input,staffRequest.staff.keyId,'different-review')).response.ok,false);
+  assert.equal((await f.run('approve-return-create',{...input,privateReview:prepared.privateReview},staffRequest.staff.keyId,reviewReference)).response.ok,false);
 });

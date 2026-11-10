@@ -40,3 +40,21 @@ test('ordinary proposal forms keep return family fixed and pause staff refresh u
     click(document,'Propose return correction');await operation;fill(document,'receiptsCents','9999');click(document,'Discard correction');assert.equal(editor.dirty,false);assert.equal(editor.element.hidden,true);assert.equal(document.querySelector('[data-return-field="receiptsCents"]').value,'');await updates.check();assert.equal(reads,3);
   }finally{updates.destroy();view.window.close();}
 });
+test('new staff-return proposals offer both families, pause refresh and clear private input without weakening corrections',async()=>{
+  const view=dom(),document=view.window.document,root=document.querySelector('main'),target=document.createElement('div'),editorArea=document.createElement('div');root.append(target,editorArea);let editor,operation,reads=0;const saved=[];
+  const client={identity:{staffAccountId:'synthetic-preparer'},unlocked:true,selectedGrant:{accountId:'synthetic-account',clientId:'synthetic-client'},config:{workspaceId:'synthetic'},records:new Map(),sync:async()=>{reads++;return {items:0};}},run=task=>{operation=task();return operation;};
+  editor=mountReturnEditor(document,editorArea,{proposalOnly:true,allowCreation:true,confirm:()=>true,run,onSave:async(value,id)=>saved.push({value,id,mode:editor.proposalMode})});editor.setEnabled(true);
+  const updates=mountStaffUpdates(document,target,{getClient:()=>client,run,canRefresh:()=>!editor.dirty,timers:{setTimer:()=>1,clearTimer:()=>{}}});
+  try{
+    assert.equal(editor.element.hidden,true);await updates.check();assert.equal(reads,1);
+    for(const kind of ['1040','1065','1120S','1120']){
+      editor.startNew();assert.equal(editor.proposalMode,'creation');assert.equal(editor.element.hidden,false);assert.equal(editor.editingId,null);assert.equal(editor.dirty,true);assert.equal(document.getElementById('return-kind').disabled,false);assert.equal(await updates.check(),false);
+      const choice=document.getElementById('return-kind');choice.value=kind;choice.dispatchEvent(new view.window.Event('change'));fill(document,'name','SYNTHETIC PRIVATE NEW RETURN');fill(document,'taxId','000123456');
+      if(kind==='1040'){click(document,'Add W-2');await operation;fill(document,'wagesCents','50000');}else fill(document,'receiptsCents','1000.01');
+      click(document,'Save private new-return review kit');await operation;const item=saved.at(-1);assert.equal(item.value.kind,kind);assert.equal(item.mode,'creation');assert.equal(item.id,null);assert.equal(item.value.party.taxId,'000123456');assert.equal(editor.element.hidden,true);assert.equal(editor.dirty,false);await updates.check();
+    }
+    editor.edit(newReturn('1120'),'existing-return');assert.equal(editor.proposalMode,'correction');const choice=document.getElementById('return-kind');assert.equal(choice.disabled,true);choice.value='1065';choice.dispatchEvent(new view.window.Event('change'));assert.equal(editor.getInput().kind,'1120');assert.equal(choice.value,'1120');click(document,'Discard correction');
+    editor.startNew('1065');fill(document,'name','SYNTHETIC PRIVATE UNSAVED RETURN');fill(document,'taxId','000123456');click(document,'Discard new return');assert.equal(editor.active,false);assert.equal(editor.element.hidden,true);await updates.check();
+    editor.startNew('1040');fill(document,'name','SYNTHETIC PRIVATE LOCKED RETURN');editor.clear();editor.setEnabled(false);assert.equal(editor.dirty,false);assert.equal(editor.active,false);assert.equal(editor.element.hidden,true);assert([...editor.element.querySelectorAll('input,textarea,select,button')].every(control=>control.disabled));assert(![...editor.element.querySelectorAll('input,textarea')].some(control=>control.value.includes('SYNTHETIC PRIVATE')||control.value.includes('000123456')));
+  }finally{updates.destroy();view.window.close();}
+});

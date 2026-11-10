@@ -32,7 +32,7 @@ export async function buildArtifact(output){
   if(typeof output!=='string'||!path.isAbsolute(output))throw new Error('Choose a new absolute artifact directory.');
   validateTemplate();
   const lock=JSON.parse(await readFile(path.join(root,'package-lock.json'),'utf8')),files=[];
-  const source=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','cloud/aws/worker.mjs','cloud/aws/aws-provider.mjs'];
+  const source=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','cloud/aws/worker.mjs','cloud/aws/aws-provider.mjs'];
   for(const name of source)files.push({name,bytes:await readFile(path.join(root,name))});
   const dependencies={'@hpke/core':'1.10.0','@hpke/common':'1.11.0'};
   for(const [name,version]of Object.entries(dependencies)){

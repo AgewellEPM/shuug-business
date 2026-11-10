@@ -1,4 +1,4 @@
-# Encrypted return corrections
+# Encrypted initial returns and corrections
 
 This extends the draft preparation pack for individual/self-employed and business
 returns. An authorized preparer can propose corrections to an existing 2025
@@ -7,6 +7,57 @@ host. An MFA-authenticated owner publishes the encrypted replacement and its
 fresh signed read capsule in one transaction. Original native v2 envelopes and
 v1 staff grants remain unchanged; the preparer's grant still says `rights:read`.
 This is a bounded return workflow, not general encrypted office editing.
+
+## Preparer-created initial returns
+
+The November 10 extension lets a preparer start a 2025 individual/self-employed
+or business return without an existing shared return object. Select a current
+signed tax-document scope and choose **New client return**. Use the ordinary
+fields and select the appropriate return family; corrections still keep the
+original family fixed. **Discard new return** clears this local input. Refresh
+pauses until the proposal is saved or discarded.
+
+Saving downloads a private new-return review kit. Its readable draft and salt
+remain on trusted devices; the client sends no draft to the app host. A fresh
+signed manifest comes from the caller's current scope and is checked against
+the independently installed pins and remembered enrollment epochs. No new keys,
+enrollment or customer account are silently created.
+
+The creation protocol has separate strict types, canonical purposes and HPKE
+info (`shuug/secure-tax-return-create-proposal/v1`). Its private review binds
+`before:null`, the exact new draft, a random 32-byte salt, object/client/account,
+manifest/grant identities and epochs and the preparer's key. The firm decrypts
+the proposal and reconstructs that commitment before signing revision 1 and a
+fresh read capsule. Existing correction source checks are unchanged.
+
+On the separate firm computer, use the same explicit review inputs as below:
+
+```sh
+node return-create-offline-cli.mjs \
+  --confirm-off-host --confirm-fields-reviewed --passphrase-fd 3 \
+  --bundle FIRM_BUNDLE.json --public-pins PUBLIC_PINS.json \
+  --kit PRIVATE_NEW_RETURN.json --reviewed-sha256 REVIEWED_FILE_SHA256 \
+  --review-reference OPAQUE_REVIEW_ID --out NEW_APPROVED_PACKET.json
+```
+
+For separate-cloud custody, `prepare-return-create-job.mjs` takes the same
+public-pins/private-kit/reviewed-hash/review-reference options plus `--job-id`
+and `--out`, with `--confirm-fields-reviewed`. It prepares an opaque
+`approve-return-create` job; never upload the readable review kit. The existing
+immutable-version/MFA worker returns `approvedReturnCreation` containing only
+`{approval,envelope,capsule}`. Publish that packet through the owner's trusted
+client after its signature and capsule are verified locally.
+
+The API requires owner MFA and the exact current assignment/enrollment. It
+commits only an unused object ID with expected revision 0. Existing live IDs
+and deleted IDs cannot become initial returns. A repeated identical approval
+returns the original receipt without replacing later client changes or sharing
+capsules. Capsule failure cannot leave a partial object/audit write.
+
+This completes initial return origination, not encrypted document review,
+office books, package authorization or filing. Exact development evidence is in
+`verification/return-origination-20261110.json`. Real custody activation and
+installed/visual office acceptance remain unverified.
 
 ## Preparer and owner workflow
 

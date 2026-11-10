@@ -25,7 +25,7 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   await mkdir(path.join(output,'browser'),{recursive:true});
   for(const file of browserFiles)await cp(path.join(source,'browser',file),path.join(output,'browser',file));
   await cp(path.join(source,'envelope.mjs'),path.join(output,'envelope.mjs'));
-  for(const file of ['staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','return-edit-approval.mjs'])await cp(path.join(source,file),path.join(output,file));
+  for(const file of ['staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','return-edit-approval.mjs','return-create-contract.mjs','return-creations.mjs','return-create-approval.mjs'])await cp(path.join(source,file),path.join(output,file));
   for(const [name] of vendor){
     await mkdir(path.join(output,'vendor',name),{recursive:true});
     await cp(path.join(source,'node_modules',name,'esm'),path.join(output,'vendor',name,'esm'),{recursive:true});

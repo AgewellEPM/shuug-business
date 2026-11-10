@@ -41,6 +41,15 @@ The native snapshot reputation fields, bounded staff-grant pagination and source
 archive omissions described in the [November 8 review](SHUUG-READINESS-20261108.md)
 were fixed. They are historical findings, not outstanding defects.
 
+November 10 implementation continuation: preparers can now originate an initial
+return for either family through a private review kit, separate firm approval
+and owner MFA publication of revision 1 plus its read capsule. It needs a current
+signed enrollment/assignment but no pre-existing shared return. The origination
+gap in the dated assessment below is closed; broader encrypted office integration
+remains open. See the [workflow](SHUUG_RETURN_CORRECTIONS_20261109.md) and
+`verification/return-origination-20261110.json`. This is source/synthetic
+functionality, not real activation or an installed upgrade.
+
 ## Remaining work, in implementation order
 
 | Order | Confirmed gap | Observable completion criterion |

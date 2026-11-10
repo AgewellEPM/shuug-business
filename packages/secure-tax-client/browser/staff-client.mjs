@@ -4,6 +4,8 @@ import { validateTrustedConfig } from './config.mjs';
 import { prepareReturnProposal } from '../return-proposals.mjs';
 import { calculateReturn } from '@shuug/tax-engine';
 import { verifyReturnEditApproval } from '../return-edit-approval.mjs';
+import { prepareReturnCreation } from '../return-creations.mjs';
+import { verifyReturnCreationApproval } from '../return-create-approval.mjs';
 
 const prefix='/api/website/customer/secure/staff';
 const id=value=>typeof value==='string'&&value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]===value;
@@ -46,6 +48,7 @@ export class StaffVaultClient {
     const generation=this.#generation;
     const response=await this.#fetch(`${this.#config.apiOrigin}${prefix}${path}`,{method,credentials:'omit',redirect:'error',cache:'no-store',referrerPolicy:'no-referrer',headers:{Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...(this.#token?{Authorization:`Bearer ${this.#token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
     if((response.status===401||response.status===403)&&generation===this.#generation&&!challenge)this.#forgetSession();
+    if(response.status===409&&path.startsWith('/scope?')){await response.body?.cancel();throw new Error('The selected client enrollment or assignment changed. Refresh signed access or ask the firm to renew enrollment.');}
     return readJson(response,maximum,challenge);
   }
   async signIn(email,password){
@@ -84,6 +87,16 @@ export class StaffVaultClient {
   publicRequest(){if(!this.identity||!this.#key)throw new Error('Sign in and unlock the staff device key first.');return {version:1,workspaceId:this.#config.workspaceId,staffAccountId:this.identity.staffAccountId,staff:{keyId:this.#key.keyId,publicKey:this.#key.publicKey}};}
   #bindingId(grant){return `staff:${this.#config.workspaceId}|${this.identity.staffAccountId}|${this.#key.keyId}|${grant.accountId}|${grant.clientId}|${grant.grantId}`;}
   #manifestBindingId(grant){return `staff-manifest:${this.#config.workspaceId}|${grant.accountId}|${grant.clientId}`;}
+  async #rememberManifestEpoch(grant,minimumManifestEpoch,generation){
+    if(!integer(minimumManifestEpoch)||minimumManifestEpoch>1000000000)throw new Error('The client enrollment checkpoint is invalid.');
+    if(typeof this.#storage.updateBinding!=='function')throw new Error('Atomic staff trust storage is required before preparing or opening client returns.');
+    const id=this.#manifestBindingId(grant),stored=await this.#storage.updateBinding(id,current=>{
+      this.#same(generation);const observed=current?.minimumManifestEpoch??1;
+      if(!integer(observed)||observed>1000000000||current&&current.id!==id)throw new Error('The local client enrollment checkpoint needs review.');
+      return {...current,id,minimumManifestEpoch:Math.max(observed,minimumManifestEpoch)};
+    });this.#same(generation);
+    if(stored.minimumManifestEpoch>minimumManifestEpoch)throw new Error('A newer client enrollment was observed in another staff view. Reopen its current signed scope.');
+  }
   #nextBinding(grant,verified,binding){
     const same=binding?.minimumGrantEpoch===verified.epoch&&binding?.grantDigest===verified.grantDigest;
     return {...binding,id:this.#bindingId(grant),minimumGrantEpoch:verified.epoch,grantDigest:verified.grantDigest,minimumManifestEpoch:binding?.minimumManifestEpoch??1,versions:binding?.versions??{},requiredPresence:same?(binding.requiredPresence??Object.keys(binding.versions??{})):[]};
@@ -159,6 +172,26 @@ export class StaffVaultClient {
   }
   async installCapsule(capsule){if(!this.isOwner)throw new Error('Only the firm owner can register a separately signed sharing capsule.');await verifyStaffCapsuleSignature(capsule,this.#config);return this.#request('/capsules','POST',capsule);}
   async withdrawGrant(grantId,expectedEpoch){if(!this.isOwner||!id(grantId)||!integer(expectedEpoch))throw new Error('Owner access and the exact grant ID/epoch are required.');return this.#request('/grants','DELETE',{grantId,expectedEpoch});}
+  async prepareNewReturn(after){
+    if(this.#busy)throw new Error('Wait for the current staff operation.');
+    if(!this.#selection||!this.#key||!this.identity||!this.#selection.domains.includes('tax-document'))throw new Error('Select a current signed tax-document grant before preparing a new client return.');
+    if(!calculateReturn(after).calculationAvailable)throw new Error('Correct the draft input before preparing a private review kit.');
+    const draft=clone(after),generation=this.#generation,selected=clone(this.#selection);this.#busy=true;
+    try{
+      await this.refreshGrants();this.#same(generation);
+      const observedManifest=await this.#storage.getBinding(this.#manifestBindingId(selected));this.#same(generation);
+      const expected={staffAccountId:this.identity.staffAccountId,staffKeyId:this.#key.keyId,accountId:selected.accountId,clientId:selected.clientId,minimumGrantEpoch:this.#binding.minimumGrantEpoch,minimumManifestEpoch:Math.max(this.#binding.minimumManifestEpoch??1,observedManifest?.minimumManifestEpoch??1),objectId:crypto.randomUUID(),revision:1,domain:'tax-document'};
+      const scope=await this.#request(`/scope?grantId=${encodeURIComponent(selected.grantId)}`);this.#same(generation);
+      if(!scope||Object.keys(scope).sort().join('|')!=='grant|manifest')throw new Error('The selected client enrollment is unavailable.');
+      const checked=await verifyStaffGrant(scope.grant,expected,this.#config);this.#same(generation);
+      if(scope.grant.grantId!==selected.grantId||checked.grantDigest!==this.#binding.grantDigest)throw new Error('The selected client assignment changed. Select its current signed grant.');
+      const prepared=await prepareReturnCreation({after:draft,manifest:scope.manifest,grant:scope.grant,expected,pins:this.#config,staffPrivateKey:this.#key.privateKey});this.#same(generation);
+      await this.refreshGrants();this.#same(generation);
+      const minimumManifestEpoch=Math.max(expected.minimumManifestEpoch,prepared.proposal.manifestEpoch),binding={...this.#binding,minimumManifestEpoch};
+      await this.#rememberManifestEpoch(selected,minimumManifestEpoch,generation);await this.#storage.putBinding(binding);this.#same(generation);this.#binding=binding;
+      return {version:1,type:'shuug-private-return-creation-kit',proposal:prepared.proposal,manifest:scope.manifest,grant:scope.grant,expected,privateReview:prepared.privateReview};
+    }catch(error){if(generation===this.#generation)this.#clear();throw error;}finally{this.#busy=false;}
+  }
   async prepareReturnCorrection(objectId,after){
     if(this.#busy)throw new Error('Wait for the current staff operation.');
     const original=this.records.get(objectId);if(!this.#selection||!this.#key||!this.identity||!original||original.domain!=='tax-document')throw new Error('Open the current shared tax return before proposing a correction.');
@@ -175,6 +208,7 @@ export class StaffVaultClient {
     }catch(error){if(generation===this.#generation)this.#clear();throw error;}finally{this.#busy=false;}
   }
   async installApprovedReturnEdit(packet){if(!this.isOwner)throw new Error('Only the verified owner can publish a separately approved return correction.');const generation=this.#generation;await verifyReturnEditApproval(packet,this.#config);this.#same(generation);return this.#request('/return-edits','POST',packet);}
+  async installApprovedReturnCreation(packet){if(!this.isOwner)throw new Error('Only the verified owner can publish a separately approved new return.');const generation=this.#generation;await verifyReturnCreationApproval(packet,this.#config);this.#same(generation);return this.#request('/return-creations','POST',packet);}
   async sync(){
     if(this.#busy)throw new Error('Wait for the current staff operation.');if(!this.#selection||!this.#key||!this.identity)throw new Error('Select a signed client grant first.');this.#busy=true;
     const generation=this.#generation,selected=clone(this.#selection),oldBinding=clone(this.#binding),opened=[];let committed=false;
@@ -212,8 +246,7 @@ export class StaffVaultClient {
       if(!finalGrant)throw new Error('Staff access changed during sync.');
       const finalVerified=await verifyStaffGrant(finalGrant,{staffAccountId:this.identity.staffAccountId,staffKeyId:this.#key.keyId,accountId:current.accountId,clientId:current.clientId,minimumGrantEpoch:oldBinding.minimumGrantEpoch},this.#config);this.#same(generation);
       if(finalVerified.epoch!==verified.epoch||finalVerified.grantDigest!==verified.grantDigest)throw new Error('Staff authorization changed during sync. No downloaded data was committed.');
-      const binding={...oldBinding,minimumManifestEpoch,versions,requiredPresence:[...seen]};await this.#storage.putBinding(binding);this.#same(generation);
-      await this.#storage.putBinding({id:this.#manifestBindingId(current),minimumManifestEpoch});this.#same(generation);
+      const binding={...oldBinding,minimumManifestEpoch,versions,requiredPresence:[...seen]};await this.#rememberManifestEpoch(current,minimumManifestEpoch,generation);await this.#storage.putBinding(binding);this.#same(generation);
       for(const item of this.records.values())item.plaintext.fill(0);this.records=records;this.#binding=binding;committed=true;return {items:records.size,grantId:current.grantId,clientId:current.clientId};
     }finally{this.#busy=false;if(!committed){for(const bytes of opened)bytes.fill(0);if(generation===this.#generation)this.#clear();}}
   }

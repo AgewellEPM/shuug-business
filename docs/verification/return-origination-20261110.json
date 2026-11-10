@@ -1,0 +1,355 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-10 05:39:09 UTC",
+  "baseCommit": "24a2b51a5fc5149d7f916d268e0e62fb7d5ac331",
+  "scope": "Preparer-originated encrypted initial 2025 draft returns for both individual/self-employed and business families, with separate-computer or separate-cloud firm approval",
+  "verification": {
+    "nodeClientCustodyAndTaxSuite": {
+      "passed": 124,
+      "failed": 0,
+      "skipped": 0
+    },
+    "finalBrowserRecheck": {
+      "passed": 34,
+      "failed": 0,
+      "skipped": 0,
+      "reason": "Final browser scope messaging and enrollment floor bounds"
+    },
+    "secureStaffAndObjectVitest": {
+      "passed": 30,
+      "failed": 0,
+      "skipped": 0
+    },
+    "nativeInteroperability": {
+      "actualSwiftCryptoKit": true,
+      "nodeFirmApprovedInitialEnvelopeOpenedByOriginalClient": true,
+      "syntheticKeysOnly": true,
+      "keychainUsed": false
+    },
+    "nextBuildPassed": true,
+    "compiledHttp": {
+      "ok": true,
+      "checks": 107,
+      "buildId": "5ojQG4duGh1erniX1R9vX",
+      "syntheticWorkspace": true,
+      "freshClientHadNoLegacyBooks": true,
+      "mandatoryStaffMfaVerifiedWithGlobalFlagOff": true,
+      "originalV2ClientEnvelopesPreserved": true,
+      "staffOpenedProtectedBooksAndDocumentBytes": true,
+      "encryptedDeviceBackupRecovered": true,
+      "newDeviceGrantedAfterOriginalRevocation": true,
+      "oldDeviceCannotOpenReplacementCapsules": true,
+      "newProcessFirmRecoveryCliVerified": true,
+      "staleRevisionFailsClosed": true,
+      "restoredDataAndRevocationVerified": true,
+      "backupFiles": 6,
+      "copiedHostPlaintextMarkerAbsent": true,
+      "portal": {
+        "multiFileUploads": 3,
+        "exactBytesOpened": true,
+        "lostReceiptRetryUsesSameCiphertext": true,
+        "encryptedPendingQueueRestored": true,
+        "localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts": true,
+        "authorizedClientRefreshVerified": true,
+        "staffSeesFilesAfterSignedSharing": true,
+        "automaticStaffRefreshAndSharedSummaryVerified": true,
+        "unsharedNewItemClearsStaffView": true,
+        "approvedRevisionRefreshVerified": true,
+        "pageExitClearsStaffView": true,
+        "cleanRestoreVerified": true,
+        "restoreFiles": 6,
+        "instantPushVerified": false,
+        "staffReturnCorrectionsRequireFirmApproval": true,
+        "fullStaffEditingImplemented": false
+      },
+      "largeGrantList": {
+        "activeGrants": 131,
+        "pagesRead": 6,
+        "boundedPageBytes": 65536,
+        "completeSnapshotVerified": true
+      },
+      "returnProof": {
+        "year": 2025,
+        "kinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "staffOriginatedKinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "initialReturnRequiresFirmApproval": true,
+        "initialPrivateReviewRefusedBeforeUpload": true,
+        "initialRevisionSharedAtomically": true,
+        "encryptedSaveClientReopenStaffRead": true,
+        "exported": [
+          {
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 118369
+          },
+          {
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 375386
+          },
+          {
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 350432
+          },
+          {
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 254562
+          }
+        ],
+        "unsharedRevisionClearsStaffView": true,
+        "correctedClientInputVisibleAfterSharing": true,
+        "staffReturnCorrectionProposalVerified": true,
+        "privateReviewRefusedBeforeUpload": true,
+        "ownerMfaAndFirmApprovalPublicationVerified": true,
+        "clientSeesApprovedStaffCorrection": true,
+        "approvedRevisionSharedAtomically": true,
+        "staffDirectWritesEnabled": false,
+        "productionFilingPerformed": false,
+        "terminalDeletionVerified": true
+      },
+      "workspaceBuilder": {
+        "realStdioMcp": true,
+        "compiledBackend": true,
+        "tools": 45,
+        "previewAndApplyVerified": true,
+        "partialTaxPreparationReported": true,
+        "requestedGoalComplete": false
+      },
+      "realOffhostCustodyVerified": false,
+      "publicTlsVerified": false,
+      "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture",
+      "realClientDataUsed": false,
+      "installedServiceChanged": false
+    },
+    "packagedClient": {
+      "ok": true,
+      "artifact": "/Users/lukekist/BuildCache/ShuugCompletion-20261110/tax-client-origination-v1",
+      "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+      "modules": 82,
+      "defaultConfigDisabled": true,
+      "noAccountRequest": true,
+      "staffCorrectionEditorMounted": true,
+      "staffNewReturnControlMounted": true,
+      "privateFirmModulesExcluded": true,
+      "publicTemplateFetches": 4,
+      "xfasRemoved": 4,
+      "exported": [
+        {
+          "kind": "1040",
+          "bytes": 118488
+        },
+        {
+          "kind": "1065",
+          "bytes": 238472
+        },
+        {
+          "kind": "1120S",
+          "bytes": 212315
+        },
+        {
+          "kind": "1120",
+          "bytes": 254763
+        }
+      ],
+      "safariVerified": false,
+      "visualAcceptance": false,
+      "publicTlsVerified": false
+    }
+  },
+  "custodyPackages": {
+    "separateComputer": {
+      "path": "/Users/lukekist/BuildCache/ShuugCompletion-20261110/separate-computer-key-kit-v1",
+      "files": 385,
+      "inventoryHashesVerified": true,
+      "initialized": false,
+      "containsPrivateKeys": false
+    },
+    "cloud": {
+      "path": "/Users/lukekist/BuildCache/ShuugCompletion-20261110/cloud-key-service-v1",
+      "files": 378,
+      "artifactSha256": "6bda6fa7e0a0fc914892d777f8650704e6cc81e393bb628d5aa9643766bc360e",
+      "inventoryHashesAndStandardZipCrcVerified": true,
+      "provisioned": false,
+      "productionKeysInitialized": false
+    }
+  },
+  "protocol": {
+    "nativeEnvelopeVersion": 2,
+    "staffReadGrantVersion": 1,
+    "staffRights": "read",
+    "proposalVersion": 1,
+    "approvalVersion": 1,
+    "separateCreationPurpose": true,
+    "revision": 1,
+    "expectedRevision": 0,
+    "before": null,
+    "publicPacketFields": [
+      "approval",
+      "envelope",
+      "capsule"
+    ],
+    "ownerMfaRequired": true,
+    "clientAndPreparerReadAfterPublication": true,
+    "atomicReadCapsule": true,
+    "existingOrDeletedObjectIdsRefused": true,
+    "laterClientRevisionAndCapsulePreservedOnRetry": true,
+    "privateKitsRefusedBeforeNetwork": true,
+    "readableTaxpayerValuesInCloudJobs": false,
+    "atomicMaximumEnrollmentCheckpoint": true
+  },
+  "limits": {
+    "completeEncryptedOfficeWorkflow": false,
+    "completeTaxCoverage": false,
+    "productionFilingPerformed": false,
+    "realClientDataUsed": false,
+    "realOffhostCustodyVerified": false,
+    "installedServiceChanged": false,
+    "publicTlsVerified": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "independentProviderReview": false,
+    "paymentActivationDeferred": true
+  },
+  "sourceHashes": [
+    {
+      "file": "docs/FREE-TAX-SERVICE.md",
+      "sha256": "29ab33da9549e292833a741026bd83c458751a54b223af93c670ee6493ef6a5e"
+    },
+    {
+      "file": "docs/SECURE-TAX-AWS-KEY-SERVER.md",
+      "sha256": "5a6f3d491f001d1592f63aa0a1eb0499f83648b1608a7c65e3e8b23b3d746f01"
+    },
+    {
+      "file": "docs/SHUUG_RETURN_CORRECTIONS_20261109.md",
+      "sha256": "68058d2565a421db98fa54121aa8b6349d277a02b2b873f9722d6228116917a2"
+    },
+    {
+      "file": "packages/secure-tax-client/README.md",
+      "sha256": "57c42e9263b6a07fee70e5d0184ff43486a93a7b2f247643c65c39ea71adeca4"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/return-editor.mjs",
+      "sha256": "59c459bf4623a7f5d241ae25e30975b8a7e851134d1ad7c48e6f4cb177a06ea1"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-app.mjs",
+      "sha256": "a4f0f7f829c9fc95558d549890fe9ac4623336ef1899cfadcd72e071b602c704"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-client.mjs",
+      "sha256": "f09ef6342f8cfe83a2132f7d688a93a63454c4ca8dfdca5a49e0e2d48fbe209d"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-updates.mjs",
+      "sha256": "a3f740c7297dcd6dfebdf58fe3b97fef3ba0b50cf99dc790adf370dc9440650a"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff.html",
+      "sha256": "250c3a83ede233ccf62f61c743d95642c965ef637522e1b8db688d98abab7cce"
+    },
+    {
+      "file": "packages/secure-tax-client/build-offline-kit.mjs",
+      "sha256": "e816af6ab772d9ba063cebb557cdf225d2614e27e1085715db116fbeea74fc21"
+    },
+    {
+      "file": "packages/secure-tax-client/cloud/aws/build-artifact.mjs",
+      "sha256": "8d9818324b4ccc0e3d372b5ba134f096e940cd5d0a8f12ba8cda37e5c9762815"
+    },
+    {
+      "file": "packages/secure-tax-client/cloud/aws/cloud.test.mjs",
+      "sha256": "10fb43143423da7c35baf64eea20d2abdbdb8c013f53713d39575620cf9a773c"
+    },
+    {
+      "file": "packages/secure-tax-client/cloud/aws/worker.mjs",
+      "sha256": "aae4e5dbf043651c79c5c00f17e2b8b2ce5ea0b0031887c1d9de6ab7773d4713"
+    },
+    {
+      "file": "packages/secure-tax-client/firm-return-creations.mjs",
+      "sha256": "fac9e5d99f675ca48a9d1b6958c489289ddb37220cf8478c22bbc21c509524d3"
+    },
+    {
+      "file": "packages/secure-tax-client/prepare-browser.mjs",
+      "sha256": "722b81b821927e1f21a317872e68341d3a9f2cae3acbb6274b62fddf2235a5b1"
+    },
+    {
+      "file": "packages/secure-tax-client/prepare-return-create-job.mjs",
+      "sha256": "a778a96f7668d304a8e3598b0a9be6189c757832356d25a94ca877a908677d86"
+    },
+    {
+      "file": "packages/secure-tax-client/return-create-approval.mjs",
+      "sha256": "776f0682eb1a039c5833743e2336a98181855aafddac36c6d722c6f935701121"
+    },
+    {
+      "file": "packages/secure-tax-client/return-create-contract.mjs",
+      "sha256": "8acba0e0c43407e690f8f2bc9d73ce60eae4de180038050bf822f4839be69f03"
+    },
+    {
+      "file": "packages/secure-tax-client/return-create-offline-cli.mjs",
+      "sha256": "f7c6170320f0f343bd60a2934d611cfa262444bc80eba7caba1911341cb54e65"
+    },
+    {
+      "file": "packages/secure-tax-client/return-create-review.mjs",
+      "sha256": "e60736d29c9e5280974b415de23a042aea5dbf789e1eeca9d8c2d053e4210f7c"
+    },
+    {
+      "file": "packages/secure-tax-client/return-creations.mjs",
+      "sha256": "7b82672298bd572fdc4c60a0336391d04bcf488a17cf9161177246c4f683ef33"
+    },
+    {
+      "file": "packages/secure-tax-client/test/return-creations.test.mjs",
+      "sha256": "be42e244ba57e63c57758f196875a02818c1517e3f0acc35e21ba5a9f1df5bb6"
+    },
+    {
+      "file": "packages/secure-tax-client/test/returns.test.mjs",
+      "sha256": "71f7725d9433c8463a3e43e479ca9083fb8f310ea9c8f822f3f0272c31dd46d3"
+    },
+    {
+      "file": "packages/secure-tax-client/test/staff-browser.test.mjs",
+      "sha256": "1e6678194cd4d078925e4717316d247f3684e1b074b877f6c796f352b8423596"
+    },
+    {
+      "file": "packages/tax-engine/README.md",
+      "sha256": "f8606b2f03afcbea2dace25ee1df2458e75f35a5ea56e6922262c126f4f0c197"
+    },
+    {
+      "file": "scripts/secure-staff-http-check.mjs",
+      "sha256": "0a52827769e5d937cd9b596463d33a66913c2b35162d6ad7b78796904958c3fc"
+    },
+    {
+      "file": "scripts/tax/verify_browser_artifact.mjs",
+      "sha256": "727ca2f9ce5c1dd2476de76dfd92438368341e3c2388ebf53ca09442286a7b24"
+    },
+    {
+      "file": "src/app/api/website/customer/secure/staff/return-creations/route.ts",
+      "sha256": "a3ae0da3f3ca136a9eb1feb8e4aae3382418762ce70810397876a91241a86d18"
+    },
+    {
+      "file": "src/app/api/website/customer/secure/staff/scope/route.ts",
+      "sha256": "0f5b7b73b7bdf2658ba2401b97c356780f08333ffc7474db5c0cdf4079d43324"
+    },
+    {
+      "file": "src/lib/secure-tax/return-creations.ts",
+      "sha256": "b4795561d13d81acf2173477327a4adbbf191645b63b10e86a6ef8107c317553"
+    },
+    {
+      "file": "src/lib/secure-tax/staff-store.ts",
+      "sha256": "a1ede603e72ba7c94d69bbfe91f22cdfa2e125cb8bc8357bf37109a463384446"
+    },
+    {
+      "file": "src/lib/secure-tax/staff.test.ts",
+      "sha256": "f6534c904b0224b7bc81c1fce0d782107774bf1fdf52d8c82f8bcf0158590315"
+    }
+  ]
+}

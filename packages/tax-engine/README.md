@@ -76,6 +76,9 @@ and sharing capsule. The correction editor can prepare a private review kit;
 separate firm approval and owner MFA publish one exact encrypted replacement
 with its fresh capsule. Their read grant remains unchanged. See the
 [correction workflow](../../docs/SHUUG_RETURN_CORRECTIONS_20261109.md).
+Preparers can also originate a new return for a signed client scope, using a
+private review kit and separate firm approval of the initial encrypted revision.
+This does not complete office document review, books or filing authorization.
 
 ## Work still required for the full product
 

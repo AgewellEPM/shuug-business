@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('.',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs'];
+const files=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs'];
 async function walk(directory,prefix=''){
   const result=[];
   for(const name of (await readdir(path.join(directory,prefix))).sort()){const relative=path.posix.join(prefix,name),info=await lstat(path.join(directory,relative));if(info.isSymbolicLink())throw new Error('Offline kit dependencies must be regular reviewed files.');if(info.isDirectory())result.push(...await walk(directory,relative));else if(info.isFile())result.push(relative);else throw new Error('Unsupported offline kit input.');}return result;
@@ -40,6 +40,14 @@ prepare-return-edit-job.mjs instead prepares an opaque cloud job from the same
 reviewed kit for the existing immutable-version/MFA operator workflow. It does
 not copy readable before/after values into that job. Neither command makes a
 read grant a direct client-write credential or certifies the tax calculation.
+
+Preparers can also propose an initial return without a client-created source.
+Review its private creation kit and exact file hash, then use
+return-create-offline-cli.mjs or prepare-return-create-job.mjs with the same
+explicit inputs and review confirmations. The resulting firm approval contains
+one new revision-1 envelope and signed read capsule. Owner publication rejects
+existing or deleted object IDs; it never overwrites an earlier return. Review
+identity, content and assignment on the trusted device before approving.
 
 Shuug also supplies a separately controlled cloud key-service deployment package.
 These are two supported custody options. They must preserve the chosen firm's

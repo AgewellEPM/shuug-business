@@ -14,6 +14,7 @@ import { canonicalStaffGrant } from "../../../packages/secure-tax-client/staff-c
 import { verifyStaffGrantDocument, verifyStaffCapsuleDocument, parseStaffCapsule, type StaffGrant, type StaffCapsule } from "./staff-model";
 import { staffGrantDigest, staffEnvelopeDigest } from "./staff-model";
 import { verifyReturnEditPacket } from "./return-edits";
+import { verifyReturnCreationPacket } from "./return-creations";
 import { commitSecureTaxEnvelope } from "./store";
 
 type GrantRow = { grantId: string; accountId: string; clientId: string; staffAccountId: string; epoch: number; approved: number; deniedEpoch: number; body: string };
@@ -140,6 +141,41 @@ export function publishApprovedReturnEdit(token: string, raw: unknown) {
     if (!receipt.duplicate) {
       db.prepare("INSERT INTO secure_tax_staff_capsules VALUES(?,?,?,?) ON CONFLICT(grantId,objectId) DO UPDATE SET capsuleId=excluded.capsuleId,body=excluded.body").run(grant.grantId, approval.objectId, capsule.capsuleId, JSON.stringify(capsule));
       db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(approval.objectId, user.id, "secure-tax.return-edit.approved", new Date().toISOString(), JSON.stringify({ approval, sharingCapsuleId: capsule.capsuleId }));
+    }
+    return { ...receipt, approvedBy: user.id, staffAccountId: grant.staffAccountId };
+  }, true);
+}
+/** Signed public enrollment for the caller's own current assignment. It exposes
+ * no taxpayer fields and does not create an object or change read rights. */
+export function readStaffScope(token: string, raw: unknown) {
+  const { grantId } = z.object({ grantId: secureTaxId }).strict().parse(raw);
+  return workspaceDatabase(db => {
+    init(db); const { user } = secureStaffIdentity(db, token);
+    return scopedGrant(db, grantId, user);
+  });
+}
+/** Initial return creation is separately firm-signed, not a staff-token write.
+ * The object ID must be unused; exact retries never overwrite later revisions. */
+export function publishApprovedReturnCreation(token: string, raw: unknown) {
+  return workspaceDatabase(db => {
+    init(db); const { user } = secureStaffIdentity(db, token); must(user.isOwner, "Only the verified owner can publish a separately approved initial return.");
+    const { approval, envelope, capsule: rawCapsule } = verifyReturnCreationPacket(raw), { grant, manifest } = scopedGrant(db, approval.grantId, targetStaff(db, approval.staffAccountId));
+    must(grant.workspaceId === approval.workspaceId && grant.accountId === approval.accountId && grant.clientId === approval.clientId
+      && grant.epoch === approval.grantEpoch && grant.staff.keyId === approval.staffKeyId && staffGrantDigest(grant) === approval.grantDigest
+      && grant.domains.includes("tax-document") && manifest.manifestId === approval.manifestId && manifest.epoch === approval.manifestEpoch,
+    "The initial return's staff assignment or enrollment changed. Obtain a new reviewed approval.", 409);
+    must(Date.parse(approval.issuedAt) >= Math.max(Date.parse(grant.issuedAt), Date.parse(manifest.issuedAt)) && Date.parse(approval.expiresAt) <= Math.min(Date.parse(grant.expiresAt), Date.parse(manifest.expiresAt)), "The initial return approval outlives its signed authorization.", 409);
+    must(hasTable(db, "secure_tax_objects"), "The encrypted client storage is unavailable. Review its enrollment before publishing.", 409);
+    const current = db.prepare("SELECT clientId,deleted FROM secure_tax_objects WHERE accountId=? AND id=?").get(grant.accountId, approval.objectId) as { clientId: string; deleted: number } | undefined;
+    must(!current?.deleted, "A deleted encrypted return cannot be restored under its old ID.", 409);
+    const capsule = verifyStaffCapsuleDocument(rawCapsule, grant, manifest, envelope);
+    const priorCapsule = db.prepare("SELECT grantId,objectId FROM secure_tax_staff_capsules WHERE capsuleId=?").get(capsule.capsuleId) as { grantId: string; objectId: string } | undefined;
+    must(!priorCapsule || (priorCapsule.grantId === grant.grantId && priorCapsule.objectId === approval.objectId), "The signed sharing capsule ID is already used for another scope.", 409);
+    const receipt = commitSecureTaxEnvelope(db, { id: grant.accountId, clientId: grant.clientId }, manifest, approval.objectId,
+      { mutationId: approval.approvalId, expectedRevision: 0, envelope });
+    if (!receipt.duplicate) {
+      db.prepare("INSERT INTO secure_tax_staff_capsules VALUES(?,?,?,?) ON CONFLICT(grantId,objectId) DO UPDATE SET capsuleId=excluded.capsuleId,body=excluded.body").run(grant.grantId, approval.objectId, capsule.capsuleId, JSON.stringify(capsule));
+      db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(approval.objectId, user.id, "secure-tax.return-create.approved", new Date().toISOString(), JSON.stringify({ approval, sharingCapsuleId: capsule.capsuleId }));
     }
     return { ...receipt, approvedBy: user.id, staffAccountId: grant.staffAccountId };
   }, true);

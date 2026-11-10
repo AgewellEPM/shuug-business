@@ -15,6 +15,7 @@ import { renderPortalDashboard } from '../browser/client-portal-view.mjs';
 import { prepareBrowser } from '../prepare-browser.mjs';
 import {newReturn} from '../../tax-engine/index.mjs';
 import {approveReturnEdit} from '../firm-return-edits.mjs';
+import {approveReturnCreation} from '../firm-return-creations.mjs';
 
 const encode=value=>new TextEncoder().encode(JSON.stringify(value));
 class MemoryStorage{
@@ -22,6 +23,7 @@ class MemoryStorage{
   async putKey(value){this.keys.set(value.keyId,structuredClone(value));}async getKey(id){return structuredClone(this.keys.get(id));}
   async listKeys(){return [...this.keys.values()].map(({keyId,publicKey})=>({keyId,publicKey}));}
   async putBinding(value){this.bindings.set(value.id,structuredClone(value));}async getBinding(id){return structuredClone(this.bindings.get(id));}
+  async updateBinding(id,update){const value=update(structuredClone(this.bindings.get(id)));this.bindings.set(id,structuredClone(value));return structuredClone(value);}
 }
 async function fixture({staffAccountId='synthetic-staff',objectId='synthetic-private-item',domain='tax-identity',data=null}={}){
   const {bundle,publicPins}=await createFirmBundle('synthetic-staff-workspace','Synthetic firm passphrase only for tests.');
@@ -52,6 +54,7 @@ async function fixture({staffAccountId='synthetic-staff',objectId='synthetic-pri
     if(route.endsWith('/capsules'))return respond({ok:true});
     const chosen=grants.find(value=>value.grantId===parsed.searchParams.get('grantId'));
     if(!chosen)return respond({error:'Revoked'},403);
+    if(route.endsWith('/scope'))return respond({grant:chosen,manifest});
     if(route.endsWith('/objects'))return respond({changes:[{objectId:object.objectId,revision:object.revision,sequence:object.sequence,deleted:object.deleted,available}],cursor:object.sequence,hasMore:false});
     return respond(object);
   };
@@ -113,6 +116,44 @@ test('a changed or unavailable source clears a pending staff correction instead 
   f.setHook(url=>new URL(url).pathname.endsWith('/synthetic-private-item')?f.respond({error:'Current sharing pending'},409):null);
   await assert.rejects(()=>f.vault.prepareReturnCorrection('synthetic-private-item',data),/awaiting/);assert.equal(f.vault.unlocked,false);assert.equal(f.vault.records.size,0);
 });
+test('staff originate both return families without an existing shared return, and only owner firm approvals are uploaded',async()=>{
+  const f=await fixture({staffAccountId:'workspace-owner',domain:'tax-document'});
+  for(const kind of ['1040','1065','1120S','1120']){
+    const after=newReturn(kind);after.party.name='SYNTHETIC PRIVATE STAFF ORIGINATION';after.party.taxId='000123456';if(after.entity)after.entity.receiptsCents=10000000;
+    const start=f.calls.length,kit=await f.vault.prepareNewReturn(after);assert.equal(kit.type,'shuug-private-return-creation-kit');assert.equal(kit.privateReview.before,null);assert.deepEqual(kit.privateReview.after,after);assert.equal(kit.expected.revision,1);assert.equal(kit.expected.domain,'tax-document');assert.notEqual(kit.expected.objectId,'synthetic-private-item');assert.equal(f.vault.records.size,0);
+    const preparation=f.calls.slice(start);assert(preparation.some(call=>new URL(call.url).pathname.endsWith('/scope')));assert(preparation.every(call=>call.options.method==='GET'&&!new URL(call.url).pathname.includes('/objects')));
+    const count=f.calls.length;await assert.rejects(()=>f.vault.installApprovedReturnCreation(kit));await assert.rejects(()=>f.vault.installApprovedReturnEdit(kit));assert.equal(f.calls.length,count);
+    const packet=await approveReturnCreation({proposal:kit.proposal,manifest:kit.manifest,grant:kit.grant,expected:kit.expected,reviewedCommitment:kit.proposal.reviewCommitment,reviewReference:'synthetic-originated-return-review',unlocked:f.unlocked});
+    f.setHook((url,options)=>url.endsWith('/return-creations')&&options.method==='POST'?f.respond({objectId:kit.proposal.objectId,revision:1,sequence:1,deleted:false,duplicate:false}):null);
+    assert.equal((await f.vault.installApprovedReturnCreation(packet)).revision,1);const sent=f.calls.at(-1).options.body;assert(!sent.includes('SYNTHETIC PRIVATE STAFF ORIGINATION'));assert(!sent.includes('000123456'));assert(!sent.includes(kit.privateReview.reviewSalt));
+  }
+  const persisted=JSON.stringify([...f.storage.bindings.values()]);assert(!persisted.includes('SYNTHETIC PRIVATE STAFF ORIGINATION'));assert(!persisted.includes('000123456'));
+  const staff=await fixture({domain:'tax-document'}),calls=staff.calls.length;await assert.rejects(()=>staff.vault.installApprovedReturnCreation({}),/Only the verified owner/);assert.equal(staff.calls.length,calls);
+});
+test('new return preparation refuses ungranted domains, bad enrollment and changed final authorization without taxpayer uploads',async()=>{
+  const narrow=await fixture(),input=newReturn('1120'),calls=narrow.calls.length;await assert.rejects(()=>narrow.vault.prepareNewReturn(input),/tax-document/);assert.equal(narrow.calls.length,calls);
+  const f=await fixture({domain:'tax-document'});await f.vault.sync();const changed=structuredClone(f.manifest);changed.clientId='another-client';f.setHook(url=>new URL(url).pathname.endsWith('/scope')?f.respond({grant:f.grant,manifest:changed}):null);
+  await assert.rejects(()=>f.vault.prepareNewReturn(input));assert.equal(f.vault.records.size,0);assert.equal(f.vault.unlocked,false);
+  f.setHook(null);await f.vault.unlock(f.staffKey.keyId);await f.vault.selectGrant(f.grant.grantId);f.setHook(url=>{if(new URL(url).pathname.endsWith('/scope'))f.setGrants([]);});
+  await assert.rejects(()=>f.vault.prepareNewReturn(input),/changed|unavailable|revoked/);assert.equal(f.vault.unlocked,false);assert(f.calls.filter(call=>!call.url.endsWith('/session')).every(call=>call.options.method==='GET'));
+});
+test('lock discards in-flight new return preparation without returning or uploading a private kit',async()=>{
+  const f=await fixture({domain:'tax-document'});let entered,release;const waiting=new Promise(resolve=>{entered=resolve;});
+  f.setHook(async url=>{if(new URL(url).pathname.endsWith('/scope')){entered();await new Promise(resolve=>{release=resolve;});}});
+  const pending=f.vault.prepareNewReturn(newReturn('1040'));await waiting;f.vault.lock();release();await assert.rejects(()=>pending,/changed/);assert.equal(f.vault.records.size,0);assert.equal(f.vault.unlocked,false);
+  assert.equal(f.calls.some(call=>call.url.endsWith('/return-creations')),false);
+});
+test('manifest floors from normal reads survive grant changes and concurrent higher observations cannot be overwritten',async()=>{
+  const f=await fixture({domain:'tax-document'}),request={version:1,workspaceId:f.config.workspaceId,accountId:f.scope.accountId,clientId:f.scope.clientId,client:f.manifest.client},manifest=await signEnrollmentRequest(request,f.unlocked,{epoch:2});
+  const capsule=await createStaffCapsule(f.envelope,manifest,f.grant,f.unlocked,{...f.scope,objectId:f.envelope.context.objectId,revision:1,domain:'tax-document'});
+  f.setObject({objectId:f.envelope.context.objectId,revision:1,sequence:1,deleted:false,envelope:f.envelope,manifest,capsule,grant:f.grant});await f.vault.sync();
+  const second=await signStaffGrant(f.grantRequest,f.unlocked,{grantId:'synthetic-second-return-grant',epoch:1,domains:['tax-document']});f.setGrants([second]);await f.vault.selectGrant(second.grantId);
+  await assert.rejects(()=>f.vault.prepareNewReturn(newReturn('1120')));assert.equal(f.vault.unlocked,false);
+  const stored=[...f.storage.bindings.values()].find(value=>value.id.startsWith('staff-manifest:'));assert.equal(stored.minimumManifestEpoch,2);
+  await f.vault.unlock(f.staffKey.keyId);await f.vault.selectGrant(second.grantId);f.setHook(url=>new URL(url).pathname.endsWith('/scope')?f.respond({grant:second,manifest}):null);
+  const update=f.storage.updateBinding.bind(f.storage);f.storage.updateBinding=async(id,mutate)=>{if(id.startsWith('staff-manifest:'))await f.storage.putBinding({id,minimumManifestEpoch:3});return update(id,mutate);};
+  await assert.rejects(()=>f.vault.prepareNewReturn(newReturn('1120')),/newer client enrollment/);assert.equal((await f.storage.getBinding(stored.id)).minimumManifestEpoch,3);assert.equal(f.vault.unlocked,false);
+});
 test('staff views are read-only, mask taxpayer IDs and only download explicitly requested files',async()=>{
   const dom=new JSDOM('<!doctype html><body></body>'),document=dom.window.document,downloaded=[];
   const records=new Map([['identity',{objectId:'identity',revision:1,domain:'tax-identity',plaintext:encode({version:1,type:'tax-identity',legalName:'<script>untrusted()</script>',ssn:'000123456'})}],['document',{objectId:'document',revision:1,domain:'tax-document',plaintext:encode({version:1,type:'private-file',filename:'../../synthetic.pdf',mime:'application/pdf',data:'U1lOVEhFVElD'})}]]);
@@ -124,7 +165,7 @@ test('staff artifact retains strict headers and excludes firm private-key toolin
   const directory=await mkdtemp(path.join(tmpdir(),'shuug-staff-artifact-'));
   try{
     await prepareBrowser({output:directory});const html=await readFile(path.join(directory,'staff.html'),'utf8'),files=await readdir(directory);
-    assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'self';/);assert(!html.includes('unsafe-inline'));assert(!files.includes('firm-staff.mjs'));assert(!files.includes('firm-recovery.mjs'));
+    assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'self';/);assert(!html.includes('unsafe-inline'));for(const file of ['firm-staff.mjs','firm-recovery.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs'])assert(!files.includes(file));
     const app=await readFile(path.join(directory,'browser/staff-app.mjs'),'utf8'),updates=await readFile(path.join(directory,'browser/staff-updates.mjs'),'utf8');assert(!app.includes('localStorage'));assert(!app.includes('innerHTML'));assert.match(app,/mountStaffUpdates/);assert.match(updates,/visibilitychange/);assert.match(updates,/pagehide/);assert.match(html,/No firm recovery or signing private key/);
   }finally{await rm(directory,{recursive:true,force:true});}
 });
@@ -202,7 +243,7 @@ test('the actual staff entrypoint wires updates and stays disabled without indep
     for(const [name,value]of Object.entries({window:dom.window,document:dom.window.document,location:dom.window.location})){saved.set(name,Object.getOwnPropertyDescriptor(globalThis,name));Object.defineProperty(globalThis,name,{configurable:true,writable:true,value});}
     await import('../browser/staff-app.mjs?synthetic-disabled-staff-updates-proof');
     assert(dom.window.document.querySelector('#staff-freshness'));assert.match(dom.window.document.querySelector('#message').textContent,/no independently supplied/);
-    for(const id of ['staff-email','staff-password','staff-signin','staff-sync'])assert.equal(dom.window.document.getElementById(id).disabled,true);
+    for(const id of ['staff-email','staff-password','staff-signin','staff-sync','staff-new-return','staff-publish-return-edit'])assert.equal(dom.window.document.getElementById(id).disabled,true);
     assert.equal(dom.window.document.querySelector('#staff-records').childElementCount,0);
   }finally{for(const [name,descriptor]of saved)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];dom.window.close();}
 });

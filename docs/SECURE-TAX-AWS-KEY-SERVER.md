@@ -232,6 +232,7 @@ attestation; they do not perform identity verification or two-person approval.
 | `grant` | `expectedPins`, `request`, `options: {epoch, domains}` | Signed active staff `grant` |
 | `share` | `expectedPins`, `envelope`, `manifest`, `grant`, `expected` | Signed read-only `capsule` |
 | `approve-return-edit` | `expectedPins`, `proposal`, `sourceEnvelope`, `manifest`, `grant`, `expected`, `reviewedCommitment`, `reviewReference` | `approvedReturnEdit: {approval,envelope,capsule}` |
+| `approve-return-create` | `expectedPins`, `proposal`, `manifest`, `grant`, `expected`, `reviewedCommitment`, `reviewReference` | `approvedReturnCreation: {approval,envelope,capsule}` |
 | `revoke` | `expectedPins`, `grant`, `epoch`, `archiveValidAt` | Signed `revoked` grant at the selected greater epoch |
 | `recover-device` | `expectedPins`, prior `grant`, new `request`, `epoch`, `envelope`, `manifest`, `expected`, `archiveValidAt` | New `grant`, new `capsule`, old `revoked` at prior epoch + 1 |
 
@@ -250,6 +251,12 @@ use `prepare-return-edit-job.mjs` to select only the opaque proposal/source and
 public metadata. Never upload that private review file or its readable values.
 The worker reconstructs the review commitment from authenticated encrypted
 content. See the [correction workflow](SHUUG_RETURN_CORRECTIONS_20261109.md).
+
+`approve-return-create` uses the same reviewed preparer fingerprint/reference
+and opaque-job rules, with no source envelope. Use `prepare-return-create-job.mjs`
+on the operator computer after reviewing the exact private new-return kit. The
+worker decrypts that proposal and verifies the salted reviewed draft commitment;
+the owner API independently checks that its target object ID is unused.
 
 For each job, while using the operator role:
 

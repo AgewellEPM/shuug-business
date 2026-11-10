@@ -33,6 +33,8 @@ import {newReturn,calculateReturn} from '../packages/tax-engine/index.mjs';
 import {generateDraftPdf} from '../packages/tax-engine/pdf.mjs';
 import {approveReturnEdit} from '../packages/secure-tax-client/firm-return-edits.mjs';
 import {privateReturnReviewCommitment} from '../packages/secure-tax-client/return-proposals.mjs';
+import {approveReturnCreation} from '../packages/secure-tax-client/firm-return-creations.mjs';
+import {privateReturnCreationReviewCommitment} from '../packages/secure-tax-client/return-creations.mjs';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import {JSDOM} from 'jsdom';
@@ -213,11 +215,16 @@ try{
     const input=newReturn(kind);Object.assign(input.party,{name:'Synthetic Return',taxId:'000123456',street:'1 Example St',city:'Hartford',state:'CT',zip:'06103'});input.notes=marker;for(const key of Object.keys(input.review))input.review[key]=true;
     if(input.individual)input.individual.w2s=[{id:randomUUID(),owner:'taxpayer',employer:'Synthetic employer',wagesCents:5000000,socialSecurityWagesCents:5000000,medicareWagesCents:5000000,federalWithholdingCents:500000}];
     else{Object.assign(input.entity,{businessName:'Synthetic business',businessCode:'541219',receiptsCents:10000000});if(kind!=='1120')input.entity.owners=[{id:'owner-a',name:'Synthetic Owner A',taxId:'000111111',shareBps:5000},{id:'owner-b',name:'Synthetic Owner B',taxId:'000222222',shareBps:5000}];}
-    const receipt=await saveReturn(remote,input);await portal.sync();const opened=JSON.parse(new TextDecoder().decode(portal.records.get(receipt.objectId).plaintext));assert.deepEqual(opened,input);checks++;
-    const object=await json(`/objects/${receipt.objectId}`,{token:tokens.get('portal-remote')});await owner.client.installCapsule(await createStaffCapsule(object.envelope,manifest,portalGrant,firm,expected(portalGrant,{context:object.envelope.context})));
+    const creationKit=await afterRestore.client.prepareNewReturn(input);assert.equal(creationKit.privateReview.before,null);assert.equal(await privateReturnCreationReviewCommitment(creationKit.privateReview),creationKit.proposal.reviewCommitment);checks++;
+    const creationPacket=await approveReturnCreation({proposal:creationKit.proposal,manifest:creationKit.manifest,grant:creationKit.grant,expected:creationKit.expected,reviewedCommitment:creationKit.proposal.reviewCommitment,reviewReference:'synthetic-reviewed-initial-return',unlocked:firm});
+    const beforePrivate=staffApiRequests;await assert.rejects(()=>owner.client.installApprovedReturnCreation(creationKit));assert.equal(staffApiRequests,beforePrivate);checks++;
+    await json('/staff/return-creations',{token:tokens.get('after-restore'),method:'POST',body:creationPacket},403);
+    const receipt=await owner.client.installApprovedReturnCreation(creationPacket);assert.equal(receipt.duplicate,false);assert.equal((await owner.client.installApprovedReturnCreation(creationPacket)).duplicate,true);checks++;
+    await portal.sync();const opened=JSON.parse(new TextDecoder().decode(portal.records.get(receipt.objectId).plaintext));assert.deepEqual(opened,input);checks++;
+    const object=await json(`/objects/${receipt.objectId}`,{token:tokens.get('portal-remote')});assert.equal(object.envelope.author.role,'firm-recovery');assert.equal(object.envelope.context.revision,1);
     taxReturns.push({kind,objectId:receipt.objectId,input});
   }
-  assert.equal((await afterRestore.client.sync()).items,11);checks++;
+  assert.equal((await afterRestore.client.sync()).items,11);await remote.sync();checks++;
   const exported=[];
   for(const saved of taxReturns){const input=JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(saved.objectId).plaintext));assert.deepEqual(input,saved.input);const packet=await generateDraftPdf(input,{loadTemplate:id=>new Uint8Array(readFileSync(`packages/tax-engine/forms/2025/${id}.pdf`))});assert(packet.bytes.length>1000);assert.equal(packet.result.filingReady,false);exported.push({kind:saved.kind,formCopies:packet.audit.length,bytes:packet.bytes.length});packet.bytes.fill(0);checks++;}
   const corrected=taxReturns.find(item=>item.kind==='1120');corrected.input.entity.receiptsCents=20000000;await saveReturn(remote,corrected.input,corrected.objectId);
@@ -233,7 +240,7 @@ try{
   await portal.sync();assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(portal.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;
   const staffCorrection=await json(`/objects/${corrected.objectId}`,{token:tokens.get('portal-remote')});assert.equal(staffCorrection.envelope.author.role,'firm-recovery');
   assert.equal((await afterRestore.client.sync()).items,11);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;corrected.input=staffInput;
-  returnProof={year:2025,kinds:taxReturns.map(item=>item.kind),encryptedSaveClientReopenStaffRead:true,exported,unsharedRevisionClearsStaffView:true,correctedClientInputVisibleAfterSharing:true,staffReturnCorrectionProposalVerified:true,privateReviewRefusedBeforeUpload:true,ownerMfaAndFirmApprovalPublicationVerified:true,clientSeesApprovedStaffCorrection:true,approvedRevisionSharedAtomically:true,staffDirectWritesEnabled:false,productionFilingPerformed:false};
+  returnProof={year:2025,kinds:taxReturns.map(item=>item.kind),staffOriginatedKinds:taxReturns.map(item=>item.kind),initialReturnRequiresFirmApproval:true,initialPrivateReviewRefusedBeforeUpload:true,initialRevisionSharedAtomically:true,encryptedSaveClientReopenStaffRead:true,exported,unsharedRevisionClearsStaffView:true,correctedClientInputVisibleAfterSharing:true,staffReturnCorrectionProposalVerified:true,privateReviewRefusedBeforeUpload:true,ownerMfaAndFirmApprovalPublicationVerified:true,clientSeesApprovedStaffCorrection:true,approvedRevisionSharedAtomically:true,staffDirectWritesEnabled:false,productionFilingPerformed:false};
   const removed=await saveReturn(remote,corrected.input);await remote.remove(removed.objectId);
   const tombstone=await json(`/objects/${removed.objectId}`,{token:tokens.get('portal-remote')});assert.equal(tombstone.deleted,true);
   const resurrectionContext={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:removed.objectId,revision:tombstone.revision+1,domain:'tax-document'},resurrection=await sealEnvelope(new TextEncoder().encode(JSON.stringify(corrected.input)),resurrectionContext,recipients,'client',clientKey.privateKey);
