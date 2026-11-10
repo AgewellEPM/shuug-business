@@ -1,6 +1,7 @@
 import { decode64, DOMAINS } from '../envelope.mjs';
 import { maskedDisplay } from './forms.mjs';
 import { journalSections, renderJournal } from './journal-view.mjs';
+import { renderPortalDashboard } from './client-portal-view.mjs';
 
 export const STAFF_LABELS=Object.freeze({'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses','driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'});
 const parse=item=>{try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(item.plaintext));}catch{return null;}};
@@ -10,6 +11,7 @@ const filename=value=>typeof value==='string'?value.replace(/[\x00-\x1f\x7f/\\]/
  * view only after its explicit download button invokes the trusted callback. */
 export function renderStaffRecords(document,records,binding,{download=()=>{},run=operation=>operation()}={}){
   const container=document.createElement('div');
+  if(records.size){const summary=document.createElement('section'),heading=document.createElement('h2');summary.className='staff-business-summary';heading.textContent='Shared business records';summary.append(heading,renderPortalDashboard(document,records,{staff:true}));container.append(summary);}
   for(const domain of DOMAINS){
     const items=[...records.values()].filter(item=>item.domain===domain);if(!items.length)continue;
     const section=document.createElement('details'),heading=document.createElement('summary');section.className='area';heading.textContent=`${STAFF_LABELS[domain]} · ${items.length}`;section.append(heading);

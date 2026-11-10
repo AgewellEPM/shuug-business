@@ -1,0 +1,60 @@
+{
+  "ok": true,
+  "checks": 62,
+  "buildId": "9h_nkSWkgyo230eSQ0qzW",
+  "syntheticWorkspace": true,
+  "freshClientHadNoLegacyBooks": true,
+  "mandatoryStaffMfaVerifiedWithGlobalFlagOff": true,
+  "originalV2ClientEnvelopesPreserved": true,
+  "staffOpenedProtectedBooksAndDocumentBytes": true,
+  "encryptedDeviceBackupRecovered": true,
+  "newDeviceGrantedAfterOriginalRevocation": true,
+  "oldDeviceCannotOpenReplacementCapsules": true,
+  "newProcessFirmRecoveryCliVerified": true,
+  "staleRevisionFailsClosed": true,
+  "restoredDataAndRevocationVerified": true,
+  "backupFiles": 6,
+  "copiedHostPlaintextMarkerAbsent": true,
+  "portal": {
+    "multiFileUploads": 3,
+    "exactBytesOpened": true,
+    "lostReceiptRetryUsesSameCiphertext": true,
+    "encryptedPendingQueueRestored": true,
+    "localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts": true,
+    "authorizedClientRefreshVerified": true,
+    "staffSeesFilesAfterSignedSharing": true,
+    "automaticStaffRefreshAndSharedSummaryVerified": true,
+    "unsharedNewItemClearsStaffView": true,
+    "approvedRevisionRefreshVerified": true,
+    "pageExitClearsStaffView": true,
+    "cleanRestoreVerified": true,
+    "restoreFiles": 6,
+    "instantPushVerified": false,
+    "staffEditingImplemented": false
+  },
+  "realOffhostCustodyVerified": false,
+  "publicTlsVerified": false,
+  "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture",
+  "realClientDataUsed": false,
+  "installedServiceChanged": false,
+  "checkedAt": "2026-11-10T02:44:54.472Z",
+  "sourceHashes": {
+    "packages/secure-tax-client/browser/staff-updates.mjs": "f83150f17a8552ac1e941aa41e585a02d978ec8271eca7db701c4e8bba64aabe",
+    "packages/secure-tax-client/browser/staff-app.mjs": "85eb6ec452ab287585c5758cc56ccd4f8adef1df739d061e5d0e2e8acb98449c",
+    "packages/secure-tax-client/browser/staff-view.mjs": "a63245cfa61ab7c09cacba08e02b5728479f6ea95da6a017270786cea1468a7b",
+    "packages/secure-tax-client/browser/client-portal-view.mjs": "5764acd0506aae14f459e6ff83ad8aae85e03041dc641bd0d92c0f75a507a9f8",
+    "packages/secure-tax-client/browser/style.css": "853b409879403369b230a8bc8650c9cbffb70ad5c6abe2c6896cecbe7dd78e7a",
+    "packages/secure-tax-client/prepare-browser.mjs": "16975bae6b0f8f498f1f1fedb0dc97137015318fa6dd8f10b35b5df7e1a76016",
+    "scripts/secure-staff-http-check.mjs": "438876edb58f7ca94ea01bff711aed4ce8c841078d9ccc6c2bc489de4264c6f4"
+  },
+  "browserArtifact": {
+    "output": "/Users/lukekist/BuildCache/GigTaxProsStaffSync-20261109-RgXFp9/final-trusted-client",
+    "configured": false,
+    "activationAvailable": false
+  },
+  "unitChecks": {
+    "passed": 54,
+    "skipped": 1,
+    "nativeJournalInteropFixtureProvided": false
+  }
+}

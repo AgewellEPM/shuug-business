@@ -27,6 +27,8 @@ import {openStaffCapsule} from '../packages/secure-tax-client/staff-grants.mjs';
 import {StaffVaultClient} from '../packages/secure-tax-client/browser/staff-client.mjs';
 import {VaultClient} from '../packages/secure-tax-client/browser/client.mjs';
 import {PortalUploadQueue,PortalRefresh,portalSnapshot} from '../packages/secure-tax-client/browser/client-portal.mjs';
+import {mountStaffUpdates} from '../packages/secure-tax-client/browser/staff-updates.mjs';
+import {JSDOM} from 'jsdom';
 
 class MemoryKeys {
   keys=new Map();bindings=new Map();
@@ -182,9 +184,24 @@ try{
   for(const object of [...objects,...uploaded])await owner.client.installCapsule(await createStaffCapsule(object.envelope,manifest,portalGrant,firm,expected(portalGrant,object)));
   await afterRestore.client.selectGrant(portalGrant.grantId);assert.equal((await afterRestore.client.sync()).items,6);
   for(const object of uploaded)assert.deepEqual(afterRestore.client.records.get(object.context.objectId).plaintext,object.bytes);checks++;
+  const staffDom=new JSDOM('<!doctype html><body><section id="shared-records"></section></body>'),staffDocument=staffDom.window.document,sharedRecords=staffDocument.querySelector('#shared-records');
+  Object.defineProperty(staffDocument,'hidden',{value:false,configurable:true});let staffWorking=false,staffView=0;
+  const staffUpdates=mountStaffUpdates(staffDocument,sharedRecords,{getClient:()=>afterRestore.client,isWorking:()=>staffWorking,setWorking:value=>{staffWorking=value;},captureScope:()=>staffView,isCurrentScope:value=>value===staffView,onLocked:()=>{staffView++;staffUpdates.clear();},timers:{setTimer:()=>1,clearTimer:()=>{}}});
+  try{
+    assert.equal(await staffUpdates.check(),true);assert.match(sharedRecords.textContent,/Shared business records/);checks++;
+    const incomeBytes=cents=>new TextEncoder().encode(JSON.stringify({version:1,type:'driver-record',record:{kind:'income',body:{amountCents:cents,currency:'USD',description:marker}}}));
+    const income=await remote.save('driver-record',incomeBytes(7777));await portal.sync();assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,7777);checks++;
+    assert.equal(await staffUpdates.poller.tick(),false);assert.equal(sharedRecords.childElementCount,0);assert.equal(afterRestore.client.unlocked,false);checks++;
+    async function shareIncome(){const current=await json(`/objects/${income.objectId}`,{token:tokens.get('portal-remote')});await owner.client.installCapsule(await createStaffCapsule(current.envelope,manifest,portalGrant,firm,expected(portalGrant,{context:current.envelope.context})));}
+    await shareIncome();await afterRestore.client.unlock(newDevice.keyId);await afterRestore.client.selectGrant(portalGrant.grantId);
+    assert.equal(await staffUpdates.check(),true);assert.match(sharedRecords.textContent,/entered income 77\.77/);assert.match(sharedRecords.textContent,/not automatically posted receivables/);checks++;
+    await remote.save('driver-record',incomeBytes(9900),income.objectId);await shareIncome();assert.equal(await staffUpdates.poller.tick(),true);assert.match(sharedRecords.textContent,/entered income 99\.00/);assert(!sharedRecords.textContent.includes('77.77'));checks++;
+    staffDom.window.dispatchEvent(new staffDom.window.Event('pagehide'));assert.equal(sharedRecords.childElementCount,0);assert.equal(afterRestore.client.records.size,0);assert.equal(afterRestore.client.unlocked,false);checks++;
+    await afterRestore.client.unlock(newDevice.keyId);await afterRestore.client.selectGrant(portalGrant.grantId);
+  }finally{staffUpdates.destroy();staffDom.window.close();}
   await stop(child);child=null;const portalBackup=backupWorkspace(restored,path.join(root,'portal-backup')),portalRestored=path.join(root,'portal-restored');restoreWorkspace(path.join(root,'portal-backup'),portalRestored);
-  env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,7);
-  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal((await afterRestore.client.sync()).items,6);checks++;
+  env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,8);
+  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,9900);assert.equal((await afterRestore.client.sync()).items,7);checks++;
   portal.lock();assert.equal(portal.records.size,0);assert.equal(queue.clear().unpreparedDiscarded,0);retriedQueue.clear();remote.lock();checks++;
   await stop(child);child=null;
   function hostFiles(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?hostFiles(path.join(dir,entry.name)):[path.join(dir,entry.name)]);}
@@ -194,7 +211,7 @@ try{
   console.log(JSON.stringify({ok:true,checks,buildId:readFileSync('.next/BUILD_ID','utf8').trim(),syntheticWorkspace:true,freshClientHadNoLegacyBooks:true,mandatoryStaffMfaVerifiedWithGlobalFlagOff:true,
     originalV2ClientEnvelopesPreserved:true,staffOpenedProtectedBooksAndDocumentBytes:true,encryptedDeviceBackupRecovered:true,newDeviceGrantedAfterOriginalRevocation:true,
     oldDeviceCannotOpenReplacementCapsules:true,newProcessFirmRecoveryCliVerified:true,staleRevisionFailsClosed:true,restoredDataAndRevocationVerified:true,backupFiles:copied.files,copiedHostPlaintextMarkerAbsent:true,
-    portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffEditingImplemented:false},
+    portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,automaticStaffRefreshAndSharedSummaryVerified:true,unsharedNewItemClearsStaffView:true,approvedRevisionRefreshVerified:true,pageExitClearsStaffView:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffEditingImplemented:false},
     realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
 }catch(error){console.error('Owned fixture diagnostics:\n'+log);throw error;}
 finally{await stop(child);rmSync(root,{recursive:true,force:true});}

@@ -54,6 +54,42 @@ Detailed source hashes and limits are in
 
 ## Remaining work
 
+### Current staff synchronization milestone — November 9
+
+The independent staff reader now checks its selected signed client scope every
+60 seconds while visible, unlocked and idle, or on the existing refresh button.
+It uses the original complete read protocol and final grant recheck; no staff
+write privilege or crypto format changed. Changed records still require new
+signed sharing capsules. A missing capsule, withdrawn/revoked access or read
+failure clears opened records and the summary rather than displaying old data
+as current. Tab hiding/page exit locks the key and clears the view; late reads
+cannot populate a different scope. There are no overlapping automatic reads.
+
+Staff and clients now share the same record-count and exact-currency summary
+renderer. The staff view explicitly describes its signed scope as potentially
+partial. Invoice files, bank/provider facts and native snapshots do not become
+ledger income, receivables or payment balances. This is a read synchronization
+milestone; it does not post financial entries into the firm's books.
+
+Across the client, portal and staff browser suites, 54 checks pass; one optional
+native-Journal ciphertext fixture was not supplied and remains skipped. The
+actual disabled staff entrypoint, assembled module imports, scope changes,
+malformed decrypted views and authenticator tab switching are covered. Exact
+source hashes and the final artifact location are recorded in
+`verification/staff-client-sync-20261109.json`.
+
+The compiled backend fixture passes 62 checks, including client uploads, a new
+unshared income record clearing the staff view, offhost-approved sharing, an
+approved revision refreshing the visible amount, page-exit clearing, and a
+stopped-writer backup/fresh-process restore. The server used the unchanged
+`9h_nkSWkgyo230eSQ0qzW` backend build and new browser modules from source. No real
+client data, account activation, payment or installed-service update occurred.
+The assembled independent browser artifact includes the new module and keeps
+its strict CSP and offhost-tool exclusions. Public TLS, Safari/device behavior
+and human visual acceptance remain unverified. Automatic staff checks currently
+repeat the bounded complete signed read; an incremental staff protocol is not
+claimed.
+
 Real client use still needs independent trusted-client deployment, signed key
 enrollment and the separate recovery/signing service. Staff must receive signed
 sharing capsules before opening new uploads. Their current encrypted interface
@@ -66,3 +102,6 @@ setup and live payment verification, remain required. The separate running offic
 service was preserved; this implementation has not been promoted into it. Tax
 calculations, filing-ready forms and federal/state transmission remain required
 for the full filing product.
+
+Luke explicitly deferred payment activation on November 9. Keep Stripe/payment
+connection work pending until he changes that instruction.

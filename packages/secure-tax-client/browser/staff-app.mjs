@@ -1,13 +1,13 @@
 import trustedConfig from './trusted-config.mjs';
 import { StaffVaultClient } from './staff-client.mjs';
-import { renderStaffRecords } from './staff-view.mjs';
+import { mountStaffUpdates } from './staff-updates.mjs';
 
 const $=id=>document.getElementById(id);
-let client,working=false,viewGeneration=0;
+let client,updates,working=false,viewGeneration=0;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 const downloadJson=(name,value)=>download(name,JSON.stringify(value,null,2));
-function clear(){viewGeneration++;$('staff-records').replaceChildren();$('staff-scope').textContent='';$('staff-mfa-code').value='';$('staff-mfa-secret').textContent='';$('staff-recovery-values').textContent='';$('staff-recovery-codes').hidden=true;}
+function clear(){viewGeneration++;updates?.clear();$('staff-records').replaceChildren();$('staff-scope').textContent='';$('staff-mfa-code').value='';$('staff-mfa-secret').textContent='';$('staff-recovery-values').textContent='';$('staff-recovery-codes').hidden=true;}
 function refresh(){
   const ready=!!client,pending=client?.pendingMfa,unlocked=client?.unlocked,signed=!!client?.identity;
   for(const name of ['staff-email','staff-password','staff-signin','staff-create','staff-import-key','staff-key-backup'])$(name).disabled=!ready||working;
@@ -21,12 +21,14 @@ function refresh(){
   $('staff-fingerprint').textContent=unlocked?`Unlocked device key fingerprint: ${client.keyId}`:'No device key unlocked.';
   $('staff-owner').hidden=!client?.isOwner;
   for(const name of ['staff-publish-grant','staff-publish-capsules','staff-withdraw'])$(name).disabled=!client?.isOwner||working;
+  updates?.activate();
 }
 async function run(operation){if(working)return;working=true;refresh();try{await operation();}catch(error){message(error instanceof Error?error.message:'The staff operation failed.',true);}finally{working=false;if(!client?.unlocked&&$('staff-records').childElementCount)clear();refresh();}}
 async function keys(selected){const values=await client.keys();$('staff-key').replaceChildren();for(const key of values){const option=document.createElement('option');option.value=key.keyId;option.textContent=`Staff device ${key.keyId.slice(0,16)}…`;$('staff-key').append(option);}if(!values.length){const option=document.createElement('option');option.value='';option.textContent='No staff device key';$('staff-key').append(option);}if(selected)$('staff-key').value=selected;refresh();}
 async function jsonFile(file){if(!file||file.size>65536)throw new Error('Choose a public or encrypted JSON file smaller than 64 KiB.');try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}}
 async function grantChoices(){const grants=await client.refreshGrants();$('staff-grant').replaceChildren();const blank=document.createElement('option');blank.value='';blank.textContent='Choose a verified client scope';$('staff-grant').append(blank);for(const grant of grants){const option=document.createElement('option');option.value=grant.grantId;option.textContent=`Client ${grant.clientId} · ${grant.domains.join(', ')} · epoch ${grant.epoch}`;$('staff-grant').append(option);}if(!grants.length)message('No active signed grants for this device. Ask the firm to review your public request.');}
 function signedIn(result){if(result.mfaRequired){message('Complete authenticator verification to access staff grants.');return;}if(result.recoveryCodes?.length){$('staff-recovery-values').textContent=result.recoveryCodes.join('\n');$('staff-recovery-codes').hidden=false;}message('Staff sign-in verified. Unlock your device key to check signed client access.');}
+updates=mountStaffUpdates(document,$('staff-records'),{getClient:()=>client,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls:refresh,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onLocked:clear,onMessage:message,download,run});
 $('staff-signin').addEventListener('click',()=>run(async()=>{clear();const password=$('staff-password').value;$('staff-password').value='';signedIn(await client.signIn($('staff-email').value,password));}));
 $('staff-verify').addEventListener('click',()=>run(async()=>{const code=$('staff-mfa-code').value;$('staff-mfa-code').value='';signedIn(await client.verifySignIn(code));}));
 $('staff-codes-saved').addEventListener('click',()=>{$('staff-recovery-values').textContent='';$('staff-recovery-codes').hidden=true;});
@@ -41,9 +43,8 @@ $('staff-request').addEventListener('click',()=>run(async()=>{downloadJson('publ
 $('staff-check-notice').addEventListener('click',()=>run(async()=>{const checked=await client.stageGrant(await jsonFile($('staff-signed-notice').files?.[0]));$('staff-signed-notice').value='';clear();message(`Signed ${checked.status} notice verified at epoch ${checked.epoch} and remembered locally. This does not publish or activate API access.`);}));
 $('staff-refresh-grants').addEventListener('click',()=>run(async()=>{clear();await grantChoices();message('Current signed grants verified against the independently installed firm pin.');}));
 $('staff-grant').addEventListener('change',()=>run(async()=>{clear();if(!$('staff-grant').value){client.lock();return;}const grant=await client.selectGrant($('staff-grant').value);$('staff-scope').textContent=`Read-only client ${grant.clientId}; allowed areas: ${grant.domains.join(', ')}. Grant ${grant.grantId}, epoch ${grant.epoch}.`;message('Signed client scope selected. Open its current encrypted revisions.');}));
-$('staff-sync').addEventListener('click',()=>run(async()=>{const generation=viewGeneration,result=await client.sync();if(generation!==viewGeneration)return;const grant=client.selectedGrant;$('staff-records').replaceChildren(renderStaffRecords(document,client.records,{workspaceId:client.config.workspaceId,accountId:grant.accountId,clientId:grant.clientId},{download,run}));message(`${result.items} current encrypted items opened locally for the verified read grant.`);}));
+$('staff-sync').addEventListener('click',()=>{void updates.check();});
 $('staff-publish-grant').addEventListener('click',()=>run(async()=>{const grant=await jsonFile($('staff-grant-file').files?.[0]);if(!confirm(`Publish this independently signed ${grant.status} read grant for staff ${grant.staffAccountId}, client ${grant.clientId}, key ${grant.staff?.keyId}, epoch ${grant.epoch}?`))return;await client.installGrant(grant);$('staff-grant-file').value='';message('Signed public grant verified and owner approval recorded. No private key or plaintext was sent.');}));
 $('staff-publish-capsules').addEventListener('click',()=>run(async()=>{const files=[...($('staff-capsule-files').files??[])];if(!files.length||files.length>500)throw new Error('Choose between one and 500 signed capsule files.');let count=0;for(const file of files){await client.installCapsule(await jsonFile(file));count++;}$('staff-capsule-files').value='';message(`${count} separately signed object capsules published. Only the matching staff device can open their current source ciphertext.`);}));
 $('staff-withdraw').addEventListener('click',()=>run(async()=>{const grantId=$('staff-withdraw-id').value.trim(),epoch=Number($('staff-withdraw-epoch').value);if(!confirm(`Withdraw owner approval for grant ${grantId} at epoch ${epoch}? Previously downloaded copies cannot be erased.`))return;await client.withdrawGrant(grantId,epoch);client.lock();clear();message('Owner approval withdrawn. New access needs a newer signed grant and fresh owner approval.');}));
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&client?.unlocked){client.lock();clear();refresh();message('Staff view locked after leaving this tab. Unlock the device again.');}});
 try{client=await StaffVaultClient.create(trustedConfig,location.origin);$('trust').textContent=`Independent staff client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public signing and recovery pins were installed with this client.`;await keys();message('Independent configuration verified. Sign in with staff MFA to begin.');}catch(error){message(error.message,true);}

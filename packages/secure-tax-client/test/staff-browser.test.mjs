@@ -10,6 +10,8 @@ import { signStaffGrant, createStaffCapsule, revokeStaffGrant } from '../firm-st
 import { StaffVaultClient } from '../browser/staff-client.mjs';
 import { createClientKey, BrowserKeyStore } from '../browser/custody.mjs';
 import { renderStaffRecords } from '../browser/staff-view.mjs';
+import { mountStaffUpdates } from '../browser/staff-updates.mjs';
+import { renderPortalDashboard } from '../browser/client-portal-view.mjs';
 import { prepareBrowser } from '../prepare-browser.mjs';
 
 const encode=value=>new TextEncoder().encode(JSON.stringify(value));
@@ -107,14 +109,86 @@ test('staff artifact retains strict headers and excludes firm private-key toolin
   try{
     await prepareBrowser({output:directory});const html=await readFile(path.join(directory,'staff.html'),'utf8'),files=await readdir(directory);
     assert.match(html,/\.\/browser\/staff-app.mjs/);assert.match(html,/connect-src 'none'/);assert(!html.includes('unsafe-inline'));assert(!files.includes('firm-staff.mjs'));assert(!files.includes('firm-recovery.mjs'));
-    const app=await readFile(path.join(directory,'browser/staff-app.mjs'),'utf8');assert(!app.includes('localStorage'));assert(!app.includes('innerHTML'));assert.match(app,/visibilitychange/);assert.match(html,/No firm recovery or signing private key/);
+    const app=await readFile(path.join(directory,'browser/staff-app.mjs'),'utf8'),updates=await readFile(path.join(directory,'browser/staff-updates.mjs'),'utf8');assert(!app.includes('localStorage'));assert(!app.includes('innerHTML'));assert.match(app,/mountStaffUpdates/);assert.match(updates,/visibilitychange/);assert.match(updates,/pagehide/);assert.match(html,/No firm recovery or signing private key/);
   }finally{await rm(directory,{recursive:true,force:true});}
+});
+test('staff and client summaries use the same recorded amounts within the selected read scope',()=>{
+  const dom=new JSDOM('<!doctype html><body></body>'),document=dom.window.document;
+  try{
+    const records=new Map([
+      ['income',{objectId:'income',revision:1,domain:'driver-record',plaintext:encode({version:1,type:'driver-record',record:{kind:'income',body:{amountCents:12345,currency:'USD'}}})}],
+      ['expense',{objectId:'expense',revision:1,domain:'driver-record',plaintext:encode({version:1,type:'driver-record',record:{kind:'expense',body:{amountCents:2345,currency:'USD'}}})}],
+      ['invoice',{objectId:'invoice',revision:1,domain:'tax-document',plaintext:encode({version:1,type:'private-file',filename:'SYNTHETIC invoice.pdf',purpose:'invoice',byteLength:100})}],
+    ]);
+    const customer=renderPortalDashboard(document,records),staff=renderStaffRecords(document,records,{workspaceId:'synthetic',accountId:'account',clientId:'client'});
+    assert.deepEqual([...staff.querySelectorAll('.portal-card')].map(node=>node.textContent),[...customer.querySelectorAll('.portal-card')].map(node=>node.textContent));
+    assert.match(staff.textContent,/entered income 123\.45 · entered expenses 23\.45/);assert.match(staff.textContent,/only part of the client/);assert.match(staff.textContent,/not automatically posted receivables/);
+    assert.equal(staff.querySelectorAll('input,textarea,select').length,0);
+  }finally{dom.window.close();}
+});
+test('automatic staff refresh opens new signed revisions and clears summaries when fresh sharing is missing',async()=>{
+  const f=await fixture(),grant=await signStaffGrant(f.grantRequest,f.unlocked,{grantId:f.grant.grantId,epoch:2,domains:['driver-record']});
+  async function revision(number,cents){
+    const context={...f.envelope.context,domain:'driver-record',revision:number},plaintext=encode({version:1,type:'driver-record',record:{kind:'income',body:{amountCents:cents,currency:'USD',description:'SYNTHETIC shared business record'}}});
+    const envelope=await sealEnvelope(plaintext,context,{clientPublicKey:f.manifest.client.publicKey,firmRecoveryPublicKey:f.config.firmRecoveryPublicKey},'firm-recovery',f.unlocked.recovery);
+    const capsule=await createStaffCapsule(envelope,f.manifest,grant,f.unlocked,{...f.scope,objectId:context.objectId,revision:number,domain:context.domain});
+    f.setObject({objectId:context.objectId,revision:number,sequence:number,deleted:false,envelope,manifest:f.manifest,capsule,grant});
+  }
+  f.setGrants([grant]);await f.vault.selectGrant(grant.grantId);await revision(1,12345);
+  const dom=new JSDOM('<!doctype html><body><section id="records"></section></body>'),document=dom.window.document,target=document.querySelector('#records');
+  Object.defineProperty(document,'hidden',{configurable:true,value:false});let working=false,generation=0,timer,interval,clears=0;const messages=[];
+  const updates=mountStaffUpdates(document,target,{getClient:()=>f.vault,isWorking:()=>working,setWorking:value=>{working=value;},captureScope:()=>generation,isCurrentScope:value=>value===generation,onLocked:()=>{generation++;updates.clear();},onMessage:text=>messages.push(text),timers:{setTimer:(callback,delay)=>{timer=callback;interval=delay;return 1;},clearTimer:()=>{clears++;}}});
+  try{
+    assert.equal(await updates.check(),true);assert.equal(interval,60000);assert.equal(typeof timer,'function');assert.match(target.textContent,/entered income 123\.45/);assert(updates.poller.state.lastUpdated);
+    await revision(2,54321);assert.equal(await updates.poller.tick(),true);assert.match(target.textContent,/entered income 543\.21/);assert(!target.textContent.includes('123.45'));
+    working=true;const calls=f.calls.length;assert.equal(await updates.poller.tick(),false);assert.equal(f.calls.length,calls);working=false;
+    f.setAvailable(false);assert.equal(await updates.poller.tick(),false);assert.equal(target.childElementCount,0);assert.equal(f.vault.records.size,0);assert.equal(f.vault.unlocked,false);assert.equal(updates.poller.state.lastUpdated,null);assert(messages.some(text=>text.includes('awaiting')));assert(clears>0);
+  }finally{updates.destroy();f.vault.lock();dom.window.close();}
+});
+test('staff updates discard late reads on scope changes and lock on tab hiding or page exit',async()=>{
+  const f=await fixture(),dom=new JSDOM('<!doctype html><body><section id="records"></section></body>'),document=dom.window.document,target=document.querySelector('#records');
+  Object.defineProperty(document,'hidden',{configurable:true,value:false});let generation=0,working=false,release,entered;
+  const updates=mountStaffUpdates(document,target,{getClient:()=>f.vault,isWorking:()=>working,setWorking:value=>{working=value;},captureScope:()=>generation,isCurrentScope:value=>value===generation,onLocked:()=>{generation++;updates.clear();},timers:{setTimer:()=>1,clearTimer:()=>{}}});
+  try{
+    assert.equal(await updates.check(),true);assert(target.childElementCount>0);
+    const waiting=new Promise(resolve=>{entered=resolve;});f.setHook(async url=>{if(new URL(url).pathname.endsWith('/synthetic-private-item')){entered();await new Promise(resolve=>{release=resolve;});}});
+    const pending=updates.poller.tick();await waiting;generation++;f.vault.lock();updates.clear();release();assert.equal(await pending,false);assert.equal(target.childElementCount,0);
+    f.setHook(null);await f.vault.unlock(f.staffKey.keyId);await f.vault.selectGrant(f.grant.grantId);assert.equal(await updates.check(),true);
+    Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new dom.window.Event('visibilitychange'));assert.equal(target.childElementCount,0);assert.equal(f.vault.unlocked,false);assert.equal(updates.poller.state.lastUpdated,null);
+    Object.defineProperty(document,'hidden',{configurable:true,value:false});await f.vault.unlock(f.staffKey.keyId);await f.vault.selectGrant(f.grant.grantId);assert.equal(await updates.check(),true);
+    dom.window.dispatchEvent(new dom.window.Event('pagehide'));assert.equal(target.childElementCount,0);assert.equal(f.vault.unlocked,false);
+  }finally{updates.destroy();f.vault.lock();dom.window.close();}
+});
+test('a malformed decrypted client view locks and clears its staff reader',async()=>{
+  const f=await fixture(),payload=encode({version:1,type:'driver-journal',capturedAt:Date.now(),binding:{accountId:'a-different-client'},journal:{entries:[]}});
+  const envelope=await sealEnvelope(payload,f.envelope.context,{clientPublicKey:f.manifest.client.publicKey,firmRecoveryPublicKey:f.config.firmRecoveryPublicKey},'firm-recovery',f.unlocked.recovery);
+  const capsule=await createStaffCapsule(envelope,f.manifest,f.grant,f.unlocked,{...f.scope,objectId:envelope.context.objectId,revision:1,domain:envelope.context.domain});
+  f.setObject({objectId:envelope.context.objectId,revision:1,sequence:1,deleted:false,envelope,manifest:f.manifest,capsule,grant:f.grant});
+  const dom=new JSDOM('<!doctype html><body><section id="records"></section></body>'),document=dom.window.document,target=document.querySelector('#records');Object.defineProperty(document,'hidden',{value:false});
+  const updates=mountStaffUpdates(document,target,{getClient:()=>f.vault,timers:{setTimer:()=>1,clearTimer:()=>{}}});
+  try{assert.equal(await updates.check(),false);assert.equal(f.vault.records.size,0);assert.equal(f.vault.unlocked,false);assert.equal(target.childElementCount,0);}finally{updates.destroy();dom.window.close();}
+});
+test('switching to an authenticator while no staff key is unlocked preserves pending MFA',async()=>{
+  const f=await fixture();await f.vault.signIn('staff@example.invalid','Synthetic staff password');const challenge=f.vault.pendingMfa;assert(challenge);assert.equal(f.vault.unlocked,false);
+  const dom=new JSDOM('<!doctype html><body><section id="records"></section></body>'),document=dom.window.document;Object.defineProperty(document,'hidden',{value:true});let locked=0;
+  const updates=mountStaffUpdates(document,document.querySelector('#records'),{getClient:()=>f.vault,onLocked:()=>{locked++;},timers:{setTimer:()=>1,clearTimer:()=>{}}});
+  try{document.dispatchEvent(new dom.window.Event('visibilitychange'));assert.deepEqual(f.vault.pendingMfa,challenge);assert.equal(locked,0);assert.equal(f.vault.records.size,0);}finally{updates.destroy();dom.window.close();}
 });
 test('staff and customer browser custody use distinct supported IndexedDB namespaces',async()=>{
   const previous=globalThis.indexedDB,names=[];
   globalThis.indexedDB={open:(name)=>{names.push(name);const request={error:new Error('Synthetic stop after observing database name')};queueMicrotask(()=>request.onerror());return request;}};
   try{await assert.rejects(()=>new BrowserKeyStore().listKeys());await assert.rejects(()=>new BrowserKeyStore({databaseName:'shuug-secure-tax-staff-v1'}).listKeys());assert.deepEqual(names,['shuug-secure-tax-client-v1','shuug-secure-tax-staff-v1']);assert.throws(()=>new BrowserKeyStore({databaseName:'unreviewed-store'}));}
   finally{if(previous===undefined)delete globalThis.indexedDB;else globalThis.indexedDB=previous;}
+});
+test('the actual staff entrypoint wires updates and stays disabled without independent configuration',async()=>{
+  const html=await readFile(new URL('../browser/staff.html',import.meta.url),'utf8'),dom=new JSDOM(html,{url:'https://disabled-staff.example'}),saved=new Map();
+  try{
+    for(const [name,value]of Object.entries({window:dom.window,document:dom.window.document,location:dom.window.location})){saved.set(name,Object.getOwnPropertyDescriptor(globalThis,name));Object.defineProperty(globalThis,name,{configurable:true,writable:true,value});}
+    await import('../browser/staff-app.mjs?synthetic-disabled-staff-updates-proof');
+    assert(dom.window.document.querySelector('#staff-freshness'));assert.match(dom.window.document.querySelector('#message').textContent,/no independently supplied/);
+    for(const id of ['staff-email','staff-password','staff-signin','staff-sync'])assert.equal(dom.window.document.getElementById(id).disabled,true);
+    assert.equal(dom.window.document.querySelector('#staff-records').childElementCount,0);
+  }finally{for(const [name,descriptor]of saved)if(descriptor)Object.defineProperty(globalThis,name,descriptor);else delete globalThis[name];dom.window.close();}
 });
 test('opaque staff object IDs matching prototype names retain own revision entries',async()=>{
   for(const objectId of ['constructor','toString']){const f=await fixture({objectId});await f.vault.sync();assert.deepEqual(f.vault.records.get(objectId).plaintext,f.plaintext);await f.vault.sync();const binding=[...f.storage.bindings.values()].find(value=>value.versions&&Object.hasOwn(value.versions,objectId));assert(binding);assert.equal(binding.versions[objectId].revision,1);}

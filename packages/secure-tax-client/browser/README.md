@@ -161,7 +161,7 @@ The view shows last successful check and updates pending; network failures never
 become a fresh-success timestamp. It does not claim instant push delivery or
 accountant review. Actual enrollment, independently trusted delivery, Safari
 IndexedDB/CORS compatibility, full office-book/invoice integration and encrypted
-staff review/write synchronization remain acceptance gates. Activation is still
+staff write/review-state synchronization remain acceptance gates. Activation is still
 disabled for new accounts, and staff grants remain read-only.
 
 ## Encrypted staff reader and device recovery
@@ -189,6 +189,17 @@ customer envelopes and native interoperability remain unchanged. A current
 revision without a matching capsule is pending sharing, never a fallback to old
 content. Views are read-only: private files, masked JSON and native Journal
 groups can be opened or explicitly downloaded; object edits and filing are absent.
+
+The staff workspace now refreshes its selected signed read scope every 60
+seconds while unlocked, visible and idle. Its business summary uses the same
+record projection as the client portal and explicitly labels a potentially
+partial grant scope. Refresh performs the bounded complete staff read with the
+existing final authorization check; it does not claim incremental object fetching
+or push delivery. Missing fresh sharing, revoked access and sync failures clear
+the summary and opened records. Tab hiding and page exit lock the reader, and
+late responses cannot populate a different client view. No signed read grant is
+upgraded to write access, and no firm invoice balance or ledger post is inferred
+from an uploaded document.
 
 Switching clients/keys, sign-out, tab hiding, revoked access or sync failure clears
 opened memory and DOM references on a best-effort basis. A final grant check
