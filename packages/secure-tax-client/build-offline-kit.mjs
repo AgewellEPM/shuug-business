@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('.',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs'];
+const files=['envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs'];
 async function walk(directory,prefix=''){
   const result=[];
   for(const name of (await readdir(path.join(directory,prefix))).sort()){const relative=path.posix.join(prefix,name),info=await lstat(path.join(directory,relative));if(info.isSymbolicLink())throw new Error('Offline kit dependencies must be regular reviewed files.');if(info.isDirectory())result.push(...await walk(directory,relative));else if(info.isFile())result.push(relative);else throw new Error('Unsupported offline kit input.');}return result;
@@ -30,6 +30,16 @@ backups away from the app/data host. Distribute only the public pins, signed
 manifests/grants/capsules and revocations through verified channels. Never replace
 an existing firm's pins with newly generated keys. Existing outputs are not
 overwritten; all readable recovered objects remain private to this key computer.
+
+Staff corrections use a private before/after review kit. Review its actual fields
+on the trusted computer, record that exact file's SHA-256, then invoke
+return-edit-offline-cli.mjs with its explicit review/offhost flags, trusted pins,
+encrypted bundle and separate passphrase descriptor. Only the resulting signed
+encrypted approval is published through the owner's independent client.
+prepare-return-edit-job.mjs instead prepares an opaque cloud job from the same
+reviewed kit for the existing immutable-version/MFA operator workflow. It does
+not copy readable before/after values into that job. Neither command makes a
+read grant a direct client-write credential or certifies the tax calculation.
 
 Shuug also supplies a separately controlled cloud key-service deployment package.
 These are two supported custody options. They must preserve the chosen firm's

@@ -191,6 +191,17 @@ it("rechecks session revocation and missing pins and never falls back to plainte
   expect(() => listSecureTaxChanges(beta.token)).toThrow("disabled");
 });
 
+it("rejects a fresh authenticated ciphertext that targets a deleted object's exact current revision", async () => {
+  enrollSecureTax(alpha.token, manifest());
+  writeSecureTaxObject(alpha.token, "opaque-object", { mutationId: "create", expectedRevision: 0, envelope: envelope() });
+  deleteSecureTaxObject(alpha.token, "opaque-object", { expectedRevision: 1 });
+  const before = readSecureTaxObject(alpha.token, "opaque-object");
+  const response = await PUT(http("PUT", { mutationId: "new-after-delete", expectedRevision: 2, envelope: envelope(alpha, "opaque-object", 3) }), ctx());
+  expect(response.status).toBe(409);
+  expect(readSecureTaxObject(alpha.token, "opaque-object")).toEqual(before);
+  expect(workspaceDatabase(db => db.prepare("SELECT * FROM secure_tax_mutations WHERE accountId=?").all(alpha.id))).toEqual([]);
+});
+
 it("deletes the final accepted encrypted revision into a bounded tombstone and retries without resurrection", async () => {
   enrollSecureTax(alpha.token, manifest());
   writeSecureTaxObject(alpha.token, "opaque-object", { mutationId: "create", expectedRevision: 0, envelope: envelope() });

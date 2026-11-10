@@ -117,6 +117,14 @@ The cloud package remains a distinct deployment option, with its existing
 separate-account/MFA/runtime guards. Existing firms need an explicit migration
 design before switching custody; unrelated initialization creates different pins.
 
+`firm-return-edits.mjs` and the operator-only return-correction CLIs extend both
+custody paths. Preparers create an encrypted proposal and explicitly downloaded
+private before/after review kit; only the firm can approve the exact replacement.
+Owner MFA publication stores its ciphertext and fresh signed capsule atomically.
+The browser validates the public packet before upload and refuses private kits.
+Read grants remain read-only. See the
+[correction workflow](../../docs/SHUUG_RETURN_CORRECTIONS_20261109.md).
+
 `public-config.mjs --pins PUBLIC-ONLY.json --api-origin https://api.example
 --ui-origin https://client.example --output NEW-DIRECTORY` prepares consistent
 public-only files for the API environment, signed native resource and independent
@@ -130,7 +138,7 @@ its separately controlled channel after independently verifying fingerprints.
   nonrepudiation, rollback/history anchoring or protection after recipient-key
   compromise (see RFC9180 section9.1.1). Host-driven deletion is still possible.
 - Actual off-host master-key setup/custody, client/staff recovery activation,
-  encrypted office editing, broader rotation and trusted public-key distribution remain.
+  broader encrypted office editing, rotation and trusted public-key distribution remain.
 - Native/browser sync must select the secure path before sending plaintext;
   a server rejection after receiving plaintext does not meet host blindness.
 - Plaintext provider credentials or tokens on the API host can fetch fresh tax

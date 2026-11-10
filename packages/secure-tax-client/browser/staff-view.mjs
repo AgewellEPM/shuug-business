@@ -10,7 +10,7 @@ const filename=value=>typeof value==='string'?value.replace(/[\x00-\x1f\x7f/\\]/
 
 /** Read-only DOM. Data is rendered with textContent; a readable copy leaves this
  * view only after its explicit download button invokes the trusted callback. */
-export function renderStaffRecords(document,records,binding,{download=()=>{},run=operation=>operation()}={}){
+export function renderStaffRecords(document,records,binding,{download=()=>{},run=operation=>operation(),onReturnEdit=null}={}){
   const container=document.createElement('div');
   if(records.size){const summary=document.createElement('section'),heading=document.createElement('h2');summary.className='staff-business-summary';heading.textContent='Shared business records';summary.append(heading,renderPortalDashboard(document,records,{staff:true}));container.append(summary);}
   for(const domain of DOMAINS){
@@ -21,7 +21,7 @@ export function renderStaffRecords(document,records,binding,{download=()=>{},run
       title.textContent=typeof data?.title==='string'?data.title.slice(0,200):typeof data?.filename==='string'?data.filename.slice(0,200):STAFF_LABELS[domain];meta.textContent=`Item ${item.objectId} · revision ${item.revision}`;row.append(title,meta);
       const journal=journalSections(maskedDisplay(data),{...binding,objectId:item.objectId,domain:item.domain});
       const button=(text,action)=>{const node=document.createElement('button');node.type='button';node.className='secondary';node.textContent=text;node.addEventListener('click',()=>run(action));row.append(node);};
-      if(item.domain==='tax-document'&&isTaxReturn(data)){title.textContent=`${data.year} Form ${data.kind} draft`;row.append(renderReturn(document,data,{download,run,isCurrent:()=>container.isConnected&&!document.hidden}));}
+      if(item.domain==='tax-document'&&isTaxReturn(data)){title.textContent=`${data.year} Form ${data.kind} draft`;row.append(renderReturn(document,data,{download,run,isCurrent:()=>container.isConnected&&!document.hidden}));if(onReturnEdit)button('Propose return correction',()=>onReturnEdit(data,item.objectId));}
       else if(journal){title.textContent='Device Journal snapshot';row.append(renderJournal(document,journal));button('Download readable snapshot',()=>download(`${item.objectId}.journal.json`,item.plaintext,'application/json'));}
       else if(data?.version===1&&data.type==='private-file'&&typeof data.data==='string'){
         const note=document.createElement('p');note.textContent='Reviewed access to an encrypted attachment. Downloading creates a readable copy outside this vault.';row.append(note);

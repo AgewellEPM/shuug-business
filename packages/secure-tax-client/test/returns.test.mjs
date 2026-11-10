@@ -5,6 +5,7 @@ import { newReturn,calculateReturn } from '@shuug/tax-engine';
 import { mountReturnEditor } from '../browser/return-editor.mjs';
 import { renderStaffRecords } from '../browser/staff-view.mjs';
 import { maskedDisplay } from '../browser/forms.mjs';
+import {mountStaffUpdates} from '../browser/staff-updates.mjs';
 const dom=()=>new JSDOM('<!doctype html><body><main></main></body>',{pretendToBeVisual:true});
 function click(document,text){const button=[...document.querySelectorAll('button')].find(button=>button.textContent===text);assert(button,`Button ${text} exists`);button.click();}
 function fill(document,key,value){const input=document.querySelector(`[data-return-field="${key}"]`);assert(input,key);if(input.type==='checkbox')input.checked=value;else input.value=value;input.dispatchEvent(new document.defaultView.Event('input',{bubbles:true}));}
@@ -29,4 +30,13 @@ test('lock clears every identity/amount and scope changes discard pending comple
 test('staff return view calculates only shared input, hides IDs and never offers a client write',()=>{
   const view=dom(),document=view.window.document,input=newReturn('1120');input.party.name='<img src=x onerror=untrusted()>';input.party.taxId='000123456';input.entity.receiptsCents=10000000;const records=new Map([['return',{domain:'tax-document',objectId:'return',revision:2,plaintext:new TextEncoder().encode(JSON.stringify(input))}]]);document.body.append(renderStaffRecords(document,records,{workspaceId:'synthetic',accountId:'account',clientId:'client'}));
   assert.match(document.body.textContent,/21000.00 USD/);assert.equal(document.querySelectorAll('input,textarea,select,img,script').length,0);assert(!document.body.textContent.includes('000123456'));assert(!document.body.textContent.includes('Encrypt and save'));assert.deepEqual(maskedDisplay({taxId:'000123456',spouseTaxId:'000654321',ein:'123456789'}),{taxId:'•••-••-3456',spouseTaxId:'•••-••-4321',ein:'•••-••-6789'});view.window.close();
+});
+test('ordinary proposal forms keep return family fixed and pause staff refresh until saved or cleared',async()=>{
+  const view=dom(),document=view.window.document,root=document.querySelector('main'),target=document.createElement('div'),editorArea=document.createElement('div');root.append(target,editorArea);let editor,reads=0,operation,saved;
+  const input=newReturn('1120'),record={domain:'tax-document',objectId:'synthetic-return',revision:1,plaintext:new TextEncoder().encode(JSON.stringify(input))},client={identity:{staffAccountId:'synthetic'},unlocked:true,selectedGrant:{accountId:'synthetic-account',clientId:'synthetic-client'},config:{workspaceId:'synthetic'},records:new Map([[record.objectId,record]]),sync:async()=>{reads++;return {items:1};}};
+  const run=task=>{operation=task();return operation;};editor=mountReturnEditor(document,editorArea,{proposalOnly:true,run,confirm:()=>true,onSave:async value=>{saved=value;}});editor.setEnabled(true);
+  const updates=mountStaffUpdates(document,target,{getClient:()=>client,run,canRefresh:()=>!editor.dirty,onReturnEdit:(data,id)=>editor.edit(data,id),timers:{setTimer:()=>1,clearTimer:()=>{}}});
+  try{await updates.check();assert.equal(reads,1);click(document,'Propose return correction');await operation;assert.equal(editor.element.hidden,false);assert(document.getElementById('return-kind').disabled);assert.equal(await updates.check(),false);assert.equal(reads,1);fill(document,'receiptsCents','2000');click(document,'Save private correction review kit');await operation;assert.equal(saved.entity.receiptsCents,200000);assert.equal(editor.element.hidden,true);assert.equal(editor.dirty,false);await updates.check();assert.equal(reads,2);
+    click(document,'Propose return correction');await operation;fill(document,'receiptsCents','9999');click(document,'Discard correction');assert.equal(editor.dirty,false);assert.equal(editor.element.hidden,true);assert.equal(document.querySelector('[data-return-field="receiptsCents"]').value,'');await updates.check();assert.equal(reads,3);
+  }finally{updates.destroy();view.window.close();}
 });

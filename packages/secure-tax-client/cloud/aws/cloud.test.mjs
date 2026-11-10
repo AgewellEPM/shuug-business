@@ -11,6 +11,8 @@ import {validateTemplate} from './validate.mjs';
 import {buildArtifact} from './build-artifact.mjs';
 import {generateRecipientKeyPair,publicKeyId,sealEnvelope,openEnvelope} from '../../envelope.mjs';
 import {openStaffCapsule} from '../../staff-grants.mjs';
+import {prepareReturnProposal} from '../../return-proposals.mjs';
+import {newReturn} from '../../../tax-engine/index.mjs';
 const workspaceId='synthetic-aws-key-custody',config={workspaceId,keyAccountId:'111111111111',dataHostAccountId:'222222222222'};
 const context={invokedFunctionArn:'arn:aws:lambda:us-east-1:111111111111:function:synthetic-key-server:approved'};
 const utf8=new TextEncoder(),text=new TextDecoder(),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -25,7 +27,7 @@ class Provider{
   async encryptBundle(bytes,ctx){this.calls.push('encrypt');const nonce=randomBytes(12),ciphertext=await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:utf8.encode(JSON.stringify(ctx))},await this.key,bytes);return new Uint8Array(Buffer.concat([nonce,Buffer.from(ciphertext)]));}
   async decryptBundle(bytes,ctx){this.calls.push('decrypt');return new Uint8Array(await crypto.subtle.decrypt({name:'AES-GCM',iv:bytes.subarray(0,12),additionalData:utf8.encode(JSON.stringify(ctx))},await this.key,bytes.subarray(12)));}
 }
-function fixture(){const provider=new Provider(),handler=createHandler(provider,config);return {provider,handler,async run(operation,input,recipientKeyId=null){const job={version:1,jobId:crypto.randomUUID(),workspaceId,operation,approval:{reviewed:true,reviewReference:crypto.randomUUID(),recipientKeyId},input},bytes=utf8.encode(JSON.stringify(job)),event={version:1,jobId:job.jobId,jobVersionId:'synthetic-job-version',approvedSha256:sha(bytes)};provider.jobs.set(`${job.jobId}:${event.jobVersionId}`,bytes);const response=await handler(event,context);return {response,event,job,result:provider.results.get(job.jobId)?.result};}};}
+function fixture(){const provider=new Provider(),handler=createHandler(provider,config);return {provider,handler,async run(operation,input,recipientKeyId=null,reviewReference=crypto.randomUUID()){const job={version:1,jobId:crypto.randomUUID(),workspaceId,operation,approval:{reviewed:true,reviewReference,recipientKeyId},input},bytes=utf8.encode(JSON.stringify(job)),event={version:1,jobId:job.jobId,jobVersionId:'synthetic-job-version',approvedSha256:sha(bytes)};provider.jobs.set(`${job.jobId}:${event.jobVersionId}`,bytes);const response=await handler(event,context);return {response,event,job,result:provider.results.get(job.jobId)?.result};}};}
 test('template separates accounts, excludes the data host, requires MFA and has no public endpoint',()=>{
   const value=validateTemplate();assert.equal(value.ok,true);assert.equal(value.awsServiceValidationPerformed,false);
   const t=cloudFormation();assert.equal(t.Resources.Worker.Properties.RuntimeManagementConfig.UpdateRuntimeOn,'FunctionUpdate');
@@ -89,4 +91,17 @@ test('artifact creation is deterministic, pinned, non-overwriting and readable b
     const loaded=execFileSync(process.execPath,['--input-type=module','-e',`const m=await import(${JSON.stringify(new URL(`file://${path.join(dir,'extracted/cloud/aws/worker.mjs')}`).href)}); if(typeof m.createHandler!=='function')throw new Error('invalid packaged module'); console.log('packaged worker loaded');`],{encoding:'utf8'});
     assert.match(loaded,/packaged worker loaded/);
   }finally{rmSync(dir,{recursive:true,force:true});}
+});
+test('reviewed cloud correction binds decrypted original and proposed values without returning a readable review',async()=>{
+  const f=fixture(),pins=(await f.run('initialize',{})).result.publicPins,client=await generateRecipientKeyPair(),staff=await generateRecipientKeyPair();
+  const request={version:1,workspaceId,accountId:'synthetic-return-account',clientId:'synthetic-return-client',client:{keyId:await publicKeyId(client.publicKey),publicKey:client.publicKey}},manifest=(await f.run('enroll',{expectedPins:pins,request,epoch:1},request.client.keyId)).result.manifest;
+  const staffRequest={version:1,workspaceId,accountId:request.accountId,clientId:request.clientId,staffAccountId:'synthetic-preparer',staff:{keyId:await publicKeyId(staff.publicKey),publicKey:staff.publicKey}},grant=(await f.run('grant',{expectedPins:pins,request:staffRequest,options:{epoch:1,domains:['tax-document']}},staffRequest.staff.keyId)).result.grant;
+  const original=newReturn('1120');original.party.name='SYNTHETIC CLOUD RETURN PRIVATE';original.party.taxId='000123456';original.entity.receiptsCents=10000000;
+  const ctx={workspaceId,accountId:request.accountId,objectId:'synthetic-return',revision:1,domain:'tax-document'},recipients={clientPublicKey:client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey},envelope=await sealEnvelope(utf8.encode(JSON.stringify(original)),ctx,recipients,'client',client.privateKey),expected={accountId:request.accountId,clientId:request.clientId,staffAccountId:staffRequest.staffAccountId,staffKeyId:staffRequest.staff.keyId,objectId:ctx.objectId,revision:1,domain:ctx.domain};
+  const capsule=(await f.run('share',{expectedPins:pins,envelope,manifest,grant,expected},staffRequest.staff.keyId)).result.capsule,after=structuredClone(original);after.entity.receiptsCents=20000000;
+  const prepared=await prepareReturnProposal({envelope,manifest,grant,capsule,expected,pins,staffPrivateKey:staff.privateKey,after}),reviewReference='synthetic-cloud-reviewed',input={expectedPins:pins,proposal:prepared.proposal,sourceEnvelope:envelope,manifest,grant,expected,reviewedCommitment:prepared.proposal.reviewCommitment,reviewReference};
+  const approved=await f.run('approve-return-edit',input,staffRequest.staff.keyId,reviewReference);assert.equal(approved.response.ok,true);const packet=approved.result.approvedReturnEdit,opened=await openEnvelope(packet.envelope,{...ctx,revision:2},recipients,'client',client.privateKey);assert.deepEqual(JSON.parse(text.decode(opened)),after);opened.fill(0);
+  const publicData=JSON.stringify({job:approved.job,result:approved.result});assert(!publicData.includes('SYNTHETIC CLOUD RETURN PRIVATE'));assert(!publicData.includes('000123456'));assert(!publicData.includes(prepared.privateReview.reviewSalt));
+  assert.equal((await f.run('approve-return-edit',{...input,reviewedCommitment:'A'.repeat(43)},staffRequest.staff.keyId,reviewReference)).response.ok,false);
+  assert.equal((await f.run('approve-return-edit',input,staffRequest.staff.keyId,'different-review')).response.ok,false);
 });

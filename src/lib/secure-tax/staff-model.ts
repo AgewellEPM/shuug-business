@@ -31,6 +31,7 @@ function signature(value: string, signed: StaffGrant["signature"]) {
   const signer = createPublicKey({ key: { kty: "EC", crv: "P-256", x: bytes.subarray(1, 33).toString("base64url"), y: bytes.subarray(33).toString("base64url") }, format: "jwk" });
   if (!verify("sha256", Buffer.from(value), { key: signer, dsaEncoding: "ieee-p1363" }, canonicalBytes(signed.value, 64))) throw new SecureTaxError(403, "The signed staff document could not be verified.");
 }
+export const verifyFirmPublicSignature = signature;
 function validity(issuedAt: string, expiresAt: string, allowExpired = false) {
   const issued = Date.parse(issuedAt), expires = Date.parse(expiresAt), now = Date.now();
   if (issued > now + 60_000 || expires <= issued || (!allowExpired && expires <= now)) throw new SecureTaxError(409, "The signed staff document is expired or not yet valid.");

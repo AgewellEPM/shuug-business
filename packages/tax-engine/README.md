@@ -72,15 +72,18 @@ Return input is encrypted in the existing `tax-document` domain. A durable
 encrypted retry is saved before upload; a lost receipt reuses the exact mutation
 and ciphertext. Recovered pending returns appear in the existing retry queue.
 Staff can calculate/export only client revisions covered by their signed grant
-and sharing capsule. Their existing read grant does not confer editing authority.
+and sharing capsule. The correction editor can prepare a private review kit;
+separate firm approval and owner MFA publish one exact encrypted replacement
+with its fresh capsule. Their read grant remains unchanged. See the
+[correction workflow](../../docs/SHUUG_RETURN_CORRECTIONS_20261109.md).
 
 ## Work still required for the full product
 
 Complete dependent/credit/age eligibility, Schedule 1-A, qualified-dividend and
 capital-gain treatment, retirement/rental/pass-through income, inventory/assets,
 entity disclosures, K/K-1 basis/capital/separately stated items, special taxes,
-additional years and state/local returns. Complete authorized encrypted staff
-corrections/review, trusted enrollment/migration and frontend/key custody,
+additional years and state/local returns. Complete broader encrypted office
+editing/review, trusted enrollment/migration and frontend/key custody,
 firm-book/billing projections, preparer/client authorization and filing.
 
 IRS MeF/state transmission, testing/production approvals, acknowledgment and

@@ -17,13 +17,16 @@ import { totp } from "../auth/mfa/crypto";
 import { addMember } from "../team/store";
 import { assignRole, setPermission } from "../permissions/store";
 import { canonicalManifest, type SecureTaxEnvelope, type SignedRecipientManifest } from "./envelope";
-import { enrollSecureTax, writeSecureTaxObject, deleteSecureTaxObject } from "./store";
+import { enrollSecureTax, writeSecureTaxObject, deleteSecureTaxObject, readSecureTaxObject } from "./store";
 import { secureStaffStatus, secureStaffSignIn, secureStaffSignOut } from "./staff-session";
 import { publishStaffGrant, publishStaffCapsule, withdrawStaffGrant, listStaffGrants, listStaffChanges, readStaffObject } from "./staff-store";
 import { staffGrantDigest, staffEnvelopeDigest, type StaffGrant, type StaffCapsule } from "./staff-model";
 import { canonicalStaffGrant, canonicalStaffCapsule } from "../../../packages/secure-tax-client/staff-contract.mjs";
 import { GET as listGrantRoute, POST as publishGrantRoute } from "@/app/api/website/customer/secure/staff/grants/route";
 import { GET as readObjectRoute } from "@/app/api/website/customer/secure/staff/objects/[id]/route";
+import { POST as publishEditRoute } from "@/app/api/website/customer/secure/staff/return-edits/route";
+import { canonicalReturnEditApproval } from "../../../packages/secure-tax-client/return-edit-contract.mjs";
+import type { ReturnEditApproval } from "./return-edits";
 
 const origin = "https://trusted.example.net", base = "https://workspace.example.com", password = "Synthetic-staff-vault-password";
 const pair = () => {
@@ -67,6 +70,18 @@ function capsule(g: StaffGrant, e: SecureTaxEnvelope, changes: Partial<StaffCaps
     context: { ...e.context }, envelopeDigest: staffEnvelopeDigest(e), staffKeyId: g.staff.keyId,
     wrap: { suite: "HPKE-P256-SHA256-A256GCM", mode: "auth", encapsulatedKey: recovery.publicKey, wrappedKey: randomBytes(48).toString("base64url") },
     issuedAt: new Date().toISOString(), expiresAt: g.expiresAt, signature: {} as StaffGrant["signature"], ...changes }, canonicalStaffCapsule);
+}
+function approvedEdit(g: StaffGrant, original: SecureTaxEnvelope) {
+  // Server-framing fixture only; independent crypto and the compiled journey
+  // exercise actual staff proposal authentication and firm re-encryption.
+  const next = envelope(original.context.revision + 1, original.context.objectId, "tax-document"); next.author = { role: "firm-recovery", keyId: recovery.keyId };
+  const approval = signed({ version: 1, type: "shuug-secure-tax-return-edit-approval", approvalId: randomUUID(), proposalId: randomUUID(),
+    workspaceId: g.workspaceId, accountId: g.accountId, clientId: g.clientId, objectId: original.context.objectId, sourceRevision: original.context.revision,
+    sourceEnvelopeDigest: staffEnvelopeDigest(original), manifestId: manifest.manifestId, manifestEpoch: manifest.epoch, grantId: g.grantId, grantEpoch: g.epoch,
+    grantDigest: staffGrantDigest(g), staffAccountId: g.staffAccountId, staffKeyId: g.staff.keyId, proposalDigest: randomBytes(32).toString("base64url"),
+    reviewCommitment: randomBytes(32).toString("base64url"), newEnvelopeDigest: staffEnvelopeDigest(next), reviewReference: "synthetic-reviewed-case",
+    issuedAt: new Date().toISOString(), expiresAt: g.expiresAt, signature: {} as StaffGrant["signature"] } as ReturnEditApproval, canonicalReturnEditApproval);
+  return { approval, envelope: next, capsule: capsule(g, next) };
 }
 const request = (path: string, token?: string, body?: unknown, from = origin, method = body ? "POST" : "GET") => new Request(base + "/api/website/customer/secure/staff" + path, {
   method, headers: { Origin: from, ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(body ? { "Content-Type": "application/json" } : {}) }, body: body ? JSON.stringify(body) : undefined,
@@ -149,6 +164,35 @@ it("withdraws immediately, rejects same-epoch replay and only accepts a fresh si
   publishStaffGrant(ownerToken, grant({ grantId: g.grantId, epoch: 3, status: "revoked" }));
   expect(() => readStaffObject(staffToken, g.grantId, e.context.objectId)).toThrow(/revoked/);
   expect(() => publishStaffGrant(ownerToken, next)).toThrow(/older signed grant/);
+});
+it("publishes one firm-approved correction with owner MFA, exact CAS, audit and idempotent retry", async () => {
+  const g = grant({ domains: ["tax-document"] }), original = envelope(1, "tax-return", "tax-document"); publishStaffGrant(ownerToken, g);
+  writeSecureTaxObject(account.token, original.context.objectId, { mutationId: "return-create", expectedRevision: 0, envelope: original }); publishStaffCapsule(ownerToken, capsule(g, original));
+  const packet = approvedEdit(g, original), response = await publishEditRoute(request("/return-edits", ownerToken, packet)); expect(response.status).toBe(200); expect(await response.json()).toMatchObject({ revision: 2, duplicate: false, staffAccountId: staff.id });
+  expect((readSecureTaxObject(account.token, original.context.objectId) as { envelope: unknown }).envelope).toEqual(packet.envelope);
+  expect(await (await publishEditRoute(request("/return-edits", ownerToken, packet))).json()).toMatchObject({ revision: 2, duplicate: true });
+  expect(readStaffObject(staffToken, g.grantId, original.context.objectId)).toMatchObject({ envelope: packet.envelope, capsule: packet.capsule });
+  const rows = workspaceDatabase(db => db.prepare("SELECT snapshot FROM audit WHERE action='secure-tax.return-edit.approved'").all()) as { snapshot: string }[]; expect(rows).toHaveLength(1); expect(JSON.parse(rows[0].snapshot)).toEqual({ approval: packet.approval, sharingCapsuleId: packet.capsule.capsuleId });
+  expect(listStaffGrants(staffToken).grants[0].rights).toBe("read");
+  const latest = envelope(3, original.context.objectId, "tax-document"); writeSecureTaxObject(account.token, original.context.objectId, { mutationId: "later-client-change", expectedRevision: 2, envelope: latest }); const latestCapsule = capsule(g, latest); publishStaffCapsule(ownerToken, latestCapsule);
+  expect(await (await publishEditRoute(request("/return-edits", ownerToken, packet))).json()).toMatchObject({ revision: 2, duplicate: true });
+  expect(readStaffObject(staffToken, g.grantId, original.context.objectId)).toMatchObject({ envelope: latest, capsule: latestCapsule });
+});
+it("refuses correction uploads before consuming bodies without owner MFA", async () => {
+  for (const token of [undefined, staffToken, account.token, passwordOnlyOwner, passwordOnlyStaff]) {
+    const input = request("/return-edits", token, { unsupported: "must not be read" }), response = await publishEditRoute(input); expect(response.status).toBe(token === staffToken ? 403 : 401); expect(input.bodyUsed).toBe(false);
+  }
+});
+it("rejects forged approvals, changed ciphertext, stale sources and withdrawn assignments without mutation", async () => {
+  const g = grant({ domains: ["tax-document"] }), original = envelope(1, "tax-return", "tax-document"); publishStaffGrant(ownerToken, g); writeSecureTaxObject(account.token, original.context.objectId, { mutationId: "return-create", expectedRevision: 0, envelope: original });
+  const packet = approvedEdit(g, original), changed = structuredClone(packet); changed.envelope.ciphertext = randomBytes(48).toString("base64url");
+  expect((await publishEditRoute(request("/return-edits", ownerToken, changed))).status).toBe(403);
+  const forged = structuredClone(packet); forged.approval.signature.value = randomBytes(64).toString("base64url"); expect((await publishEditRoute(request("/return-edits", ownerToken, forged))).status).toBe(403);
+  withdrawStaffGrant(ownerToken, { grantId: g.grantId, expectedEpoch: g.epoch }); expect((await publishEditRoute(request("/return-edits", ownerToken, packet))).status).toBe(403);
+  const nextGrant = grant({ grantId: g.grantId, epoch: 2, domains: ["tax-document"] }); publishStaffGrant(ownerToken, nextGrant); const stale = approvedEdit(nextGrant, original);
+  writeSecureTaxObject(account.token, original.context.objectId, { mutationId: "return-client-change", expectedRevision: 1, envelope: envelope(2, original.context.objectId, "tax-document") });
+  expect((await publishEditRoute(request("/return-edits", ownerToken, stale))).status).toBe(409);
+  expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM audit WHERE action='secure-tax.return-edit.approved'").get())).toMatchObject({ n: 0 });
 });
 it("rechecks active real staff, current role and client links on every access", () => {
   const g = grant(); publishStaffGrant(ownerToken, g);

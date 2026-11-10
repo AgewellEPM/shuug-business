@@ -92,6 +92,13 @@ export function writeSecureTaxObject(token: string | undefined, rawId: string, r
   const id = secureTaxId.parse(rawId), input = mutationInput.parse(raw);
   return workspaceDatabase(db => {
     const { account, manifest } = scoped(db, token);
+    return commitSecureTaxEnvelope(db, account, manifest, id, input);
+  }, true);
+}
+/** Internal transaction primitive. Callers establish live account/owner authority
+ * and signed enrollment before reaching this shared CAS/capacity boundary. */
+export function commitSecureTaxEnvelope(db: DatabaseSync, account: { id: string; clientId: string }, manifest: SignedRecipientManifest, rawId: string, raw: unknown) {
+    const id = secureTaxId.parse(rawId), input = mutationInput.parse(raw);
     const size = validateEnvelopePins(input.envelope, manifest);
     if (input.envelope.context.objectId !== id || input.envelope.context.revision !== input.expectedRevision + 1) throw new SecureTaxError(409, "The encrypted context does not match this object and revision.");
     const digest = createHash("sha256").update(JSON.stringify([id, input.expectedRevision, input.envelope])).digest("hex");
@@ -103,6 +110,7 @@ export function writeSecureTaxObject(token: string | undefined, rawId: string, r
     const current = db.prepare("SELECT * FROM secure_tax_objects WHERE accountId=? AND id=?").get(account.id, id) as ObjectRow | undefined;
     if (current && current.clientId !== account.clientId) throw new SecureTaxError(403, "This encrypted object belongs to another client link.");
     if ((current?.revision ?? 0) !== input.expectedRevision) throw new SecureTaxError(409, "The encrypted object changed on another device. Download the latest revision before saving.");
+    if (current?.deleted) throw new SecureTaxError(409, "A deleted encrypted object cannot be restored under its old ID. Create a new item with a new ID.");
     const usage = db.prepare("SELECT count(*) AS n,coalesce(sum(ciphertextBytes),0) AS bytes FROM secure_tax_objects WHERE accountId=? AND deleted=0").get(account.id) as { n: number; bytes: number };
     const metadata = db.prepare("SELECT (SELECT count(*) FROM secure_tax_objects WHERE accountId=?) AS objects,(SELECT count(*) FROM secure_tax_mutations WHERE accountId=?) AS mutations").get(account.id, account.id) as { objects: number; mutations: number };
     const total = db.prepare("SELECT coalesce(sum(ciphertextBytes),0) AS bytes FROM secure_tax_objects WHERE deleted=0").get() as { bytes: number };
@@ -114,7 +122,6 @@ export function writeSecureTaxObject(token: string | undefined, rawId: string, r
       .run(account.id, id, account.clientId, revision, sequence, JSON.stringify(input.envelope), size);
     db.prepare("INSERT INTO secure_tax_mutations VALUES(?,?,?,?,?,?)").run(account.id, input.mutationId, id, digest, revision, sequence);
     return { objectId: id, revision, sequence, deleted: false, duplicate: false };
-  }, true);
 }
 export function readSecureTaxObject(token: string | undefined, rawId: string) {
   const id = secureTaxId.parse(rawId);

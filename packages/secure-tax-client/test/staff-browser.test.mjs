@@ -13,6 +13,8 @@ import { renderStaffRecords } from '../browser/staff-view.mjs';
 import { mountStaffUpdates } from '../browser/staff-updates.mjs';
 import { renderPortalDashboard } from '../browser/client-portal-view.mjs';
 import { prepareBrowser } from '../prepare-browser.mjs';
+import {newReturn} from '../../tax-engine/index.mjs';
+import {approveReturnEdit} from '../firm-return-edits.mjs';
 
 const encode=value=>new TextEncoder().encode(JSON.stringify(value));
 class MemoryStorage{
@@ -21,7 +23,7 @@ class MemoryStorage{
   async listKeys(){return [...this.keys.values()].map(({keyId,publicKey})=>({keyId,publicKey}));}
   async putBinding(value){this.bindings.set(value.id,structuredClone(value));}async getBinding(id){return structuredClone(this.bindings.get(id));}
 }
-async function fixture({staffAccountId='synthetic-staff',objectId='synthetic-private-item'}={}){
+async function fixture({staffAccountId='synthetic-staff',objectId='synthetic-private-item',domain='tax-identity',data=null}={}){
   const {bundle,publicPins}=await createFirmBundle('synthetic-staff-workspace','Synthetic firm passphrase only for tests.');
   const unlocked=await unlockFirmBundle(bundle,'Synthetic firm passphrase only for tests.',publicPins);
   const clientKey=await generateRecipientKeyPair(),staffKey=await createClientKey('Synthetic staff device backup passphrase.');
@@ -29,9 +31,9 @@ async function fixture({staffAccountId='synthetic-staff',objectId='synthetic-pri
   const config={version:1,uiOrigin:'https://staff.example',apiOrigin:'https://ciphertext.example',...publicPins};
   const manifest=await signEnrollmentRequest({version:1,workspaceId:publicPins.workspaceId,accountId:scope.accountId,clientId:scope.clientId,client:{keyId:await publicKeyId(clientKey.publicKey),publicKey:clientKey.publicKey}},unlocked,{epoch:1});
   const grantRequest={version:1,workspaceId:publicPins.workspaceId,accountId:scope.accountId,clientId:scope.clientId,staffAccountId,staff:{keyId:staffKey.keyId,publicKey:staffKey.publicKey}};
-  const grant=await signStaffGrant(grantRequest,unlocked,{grantId:'synthetic-grant',epoch:1,domains:['tax-identity']});
-  const context={workspaceId:config.workspaceId,accountId:scope.accountId,objectId,revision:1,domain:'tax-identity'};
-  const plaintext=encode({version:1,type:'tax-identity',legalName:'SYNTHETIC PRIVATE CLIENT',ssn:'000123456'});
+  const grant=await signStaffGrant(grantRequest,unlocked,{grantId:'synthetic-grant',epoch:1,domains:[domain]});
+  const context={workspaceId:config.workspaceId,accountId:scope.accountId,objectId,revision:1,domain};
+  const plaintext=encode(data??{version:1,type:'tax-identity',legalName:'SYNTHETIC PRIVATE CLIENT',ssn:'000123456'});
   const envelope=await sealEnvelope(plaintext,context,{clientPublicKey:clientKey.publicKey,firmRecoveryPublicKey:publicPins.firmRecoveryPublicKey},'client',clientKey.privateKey);
   const capsule=await createStaffCapsule(envelope,manifest,grant,unlocked,{...scope,objectId:context.objectId,revision:1,domain:context.domain});
   let grants=[grant],object={objectId:context.objectId,revision:1,sequence:1,deleted:false,envelope,manifest,capsule,grant},available=true,hook=null;
@@ -96,6 +98,20 @@ test('owner publication verifies public signatures locally and withdrawal uses a
   const f=await fixture({staffAccountId:'workspace-owner'});await f.vault.installGrant(f.grant);await f.vault.installCapsule(f.capsule);await f.vault.withdrawGrant(f.grant.grantId,1);
   assert.deepEqual(JSON.parse(f.calls.at(-1).options.body),{grantId:f.grant.grantId,expectedEpoch:1});assert.equal(f.calls.at(-1).options.method,'DELETE');
   const bad=structuredClone(f.capsule);bad.wrap.wrappedKey=bad.wrap.wrappedKey.slice(0,-1)+(bad.wrap.wrappedKey.endsWith('A')?'B':'A');const count=f.calls.length;await assert.rejects(()=>f.vault.installCapsule(bad));assert.equal(f.calls.length,count);
+});
+test('staff proposals retain exact shared source and owner upload rejects private review data before network access',async()=>{
+  const input=newReturn('1120');input.party.name='SYNTHETIC PRIVATE RETURN';input.party.taxId='000123456';input.entity.receiptsCents=10000000;
+  const f=await fixture({staffAccountId:'workspace-owner',domain:'tax-document',data:input});await f.vault.sync();const after=structuredClone(input);after.entity.receiptsCents=20000000;
+  const kit=await f.vault.prepareReturnCorrection('synthetic-private-item',after);assert.equal(kit.type,'shuug-private-return-correction-kit');assert.deepEqual(kit.privateReview.before,input);assert.deepEqual(kit.privateReview.after,after);assert.equal(f.calls.some(call=>call.url.endsWith('/return-edits')),false);
+  const count=f.calls.length;await assert.rejects(()=>f.vault.installApprovedReturnEdit(kit));assert.equal(f.calls.length,count);
+  const packet=await approveReturnEdit({proposal:kit.proposal,envelope:kit.sourceEnvelope,manifest:kit.manifest,grant:kit.grant,expected:kit.expected,reviewedCommitment:kit.proposal.reviewCommitment,reviewReference:'synthetic-browser-review',unlocked:f.unlocked});
+  f.setHook((url,options)=>url.endsWith('/return-edits')&&options.method==='POST'?f.respond({objectId:kit.proposal.objectId,revision:2,sequence:2,deleted:false,duplicate:false}):null);
+  assert.equal((await f.vault.installApprovedReturnEdit(packet)).revision,2);const sent=f.calls.find(call=>call.url.endsWith('/return-edits')).options.body;assert(!sent.includes('SYNTHETIC PRIVATE RETURN'));assert(!sent.includes('000123456'));assert(!sent.includes(kit.privateReview.reviewSalt));
+});
+test('a changed or unavailable source clears a pending staff correction instead of editing stale input',async()=>{
+  const data=newReturn('1120'),f=await fixture({domain:'tax-document',data});await f.vault.sync();
+  f.setHook(url=>new URL(url).pathname.endsWith('/synthetic-private-item')?f.respond({error:'Current sharing pending'},409):null);
+  await assert.rejects(()=>f.vault.prepareReturnCorrection('synthetic-private-item',data),/awaiting/);assert.equal(f.vault.unlocked,false);assert.equal(f.vault.records.size,0);
 });
 test('staff views are read-only, mask taxpayer IDs and only download explicitly requested files',async()=>{
   const dom=new JSDOM('<!doctype html><body></body>'),document=dom.window.document,downloaded=[];

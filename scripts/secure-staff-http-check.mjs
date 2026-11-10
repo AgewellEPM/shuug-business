@@ -31,6 +31,8 @@ import {mountStaffUpdates} from '../packages/secure-tax-client/browser/staff-upd
 import {saveReturn} from '../packages/secure-tax-client/browser/return-save.mjs';
 import {newReturn,calculateReturn} from '../packages/tax-engine/index.mjs';
 import {generateDraftPdf} from '../packages/tax-engine/pdf.mjs';
+import {approveReturnEdit} from '../packages/secure-tax-client/firm-return-edits.mjs';
+import {privateReturnReviewCommitment} from '../packages/secure-tax-client/return-proposals.mjs';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
 import {JSDOM} from 'jsdom';
@@ -48,7 +50,7 @@ async function freePort(){const s=createServer();await new Promise((ok,bad)=>{s.
 async function stop(child){if(!child?.pid||child.exitCode!==null||child.signalCode!==null)return;const exited=once(child,'exit'),timer=setTimeout(()=>child.kill('SIGKILL'),5000);child.kill('SIGTERM');try{await exited;}finally{clearTimeout(timer);}}
 const root=mkdtempSync(`${tmpdir()}/shuug-secure-staff-proof-`),host=path.join(root,'host'),trusted=path.join(root,'trusted');
 mkdirSync(host,{mode:0o700});mkdirSync(trusted,{mode:0o700});
-let child,log='',checks=0,grantPageRequests=0,largeGrantList=null,returnProof=null,workspaceBuilder=null;
+let child,log='',checks=0,grantPageRequests=0,staffApiRequests=0,largeGrantList=null,returnProof=null,workspaceBuilder=null;
 try{
   process.env.DEALDESK_DATA_DIR=host;process.env.DEMO_DATA='false';process.env.DATABASE_URL='';process.env.SHUUG_REQUIRE_MFA='false';
   const password=`Synthetic-password-${randomUUID()}`,firmPassphrase=`Synthetic offhost backup ${randomUUID()}`,backupPassword=`Synthetic device backup ${randomUUID()}`;
@@ -79,6 +81,7 @@ try{
   async function vault(label,storage=new MemoryKeys()){
     const fetcher=async(url,options)=>{
       const u=new URL(url);assert.equal(u.origin,config.apiOrigin);
+      staffApiRequests++;
       if(u.pathname.endsWith('/staff/grants')&&options.method==='GET'&&u.searchParams.get('limit')==='25')grantPageRequests++;
       if(options.headers.Authorization)tokens.set(label,options.headers.Authorization.slice(7));
       return fetch(base+u.pathname+u.search,{...options,headers:{...options.headers,Origin:uiOrigin}});
@@ -221,10 +224,24 @@ try{
   await assert.rejects(()=>afterRestore.client.sync());assert.equal(afterRestore.client.records.size,0);checks++;
   const correction=await json(`/objects/${corrected.objectId}`,{token:tokens.get('portal-remote')});await owner.client.installCapsule(await createStaffCapsule(correction.envelope,manifest,portalGrant,firm,expected(portalGrant,{context:correction.envelope.context})));
   await afterRestore.client.unlock(newDevice.keyId);await afterRestore.client.selectGrant(portalGrant.grantId);await afterRestore.client.sync();await portal.sync();assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(portal.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,4200000);checks++;
-  returnProof={year:2025,kinds:taxReturns.map(item=>item.kind),encryptedSaveClientReopenStaffRead:true,exported,unsharedRevisionClearsStaffView:true,correctedClientInputVisibleAfterSharing:true,staffAuthoringImplemented:false,productionFilingPerformed:false};
+  const staffInput=structuredClone(corrected.input);staffInput.entity.receiptsCents=25000000;
+  const kit=await afterRestore.client.prepareReturnCorrection(corrected.objectId,staffInput);assert.equal(await privateReturnReviewCommitment(kit.privateReview),kit.proposal.reviewCommitment);checks++;
+  const publicPacket=await approveReturnEdit({proposal:kit.proposal,envelope:kit.sourceEnvelope,manifest:kit.manifest,grant:kit.grant,expected:kit.expected,reviewedCommitment:await privateReturnReviewCommitment(kit.privateReview),reviewReference:'synthetic-reviewed-staff-correction',unlocked:firm});
+  await json('/staff/return-edits',{token:tokens.get('after-restore'),method:'POST',body:publicPacket},403);
+  const requestsBeforePrivateKit=staffApiRequests;await assert.rejects(()=>owner.client.installApprovedReturnEdit(kit));assert.equal(staffApiRequests,requestsBeforePrivateKit);checks++;
+  assert.equal((await owner.client.installApprovedReturnEdit(publicPacket)).duplicate,false);assert.equal((await owner.client.installApprovedReturnEdit(publicPacket)).duplicate,true);checks++;
+  await portal.sync();assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(portal.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;
+  const staffCorrection=await json(`/objects/${corrected.objectId}`,{token:tokens.get('portal-remote')});assert.equal(staffCorrection.envelope.author.role,'firm-recovery');
+  assert.equal((await afterRestore.client.sync()).items,11);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;corrected.input=staffInput;
+  returnProof={year:2025,kinds:taxReturns.map(item=>item.kind),encryptedSaveClientReopenStaffRead:true,exported,unsharedRevisionClearsStaffView:true,correctedClientInputVisibleAfterSharing:true,staffReturnCorrectionProposalVerified:true,privateReviewRefusedBeforeUpload:true,ownerMfaAndFirmApprovalPublicationVerified:true,clientSeesApprovedStaffCorrection:true,approvedRevisionSharedAtomically:true,staffDirectWritesEnabled:false,productionFilingPerformed:false};
+  const removed=await saveReturn(remote,corrected.input);await remote.remove(removed.objectId);
+  const tombstone=await json(`/objects/${removed.objectId}`,{token:tokens.get('portal-remote')});assert.equal(tombstone.deleted,true);
+  const resurrectionContext={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:removed.objectId,revision:tombstone.revision+1,domain:'tax-document'},resurrection=await sealEnvelope(new TextEncoder().encode(JSON.stringify(corrected.input)),resurrectionContext,recipients,'client',clientKey.privateKey);
+  await json(`/objects/${removed.objectId}`,{token:tokens.get('portal-remote'),method:'PUT',body:{mutationId:randomUUID(),expectedRevision:tombstone.revision,envelope:resurrection}},409);
+  assert.deepEqual(await json(`/objects/${removed.objectId}`,{token:tokens.get('portal-remote')}),tombstone);returnProof.terminalDeletionVerified=true;
   await stop(child);child=null;const portalBackup=backupWorkspace(restored,path.join(root,'portal-backup')),portalRestored=path.join(root,'portal-restored');restoreWorkspace(path.join(root,'portal-backup'),portalRestored);
   env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,12);
-  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,9900);assert.equal((await afterRestore.client.sync()).items,11);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,4200000);checks++;
+  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,9900);assert.equal((await afterRestore.client.sync()).items,11);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;
   portal.lock();assert.equal(portal.records.size,0);assert.equal(queue.clear().unpreparedDiscarded,0);retriedQueue.clear();remote.lock();checks++;
   for(let index=0;index<130;index++)await owner.client.installGrant(await signStaffGrant({...replacementRequest},firm,{grantId:`synthetic-paged-access-${String(index).padStart(3,'0')}`,epoch:1,domains:['tax-document']}));
   const beforePages=grantPageRequests,completeGrants=await afterRestore.client.refreshGrants();assert(completeGrants.length>=131);checks++;
@@ -244,7 +261,7 @@ try{
   console.log(JSON.stringify({ok:true,checks,buildId:readFileSync('.next/BUILD_ID','utf8').trim(),syntheticWorkspace:true,freshClientHadNoLegacyBooks:true,mandatoryStaffMfaVerifiedWithGlobalFlagOff:true,
     originalV2ClientEnvelopesPreserved:true,staffOpenedProtectedBooksAndDocumentBytes:true,encryptedDeviceBackupRecovered:true,newDeviceGrantedAfterOriginalRevocation:true,
     oldDeviceCannotOpenReplacementCapsules:true,newProcessFirmRecoveryCliVerified:true,staleRevisionFailsClosed:true,restoredDataAndRevocationVerified:true,backupFiles:copied.files,copiedHostPlaintextMarkerAbsent:true,
-    portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,automaticStaffRefreshAndSharedSummaryVerified:true,unsharedNewItemClearsStaffView:true,approvedRevisionRefreshVerified:true,pageExitClearsStaffView:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffEditingImplemented:false},
+    portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,automaticStaffRefreshAndSharedSummaryVerified:true,unsharedNewItemClearsStaffView:true,approvedRevisionRefreshVerified:true,pageExitClearsStaffView:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffReturnCorrectionsRequireFirmApproval:true,fullStaffEditingImplemented:false},
     largeGrantList,returnProof,workspaceBuilder,realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
 }catch(error){console.error('Owned fixture diagnostics:\n'+log);throw error;}
 finally{await stop(child);rmSync(root,{recursive:true,force:true});}

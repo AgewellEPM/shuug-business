@@ -1,7 +1,7 @@
 /** Execute the shipped ESM graph and PDF bundle in a V8/DOM model. This is
  * artifact integration evidence, not Safari, public TLS or visual acceptance. */
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+import {readFile,readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {createServer} from 'node:http';
 import {createContext,SourceTextModule} from 'node:vm';
@@ -12,7 +12,7 @@ const root=path.resolve(process.argv[2]??'');if(!process.argv[2])throw new Error
 const html=await readFile(path.join(root,'index.html'),'utf8'),dom=new JSDOM(html,{url:'https://disabled-artifact.example',pretendToBeVisual:true});
 const imports=JSON.parse(html.match(/<script type="importmap">([^<]+)<\/script>/)[1]).imports;
 const importmap=JSON.stringify({imports}),headers=await readFile(path.join(root,'_headers'),'utf8');assert(headers.includes(createHash('sha256').update(importmap).digest('base64')));assert(headers.includes("connect-src 'self'"));assert(!headers.includes('unsafe-inline'));
-let fetchedTemplates=0,xfasRemoved=0;
+let fetchedTemplates=0,xfasRemoved=0,staffDom;
 const server=createServer(async(request,response)=>{
   try{const url=new URL(request.url,'http://localhost'),file=path.resolve(root,'.'+decodeURIComponent(url.pathname));if(!file.startsWith(root+path.sep))throw new Error('Outside artifact.');const bytes=await readFile(file);response.writeHead(200,{'Content-Type':file.endsWith('.pdf')?'application/pdf':'text/javascript','Cache-Control':'no-store'});response.end(bytes);}catch{response.writeHead(404);response.end();}
 });
@@ -36,5 +36,8 @@ try{
   const exported=[];
   for(const kind of ['1040','1065','1120S','1120']){const input=engine.namespace.newReturn(kind);input.party.name='Synthetic Artifact';input.party.taxId='000123456';if(input.individual)input.individual.w2s=[{id:'synthetic-w2',owner:'taxpayer',employer:'Synthetic employer',wagesCents:5000000,socialSecurityWagesCents:5000000,medicareWagesCents:5000000,federalWithholdingCents:500000}];else input.entity.receiptsCents=10000000;
     const packet=await pdf.namespace.generateDraftPdf(input);assert(packet.bytes.length>1000);assert.equal(packet.result.filingReady,false);exported.push({kind,bytes:packet.bytes.length});packet.bytes.fill(0);}
-  console.log(JSON.stringify({ok:true,artifact:root,verification:'Shipped ESM and PDF bundle in Node V8/DOM model',modules:modules.size,defaultConfigDisabled:true,noAccountRequest:true,publicTemplateFetches:fetchedTemplates,xfasRemoved,exported,safariVerified:false,visualAcceptance:false,publicTlsVerified:false},null,2));
-}finally{await new Promise(resolve=>server.close(resolve));dom.window.close();}
+  staffDom=new JSDOM(await readFile(path.join(root,'staff.html'),'utf8'),{url:'https://disabled-artifact.example',pretendToBeVisual:true});context.document=staffDom.window.document;context.window=staffDom.window;context.location=staffDom.window.location;
+  const staff=await moduleFor(origin+'/browser/staff-app.mjs');if(staff.status==='unlinked')await staff.link(resolve);await staff.evaluate();assert(staffDom.window.document.querySelector('#staff-return-editor #tax-preparation'));assert.equal(staffDom.window.document.querySelector('#staff-publish-return-edit').disabled,true);assert.match(staffDom.window.document.querySelector('#message').textContent,/no independently supplied/);
+  const names=await readdir(root);for(const file of ['firm-return-edits.mjs','return-edit-offline-cli.mjs','return-edit-review.mjs'])assert(!names.includes(file));
+  console.log(JSON.stringify({ok:true,artifact:root,verification:'Shipped ESM and PDF bundle in Node V8/DOM model',modules:modules.size,defaultConfigDisabled:true,noAccountRequest:true,staffCorrectionEditorMounted:true,privateFirmModulesExcluded:true,publicTemplateFetches:fetchedTemplates,xfasRemoved,exported,safariVerified:false,visualAcceptance:false,publicTlsVerified:false},null,2));
+}finally{await new Promise(resolve=>server.close(resolve));dom.window.close();staffDom?.window.close();}

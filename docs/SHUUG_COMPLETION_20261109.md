@@ -107,9 +107,37 @@ Exact evidence, package locations and source hashes:
 `verification/tax-preparation-20261109.json`. All diagnostic servers were stopped
 and synthetic private data removed; uninitialized public-code artifacts remain.
 
+## Firm-approved return correction checkpoint
+
+The staff client now edits an existing return into a private before/after review
+kit, with its original year/family fixed and refresh paused until save/discard.
+The firm key environment checks the exact reviewed-file hash, decrypts the
+authenticated original and proposal, reconstructs the salted review commitment,
+and signs one exact replacement plus a fresh read capsule. Owner MFA publishes
+both atomically. Existing native v2 framing and staff v1 read grants are retained;
+staff cannot directly write client ciphertext. Private review kits are refused
+before upload. Both the separate-computer CLI and separate-cloud job support
+this path. See [the workflow](SHUUG_RETURN_CORRECTIONS_20261109.md).
+
+The API rejects stale sources, altered approvals, revoked assignments and
+deleted objects. Exact retries retain the original receipt without replacing a
+later client revision or its capsule. The shared client write boundary also
+refuses a fresh authenticated write aimed at a tombstoned ID; this fixes an
+observed resurrection bug, rather than relying on the browser's local history.
+
+The updated compiled backend passes 91 synthetic HTTP checks, including actual
+proposal/firm approval/owner publication, both readers opening the approved
+revision without another sharing step, terminal deletion and backup/restart.
+The actual Swift/CryptoKit client opens a Node-approved replacement. Focused
+API, standalone key-kit, cloud, calculator/PDF and DOM checks pass; the shipped
+independent client executes 79 modules and all four PDF exports in a Node
+V8/DOM model. Exact build ID, source hashes, package locations and evidence:
+`verification/return-corrections-20261109.json`. The installed service and real
+key accounts remain unchanged; no production firm keys were initialized.
+
 ## Remaining acceptance gates
 
-Encrypted staff editing/review, shared firm-book/invoice/payment projections,
+Broader encrypted staff editing/review, shared firm-book/invoice/payment projections,
 trusted enrollment/migration and public or office TLS activation remain open.
 Complete the remaining individual/entity schedules, additional-year and state
 coverage and filing work for both requested families; do not substitute an

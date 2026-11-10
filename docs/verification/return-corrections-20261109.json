@@ -1,0 +1,366 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-10 05:07:30 UTC",
+  "baseCommit": "f40bc866a6c78d2cb2911315863b72e45e464ff0",
+  "scope": "Firm-approved encrypted corrections to existing 2025 individual/self-employed and business draft returns, through separate-computer or separate-cloud custody; terminal deleted-object writes refused",
+  "verification": {
+    "nodeClientCustodyAndTaxSuite": {
+      "passed": 112,
+      "failed": 0,
+      "skipped": 0,
+      "command": "node --test packages/secure-tax-client/test/*.test.mjs packages/secure-tax-client/cloud/aws/cloud.test.mjs packages/tax-engine/test/*.test.mjs"
+    },
+    "finalReturnEditorRecheck": {
+      "passed": 5,
+      "failed": 0,
+      "skipped": 0,
+      "reason": "Added visible discard control after the full suite; actual DOM save/discard and refresh resumption pass"
+    },
+    "secureStaffAndObjectVitest": {
+      "passed": 25,
+      "failed": 0,
+      "skipped": 0
+    },
+    "workspaceAndPackagingVitest": {
+      "passed": 9,
+      "failed": 0
+    },
+    "nativeInteroperability": {
+      "actualSwiftCryptoKit": true,
+      "nodeFirmApprovedEnvelopeOpenedByOriginalClient": true,
+      "skipped": false,
+      "syntheticKeysOnly": true,
+      "keychainUsed": false
+    },
+    "nextBuildPassed": true,
+    "compiledHttp": {
+      "ok": true,
+      "checks": 91,
+      "buildId": "M2SxP5T62LyjjjjiGaU-E",
+      "syntheticWorkspace": true,
+      "freshClientHadNoLegacyBooks": true,
+      "mandatoryStaffMfaVerifiedWithGlobalFlagOff": true,
+      "originalV2ClientEnvelopesPreserved": true,
+      "staffOpenedProtectedBooksAndDocumentBytes": true,
+      "encryptedDeviceBackupRecovered": true,
+      "newDeviceGrantedAfterOriginalRevocation": true,
+      "oldDeviceCannotOpenReplacementCapsules": true,
+      "newProcessFirmRecoveryCliVerified": true,
+      "staleRevisionFailsClosed": true,
+      "restoredDataAndRevocationVerified": true,
+      "backupFiles": 6,
+      "copiedHostPlaintextMarkerAbsent": true,
+      "portal": {
+        "multiFileUploads": 3,
+        "exactBytesOpened": true,
+        "lostReceiptRetryUsesSameCiphertext": true,
+        "encryptedPendingQueueRestored": true,
+        "localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts": true,
+        "authorizedClientRefreshVerified": true,
+        "staffSeesFilesAfterSignedSharing": true,
+        "automaticStaffRefreshAndSharedSummaryVerified": true,
+        "unsharedNewItemClearsStaffView": true,
+        "approvedRevisionRefreshVerified": true,
+        "pageExitClearsStaffView": true,
+        "cleanRestoreVerified": true,
+        "restoreFiles": 6,
+        "instantPushVerified": false,
+        "staffReturnCorrectionsRequireFirmApproval": true,
+        "fullStaffEditingImplemented": false
+      },
+      "largeGrantList": {
+        "activeGrants": 131,
+        "pagesRead": 6,
+        "boundedPageBytes": 65536,
+        "completeSnapshotVerified": true
+      },
+      "returnProof": {
+        "year": 2025,
+        "kinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "encryptedSaveClientReopenStaffRead": true,
+        "exported": [
+          {
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 118364
+          },
+          {
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 375385
+          },
+          {
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 350432
+          },
+          {
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 254553
+          }
+        ],
+        "unsharedRevisionClearsStaffView": true,
+        "correctedClientInputVisibleAfterSharing": true,
+        "staffReturnCorrectionProposalVerified": true,
+        "privateReviewRefusedBeforeUpload": true,
+        "ownerMfaAndFirmApprovalPublicationVerified": true,
+        "clientSeesApprovedStaffCorrection": true,
+        "approvedRevisionSharedAtomically": true,
+        "staffDirectWritesEnabled": false,
+        "productionFilingPerformed": false,
+        "terminalDeletionVerified": true
+      },
+      "workspaceBuilder": {
+        "realStdioMcp": true,
+        "compiledBackend": true,
+        "tools": 45,
+        "previewAndApplyVerified": true,
+        "partialTaxPreparationReported": true,
+        "requestedGoalComplete": false
+      },
+      "realOffhostCustodyVerified": false,
+      "publicTlsVerified": false,
+      "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture",
+      "realClientDataUsed": false,
+      "installedServiceChanged": false
+    },
+    "packagedClient": {
+      "ok": true,
+      "artifact": "/Users/lukekist/BuildCache/ShuugCompletion-20261109/tax-client-corrections-v5",
+      "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+      "modules": 79,
+      "defaultConfigDisabled": true,
+      "noAccountRequest": true,
+      "staffCorrectionEditorMounted": true,
+      "privateFirmModulesExcluded": true,
+      "publicTemplateFetches": 4,
+      "xfasRemoved": 4,
+      "exported": [
+        {
+          "kind": "1040",
+          "bytes": 118488
+        },
+        {
+          "kind": "1065",
+          "bytes": 238473
+        },
+        {
+          "kind": "1120S",
+          "bytes": 212315
+        },
+        {
+          "kind": "1120",
+          "bytes": 254770
+        }
+      ],
+      "safariVerified": false,
+      "visualAcceptance": false,
+      "publicTlsVerified": false
+    }
+  },
+  "custodyPackages": {
+    "separateComputer": {
+      "path": "/Users/lukekist/BuildCache/ShuugCompletion-20261109/separate-computer-key-kit-v3",
+      "files": 379,
+      "containsPrivateKeys": false,
+      "initialized": false,
+      "packagedCorrectionApprovalVerifiedWithSyntheticData": true,
+      "packagedSigningRecoveryVerifiedWithSyntheticData": true
+    },
+    "cloud": {
+      "path": "/Users/lukekist/BuildCache/ShuugCompletion-20261109/cloud-key-service-v3",
+      "files": 375,
+      "artifactSha256": "1cbc5f15ae6db4696c052fcefcf1e91d691117b451b08f0bb6eb3b53d0acd552",
+      "syntheticApproveReturnEditVerified": true,
+      "provisioned": false,
+      "productionKeysInitialized": false,
+      "authenticatedKeyAccountSelected": false
+    }
+  },
+  "protocol": {
+    "nativeEnvelopeVersion": 2,
+    "staffReadGrantVersion": 1,
+    "staffGrantRights": "read",
+    "directStaffCiphertextWrites": false,
+    "proposalVersion": 1,
+    "approvalVersion": 1,
+    "exactPublicationPacketFields": [
+      "approval",
+      "envelope",
+      "capsule"
+    ],
+    "privateReviewUploaded": false,
+    "readableValuesInCloudJob": false,
+    "atomicFreshReadCapsule": true,
+    "ownerMfaRequired": true,
+    "exactSourceCompareAndSwap": true,
+    "laterClientRevisionPreservedOnApprovalRetry": true,
+    "deletedObjectIdsReusable": false
+  },
+  "limits": {
+    "fullStaffEditingImplemented": false,
+    "completeTaxCoverage": false,
+    "productionFilingPerformed": false,
+    "realClientDataUsed": false,
+    "installedServiceChanged": false,
+    "publicTlsVerified": false,
+    "realOffhostCustodyVerified": false,
+    "independentSecurityReview": false,
+    "independentTaxProviderCertification": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "paymentActivationDeferred": true
+  },
+  "sourceHashes": [
+    {
+      "file": "docs/SECURE-TAX-AWS-KEY-SERVER.md",
+      "sha256": "e1a03f7c068a74011db642e4543cbc0d50fc5e30736687549d3a27b537682b9d"
+    },
+    {
+      "file": "docs/SECURE-TAX-STAFF-CONTRACT.md",
+      "sha256": "6ce4e45d9c6cfddcd6a96c72c76dfdda745eb8cb50ff177d6c4a994fa29afc34"
+    },
+    {
+      "file": "docs/SHUUG_COMPLETION_20261109.md",
+      "sha256": "28446d7a4ac1b1ade6e0e8c38e3f3bd099763cf2f63e44967b7615fea3b77682"
+    },
+    {
+      "file": "docs/SHUUG_RETURN_CORRECTIONS_20261109.md",
+      "sha256": "69576169a21b8fa18bbd507c7fdaa8f8232d8ceb32cc39580b98499683142c1d"
+    },
+    {
+      "file": "packages/secure-tax-client/README.md",
+      "sha256": "3d5678baaa7e8b838427d94234213af4cdfd528b6507e632568dfb80833c1e18"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/return-editor.mjs",
+      "sha256": "de0a9f97eb3ca62ebc58846fef3c00f7f18a9e0d394862121b207820baba833e"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-app.mjs",
+      "sha256": "479155f4c34fbac7de65dc186b521643cf19d0e93e72d3378e80b7bc284a3327"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-client.mjs",
+      "sha256": "9e8984f03398b427ac14e4d600bc527d5ae61e729456703eebb7f3a7d17c1ed9"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-updates.mjs",
+      "sha256": "de0302f21e1233588f76e7325330ea73f2b57192797a027b57595942ac686f13"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff-view.mjs",
+      "sha256": "2951fadcf824606d6f6fee4054b96e68ece8c18ccac213505d42eb82ae8554cb"
+    },
+    {
+      "file": "packages/secure-tax-client/browser/staff.html",
+      "sha256": "8df7aa02253a7fe8e9ff16671b094e2b23be1a10f55ae8b92f43501065c046ba"
+    },
+    {
+      "file": "packages/secure-tax-client/build-offline-kit.mjs",
+      "sha256": "b02828f95db7fc6b8c4e051789b3506e1ea1f36d4ca031cfc1d0660da2907bd5"
+    },
+    {
+      "file": "packages/secure-tax-client/cloud/aws/build-artifact.mjs",
+      "sha256": "db1d3f2c340be0d38681f4c18712948783d6a1b4d853857b131d7d5464f54338"
+    },
+    {
+      "file": "packages/secure-tax-client/cloud/aws/cloud.test.mjs",
+      "sha256": "67d4c69590c297d588746be4f33a0c5e6b94e69c3fba1da8041633e0965bf82a"
+    },
+    {
+      "file": "packages/secure-tax-client/cloud/aws/worker.mjs",
+      "sha256": "6aa4d50a6585979f6f9171f3b0f7e642325884cda803240e9d304f8caa9023b6"
+    },
+    {
+      "file": "packages/secure-tax-client/firm-return-edits.mjs",
+      "sha256": "beb31b2e5b710de61d97b0608632439b42e162dabcb924036ff5396bfb565f27"
+    },
+    {
+      "file": "packages/secure-tax-client/prepare-browser.mjs",
+      "sha256": "476308abe55b02dda391740435fa932fff09e825e26bf4cdf18416352efb6d24"
+    },
+    {
+      "file": "packages/secure-tax-client/prepare-return-edit-job.mjs",
+      "sha256": "5528e2171b8464ea26cb20713ec3bcada75981a572ce0e2554628a8f978b4eb0"
+    },
+    {
+      "file": "packages/secure-tax-client/return-edit-approval.mjs",
+      "sha256": "5c92b65b04f3890361ad25df8e4e95df11c23a0cd8ffe90d900ea03c10f3316f"
+    },
+    {
+      "file": "packages/secure-tax-client/return-edit-contract.mjs",
+      "sha256": "40af58dae82ea1ffef23acec590f54e40f0c632d492537bb196c0d6f40a9e47a"
+    },
+    {
+      "file": "packages/secure-tax-client/return-edit-offline-cli.mjs",
+      "sha256": "611b9508e8b5ba076701b2ade2362459292dd3634af35fe6d0586b5ce52fc7b2"
+    },
+    {
+      "file": "packages/secure-tax-client/return-edit-review.mjs",
+      "sha256": "1fab875a2a85e872e8abf38d65182b1f5a27c66281677c32bec9698b144346c4"
+    },
+    {
+      "file": "packages/secure-tax-client/return-proposals.mjs",
+      "sha256": "073c4b0b3af8ea4b332bc1519ec6119aa840dc487324d3b272c56a0a0ea6a803"
+    },
+    {
+      "file": "packages/secure-tax-client/test/return-edits.test.mjs",
+      "sha256": "1cf1a19d0811ddb99200b7bd0b4439ac5b133949923ad4995ebe1ffce1762da6"
+    },
+    {
+      "file": "packages/secure-tax-client/test/returns.test.mjs",
+      "sha256": "a886877324fd12741237ad21941265f1e46f78cc8371c3b2da6af008c78f5381"
+    },
+    {
+      "file": "packages/secure-tax-client/test/staff-browser.test.mjs",
+      "sha256": "a007b657d38a297eaf84bb686bf4ec4f581f845ba2e4bec7202408e11e810a60"
+    },
+    {
+      "file": "packages/tax-engine/README.md",
+      "sha256": "3d8af94f5f4f68de2d35110d40a28bd0d3c4cdec6ed39acc54fb469dae425419"
+    },
+    {
+      "file": "scripts/secure-staff-http-check.mjs",
+      "sha256": "b69ef235f6bc5a77e6710f7420e98b1de459bc791af338e9aea39b2a52bbfe13"
+    },
+    {
+      "file": "scripts/tax/verify_browser_artifact.mjs",
+      "sha256": "27ab8b15602f3aaba5a2de2e5e0b60d816e7230297695e062c12e38005f54a58"
+    },
+    {
+      "file": "src/app/api/website/customer/secure/staff/return-edits/route.ts",
+      "sha256": "3e6e6f301539a7ffb9695c2cd29160c558cadac13ac0f1c7f66fe23c00ba7a00"
+    },
+    {
+      "file": "src/lib/secure-tax/return-edits.ts",
+      "sha256": "e75d8a8c97160fd747b35168f4bd0365d1d4569451f3fc34ff1987e73b6d072d"
+    },
+    {
+      "file": "src/lib/secure-tax/staff-model.ts",
+      "sha256": "762484ef00d9fda82f9525a4ccf3872109fe52b3480bb42c973fe9b9c3c6bad6"
+    },
+    {
+      "file": "src/lib/secure-tax/staff-store.ts",
+      "sha256": "6cf5b0da6c8a2c291ea3c875fa914dd76dcc3cbdc22eb1bcad20be0c9fcc6aa6"
+    },
+    {
+      "file": "src/lib/secure-tax/staff.test.ts",
+      "sha256": "82687f1e5c15d9205fa5fec376e7be4b5d54513069a6784c982fb8ef4dd20ed1"
+    },
+    {
+      "file": "src/lib/secure-tax/store.test.ts",
+      "sha256": "a4631f8bc1cdda418d460f27b2c3f33c8abf25c543ff647b3a6d01864ca3d2d0"
+    },
+    {
+      "file": "src/lib/secure-tax/store.ts",
+      "sha256": "009949c5a1794c0d2127dff162090a346b07c6b30eb0980b6898d8d1debda5bc"
+    }
+  ]
+}

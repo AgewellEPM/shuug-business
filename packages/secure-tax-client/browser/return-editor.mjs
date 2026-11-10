@@ -19,13 +19,14 @@ const node=(document,tag,text)=>{const value=document.createElement(tag);if(text
 
 /** Encrypted client-side return editor. No taxpayer input goes to a calculator
  * server or browser storage. onSave uses the existing authenticated vault/CAS. */
-export function mountReturnEditor(document,container,{onSave,run,captureScope=()=>0,isCurrentScope=()=>true,onDirty=()=>{},download=()=>{},confirm=globalThis.confirm}={}){
+export function mountReturnEditor(document,container,{onSave,run,captureScope=()=>0,isCurrentScope=()=>true,onDirty=()=>{},download=()=>{},confirm=globalThis.confirm,proposalOnly=false}={}){
   let draft=newReturn(),editingId=null,dirty=false,enabled=false,readers=[],sequence=0;
   const section=node(document,'section');section.id='tax-preparation';
   const heading=node(document,'h2','Prepare a tax return'),notice=node(document,'p',scopeNotice),kind=node(document,'select');kind.id='return-kind';
   const kindLabel=node(document,'label','Return type');kindLabel.htmlFor=kind.id;for(const type of returnTypes){const option=node(document,'option',type.label);option.value=type.id;kind.append(option);}
   const scope=node(document,'p','Current calculations accept reviewed ordinary wages, taxable interest, nonqualified ordinary dividends and eligible business amounts. Extra schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
-  const body=node(document,'div'),output=node(document,'div'),calculate=node(document,'button','Calculate draft'),save=node(document,'button','Encrypt and save return'),clear=node(document,'button','New return');for(const button of [calculate,save,clear])button.type='button';clear.className='secondary';
+  const body=node(document,'div'),output=node(document,'div'),calculate=node(document,'button','Calculate draft'),save=node(document,'button',proposalOnly?'Save private correction review kit':'Encrypt and save return'),clear=node(document,'button',proposalOnly?'Discard correction':'New return');for(const button of [calculate,save,clear])button.type='button';clear.className='secondary';
+  if(proposalOnly)scope.textContent+=' Preparing a correction downloads an encrypted proposal and a readable before/after review in one private file. Keep that file on trusted firm devices. The separate key environment must approve its exact content before owner publication changes the client return.';
   section.append(heading,notice,kindLabel,kind,scope,body,calculate,save,clear,output);container.append(section);
   const modified=()=>{dirty=true;output.replaceChildren(node(document,'p','Input changed. Calculate again to review the current draft.'));onDirty();};
   function field(parent,target,key,label,{money=false,options=null,check=false,multiline=false,privateId=false}={}){
@@ -48,7 +49,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
     readers.push(()=>{business.expenses=[...rows.values()].filter(item=>item.amountCents||item.description);});
   }
   function draw(){
-    readers=[];sequence=0;body.replaceChildren();output.replaceChildren();kind.value=draft.kind;heading.textContent=editingId?'Edit encrypted tax return':'Prepare a tax return';
+    readers=[];sequence=0;body.replaceChildren();output.replaceChildren();kind.value=draft.kind;heading.textContent=proposalOnly?'Propose a return correction':editingId?'Edit encrypted tax return':'Prepare a tax return';section.hidden=proposalOnly&&!editingId;
     const identity=group(body,'Return identity');for(const [key,label]of [['name','Full taxpayer / entity legal name'],...(draft.individual?[['firstName','First name and middle initial for Form 1040'],['lastName','Last name for Form 1040']]:[]),['taxId','Taxpayer ID / EIN (hidden)'],['street','Street address'],['city','City'],['state','State'],['zip','ZIP code']])field(identity,draft.party,key,label,{privateId:key==='taxId'});
     if(draft.individual){
       const value=draft.individual,filing=group(body,'Filing details and payments');field(filing,value,'filingStatus','Filing status',{options:filingStatuses});field(filing,value,'spouseName','Spouse full legal name (joint return)');field(filing,value,'spouseFirstName','Spouse first name and middle initial');field(filing,value,'spouseLastName','Spouse last name');field(filing,value,'spouseTaxId','Spouse taxpayer ID (hidden)',{privateId:true});
@@ -70,7 +71,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
     const chosen=new Map(),known=new Set(treatments.map(([id])=>id));for(const [id,label]of [...treatments,...draft.features.filter(id=>!known.has(id)).map(id=>[id,id])]){const value={selected:draft.features.includes(id)};field(coverage,value,'selected',label,{check:true});chosen.set(id,value);}readers.push(()=>{draft.features=[...chosen].filter(([,value])=>value.selected).map(([id])=>id);});
     for(const [key,label]of [['identity','Identity and filing details reviewed'],['income','All income sources reviewed'],['deductions','Deduction eligibility and limitations reviewed'],['credits','Credit eligibility reviewed; any credit needing calculation selected above'],...(draft.entity?[['ownership','Entity ownership and allocations reviewed']]:[]),['coverage','Installed coverage reviewed; every additional treatment selected above']])field(coverage,draft.review,key,label,{check:true});field(coverage,draft,'notes','Preparation notes (encrypted)',{multiline:true});updateEnabled();
   }
-  function updateEnabled(){for(const control of section.querySelectorAll('input,textarea,select,button'))control.disabled=!enabled;}
+  function updateEnabled(){for(const control of section.querySelectorAll('input,textarea,select,button'))control.disabled=!enabled;kind.disabled=!enabled||proposalOnly;}
   function clearView(){draft=newReturn(kind.value);editingId=null;dirty=false;draw();onDirty();}
   const api={get dirty(){return dirty||editingId!==null;},get editingId(){return editingId;},get active(){return dirty||editingId!==null||output.childElementCount>0;},setEnabled(value){enabled=value;updateEnabled();},clear:clearView,
     edit(data,id){validate(data);if(!confirmDiscard())return false;draft=structuredClone(data);editingId=id;dirty=false;draw();section.scrollIntoView?.({behavior:'smooth',block:'start'});onDirty();return true;},

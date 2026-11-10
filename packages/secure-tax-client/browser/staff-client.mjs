@@ -1,6 +1,9 @@
 import { verifyStaffGrant, verifyStaffCapsuleSignature, openStaffCapsule } from '../staff-grants.mjs';
 import { BrowserKeyStore, createClientKey, importEncryptedBackup, assertPrivateKey } from './custody.mjs';
 import { validateTrustedConfig } from './config.mjs';
+import { prepareReturnProposal } from '../return-proposals.mjs';
+import { calculateReturn } from '@shuug/tax-engine';
+import { verifyReturnEditApproval } from '../return-edit-approval.mjs';
 
 const prefix='/api/website/customer/secure/staff';
 const id=value=>typeof value==='string'&&value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]===value;
@@ -19,7 +22,8 @@ async function readJson(response,maximum,challenge=false){
   try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));}catch{throw new Error('Invalid encrypted staff JSON response.');}
 }
 
-/** Independent trusted staff reader. It has no plaintext upload or object-edit API.
+/** Independent trusted staff reader/proposer. It has no plaintext upload or
+ * direct staff object writer; only the owner publishes exact firm approvals.
  * Device-key backups reuse the existing encrypted, nonextractable client custody
  * primitive in a distinct IndexedDB namespace. */
 export class StaffVaultClient {
@@ -155,6 +159,22 @@ export class StaffVaultClient {
   }
   async installCapsule(capsule){if(!this.isOwner)throw new Error('Only the firm owner can register a separately signed sharing capsule.');await verifyStaffCapsuleSignature(capsule,this.#config);return this.#request('/capsules','POST',capsule);}
   async withdrawGrant(grantId,expectedEpoch){if(!this.isOwner||!id(grantId)||!integer(expectedEpoch))throw new Error('Owner access and the exact grant ID/epoch are required.');return this.#request('/grants','DELETE',{grantId,expectedEpoch});}
+  async prepareReturnCorrection(objectId,after){
+    if(this.#busy)throw new Error('Wait for the current staff operation.');
+    const original=this.records.get(objectId);if(!this.#selection||!this.#key||!this.identity||!original||original.domain!=='tax-document')throw new Error('Open the current shared tax return before proposing a correction.');
+    if(!calculateReturn(after).calculationAvailable)throw new Error('Correct the draft input before preparing a private review kit.');
+    this.#busy=true;const generation=this.#generation,selected=clone(this.#selection);
+    try{
+      await this.refreshGrants();this.#same(generation);
+      const item=await this.#request(`/objects/${encodeURIComponent(objectId)}?grantId=${encodeURIComponent(selected.grantId)}`,'GET',undefined,24*1024*1024);this.#same(generation);
+      if(item.deleted||item.objectId!==objectId||item.revision!==original.revision||item.capsule?.envelopeDigest!==original.envelopeDigest)throw new Error('The saved return changed. Reopen its latest shared revision before editing.');
+      const expected={staffAccountId:this.identity.staffAccountId,staffKeyId:this.#key.keyId,accountId:selected.accountId,clientId:selected.clientId,minimumGrantEpoch:this.#binding.minimumGrantEpoch,minimumManifestEpoch:this.#binding.minimumManifestEpoch,objectId,revision:original.revision,domain:'tax-document'};
+      const prepared=await prepareReturnProposal({envelope:item.envelope,manifest:item.manifest,grant:selected,capsule:item.capsule,expected,pins:this.#config,staffPrivateKey:this.#key.privateKey,after});this.#same(generation);
+      await this.refreshGrants();this.#same(generation);
+      return {version:1,type:'shuug-private-return-correction-kit',proposal:prepared.proposal,sourceEnvelope:item.envelope,manifest:item.manifest,grant:selected,expected,privateReview:prepared.privateReview};
+    }catch(error){if(generation===this.#generation)this.#clear();throw error;}finally{this.#busy=false;}
+  }
+  async installApprovedReturnEdit(packet){if(!this.isOwner)throw new Error('Only the verified owner can publish a separately approved return correction.');const generation=this.#generation;await verifyReturnEditApproval(packet,this.#config);this.#same(generation);return this.#request('/return-edits','POST',packet);}
   async sync(){
     if(this.#busy)throw new Error('Wait for the current staff operation.');if(!this.#selection||!this.#key||!this.identity)throw new Error('Select a signed client grant first.');this.#busy=true;
     const generation=this.#generation,selected=clone(this.#selection),oldBinding=clone(this.#binding),opened=[];let committed=false;
@@ -179,7 +199,7 @@ export class StaffVaultClient {
           if(item.deleted||item.objectId!==change.objectId||item.revision!==change.revision||item.sequence!==change.sequence)throw new Error('Staff ciphertext changed during sync. Retry the current revision.');
           const expected={staffAccountId:this.identity.staffAccountId,staffKeyId:this.#key.keyId,accountId:current.accountId,clientId:current.clientId,minimumGrantEpoch:oldBinding.minimumGrantEpoch,minimumManifestEpoch,objectId:item.objectId,revision:item.revision,domain:item.envelope?.context?.domain};
           const plaintext=await openStaffCapsule(item.capsule,item.envelope,item.manifest,current,expected,this.#config,this.#key.privateKey);opened.push(plaintext);this.#same(generation);
-          minimumManifestEpoch=Math.max(minimumManifestEpoch,item.manifest.epoch);records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:expected.domain,plaintext});setVersion(versions,item.objectId,{revision:item.revision,deleted:false});
+          minimumManifestEpoch=Math.max(minimumManifestEpoch,item.manifest.epoch);records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:expected.domain,envelopeDigest:item.capsule.envelopeDigest,plaintext});setVersion(versions,item.objectId,{revision:item.revision,deleted:false});
         }
         // The account cursor includes scanned objects outside this grant's domains.
         // Visible changes stay ordered within that cursor; filtered pages may be empty.

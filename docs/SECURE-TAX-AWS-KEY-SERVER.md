@@ -231,6 +231,7 @@ attestation; they do not perform identity verification or two-person approval.
 | `enroll` | `expectedPins`, `request`, `epoch` | Signed client `manifest` |
 | `grant` | `expectedPins`, `request`, `options: {epoch, domains}` | Signed active staff `grant` |
 | `share` | `expectedPins`, `envelope`, `manifest`, `grant`, `expected` | Signed read-only `capsule` |
+| `approve-return-edit` | `expectedPins`, `proposal`, `sourceEnvelope`, `manifest`, `grant`, `expected`, `reviewedCommitment`, `reviewReference` | `approvedReturnEdit: {approval,envelope,capsule}` |
 | `revoke` | `expectedPins`, `grant`, `epoch`, `archiveValidAt` | Signed `revoked` grant at the selected greater epoch |
 | `recover-device` | `expectedPins`, prior `grant`, new `request`, `epoch`, `envelope`, `manifest`, `expected`, `archiveValidAt` | New `grant`, new `capsule`, old `revoked` at prior epoch + 1 |
 
@@ -241,6 +242,14 @@ The new request remains for the same account/client/staff and must use a differe
 device key. A new grant ID gets its own monotonically managed epoch. The offline
 signing APIs supply current validity dates; the worker cannot accept a caller's
 clock override or arbitrary signing operation.
+
+For `approve-return-edit`, `recipientKeyId` identifies the assigned preparer's
+grant key, and the input review reference must match the job's approval review
+reference. Review the private before/after file on the trusted operator device;
+use `prepare-return-edit-job.mjs` to select only the opaque proposal/source and
+public metadata. Never upload that private review file or its readable values.
+The worker reconstructs the review commitment from authenticated encrypted
+content. See the [correction workflow](SHUUG_RETURN_CORRECTIONS_20261109.md).
 
 For each job, while using the operator role:
 

@@ -4,7 +4,7 @@ The original v2 client envelope is unchanged. A separately trusted firm device
 authenticates its existing recovery slot, checks content integrity, and delegates
 only that object's data key to an individually authorized staff device. Private
 client, recovery and signing keys never enter the ciphertext API or staff UI.
-Staff access in this version is read-only. Future object revisions require fresh
+Staff access granted by this contract is read-only. Future object revisions require fresh
 capsules; absent sharing must be shown as pending, not silently treated as empty.
 
 ## Signed grant
@@ -175,6 +175,17 @@ The HPKE Auth recipient-compromise limitation is described in
 The independent ES256 signature binds the encapsulated key and wrapped key, along
 with their full grant/object context. This application protocol still needs an
 independent security review; this implementation and its tests do not supply one.
+
+## Separately approved return corrections
+
+The versioned return-correction extension does not add write rights to these
+grants or change native v2 framing. A preparer proposes a correction encrypted
+to the firm; the firm separately reviews, encrypts and signs one exact new
+revision and its fresh read capsule. Owner MFA publishes both atomically under
+current assignment/enrollment and source compare-and-swap checks. Private
+before/after review files stay off the app/data host. See the
+[return-correction workflow](SHUUG_RETURN_CORRECTIONS_20261109.md) for both
+custody paths, strict packet contracts and verification limits.
 
 ## Limits
 
