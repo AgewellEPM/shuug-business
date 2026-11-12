@@ -18,7 +18,8 @@ tools. The invitation form can select a saved owner separately. Archive/restore
 retains the record and office history. An archived primary is cleared from the
 conversation fields. Office suppression and the primary person's do-not-contact
 preference block research, drafts and invitation/activation paths; the contact book
-remains editable for corrections. No automated delivery is added.
+remains editable for corrections. Contract delivery and progress tools are
+documented in [the workflow handoff](deployments/GIGTAX_PIPELINE_WORK_20261112.md).
 
 Contact records use the existing private TinkySDR/D1 office metadata and conditional
 updates. No second CRM database or separate customer workspace is created.
@@ -30,8 +31,9 @@ characters of total office metadata, below the existing backend ceiling.
 
 ## Actual Shuug MCP connection
 
-The existing `scripts/mcp-server.ts` and `createBusinessMcp` expose three optional
-native tools: `sdr_catalog`, `sdr_read` and `sdr_command`. The ordinary business MCP
+The existing `scripts/mcp-server.ts` and `createBusinessMcp` expose six optional
+native tools: `sdr_catalog`, `sdr_read`, `sdr_command`, `sdr_progress`,
+`sdr_contract` and `sdr_sender`. The ordinary business MCP
 catalog remains unchanged unless its sales connection is selected. Sales-only mode
 exposes just these tools under the existing `shuug-business` server identity.
 
@@ -57,9 +59,14 @@ Commands are `save-contact`, `set-primary-contact`, `archive-contact` and
 Saving a new person uses a fresh UUID contact ID. A legacy person can have ID
 `office-contact`. The tool's schema provides exact field and role choices.
 
-These tools save contact records. They do not send mail, place calls, research
-people, publish invitations, activate memberships or move money. No real prospect
-population is part of this change. Payments remain deferred.
+`sdr_command` saves contact records. `sdr_progress` records contact, reply, waiting
+and next-step facts with the current office revision. `sdr_contract` prepares or
+retrieves agreements, previews the exact email, explicitly sends through a
+configured provider, or records reviewed manual-send evidence. A preview does not
+send mail. `sdr_sender` reads/saves shared and agent sender identities; it does not
+create email accounts. Read `sdr_catalog` for the current typed commands.
+No real prospect population or actual outreach was performed. Payments remain
+deferred; these tools cannot activate membership or move money.
 
 ## Verification and release boundary
 
@@ -70,8 +77,10 @@ actual stdio MCP test uses the same handler over HTTP, including revoked access.
 Real Worker/D1 persistence is checked only in disposable synthetic boards, with
 archive cleanup verified. These checks do not establish human visual acceptance.
 
-`scripts/sales/prepare-contacts-release.mjs` compares the candidate with the actual
-production artifact inventory. Only the specified private sales assets and contact
-modules may change. All public pages, media, routes, CSP and headers must match
-exactly; payment implementation cannot change. Live HTTP and MCP reads are verified
+`scripts/sales/prepare-pipeline-release.mjs` compares the candidate with the actual
+production artifact inventory. Only specified private assets/modules, the one mail
+callback route and an exact Agent sign-in footer link may change. Other public
+content, media, routes, CSP and headers must match exactly; payment implementation
+cannot change. The earlier contacts-only guard is unsuitable for this newer build.
+Live HTTP and MCP reads are verified
 separately after deployment. No browser runtime or VM is required.

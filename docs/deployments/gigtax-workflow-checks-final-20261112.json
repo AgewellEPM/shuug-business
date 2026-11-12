@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "sourceCommit": "5baa007ee8d0d2978b19e3e048ef2a6b2c42abae",
+  "focusedTests": {
+    "tests": 159,
+    "pass": 159,
+    "fail": 0,
+    "command": "node --test --test-reporter=tap sales/*.test.mjs scripts/sales/*.test.mjs"
+  },
+  "typescript": {
+    "exitCode": 0,
+    "command": "node_modules/.bin/tsc --noEmit --incremental false"
+  },
+  "limits": "Synthetic UI/HTTP/provider tests and separate actual diagnostic D1 proof; human visual acceptance, actual provider delivery and paid activation are not established."
+}
