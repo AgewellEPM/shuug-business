@@ -48,7 +48,7 @@ try {
   const foreign = await fetch(origin + '/api/sales', { method: 'POST', headers: { Origin: 'https://foreign.example', 'Content-Type': 'application/json' }, body: '{"action":"rolodex"}', signal: AbortSignal.timeout(45000) });
   assert.equal(foreign.status, 403);
   result.checks.push('the Rolodex requires authentication and rejects foreign origins');
-  if (receipt.addedApiRoute?.src === '/api/sales-mail-webhook') {
+  if (receipt.addedApiRoute?.src === '/api/sales-mail-webhook' || receipt.workflowReadChecks) {
     const callback = await fetch(origin + '/api/sales-mail-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(45000) });
     assert.equal(callback.status, 503, 'Unconfigured email notifications must remain unavailable.');
     const salesHtml = readFileSync(path.join(receipt.preparedOutput, 'static/sales.html'), 'utf8');
@@ -70,12 +70,21 @@ try {
   const workspace = await call('sdr_read', { resource: 'workspace' }), rolodex = await call('sdr_read', { resource: 'rolodex' });
   assert.equal(workspace.user.role, 'owner'); assert(workspace.rolodex); assert.deepEqual(rolodex, workspace.rolodex);
   result.mcp = { server: client.getServerVersion(), tools, role: workspace.user.role, offices: workspace.offices.length, agents: workspace.agents.length, contacts: rolodex.coverage.contacts, paymentsConfigured: workspace.paymentsConfigured };
-  if (receipt.addedApiRoute) {
+  if (receipt.addedApiRoute || receipt.workflowReadChecks) {
     const pipeline = await call('sdr_read', { resource: 'pipeline' }), contracts = await call('sdr_read', { resource: 'contracts' }), senders = await call('sdr_sender', { action: 'list' });
     assert.deepEqual(pipeline.offices, workspace.offices); assert.deepEqual(contracts.contracts, workspace.contracts); assert.deepEqual(senders.mailboxes, workspace.mailboxes);
     assert.equal(senders.connection.configured, false); assert.equal(workspace.paymentsConfigured, false);
     Object.assign(result.mcp, { contracts: contracts.contracts.length, senders: senders.mailboxes.length, directEmailConfigured: senders.connection.configured });
     result.checks.push('installed native MCP reads the deployed pipeline, contracts and shared/agent senders; email and payments remain unconfigured');
+  }
+  if (receipt.revenueReadChecks) {
+    const html = readFileSync(path.join(receipt.preparedOutput, 'static/sales.html'), 'utf8'); assert(html.includes('id="sales-revenue"'));
+    const revenue = workspace.revenue, commission = revenue?.commission; assert(commission);
+    assert.equal(revenue.scope, 'team'); assert.equal(commission.signupCents, 10000); assert.equal(commission.residualCents, 5000);
+    assert.equal(commission.residualStartsMonth, 2); assert.equal(commission.bonusCents, 200000); assert.equal(commission.bonusOffices, 10); assert.equal(commission.bonusMode, 'first_ten');
+    if (!workspace.offices.length) assert.equal(commission.earnedCents, 0);
+    result.revenue = revenue;
+    result.checks.push('the live API/installed MCP expose the confirmed commission plan, real earned totals and a persistent top-corner earnings card');
   }
   result.checks.push('the installed Shuug MCP launcher reads the actual deployed workspace and Rolodex consistently');
   assert.equal(alias(), deploymentId); result.ok = true;

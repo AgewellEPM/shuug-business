@@ -82,6 +82,7 @@ test('canonical invoice, allocation, intent and charge verify a current membersh
   const f = fixture(); const result = await reconcileEnrollment(env, f.db, '42', { fetcher: f.fetcher, now });
   assert.equal(result.status, 'active'); assert(result.eligible); assert.equal(f.writes.length, 1);
   assert.equal(f.info().billing.verification, 'canonical_stripe'); assert(f.calls.every(call => call.method === 'GET'));
+  assert.deepEqual(f.info().billing.verifiedInvoices, [{ id: 'in_synthetic', subscriptionId: 'sub_synthetic', kind: 'subscription_create', amountCents: 50000, currency: 'USD', verification: 'canonical_stripe' }]);
 });
 test('failed payment suspends eligibility and a later canonical paid invoice restores it', async () => {
   const f = fixture(); f.subscription.status = 'past_due';

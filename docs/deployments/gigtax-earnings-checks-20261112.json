@@ -1,0 +1,8 @@
+{
+  "ok": true,
+  "tests": 166,
+  "pass": 166,
+  "fail": 0,
+  "command": "node --test --test-reporter=tap sales/*.test.mjs scripts/sales/*.test.mjs",
+  "limits": "Synthetic provider/DOM/MCP checks; no real payment, payout, or human visual acceptance established."
+}

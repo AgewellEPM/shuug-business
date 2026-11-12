@@ -9,6 +9,7 @@ import { CONTACT_ACTIONS, contactBook, contactDirectory, contactTools } from './
 import { progressProjection, progressTools } from './pipeline.mjs';
 import { contractSummary, contractLink, signedContractReceipt } from './contracts.mjs';
 import { DELIVERY_ACTIONS, deliveryTools, deliveryReceipts, safeSalesEvent } from './contract-delivery.mjs';
+import { revenueSummary } from './revenue.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -56,7 +57,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         return { ...row, ...(current ? { membership: enrollmentEligibility(current) } : {}), pipeline: progressProjection(row, events, enrollments) };
       });
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
-      return { user: publicUser(user), offices, contracts, mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [] })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
+      return { user: publicUser(user), offices, contracts, revenue: revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [] })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
     }
     if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
     if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);
@@ -152,7 +153,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const expiresAt=Date.now()+14*86400000;
       if (info.invitationPendingUntil > Date.now()) throw new HttpError(409, 'An invitation is being prepared. Refresh before trying again.');
       await patchReviewed(db, 'offices', lead, { status: 'invited', notes: JSON.stringify({ ...info, invitationPendingUntil: Date.now() + 120000 }) });
-      const enrollment = await db.create('enrollments', { town: `Invitation ${secret().slice(0, 12)}`, state: lead.state, contact_name: ownerName, contact_email: ownerEmail, assigned_to: user.id, status: 'invited', notes: JSON.stringify({ leadId: String(lead.id), officeName: lead.town, address: info.address, state: lead.state, agentId: user.id, tokenHash: digest(token), sealedToken:seal({token,exp:expiresAt},key), terms, expiresAt }) });
+      const enrollment = await db.create('enrollments', { town: `Invitation ${secret().slice(0, 12)}`, state: lead.state, contact_name: ownerName, contact_email: ownerEmail, assigned_to: user.id, status: 'invited', notes: JSON.stringify({ leadId: String(lead.id), officeName: lead.town, address: info.address, state: lead.state, agentId: String(lead.assigned_to || user.id), preparedBy: user.id, tokenHash: digest(token), sealedToken:seal({token,exp:expiresAt},key), terms, expiresAt }) });
       await audit(user, lead.id, 'invitation_created', { enrollmentId: enrollment.id, ownerEmail });
       return { enrollmentId: enrollment.id, link: `${env.GIGTAX_SALES_ORIGIN}/office-signup#${new URLSearchParams({ id: enrollment.id, token })}`, expiresInDays: 14 };
     }

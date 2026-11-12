@@ -178,11 +178,15 @@ async function snapshot(get, row, info, now, live) {
     return { ...result, status: 'payment_review', reason: 'The subscription no longer matches the agreed monthly membership.' };
   }
   const invoices = await listAll(get, '/invoices', { subscription: sub.id });
+  result.verifiedInvoices = [];
   let currentPaid = false, unresolved = false;
   for (const invoice of invoices) {
     invoiceIdentity(invoice, sub, live);
     if (invoice.status === 'paid') {
       const confirmed = await paidInvoice(get, invoice, sub, live, result.holds);
+      if (confirmed && ['subscription_create', 'subscription_cycle'].includes(invoice.billing_reason)) result.verifiedInvoices.push({
+        id: invoice.id, subscriptionId: sub.id, kind: invoice.billing_reason, amountCents: invoice.amount_paid,
+        currency: 'USD', verification: 'canonical_stripe' });
       if (!confirmed) unresolved = true;
       if (invoice.id === result.invoiceId) currentPaid = confirmed && paidPeriodEnd(invoice, sub) === periodEnd;
     } else if (invoice.amount_remaining > 0 || ['uncollectible', 'void'].includes(invoice.status) || invoice.last_finalization_error) unresolved = true;
@@ -205,7 +209,7 @@ async function persist(db, row, computed, event, now) {
   if (JSON.stringify(info.payment) !== JSON.stringify(original.payment) || info.terms?.hash !== original.terms?.hash) throw new HttpError(409, 'The enrollment changed during reconciliation. Retry.');
   const holds = mergeHolds(priorHolds(info), computed.holds || []);
   const held = heldState(holds);
-  const billing = { ...computed, ...(held || {}), holds, processedEventIds: [...processed, ...(event ? [event.id] : [])].slice(-128),
+  const billing = { ...computed, ...(computed.verifiedInvoices || !info.billing?.verifiedInvoices ? {} : { verifiedInvoices: info.billing.verifiedInvoices }), ...(held || {}), holds, processedEventIds: [...processed, ...(event ? [event.id] : [])].slice(-128),
     ...(event ? { lastEvent: { id: event.id, type: event.type } } : {}) };
   const candidate = { ...latest, status: billing.status, notes: JSON.stringify({ ...info, billing }) };
   const eligibility = enrollmentEligibility(candidate, now);

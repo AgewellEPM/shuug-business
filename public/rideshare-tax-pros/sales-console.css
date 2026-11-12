@@ -601,3 +601,41 @@ body.sales-console-page :is(.skip-link, .sdr-skip):focus { top: 12px; }
   .sales-console-page :is(.sdr-card, .sales-panel, .sales-stat, .sales-office, .sdr-office-card, .sdr-lane, .sdr-state-card, .button, .sdr-stage-chip) { border: 1px solid CanvasText; }
   .sales-console-page .sdr-nav button:is([aria-pressed="true"], [aria-selected="true"], .active) { outline: 2px solid Highlight; }
 }
+
+/* Persistent commission card; the amount comes from the authenticated API. */
+.sales-console-page .sdr-topbar-right { display: flex; align-items: center; justify-content: flex-end; gap: 22px; min-width: 0; }
+.sales-console-page .sdr-earnings { position: relative; min-width: 215px; }
+.sales-console-page .sdr-earnings-summary { display: grid; grid-template-columns: 1fr auto; gap: 1px 20px; min-height: 80px; padding: 11px 38px 11px 16px; border: 1px solid rgba(65, 193, 139, .35); border-radius: 16px; background: linear-gradient(120deg, rgba(37, 170, 107, .14), rgba(37, 170, 107, .04)); cursor: pointer; list-style: none; }
+.sales-console-page .sdr-earnings-summary::-webkit-details-marker { display: none; }
+.sales-console-page .sdr-earnings-label { grid-column: 1 / -1; color: var(--text-secondary); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; }
+.sales-console-page .sdr-earnings-total { grid-column: 1 / -1; color: var(--success-ink); font-size: 29px; line-height: 1.1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.sales-console-page .sdr-earnings-caption { grid-column: 1 / -1; color: var(--text-tertiary); font-size: 10px; }
+.sales-console-page .sdr-earnings-recurring { grid-column: 1 / -1; color: var(--text-secondary); font-size: 11px; }
+.sales-console-page .sdr-earnings-chevron { position: absolute; top: 35px; right: 15px; color: var(--success-ink); }
+.sales-console-page .sdr-earnings[open] .sdr-earnings-chevron { transform: rotate(180deg); }
+.sales-console-page .sdr-earnings-panel { position: absolute; top: calc(100% + 12px); right: 0; width: min(370px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto; padding: 22px; border: 1px solid var(--glass-border-muted); border-radius: 20px; background: var(--glass-fill-strong); -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px); box-shadow: var(--glass-shadow-lg); text-align: left; }
+.sales-console-page .sdr-earnings-panel h2 { margin: 0 0 16px; font-size: 19px; }
+.sales-console-page .sdr-earnings-breakdown { margin: 0; }
+.sales-console-page .sdr-earnings-breakdown > div { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--glass-border-muted); font-size: 12px; }
+.sales-console-page .sdr-earnings-breakdown dt { color: var(--text-secondary); }
+.sales-console-page .sdr-earnings-breakdown dd { margin: 0; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sales-console-page .sdr-earnings-milestone { display: grid; gap: 6px; margin-top: 18px; font-size: 13px; }
+.sales-console-page .sdr-earnings-milestone span { color: var(--text-secondary); font-size: 12px; }
+.sales-console-page .sdr-earnings-milestone progress { width: 100%; height: 8px; accent-color: #27b77d; }
+.sales-console-page .sdr-earnings-plan { font-size: 12px; color: var(--text-secondary); }
+.sales-console-page .sdr-earnings-note { font-size: 11px; color: var(--text-tertiary); }
+.sales-console-page .sdr-earnings-sales { display: grid; gap: 4px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--glass-border-muted); font-size: 12px; }
+.sales-console-page .sdr-earnings-sales small { color: var(--text-tertiary); font-size: 11px; }
+.sales-console-page .sdr-earnings-action { width: 100%; margin-top: 16px; padding: 11px; border: 1px solid rgba(65, 193, 139, .4); border-radius: 10px; color: var(--success-ink); background: rgba(37, 170, 107, .12); font: inherit; font-size: 13px; cursor: pointer; }
+@media (max-width: 1000px) {
+  .sales-console-page .sdr-topbar-right { gap: 12px; }
+  .sales-console-page .sdr-topbar-right #sales-name, .sales-console-page .sdr-topbar-right .sdr-user-avatar { display: none; }
+}
+@media (max-width: 760px) {
+  .sales-console-page .sdr-topbar { flex-wrap: wrap; }
+  .sales-console-page .sdr-topbar-right { width: 100%; justify-content: space-between; }
+  .sales-console-page #sales-revenue { flex: 1 1 auto; }
+  .sales-console-page .sdr-earnings-summary { min-height: 70px; }
+  .sales-console-page .sdr-earnings-panel { right: auto; left: 0; }
+  .sales-console-page .sdr-topbar-right #sales-identity { max-width: none; }
+}

@@ -58,6 +58,34 @@
     function cardHead(title, detail) {
       const head = node('div','sdr-card-head'); head.append(node('h3','',title)); if (detail) head.append(node('span','sdr-card-meta',detail)); return head;
     }
+    function renderRevenue() {
+      const host = $('#sales-revenue'); if (!host) return;
+      const revenue = data.revenue, commission = revenue?.commission;
+      host.hidden = !commission; if (!commission) { host.replaceChildren(); return; }
+      const money = cents => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: cents % 100 ? 2 : 0 }).format(cents / 100);
+      const opened = host.querySelector('details')?.open || false, details = node('details','sdr-earnings'); details.open = opened;
+      const summary = node('summary','sdr-earnings-summary');
+      const heading = node('span','sdr-earnings-label',revenue.scope === 'team' ? 'Team earnings' : 'Your earnings');
+      const amount = node('strong','sdr-earnings-total',money(commission.earnedCents)); amount.setAttribute('aria-live','polite');
+      const recurring = node('span','sdr-earnings-recurring',`${money(commission.monthlyResidualCents)}/mo active residual`);
+      summary.append(heading,amount,node('span','sdr-earnings-caption','Estimated earned'),recurring,node('span','sdr-earnings-chevron','⌄'));
+      const panel = node('section','sdr-earnings-panel'); panel.setAttribute('aria-label','Commission and revenue breakdown');
+      panel.append(node('h2','',revenue.scope === 'team' ? 'The team’s progress' : 'Your work is adding up'));
+      const breakdown = node('dl','sdr-earnings-breakdown');
+      for (const [label,value] of [['Signup commissions',commission.signupEarnedCents],['Verified monthly commissions',commission.residualEarnedCents],['Milestone bonuses',commission.bonusEarnedCents],['Signed · awaiting payment',commission.pendingSignupCents]]) {
+        const row = node('div',''); row.append(node('dt','',label),node('dd','',money(value))); breakdown.append(row);
+      }
+      panel.append(breakdown);
+      const milestone = node('div','sdr-earnings-milestone');
+      milestone.append(node('strong','',`${money(commission.bonusCents)} first-10 bonus`),node('span','',`${commission.milestoneOffices}/${commission.bonusOffices} paid offices${revenue.scope === 'team' ? ' · closest agent' : ''}`));
+      const progress = node('progress',''); progress.max = commission.bonusOffices; progress.value = commission.milestoneOffices; progress.setAttribute('aria-label','Paid offices toward the first milestone bonus'); milestone.append(progress);
+      panel.append(milestone,node('p','sdr-earnings-plan',`${money(commission.signupCents)} per paid signup + ${money(commission.residualCents)} per collected month from month ${commission.residualStartsMonth}.`));
+      if (commission.historyNeedsReview) panel.append(node('p','sdr-earnings-note','Some older monthly receipts need billing review before commissions can be counted.'));
+      panel.append(node('p','sdr-earnings-note','Based on verified live payments. Pending signatures and unpaid agreements do not earn commission. Estimates are separate from payout records.'));
+      const sales = node('div','sdr-earnings-sales'); sales.append(node('span','',`${money(revenue.signedRevenueCents)} signed contract value`),node('small','',`${money(commission.potentialMonthlyCents)}/mo potential residual if memberships pay and continue`)); panel.append(sales);
+      panel.append(button('Find your next office →','sdr-earnings-action',() => { details.open = false; return openView('discover'); }));
+      details.append(summary,panel); host.replaceChildren(details);
+    }
     function workFor(office, today) {
       if (['do_not_contact','not_interested'].includes(office.status)) return null;
       if (office.membership && !office.membership.eligible) return { office, priority: 0, title: 'Review membership status', detail: office.membership.reason || label(office.membership.status) };
@@ -218,7 +246,7 @@
     $$('[data-pipeline-view]').forEach(control => listen(control,'click',() => setPipelineView(control.dataset.pipelineView)));
     previousMount = () => cleanups.forEach(remove => remove());
     return {
-      render(next) { data = { offices:[], agents:[], stages:STAGES, user:{}, ...next }; if (!permitted(selectedState)) selectedState = ''; renderDashboard(); renderPipeline(); renderTerritories(); navigate(currentView); },
+      render(next) { data = { offices:[], agents:[], stages:STAGES, user:{}, ...next }; if (!permitted(selectedState)) selectedState = ''; renderRevenue(); renderDashboard(); renderPipeline(); renderTerritories(); navigate(currentView); },
       navigate,
     };
   }
