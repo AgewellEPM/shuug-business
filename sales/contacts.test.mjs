@@ -120,3 +120,18 @@ test('a phone edit in the existing office form cannot retain or resurrect a Rolo
   current = await f.db.get('offices', office.id);
   assert.equal(contactBook(current).contacts.find(c => c.id === id).verification, null);
 });
+
+test('re-entering an office contact after archival cannot reuse or overwrite the archived identity', async () => {
+  const f = contactFixture(), office = await f.createOffice({ contact: 'Original Directory Person' });
+  await f.app.dispatch(f.owner, 'save-contact', command(office, undefined, { contact: person() }));
+  let current = await f.db.get('offices', office.id);
+  await f.app.dispatch(f.owner, 'archive-contact', command(current, 'office-contact'));
+  await f.app.dispatch(f.owner, 'update-office', { id: office.id, contact: 'New Directory Person', email: 'new@example.test' });
+  current = await f.db.get('offices', office.id);
+  const book = contactBook(current), active = book.contacts.find(c => c.primary);
+  assert.equal(new Set(book.contacts.map(c => c.id)).size, 3); assert.notEqual(active.id, 'office-contact');
+  await f.app.dispatch(f.owner, 'save-contact', command(current, active.id, { contact: person({ name: 'New Directory Person', email: 'new@example.test' }) }));
+  const saved = contactBook(await f.db.get('offices', office.id));
+  assert.equal(saved.contacts.find(c => c.id === 'office-contact').name, 'Original Directory Person');
+  assert(saved.contacts.find(c => c.id === 'office-contact').archived);
+});

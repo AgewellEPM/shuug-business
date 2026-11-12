@@ -26,7 +26,9 @@ export function officeContacts(office) {
       (!primary.verification || primary.verification.at !== info.verificationAt)) primary.verification = { at: info.verificationAt, by: info.verificationBy, legacy: true };
     primary.primary = true;
   } else if (office.contact_name || office.contact_email || office.contact_phone) {
-    saved.unshift({ id: 'office-contact', name: office.contact_name || '', email: office.contact_email || '', phone: office.contact_phone || '', mobile: '', extension: '', title: '',
+    const hex = digest(JSON.stringify([office.id, info.revision, office.contact_name, office.contact_email, office.contact_phone]));
+    const legacyId = saved.some(contact => contact.id === 'office-contact') ? `${hex.slice(0, 8)}-${hex.slice(8, 12)}-4${hex.slice(13, 16)}-a${hex.slice(17, 20)}-${hex.slice(20, 32)}` : 'office-contact';
+    saved.unshift({ id: legacyId, name: office.contact_name || '', email: office.contact_email || '', phone: office.contact_phone || '', mobile: '', extension: '', title: '',
       role: CONTACT_ROLES.includes(info.contactRole) ? info.contactRole : 'unverified', preference: info.primaryContactDoNotContact ? 'do_not_contact' : 'unspecified', notes: '', sourceURL: info.verificationSource || '', sourceNote: info.verificationNote || '', primary: true, legacy: true,
       verification: info.contactVerified && info.verificationSource && info.verificationNote ? { at: info.verificationAt, by: info.verificationBy, legacy: true } : null });
   }
