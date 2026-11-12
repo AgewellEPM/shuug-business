@@ -67,6 +67,7 @@ if (cloudflare) {
 } else writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3, routes: [
   ...redirects.vercel,
   { src: '/.*', headers: { 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }, continue: true },
+  { src: '/sales(?:\\.html)?', headers: { 'Content-Security-Policy': csp.replace("img-src 'self' data:", "img-src 'self' data: https://tile.openstreetmap.org") }, continue: true },
   { src: '/site-config.json', headers: { 'Cache-Control': 'no-store' }, continue: true },
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
   { src: '/\\.well-known/apple-app-site-association', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' }, continue: true },

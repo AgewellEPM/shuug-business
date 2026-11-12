@@ -27,14 +27,14 @@
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected, consoleUI, contactsUI, contractsUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    let data, selected, consoleUI, contactsUI, contractsUI, localUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
     const tab = name => {
       if (name === 'team' && data?.user.role !== 'owner') name = 'home';
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', team: 'Sales team' })[name] || 'Workspace';
-      $('#sales-stats').hidden = name === 'home';
-      consoleUI?.navigate(name);
+      $('#sales-stats').hidden = ['home','discover'].includes(name);
+      consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
     };
     function closeDetail() {
       const drawer = $('#sales-detail-drawer'); if (!drawer) return;
@@ -153,6 +153,7 @@
     $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download('gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
     const discovery = $('#sales-discover');
     async function findOffices(input, offset = 0) {
+      if (localUI) return localUI.search(input);
       const requestId = ++discoveryRequest;
       ['#sales-results-prev', '#sales-results-next'].forEach(selector => { const button = $(selector); if (button) button.disabled = true; });
       const query = `tax preparation offices ${input.city} ${input.state}`;
@@ -189,6 +190,11 @@
     const create = $('#sales-create-office'); create.onsubmit = run(async () => { const result = await api('create-office',Object.fromEntries(new FormData(create))); create.reset(); selected = String(result.office.id); await refresh(); tab('pipeline'); status(result.duplicate ? 'Opened the office already in your pipeline.' : 'Office saved to your pipeline.'); },create);
     const agentForm = $('#sales-create-agent'); agentForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agentForm)); input.states = input.states.split(/[\s,]+/).filter(Boolean).map(s=>s.toUpperCase()); const result = await api('create-agent',input); await refresh(); tab('team'); const panel = $('#sales-agent-code'); panel.hidden = false; panel.innerHTML = '<p>Share this access code privately with the agent. It is shown once.</p><code class="sales-secret"></code><button class="button secondary">Copy access code</button>'; $('code',panel).textContent = result.code; $('button',panel).onclick = run(async () => { await navigator.clipboard.writeText(result.code); status('Agent access code copied.'); }); agentForm.reset(); status('Agent created. Save the access code before leaving this page.'); },agentForm);
     $('#sales-copy-login-link')?.addEventListener('click', run(async () => { await navigator.clipboard.writeText(location.origin + '/sales'); status('Agent sign-in link copied. Share the access code privately.'); }));
+    localUI = window.GigTaxLocalOffices?.mount({ api, status, onPrepare: result => {
+      const form = $('#sales-create-office');
+      for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:'', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
+      form.scrollIntoView?.({ behavior:'smooth', block:'start' }); form.elements.name.focus(); status('Public business details prepared. Review the office location and owner role before saving. Nothing has been saved yet.');
+    } });
     contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
     consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onSearch: async input => {
@@ -197,7 +203,15 @@
       return findOffices(Object.fromEntries(new FormData(discovery)), 0);
     } });
     (async () => {
-      try { const params = new URLSearchParams(location.hash.slice(1)); if (params.has('owner-code')) { const code = params.get('owner-code'); history.replaceState(null,'',location.pathname); await api('login',{code}); } await refresh(); tab('home'); }
+      try {
+        const params = new URLSearchParams(location.hash.slice(1));
+        if (params.has('owner-code')) { const code = params.get('owner-code'); history.replaceState(null,'',location.pathname); await api('login',{code}); }
+        await refresh();
+        const region = params.get('state'), city = params.get('city');
+        if (params.get('view') === 'discover' && city && city.length <= 100 && [...discovery.elements.state.options].some(option => option.value === region)) {
+          discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
+        } else tab('home');
+      }
       catch (err) { if (err.status !== 401) status(err.message,true); }
     })();
   }

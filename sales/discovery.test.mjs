@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { deflateRawSync } from 'node:zlib';
-import { discoverOffices, parseDirectory, unzipState, IRS_DIRECTORY } from './discovery.mjs';
+import { discoverOffices, parseDirectory, unzipState, resolveLocality, IRS_DIRECTORY } from './discovery.mjs';
 
 function crc32(bytes) {
   let value = 0xffffffff;
@@ -81,4 +81,9 @@ test('unavailable, oversized and malformed directory downloads fail without retu
   const oversized = { ok: true, body: { async *[Symbol.asyncIterator]() { yield Buffer.alloc(8000001); } } };
   await assert.rejects(discoverOffices('RI', 'Providence', async () => oversized), error => error.status === 502 && /size limit/.test(error.message));
   await assert.rejects(discoverOffices('RI', 'Providence', async () => new Response('broken ZIP')), /supported ZIP/);
+});
+test('Hartford typos are corrected visibly; ambiguous cities and ZIP codes are never silently changed', async () => {
+  for (const city of ['hartord','hartrod']) { const result = await discoverOffices('CT', city, async () => new Response(ctZIP), { includeChains:true, exactCity:true, offset:100 }); assert.equal(result.total,120); assert.equal(result.correction.from,city); assert.match(result.locality,/hartford/i); assert(result.results.some(row=>row.chain)); }
+  assert.equal(resolveLocality('Cliton',[{city:'Clinton'},{city:'Clifton'}]).correction,null);
+  assert.equal(resolveLocality('06103',[{city:'Hartford'}]).locality,'06103');
 });

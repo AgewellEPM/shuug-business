@@ -15,7 +15,10 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
   const f = contactFixture(), office = await f.createOffice();
   const directory = mkdtempSync(path.join(tmpdir(), 'gigtax-contact-mcp-'));
   const clients = [];
-  const server = createServer((req, res) => createHandler(f.env, f.db)(req, res));
+  const localCandidate = { candidateId: 'synthetic-map-candidate', name: 'Synthetic Tax Map Office', address: '42 Fixture Street', city: 'Hartford', state: 'CT', zip: '06103', url: 'https://www.irs.gov/pub/irs-efile/ct.zip' };
+  const localTools = { localDiscovery: { discoverer: async () => ({ results: [localCandidate], total: 1, locality: 'Hartford', correction: { from: 'hartord', to: 'Hartford' } }), registry: async () => ({ supported: true, results: [] }),
+    geocoder: async rows => rows.map(row => ({ candidateId: row.candidateId, location: { lat: 41.76, lng: -72.68 } })), lookup: async () => ({ supported: true, matches: [{ legalName: 'Synthetic Tax Map Office LLC', principals: [{ name: 'Synthetic Registry Principal', role: 'Manager' }] }] }) } };
+  const server = createServer((req, res) => createHandler(f.env, f.db, localTools)(req, res));
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`; f.env.GIGTAX_SALES_ORIGIN = origin;
   async function connect(code, email = '') {
@@ -36,6 +39,11 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     assert.equal(client.getServerVersion().name, 'shuug-business');
     assert.deepEqual((await client.listTools()).tools.map(t => t.name), ['sdr_catalog', 'sdr_read', 'sdr_command', 'sdr_progress', 'sdr_contract', 'sdr_sender']);
     assert.equal((await call(client, 'sdr_catalog')).storage, 'Existing GigTax private sales records');
+    const mappedSearch = await call(client, 'sdr_read', { resource: 'local_offices', city: 'hartord', state: 'CT' });
+    assert.equal(mappedSearch.correction.to, 'Hartford');
+    const candidateToken = mappedSearch.results[0].candidateToken;
+    assert.equal((await call(client, 'sdr_read', { resource: 'business', candidateToken })).matches[0].principals[0].role, 'Manager');
+    assert.equal((await call(client, 'sdr_read', { resource: 'map_addresses', candidateTokens: [candidateToken] })).results[0].location.lat, 41.76);
     const read = await call(client, 'sdr_read', { resource: 'office', id: String(office.id) });
     const input = { action: 'save-contact', id: String(office.id), expectedRevision: read.contacts.revision, requestId: randomUUID(), contactId: randomUUID(),
       contact: { name: 'Synthetic MCP Owner', role: 'owner', email: 'owner@example.test', preference: 'email', reviewed: true, sourceURL: 'https://example.test/team', sourceNote: 'Synthetic explicit source check.' } };
@@ -58,6 +66,7 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     assert.equal((await call(client, 'sdr_read', { resource: 'contracts' })).contracts.length, 1);
     const other = await f.app.dispatch(f.owner, 'create-agent', { name: 'Synthetic MCP Agent', email: 'agent@example.test', states: ['CT'] });
     const agent = await connect(other.code, 'agent@example.test');
+    assert.match((await call(agent, 'sdr_read', { resource: 'business', candidateToken })).error, /another agent/);
     assert.equal((await call(agent, 'sdr_read', { resource: 'rolodex' })).contacts.length, 0);
     assert.match((await call(agent, 'sdr_read', { resource: 'office', id: String(office.id) })).error, /not found/);
     await f.app.dispatch(f.owner, 'revoke-agent', { id: other.agent.id });

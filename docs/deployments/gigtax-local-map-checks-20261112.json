@@ -1,0 +1,13 @@
+{
+  "ok": true,
+  "tests": 173,
+  "pass": 173,
+  "fail": 0,
+  "command": "node --test --test-reporter=tap sales/*.test.mjs scripts/sales/*.test.mjs",
+  "typecheck": {
+    "fullProject": "passed",
+    "changedMcpStrict": "passed"
+  },
+  "logSha256": "44566398686792da2ba69ba2909d061ce2455c9182dda24732db63c91bfc3d1f",
+  "limits": "Synthetic provider/DOM/MCP checks. Live HTTP, source responses and deployed installed MCP are verified separately; human visual acceptance remains pending."
+}

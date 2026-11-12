@@ -10,6 +10,7 @@ import { progressProjection, progressTools } from './pipeline.mjs';
 import { contractSummary, contractLink, signedContractReceipt } from './contracts.mjs';
 import { DELIVERY_ACTIONS, deliveryTools, deliveryReceipts, safeSalesEvent } from './contract-delivery.mjs';
 import { revenueSummary } from './revenue.mjs';
+import { localDiscovery } from './local-discovery.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -36,6 +37,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const contacts = contactTools(db, audit, tools.now);
   const progress = progressTools(db, audit, tools.now);
   const delivery = deliveryTools(env, db, tools);
+  const local = localDiscovery(env, tools.localDiscovery);
   async function login(body) {
     const code = text(body.code, 200, true), codeHash = digest(code);
     let user, session;
@@ -49,6 +51,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
   }
   async function dispatch(user, action, b = {}) {
+    if (['search-local', 'map-geocode', 'lookup-business'].includes(action)) return local(user, action, b);
     if (action === 'bootstrap') {
       const [all, agents, terms, enrollments, events] = await Promise.all([db.list('offices'), db.list('agents'), db.terms(), db.list('enrollments'), db.list('events')]);
       const offices = all.filter(r => visible(user, r)).map(row => {

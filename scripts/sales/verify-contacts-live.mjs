@@ -86,6 +86,37 @@ try {
     result.revenue = revenue;
     result.checks.push('the live API/installed MCP expose the confirmed commission plan, real earned totals and a persistent top-corner earnings card');
   }
+  if (receipt.localMapReadChecks) {
+    for (const route of ['/sales','/sales.html']) {
+      const response = await fetch(origin + route, { signal: AbortSignal.timeout(45000) });
+      assert.equal(response.status, 200); assert.equal(response.headers.get('content-security-policy'), receipt.privateMapRoute.headers['Content-Security-Policy'], `Private map policy: ${route}`); await response.body.cancel();
+    }
+    const search = await call('sdr_read', { resource:'local_offices', state:'CT', city:'hartord' });
+    assert.equal(search.correction?.from, 'hartord'); assert.equal(search.city.toLowerCase(), 'hartford'); assert(search.results.length > 50); assert.equal(search.results.length, search.total);
+    const points = [], ids = new Set(search.results.map(row=>row.candidateId)); let cursor = 0;
+    await Promise.all([0,1].map(async()=>{
+      while(cursor < search.results.length) {
+        const candidates = search.results.slice(cursor,cursor += 10);
+        const mapped = await call('sdr_read', { resource:'map_addresses', candidateTokens:candidates.map(row=>row.candidateToken) });
+        assert.equal(mapped.results.length,candidates.length);
+        for(const point of mapped.results) { assert(ids.has(point.candidateId)); if(point.location) assert(Number.isFinite(point.location.lat)&&Number.isFinite(point.location.lng)); points.push(point); }
+      }
+    }));
+    const mapped = points.filter(point=>point.location); assert(mapped.length > 0);
+    const selected = search.results.find(row=>row.registryId&&/\btax\b/i.test(row.name)); assert(selected);
+    const business = await call('sdr_read', { resource:'business', candidateToken:selected.candidateToken });
+    assert(business.matches.length); assert.equal(business.matches[0].registryId, selected.registryId); assert(business.matches[0].principals.length);
+    assert(business.matches[0].principals.every(person=>person.name&&!person.verifiedOwner));
+    const z=12,n=2**z,location=mapped[0].location,lat=location.lat*Math.PI/180;
+    const tile=`https://tile.openstreetmap.org/${z}/${Math.floor((location.lng+180)/360*n)}/${Math.floor((1-Math.log(Math.tan(lat)+1/Math.cos(lat))/Math.PI)/2*n)}.png`;
+    const response = await fetch(tile,{headers:{'User-Agent':'GigTaxMapEvidence/1.0 (+https://gigtax.pro/privacy)',Referer:origin+'/'},signal:AbortSignal.timeout(20000)});
+    assert.equal(response.status,200); const bytes=Buffer.from(await response.arrayBuffer()); assert(bytes.length<512000); assert.equal(bytes.subarray(0,8).toString('hex'),'89504e470d0a1a0a');
+    result.localMap = { query:'hartord', resolvedCity:search.city,state:'CT',candidates:search.total,irsCandidates:search.irsTotal,registryCandidates:search.registryTotal,
+      addressesChecked:points.length,mapped:mapped.length,unmatched:points.length-mapped.length,chainsIncluded:search.results.some(row=>row.chain),
+      registryEntityMatched:true,principalsReported:business.matches[0].principals.length,ownerAutomaticallyVerified:false,privateTilePolicyVerified:true,mapTileStatus:response.status,
+      sourceIssues:search.issues,coverage:search.coverage };
+    result.checks.push('actual installed MCP corrects the Hartford typo, reads all multi-source candidates, geocodes every returned address and cross-references an actual CT entity/principal without saving prospects; private CSP and one real map tile verified');
+  }
   result.checks.push('the installed Shuug MCP launcher reads the actual deployed workspace and Rolodex consistently');
   assert.equal(alias(), deploymentId); result.ok = true;
 } catch (error) { result.error = error.message; }

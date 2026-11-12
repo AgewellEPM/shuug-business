@@ -20,7 +20,8 @@ export function registerSalesMcp(server: McpServer, invoke: SalesInvoke) {
   };
   register("sdr_catalog", "Read GigTax contact, pipeline, contract and sender contracts and provider limits. These tools share the private sales UI records. Contract email sending is an explicit external action; payments remain separate.", {}, true);
   register("sdr_read", "Read the authenticated sales workspace, assigned-office Rolodex or one office including its current contact revision. Source-checked names/roles do not establish email deliverability or independent office ownership. Archived contacts remain in history.", {
-    resource: z.enum(["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes"]), id: z.string().regex(/^\d+$/).optional(),
+    resource: z.enum(["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses"]), id: z.string().regex(/^\d+$/).optional(),
+    city: z.string().min(1).max(100).optional(), state: z.string().regex(/^[A-Z]{2}$/).optional(), candidateToken: z.string().max(12000).optional(), candidateTokens: z.array(z.string().max(12000)).min(1).max(10).optional(),
   }, true);
   register("sdr_command", "Save an office contact, choose its primary contact, archive or restore it. Read sdr_catalog and that office first. Reuse requestId and exact inputs on retry; expectedRevision must be the current office contact revision. Use a UUID contactId for a new person, or the returned existing ID. A reviewed source is required to confirm a name and role. Contact changes never send a message, confirm independent ownership, activate membership or take payment.", {
     action: z.enum(["save-contact", "set-primary-contact", "archive-contact", "restore-contact"]),
