@@ -24,7 +24,7 @@
     "scripts/sales/mcp-connection.ts": "c4feb2abf7a9629d6bac5567196003adc4203a21a82d1495f42b24694e62e653"
   },
   "realDataPopulation": false,
-  "deploymentVerification": "pending",
+  "deploymentVerification": "passed: dpl_CaZtZTPJ2JeuLMSURpLgyZQsUy5D; 137 artifact hashes, 88 static HTTP responses, access gates and installed Shuug MCP",
   "limits": "No human visual acceptance, real email delivery or payment activation is established.",
   "note": "Final archive compatibility regression passes. A re-entered legacy contact gets a distinct stable identity while the archived original is retained."
 }
