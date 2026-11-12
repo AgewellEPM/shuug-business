@@ -10,6 +10,8 @@ design remain unchanged; no public intake connection or cloud host is claimed.
 - Engineering checkout: `/Users/lukekist/Worktrees/TateWayShuugAutomation-20261112`.
 - Branch: `feat/tateway-shop-automation-20261112`, based on `03a60c1`.
 - Private remote: `AgewellEPM/shuug-business`.
+- Core implementation checkpoint `ba6ff37` is privately backed up and its remote
+  SHA was verified. The separate Railway supervisor adds no application changes.
 - Actual compiled acceptance build: `XYICSTwCjq6Evnr_mCVFC`.
 - Build output is on PRO-G40 at `TateWayShuugBuild-20261112/.next`; the checkout's
   `.next` points there. Its parent has a dependency symlink for Node resolution.
@@ -48,6 +50,9 @@ design remain unchanged; no public intake connection or cloud host is claimed.
 - `deployments/tateway-auto` contains the dedicated persistent-volume/Caddy
   cloud profile, readiness checks, exact MCP setup and recovery instructions.
   A Railway variant is separate from the portable server profile.
+  Its supervisor passed five real fixture-process lifecycle checks without
+  opening ports, starting a VM/container or contacting a provider. For new Railway
+  services, configure current platform settings; the JSON is a legacy reference.
 
 ## Evidence earned
 
