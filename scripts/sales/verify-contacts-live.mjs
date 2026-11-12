@@ -48,10 +48,19 @@ try {
   const foreign = await fetch(origin + '/api/sales', { method: 'POST', headers: { Origin: 'https://foreign.example', 'Content-Type': 'application/json' }, body: '{"action":"rolodex"}', signal: AbortSignal.timeout(45000) });
   assert.equal(foreign.status, 403);
   result.checks.push('the Rolodex requires authentication and rejects foreign origins');
+  if (receipt.addedApiRoute?.src === '/api/sales-mail-webhook') {
+    const callback = await fetch(origin + '/api/sales-mail-webhook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}', signal: AbortSignal.timeout(45000) });
+    assert.equal(callback.status, 503, 'Unconfigured email notifications must remain unavailable.');
+    const salesHtml = readFileSync(path.join(receipt.preparedOutput, 'static/sales.html'), 'utf8');
+    for (const asset of ['sales-progress.js', 'sales-contracts.js']) assert(salesHtml.includes(asset));
+    const signatureHtml = readFileSync(path.join(receipt.preparedOutput, 'static/office-signup.html'), 'utf8');
+    assert(signatureHtml.includes('contract-signature.js'));
+    result.checks.push('the shipped console includes pipeline/contracts tools and separate signing; unconfigured email callbacks fail closed');
+  }
   const connection = Object.values(JSON.parse(readFileSync(path.join(homedir(), '.config/gigtax-sales/mcp-client.json'))).mcpServers)[0];
   await client.connect(new StdioClientTransport({ ...connection, env: { ...process.env, ...connection.env }, stderr: 'pipe' }));
   const tools = (await client.listTools()).tools.map(tool => tool.name);
-  assert.deepEqual(tools, ['sdr_catalog', 'sdr_read', 'sdr_command']);
+  assert.deepEqual(tools, ['sdr_catalog', 'sdr_read', 'sdr_command', 'sdr_progress', 'sdr_contract', 'sdr_sender']);
   async function call(name, input = {}) {
     const response = await client.callTool({ name, arguments: input });
     const text = response.content.find(item => item.type === 'text')?.text;
@@ -61,6 +70,13 @@ try {
   const workspace = await call('sdr_read', { resource: 'workspace' }), rolodex = await call('sdr_read', { resource: 'rolodex' });
   assert.equal(workspace.user.role, 'owner'); assert(workspace.rolodex); assert.deepEqual(rolodex, workspace.rolodex);
   result.mcp = { server: client.getServerVersion(), tools, role: workspace.user.role, offices: workspace.offices.length, agents: workspace.agents.length, contacts: rolodex.coverage.contacts, paymentsConfigured: workspace.paymentsConfigured };
+  if (receipt.addedApiRoute) {
+    const pipeline = await call('sdr_read', { resource: 'pipeline' }), contracts = await call('sdr_read', { resource: 'contracts' }), senders = await call('sdr_sender', { action: 'list' });
+    assert.deepEqual(pipeline.offices, workspace.offices); assert.deepEqual(contracts.contracts, workspace.contracts); assert.deepEqual(senders.mailboxes, workspace.mailboxes);
+    assert.equal(senders.connection.configured, false); assert.equal(workspace.paymentsConfigured, false);
+    Object.assign(result.mcp, { contracts: contracts.contracts.length, senders: senders.mailboxes.length, directEmailConfigured: senders.connection.configured });
+    result.checks.push('installed native MCP reads the deployed pipeline, contracts and shared/agent senders; email and payments remain unconfigured');
+  }
   result.checks.push('the installed Shuug MCP launcher reads the actual deployed workspace and Rolodex consistently');
   assert.equal(alias(), deploymentId); result.ok = true;
 } catch (error) { result.error = error.message; }

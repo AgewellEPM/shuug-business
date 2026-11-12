@@ -9,21 +9,27 @@ export function createSalesConnection({ origin, codeFile, email, fetcher = fetch
   if (!codeFile.startsWith("/")) throw new Error("Select an absolute private sales access-code file.");
   return async (operation, args = {}) => {
     if (operation === "sdr_catalog") return {
-      version: 1, storage: "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office"],
+      version: 2, storage: "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes"],
       actions: ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"],
       roles: ["unverified", "owner", "partner", "manager", "accountant", "staff", "other"],
       limits: { contactsPerOffice: 50, exactRetryReceiptsPerOffice: 30, totalOfficeMetadataCharacters: 48000 },
       concurrency: "Read office.contacts.revision and send it as expectedRevision. Reuse the same UUID requestId and inputs on an uncertain retry.",
       authority: "Uses the supplied sales identity. Agent assignment, territory and revoked-access rules apply at the backend.",
       evidence: "A named owner/partner remains unconfirmed without an explicit source check. Office ownership, email delivery and paid eligibility are separate.",
-      externalEffects: "No messages, research requests, invitations or payments. Only contact records are changed.",
+      workflowTools: ["sdr_progress", "sdr_contract", "sdr_sender"],
+      externalEffects: "sdr_contract send_email explicitly sends the exact reviewed contract email when a provider is configured. Other contract operations prepare links/previews or record evidence. No campaigns, calls or payments.",
     };
     let action: string;
     if (operation === "sdr_read") {
-      const actions: Record<string, string> = { workspace: "bootstrap", rolodex: "rolodex", office: "office" };
+      const actions: Record<string, string> = { workspace: "bootstrap", rolodex: "rolodex", office: "office", pipeline: "pipeline", contracts: "contracts", mailboxes: "mailboxes" };
       action = actions[String(args.resource)];
       if (!action || (action === "office" && !/^\d+$/.test(String(args.id || "")))) throw new Error("Choose a sales resource and supply an office ID for office reads.");
     } else if (operation === "sdr_command" && ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"].includes(String(args.action))) action = String(args.action);
+    else if (operation === "sdr_progress") action = "record-progress";
+    else if (operation === "sdr_contract") {
+      const actions: Record<string, string> = { prepare: "invite", link: "contract-link", receipt: "contract-receipt", preview_email: "preview-contract-email", send_email: "send-contract-email", record_sent: "record-contract-sent", resolve_email: "resolve-contract-email" };
+      action = actions[String(args.action)]; if (!action) throw new Error("Unknown contract operation.");
+    } else if (operation === "sdr_sender" && ["list", "save"].includes(String(args.action))) action = args.action === "list" ? "mailboxes" : "save-mailbox";
     else throw new Error("Unknown sales MCP operation.");
     let cookie = "";
     const call = async (body: Record<string, unknown>, authenticated = true) => {

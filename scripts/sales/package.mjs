@@ -12,4 +12,8 @@ export function packageSales(root, destination) {
   const webhook=path.join(destination,'functions/api/sales-webhook.func');
   mkdirSync(webhook,{recursive:true});cpSync(path.join(root,'sales'),webhook,{recursive:true,filter:source=>!source.endsWith('.test.mjs')});
   writeFileSync(path.join(webhook,'.vc-config.json'),JSON.stringify({runtime:'nodejs22.x',handler:'webhook.mjs',launcherType:'Nodejs',maxDuration:60},null,2));
+  const mailHook = path.join(destination, 'functions/api/sales-mail-webhook.func');
+  mkdirSync(mailHook, { recursive: true });
+  cpSync(path.join(root, 'sales'), mailHook, { recursive: true, filter: source => !source.endsWith('.test.mjs') });
+  writeFileSync(path.join(mailHook, '.vc-config.json'), JSON.stringify({ runtime: 'nodejs22.x', handler: 'mail-webhook.mjs', launcherType: 'Nodejs', maxDuration: 60 }, null, 2));
 }

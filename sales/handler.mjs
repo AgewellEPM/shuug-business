@@ -34,7 +34,7 @@ export function createHandler(env = process.env, adapter, tools = {}) {
         res.setHeader('Set-Cookie', 'gigtax_sales=; HttpOnly; Secure; SameSite=Strict; Path=/api/sales; Max-Age=0');
         return reply(200, { ok: true });
       }
-      if (['signup-view', 'signup-accept', 'signup-confirm'].includes(body.action)) return reply(200, await app.signup(body.action.slice(7), body));
+      if (['signup-view', 'signup-accept', 'signup-confirm', 'signup-sign', 'signup-receipt'].includes(body.action)) return reply(200, await app.signup(body.action.slice(7), body));
       const cookie = (req.headers.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith('gigtax_sales='))?.slice(13);
       const user = await app.identity(cookie);
       return reply(200, await app.dispatch(user, body.action, body));

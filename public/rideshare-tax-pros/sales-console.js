@@ -17,8 +17,8 @@
     ' .  .  . TX  .  .  . FL  .  .  .  .',
     'AK HI  .  .  .  .  .  .  . DC  .  .',
   ].map(row => row.trim().split(/\s+/));
-  const STAGES = ['new','researching','contacted','meeting','interested','invited','active','not_interested','do_not_contact'];
-  const LABELS = { new:'New candidates',researching:'Researching',contacted:'Contacted',meeting:'Meetings',interested:'Interested',invited:'Invited',active:'Active offices',not_interested:'Not interested',do_not_contact:'Do not contact' };
+  const STAGES = ['new','researching','contacted','replied','waiting','meeting','interested','invited','contract_sent','contract_signed','active','not_interested','do_not_contact'];
+  const LABELS = { new:'New candidates',researching:'Researching',contacted:'Contacted',replied:'Replied',waiting:'Waiting',contract_sent:'Contract sent / queued',contract_signed:'Agreement signed',meeting:'Meetings',interested:'Interested',invited:'Contract prepared',active:'Active offices',not_interested:'Not interested',do_not_contact:'Do not contact' };
   const $ = selector => document.querySelector(selector);
   const $$ = selector => [...document.querySelectorAll(selector)];
   const metadata = office => { try { return JSON.parse(office.notes || '{}') || {}; } catch { return {}; } };
@@ -75,7 +75,7 @@
       const hour = new Date().getHours(), greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
       heading.append(node('p','sdr-eyebrow','YOUR OFFICE NETWORK'),node('h2','',`${greeting}${data.user.name ? `, ${data.user.name}` : ''}.`),node('p','',rows.length ? 'Your pipeline, your next conversations, and the offices ready for a closer look.' : 'Start with one local office. Research the facts, meet the people, and build from there.'));
       const actions = node('div','sdr-quick-actions');
-      for (const [text, view] of [['Find offices','discover'],['Open pipeline','pipeline'],['Explore territories','territories']]) { const control = button(text,'sdr-action',() => openView(view)); control.dataset.consoleNav = view; actions.append(control); }
+      for (const [text, view] of [['Find offices','discover'],['Open pipeline','pipeline'],['Contracts','contracts'],['Signup locations','locations'],['Senders','mail'],['Explore territories','territories']]) { const control = button(text,'sdr-action',() => openView(view)); control.dataset.consoleNav = view; actions.append(control); }
       heading.append(actions);
       const stats = node('div','sdr-dashboard-grid sdr-stats-grid');
       stats.append(stat('Saved offices',rows.length,'In your visible pipeline',() => { setStage(''); return openView('pipeline'); }),stat('Follow-ups due',overdue.length,'Scheduled for today or earlier',() => openView('pipeline')),stat('Interested',rows.filter(o => o.status === 'interested').length,'Offices marked interested',() => { setStage('interested'); return openView('pipeline'); }),stat('Active memberships',rows.filter(paidActive).length,'Active office + verified paid period',() => { setStage('active'); return openView('pipeline'); }));
@@ -94,11 +94,15 @@
       const territory = node('section','sdr-card sdr-territory-summary'), scope = data.user.role === 'owner' || !data.user.states?.length ? 'Nationwide research access' : `${data.user.states.length} assigned state${data.user.states.length === 1 ? '' : 's'}`;
       territory.append(cardHead('Your territory',scope),node('p','',`${new Set(rows.map(o => o.state)).size} states and ${new Set(rows.filter(o => o.locality?.trim()).map(o => `${o.state}|${o.locality.trim().toLowerCase()}`)).size} cities represented in your saved pipeline.`),button('Open territory map','sdr-action',() => openView('territories')));
       const lower = node('div','sdr-dashboard-grid'); lower.append(next,territory);
-      host.replaceChildren(heading,stats,lower);
+      const progress = node('div','sdr-contact-summary sdr-progress-summary');
+      for (const [name,count,view] of [['Replies needing our team',rows.filter(o => o.pipeline?.lastReply && o.pipeline.waitingOn === 'us').length,'pipeline'],['Waiting for office reply',rows.filter(o => o.pipeline?.waitingOn === 'office').length,'pipeline'],['Signed agreements',rows.filter(o => o.pipeline?.converted).length,'locations']]) progress.append(button(`${name}: ${count}`, 'button secondary', () => { setStage(''); const filter = $('#sales-attention-filter'); if (filter && view === 'pipeline') { filter.value = name.startsWith('Replies') ? 'us' : 'office'; filter.dispatchEvent(new Event('change',{bubbles:true})); } return openView(view); }));
+      host.replaceChildren(heading,stats,progress,lower);
     }
+    const stageOf = office => office.pipeline?.stage || office.status;
     function queryRows() {
       const query = ($('#sales-filter')?.value || '').trim().toLowerCase();
-      return offices().filter(office => !query || [office.town,office.locality,office.state,office.contact_name,office.contact_email,metadata(office).address].join(' ').toLowerCase().includes(query));
+      const attention = $('#sales-attention-filter')?.value || '';
+      return offices().filter(office => (!attention || office.pipeline?.waitingOn === attention) && (!query || [office.town,office.locality,office.state,office.contact_name,office.contact_email,metadata(office).address,office.pipeline?.nextAction].join(' ').toLowerCase().includes(query)));
     }
     function setStage(stage) {
       const select = $('#sales-stage-filter');
@@ -119,22 +123,23 @@
       if (dateOnly(office.meeting_date)) control.append(node('span',due(office,localToday()) ? 'sdr-office-due is-due' : 'sdr-office-due',`Follow-up ${office.meeting_date}`));
       control.append(node('span','sdr-office-verification',verifiedOwnership(office) ? 'Ownership evidence reviewed' : 'Ownership needs review'));
       if (office.membership) control.append(node('span','sdr-office-membership',office.membership.eligible && office.status === 'active' ? 'Membership current' : `Membership: ${label(office.membership.status)}`));
+      if (office.pipeline) { const progress = node('div','sdr-card-progress'); progress.innerHTML = window.GigTaxProgress?.facts(office.pipeline) || ''; control.append(progress); }
       return control;
     }
     function renderPipeline() {
       const rows = queryRows(), stage = $('#sales-stage-filter')?.value || '';
-      const stages = [...new Set([...(data.stages?.length ? data.stages : STAGES),...rows.map(o => o.status).filter(Boolean)])];
+      const stages = [...new Set([...(data.stages?.length ? data.stages : STAGES),...rows.map(stageOf).filter(Boolean)])];
       const strip = $('#sales-stage-strip');
       if (strip) {
         strip.classList.add('sdr-stage-strip');
         const chips = [['','All offices'],...stages.map(name => [name,label(name)])].map(([name,title]) => {
-          const count = name ? rows.filter(o => o.status === name).length : rows.length;
+          const count = name ? rows.filter(o => stageOf(o) === name).length : rows.length;
           const control = button('','sdr-stage-chip',() => setStage(name)); control.dataset.consoleStage = name; control.setAttribute('aria-pressed',String(stage === name)); control.append(node('span','',title),node('span','sdr-stage-count',count)); return control;
         }); strip.replaceChildren(...chips);
       }
       const host = $('#sales-board'); if (!host) return; host.classList.add('sdr-board');
       const columns = stages.filter(name => !stage || name === stage).map(name => {
-        const group = rows.filter(o => o.status === name), lane = node('section','sdr-lane'); lane.dataset.stage = name;
+        const group = rows.filter(o => stageOf(o) === name), lane = node('section','sdr-lane'); lane.dataset.stage = name;
         const head = node('div','sdr-lane-head'); head.append(node('h3','',label(name)),node('span','sdr-lane-count',group.length)); lane.append(head);
         const list = node('div','sdr-lane-cards'); list.append(...group.map(officeCard)); if (!group.length) list.append(node('p','sdr-empty','No offices in this stage.')); lane.append(list); return lane;
       });
@@ -209,7 +214,7 @@
         else citiesHost.replaceChildren(...list.map(group => { const control = button('','sdr-city-button',() => searchCity(group.state,group.city)); control.append(node('strong','',`${group.city}, ${group.state}`),node('span','',plural(group.count)),node('span','sdr-city-arrow','Research this city ↗')); return control; }));
       }
     }
-    listen($('#sales-filter'),'input',renderPipeline); listen($('#sales-stage-filter'),'change',renderPipeline);
+    listen($('#sales-filter'),'input',renderPipeline); listen($('#sales-stage-filter'),'change',renderPipeline); listen($('#sales-attention-filter'),'change',renderPipeline);
     $$('[data-pipeline-view]').forEach(control => listen(control,'click',() => setPipelineView(control.dataset.pipelineView)));
     previousMount = () => cleanups.forEach(remove => remove());
     return {

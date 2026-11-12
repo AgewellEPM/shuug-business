@@ -582,6 +582,21 @@ body.sales-console-page :is(.skip-link, .sdr-skip):focus { top: 12px; }
 .sales-console-page #sales-contact-form { padding: 18px; background: var(--glass-fill-muted); border-radius: var(--r-lg); }
 @media (max-width: 440px) { .sales-console-page .sdr-contact-form-grid { grid-template-columns: minmax(0, 1fr); } }
 
+.sales-console-page .sdr-progress-facts { margin: 14px 0; font-size: 13px; text-align: left; }
+.sales-console-page .sdr-progress-facts > div { display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--glass-border-muted); }
+.sales-console-page .sdr-progress-facts dt { color: var(--text-secondary); font-weight: 500; }
+.sales-console-page .sdr-progress-facts dd { min-width: 0; margin: 0; overflow-wrap: anywhere; }
+.sales-console-page .sdr-progress-facts small, .sales-console-page .sdr-delivery-history small { display: block; color: var(--text-tertiary); font-size: 11px; margin-top: 3px; }
+.sales-console-page .sdr-card-progress { width: 100%; border-top: 1px solid var(--glass-border-muted); }
+.sales-console-page .sdr-card-progress .sdr-progress-facts > div { grid-template-columns: 80px minmax(0, 1fr); gap: 8px; }
+.sales-console-page .sdr-progress-panel { margin: 20px 0; }
+.sales-console-page .sdr-contract-panel { padding: 18px 0; border-bottom: 1px solid var(--glass-border-muted); }
+.sales-console-page .sdr-contract-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 18px; margin-top: 20px; }
+.sales-console-page .sdr-contract-grid > *, .sales-console-page .sdr-contract-office-history > * { min-width: 0; overflow-wrap: anywhere; margin: 12px 0; }
+.sales-console-page .sdr-delivery-history { border-top: 1px solid var(--glass-border-muted); margin-top: 14px; font-size: 13px; }
+.sales-console-page .sdr-contract-panel details { margin-top: 18px; }
+.sales-console-page .sdr-progress-summary .button { flex: 1 1 190px; }
+
 @media (forced-colors: active) {
   .sales-console-page :is(.sdr-card, .sales-panel, .sales-stat, .sales-office, .sdr-office-card, .sdr-lane, .sdr-state-card, .button, .sdr-stage-chip) { border: 1px solid CanvasText; }
   .sales-console-page .sdr-nav button:is([aria-pressed="true"], [aria-selected="true"], .active) { outline: 2px solid Highlight; }

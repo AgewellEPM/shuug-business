@@ -92,6 +92,7 @@ export function preparePrivateOverlay({ baseline, updated, proof, output }) {
     const bytes = readArtifact(updatedOutput, `static/${relative}`);
     if (relative.endsWith('.html')) {
       const html = bytes.toString('utf8');
+      assert(!html.includes('src="/sales-contracts.js"'), 'This workflow build requires prepare-pipeline-release.mjs; the historical overlay cannot package its public sign-in link or email callback route.');
       for (const [, attributes, body] of html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)) {
         if (/\bsrc\s*=/.test(attributes) || !body.trim()) continue;
         const csp = JSON.parse(original.get('config.json')).routes.flatMap(route => Object.entries(route.headers || {}))

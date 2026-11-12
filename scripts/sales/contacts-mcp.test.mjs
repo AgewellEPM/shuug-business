@@ -9,6 +9,7 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { createHandler } from '../../sales/handler.mjs';
 import { contactFixture } from './contact-fixture.mjs';
+import { agreement } from '../../sales/terms.mjs';
 
 test('real Shuug stdio MCP reads and changes the same contacts through HTTP, with retry and identity restrictions', async () => {
   const f = contactFixture(), office = await f.createOffice();
@@ -33,7 +34,7 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
   try {
     const client = await connect(f.code);
     assert.equal(client.getServerVersion().name, 'shuug-business');
-    assert.deepEqual((await client.listTools()).tools.map(t => t.name), ['sdr_catalog', 'sdr_read', 'sdr_command']);
+    assert.deepEqual((await client.listTools()).tools.map(t => t.name), ['sdr_catalog', 'sdr_read', 'sdr_command', 'sdr_progress', 'sdr_contract', 'sdr_sender']);
     assert.equal((await call(client, 'sdr_catalog')).storage, 'Existing GigTax private sales records');
     const read = await call(client, 'sdr_read', { resource: 'office', id: String(office.id) });
     const input = { action: 'save-contact', id: String(office.id), expectedRevision: read.contacts.revision, requestId: randomUUID(), contactId: randomUUID(),
@@ -42,13 +43,26 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     assert.equal(saved.book.contacts[0].name, 'Synthetic MCP Owner'); assert(saved.book.contacts[0].verification);
     assert.equal((await call(client, 'sdr_command', input)).duplicate, true);
     assert.equal((await f.app.dispatch(f.owner, 'rolodex')).contacts[0].email, 'owner@example.test');
+    f.db.terms = async () => agreement({ business: 'SYNTHETIC MCP CONTRACT', cancellation: 'Synthetic only; no real contract, email or payment.', approved: true });
+    await f.app.dispatch(f.owner, 'verify-office', { id: office.id, finding: 'independent', reviewed: true, sourceURL: 'https://example.test/team', note: 'Synthetic ownership checked.' });
+    const contract = await call(client, 'sdr_contract', { action: 'prepare', id: String(office.id), ownerName: 'Synthetic MCP Owner', email: 'owner@example.test' });
+    assert(contract.link?.includes('/office-signup#'));
+    const mailbox = await call(client, 'sdr_sender', { action: 'save', kind: 'shared', name: 'Synthetic MCP Sales', email: 'sales@example.test', mode: 'email_app', approved: true });
+    const preview = await call(client, 'sdr_contract', { action: 'preview_email', id: String(office.id), enrollmentId: String(contract.enrollmentId), senderId: mailbox.mailboxes[0].id });
+    assert.equal(preview.directSendingAvailable, false);
+    await call(client, 'sdr_contract', { action: 'record_sent', id: String(office.id), enrollmentId: String(contract.enrollmentId), deliveryId: preview.id, previewDigest: preview.previewDigest, reviewed: true, evidence: 'Synthetic MCP records a staff-confirmed external-app send.' });
+    const refreshed = await call(client, 'sdr_read', { resource: 'office', id: String(office.id) });
+    await call(client, 'sdr_progress', { id: String(office.id), expectedRevision: refreshed.pipeline.revision, requestId: randomUUID(), kind: 'replied', channel: 'email', note: 'Synthetic owner asked a question.', outcome: 'questions', waitingOn: 'us', nextAction: 'Answer the question' });
+    const pipeline = await call(client, 'sdr_read', { resource: 'pipeline' });
+    assert.equal(pipeline.offices[0].pipeline.lastReply.outcome, 'questions'); assert.equal(pipeline.offices[0].pipeline.waitingOn, 'us');
+    assert.equal((await call(client, 'sdr_read', { resource: 'contracts' })).contracts.length, 1);
     const other = await f.app.dispatch(f.owner, 'create-agent', { name: 'Synthetic MCP Agent', email: 'agent@example.test', states: ['CT'] });
     const agent = await connect(other.code, 'agent@example.test');
     assert.equal((await call(agent, 'sdr_read', { resource: 'rolodex' })).contacts.length, 0);
     assert.match((await call(agent, 'sdr_read', { resource: 'office', id: String(office.id) })).error, /not found/);
     await f.app.dispatch(f.owner, 'revoke-agent', { id: other.agent.id });
     assert.match((await call(agent, 'sdr_read', { resource: 'rolodex' })).error, /Check your email/);
-    assert.equal(f.rows.enrollments.length, 0);
+    assert.equal(f.rows.enrollments.length, 1, 'Only the explicit synthetic MCP contract is prepared; no payment or provider send is performed.');
   } finally {
     await Promise.allSettled(clients.map(client => client.close()));
     await new Promise(resolve => server.close(resolve)); rmSync(directory, { recursive: true, force: true });

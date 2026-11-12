@@ -76,6 +76,7 @@ if (cloudflare) {
   { src: '/api/sales', dest: '/api/sales' },
   { src: '/api/offices', dest: '/api/offices' },
   { src: '/api/sales-webhook', dest: '/api/sales-webhook' },
+  { src: '/api/sales-mail-webhook', dest: '/api/sales-mail-webhook' },
   ...aliases.map(slug => ({ src: `/${slug}`, dest: `/${slug}.html` })),
   { handle: 'filesystem' },
   { src: '/.*', dest: '/404.html', status: 404 },

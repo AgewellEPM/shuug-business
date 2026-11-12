@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-12T19:53:39.729Z",
+  "scope": "Actual Worker/D1 in isolated synthetic boards. No real office, mailbox, contract, email or payment is created. Manual-send evidence and signatures are fictional test fixtures.",
+  "checks": [
+    "actual stored agent sign-in, assigned office, contact, interested reply, waiting state and next step survive a fresh adapter",
+    "shared/agent sender details, contract snapshot, reviewed preview and explicit synthetic manual-send evidence persist without provider requests",
+    "payment-deferred signature and exact receipt survive a fresh process; signed office address/ZIP is available while paid activation remains false",
+    "unassigned agents cannot read contracts and persisted revocation ends the diagnostic agent session"
+  ],
+  "diagnosticBoardsArchived": [
+    "b_nwkbnei0vb",
+    "b_hyqpp59xxc",
+    "b_rsdg6d091j",
+    "b_z2tusfeuyv"
+  ]
+}
