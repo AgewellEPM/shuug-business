@@ -18,6 +18,10 @@ export type IntegrationCategory =
   | "Communication" | "Accounting" | "Automation" | "Logistics" | "Other";
 
 export type ManagedBy = "settings" | "hub";
+export interface IntegrationField {
+  key: string; label: string; type: "password" | "text" | "email" | "tel" | "select";
+  placeholder?: string; help?: string; options?: { value: string; label: string }[];
+}
 
 export interface IntegrationSpec {
   id: string;
@@ -29,6 +33,7 @@ export interface IntegrationSpec {
   connectionId?: string;
   /** vault keys required to be considered connected (managedBy: "hub"). */
   keys?: string[];
+  fields?: IntegrationField[];
   /** where to get the credentials. */
   docsUrl?: string;
   /** brand emoji/icon hint. */
@@ -51,12 +56,24 @@ export const INTEGRATIONS: IntegrationSpec[] = [
   // New — connectable in the hub (fail-closed on vault keys). This is the gap-fill.
   { id: "godaddy", name: "GoDaddy", category: "Website & domain", managedBy: "hub", keys: ["GODADDY_API_KEY", "GODADDY_API_SECRET"], icon: "🌐", docsUrl: "https://developer.godaddy.com/keys", blurb: "Where you already own your domain, DNS and email — track renewals and records." },
   { id: "mailchimp", name: "Mailchimp", category: "Marketing", managedBy: "hub", keys: ["MAILCHIMP_API_KEY"], icon: "📧", docsUrl: "https://mailchimp.com/help/about-api-keys/", blurb: "Email marketing lists, campaigns and audience sync." },
-  { id: "twilio", name: "Twilio (SMS)", category: "Communication", managedBy: "hub", keys: ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER"], icon: "📱", docsUrl: "https://www.twilio.com/console", blurb: "Text customers order updates, reminders and confirmations." },
+  { id: "twilio", name: "Twilio (SMS)", category: "Communication", managedBy: "hub", keys: ["TWILIO_ACCOUNT_SID", "TWILIO_AUTH_TOKEN", "TWILIO_FROM_NUMBER", "TWILIO_MODE"], fields: [
+    { key: "TWILIO_ACCOUNT_SID", label: "Twilio account ID", type: "text", placeholder: "AC followed by your account ID" },
+    { key: "TWILIO_AUTH_TOKEN", label: "Twilio auth token", type: "password" },
+    { key: "TWILIO_FROM_NUMBER", label: "Shop texting number", type: "tel", placeholder: "+1 860 555 0100", help: "Use the SMS sender approved in your Twilio account." },
+    { key: "TWILIO_MODE", label: "Text message mode", type: "select", options: [{ value: "test", label: "Test — local preview, no texts sent" }, { value: "live", label: "Live — eligible texts can be sent" }] },
+  ], icon: "📱", docsUrl: "https://www.twilio.com/console", blurb: "Text customers service updates, reminders and confirmations. Sending remains controlled separately in Shop operations." },
   { id: "paypal", name: "PayPal", category: "Payments", managedBy: "hub", keys: ["PAYPAL_CLIENT_ID", "PAYPAL_CLIENT_SECRET"], icon: "🅿️", docsUrl: "https://developer.paypal.com/dashboard/", blurb: "Accept PayPal and reconcile alongside your other payments." },
   { id: "square", name: "Square", category: "Payments", managedBy: "hub", keys: ["SQUARE_ACCESS_TOKEN"], icon: "◼️", docsUrl: "https://developer.squareup.com/apps", blurb: "In-person and online payments plus catalog sync." },
   { id: "google-business", name: "Google Business Profile", category: "Marketing", managedBy: "hub", keys: ["GOOGLE_BUSINESS_ACCESS_TOKEN"], icon: "🏪", docsUrl: "https://developers.google.com/my-business", blurb: "Reviews, hours and posts for your storefront listing." },
   { id: "meta", name: "Meta (Facebook & Instagram)", category: "Marketing", managedBy: "hub", keys: ["META_PAGE_ACCESS_TOKEN"], icon: "📸", docsUrl: "https://developers.facebook.com/apps/", blurb: "Page/shop insights and ad spend for social ROAS." },
-  { id: "mailgun", name: "Mailgun invoice email", category: "Communication", managedBy: "hub", keys: ["MAILGUN_API_KEY", "MAILGUN_DOMAIN", "MAILGUN_FROM_EMAIL", "MAILGUN_REGION", "MAILGUN_MODE"], icon: "✉️", docsUrl: "https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/send-http", blurb: "Send explicitly reviewed invoice links. Use a verified domain and matching sender, region US or EU, and mode test or live. Keys stay in the private vault; configured status does not verify delivery." },
+  { id: "mailgun", name: "Mailgun invoice email", category: "Communication", managedBy: "hub", keys: ["MAILGUN_API_KEY", "MAILGUN_DOMAIN", "MAILGUN_FROM_EMAIL", "MAILGUN_REGION", "MAILGUN_MODE", "MAILGUN_WEBHOOK_SIGNING_KEY"], fields: [
+    { key: "MAILGUN_API_KEY", label: "Mailgun API key", type: "password" },
+    { key: "MAILGUN_DOMAIN", label: "Verified sending domain", type: "text", placeholder: "mail.yourshop.com" },
+    { key: "MAILGUN_FROM_EMAIL", label: "Shop sender email", type: "email", placeholder: "service@mail.yourshop.com", help: "The email must use the sending domain above." },
+    { key: "MAILGUN_REGION", label: "Mailgun account region", type: "select", options: [{ value: "US", label: "United States (US)" }, { value: "EU", label: "European Union (EU)" }] },
+    { key: "MAILGUN_MODE", label: "Email message mode", type: "select", options: [{ value: "test", label: "Test — no email delivered" }, { value: "live", label: "Live — eligible email can be sent" }] },
+    { key: "MAILGUN_WEBHOOK_SIGNING_KEY", label: "Email webhook signing key", type: "password", help: "Use the HTTP webhook signing key from Mailgun API security, not the API key." },
+  ], icon: "✉️", docsUrl: "https://documentation.mailgun.com/docs/mailgun/user-manual/sending-messages/send-http", blurb: "Send service emails and private invoice links from your verified domain. Saved configuration does not verify delivery." },
   { id: "xero", name: "Xero", category: "Accounting", managedBy: "hub", keys: ["XERO_CLIENT_ID", "XERO_CLIENT_SECRET"], icon: "📗", docsUrl: "https://developer.xero.com/app/manage", blurb: "Alternative to QuickBooks for the general ledger sync." },
 ];
 

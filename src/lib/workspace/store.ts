@@ -9,6 +9,9 @@ import { portalClient } from "./portal";
 import { customerFromDatabase } from "../customer-access/accounts";
 import { assertNoInvoiceCheckout, type WebsitePayment } from "../website-payments/state";
 import { saveRecordSchema, validateFields, numberField as n, textField as s, paymentTotal, isPosted, type BusinessRecord } from "./model";
+import { addRecordInDatabase, moduleRecordsInDatabase } from "../sdk/records";
+import { moduleById } from "../sdk/registry";
+import { queueShopRecordNotifications } from "../shop-automation/notifications";
 
 function rows(db: DatabaseSync): BusinessRecord[] {
   return (db.prepare("SELECT body FROM records ORDER BY updated_at DESC, id").all() as { body: string }[]).map(row => JSON.parse(row.body));
@@ -25,21 +28,47 @@ function put(db: DatabaseSync, record: BusinessRecord, actor: string, action: st
   db.prepare("INSERT INTO records VALUES(?,?,?,?,?,?) ON CONFLICT(id) DO UPDATE SET revision=excluded.revision,body=excluded.body,updated_at=excluded.updated_at")
     .run(record.id, record.kind, record.revision, body, record.createdAt, record.updatedAt);
   db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(record.id, actor, action, record.updatedAt, body);
+  queueShopRecordNotifications(db, record);
   return record;
 }
 
 /** Create reviewed-later business intake in the SAME transaction as the public
  * submission. Self-reported email never grants access to an existing account. */
-export function websiteIntakeRecords(db: DatabaseSync, input: { id: string; kind: string; name: string; email: string; message: string; createdAt: string }) {
+export function websiteIntakeRecords(db: DatabaseSync, input: {
+  id: string; kind: string; name: string; email: string; message: string; createdAt: string;
+  phone?: string; requestedDate?: string;
+  vehicle?: { year?: number; make?: string; model?: string; plate?: string; odometer?: number; vin?: string };
+}) {
   const created: { id: string; kind: string }[] = [];
   function create(kind: string, title: string, fields: Record<string, string | boolean>) {
     const record: BusinessRecord = { id: randomUUID(), kind, title: title.slice(0, 140), status: definitionFor(kind).states[0], currency: "USD", fields: validateFields(kind, fields), revision: 1, createdAt: input.createdAt, updatedAt: input.createdAt };
     validateReferences(record, rows(db)); put(db, record, "Website intake", `Consented website request ${input.id}`); created.push({ id: record.id, kind }); return record;
   }
   const evidence = `Website submission ${input.id}. Consent recorded ${input.createdAt}. Contact details are self-reported and need staff review.`;
-  if (input.kind === "quote") {
-    const client = create("client", input.name, { email: input.email, notes: evidence });
-    create("inquiry", `Website quote: ${input.name}`, { client: client.id, scope: input.message, source: "website", evidence });
+  if (input.kind === "quote" || input.kind === "auto-repair") {
+    const vehicle = input.vehicle;
+    const details = input.kind === "auto-repair" ? [
+      vehicle && [vehicle.year, vehicle.make, vehicle.model].filter(Boolean).join(" "),
+      vehicle?.plate && `Plate: ${vehicle.plate}`, vehicle?.vin && `Self-reported VIN: ${vehicle.vin}`,
+      vehicle?.odometer !== undefined && `Odometer: ${vehicle.odometer}`,
+      input.requestedDate && `Preferred date: ${input.requestedDate} (request only; not a confirmed appointment)`,
+    ].filter(Boolean).join("\n") : "";
+    const client = create("client", input.name, { email: input.email, ...(input.phone ? { phone: input.phone } : {}), notes: evidence });
+    const inquiry = create("inquiry", `Website ${input.kind === "auto-repair" ? "repair request" : "quote"}: ${input.name}`, {
+      client: client.id, scope: [input.message, details].filter(Boolean).join("\n\n"), source: "website", evidence,
+    });
+    // Unverified website details never grant access to an existing customer's
+    // vehicle. A matching VIN remains a staff-review item in this new inquiry.
+    if (input.kind === "auto-repair" && vehicle?.vin && vehicle.make && vehicle.model && vehicle.year &&
+      !moduleRecordsInDatabase(db, "vehicles").some(row => String(row.values.vin).toUpperCase() === vehicle.vin!.toUpperCase())) {
+      const record = addRecordInDatabase(db, "vehicles", moduleById("vehicles")!.fields, {
+        customer_id: client.id, vin: vehicle.vin, make: vehicle.make, model: vehicle.model,
+        year: vehicle.year, ...(vehicle.plate ? { registration: vehicle.plate } : {}),
+        ...(vehicle.odometer !== undefined ? { odometer: vehicle.odometer } : {}),
+        notes: `${evidence} Self-reported vehicle; VIN and ownership have not been verified. Inquiry ${inquiry.id}.`,
+      });
+      created.push({ id: record.id, kind: "vehicle" });
+    }
   }
   if (input.kind === "volunteer") create("volunteer", input.name, { email: input.email, skills: input.message, onboardingComplete: false, evidence });
   return created;
@@ -115,6 +144,26 @@ export function createRepairProposalInTransaction(db: DatabaseSync, quote: impor
     fields: validateFields("proposal", { client: quote.client.id, scope: quote.customerScope, exclusions: quote.input.exclusions, amount: quote.total, expires: quote.input.expires, evidence: `Reviewed repair estimate using ${quote.book.name} v${quote.book.version} on ${quote.pricedOn}.` }),
     computed: { repairEstimate: structuredClone(quote) } };
   validateReferences(record, rows(db)); return put(db, record, actor, "Created reviewed repair proposal");
+}
+
+/** The caller holds the shop automation transaction and its idempotency receipt.
+ * Reuse the same validation, calculation, audit and ledger path as manual issue. */
+export function issueServiceInvoiceInTransaction(db: DatabaseSync, input: {
+  jobId: string; title: string; amount: number; description: string; issuedOn: string; due: string;
+}, actor: string): BusinessRecord {
+  const all = rows(db), job = all.find(record => record.id === input.jobId && record.kind === "job");
+  must(job, "Choose an existing work order.");
+  const now = new Date().toISOString();
+  const record: BusinessRecord = {
+    id: randomUUID(), kind: "invoice", title: input.title, currency: job.currency,
+    status: "draft", revision: 1, createdAt: now, updatedAt: now,
+    fields: validateFields("invoice", { job: input.jobId, method: "fixed", amount: input.amount,
+      description: input.description, issuedOn: input.issuedOn, due: input.due }),
+  };
+  validateReferences(record, all);
+  checkTransition(record, "issued", all);
+  record.status = "issued";
+  return put(db, record, actor, "Issued accepted repair invoice through shop automation");
 }
 
 function positiveMoney(r: BusinessRecord, key = "amount") { must(n(r, key) > 0, "Enter an amount greater than zero."); }

@@ -9,6 +9,7 @@ import { getBranding } from "../branding/store";
 import { randomUUID } from "node:crypto";
 import { triageEmail, type EmailCategory } from "./triage";
 import { llmChat, llmConfigured } from "../llm";
+import type { DatabaseSync } from "node:sqlite";
 
 export type EmailStatus = "new" | "ai_handled" | "routed" | "archived";
 
@@ -66,6 +67,22 @@ export function ingestEmail(input: InboundEmail): Email {
   return { ...email };
 
   });
+}
+
+/** Website intake calls this inside its own transaction. Creating the owner's
+ * inbox item and its business request must either both commit or both roll back. */
+export function ingestWebsiteRequestInDatabase(db: DatabaseSync, input: InboundEmail & { id: string; receivedAt: string }): Email {
+  const row = db.prepare("SELECT body FROM documents WHERE id='state:mail' AND kind='state'").get() as { body: string } | undefined;
+  const state: InboxState = row ? JSON.parse(row.body) : structuredClone(legacy.__inbox ?? (process.env.DEMO_DATA === "true" ? seed() : { emails: [] }));
+  const id = `WEB-${input.id}`, previous = state.emails.find(email => email.id === id);
+  if (previous) {
+    if (previous.from !== input.from || previous.fromName !== (input.fromName || input.from) || previous.subject !== input.subject || previous.body !== input.body) throw new Error("This website inbox reference belongs to different request details.");
+    return { ...previous };
+  }
+  const email = { ...make(input.from, input.fromName || input.from, input.subject, input.body, input.receivedAt), id, suggestedRole: "Owner", autoHandle: false };
+  state.emails.push(email);
+  db.prepare("INSERT INTO documents VALUES('state:mail','state',?) ON CONFLICT(id) DO UPDATE SET body=excluded.body").run(JSON.stringify(state));
+  return { ...email };
 }
 
 export function listEmails(): Email[] {

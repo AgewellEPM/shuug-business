@@ -6,8 +6,9 @@ import { appBaseUrl, sealSecret, openSecret } from "@/lib/connections/vault";
 import { getBranding } from "@/lib/branding/store";
 import { securityHeaders } from "@/lib/security/headers";
 import { acceptSubmission, findForm } from "@/lib/getting-started/store";
-import { formLabels, type Form } from "@/lib/getting-started/model";
+import { formKinds, formLabels, type Form } from "@/lib/getting-started/model";
 import { processPendingRuns } from "@/lib/getting-started/runner";
+import { automotiveFormFields, automotiveFormValues } from "@/lib/getting-started/automotive-form";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ id: string }> };
@@ -25,8 +26,8 @@ export async function GET(request: Request, context: Context) {
   if (preview) { try { await requireOwnerAccess(); } catch { return page(undefined, "<h1>Sign in as owner to preview this form.</h1>", 401); } }
   if (!form || (!form.enabled && !preview)) return page(undefined, "<h1>This form is not accepting requests.</h1>", 404);
   const branding = getBranding();
-  const proof = Buffer.from(sealSecret(JSON.stringify({ formId: id, requestId: randomUUID(), issued: Date.now(), preview }))).toString("base64url");
-  return page(form, `<h1>${escapeHtml(form.title)}</h1><p>${escapeHtml(formLabels[form.kind])}. Your request will be reviewed by the organization. Submitting does not confirm a booking, price, payment, employment or enrollment.</p>${preview ? "<p><strong>Owner preview: submissions are disabled.</strong></p>" : ""}<form method="post" action="/api/website/forms/${id}"><input type="hidden" name="proof" value="${proof}"><label>Name<input name="name" autocomplete="name" maxlength="100" required></label><label>Email<input name="email" type="email" autocomplete="email" maxlength="160" required></label><label>How can we help?<textarea name="message" maxlength="4000" required></textarea></label><label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><label><input type="checkbox" name="consent" value="yes" required> I agree to share these details with ${escapeHtml(branding.businessName)} so they can respond.</label><p>Please leave out payment details and sensitive personal records.</p><button${preview ? " disabled" : ""}>Send request</button></form>`);
+  const proof = Buffer.from(sealSecret(JSON.stringify({ formId: id, formKind: form.kind, formRevision: form.revision, requestId: randomUUID(), issued: Date.now(), preview }))).toString("base64url");
+  return page(form, `<h1>${escapeHtml(form.title)}</h1><p>${escapeHtml(formLabels[form.kind])}. Your request will be reviewed by the organization. Submitting does not confirm a booking, price, payment, employment or enrollment${form.kind === "auto-repair" ? ", or authorize repairs" : ""}.</p>${preview ? "<p><strong>Owner preview: submissions are disabled.</strong></p>" : ""}<form method="post" action="/api/website/forms/${id}"><input type="hidden" name="proof" value="${proof}"><label>Name<input name="name" autocomplete="name" maxlength="100" required></label><label>Email<input name="email" type="email" autocomplete="email" maxlength="160" required></label><label>Phone (optional)<input name="phone" type="tel" autocomplete="tel" maxlength="40" aria-describedby="phone-help"></label><p id="phone-help">For a US number, include the area code. For other countries, include + and the country code.</p><label>How can we help?<textarea name="message" maxlength="4000" required></textarea></label>${form.kind === "auto-repair" ? automotiveFormFields(branding.businessName) : ""}<label class="trap" aria-hidden="true">Website<input name="website" tabindex="-1" autocomplete="off"></label><label><input type="checkbox" name="consent" value="yes" required> I agree to share these details with ${escapeHtml(branding.businessName)} so they can respond.</label><p>Please leave out payment details and sensitive personal records.</p><button${preview ? " disabled" : ""}>Send request</button></form>`);
 }
 export async function POST(request: Request, context: Context) {
   let form: Form | undefined;
@@ -38,11 +39,12 @@ export async function POST(request: Request, context: Context) {
     try { while (true) { const chunk = await reader.read(); if (chunk.done) break; size += chunk.value.length; if (size > 20000) { await reader.cancel(); throw new Error("Request too large."); } chunks.push(chunk.value); } } finally { reader.releaseLock(); }
     const values = new URLSearchParams(Buffer.concat(chunks).toString()), proof = values.get("proof") ?? "";
     if (proof.length > 2000 || values.get("website")) throw new Error("Reload the form and try again.");
-    const ticket = z.object({ formId: z.uuid(), requestId: z.uuid(), issued: z.number(), preview: z.boolean() }).strict().parse(JSON.parse(openSecret(Buffer.from(proof, "base64url").toString())));
+    const ticket = z.object({ formId: z.uuid(), formKind: z.enum(formKinds), formRevision: z.number().int().positive(), requestId: z.uuid(), issued: z.number(), preview: z.boolean() }).strict().parse(JSON.parse(openSecret(Buffer.from(proof, "base64url").toString())));
     if (ticket.formId !== id || ticket.preview || Date.now() - ticket.issued > 3600000 || ticket.issued > Date.now()) throw new Error("Reload the form before submitting.");
-    const result = acceptSubmission(id, { requestId: ticket.requestId, name: values.get("name"), email: values.get("email"), message: values.get("message"), consent: values.get("consent") === "yes" });
+    const result = acceptSubmission(id, { requestId: ticket.requestId, name: values.get("name"), email: values.get("email"), message: values.get("message"), consent: values.get("consent") === "yes",
+      ...(values.get("phone")?.trim() ? { phone: values.get("phone") } : {}), ...(ticket.formKind === "auto-repair" ? automotiveFormValues(values) : {}) }, { formRevision: ticket.formRevision });
     // Local work is immediate. External steps remain durable for the worker.
     await processPendingRuns(true).catch(() => undefined); // A committed request stays accepted; the worker can resume pending local steps.
-    return page(form, `<h1>Request received</h1><p>The organization will review your details.</p><p>Reference: ${escapeHtml(result.id)}</p>`, result.duplicate ? 200 : 201);
+    return page(form, `<h1>Request received</h1><p>The organization will review your details.${ticket.formKind === "auto-repair" ? " Your appointment, estimate and repair authorization still need confirmation." : ""}</p><p>Reference: ${escapeHtml(result.id)}</p>${result.receipt ? `<p>Received: ${escapeHtml(result.receipt.receivedAt)}</p><p>Keep this reference if you need to contact the shop.${result.receipt.smsAcknowledgment === "queued" ? " A text acknowledgment is queued; delivery has not been confirmed." : ""}</p>` : ""}`, result.duplicate ? 200 : 201);
   } catch (e) { const message = e instanceof z.ZodError ? "Check your name, email, message and consent." : e instanceof Error && /form|request|hour|identifier/i.test(e.message) ? e.message : "The request could not be accepted. Reload the form and try again."; return page(form, `<h1>Could not send request</h1><p>${escapeHtml(message)}</p><p>Return to the form to review your entries.</p>`, 400); }
 }

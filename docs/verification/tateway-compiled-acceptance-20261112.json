@@ -1,0 +1,45 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-12T07:05:25.956Z",
+  "fixture": "dedicated-local-compiled-acceptance",
+  "buildId": "XYICSTwCjq6Evnr_mCVFC",
+  "toolCount": 53,
+  "checks": [
+    "53 actual stdio MCP tools route into the compiled native backend",
+    "compiled owner page/API require authorization and reject foreign-origin mutations",
+    "public automotive form commits once, exact retry recovers receipt and changed retry/origin are rejected",
+    "compiled intake persists linked client/inquiry, unverified vehicle, owner inbox, one task and separately consented acknowledgment outbox",
+    "repeated compiled shop worker leaves acknowledgments blocked without provider attempts or duplicate intake/tasks",
+    "actual MCP reviewed pricing, customer-approved scope, signed agreement, booking and completed/accepted job persist through compiled HTTP",
+    "one canonical native invoice posts exact net/tax/AR once; repeated worker/issue commands create no Finance duplicate or payment",
+    "compiled private invoice is scoped and omits private pricing; foreign-origin and unconfigured payment attempts fail closed",
+    "native invoice-link revocation closes the compiled public route"
+  ],
+  "submissions": 1,
+  "nativeRecords": 8,
+  "vehicles": 1,
+  "completedIntakeTasks": 1,
+  "invoices": 1,
+  "ledgerEntries": 1,
+  "financeInvoiceCopies": 0,
+  "invoiceCents": {
+    "net": 10000,
+    "tax": 625,
+    "gross": 10625
+  },
+  "payments": 0,
+  "messageStates": {
+    "blocked": 5,
+    "canceled": 4,
+    "queued": 2
+  },
+  "providerAttempts": 0,
+  "providerKeysPresent": false,
+  "outboundSendingEnabled": false,
+  "limits": [
+    "Synthetic records and explicitly simulated approvals only.",
+    "Actual compiled HTTP and stdio MCP verified; no public HTTPS/TLS, Safari visual acceptance or live customer pilot.",
+    "No message provider, VIN provider, payment processor, actual email/SMS delivery or payment was activated.",
+    "Existing real TateWay, demo, GigTax and the root-owned server lifecycle were untouched."
+  ]
+}

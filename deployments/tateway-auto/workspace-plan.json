@@ -1,0 +1,25 @@
+{
+  "businessName": "TateWay Auto LLC",
+  "description": "Configure TateWay Auto LLC's dedicated automotive Shuug workspace. Use the installed shop operations, message center, customer inquiries, vehicles, estimates, appointment scheduling, repair work orders, service invoices and accounting. Customer repair approval and completion acceptance remain explicit. Clerical automation uses the same native records and financial posting path. Keep provider delivery and online-payment readiness separate from configuration. Do not install demonstration records or share another business's workspace.",
+  "industry": {
+    "industryId": "auto-repair",
+    "templateName": "TateWay Auto - automotive operations",
+    "revision": 1,
+    "answers": {
+      "appointments": true,
+      "parts": true,
+      "job-time": true,
+      "quickbooks": false,
+      "electronic-estimates": true,
+      "fleet": false,
+      "product-sales": false
+    },
+    "addedPacks": [],
+    "removedPacks": []
+  },
+  "layout": {
+    "homeToolId": "shop",
+    "primaryToolIds": ["shop", "communications", "service-intake", "service-booking", "service-work", "service-clients", "module:vehicles", "service-proposals", "service-billing", "finance", "expenses", "reports"]
+  },
+  "requiredCapabilityIds": ["invoice-delivery", "online-invoice-payments"]
+}

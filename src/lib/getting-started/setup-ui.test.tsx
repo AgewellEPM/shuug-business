@@ -26,3 +26,15 @@ it("generates a public form embed and separates WordPress employee access", () =
   expect((screen.getByLabelText("Website embed code") as HTMLTextAreaElement).value).toContain(`/api/website/forms/${formId}`); expect(screen.getByRole("link", { name: "Open form" }).getAttribute("href")).not.toContain("preview");
   expect(screen.getByText(/They do not confirm appointments/)).toBeTruthy();
 });
+it("lets a service owner publish an automotive request form with separate optional text consent", async () => {
+  const saved = { ...initial.forms[0], title: "Request auto repair", kind: "auto-repair" };
+  vi.mocked(fetch).mockResolvedValueOnce({ ok: true, json: async () => ({ form: saved }) } as Response)
+    .mockResolvedValueOnce({ ok: true, json: async () => ({ ...initial, forms: [saved] }) } as Response);
+  mount(); fireEvent.click(screen.getByRole("button", { name: /3. Attach/ }));
+  fireEvent.change(screen.getByLabelText("Request type"), { target: { value: "auto-repair" } });
+  fireEvent.change(screen.getByLabelText("Form title"), { target: { value: "Request auto repair" } });
+  fireEvent.click(screen.getByLabelText("Publish and accept requests"));
+  expect(screen.getByText(/Optional text consent is separate/)).toBeTruthy(); fireEvent.click(screen.getByRole("button", { name: "Save form" }));
+  await waitFor(() => expect(fetch).toHaveBeenCalledWith("/api/setup", expect.objectContaining({ body: expect.stringContaining('"kind":"auto-repair"') })));
+  await screen.findByText("Form published. Copy its embed or link.");
+});

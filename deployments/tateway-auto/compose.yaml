@@ -1,0 +1,78 @@
+name: tateway-auto
+
+x-workspace: &workspace
+  build:
+    context: ../..
+    dockerfile: Dockerfile.backend
+  image: ${SHUUG_IMAGE:-tateway-auto-shuug:local}
+  environment:
+    NODE_ENV: production
+    APP_BASE_URL: ${APP_BASE_URL:?Set APP_BASE_URL in host.env}
+    DEALDESK_DATA_DIR: ${SHUUG_DATA_DIR:-/data}
+    SHUUG_BACKEND_URL: http://127.0.0.1:3000
+    AUTH_ENABLED: "true"
+    DATABASE_URL: ""
+    DEMO_DATA: "false"
+    NEXT_TELEMETRY_DISABLED: "1"
+  volumes:
+    - workspace:/data
+  security_opt:
+    - no-new-privileges:true
+  cap_drop:
+    - ALL
+
+services:
+  initialize:
+    <<: *workspace
+    profiles: [setup]
+    command: [node, --import, tsx, scripts/workspace-setup.ts]
+    network_mode: none
+    stdin_open: true
+    tty: true
+
+  web:
+    <<: *workspace
+    init: true
+    restart: unless-stopped
+    expose: ["3000"]
+    stop_grace_period: 60s
+    healthcheck:
+      test: [CMD, node, -e, "fetch('http://127.0.0.1:3000/api/shop-health',{signal:AbortSignal.timeout(4000)}).then(async r=>process.exit(r.ok&&(await r.json()).status==='ready'?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  worker:
+    <<: *workspace
+    init: true
+    command: [node, --import, tsx, scripts/shop-worker.ts]
+    restart: unless-stopped
+    stop_grace_period: 60s
+    depends_on:
+      web:
+        condition: service_healthy
+
+  proxy:
+    image: caddy:2
+    restart: unless-stopped
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      SHUUG_PUBLIC_HOST: ${SHUUG_PUBLIC_HOST:?Set SHUUG_PUBLIC_HOST in host.env}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  workspace:
+    name: ${SHUUG_WORKSPACE_VOLUME:-tateway-auto-workspace}
+  caddy-data:
+  caddy-config:

@@ -45,27 +45,27 @@ export function IntegrationsHub({ groups, ...actions }: { groups: Group[] } & Ac
         </div>
       </div>
 
-      {toast && <p className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white">{toast}</p>}
+      {toast && <p role="status" className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white">{toast}</p>}
 
       {groups.map((g) => (
         <section key={g.cat}>
           <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">{g.cat}</h2>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {g.items.map(({ spec, connected }) => (
+            {g.items.map(({ spec, configured, connected }) => (
               <div key={spec.id} className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
                 <div className="flex items-start gap-3">
                   <span className="text-2xl">{spec.icon ?? "🔌"}</span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="font-semibold text-slate-900">{spec.name}</p>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${connected ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>{connected ? "Connected" : "Not connected"}</span>
+                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${(spec.managedBy === "hub" ? configured : connected) ? "bg-emerald-100 text-emerald-800" : "bg-slate-100 text-slate-500"}`}>{spec.managedBy === "hub" ? configured ? "Configured" : "Not configured" : connected ? "Connected" : "Not connected"}</span>
                     </div>
                     <p className="mt-0.5 text-xs text-slate-500">{spec.blurb}</p>
                   </div>
                 </div>
 
                 <div className="mt-3 flex items-center gap-2">
-                  <button type="button" onClick={() => setOpen(open === spec.id ? null : spec.id)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">{open === spec.id ? "Close" : connected ? "Reconnect" : "+ Add API"}</button>
+                  <button type="button" onClick={() => setOpen(open === spec.id ? null : spec.id)} className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700">{open === spec.id ? "Close" : spec.managedBy === "hub" ? configured ? "Update settings" : "Add settings" : connected ? "Reconnect" : "+ Add API"}</button>
                   {connected && spec.managedBy === "hub" && <button type="button" disabled={pending} onClick={() => run(() => actions.disconnectAction(spec.id))} className="text-xs text-slate-400 hover:text-red-600">Disconnect</button>}
                   {spec.docsUrl && <a href={spec.docsUrl} target="_blank" rel="noreferrer" className="ml-auto text-xs font-semibold text-slate-400 hover:text-emerald-700">Open API page ↗</a>}
                 </div>
@@ -112,7 +112,7 @@ function StepPanel({ spec, pending, onSave }: { spec: IntegrationSpec; pending: 
       {/* Step 2 */}
       <div className="flex items-start gap-2">
         <Num n="2" />
-        <p className="text-xs text-slate-600">On that page, create or copy your {isHub ? spec.keys?.map(keyLabel).join(" + ") : "API key / token"}. Keep the tab open.</p>
+        <p className="text-xs text-slate-600">{isHub ? "Copy the account details and credentials shown by the provider, then choose the settings below." : "On that page, create or copy your API key or token. Keep the tab open."}</p>
       </div>
 
       {/* Step 3 */}
@@ -121,14 +121,17 @@ function StepPanel({ spec, pending, onSave }: { spec: IntegrationSpec; pending: 
         <div className="flex-1">
           {isHub ? (
             <div className="space-y-2">
-              {(spec.keys ?? []).map((k) => (
-                <label key={k} className="block text-xs">
-                  <span className="mb-0.5 block font-medium text-slate-600">{keyLabel(k)} <span className="font-normal text-slate-400">({k})</span></span>
-                  <input type="password" autoComplete="off" value={vals[k]} onChange={(e) => setVals((v) => ({ ...v, [k]: e.target.value }))} placeholder={`Paste ${keyLabel(k)} here`} className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm" />
-                </label>
-              ))}
-              <button type="button" disabled={pending || !filled} onClick={() => onSave(vals)} className="w-full rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40 hover:bg-emerald-700">Paste &amp; connect</button>
-              <p className="text-[11px] text-slate-400">Stored encrypted in your workspace vault. Fail-closed — nothing is sent to {spec.name} until verified.</p>
+              {(spec.keys ?? []).map((k) => {
+                const field = spec.fields?.find(item => item.key === k), title = field?.label ?? keyLabel(k);
+                return <label key={k} className="block text-xs">
+                  <span className="mb-0.5 block font-medium text-slate-600">{title}</span>
+                  {field?.type === "select" ? <select aria-label={title} aria-describedby={field.help ? `${spec.id}-${k}-help` : undefined} value={vals[k]} onChange={event => setVals(values => ({ ...values, [k]: event.target.value }))} className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-sm"><option value="" disabled>Choose an option</option>{field.options?.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+                    : <input aria-label={title} aria-describedby={field?.help ? `${spec.id}-${k}-help` : undefined} type={field?.type ?? "password"} autoComplete="off" spellCheck={false} value={vals[k]} onChange={event => setVals(values => ({ ...values, [k]: event.target.value }))} placeholder={field?.placeholder ?? `Enter ${title.toLowerCase()}`} className="w-full rounded border border-slate-300 px-2 py-1.5 text-sm"/>}
+                  {field?.help && <span id={`${spec.id}-${k}-help`} className="mt-1 block text-[11px] text-slate-500">{field.help}</span>}
+                </label>;
+              })}
+              <button type="button" disabled={pending || !filled} onClick={() => onSave(vals)} className="w-full rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white disabled:opacity-40 hover:bg-emerald-700">Save settings</button>
+              <p className="text-[11px] text-slate-400">Credentials are encrypted at rest and used to authenticate configured provider requests. Saving does not verify delivery.</p>
             </div>
           ) : (
             <div className="text-xs text-slate-600">

@@ -87,6 +87,8 @@ export const specialistModules: WorkspaceItem[] = [
 ];
 
 export const workspaceItems: WorkspaceItem[] = [
+  item("shop", "Shop operations", "/shop", "Workspace", "admin", ["service"]),
+  item("communications", "Message center", "/communications", "Workspace", "admin", ["service"]),
   { ...item("my-work", "My work", "/me", "Workspace", "home"), icon: "home" },
   { ...item("home", "Home", "/", "Workspace", "home"), icon: "home" },
   { ...item("today", "Today", "/today", "Workspace", "home"), icon: "today" },

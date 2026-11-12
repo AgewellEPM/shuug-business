@@ -37,7 +37,8 @@
     "workflow:worker": "tsx scripts/workflow-worker.ts",
     "test:setup": "vitest run src/lib/getting-started",
     "website-payments:worker": "tsx scripts/website-payment-worker.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "shop:worker": "tsx scripts/shop-worker.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.124.0",

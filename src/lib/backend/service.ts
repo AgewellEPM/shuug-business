@@ -1,3 +1,5 @@
+import { shopOperation } from "./shop";
+import { shopOperations } from "./catalog";
 import { expenseAccountingCatalog } from "../expenses/accounting-model";
 import { executeExpenseAccountingCommand } from "../expenses/accounting";
 import { receivableCatalog } from "../payments/receivable-model";
@@ -74,6 +76,7 @@ const backendBillingOwner = () => ({ ...ownerIdentity(), name: "Authenticated ba
 export const operationSchema = z.object({ operation: z.enum(operations), arguments: z.record(z.string(), z.unknown()).default({}) }).strict();
 export async function executeOperation(operation: string, args: Record<string, unknown> = {}): Promise<unknown> {
   const parsed = operationSchema.parse({ operation, arguments: args });
+  if ((shopOperations as readonly string[]).includes(operation)) return shopOperation(operation, args);
   if (operation === "workspace_catalog") return workspaceCatalog(args);
   if (operation === "workspace_preview") return previewWorkspace(args);
   if (operation === "workspace_apply") return applyWorkspace(args);

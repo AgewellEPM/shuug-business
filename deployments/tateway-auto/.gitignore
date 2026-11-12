@@ -1,0 +1,5 @@
+host.env
+*.age
+*.tar
+*.tar.gz
+receipts/

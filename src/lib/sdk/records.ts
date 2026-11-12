@@ -56,6 +56,29 @@ export function listRecords(moduleId: string): ModuleRecord[] {
   return (durable.read()[moduleId] ?? []).slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt)).map((r) => ({ ...r, values: { ...r.values } }));
 }
 
+/** Read a module while an encompassing domain transaction already owns the DB.
+ * Do not open a second SQLite writer when accepting a website submission. */
+export function moduleRecordsInDatabase(db: DatabaseSync, moduleId: string): ModuleRecord[] {
+  const row = db.prepare("SELECT body FROM documents WHERE id='state:module-records' AND kind='state'").get() as { body: string } | undefined;
+  const store: Store = row ? JSON.parse(row.body) : loadFromDisk();
+  return structuredClone(store[moduleId] ?? []);
+}
+
+/** The outer transaction commits the submission and its native module record
+ * together. This uses the same validation, limits and tax guards as addRecord. */
+export function addRecordInDatabase(db: DatabaseSync, moduleId: string, fields: Field[], input: unknown): ModuleRecord {
+  const row = db.prepare("SELECT body FROM documents WHERE id='state:module-records' AND kind='state'").get() as { body: string } | undefined;
+  const store: Store = row ? JSON.parse(row.body) : loadFromDisk();
+  const existing = store[moduleId] ?? [];
+  if (existing.length >= MAX_PER_MODULE) throw new Error("This module has reached its record limit.");
+  const now = new Date().toISOString();
+  const record: ModuleRecord = { id: randomUUID(), values: validateValues(fields, input), archived: false, createdAt: now, updatedAt: now };
+  assertTaxRecordAllowed(moduleId, record, db);
+  store[moduleId] = [...existing, record];
+  db.prepare("INSERT INTO documents VALUES('state:module-records','state',?) ON CONFLICT(id) DO UPDATE SET body=excluded.body").run(JSON.stringify(store));
+  return record;
+}
+
 export function addRecord(moduleId: string, fields: Field[], input: unknown): ModuleRecord {
   return durable.change((store, db) => {
   const existing = store[moduleId] ?? [];

@@ -22,7 +22,8 @@ export default async function IntegrationsPage() {
     return { spec, configured, connected };
   });
 
-  const connectedCount = cards.filter((c) => c.connected).length;
+  const configuredCount = cards.filter((c) => c.configured).length;
+  const checkedCount = cards.filter((c) => c.spec.managedBy === "settings" && c.connected).length;
   const byCategory = CATEGORY_ORDER
     .map((cat) => ({ cat, items: cards.filter((c) => c.spec.category === cat) }))
     .filter((g) => g.items.length > 0) as { cat: IntegrationCategory; items: typeof cards }[];
@@ -34,8 +35,8 @@ export default async function IntegrationsPage() {
         <h1 className="mt-1 text-2xl font-bold tracking-tight text-slate-900">Integrations</h1>
         <p className="mt-2 text-sm text-slate-500">
           Hook up the tools you already use — your Amazon business, your Shopify store, your GoDaddy domain, Zapier,
-          Slack and more. {connectedCount} of {cards.length} connected. Everything is fail-closed: nothing is called
-          until you add real credentials, and secrets never leave your workspace.
+          Slack and more. {configuredCount} of {cards.length} configured; {checkedCount} connections checked.
+          Credentials are encrypted at rest and used to authenticate configured provider requests. Saving settings does not verify delivery.
         </p>
       </header>
 

@@ -1,10 +1,12 @@
 import { createHash, randomUUID } from "node:crypto";
 import { workspaceDatabase } from "../workspace/database";
-import { formInput, submissionInput, workflowInput, allowedOrigin, type Form, type Submission, type Workflow, type WorkflowInput, type Run } from "./model";
+import { formInput, submissionInput, workflowInput, allowedOrigin, type AutomotiveIntakeReceipt, type Form, type Submission, type Workflow, type WorkflowInput, type Run } from "./model";
 import { setting } from "../connections/vault";
 import { listTeam } from "../team/store";
 import { listTasks } from "../tasks/store";
 import { websiteIntakeRecords } from "../workspace/store";
+import { completeAutomotiveIntakeInDatabase } from "./automotive-intake";
+import { getBranding } from "../branding/store";
 type Db = import("node:sqlite").DatabaseSync;
 const now = () => new Date().toISOString();
 export const digest = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
@@ -65,12 +67,20 @@ export function enableWorkflow(raw: unknown, testId: string, actor: string) {
 }
 export function pauseWorkflow(id: string) { return transaction(db => { const workflow = read<Workflow>(db, "workflow", id); if (!workflow) throw new Error("Workflow unavailable."); workflow.enabled = false; put(db, "workflow", workflow); for (const run of all<Run>(db, "run").filter(r => r.workflowId === id && r.status === "pending")) put(db, "run", { ...run, status: "canceled", detail: "Workflow paused before this step ran.", updatedAt: now() }); return workflow; }); }
 export function reviewSubmission(id: string) { return transaction(db => { const row = read<Submission>(db, "submission", id); if (!row) throw new Error("Request unavailable."); put(db, "submission", { ...row, status: "reviewed" }); }); }
-export function acceptSubmission(formId: string, raw: unknown): { id: string; duplicate: boolean } {
+export function acceptSubmission(formId: string, raw: unknown, expected?: { formRevision: number }): { id: string; duplicate: boolean; receipt?: AutomotiveIntakeReceipt } {
   const input = submissionInput.parse(raw);
   return transaction(db => {
-    const form = read<Form>(db, "form", formId); if (!form?.enabled) throw new Error("This form is not accepting requests.");
+    const form = read<Form>(db, "form", formId);
     const receiptId = `${formId}:${input.requestId}`, hash = digest(input), receipt = db.prepare("SELECT digest,submission FROM setup_receipts WHERE id=?").get(receiptId) as { digest: string; submission: string } | undefined;
-    if (receipt) { if (receipt.digest !== hash) throw new Error("This request identifier was already used. Reload the form."); return { id: receipt.submission, duplicate: true }; }
+    if (receipt) {
+      if (receipt.digest !== hash) throw new Error("This request identifier was already used. Reload the form.");
+      const previous = read<Submission>(db, "submission", receipt.submission);
+      if (!previous) throw new Error("This request receipt needs staff review before resubmission.");
+      return { id: receipt.submission, duplicate: true, ...(previous.intakeReceipt ? { receipt: previous.intakeReceipt } : {}) };
+    }
+    if (!form?.enabled) throw new Error("This form is not accepting requests.");
+    if (expected && form.revision !== expected.formRevision) throw new Error("This form changed. Reload it before submitting.");
+    if (form.kind !== "auto-repair" && (input.vehicle || input.requestedDate || input.smsConsent !== undefined || input.smsConsentVersion !== undefined)) throw new Error("Use an auto repair form for vehicle details and optional text consent.");
     db.prepare("DELETE FROM setup_limits WHERE expires<=?").run(Date.now());
     for (const [key, max] of [[`form:${formId}`, 100], [`email:${formId}:${digest(input.email.toLowerCase())}`, 5]] as const) {
       const count = db.prepare("SELECT count FROM setup_limits WHERE id=?").get(key) as { count: number } | undefined;
@@ -79,11 +89,12 @@ export function acceptSubmission(formId: string, raw: unknown): { id: string; du
     }
     const submission: Submission = { ...input, id: randomUUID(), formId, formTitle: form.title, kind: form.kind, createdAt: now(), status: "new" };
     submission.records = websiteIntakeRecords(db, submission);
+    if (form.kind === "auto-repair") submission.intakeReceipt = completeAutomotiveIntakeInDatabase(db, { submission, form, businessName: getBranding().businessName });
     put(db, "submission", submission); db.prepare("INSERT INTO setup_receipts VALUES(?,?,?)").run(receiptId, hash, submission.id);
     for (const workflow of all<Workflow>(db, "workflow").filter(w => w.enabled && w.formId === formId)) {
       for (const action of ["task", ...workflow.channels] as const) { const run: Run = { id: randomUUID(), workflowId: workflow.id, workflowName: workflow.name, submissionId: submission.id, action, status: "pending", detail: "Queued", createdAt: now(), updatedAt: now(), snapshot: workflow, destination: action === "task" ? "" : workflow.destinations?.[action] ?? "" }; put(db, "run", run); }
     }
-    return { id: submission.id, duplicate: false };
+    return { id: submission.id, duplicate: false, ...(submission.intakeReceipt ? { receipt: submission.intakeReceipt } : {}) };
   });
 }
 export function claimRun(id: string): { run: Run; submission: Submission } | null {

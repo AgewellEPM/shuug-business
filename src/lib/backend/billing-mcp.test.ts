@@ -49,7 +49,7 @@ async function session() {
 it("uses genuine MCP tools to draft, read, post and share a native invoice with exact retries and isolated books", async () => {
   const a = fixtureBook("Household A"), b = fixtureBook("Household B"), s = await session();
   try {
-    const tools = (await s.client.listTools()).tools; expect(tools).toHaveLength(45);
+    const tools = (await s.client.listTools()).tools; expect(tools).toHaveLength(53);
     expect(tools.find(tool => tool.name === "billing_read")?.annotations).toMatchObject({ readOnlyHint: true, openWorldHint: false });
     expect(tools.find(tool => tool.name === "billing_command")?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true, openWorldHint: true });
     const catalog = await s.call("billing_catalog");

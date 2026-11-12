@@ -101,8 +101,8 @@ async function main() {
       books.push(saveClientBook({ clientId: clientRecord.id, name: `${label} books`, revision: 0, grants: [], reviewed: true }, owner).id);
     }
     await start(host);
-    assert.equal((await client!.listTools()).tools.length, 45); checks++;
-    const capabilities = await call("business_capabilities"); assert.equal(capabilities.operations.length, 45); checks++;
+    assert.equal((await client!.listTools()).tools.length, 53); checks++;
+    const capabilities = await call("business_capabilities"); assert.equal(capabilities.operations.length, 53); checks++;
     const catalog = await call("billing_catalog"); assert.equal(catalog.source, "native-client-books");
     assert(catalog.actions.some((action: { action: string }) => action.action === "billing.delivery.send")); checks++;
     assert.equal((await fetch(base + "/api/backend", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ operation: "billing_read", arguments: { bookId: "office" } }) })).status, 401); checks++;
@@ -143,7 +143,7 @@ async function main() {
     const after = await call("billing_read", { bookId: books[1] }); assert.equal(after.billing[0].settlements.length, 1); assert.equal(after.reports.balanceSheet.assets.accountsReceivableCents, 8500); checks++;
     assert(!existsSync(blocked), "An unexpected external fetch was attempted.");
     await cleanup();
-    console.log(JSON.stringify({ ok: true, buildId, checks, tools: 45, compiledOperations: 45, transport: "SDK Client -> actual stdio MCP -> compiled /api/backend", syntheticBooks: 3, exactRetriesVerified: true, bookNamespaceIsolationVerified: true, manualPartialSettlementCents: 4000, remainingReceivableCents: 8500, stoppedWriterBackupFiles: backup.files, freshProcessRestoreVerified: true, providerCredentialsConfigured: false, emailSendInvoked: false, realPaymentExecuted: false, externalFetchGuard: true, externalFetchAttempts: 0, ownedChildrenStopped: true, syntheticFilesRemoved: true, installedServiceChanged: false }, null, 2));
+    console.log(JSON.stringify({ ok: true, buildId, checks, tools: 53, compiledOperations: 53, transport: "SDK Client -> actual stdio MCP -> compiled /api/backend", syntheticBooks: 3, exactRetriesVerified: true, bookNamespaceIsolationVerified: true, manualPartialSettlementCents: 4000, remainingReceivableCents: 8500, stoppedWriterBackupFiles: backup.files, freshProcessRestoreVerified: true, providerCredentialsConfigured: false, emailSendInvoked: false, realPaymentExecuted: false, externalFetchGuard: true, externalFetchAttempts: 0, ownedChildrenStopped: true, syntheticFilesRemoved: true, installedServiceChanged: false }, null, 2));
   } finally { await cleanup(); process.removeListener("SIGINT", onSignal); process.removeListener("SIGTERM", onSignal); }
 }
 main().catch(error => { console.error(error instanceof Error ? error.message : "Compiled billing MCP proof failed."); process.exitCode = 1; });

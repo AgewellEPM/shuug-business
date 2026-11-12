@@ -13,7 +13,7 @@ const token = process.env.SHUUG_BACKEND_TOKEN || setting("BACKEND_ACCESS_TOKEN")
 if (!token) throw new Error("Run npm run backend:setup first.");
 async function verify(client: Client) {
   const listed = await client.listTools();
-  assert.equal(listed.tools.length, 45);
+  assert.equal(listed.tools.length, 53);
   for (const name of ["workspace_catalog", "billing_catalog", "expense_catalog", "receivable_catalog", "account_catalog", "journal_catalog", "dining_catalog", "restaurant_catalog", "schedule_catalog", "restaurant_report"]) assert.notEqual((await client.callTool({ name, arguments: {} })).isError, true);
   for (const resource of ["expense-accounting", "receivables", "accounts", "accounting-journal", "accounting-manual", "auto-repair-inspections", "auto-repair-pricing", "vehicles", "restaurant-credits", "restaurant-stocktakes", "restaurant-specials", "restaurant-dining", "restaurant", "restaurant-accounting", "staff-schedule"]) { const result = await client.callTool({ name: "business_read", arguments: { resource } }); assert.notEqual(result.isError, true, `business_read ${resource} failed: ${JSON.stringify(result.content)}`); }
   const result = await client.callTool({ name: "shopify_status", arguments: {} });
@@ -39,6 +39,6 @@ async function main() {
   const transport = new StdioClientTransport({ command: process.execPath, args: ["--import", path.join(root, "node_modules/tsx/dist/loader.mjs"), path.join(root, "scripts/mcp-server.ts")], cwd: root, env: { ...Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => typeof entry[1] === "string")), SHUUG_BACKEND_URL: base.origin, SHUUG_BACKEND_TOKEN: token }, stderr: "inherit" });
   try { await stdio.connect(transport); await verify(stdio); }
   finally { await stdio.close(); }
-  console.log("Live backend authentication, Streamable HTTP MCP, stdio MCP, 39 tools, business reads and standalone Shopify status passed. No store changes were made.");
+  console.log("Live backend authentication, Streamable HTTP MCP, stdio MCP, 53 tools, business reads and standalone Shopify status passed. No store changes were made.");
 }
 main().catch(error => { console.error(error instanceof Error ? error.message : "Backend smoke failed"); process.exitCode = 1; });

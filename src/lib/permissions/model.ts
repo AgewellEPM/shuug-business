@@ -28,7 +28,7 @@ export const SECTIONS: SectionDef[] = [
   { key: "operations", label: "Operations", prefixes: ["/amazon", "/operations", "/production", "/costs", "/traceability", "/restaurant", "/assessments", "/childcare", "/workorders"] },
   { key: "money", label: "Money", prefixes: ["/accounting", "/gig-connections", "/rideshare", "/restaurant/finance", "/finance", "/books", "/ledger", "/cashflow", "/collections", "/reconcile", "/billing", "/expenses", "/invoices", "/analytics"] },
   { key: "team", label: "Team", prefixes: ["/team", "/performance", "/benchmark", "/worktrack", "/timeclock", "/tasks", "/inbox"] },
-  { key: "admin", label: "Admin & setup", prefixes: ["/admin", "/features", "/setup", "/settings", "/integrations", "/branding", "/documents", "/automation", "/developer", "/handlers", "/platform", "/blueprint"] },
+  { key: "admin", label: "Admin & setup", prefixes: ["/shop", "/communications", "/admin", "/features", "/setup", "/settings", "/integrations", "/branding", "/documents", "/automation", "/developer", "/handlers", "/platform", "/blueprint"] },
   { key: "services", label: "Service delivery", prefixes: ["/tax-office", "/tax-documents"] },
   { key: "fundraising", label: "Fundraising", prefixes: [] },
   { key: "programs", label: "Programs & participants", prefixes: [] },

@@ -106,7 +106,7 @@ it("applies through a genuine MCP session, persists a business-context receipt a
   try {
     await server.connect(a); await client.connect(b);
     const tools = (await client.listTools()).tools;
-    expect(tools).toHaveLength(45);
+    expect(tools).toHaveLength(53);
     expect(tools.find(item => item.name === "workspace_preview")?.annotations).toMatchObject({ readOnlyHint: true, openWorldHint: false });
     expect(tools.find(item => item.name === "workspace_apply")?.annotations).toMatchObject({ readOnlyHint: false, idempotentHint: true, openWorldHint: false });
     const catalog = await call("workspace_catalog"); expect(catalog.tools.some((item: { id: string }) => item.id === "client-books")).toBe(true);
