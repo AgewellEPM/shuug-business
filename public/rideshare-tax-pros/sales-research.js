@@ -31,7 +31,7 @@
     mount({ office, api, status = () => {}, refresh = async () => {} }) {
       const host = section(); if (!host) return;
       const info = metadata(office);
-      if (['do_not_contact', 'not_interested'].includes(office.status)) {
+      if (['do_not_contact', 'not_interested'].includes(office.status) || info.primaryContactDoNotContact === true) {
         host.innerHTML = '<h3>Research published business contacts</h3><p>Research is paused while this office is marked not interested or do not contact. Review its status before starting new research.</p>';
         return;
       }

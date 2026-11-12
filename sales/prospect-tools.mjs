@@ -1,9 +1,9 @@
-import { HttpError, digest, email, https, metadata, seal, secret, text, unseal } from './model.mjs';
+import { CONTACT_ROLES, HttpError, digest, email, https, metadata, seal, secret, text, unseal } from './model.mjs';
 import { researchOffice } from './research.mjs';
 import { patchReviewed } from './atomic.mjs';
 
 export const PROSPECT_ACTIONS = new Set(['research-office', 'apply-research', 'verify-office', 'save-outreach-draft']);
-const blocked = row => ['do_not_contact', 'not_interested'].includes(row.status);
+const blocked = row => ['do_not_contact', 'not_interested'].includes(row.status) || metadata(row).primaryContactDoNotContact === true;
 const fingerprint = row => { const info = metadata(row); return digest(JSON.stringify([row.town, row.locality, row.state, row.contact_name, row.contact_email, row.contact_phone, info.address, info.postalCode, info.website, info.independence, info.contactVerified, info.emailVerified, info.contactRole, info.verificationSource, info.verificationNote])); };
 const source = value => {
   const url = https(value);
@@ -17,7 +17,8 @@ export function verificationUpdate(body, before, user, now = Date.now()) {
   let changed = false;
   const has = key => Object.prototype.hasOwnProperty.call(body, key);
   if (has('contact') && body.contact.trim() !== before.contact_name) { info.contactVerified = false; info.contactRole = 'unverified'; changed = true; }
-  if (has('email') && body.email.trim().toLowerCase() !== before.contact_email) { info.emailVerified = false; changed = true; }
+  if (has('email') && body.email.trim().toLowerCase() !== before.contact_email) { info.emailVerified = false; info.contactVerified = false; changed = true; }
+  if (has('phone') && body.phone.trim() !== before.contact_phone) { info.contactVerified = false; changed = true; }
   if (has('website')) { info.website = https(body.website); changed = true; }
   if (has('postalCode')) {
     info.postalCode = text(body.postalCode || '', 10);
@@ -29,7 +30,8 @@ export function verificationUpdate(body, before, user, now = Date.now()) {
     info[key] = body[key]; changed = true;
   }
   if (has('contactRole')) {
-    if (!['unverified', 'owner', 'manager', 'staff', 'other'].includes(body.contactRole)) throw new HttpError(400, 'Choose the contact’s role.');
+    if (!CONTACT_ROLES.includes(body.contactRole)) throw new HttpError(400, 'Choose the contact’s role.');
+    if (body.contactRole !== prior.contactRole && body.contactVerified !== true) info.contactVerified = false;
     info.contactRole = body.contactRole; changed = true;
   }
   if (has('verificationSource')) { info.verificationSource = body.verificationSource ? source(body.verificationSource) : ''; changed = true; }
@@ -93,6 +95,7 @@ export function prospectTools(env, db, { researcher = researchOffice, now = Date
       for (const item of selected) {
         patch[{ email: 'contact_email', phone: 'contact_phone', contact: 'contact_name' }[item.field]] = item.value;
         info.researchSources[item.field] = item;
+        info.contactVerified = false;
         if (item.field === 'email') info.emailVerified = false;
         if (item.field === 'contact') { info.contactVerified = false; info.contactRole = 'unverified'; }
       }

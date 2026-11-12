@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-12T06:25:45.903Z",
+  "scope": "Actual Worker/D1 contact persistence on isolated synthetic boards; no real office records, outreach, invitations, payments or provider changes.",
+  "checks": [
+    "fresh backend adapter reads persisted owner, business details, source check and primary fields",
+    "exact retry is idempotent and a stale contact revision is rejected",
+    "Rolodex persists multiple people and does not reveal them to an unassigned agent",
+    "archive and restore retain contacts and clear the old primary without deleting history"
+  ],
+  "diagnosticBoardsArchived": [
+    "b_dy0jcuwmp3",
+    "b_5rs4z9xp2y",
+    "b_5h0d2seiij",
+    "b_3ztwdnvpy0"
+  ]
+}

@@ -559,6 +559,29 @@ body.sales-console-page :is(.skip-link, .sdr-skip):focus { top: 12px; }
   .sales-console-page *, .sales-console-page *::before, .sales-console-page *::after { scroll-behavior: auto !important; animation: none !important; transition: none !important; }
 }
 
+.sales-console-page .sdr-contact-summary { display: flex; flex-wrap: wrap; gap: 12px 22px; margin: 0 0 22px; padding: 18px; border-radius: var(--r-lg); background: var(--glass-fill); border: 1px solid var(--glass-border); }
+.sales-console-page .sdr-contact-summary span { color: var(--text-secondary); }
+.sales-console-page .sdr-contact-summary strong { color: var(--text-primary); }
+.sales-console-page .sdr-contact-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 310px), 1fr)); gap: 18px; margin-bottom: 24px; }
+.sales-console-page .sdr-contact-card { min-width: 0; padding: 20px; margin: 14px 0; border: 1px solid var(--glass-border-muted); border-radius: var(--r-lg); background: var(--glass-fill); overflow-wrap: anywhere; }
+.sales-console-page .sdr-contact-grid .sdr-contact-card { margin: 0; }
+.sales-console-page .sdr-contact-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.sales-console-page .sdr-contact-heading h4 { margin: 0; font-size: 18px; }
+.sales-console-page .sdr-contact-heading p { margin: 4px 0 0; color: var(--text-secondary); }
+.sales-console-page .sdr-contact-badge { background: var(--accent-soft); color: var(--accent); padding: 4px 9px; border-radius: var(--r-pill); font-size: 12px; white-space: nowrap; }
+.sales-console-page :is(.sdr-contact-evidence, .sdr-contact-muted, .sdr-contact-location) { color: var(--text-tertiary); font-size: 13px; }
+.sales-console-page .sdr-contact-facts { margin: 16px 0; }
+.sales-console-page .sdr-contact-facts > div { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 10px; margin: 8px 0; }
+.sales-console-page .sdr-contact-facts dt { color: var(--text-secondary); font-size: 13px; }
+.sales-console-page .sdr-contact-facts dd { margin: 0; min-width: 0; }
+.sales-console-page .sdr-contact-notes { white-space: pre-wrap; }
+.sales-console-page .sdr-contact-archived { border-style: dashed; }
+.sales-console-page .sdr-contact-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sales-console-page .sdr-contact-form-grid > label { min-width: 0; }
+.sales-console-page .sdr-office-contacts { border-bottom: 1px solid var(--glass-border-muted); padding-bottom: 24px; margin-bottom: 24px; }
+.sales-console-page #sales-contact-form { padding: 18px; background: var(--glass-fill-muted); border-radius: var(--r-lg); }
+@media (max-width: 440px) { .sales-console-page .sdr-contact-form-grid { grid-template-columns: minmax(0, 1fr); } }
+
 @media (forced-colors: active) {
   .sales-console-page :is(.sdr-card, .sales-panel, .sales-stat, .sales-office, .sdr-office-card, .sdr-lane, .sdr-state-card, .button, .sdr-stage-chip) { border: 1px solid CanvasText; }
   .sales-console-page .sdr-nav button:is([aria-pressed="true"], [aria-selected="true"], .active) { outline: 2px solid Highlight; }

@@ -1,0 +1,48 @@
+import { readFileSync } from "node:fs";
+import type { SalesInvoke } from "../../src/lib/backend/sales-mcp";
+
+type Options = { origin: string; codeFile: string; email?: string; fetcher?: typeof fetch };
+export function createSalesConnection({ origin, codeFile, email, fetcher = fetch }: Options): SalesInvoke {
+  const base = new URL(origin);
+  if (base.username || base.password || base.pathname !== "/" || base.search || base.hash ||
+    (base.protocol !== "https:" && !(base.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(base.hostname)))) throw new Error("Use an HTTPS sales origin or explicit loopback HTTP, without credentials or a path.");
+  if (!codeFile.startsWith("/")) throw new Error("Select an absolute private sales access-code file.");
+  return async (operation, args = {}) => {
+    if (operation === "sdr_catalog") return {
+      version: 1, storage: "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office"],
+      actions: ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"],
+      roles: ["unverified", "owner", "partner", "manager", "accountant", "staff", "other"],
+      limits: { contactsPerOffice: 50, exactRetryReceiptsPerOffice: 30, totalOfficeMetadataCharacters: 48000 },
+      concurrency: "Read office.contacts.revision and send it as expectedRevision. Reuse the same UUID requestId and inputs on an uncertain retry.",
+      authority: "Uses the supplied sales identity. Agent assignment, territory and revoked-access rules apply at the backend.",
+      evidence: "A named owner/partner remains unconfirmed without an explicit source check. Office ownership, email delivery and paid eligibility are separate.",
+      externalEffects: "No messages, research requests, invitations or payments. Only contact records are changed.",
+    };
+    let action: string;
+    if (operation === "sdr_read") {
+      const actions: Record<string, string> = { workspace: "bootstrap", rolodex: "rolodex", office: "office" };
+      action = actions[String(args.resource)];
+      if (!action || (action === "office" && !/^\d+$/.test(String(args.id || "")))) throw new Error("Choose a sales resource and supply an office ID for office reads.");
+    } else if (operation === "sdr_command" && ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"].includes(String(args.action))) action = String(args.action);
+    else throw new Error("Unknown sales MCP operation.");
+    let cookie = "";
+    const call = async (body: Record<string, unknown>, authenticated = true) => {
+      const response = await fetcher(new URL("/api/sales", base), { method: "POST", redirect: "error",
+        headers: { Origin: base.origin, "Content-Type": "application/json", ...(authenticated && cookie ? { Cookie: cookie } : {}) },
+        body: JSON.stringify(body), signal: AbortSignal.timeout(45000) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || `Sales request returned HTTP ${response.status}.`);
+      return { response, data };
+    };
+    try {
+      const code = readFileSync(codeFile, "utf8").trim();
+      if (!code || code.length > 200) throw new Error("The private sales code file is empty or invalid.");
+      const login = await call({ action: "login", code, ...(email ? { email } : {}) }, false);
+      cookie = (login.response.headers.get("set-cookie") || "").split(";")[0];
+      if (!cookie.startsWith("gigtax_sales=")) throw new Error("Sales sign-in did not return its protected session.");
+      return (await call({ ...args, action })).data;
+    } finally {
+      if (cookie) { try { await call({ action: "logout" }); } catch { /* Sessions are local encrypted cookies; never print credentials on cleanup. */ } }
+    }
+  };
+}

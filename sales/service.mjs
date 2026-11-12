@@ -5,6 +5,7 @@ import { listingInput, supportInput } from './directory.mjs';
 import { PROSPECT_ACTIONS, prospectTools, verificationUpdate } from './prospect-tools.mjs';
 import { enrollmentEligibility, initialBilling, reconcileEnrollment } from './billing.mjs';
 import { patchReviewed } from './atomic.mjs';
+import { CONTACT_ACTIONS, contactBook, contactDirectory, contactTools } from './contacts.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -28,6 +29,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return lead;
   }
   const audit = (user, leadId, action, detail) => db.create('events', { town: `${action} ${secret().slice(0, 12)}`, contact_name: user.name, assigned_to: String(leadId), status: 'recorded', notes: JSON.stringify({ actorId: user.id, action, detail, at: new Date().toISOString() }) });
+  const contacts = contactTools(db, audit, tools.now);
   async function login(body) {
     const code = text(body.code, 200, true), codeHash = digest(code);
     let user, session;
@@ -48,8 +50,10 @@ export function service(env, db, payment = payments(env), tools = {}) {
         const current = memberships.filter(e => metadata(e).payment?.live === true).sort((a,b) => Number(b.id) - Number(a.id))[0];
         return current ? { ...row, membership: enrollmentEligibility(current) } : row;
       });
-      return { user: publicUser(user), offices, agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [] })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
+      return { user: publicUser(user), offices, rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [] })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
     }
+    if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
+    if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);
     if (action === 'search') {
       const region = state(b.state), city = text(b.city, 100, true);
       if (user.states.length && !user.states.includes(region)) throw new HttpError(403, 'This state is outside your territory.');
@@ -80,7 +84,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         const saved = metadata(r), expired = !saved.payment?.live && saved.expiresAt < Date.now();
         return { id: r.id, status: saved.payment?.live ? enrollmentEligibility(r).status : expired ? 'invitation_expired' : r.status, contact_name: r.contact_name, contact_email: r.contact_email, created_at: r.created_at, acceptedAt: saved.acceptedAt || null, hasLivePayment: saved.payment?.live === true, expired: expired || r.status === 'checkout_expired' };
       });
-      return { office, events, enrollments, drafts: outreach(office) };
+      return { office, contacts: contactBook(office), events, enrollments, drafts: outreach(office) };
     }
     if (action === 'update-office') {
       const before = await leadFor(user, b.id);
@@ -123,7 +127,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (action === 'invite') {
       const lead = await leadFor(user, b.id), info = metadata(lead), terms = await db.terms();
       if (!termsValid(terms)) throw new HttpError(409, 'The workspace owner must approve and publish the enrollment terms first.');
-      if (!independenceVerified(info) || ['do_not_contact', 'not_interested', 'active'].includes(lead.status)) throw new HttpError(409, 'Confirm independent ownership with source evidence and the office’s interest before inviting.');
+      if (!independenceVerified(info) || info.primaryContactDoNotContact || ['do_not_contact', 'not_interested', 'active'].includes(lead.status)) throw new HttpError(409, 'Confirm independent ownership with source evidence and the office’s interest before inviting. Respect the primary contact’s do not contact preference.');
       const ownerEmail = email(b.email), ownerName = text(b.ownerName, 140, true), token = secret();
       const current=(await db.list('enrollments')).find(r=>String(metadata(r).leadId)===String(lead.id)&&['invited','payment_pending','active'].includes(r.status));
       if(current){const m=metadata(current),saved=unseal(m.sealedToken||'',key);if(saved?.token&&current.contact_email===ownerEmail&&m.expiresAt>Date.now())return {enrollmentId:current.id,link:`${env.GIGTAX_SALES_ORIGIN}/office-signup#${new URLSearchParams({id:current.id,token:saved.token})}`,expiresInDays:Math.max(0,Math.floor((m.expiresAt-Date.now())/86400000))};throw new HttpError(409,'This office already has an enrollment. Review its payment and invitation status before creating another.');}
@@ -139,7 +143,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (action === 'renew-invitation') {
       if (b.reviewed !== true) throw new HttpError(400, 'Review the expired invitation before preparing another one.');
       const reason = text(b.reason || '', 900, true), lead = await leadFor(user, b.id);
-      if (['do_not_contact', 'not_interested', 'active'].includes(lead.status) || !independenceVerified(metadata(lead))) throw new HttpError(409, 'Confirm independent ownership and the office’s interest before renewing an invitation.');
+      if (metadata(lead).primaryContactDoNotContact || ['do_not_contact', 'not_interested', 'active'].includes(lead.status) || !independenceVerified(metadata(lead))) throw new HttpError(409, 'Confirm independent ownership and the office’s interest before renewing an invitation.');
       const existing = (await db.list('enrollments')).filter(r => String(metadata(r).leadId) === String(lead.id));
       if (!existing.length) throw new HttpError(409, 'Create the first owner invitation from this office record.');
       if (existing.some(r => metadata(r).payment?.live)) throw new HttpError(409, 'This office has a paid membership. Review its billing and agreement before considering any new enrollment.');
@@ -156,7 +160,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         await patchReviewed(db, 'enrollments', row, { status: 'expired', notes: JSON.stringify({ ...saved, renewalReview: { reason, at: new Date().toISOString(), by: user.id } }) });
       }
       const latest = await leadFor(user, b.id);
-      if (['do_not_contact', 'not_interested', 'active'].includes(latest.status) || !independenceVerified(metadata(latest))) throw new HttpError(409, 'The office changed during invitation review. Refresh before trying again.');
+      if (metadata(latest).primaryContactDoNotContact || ['do_not_contact', 'not_interested', 'active'].includes(latest.status) || !independenceVerified(metadata(latest))) throw new HttpError(409, 'The office changed during invitation review. Refresh before trying again.');
       await patchReviewed(db, 'offices', latest, { status: 'interested', notes: JSON.stringify({ ...metadata(latest), invitationPendingUntil: 0 }) });
       await audit(user, lead.id, 'expired_invitation_reviewed', reason);
       return dispatch(user, 'invite', { id: lead.id, email: ownerEmail, ownerName });
@@ -203,7 +207,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (!row || info.tokenHash !== digest(token) || !['invited', 'payment_pending', 'active'].includes(row.status)) throw new HttpError(404, 'Invitation not found.');
     if (row.status !== 'active' && info.expiresAt < Date.now()) throw new HttpError(410, 'This invitation expired. Ask your agent for a new one.');
     const lead = await db.get('offices', info.leadId);
-    if (!lead || !independenceVerified(metadata(lead)) || ['do_not_contact', 'not_interested'].includes(lead.status)) throw new HttpError(410, 'This invitation is no longer available.');
+    if (!lead || metadata(lead).primaryContactDoNotContact || !independenceVerified(metadata(lead)) || ['do_not_contact', 'not_interested'].includes(lead.status)) throw new HttpError(410, 'This invitation is no longer available.');
     return { row, info, lead };
   }
   async function signup(action, b) {
@@ -231,7 +235,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   function receipt(row,info){return {active:true,receipt:row.id,acceptedAt:info.acceptedAt,office:info.officeName,signature:info.signature,termsHash:info.terms.hash,payment:info.payment};}
   async function activateOffice(leadId) {
     const office = await db.get('offices', leadId);
-    if (!office || ['do_not_contact', 'not_interested'].includes(office.status) || !independenceVerified(metadata(office))) throw new HttpError(409, 'Payment was recorded. The office needs owner review before activation because its contact status or ownership verification changed.');
+    if (!office || metadata(office).primaryContactDoNotContact || ['do_not_contact', 'not_interested'].includes(office.status) || !independenceVerified(metadata(office))) throw new HttpError(409, 'Payment was recorded. The office needs owner review before activation because its contact status or ownership verification changed.');
     if (office.status !== 'active') await patchReviewed(db, 'offices', office, { status: 'active' });
   }
   async function fulfill(id,sessionId){

@@ -17,10 +17,16 @@ import { saveRecordSchema, } from "../workspace/model";
 import { scheduleCommandSchema } from "../timeclock/schedule-model";
 import { restaurantCommandSchema } from "../restaurant/business";
 import { transitionSchema } from "../workspace/store";
+import { registerSalesMcp, type SalesInvoke } from "./sales-mcp";
 
 export type InvokeBackend = (operation: string, args?: Record<string, unknown>) => Promise<unknown>;
-export function createBusinessMcp(invoke: InvokeBackend) {
+export function createBusinessMcp(invoke: InvokeBackend, options: { salesInvoke?: SalesInvoke; salesOnly?: boolean } = {}) {
   const server = new McpServer({ name: "shuug-business", version: "1.0.0" }, { instructions: "Shuug is a standalone business backend. Shopify is optional. Read capabilities and status first. Planned/demo business features retain their limitations. Queue receipts are not proof of an applied Shopify change; inspect the job. Keep money currencies and product units unchanged. Backend credentials authorize this client's whole workspace." });
+  if (options.salesInvoke) registerSalesMcp(server, options.salesInvoke);
+  if (options.salesOnly) {
+    if (!options.salesInvoke) throw new Error("Sales-only MCP requires its configured sales connection.");
+    return server;
+  }
   function tool(name: string, description: string, inputSchema: z.ZodRawShape, readOnly: boolean, operation = name) {
     server.registerTool(name, { description, inputSchema, annotations: { readOnlyHint: readOnly, destructiveHint: !readOnly, idempotentHint: readOnly || ["expense_command", "receivable_command", "account_command", "journal_command", "inspection_command", "repair_command", "vehicle_vin_apply", "dining_command", "schedule_command", "restaurant_command", "tracker_create", "tracker_save_record", "shopify_command", "shopify_configure"].includes(name), openWorldHint: name.startsWith("shopify_") || name === "vehicle_vin_lookup" } }, async (args) => {
       try { const data = await invoke(operation, args as Record<string, unknown>); return { content: [{ type: "text" as const, text: JSON.stringify(data) }] }; }

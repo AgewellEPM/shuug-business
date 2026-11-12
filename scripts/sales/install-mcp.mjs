@@ -1,0 +1,15 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
+const directory = path.join(homedir(), '.config/gigtax-sales'), bin = path.join(homedir(), 'bin');
+const quote = value => "'" + value.replaceAll("'", "'\\''") + "'";
+const wrapper = `#!/bin/zsh\nexec /bin/zsh ${quote(path.join(root, 'scripts/sales/mcp.sh'))} "$@"\n`;
+const connection = JSON.stringify({ mcpServers: { 'gigtax-sales': { command: '/bin/zsh', args: [path.join(root, 'scripts/sales/mcp.sh')] } } }, null, 2) + '\n';
+const files = [[path.join(bin, 'gigtax-sales-mcp'), wrapper, 0o700], [path.join(directory, 'mcp-client.json'), connection, 0o600]];
+if (!existsSync(path.join(directory, 'owner-code'))) throw new Error('Configure the existing private sales owner access first.');
+for (const [filename, bytes] of files) if (existsSync(filename) && readFileSync(filename, 'utf8') !== bytes) throw new Error(`Existing MCP configuration differs; it was preserved: ${filename}`);
+mkdirSync(bin, { recursive: true }); mkdirSync(directory, { recursive: true, mode: 0o700 });
+for (const [filename, bytes, mode] of files) if (!existsSync(filename)) writeFileSync(filename, bytes, { mode, flag: 'wx' });
+console.log('GigTax Shuug MCP launcher and private client configuration are installed. No global MCP settings changed.');

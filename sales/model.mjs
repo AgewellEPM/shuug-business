@@ -2,6 +2,7 @@ import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'node:
 
 export const STATES = 'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
 export const STAGES = ['new', 'researching', 'contacted', 'meeting', 'interested', 'invited', 'active', 'not_interested', 'do_not_contact'];
+export const CONTACT_ROLES = ['unverified', 'owner', 'partner', 'manager', 'accountant', 'staff', 'other'];
 export class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 export const digest = value => createHash('sha256').update(value).digest('hex');
 export const secret = () => randomBytes(32).toString('base64url');

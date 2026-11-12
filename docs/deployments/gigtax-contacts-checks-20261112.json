@@ -1,0 +1,29 @@
+{
+  "ok": true,
+  "scope": "Focused synthetic unit, integrated DOM, actual stdio MCP over synthetic HTTP, and private-release preservation. Separate D1 evidence uses isolated diagnostic boards.",
+  "tests": 142,
+  "failed": 0,
+  "skipped": 0,
+  "typescript": "passed after generating Next route types",
+  "testReportSha256": "fc5bd7b3cd85d82c41f51022a747ade2f25f11efa3ee9a775188c72f1ac16021",
+  "installedMcp": "Native Shuug server with sales-only launcher and private client configuration; global settings unchanged.",
+  "sourceSha256": {
+    "sales/contacts.mjs": "cb1d106edecec6d9d567b55c131f9a63e37a7d90c45dc707e1ea99d0b7c0ac8c",
+    "sales/model.mjs": "3a040ceddde8514819c1347cad0224763c49bb611760b21253a78893808f2543",
+    "sales/prospect-tools.mjs": "ee14b92acde3dba268b4a69b3aab5853592f3aa7c2a4a2a45f9f4f665baeb3ab",
+    "sales/service.mjs": "852b08f95c45ba88ee1c242fa01f32e7d93a25a8a38fbaf7465b9b2d2e400c24",
+    "public/rideshare-tax-pros/sales-contacts.js": "44c596a3ccada993cd757fd19669dfaec9a9b532303accecfc8c1950f957e07b",
+    "public/rideshare-tax-pros/sales.js": "5329940e663dcf6b770f8d2eddc3aab4d9b6396fa0ae4c17a98f5e341a9bbd37",
+    "public/rideshare-tax-pros/sales-workflows.js": "d555c7b28580a7f9d45484683e01f838f1180cb17d3397a25dc9c7051b8329a6",
+    "public/rideshare-tax-pros/sales-research.js": "b3d6095ac4f15bf1c2c7f4e47205c3aa6a12f49ae1c777ef78d09ce9fe338490",
+    "public/rideshare-tax-pros/sales-console.css": "25887412cf3ebe70fec532f78155ba0c436a3b9d2ae9724a3e4299f348673653",
+    "scripts/rideshare-site/sales-console.mjs": "b78a05f360882b3430dd53cf5fd72c2d190765d1677a1965a6dd43e6bc5b49b6",
+    "scripts/mcp-server.ts": "e4c4b6f86214eb456c08fc96006d706c17058b7a44903de14b2d966f4874d261",
+    "src/lib/backend/mcp.ts": "4be8bc553078612da968fd41af39f178ec33bddd60ce9eaee23d49a6755eed57",
+    "src/lib/backend/sales-mcp.ts": "27c05dc04e9de042f5e199bf462cd0433fe59a301ef541569eaf31984130de3e",
+    "scripts/sales/mcp-connection.ts": "c4feb2abf7a9629d6bac5567196003adc4203a21a82d1495f42b24694e62e653"
+  },
+  "realDataPopulation": false,
+  "deploymentVerification": "pending",
+  "limits": "No human visual acceptance, real email delivery or payment activation is established."
+}

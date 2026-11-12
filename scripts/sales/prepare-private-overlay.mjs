@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 export const PRIVATE_STATIC = Object.freeze([
   'sales.html', 'office-signup.html', 'sales.css', 'sales.js',
   'directory-admin.js', 'sales-research.js', 'sales-workflows.js',
-  'sales-console.css', 'sales-console.js',
+  'sales-console.css', 'sales-console.js', 'sales-contacts.js',
 ]);
 export const PRIVATE_FUNCTIONS = Object.freeze([
   'api/sales.func', 'api/offices.func', 'api/sales-webhook.func',
