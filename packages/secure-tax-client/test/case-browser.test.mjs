@@ -17,6 +17,7 @@ import {mountStaffUpdates} from '../browser/staff-updates.mjs';
 import {renderPortalDashboard} from '../browser/client-portal-view.mjs';
 import {newReturn} from '../../tax-engine/index.mjs';
 import {CASE_OBJECT_PREFIX,isCaseObjectId} from '../case-contract.mjs';
+import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks} from '../case-books.mjs';
 const encode=value=>new TextEncoder().encode(JSON.stringify(value)),command=(type,input)=>({actionId:crypto.randomUUID(),type,input});
 const ref=record=>({objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain});
 class MemoryStore{
@@ -114,4 +115,33 @@ test('ordinary case forms select verified cases and exact evidence, pause refres
     set('case-choice',id);set('case-action','document.review');set('case-document','form-source');set('case-request',requestId);set('case-decision','replacement_requested');set('case-review-notes','CLIENT VISIBLE PRIVATE REVIEW NOTE');assert.equal(editor.dirty,true);assert.match(document.body.textContent,/Client-visible review note/);click('Save private case review kit');await pending;assert.equal(saved.length,1);assert.equal(saved[0][0],id);assert.equal(saved[0][1].type,'document.review');assert.deepEqual(saved[0][1].input.document,ref(f.staff.records.get('form-source')));assert.equal(saved[0][2],'form-source');assert.equal(editor.dirty,false);assert.equal(document.getElementById('case-review-notes').value,'');
     set('case-action','request.add');set('case-request-title','PRIVATE UNSAVED REQUEST');editor.clear();editor.setEnabled(false);assert.equal(editor.dirty,false);assert(!document.body.textContent.includes('Readable case'));assert([...editor.element.querySelectorAll('input,textarea,select,button')].every(control=>control.disabled));assert(![...editor.element.querySelectorAll('input,textarea')].some(control=>control.value.includes('PRIVATE')));
   }finally{updates.destroy();dom.window.close();f.staff.lock();f.client.lock();}
+});
+test('ordinary ledger forms produce approved encrypted journals and matching client/staff reports, then clear private input',async()=>{
+  const f=await fixture(),created=await f.apply(null,command('case.create',{title:'Synthetic book form case',year:2025,kind:'1120'})),id=created.id;
+  const dom=new JSDOM('<!doctype html><body><main></main></body>'),document=dom.window.document;let pending,editor;
+  const run=action=>{editor.setEnabled(false);pending=action().finally(()=>editor.setEnabled(true));return pending;};
+  editor=mountCaseEditor(document,document.querySelector('main'),{getClient:()=>f.staff,run,confirm:()=>true,onSave:async(...args)=>{await f.apply(args[0],args[1],args[2]);}});editor.setEnabled(true);editor.refresh();
+  const set=(id,value)=>{const input=document.getElementById(id);assert(input,id);input.value=value;input.dispatchEvent(new dom.window.Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));};
+  const save=async()=>{[...document.querySelectorAll('button')].find(button=>button.textContent==='Save private case review kit').click();await pending;};
+  try{
+    set('case-choice',id);set('case-action','books.open');set('case-books-title','SYNTHETIC PRIVATE BOOK TITLE');await save();assert.equal(replayCaseBooks(f.client.records.get(id).verifiedCase.history,2025).title,'SYNTHETIC PRIVATE BOOK TITLE');
+    // A completed action must switch to a valid form; it must not leave a second
+    // "open books" form selected after the ledger has already been opened.
+    assert.notEqual(document.getElementById('case-action').value,'');
+    set('case-action','books.journal.post');set('case-books-date','2025-03-01');set('case-books-memo','SYNTHETIC PRIVATE REVENUE');set('case-books-line-1-account','1000');set('case-books-line-1-debit','123.45');set('case-books-line-2-account','4000');set('case-books-line-2-credit','123.45');assert.equal(editor.dirty,true);await save();assert.equal(editor.dirty,false);
+    for(const controller of [f.staff,f.client]){const snapshot=caseSnapshot(controller.records.get(id).verifiedCase,controller.records);assert.equal(snapshot.books.report.bankCents,12345);assert.equal(snapshot.books.report.netIncomeCents,12345);const view=renderCase(document,controller.records.get(id),controller.records);assert.match(view.textContent,/Bank 123\.45/);assert.match(view.textContent,/not cash\/accrual reports/);assert.match(view.textContent,/no attached file/);document.querySelector('main').append(view);}
+    assert.equal(document.getElementById('case-books-memo').value,'');set('case-books-memo','UNSAVED PRIVATE NOTE');editor.clear();editor.setEnabled(false);assert(![...editor.element.querySelectorAll('input,textarea')].some(input=>input.value.includes('PRIVATE')));
+    const wire=JSON.stringify(f.calls);for(const marker of ['SYNTHETIC PRIVATE BOOK TITLE','SYNTHETIC PRIVATE REVENUE','books.journal.post'])assert(!wire.includes(marker));
+  }finally{dom.window.close();f.staff.lock();f.client.lock();}
+});
+test('encrypted book revisions invalidate prior draft review and stale source posts cannot hide behind a current case certificate',async()=>{
+  const f=await fixture(),created=await f.apply(null,command('case.create',{title:'Synthetic protected books',year:2025,kind:'1040'})),id=created.id;
+  try{
+    await f.apply(id,command('books.open',{title:'Synthetic book',currency:'USD',from:'2025-01-01',through:'2025-12-31',accounts:structuredClone(DEFAULT_BOOK_ACCOUNTS),notes:''}));
+    await f.put(await privateFile(),'book-evidence');await f.put(newReturn('1040'),'book-draft');await f.staff.sync();await f.client.sync();
+    const version=replayCaseBooks(f.staff.records.get(id).verifiedCase.history,2025).version;await f.apply(id,command('draft.link',{document:ref(f.staff.records.get('book-draft')),notes:'Reviewed books',booksVersion:version}),'book-draft');
+    await f.apply(id,command('books.journal.post',{date:'2025-07-01',memo:'Synthetic certified posting',lines:[{accountNumber:1000,debitCents:500,creditCents:0},{accountNumber:4000,debitCents:0,creditCents:500}],document:ref(f.staff.records.get('book-evidence')),notes:''}),'book-evidence');
+    for(const controller of [f.client,f.staff]){const status=caseSnapshot(controller.records.get(id).verifiedCase,controller.records);assert.equal(status.draft.booksFreshness,'stale');assert.equal(status.books.sourcesCurrent,true);}
+    await f.put(await privateFile(),'book-evidence',2);await f.client.sync();await f.staff.sync();for(const controller of [f.client,f.staff]){const status=caseSnapshot(controller.records.get(id).verifiedCase,controller.records);assert.equal(status.books.sourcesCurrent,false);assert.equal(status.books.sources[0].freshness,'stale');assert.equal(status.books.report.bankCents,500);}
+  }finally{f.staff.lock();f.client.lock();}
 });

@@ -17,6 +17,7 @@ import {verifyReturnCreationApproval} from '../../return-create-approval.mjs';
 import {prepareCaseTransition} from '../../case-proposals.mjs';
 import {verifyCaseApproval} from '../../case-approval.mjs';
 import {verifyCasePayload} from '../../case-certificate.mjs';
+import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks,caseBookReport} from '../../case-books.mjs';
 import {newReturn} from '../../../tax-engine/index.mjs';
 const workspaceId='synthetic-aws-key-custody',config={workspaceId,keyAccountId:'111111111111',dataHostAccountId:'222222222222'};
 const context={invokedFunctionArn:'arn:aws:lambda:us-east-1:111111111111:function:synthetic-key-server:approved'};
@@ -139,4 +140,7 @@ test('cloud case transitions keep commands and selected evidence encrypted while
   const opened=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);try{const body=await verifyCasePayload(JSON.parse(text.decode(opened)),{...packet.envelope.context,clientId:request.clientId},pins);assert.equal(body.history.length,3);assert.equal(body.requests[0].review.decision,'reviewed');}finally{opened.fill(0);}
   assert.equal((await f.run('approve-case-transition',{...lastJob.jobInput,command:{private:'never clear'}},staffRequest.staff.keyId,'synthetic-cloud-case-review')).response.ok,false);
   assert.equal((await f.run('approve-case-transition',lastJob.jobInput,staffRequest.staff.keyId,'different-review')).response.ok,false);
+  await perform('books.open',{title:'SYNTHETIC PRIVATE BOOKS',currency:'USD',from:'2025-01-01',through:'2025-12-31',accounts:structuredClone(DEFAULT_BOOK_ACCOUNTS),notes:''});
+  await perform('books.journal.post',{date:'2025-06-01',memo:'SYNTHETIC PRIVATE BOOK POSTING',lines:[{accountNumber:1000,debitCents:12345,creditCents:0},{accountNumber:4000,debitCents:0,creditCents:12345}],document:{objectId:eContext.objectId,revision:1,envelopeDigest:capsule.envelopeDigest,domain:'tax-document'},notes:'SYNTHETIC PRIVATE BOOK NOTE'},{envelope,capsule});
+  const ledgerBytes=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);try{const body=await verifyCasePayload(JSON.parse(text.decode(ledgerBytes)),{...packet.envelope.context,clientId:request.clientId},pins),report=caseBookReport(replayCaseBooks(body.history,body.year));assert.equal(report.bankCents,12345);assert.equal(report.netIncomeCents,12345);assert.equal(body.history.length,5);}finally{ledgerBytes.fill(0);}
 });

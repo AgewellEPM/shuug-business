@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-12T23:50:01.768933+00:00",
+  "baseCommit": "03a60c1548d417bbba2099b9abcd550a732529a3",
+  "scope": "Firm-approved encrypted case working ledgers, shared balances, retained reversals, period locks and exact book-version draft review. Client-wide books, firm billing and filing remain incomplete.",
+  "verification": {
+    "nodeClientCustodyModelAndTaxSuite": {
+      "command": "node --test packages/secure-tax-client/test/*.test.mjs packages/secure-tax-client/cloud/aws/cloud.test.mjs packages/tax-engine/test/*.test.mjs",
+      "passed": 156,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Unchanged full native Journal fixture helper was unavailable; the real Swift envelope helper was freshly compiled and case-book, creation and correction decryption passed.",
+      "actualSwiftCaseBookDecryption": true,
+      "separateOperatorCliBookApproval": true,
+      "operatorBeforeAfterReports": true,
+      "cloudWorkerBookApprovalWithSyntheticProvider": true
+    },
+    "secureApi": {
+      "passed": 34,
+      "failed": 0,
+      "files": [
+        "src/lib/secure-tax/staff.test.ts",
+        "src/lib/secure-tax/store.test.ts"
+      ]
+    },
+    "compiledHttp": {
+      "ok": true,
+      "checks": 241,
+      "buildId": "5MU8AwN75LCZWR1MP9AUk",
+      "syntheticWorkspace": true,
+      "freshClientHadNoLegacyBooks": true,
+      "mandatoryStaffMfaVerifiedWithGlobalFlagOff": true,
+      "originalV2ClientEnvelopesPreserved": true,
+      "staffOpenedProtectedBooksAndDocumentBytes": true,
+      "encryptedDeviceBackupRecovered": true,
+      "newDeviceGrantedAfterOriginalRevocation": true,
+      "oldDeviceCannotOpenReplacementCapsules": true,
+      "newProcessFirmRecoveryCliVerified": true,
+      "staleRevisionFailsClosed": true,
+      "restoredDataAndRevocationVerified": true,
+      "backupFiles": 6,
+      "copiedHostPlaintextMarkerAbsent": true,
+      "portal": {
+        "multiFileUploads": 3,
+        "exactBytesOpened": true,
+        "lostReceiptRetryUsesSameCiphertext": true,
+        "encryptedPendingQueueRestored": true,
+        "localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts": true,
+        "authorizedClientRefreshVerified": true,
+        "staffSeesFilesAfterSignedSharing": true,
+        "automaticStaffRefreshAndSharedSummaryVerified": true,
+        "unsharedNewItemClearsStaffView": true,
+        "approvedRevisionRefreshVerified": true,
+        "pageExitClearsStaffView": true,
+        "cleanRestoreVerified": true,
+        "restoreFiles": 6,
+        "instantPushVerified": false,
+        "staffReturnCorrectionsRequireFirmApproval": true,
+        "fullStaffEditingImplemented": false
+      },
+      "largeGrantList": {
+        "activeGrants": 131,
+        "pagesRead": 6,
+        "boundedPageBytes": 65536,
+        "completeSnapshotVerified": true
+      },
+      "returnProof": {
+        "year": 2025,
+        "kinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "staffOriginatedKinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "initialReturnRequiresFirmApproval": true,
+        "initialPrivateReviewRefusedBeforeUpload": true,
+        "initialRevisionSharedAtomically": true,
+        "encryptedSaveClientReopenStaffRead": true,
+        "exported": [
+          {
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 118370
+          },
+          {
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 375384
+          },
+          {
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 350429
+          },
+          {
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 254562
+          }
+        ],
+        "unsharedRevisionClearsStaffView": true,
+        "correctedClientInputVisibleAfterSharing": true,
+        "staffReturnCorrectionProposalVerified": true,
+        "privateReviewRefusedBeforeUpload": true,
+        "ownerMfaAndFirmApprovalPublicationVerified": true,
+        "clientSeesApprovedStaffCorrection": true,
+        "approvedRevisionSharedAtomically": true,
+        "staffDirectWritesEnabled": false,
+        "productionFilingPerformed": false,
+        "terminalDeletionVerified": true
+      },
+      "caseProof": {
+        "kinds": [
+          "1040",
+          "1120"
+        ],
+        "approvedTransitions": 27,
+        "privateKitsRefusedBeforeUpload": true,
+        "clientAndStaffVerifyPrivateFirmCertificates": true,
+        "changedEvidenceInvalidatesReview": true,
+        "deletedEvidenceInvalidatesReview": true,
+        "replacementHistoryPreserved": true,
+        "changedDraftInvalidatesLink": true,
+        "currentAndIncompleteCasesRendered": true,
+        "genericClientWriteAndDeleteRefused": true,
+        "unpublishedCaseEnvelopeAndClientReencryptionRefused": true,
+        "privateDependenciesAndActionsAbsentFromHostMetadata": true,
+        "filingAuthorizationImplemented": false,
+        "certifiedCasesAndOwnershipSurviveRestore": true
+      },
+      "booksProof": {
+        "kinds": [
+          "1040",
+          "1120"
+        ],
+        "approvedBookActions": 14,
+        "clientAndStaffBankCents": 12000,
+        "clientAndStaffNetIncomeCents": 12000,
+        "classifiedCustomBankIncluded": true,
+        "retainedReversalAndEarlierBalances": true,
+        "closedPeriodRejected": true,
+        "ledgerChangesInvalidateDraftReview": true,
+        "exactBookVersionRelinkVerified": true,
+        "caseScoped": true,
+        "legacyBooksImported": false,
+        "firmBillingImplemented": false,
+        "cleanRestoreVerified": true
+      },
+      "workspaceBuilder": {
+        "realStdioMcp": true,
+        "compiledBackend": true,
+        "tools": 45,
+        "previewAndApplyVerified": true,
+        "partialTaxPreparationReported": true,
+        "requestedGoalComplete": false
+      },
+      "realOffhostCustodyVerified": false,
+      "publicTlsVerified": false,
+      "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture",
+      "realClientDataUsed": false,
+      "installedServiceChanged": false
+    },
+    "packagedClient": {
+      "ok": true,
+      "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+      "modules": 93,
+      "defaultConfigDisabled": true,
+      "noAccountRequest": true,
+      "staffCorrectionEditorMounted": true,
+      "staffNewReturnControlMounted": true,
+      "staffCaseEditorMounted": true,
+      "staffCaseControlsDisabled": true,
+      "staffCaseControlCount": 6,
+      "privateFirmModulesExcluded": true,
+      "publicTemplateFetches": 4,
+      "xfasRemoved": 4,
+      "exported": [
+        {
+          "kind": "1040",
+          "bytes": 118488
+        },
+        {
+          "kind": "1065",
+          "bytes": 238472
+        },
+        {
+          "kind": "1120S",
+          "bytes": 212315
+        },
+        {
+          "kind": "1120",
+          "bytes": 254770
+        }
+      ],
+      "safariVerified": false,
+      "visualAcceptance": false,
+      "publicTlsVerified": false
+    },
+    "packageInventory": {
+      "offlineInventoryFiles": 395,
+      "cloudInventoryFiles": 384,
+      "cloudZipSha256": "af6b645fd28369af788b683ae0bf504cd35ecb526e80303aa4ea673d2228e284",
+      "standardZipCrcVerified": true,
+      "clientSourceModulesMatched": 47,
+      "allPackageModuleBytesMatchCurrentSource": true,
+      "keysInitialized": false,
+      "resourcesProvisioned": false
+    }
+  },
+  "serverBuild": {
+    "id": "5MU8AwN75LCZWR1MP9AUk",
+    "rebuilt": false,
+    "reason": "Only independent client, custody and verification modules changed. Public server framing and host source are unchanged; current packages deliberately exercised the prior compiled opaque host."
+  },
+  "limits": {
+    "caseScoped": true,
+    "currency": "USD",
+    "taxYear": 2025,
+    "maxAccounts": 100,
+    "maxRetainedCaseActions": 256,
+    "maxCaseBodyBytes": 131072,
+    "ledgerBasisOnly": true,
+    "legacyBooksMigrated": false,
+    "crossCaseClientBooks": false,
+    "firmBillingOrClientFeeBalance": false,
+    "exactPackageClientAuthorization": false,
+    "filingReady": false,
+    "installedServiceChanged": false,
+    "realTaxpayerDataUsed": false,
+    "realCustodyActivated": false,
+    "publicTlsVerified": false,
+    "visualAcceptance": false,
+    "independentSecurityOrAccountingReview": false
+  },
+  "sourceSha256": {
+    "docs/FREE-TAX-SERVICE.md": "06410ccc5d66f65185f90c6db979b780d841cf1abbc22c4d893f73305d828ab7",
+    "docs/SHUUG_ENCRYPTED_CASES_20261110.md": "b5e3e850ee9632bce3c7fc360665da2990fba303f31c29cbc34671e2a6401c07",
+    "docs/SHUUG_ENCRYPTED_CASE_BOOKS_20261112.md": "db5e899e57802f04f60673ff8b95a874effefd0c908cd4cdaba93bcde68bd508",
+    "packages/secure-tax-client/browser/case-books-editor.mjs": "87baadd5f801f8d841e8c602ff327ac8bafe1d66dbdcf3a67198cdd7225fcf73",
+    "packages/secure-tax-client/browser/case-books-view.mjs": "dcc19ebbcbb6bfe79e8e48cf41832df895b9f09a665944f75fbdfaa181ab68f9",
+    "packages/secure-tax-client/browser/case-editor.mjs": "f16756ec52958e85b8d9f3094f169c1b99b0ac864572ac00a6167374060c7e6b",
+    "packages/secure-tax-client/browser/case-view.mjs": "a922712694537e0bdd2f65ee3e4627d9867e27102fdfdda84bfb5794b0105fca",
+    "packages/secure-tax-client/build-offline-kit.mjs": "15fba3c67d2388284749a1abd4bad83afd8a8c0476fc7bf9fc7254275c586f9e",
+    "packages/secure-tax-client/case-books.mjs": "49999c96ed80c48b3a688de18cbfb9ee72aaa0c3f754559c72e3a5db4a4add0a",
+    "packages/secure-tax-client/case-model.mjs": "648ff192f0bbd5bdcf6e26a55938fbf0b3be10affe15f46e9754f63ae6f56ba4",
+    "packages/secure-tax-client/cloud/aws/build-artifact.mjs": "3bcb3a49d242cd5216279582fff8bd87286cd9e9eba1666b5c5757c4b57a31d3",
+    "packages/secure-tax-client/cloud/aws/cloud.test.mjs": "bc633b007d74642d0a02e2c9d0170af45879283ca371199045d82bbaedad2a45",
+    "packages/secure-tax-client/inspect-case-review.mjs": "057b3386e696eeb18c918ac6409cf24f5c773ca8301ef6c6852914a2436d00d0",
+    "packages/secure-tax-client/prepare-browser.mjs": "dec7be4172ee7cf9324e978dcc0373e25713fd85fed3c03164ddc2b74ef4467a",
+    "packages/secure-tax-client/test/case-books.test.mjs": "8c45b5381843311acc7e6eb75a910231a0c55c0c09d99ef44235af9a344bde58",
+    "packages/secure-tax-client/test/case-browser.test.mjs": "84cc03ccf5f749212d328b8db7b0950fca8f10e4e18aa8a733f198f8977acd51",
+    "packages/secure-tax-client/test/cases.test.mjs": "c4e057cb9239fdbccec0d356e18aa05a47e704e85878f6d3787dffefb1c58fa2",
+    "scripts/secure-staff-http-check.mjs": "3c7910001acd6cc145d16720709f1c283b30db8dc13d8d90686ab3a825272e44"
+  }
+}

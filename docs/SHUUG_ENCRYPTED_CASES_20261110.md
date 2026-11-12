@@ -1,5 +1,10 @@
 # Encrypted tax cases and document review
 
+November 12 extension: cases also support [encrypted working ledgers and exact
+book-version draft review](SHUUG_ENCRYPTED_CASE_BOOKS_20261112.md). The four-command
+description below records the original document-review milestone; the linked
+extension adds five private ledger commands without changing public framing.
+
 The independent staff client now connects document requests, exact uploaded-file
 reviews and a matching draft return in an encrypted case. It supports the
 existing 2025 federal 1040/Schedule C, 1065, 1120-S and 1120 draft families.

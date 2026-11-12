@@ -1,6 +1,8 @@
 import { returnTypes } from '@shuug/tax-engine';
 import { assertCaseCommand } from '../case-model.mjs';
 import { isTaxReturn } from './return-view.mjs';
+import { BOOK_ACTIONS,replayCaseBooks } from '../case-books.mjs';
+import { drawCaseBookAction } from './case-books-editor.mjs';
 const node=(document,tag,text)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;return element;};
 const parsed=record=>{try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(record.plaintext));}catch{return null;}};
 const reference=record=>({objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain});
@@ -23,12 +25,17 @@ export function mountCaseEditor(document,container,{getClient,run,onSave,onDirty
   function draw(){
     form.replaceChildren();actionChoice.replaceChildren();const body=selected();
     if(!caseId)action='case.create';else if(action==='case.create')action='request.add';
-    for(const [value,text]of caseId?[['request.add','Add a document request'],['document.review','Review a selected document'],['draft.link','Link a prepared draft']]:[['case.create','Create a client case']]){const option=node(document,'option',text);option.value=value;actionChoice.append(option);}actionChoice.value=action;
+    const book=body?replayCaseBooks(body.history,body.year):null;
+    if(book&&action==='books.open')action='books.journal.post';
+    const bookActions=book?[['books.account.add','Add a ledger account'],['books.journal.post','Post a balanced journal'],['books.journal.reverse','Reverse an approved journal'],['books.period.close','Close a ledger period']]:[['books.open','Open this case’s working ledger']];
+    for(const [value,text]of caseId?[['request.add','Add a document request'],['document.review','Review a selected document'],['draft.link','Link a prepared draft'],...bookActions]:[['case.create','Create a client case']]){const option=node(document,'option',text);option.value=value;actionChoice.append(option);}actionChoice.value=action;
     evidenceId=()=>null;
     if(action==='case.create'){
       const title=field('Case title','title',{maximum:160}),kind=field('Return type','kind',{options:returnTypes.map(type=>[type.id,type.label])});form.append(node(document,'p','Tax year: 2025 federal draft coverage.'));readInput=()=>({title:title.value.trim(),year:2025,kind:kind.value});
     }else if(action==='request.add'){
       const title=field('Requested document','request-title',{maximum:160}),due=field('Staff target date (optional)','due',{type:'date'}),notes=field('Client-visible request note (encrypted)','request-notes',{type:'textarea'});readInput=()=>({requestId:crypto.randomUUID(),title:title.value.trim(),due:due.value,notes:notes.value});
+    }else if(BOOK_ACTIONS.includes(action)){
+      ({readInput,evidenceId}=drawCaseBookAction(document,form,{type:action,body,field,records:records(),onDirty:modified}));
     }else{
       const choices=[['','Choose an opened current item']];
       for(const record of records().values()){
@@ -41,7 +48,7 @@ export function mountCaseEditor(document,container,{getClient,run,onSave,onDirty
       const chosenReference=()=>{const record=records().get(documentChoice.value);if(!record)throw new Error('Choose a currently opened file or draft.');return reference(record);};
       if(action==='document.review'){
         const request=field('Document request','request',{options:[['','Choose a request'],...(body?.requests??[]).map(item=>[item.id,item.title])]}),decision=field('Document decision','decision',{options:[['reviewed','Reviewed'],['replacement_requested','Replacement requested']]}),notes=field('Client-visible review note (encrypted)','review-notes',{type:'textarea'});readInput=()=>({requestId:request.value,document:chosenReference(),decision:decision.value,notes:notes.value});
-      }else{const notes=field('Client-visible draft note (encrypted)','draft-notes',{type:'textarea'});readInput=()=>({document:chosenReference(),notes:notes.value});}
+      }else{const notes=field('Client-visible draft note (encrypted)','draft-notes',{type:'textarea'});if(book)form.append(node(document,'p','This link records review against the current approved ledger. Later ledger changes require reviewing and linking the draft again. Ledger amounts are not automatically copied into the return.'));readInput=()=>({document:chosenReference(),notes:notes.value,booksVersion:book?.version??null});}
     }
     controls();
   }
