@@ -8,9 +8,10 @@ at 20 offices. The existing office offer remains $500 initially, then $300/month
 for eleven more months. Payments remain deferred; no payment or payout is initiated.
 
 Source checkout: `/Users/lukekist/Worktrees/GigTaxProsSalesIntegrated-20261107`,
-branch `feat/gig-tax-pros-sales-integrated`. Current pre-update deployment is
-`dpl_98Q6B9mVuKY1JQp2x19Q7C3Q6irU`. Publication verification is pending at this
-source checkpoint. Tested release: `~/BuildCache/GigTaxEarnings-20261112/release-verified`.
+branch `feat/gig-tax-pros-sales-integrated`. Live deployment is
+`dpl_Ao5ZuiPMG2opPtr3yjqGJwJLDG2u` at https://gigtax.pro/sales, source
+`5d9ddc7` (GitHub SHA verified). It replaces the exact verified baseline
+`dpl_98Q6B9mVuKY1JQp2x19Q7C3Q6irU`. Tested release: `~/BuildCache/GigTaxEarnings-20261112/release-verified`.
 
 The persistent green card in the top bar displays **Your earnings** for agents
 and **Team earnings** for the owner. It shows estimated earned commission and
@@ -60,3 +61,11 @@ or distribution outcome is guaranteed. The one-time bonus is counted per agent,
 never by pooling different agents' six and four sales into one threshold.
 
 The unrelated untracked How It Works HTTP receipt remains untouched.
+
+Live receipt `gigtax-earnings-live-20261112.json` verifies all 180 artifacts,
+all 91 static HTTP responses and 88 protected static files/headers. Installed
+Shuug MCP reads the deployed commission plan and zero real earned amounts,
+consistent with zero offices/agents/contracts and deferred payments. Anonymous
+and foreign-origin guards pass. No real message, payment or payout was created.
+The existing Safari sales tab was refreshed for Luke; new-card visual acceptance
+remains pending.
