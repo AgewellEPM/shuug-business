@@ -4,6 +4,25 @@ Active scope: connect state business research nationwide using **free public
 sources only**, then let the owner drill into every state and assign towns/cities
 to sales agents. Full automatic registry coverage is not complete.
 
+## Delaware and District of Columbia free sources — November 13
+
+Delaware revenue business licenses and D.C. corporate registrations are now live.
+D.C. selected filings also read names from its official beneficial-owner table;
+registered agents stay separate and no ownership is automatically confirmed.
+Delaware legal/trade names and license dates do not supply owner findings. Both
+sources retain their published business addresses, attribution and source links;
+personal owner/agent addresses and source geometry are excluded.
+
+Automatic selected-record lookup now covers 11 regions, with ten supporting
+local registry discovery; 40 regions remain manual. Town assignments remain
+available nationwide independently of these source counts. Source e87d18d is
+GitHub verified; Ready deployment dpl_NPxFM3W5HphmKtzY4AshCiSTYnyP serves the portal.
+All 217 focused checks, TypeScript, 686 artifact hashes and 105 static HTTP files
+pass. Installed MCP verified both selected IDs, official sources and D.C.'s
+principal-to-contact-research path. Saved records remained unchanged. See
+[GIGTAX_DELAWARE_DC_20261113.md](GIGTAX_DELAWARE_DC_20261113.md) for sources,
+coverage limits and receipts. The wider connect-all goal remains active.
+
 ## Nationwide published business-contact source — November 13
 
 The free Overture Places catalogue is now deployed in all 50 states/DC, with

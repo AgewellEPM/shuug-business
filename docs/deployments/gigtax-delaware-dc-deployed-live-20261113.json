@@ -1,0 +1,746 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T08:26:52.568Z",
+  "deploymentId": "dpl_NPxFM3W5HphmKtzY4AshCiSTYnyP",
+  "scope": "Read-only production artifact, public HTTP and installed Shuug MCP verification.",
+  "checks": [
+    "all uploaded artifacts match the tested private release",
+    "public pages, media and headers remain exact; private HTML and scripts match the release",
+    "the Rolodex requires authentication and rejects foreign origins",
+    "the shipped console includes pipeline/contracts tools and separate signing; unconfigured email callbacks fail closed",
+    "installed native MCP reads the deployed pipeline, contracts and shared/agent senders; email and payments remain unconfigured",
+    "the live API/installed MCP expose the confirmed commission plan, real earned totals and a persistent top-corner earnings card",
+    "actual installed MCP corrects the Hartford typo, reads all multi-source candidates, geocodes every returned address and cross-references an actual CT entity/principal without saving prospects; private CSP and one real map tile verified",
+    "installed MCP reads actual directory contact details and public business contact pages, excludes the screenshot’s unrelated property matches, and leaves saved workspace records unchanged",
+    "the installed Shuug MCP launcher reads the actual deployed workspace and Rolodex consistently"
+  ],
+  "artifactMatches": 686,
+  "http": [
+    {
+      "path": ".well-known/apple-app-site-association",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "404.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "about-the-app.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "about.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "about.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "accessibility.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "app-download.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "app-download.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "app.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/about-reference.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/app-download-qr.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/app-download-reference.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/artwork.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/brand-mark.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/drivers-reference.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/get-the-app-reference.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/how-it-works-reference.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/platforms/amazon-flex.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/platforms/doordash.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/platforms/instacart.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/platforms/lyft.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/platforms/SOURCES.md",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/platforms/uber.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/services-reference.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "assets/us-national-vision.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "bank-return.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "bookkeeping.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "business-data-attribution.txt",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "client-portal.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "contact.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "contract-signature.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "directory-admin.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "document-checklist.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "drivers.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "drivers.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "faq.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "favicon.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "free.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "get-started.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "get-the-app.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "get-the-app.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "get-the-app.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "guides/uber-lyft-tax-forms.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "hero-mobile.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "hero-parallax.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "home-tour.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "home-tour.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "how-it-works.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "how-it-works.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "index.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "inner-pages.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "inner-pages.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "links.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "local-contacts.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "local-offices.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "local-offices.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "marketing-pages.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "mileage-and-expenses.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "national-vision.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "navigation.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "office-signup.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "offices.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "offices.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "privacy.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "quarterly-taxes.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "resources.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "robots.txt",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales-console.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales-console.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "sales-contacts.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales-contracts.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales-progress.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales-research.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "sales-workflows.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sales.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "sales.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "services.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "services.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "site-config.json",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "site-manifest.json",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "sitemap.xml",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "styles.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tax-preparation.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "terms.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "territories.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "territories.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "tour/brand.svg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/captions.en.vtt",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/chapters.json",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/getting-started.mp4",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/index.html",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/mobile.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/player.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/player.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/poster.jpg",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "tour/README.txt",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": true
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/images/layers-2x.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/images/layers.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/images/marker-icon-2x.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/images/marker-icon.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/images/marker-shadow.png",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/leaflet.css",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/leaflet.js",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    },
+    {
+      "path": "vendor/leaflet-1.9.4/LICENSE",
+      "status": 200,
+      "bytesMatch": true,
+      "publicHeadersChecked": false
+    }
+  ],
+  "protectedPublicMatches": 87,
+  "mcp": {
+    "server": {
+      "name": "shuug-business",
+      "version": "1.0.0"
+    },
+    "tools": [
+      "sdr_catalog",
+      "sdr_read",
+      "sdr_command",
+      "sdr_progress",
+      "sdr_contract",
+      "sdr_sender"
+    ],
+    "role": "owner",
+    "offices": 0,
+    "agents": 0,
+    "contacts": 0,
+    "paymentsConfigured": false,
+    "contracts": 0,
+    "senders": 0,
+    "directEmailConfigured": false
+  },
+  "revenue": {
+    "scope": "team",
+    "currency": "USD",
+    "signedRevenueCents": 0,
+    "signedOffices": 0,
+    "activeMonthlyCents": 0,
+    "activeOffices": 0,
+    "awaitingPaymentCents": 0,
+    "nextOfficeCents": 380000,
+    "commissionConfigured": true,
+    "commission": {
+      "version": "2026-11-12",
+      "signupCents": 10000,
+      "residualCents": 5000,
+      "residualStartsMonth": 2,
+      "bonusCents": 200000,
+      "bonusOffices": 10,
+      "bonusMode": "first_ten",
+      "paidOffices": 0,
+      "signupEarnedCents": 0,
+      "residualEarnedCents": 0,
+      "bonusEarnedCents": 0,
+      "earnedCents": 0,
+      "monthlyResidualCents": 0,
+      "pendingSignupCents": 0,
+      "potentialMonthlyCents": 0,
+      "bonusQualifiedAgents": 0,
+      "milestoneOffices": 0,
+      "historyNeedsReview": 0
+    },
+    "basis": "Commission estimate from verified live collections. Signed contract value is separate; no payout is recorded by this view."
+  },
+  "localMap": {
+    "query": "hartord",
+    "resolvedCity": "HARTFORD",
+    "state": "CT",
+    "candidates": 170,
+    "irsCandidates": 93,
+    "registryCandidates": 85,
+    "addressesChecked": 170,
+    "mapped": 121,
+    "unmatched": 49,
+    "chainsIncluded": true,
+    "registryEntityMatched": true,
+    "principalsReported": 1,
+    "ownerAutomaticallyVerified": false,
+    "privateTilePolicyVerified": true,
+    "mapTileStatus": 200,
+    "sourceIssues": [],
+    "coverage": "IRS e-file providers plus published tax/accounting business records where connected. Check record status: registrations, service addresses and tax accounts do not prove an operating storefront. Public records can be incomplete or outdated. Unmatched addresses stay in the list without a guessed pin."
+  },
+  "contactResearch": {
+    "directoryPhone": true,
+    "listedPerson": true,
+    "sourcedWebsitePhone": true,
+    "checkedPages": 2,
+    "searchCandidates": 0,
+    "searchIssues": [
+      {
+        "message": "The free web search returned no confirmed result; its provider does not distinguish an empty search from a failed search. Use the business search links or enter the official website."
+      }
+    ],
+    "unrelatedPropertyMatchesExcluded": true,
+    "savedRecordsUnchanged": true,
+    "directoryCoverage": {
+      "records": 170,
+      "withPhone": 93,
+      "withEmail": 77
+    },
+    "ownershipAutomaticallyVerified": false,
+    "messagesSent": 0
+  },
+  "limits": "Real contact writes were tested only in disposable D1 boards and synthetic UI/MCP HTTP fixtures. Production reads do not establish human visual acceptance, email delivery or payment activation."
+}

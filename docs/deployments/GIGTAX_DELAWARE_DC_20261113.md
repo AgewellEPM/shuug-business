@@ -55,11 +55,31 @@ addresses and the actual principal-to-contact-research token path. Historical
 Iowa/Alaska and MCP coverage verifiers now compare the current declared coverage
 instead of a stale hardcoded region count.
 
-Implementation is prepared; deployment and installed-MCP acceptance are pending.
-Prepared work and source receipts are under
-~/BuildCache/GigTaxNationwide-20261112/delaware-dc-20261113.
-The intended coverage is 11 automatic-record regions (AK, CO, CT, DC, DE, IA, NM,
-NY, OR, PA, TX), ten with local registry discovery; 40 regions remain manual.
+Source e87d18dc592e08f894929afe0bb702e0cb643849 is GitHub-SHA-verified. Ready
+deployment dpl_NPxFM3W5HphmKtzY4AshCiSTYnyP serves https://gigtax.pro/sales.
+Prepared release and source receipts:
+~/BuildCache/GigTaxNationwide-20261112/delaware-dc-20261113/release.
+The guard verified all 678 baseline artifacts and prepared 686, with only eight
+backend replacements and eight module additions. All 686 uploaded hashes and
+105 static HTTP files match; 87 protected public files, all town data, routes,
+headers and CSP remain exact. Existing Hartford search remains 170 candidates /
+121 mapped addresses, with its sourced website phone reader and protections intact.
+
+The installed MCP verified both new regions. Dover returned 94 combined
+candidates / 22 license records; Washington returned 502 / 137 corporate records.
+Both selected non-chain records and exact official source links round-tripped.
+D.C.'s one published owner name and separate agent were retained, and the owner
+name's official filing source carried through contact research. Ten addresses
+per region produced four Dover and nine Washington address pins. The Dover
+sample had two website suggestions; the Washington sample had zero with the
+legacy search unavailable. Website and business coverage remain partial.
+
+Live coverage is now 11 automatic-record regions (AK, CO, CT, DC, DE, IA, NM, NY,
+OR, PA, TX), ten with local registry discovery; 40 regions remain manual.
+Evidence: gigtax-delaware-dc-live-20261113.json,
+gigtax-delaware-dc-deployed-live-20261113.json and
+gigtax-delaware-dc-preservation-20261113.json. Saved offices, agents, contacts,
+contracts and mailboxes stayed unchanged; verifier children closed.
 
 Town assignments remain live in all 51 regions and all 169 Connecticut towns.
 Contact-place coverage remains separate from registry and owner coverage. No
