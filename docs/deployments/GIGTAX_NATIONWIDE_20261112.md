@@ -38,7 +38,24 @@ verified the current 449-file deployment and prepared 461 files, preserving all
 `~/BuildCache/GigTaxNationwide-20261112/release-iowa-alaska-20261113`.
 A fresh installed-MCP read verified all 51 deployed town catalogs, 44,456 locality
 names and CT pagination/search; saved offices and agents remained unchanged.
-Source changes are ready for deployment; post-deployment source checks remain.
+Source `cf9db53c9a844ce4d7f7ad1b199dc2f87f1ba303` is GitHub-SHA-verified.
+Deployment `dpl_DPvCQZZ5HHcF4qZczF7MM3qJd4vz` is Ready at https://gigtax.pro/sales.
+All 461 uploaded artifacts, 104 static HTTP files and 88 protected public files
+match the prepared build. The installed-MCP checks pass for the existing Hartford
+map/principal/contact path, authentication, pipeline, contracts and earnings.
+The separate installed-MCP source check also passed: Des Moines returned 205
+combined candidates (65 registry), and Anchorage returned 358 (190 registry).
+Both selected registry IDs matched. Iowa retained its separately labelled agent
+and a sourced directory phone; Alaska retained the published license-owner field,
+snapshot date, exact public record link and principal-source provenance. Ten
+addresses per state were checked, with eight Iowa and six Alaska address pins.
+Neither state hit the source limit in these samples. Website search returned zero
+suggestions (`no_results`) for both; reliable website discovery is still unfinished.
+Evidence is in `gigtax-iowa-alaska-live-20261113.json`,
+`gigtax-iowa-alaska-deployed-live-20261113.json`,
+`gigtax-iowa-alaska-preservation-20261113.json` and
+`gigtax-territories-recheck-20261113.json`. Human Safari/phone visual acceptance
+remains unverified. Mail stays unconfigured and payments deferred.
 No real office, contact, salesperson, message or payment is created by these checks.
 
 ## New Mexico selected-business lookup milestone

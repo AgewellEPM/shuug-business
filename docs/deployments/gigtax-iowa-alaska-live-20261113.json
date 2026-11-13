@@ -1,0 +1,47 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T06:31:06.404Z",
+  "states": [
+    {
+      "state": "IA",
+      "city": "Des Moines",
+      "directoryAndRegistryCandidates": 205,
+      "registryCandidates": 65,
+      "sourceLimitReached": false,
+      "registryIDRoundTrip": true,
+      "principals": 0,
+      "registeredAgents": 1,
+      "registryLinkVerified": false,
+      "sourceUpdatedAt": null,
+      "addressesChecked": 10,
+      "mapped": 8,
+      "sourcedContactEvidence": true,
+      "websiteSuggestions": 0,
+      "websiteSearchStatus": "no_results",
+      "ownerAutomaticallyVerified": false
+    },
+    {
+      "state": "AK",
+      "city": "Anchorage",
+      "directoryAndRegistryCandidates": 358,
+      "registryCandidates": 190,
+      "sourceLimitReached": false,
+      "registryIDRoundTrip": true,
+      "principals": 1,
+      "registeredAgents": 0,
+      "registryLinkVerified": true,
+      "sourceUpdatedAt": "2026-11-02",
+      "addressesChecked": 10,
+      "mapped": 6,
+      "sourcedContactEvidence": true,
+      "websiteSuggestions": 0,
+      "websiteSearchStatus": "no_results",
+      "ownerAutomaticallyVerified": false
+    }
+  ],
+  "automaticRecordRegions": 9,
+  "automaticLocalDiscoveryRegions": 8,
+  "savedRecordsUnchanged": true,
+  "messagesSent": 0,
+  "limits": "Iowa is monthly active-entity data without owners; Alaska is a partial business-license extract, not a complete entity registry. No owner identity, complete contacts, email deliverability or human visual acceptance established."
+}
