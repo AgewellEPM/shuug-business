@@ -8,7 +8,7 @@ const {PDFDocument}=createRequire(new URL('../../packages/tax-engine/package.jso
 const [yearText,manifestFile,directory]=process.argv.slice(2),year=Number(yearText);
 if(![2023,2024,2025].includes(year)||!manifestFile||!directory)throw new Error('Use YEAR DOWNLOADED_MANIFEST_JSON FORMS_DIRECTORY for a reviewed annual source.');
 const inputs=JSON.parse(await readFile(manifestFile,'utf8')),forms=[];
-const required=['f1040','f1040s1','f1040s2','f1040sc','f1040sse','f1065','f1065sk1','f1120','f1120s','f1120ssk','f8959','f8995'];
+const required=['f1040','f1040s1','f1040s2','f1040s3','f1040sc','f1040sse','f1065','f1065sk1','f1120','f1120s','f1120ssk','f5695','f8959','f8995'];
 if(!Array.isArray(inputs)||inputs.length!==required.length||inputs.map(value=>value.id).sort().join('|')!==required.sort().join('|'))throw new Error('Expected the complete declared source pack.');
 for(const input of inputs){
   if(!/^f[0-9a-z]+$/.test(input.id)||input.taxYear!==year||input.url!==`https://www.irs.gov/pub/irs-prior/${input.id}--${year}.pdf`)throw new Error('Unexpected IRS source binding.');

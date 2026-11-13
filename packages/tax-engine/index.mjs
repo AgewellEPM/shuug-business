@@ -6,6 +6,7 @@ export {calculationYears,requestedTaxYears,federalSourcesFor} from './federal-ye
 export { newReturn,expenseCategories } from './model.mjs';
 export { returnTypes,filingStatuses,scopeNotice,federalSources } from './catalog.mjs';
 export { parseMoney,displayMoney } from './money.mjs';
+export {newEnergyCredits,energyCategories,energyReviews,panelEnabledTypes} from './energy-credits.mjs';
 
 export function calculateReturn(raw){
   let input;

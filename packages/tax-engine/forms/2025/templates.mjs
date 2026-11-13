@@ -1,4 +1,4 @@
-// Pinned original public IRS forms; see manifest.json for provenance.
+// Pinned original IRS 2025 blanks; see manifest.json for provenance.
 export const officialForms2025=Object.freeze([
   {
     "id": "f1040",
@@ -107,5 +107,23 @@ export const officialForms2025=Object.freeze([
     "bytes": 71969,
     "pages": 1,
     "fieldCount": 26
+  },
+  {
+    "id": "f5695",
+    "taxYear": 2025,
+    "url": "https://www.irs.gov/pub/irs-prior/f5695--2025.pdf",
+    "sha256": "e2ac6a5c4b39e9032d3716827992fc0de46289a951e8b1ffaa3d5a969278baf2",
+    "bytes": 174928,
+    "pages": 4,
+    "fieldCount": 167
+  },
+  {
+    "id": "f1040s3",
+    "taxYear": 2025,
+    "url": "https://www.irs.gov/pub/irs-prior/f1040s3--2025.pdf",
+    "sha256": "008cfd3fe3ebd0860452069b90fd0a3d53dda6dd8a5d870278370aa899a63f82",
+    "bytes": 69852,
+    "pages": 1,
+    "fieldCount": 37
   }
 ].map(Object.freeze));

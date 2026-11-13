@@ -5,6 +5,7 @@ import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {additionalMedicare} from '../../packages/tax-engine/additional-medicare.mjs';
+import {energyCredits,newEnergyCredits} from '../../packages/tax-engine/energy-credits.mjs';
 import {calculationYears,requestedTaxYears} from '../../packages/tax-engine/index.mjs';
 import {pdfYearPack} from '../../packages/tax-engine/form-years.mjs';
 
@@ -18,10 +19,12 @@ async function checkedSource(file,expected){
 export async function qualificationReport({sourcesDirectory=null}={}){
   const catalog=JSON.parse(await readFile(path.join(engine,'qualification/ats-scenarios.json'),'utf8'));
   const examples=JSON.parse(await readFile(path.join(engine,'test/irs-8959-examples.json'),'utf8'));
+  const energyExamples=JSON.parse(await readFile(path.join(engine,'test/irs-energy-examples.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
     for(const scenario of catalog.selectedScenarios)sourceEvidence.push({id:scenario.id,...await checkedSource(path.join(sourcesDirectory,scenario.sourceFile),scenario)});
     sourceEvidence.push({id:'8959-instructions',...await checkedSource(path.join(sourcesDirectory,'i8959--2025.pdf'),examples.source)});
+    sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
   }
   const instructionChecks=examples.examples.map(example=>{
     const result=additionalMedicare({filingStatus:example.filingStatus,w2s:example.medicareWagesDollars.map(wages=>({medicareWagesCents:wages*100,medicareTaxWithheldCents:wages*1.45})),selfEmploymentEarnings:example.selfEmploymentIncomeDollars.map(value=>value*100)});
@@ -29,6 +32,11 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     const expected={required:example.required,taxCents:example.expectedAdditionalTaxDollars*100,wageSubjectCents:example.expectedWageSubjectDollars*100,selfEmploymentSubjectCents:example.expectedSelfEmploymentSubjectDollars*100};
     return {id:example.id,pass:JSON.stringify(actual)===JSON.stringify(expected),actual,expected};
   });
+  const energyInstructionChecks=calculationYears.flatMap(year=>energyExamples.examples.map(example=>{
+    const value=newEnergyCredits();Object.assign(value.home,{street:'1 Example Street',city:'Hartford',state:'CT',zip:'06103'});for(const key of Object.keys(value.review))value.review[key]=true;
+    value.items=example.costs.map(([category,dollars],index)=>({id:'synthetic-'+index,category,costCents:dollars*100,qmid:'A1B2',source:'Synthetic eligibility record for arithmetic verification'}));
+    const result=energyCredits(value,{year,taxBeforeCreditsCents:1000000});return {year,id:example.id,pass:result.creditCents===example.expectedCreditDollars*100&&result.diagnostics.length===0,actualCreditCents:result.creditCents,expectedCreditCents:example.expectedCreditDollars*100};
+  }));
   const installedPacks=[];
   for(const year of calculationYears){
     const pack=pdfYearPack(year),forms=[];
@@ -56,7 +64,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   }
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
-    internalChecksPassed:instructionChecks.every(item=>item.pass),instructionChecks,sourceEvidence,installedPacks,scenarios,
+    internalChecksPassed:[...instructionChecks,...energyInstructionChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,sourceEvidence,installedPacks,scenarios,
     requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),stateCalculationPacks:[],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
     limits:['Instruction examples are not ATS scenario execution.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};

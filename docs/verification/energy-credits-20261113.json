@@ -1,0 +1,586 @@
+{
+  "version": 1,
+  "readiness": "prototype",
+  "scope": "2023\u20132025 limited single-home Form 5695 / Schedule 3 preparation",
+  "focusedChecks": {
+    "passed": 92,
+    "failed": 0,
+    "skipped": 0,
+    "laterPdfRerunPassed": 17
+  },
+  "compiledHttp": {
+    "passed": 472,
+    "buildId": "-jDtZTra5VISYa4HBTUDw",
+    "syntheticWorkspace": true,
+    "energyCreditEncryptedCreateReopenExportForAllYears": true,
+    "restoredDataAndRevocationVerified": true,
+    "installedServiceChanged": false
+  },
+  "artifact": {
+    "ok": true,
+    "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+    "modules": 123,
+    "defaultConfigDisabled": true,
+    "noAccountRequest": true,
+    "authenticatorRecoveryMounted": true,
+    "staffAuthenticatorRecoveryControlsMounted": true,
+    "passwordRecoveryMounted": true,
+    "staffPasswordRecoveryControlsMounted": true,
+    "privateEnrollmentMounted": true,
+    "privateAccountControlsMounted": true,
+    "staffInvitationControlsMounted": true,
+    "staffAccountSuspensionControlsMounted": true,
+    "staffCorrectionEditorMounted": true,
+    "staffNewReturnControlMounted": true,
+    "staffCaseEditorMounted": true,
+    "staffCaseControlsDisabled": true,
+    "staffCaseControlCount": 7,
+    "staffFinanceEditorMounted": true,
+    "staffFinanceControlsDisabled": true,
+    "staffFinanceControlCount": 6,
+    "privateFirmModulesExcluded": true,
+    "publicTemplateFetches": 24,
+    "xfasRemoved": 24,
+    "exported": [
+      {
+        "year": 2023,
+        "kind": "1040",
+        "bytes": 279776
+      },
+      {
+        "year": 2023,
+        "kind": "1065",
+        "bytes": 224096
+      },
+      {
+        "year": 2023,
+        "kind": "1120S",
+        "bytes": 206003
+      },
+      {
+        "year": 2023,
+        "kind": "1120",
+        "bytes": 243190
+      },
+      {
+        "year": 2024,
+        "kind": "1040",
+        "bytes": 288269
+      },
+      {
+        "year": 2024,
+        "kind": "1065",
+        "bytes": 226664
+      },
+      {
+        "year": 2024,
+        "kind": "1120S",
+        "bytes": 208028
+      },
+      {
+        "year": 2024,
+        "kind": "1120",
+        "bytes": 250150
+      },
+      {
+        "year": 2025,
+        "kind": "1040",
+        "bytes": 349917
+      },
+      {
+        "year": 2025,
+        "kind": "1065",
+        "bytes": 238486
+      },
+      {
+        "year": 2025,
+        "kind": "1120S",
+        "bytes": 212338
+      },
+      {
+        "year": 2025,
+        "kind": "1120",
+        "bytes": 254784
+      }
+    ],
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "publicTlsVerified": false
+  },
+  "sourceInspection": {
+    "annualOriginalPdfs": 42,
+    "namesAndTypesVerified": true,
+    "existingGeometryPacksCompared": 36,
+    "newEnergyAndSchedule3GeometryPacksCompared": 6
+  },
+  "qualification": {
+    "internalChecksPassed": true,
+    "instructionChecks": [
+      {
+        "id": "example-1",
+        "pass": true,
+        "actual": {
+          "required": false,
+          "taxCents": 0,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 0
+        },
+        "expected": {
+          "required": false,
+          "taxCents": 0,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 0
+        }
+      },
+      {
+        "id": "example-2",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        }
+      },
+      {
+        "id": "example-3",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 7500000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 7500000
+        }
+      },
+      {
+        "id": "example-4",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 202500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 15000000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 202500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 15000000
+        }
+      },
+      {
+        "id": "example-5",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 0
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 0
+        }
+      },
+      {
+        "id": "part-II-example",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        }
+      }
+    ],
+    "energyInstructionChecks": [
+      {
+        "year": 2023,
+        "id": 1,
+        "pass": true,
+        "actualCreditCents": 120000,
+        "expectedCreditCents": 120000
+      },
+      {
+        "year": 2023,
+        "id": 2,
+        "pass": true,
+        "actualCreditCents": 260000,
+        "expectedCreditCents": 260000
+      },
+      {
+        "year": 2023,
+        "id": 3,
+        "pass": true,
+        "actualCreditCents": 320000,
+        "expectedCreditCents": 320000
+      },
+      {
+        "year": 2024,
+        "id": 1,
+        "pass": true,
+        "actualCreditCents": 120000,
+        "expectedCreditCents": 120000
+      },
+      {
+        "year": 2024,
+        "id": 2,
+        "pass": true,
+        "actualCreditCents": 260000,
+        "expectedCreditCents": 260000
+      },
+      {
+        "year": 2024,
+        "id": 3,
+        "pass": true,
+        "actualCreditCents": 320000,
+        "expectedCreditCents": 320000
+      },
+      {
+        "year": 2025,
+        "id": 1,
+        "pass": true,
+        "actualCreditCents": 120000,
+        "expectedCreditCents": 120000
+      },
+      {
+        "year": 2025,
+        "id": 2,
+        "pass": true,
+        "actualCreditCents": 260000,
+        "expectedCreditCents": 260000
+      },
+      {
+        "year": 2025,
+        "id": 3,
+        "pass": true,
+        "actualCreditCents": 320000,
+        "expectedCreditCents": 320000
+      }
+    ],
+    "sourceEvidence": [
+      {
+        "id": "1040-2025-1",
+        "sha256": "fb6054bf4417094f0c102bd47b7d021596143929d6789f1971912994e3738cd3",
+        "bytes": 856940
+      },
+      {
+        "id": "1065-2025-1",
+        "sha256": "48688f90a89a6b40bf60d5736adb177a16e72d321123efd31707c567bfd96ea7",
+        "bytes": 493812
+      },
+      {
+        "id": "1120-2025-1",
+        "sha256": "c079a18352d6138d08590e96d71071091d02435dd63506dd1c2672df9ffdd707",
+        "bytes": 821120
+      },
+      {
+        "id": "1120S-2025-5",
+        "sha256": "6fa096ab4b2b2833d49187128de5f313d7214dde955eca1c8387a024a85f8f50",
+        "bytes": 1133002
+      },
+      {
+        "id": "8959-instructions",
+        "sha256": "1d223be73b4bac959a00e9b55784297bafa73a986567987c083671abf687b68f",
+        "bytes": 146897
+      },
+      {
+        "id": "energy-faq-examples",
+        "sha256": "ffcdedc665a4d81089c55b4e69308506d82c06dbfe57f51ea94fbeb953335813",
+        "bytes": 111788
+      }
+    ],
+    "scenarios": [
+      {
+        "id": "1040-2025-1",
+        "source": "https://www.irs.gov/pub/irs-efile/ty25-1040-mef-ats-scenario-1-12012025.pdf",
+        "sourceSha256": "fb6054bf4417094f0c102bd47b7d021596143929d6789f1971912994e3738cd3",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1040",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "w2",
+            "status": "partial-source-input-no-mef-xml"
+          },
+          {
+            "id": "f1040s2",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1040s3",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1040sh",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f5695",
+            "status": "partial-calculation-and-draft-pdf"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      },
+      {
+        "id": "1065-2025-1",
+        "source": "https://www.irs.gov/pub/irs-wi/ty25-f1065-ats-scenario01.pdf",
+        "sourceSha256": "48688f90a89a6b40bf60d5736adb177a16e72d321123efd31707c567bfd96ea7",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1065",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1065sb2",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1065sc",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1065sk1",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1065sm3",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4562",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4797",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8825",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8882",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8453pe",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      },
+      {
+        "id": "1120-2025-1",
+        "source": "https://www.irs.gov/pub/irs-efile/form-1120-ty2025-test-scenario-1.pdf",
+        "sourceSha256": "c079a18352d6138d08590e96d71071091d02435dd63506dd1c2672df9ffdd707",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1120",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1120sb",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120sd",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120sg",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120sm3",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120so",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1125a",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1125e",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f3800",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4562",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f5884",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8594",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8822b",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8881",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8882",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8916a",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8932",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8453corp",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8949",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      },
+      {
+        "id": "1120S-2025-5",
+        "source": "https://www.irs.gov/pub/irs-efile/ty25-f1120s-ats-scenario05-08012025.pdf",
+        "sourceSha256": "6fa096ab4b2b2833d49187128de5f313d7214dde955eca1c8387a024a85f8f50",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1120s",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1120ssk",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1125a",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1125e",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4562",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4797",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8453corp",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8822b",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8825",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      }
+    ],
+    "agencySubmissionAttempted": false,
+    "agencyApproval": false,
+    "releaseReady": false
+  },
+  "sourceSha256": {
+    "packages/secure-tax-client/browser/return-editor.mjs": "ddd9481cd1bb72c8b7f78d34cd1d930fac3906d350c8dd6d0e98017f86f34a03",
+    "packages/secure-tax-client/prepare-browser.mjs": "0a5bb19f65fd84f814f663e17a5a6aa376dc393d5138b5363db055f9eae8e336",
+    "packages/tax-engine/README.md": "d300aad4c01db6b2567966006e9340e714989f8a761c4975e9b118e95febea27",
+    "packages/tax-engine/form-maps-prior.mjs": "1537465dbc66b10e886760296b3ecfad3dcafbef84648cfa4a5859af5afaf010",
+    "packages/tax-engine/form-maps.mjs": "facd04ea4b5b3713ccbc5661e4e3596609512921957293b476959443834d89e2",
+    "packages/tax-engine/forms/2023/manifest.json": "ec8a8dd77a2cb00201fc34b209f34977899712b20537842d5fe70e11841e298b",
+    "packages/tax-engine/forms/2023/templates.mjs": "2053ef42cf19f638384ad1586d36f218b5469ab0872048549711933b54e3e543",
+    "packages/tax-engine/forms/2024/manifest.json": "e17ab548676c0b129857b59db6d540dd2c303783446d7e7c7c9c075712341c7d",
+    "packages/tax-engine/forms/2024/templates.mjs": "e25d8fb990334c5915302322117c9226983691f28c8482348c811b2a2aa70f3d",
+    "packages/tax-engine/forms/2025/manifest.json": "3daec010879ad1c2d10d48ff9ca137ebfb099ebb01f0dfc306306db9862675dd",
+    "packages/tax-engine/forms/2025/templates.mjs": "9ace85f96c416cf86c98bebdf80faddb0110023029f6334e994d2ba40809b0b8",
+    "packages/tax-engine/index.mjs": "cb5796283edcd99fcdad8e25746305c7b71fe621ff4b48921db8a8e36a74080a",
+    "packages/tax-engine/individual.mjs": "8640ea039d7fd98823655ad569c880c5b42a595af34d3907b5b783b484106c48",
+    "packages/tax-engine/pdf-identity.mjs": "90a3b8eb103d3e2e049bebd891905e6f36564e9cdcca0a269c544cb47adb913d",
+    "packages/tax-engine/pdf.mjs": "f8b8cf0be497484aa45751dff6db3c972d0464b0119bd36c6f88521b67966960",
+    "scripts/secure-staff-http-check.mjs": "488286bd68457071abdb53e3aa9d44ebf474a6d6541b8ea632667dc7bad19625",
+    "scripts/tax/inspect_irs_forms.mjs": "0bd884ff75bed3add2adb90d5df9fafd34e26be7958ab9f08475f07d839fad1b",
+    "scripts/tax/qualification-report.mjs": "ff0dbe2375be691d50b0ff625aef47019ad69e97f11c0f3ebec9003c7b55b8ed",
+    "scripts/tax/verify_browser_artifact.mjs": "6df80b75e274fac2c77d20d61607606337d11a2180ac491c5babae9fdcda9700",
+    "packages/secure-tax-client/browser/energy-editor.mjs": "1ee458eb10f066859ca9e566c2fc3bd63c635e509d25f9b43d27f58de43d5aad",
+    "packages/secure-tax-client/test/energy-editor.test.mjs": "9c1c0d362a36c9d5497e1c552eff955392662afb398a0acc148f1dd54dba6ce2",
+    "packages/tax-engine/energy-credits.mjs": "e5174cb796f86a173c0cd4fc403b37426f9482c716b5d6245a581bf2f6cdb8be",
+    "packages/tax-engine/energy-form-maps.mjs": "d6884f71adab81b2270c03563a7e0b3871fd04fc3a866bf883b625f1228bd2b9",
+    "packages/tax-engine/energy-pdf.mjs": "a2ff88496f3816bdfbb3c0bfb1f96d902513bc6fbdd0b217b166c65fd33b57d2",
+    "packages/tax-engine/forms/2023/f1040s3.fields.json": "f685e740dd0db6a591e9ef37248ee73cf2713e7a8d340bc664b0901e6ef4e7af",
+    "packages/tax-engine/forms/2023/f1040s3.pdf": "90d6d5de31810e55e0badcf684e2ad4340e5bb8ed0dcf224e08a93883d16a87b",
+    "packages/tax-engine/forms/2023/f5695.fields.json": "2b95153a4055286291a0494b4ce58d60b2111795dcadffa9aea35106a8ef59b8",
+    "packages/tax-engine/forms/2023/f5695.pdf": "37cb78844f2fcb7089b1575087cf212e6cefadc890cd23eb7e8080331bb0d817",
+    "packages/tax-engine/forms/2024/f1040s3.fields.json": "07164a70c4656c7e79677748d2468680ec1913bbf13254c860fd281eacc38137",
+    "packages/tax-engine/forms/2024/f1040s3.pdf": "d9941e4ec1d581ac2e42cabebf8e0416dbc3c703e2142f62de17c838308ddcc8",
+    "packages/tax-engine/forms/2024/f5695.fields.json": "e68906d2937d3ef262ec45794c82c587d9b6c1eb52019321af3b2d6fcd45f514",
+    "packages/tax-engine/forms/2024/f5695.pdf": "3715e1666369c0c59d8054b40b7f140a117d6da9bfa88810a8280424b3e87b02",
+    "packages/tax-engine/forms/2025/f1040s3.fields.json": "a20ef7bb3d172deeed24a2ad9c54371dc81cead8ad9a6b5899083923261f966c",
+    "packages/tax-engine/forms/2025/f1040s3.pdf": "008cfd3fe3ebd0860452069b90fd0a3d53dda6dd8a5d870278370aa899a63f82",
+    "packages/tax-engine/forms/2025/f5695.fields.json": "5cfc24872e42a7658e3518209d1d8ce3f401c67b3e197bccfa2b886980b06b43",
+    "packages/tax-engine/forms/2025/f5695.pdf": "e2ac6a5c4b39e9032d3716827992fc0de46289a951e8b1ffaa3d5a969278baf2",
+    "packages/tax-engine/test/energy.test.mjs": "21ac185029ad29ef6fac867936c3118eae65352b618201a89117f42d0d2c4cf1",
+    "packages/tax-engine/test/irs-energy-examples.json": "2ae835031e80b2660af13ed8f34a1c4b33088d30eac3c561ff0bd631c6e27576"
+  },
+  "limits": [
+    "Single qualifying home; no fuel cells, fractional condominium/cooperative allocation or separate-return joint occupants.",
+    "Eligibility, annual product standards, cost adjustments and manufacturer records require preparer review.",
+    "QMID syntax is checked; no manufacturer eligibility service is queried.",
+    "Selected ATS cases remain blocked and unexecuted; no agency approval or actual filing.",
+    "No real client data, physical custody, installed rollout, public TLS, Safari or visual acceptance."
+  ]
+}

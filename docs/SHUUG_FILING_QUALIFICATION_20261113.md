@@ -33,7 +33,8 @@ node scripts/tax/qualification-report.mjs --out /new/path/qualification.json
 ```
 
 The report checks every installed blank against its reviewed pin, runs six
-published 8959 examples and inventories the engine source. It distinguishes
+published 8959 examples, three published energy-credit examples for each of three
+years, and inventories the engine source. It distinguishes
 partial form support from missing forms, with agency approval and release
 readiness recorded separately. An existing output is never overwritten. Zero
 exit status means the local checks ran successfully; it does not mean approval.
@@ -41,8 +42,9 @@ exit status means the local checks ran successfully; it does not mean approval.
 For source verification, download the four public PDFs identified in
 `packages/tax-engine/qualification/ats-scenarios.json`, saving each as its
 `sourceFile`, plus the pinned `i8959--2025.pdf` referenced by
-`packages/tax-engine/test/irs-8959-examples.json`, into a separate directory.
-Pass `--sources /that/directory`. Any changed PDF fails the run instead of silently
+`packages/tax-engine/test/irs-8959-examples.json`, and `irs-energy-examples.html`
+from the source pinned in `packages/tax-engine/test/irs-energy-examples.json`, into
+a separate directory. Pass `--sources /that/directory`. Any changed source fails the run instead of silently
 updating its expected hash. The default run does not claim those external source
 bytes were checked. No credentials, customer data or network transmission are used.
 
@@ -51,7 +53,7 @@ or executed scenarios:
 
 | Family / selected 2025 scenario | Examples of remaining requirements |
 | --- | --- |
-| 1040 / 1 | Schedule H, Schedule 3, residential energy credit Form 5695, complete W-2 XML |
+| 1040 / 1 | Schedule H, complete W-2 XML, remaining disclosures; Form 5695 / Schedule 3 now have partial preparation support |
 | 1065 / 1 | B-2/C/M-3, complete K-1s, depreciation, asset sales, rental real estate, credits and signature attachment |
 | 1120-S / 5 | Full K-1s, inventory/officer compensation, depreciation, asset sales, rental real estate and signature attachment |
 | 1120 / 1 | B/D/G/M-3/O, inventory/officer compensation, credits, depreciation, asset sales and signature attachment |
@@ -59,6 +61,12 @@ or executed scenarios:
 Every selected scenario is currently blocked. Public original URLs, SHA-256s,
 byte counts and cover-page requirements are retained in the catalog. Having a
 blank form or supporting its ordinary-income rows does not complete that form.
+
+The [energy-credit continuation](SHUUG_ENERGY_CREDITS_20261113.md) adds original
+annual Form 5695 and Schedule 3 PDFs and encrypted entry. Its separate receipt
+preserves the earlier qualification snapshot; the runnable report reflects the
+current source. Published FAQ examples are arithmetic references, not executed
+ATS cases or verified manufacturer eligibility.
 
 ## Actual agency qualification
 

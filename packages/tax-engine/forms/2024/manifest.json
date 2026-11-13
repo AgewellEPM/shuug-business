@@ -111,6 +111,24 @@
       "bytes": 71675,
       "pages": 1,
       "fieldCount": 26
+    },
+    {
+      "id": "f5695",
+      "taxYear": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/f5695--2024.pdf",
+      "sha256": "3715e1666369c0c59d8054b40b7f140a117d6da9bfa88810a8280424b3e87b02",
+      "bytes": 129322,
+      "pages": 3,
+      "fieldCount": 104
+    },
+    {
+      "id": "f1040s3",
+      "taxYear": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s3--2024.pdf",
+      "sha256": "d9941e4ec1d581ac2e42cabebf8e0416dbc3c703e2142f62de17c838308ddcc8",
+      "bytes": 69979,
+      "pages": 1,
+      "fieldCount": 39
     }
   ]
 }

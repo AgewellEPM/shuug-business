@@ -1,0 +1,81 @@
+{
+  "source": {
+    "url": "https://www.irs.gov/credits-deductions/frequently-asked-questions-about-energy-efficient-home-improvements-and-residential-clean-energy-property-credits-energy-efficient-home-improvement-credit-examples",
+    "sha256": "ffcdedc665a4d81089c55b4e69308506d82c06dbfe57f51ea94fbeb953335813",
+    "bytes": 111788,
+    "reviewedOn": "2026-11-13"
+  },
+  "scope": "Published IRS FAQ examples 1\u20133. Synthetic identity, qualification confirmations and QMID placeholders supply the test harness; they are not IRS-issued taxpayer eligibility evidence or ATS acceptance.",
+  "examples": [
+    {
+      "id": 1,
+      "costs": [
+        [
+          "door",
+          1000
+        ],
+        [
+          "door",
+          1000
+        ],
+        [
+          "window",
+          2200
+        ],
+        [
+          "airConditioner",
+          5000
+        ]
+      ],
+      "expectedCreditDollars": 1200
+    },
+    {
+      "id": 2,
+      "costs": [
+        [
+          "door",
+          1000
+        ],
+        [
+          "door",
+          1000
+        ],
+        [
+          "window",
+          2200
+        ],
+        [
+          "heatPump",
+          5000
+        ]
+      ],
+      "expectedCreditDollars": 2600
+    },
+    {
+      "id": 3,
+      "costs": [
+        [
+          "door",
+          1000
+        ],
+        [
+          "door",
+          1000
+        ],
+        [
+          "window",
+          2200
+        ],
+        [
+          "heatPump",
+          8000
+        ],
+        [
+          "audit",
+          600
+        ]
+      ],
+      "expectedCreditDollars": 3200
+    }
+  ]
+}

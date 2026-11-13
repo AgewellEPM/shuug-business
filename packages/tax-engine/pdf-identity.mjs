@@ -1,6 +1,9 @@
+import {energyIdentity} from './energy-pdf.mjs';
 const digits=value=>value.replaceAll('-','');
 export function identityFields(input,item,set){
   const p=input.party,person=item.owner==='spouse'?{name:input.individual.spouseName,taxId:input.individual.spouseTaxId}:p;
+  if(item.form==='f5695'){energyIdentity(input,item,set);return;}
+  if(item.form==='f1040s3'){set('1/1',input.individual.filingStatus==='marriedJoint'?[p.name,input.individual.spouseName].filter(Boolean).join(' & '):p.name);set('1/2',digits(p.taxId));return;}
   if(item.form==='f8959'){set('1/1',input.individual.filingStatus==='marriedJoint'?[p.name,input.individual.spouseName].filter(Boolean).join(' & '):p.name);set('1/2',digits(p.taxId));return;}
   if(input.year<2025&&priorIdentity(input,item,set))return;
   if(item.form==='f1040'){

@@ -1,4 +1,5 @@
 import {additionalMedicare} from './additional-medicare.mjs';
+import {energyCredits} from './energy-credits.mjs';
 import { strictObject, list, text, amountFields, diagnostic } from './model.mjs';
 import { sumMoney, wholeDollars as R, wholeRatio as P } from './money.mjs';
 import {federalYearRules} from './federal-years.mjs';
@@ -7,7 +8,7 @@ import {ordinaryTax} from './ordinary-tax.mjs';
 
 export function calculateIndividual(input){
   const rules=federalYearRules(input.year),standardDeductions=rules.standardDeductions;
-  const individual=strictObject(input.individual,['filingStatus','spouseName','spouseFirstName','spouseLastName','spouseTaxId','w2s','taxableInterestCents','ordinaryDividendsCents','priorQbiLossCents','estimatedPaymentsCents','priorYearAppliedCents','businesses'],'Individual return');
+  const individual=strictObject(input.individual,['filingStatus','spouseName','spouseFirstName','spouseLastName','spouseTaxId','w2s','taxableInterestCents','ordinaryDividendsCents','priorQbiLossCents','estimatedPaymentsCents','priorYearAppliedCents','businesses','energyCredits'],'Individual return');
   if(!Object.hasOwn(standardDeductions,individual.filingStatus))throw new Error('Choose a supported individual filing status.');
   for(const field of ['spouseName','spouseTaxId'])text(individual[field],field);
   for(const field of ['spouseFirstName','spouseLastName'])if(individual[field]!==undefined)text(individual[field],field);
@@ -54,11 +55,14 @@ export function calculateIndividual(input){
   if(individual.filingStatus==='headOfHousehold'||individual.filingStatus==='survivingSpouse')diagnostics.push(diagnostic('QUALIFYING_PERSON_REVIEW','Confirm the qualifying-person/dependent information and household/surviving-spouse conditions. Their schedules are not inferred from filing status.'));
   lines['13a']=qbiUnknown?null:qbi;lines['13b']=0;lines['14']=qbiUnknown?null:sumMoney([lines['12e'],qbi]);lines['15']=qbiUnknown?null:Math.max(0,lines['11b']-lines['14']);
   const tax=lines['15']===null?null:ordinaryTax(lines['15'],individual.filingStatus,input.year);lines['16']=tax?.taxCents??null;lines['17']=0;lines['18']=lines['16'];lines['19']=0;lines['20']=0;lines['21']=0;lines['22']=lines['16'];lines['23']=sumMoney([seTax,medicare.taxCents]);
-  const limited=qbiUnknown||investmentTaxUnknown||input.features.length>0||diagnostics.some(item=>item.code==='LOSS_LIMITATION_REVIEW');lines['24']=limited?null:sumMoney([lines['22'],lines['23']]);lines['25a']=R(sumMoney(w2s.map(wage=>wage.federalWithholdingCents)));if(medicare.required)lines['25c']=medicare.withholdingCents;lines['25d']=medicare.withholdingCents===null?null:sumMoney([lines['25a'],medicare.withholdingCents]);lines['26']=R(sumMoney([individual.estimatedPaymentsCents,individual.priorYearAppliedCents]));lines['33']=lines['25d']===null?null:sumMoney([lines['25d'],lines['26']]);lines['34']=lines['24']===null||lines['33']===null?null:Math.max(0,lines['33']-lines['24']);lines['35a']=lines['34'];lines['37']=lines['24']===null||lines['33']===null?null:Math.max(0,lines['24']-lines['33']);
+  const energy=energyCredits(individual.energyCredits,{year:input.year,taxBeforeCreditsCents:lines['18'],otherTreatments:input.features.length>0||diagnostics.some(item=>item.code==='LOSS_LIMITATION_REVIEW')});diagnostics.push(...energy.diagnostics);
+  if(energy.required){forms.push(energy.form,{form:'f1040s3',copyId:'nonrefundable-credits',lines:{'5a':energy.cleanCreditCents,'5b':energy.improvementCreditCents,'8':energy.creditCents}});lines['20']=energy.creditCents;lines['21']=energy.creditCents;lines['22']=lines['18']===null||energy.creditCents===null?null:Math.max(0,lines['18']-energy.creditCents);}
+  const limited=qbiUnknown||investmentTaxUnknown||energy.creditCents===null||input.features.length>0||diagnostics.some(item=>item.code==='LOSS_LIMITATION_REVIEW');lines['24']=limited?null:sumMoney([lines['22'],lines['23']]);lines['25a']=R(sumMoney(w2s.map(wage=>wage.federalWithholdingCents)));if(medicare.required)lines['25c']=medicare.withholdingCents;lines['25d']=medicare.withholdingCents===null?null:sumMoney([lines['25a'],medicare.withholdingCents]);lines['26']=R(sumMoney([individual.estimatedPaymentsCents,individual.priorYearAppliedCents]));lines['33']=lines['25d']===null?null:sumMoney([lines['25d'],lines['26']]);lines['34']=lines['24']===null||lines['33']===null?null:Math.max(0,lines['33']-lines['24']);lines['35a']=lines['34'];lines['37']=lines['24']===null||lines['33']===null?null:Math.max(0,lines['24']-lines['33']);
   if(businesses.length)forms.push({form:'f1040s1',copyId:'adjustments',lines:{'3':profit,'10':profit,'15':halfTax,'26':halfTax}});
   if(seTax||medicare.taxCents)forms.push({form:'f1040s2',copyId:'other-taxes',lines:{...(seTax?{'4':seTax}:{}),...(medicare.taxCents?{'11':medicare.taxCents}:{}),'21':lines['23']}});
   forms.unshift({form:'f1040',copyId:'main',lines});
   const summary={adjustedGrossIncomeCents:lines['11b'],taxableIncomeCents:lines['15'],ordinaryTaxCents:lines['16'],selfEmploymentTaxCents:seTax,additionalMedicareTaxCents:medicare.taxCents,additionalMedicareWithholdingCents:medicare.withholdingCents,totalTaxCents:lines['24'],paymentsCents:lines['33'],refundCents:lines['34'],amountOwedCents:lines['37']};
+  if(energy.required)Object.assign(summary,{residentialCleanEnergyCreditCents:energy.cleanCreditCents,energyImprovementCreditCents:energy.improvementCreditCents,cleanEnergyCarryforwardCents:energy.carryforwardCents});
   if(input.year<2025){lines['11']=lines['11a'];lines['12']=lines['12e'];lines['13']=lines['13a'];for(const key of ['11a','11b','12e','13a','13b'])delete lines[key];}
   return {forms,diagnostics,summary,taxMethod:tax};
 }

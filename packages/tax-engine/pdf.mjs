@@ -4,6 +4,7 @@ import { displayMoney } from './money.mjs';
 import { referencedField } from './form-maps.mjs';
 import { pdfYearPack } from './form-years.mjs';
 import { identityFields } from './pdf-identity.mjs';
+import {energyWorkpaper} from './energy-pdf.mjs';
 
 export const defaultTemplateLoader=async (id,year=2025)=>{
   if(!pdfYearPack(year).templates.some(form=>form.id===id))throw new Error('Unknown official form.');
@@ -43,6 +44,7 @@ function workpaper(pdf,font,input,result){
   const businesses=input.individual?.businesses??[input.entity];
   for(const business of businesses){line(`Deduction workpaper: ${business.name??business.businessName??'Business'}`,12);for(const expense of business.expenses)line(`${expense.category}: ${displayMoney(expense.amountCents)} USD. ${expense.description}`);}
   if(input.notes){line('Preparation notes',12);line(input.notes);}
+  energyWorkpaper(input,line);
 }
 
 /** All calculation and rendering happen in the trusted caller. The loader only
