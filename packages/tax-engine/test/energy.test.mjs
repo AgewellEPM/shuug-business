@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {execFileSync} from 'node:child_process';
+import {pdfText} from './pdf-text.mjs';
 import {energyCredits,newEnergyCredits} from '../energy-credits.mjs';
 import {calculateReturn} from '../index.mjs';
 import {generateDraftPdf} from '../pdf.mjs';
@@ -39,7 +39,7 @@ for(const year of [2023,2024,2025])test(`${year} energy credits flow through ori
  const result=calculateReturn(input),main=result.forms.find(form=>form.form==='f1040'),energy=result.forms.find(form=>form.form==='f5695'),schedule=result.forms.find(form=>form.form==='f1040s3');
  assert.equal(result.summary.energyImprovementCreditCents,320000);assert.equal(main.lines['20'],main.lines['16']);assert.equal(main.lines['22'],0);assert.equal(main.lines['24'],0);assert.equal(main.lines['34'],500000);assert.equal(schedule.lines['8'],main.lines['20']);assert.equal(energy.lines['16'],300000-result.summary.residentialCleanEnergyCreditCents);
  const {bytes,audit}=await generateDraftPdf(input,{loadTemplate:(id,y)=>readFile(new URL(`../forms/${y}/${id}.pdf`,import.meta.url))});
- const xml=execFileSync('pdftotext',['-bbox-layout','-','-'],{input:bytes,maxBuffer:4*1024*1024}).toString(),pages=[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)];
+ const xml=pdfText(bytes,'-bbox-layout'),pages=[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)];
  const amount=(form,offset,value,top)=>{const page=pages[audit.find(item=>item.form===form).firstPage-1+offset][1];assert([...page.matchAll(/<word\b([^>]*)>([^<]*)<\/word>/g)].some(([,attrs,text])=>text===String(value)&&Number(attrs.match(/xMin="([^"]+)"/)[1])>=500&&Math.abs((Number(attrs.match(/yMin="([^"]+)"/)[1])+Number(attrs.match(/yMax="([^"]+)"/)[1]))/2-top)<8),`${form}: printed ${value} on the source row at ${top}`);};
  amount('f5695',year===2025?3:2,3200,year===2025?444:330);amount('f5695',0,result.summary.residentialCleanEnergyCreditCents/100,year===2023?714:year===2024?726:702);amount('f1040s3',0,3200,year===2023?240:186);amount('f1040s3',0,main.lines['20']/100,year===2023?576:year===2024?402:414);
  if(year===2025){assert(audit.find(item=>item.form==='f5695').filled.some(field=>field.reference==='name:topmostSubform[0].Page3[0].f3_30[0]'));assert(audit.find(item=>item.form==='f5695').filled.some(field=>field.reference?.includes('Ln23aii')));}
@@ -53,5 +53,5 @@ test('nonrefundable energy credits do not offset self-employment or additional M
 test('2025 displayed item rows sum to their category totals after whole-dollar rounding; extra QMID items remain in the statement',async()=>{
  const value=energyFixture([['waterHeater',100.50],['waterHeater',100.50],['window',100.50],['window',100.50],['window',100.50],['window',100.50],['window',300.99]]);value.items[5].qmid='Z9Z9';
  const result=energyCredits(value,{year:2025,taxBeforeCreditsCents:1000000});assert.equal(result.form.lines['23a'],20200);assert.equal(result.form.lines['20a'],60400);assert.equal(result.form.lines['20b'],10100);assert.equal(result.form.lines['20c'],70500);assert.equal(result.form.energy.groups.window[0].costCents,30099);
- const input=reviewed();input.individual.energyCredits=value;const {bytes}=await generateDraftPdf(input,{loadTemplate:(id,y)=>readFile(new URL(`../forms/${y}/${id}.pdf`,import.meta.url))});const text=execFileSync('pdftotext',['-raw','-','-'],{input:bytes,maxBuffer:4*1024*1024}).toString();assert.match(text,/Z9Z9/);assert.match(text,/300\.99 USD/);
+ const input=reviewed();input.individual.energyCredits=value;const {bytes}=await generateDraftPdf(input,{loadTemplate:(id,y)=>readFile(new URL(`../forms/${y}/${id}.pdf`,import.meta.url))});const text=pdfText(bytes,'-raw');assert.match(text,/Z9Z9/);assert.match(text,/300\.99 USD/);
 });

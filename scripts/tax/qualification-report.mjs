@@ -6,6 +6,7 @@ import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {additionalMedicare} from '../../packages/tax-engine/additional-medicare.mjs';
 import {energyCredits,newEnergyCredits} from '../../packages/tax-engine/energy-credits.mjs';
+import {householdEmployment,newHouseholdEmployer,newHouseholdEmployee} from '../../packages/tax-engine/household-employment.mjs';
 import {calculationYears,requestedTaxYears} from '../../packages/tax-engine/index.mjs';
 import {pdfYearPack} from '../../packages/tax-engine/form-years.mjs';
 
@@ -20,11 +21,15 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const catalog=JSON.parse(await readFile(path.join(engine,'qualification/ats-scenarios.json'),'utf8'));
   const examples=JSON.parse(await readFile(path.join(engine,'test/irs-8959-examples.json'),'utf8'));
   const energyExamples=JSON.parse(await readFile(path.join(engine,'test/irs-energy-examples.json'),'utf8'));
+  const householdExamples=JSON.parse(await readFile(path.join(engine,'test/irs-household-examples.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
     for(const scenario of catalog.selectedScenarios)sourceEvidence.push({id:scenario.id,...await checkedSource(path.join(sourcesDirectory,scenario.sourceFile),scenario)});
     sourceEvidence.push({id:'8959-instructions',...await checkedSource(path.join(sourcesDirectory,'i8959--2025.pdf'),examples.source)});
     sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
+    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions]){
+      const filename=new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});
+    }
   }
   const instructionChecks=examples.examples.map(example=>{
     const result=additionalMedicare({filingStatus:example.filingStatus,w2s:example.medicareWagesDollars.map(wages=>({medicareWagesCents:wages*100,medicareTaxWithheldCents:wages*1.45})),selfEmploymentEarnings:example.selfEmploymentIncomeDollars.map(value=>value*100)});
@@ -37,6 +42,13 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     value.items=example.costs.map(([category,dollars],index)=>({id:'synthetic-'+index,category,costCents:dollars*100,qmid:'A1B2',source:'Synthetic eligibility record for arithmetic verification'}));
     const result=energyCredits(value,{year,taxBeforeCreditsCents:1000000});return {year,id:example.id,pass:result.creditCents===example.expectedCreditDollars*100&&result.diagnostics.length===0,actualCreditCents:result.creditCents,expectedCreditCents:example.expectedCreditDollars*100};
   }));
+  const householdInstructionChecks=householdExamples.examples.map(example=>{
+    const value=newHouseholdEmployer();value.ein='00-0123456';value.priorYearFutaQuartersCents=[0,0,0,0];for(const key of Object.keys(value.review))value.review[key]=true;
+    const worker=newHouseholdEmployee('synthetic-published-example');Object.assign(worker,{name:'Synthetic Worker',quartersCents:[63000,91000,91000,91000],ficaTreatment:'ordinary',futaTreatment:'ordinary'});value.employees=[worker];
+    const result=householdEmployment([value],{year:example.year,filingStatus:'single'}),lines=result.forms[0].lines;
+    const actual={socialSecurityTaxCents:lines[example.year===2023?'2c':'2'],medicareTaxCents:lines['4'],partITaxCents:result.taxCents},expected={socialSecurityTaxCents:example.expectedSocialSecurityTaxCents,medicareTaxCents:example.expectedMedicareTaxCents,partITaxCents:example.expectedPartITaxCents};
+    return {year:example.year,pass:JSON.stringify(actual)===JSON.stringify(expected)&&result.diagnostics.length===0,actual,expected};
+  });
   const installedPacks=[];
   for(const year of calculationYears){
     const pack=pdfYearPack(year),forms=[];
@@ -64,7 +76,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   }
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
-    internalChecksPassed:[...instructionChecks,...energyInstructionChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,sourceEvidence,installedPacks,scenarios,
+    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,sourceEvidence,installedPacks,scenarios,
     requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),stateCalculationPacks:[],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
     limits:['Instruction examples are not ATS scenario execution.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};

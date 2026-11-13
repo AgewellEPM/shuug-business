@@ -125,5 +125,13 @@ export const officialForms2023=Object.freeze([
     "bytes": 73468,
     "pages": 2,
     "fieldCount": 38
+  },
+  {
+    "id": "f1040sh",
+    "url": "https://www.irs.gov/pub/irs-prior/f1040sh--2023.pdf",
+    "bytes": 114297,
+    "sha256": "4659bd413f9f90a40a3d864ef5e49c753cf2e50de05ec1f9e910dfda7d151379",
+    "pages": 2,
+    "fieldCount": 86
   }
 ].map(Object.freeze));

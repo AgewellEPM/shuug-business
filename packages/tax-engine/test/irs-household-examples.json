@@ -1,0 +1,70 @@
+{
+  "sources": [
+    {
+      "year": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/p926--2023.pdf",
+      "bytes": 1232757,
+      "sha256": "d90591781aff2490149f001f4a9a9856001c8b2b793a00ba8688eeaed3872235"
+    },
+    {
+      "year": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/p926--2024.pdf",
+      "bytes": 1244666,
+      "sha256": "e0f2397a2d34d661c82e2e3a19012a42ad00387b2bec58aac0b8be8838def2b4"
+    },
+    {
+      "year": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/p926--2025.pdf",
+      "bytes": 1250568,
+      "sha256": "1e25a16919cb96ef49aa6fef40cd3aa99b5009427bf5cc7067c5127c97ddf2b7"
+    }
+  ],
+  "annualInstructions": [
+    {
+      "taxYear": 2023,
+      "id": "i1040sh",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sh--2023.pdf",
+      "bytes": 425255,
+      "sha256": "15697f69b011ed3b53b1f1d52d446a2273310c8e4c6b7058a90a72638216fdc2"
+    },
+    {
+      "taxYear": 2024,
+      "id": "i1040sh",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sh--2024.pdf",
+      "bytes": 352259,
+      "sha256": "d35bb51088257973c483020342f41b89c95be32a7aae997be43d318bef21d8c0"
+    },
+    {
+      "taxYear": 2025,
+      "id": "i1040sh",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sh--2025.pdf",
+      "bytes": 254570,
+      "sha256": "3e4b07dd0867386395ea6bd162e5c2cbc172cbd350dcee66d1eaf1ea05e67f7a"
+    }
+  ],
+  "description": "Publication 926 Mary/Jane annual cash-wage example. Published per-party Social Security 208.32 and Medicare 48.72 are combined for the employer return, then each Schedule H tax line is rounded to whole dollars. No published full-return or FUTA expectation is claimed.",
+  "examples": [
+    {
+      "year": 2023,
+      "cashWagesCents": 336000,
+      "expectedSocialSecurityTaxCents": 41700,
+      "expectedMedicareTaxCents": 9700,
+      "expectedPartITaxCents": 51400
+    },
+    {
+      "year": 2024,
+      "cashWagesCents": 336000,
+      "expectedSocialSecurityTaxCents": 41700,
+      "expectedMedicareTaxCents": 9700,
+      "expectedPartITaxCents": 51400
+    },
+    {
+      "year": 2025,
+      "cashWagesCents": 336000,
+      "expectedSocialSecurityTaxCents": 41700,
+      "expectedMedicareTaxCents": 9700,
+      "expectedPartITaxCents": 51400
+    }
+  ],
+  "fixtureLimits": "Synthetic EIN, zero prior-year quarters and reviewed ordinary eligibility; quarterly allocation represents 9/13/13/13 weekly payments of $70. Source does not establish real eligibility, EIN or prior-year activity."
+}

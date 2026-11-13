@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {execFileSync} from 'node:child_process';
+import {pdfText} from './pdf-text.mjs';
 import {additionalMedicare} from '../additional-medicare.mjs';
 import {calculateReturn} from '../index.mjs';
 import {generateDraftPdf} from '../pdf.mjs';
@@ -23,7 +23,7 @@ for(const year of [2023,2024,2025])test(`${year} Form 8959 tax and withholding c
  const input=reviewed();input.year=year;input.individual.w2s=[{...wage('taxpayer',220000,5000),medicareTaxWithheldCents:337000}];const result=calculateReturn(input),main=result.forms.find(form=>form.form==='f1040'),medicare=result.forms.find(form=>form.form==='f8959'),other=result.forms.find(form=>form.form==='f1040s2');
  assert.equal(result.summary.additionalMedicareTaxCents,18000);assert.equal(result.summary.additionalMedicareWithholdingCents,18000);assert.equal(main.lines['25c'],18000);assert.equal(main.lines['25d'],518000);assert.equal(other.lines['11'],18000);assert.equal(other.lines['21'],18000);assert.equal(main.lines['24'],main.lines['16']+18000);assert.equal(main.lines['37'],main.lines['24']-518000);assert.equal(medicare.lines['21'],319000);
  const {bytes,audit}=await generateDraftPdf(input,{loadTemplate:(id,selected)=>readFile(new URL(`../forms/${selected}/${id}.pdf`,import.meta.url))});
- const xml=execFileSync('pdftotext',['-bbox-layout','-','-'],{input:bytes,maxBuffer:2*1024*1024}).toString(),pages=[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)];
+ const xml=pdfText(bytes,'-bbox-layout'),pages=[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)];
  const amount=(form,offset,value,top,x=500)=>{const page=pages[audit.find(item=>item.form===form).firstPage-1+offset][1];assert([...page.matchAll(/<word\b([^>]*)>([^<]*)<\/word>/g)].some(([,attrs,text])=>text===String(value)&&Number(attrs.match(/xMin="([^"]+)"/)[1])>=x&&Math.abs((Number(attrs.match(/yMin="([^"]+)"/)[1])+Number(attrs.match(/yMax="([^"]+)"/)[1]))/2-top)<8),`${form} actual printed amount on the reviewed source row`);};
  amount('f1040',1,180,year===2025?306:186,410);amount('f8959',0,180,558);amount('f8959',0,180,714);amount('f1040s2',0,180,year===2023?378:year===2024?600:612);
  assert(audit.find(item=>item.form==='f1040').filled.some(field=>field.line==='25c'&&field.reference===(year===2025?'2/19':'2/13')));assert.equal(result.filingReady,false);

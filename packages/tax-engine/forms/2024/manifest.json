@@ -129,6 +129,14 @@
       "bytes": 69979,
       "pages": 1,
       "fieldCount": 39
+    },
+    {
+      "id": "f1040sh",
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sh--2024.pdf",
+      "bytes": 104946,
+      "sha256": "b759c09bd81e74c91f63bd34f3263e904ec9b5c38e4d36e3ac338b9bf04feed7",
+      "pages": 2,
+      "fieldCount": 70
     }
   ]
 }

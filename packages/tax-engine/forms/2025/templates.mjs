@@ -125,5 +125,13 @@ export const officialForms2025=Object.freeze([
     "bytes": 69852,
     "pages": 1,
     "fieldCount": 37
+  },
+  {
+    "id": "f1040sh",
+    "url": "https://www.irs.gov/pub/irs-prior/f1040sh--2025.pdf",
+    "bytes": 105406,
+    "sha256": "d04de932bd7d960ba09b3a913cde9bf35c1deec34c5c9b51cdff8c0b1bfdf83a",
+    "pages": 2,
+    "fieldCount": 72
   }
 ].map(Object.freeze));

@@ -1,5 +1,6 @@
 import { newReturn,calculateReturn,calculationYears,returnTypes,filingStatuses,expenseCategories,parseMoney,displayMoney,scopeNotice } from '@shuug/tax-engine';
 import { renderReturn } from './return-view.mjs';
+import {householdFields} from './household-editor.mjs';
 import {energyFields} from './energy-editor.mjs';
 
 const treatments=[
@@ -26,7 +27,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
   const section=node(document,'section');section.id='tax-preparation';
   const heading=node(document,'h2','Prepare a tax return'),notice=node(document,'p',scopeNotice),kind=node(document,'select');kind.id='return-kind';
   const kindLabel=node(document,'label','Return type');kindLabel.htmlFor=kind.id;const year=node(document,'select'),yearLabel=node(document,'label','Tax year');year.id='return-year';yearLabel.htmlFor=year.id;for(const value of calculationYears){const option=node(document,'option',String(value));option.value=String(value);year.append(option);}for(const type of returnTypes){const option=node(document,'option',type.label);option.value=type.id;kind.append(option);}
-  const scope=node(document,'p','Current calculations accept reviewed ordinary wages, taxable interest, nonqualified ordinary dividends, eligible business amounts and the supported residential energy credits. Other schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
+  const scope=node(document,'p','Current calculations accept reviewed ordinary wages, taxable interest, nonqualified ordinary dividends, eligible business amounts, supported residential energy credits and household-employment taxes. Other schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
   const body=node(document,'div'),output=node(document,'div'),calculate=node(document,'button','Calculate draft'),save=node(document,'button',proposalOnly?'Save private correction review kit':'Encrypt and save return'),clear=node(document,'button',proposalOnly?'Discard correction':'New return');for(const button of [calculate,save,clear])button.type='button';clear.className='secondary';
   if(proposalOnly)scope.textContent+=' Preparing a return proposal downloads encrypted input and a readable private review in one file. Keep that file on trusted firm devices. The separate key environment must approve its exact content before owner publication creates or changes a client return.';
   section.append(heading,notice,kindLabel,kind,yearLabel,year,scope,body,calculate,save,clear,output);container.append(section);
@@ -63,6 +64,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
         for(const [key,label]of [['receiptsCents','Gross receipts'],['returnsCents','Returns and allowances'],['costOfGoodsCents','Cost of goods sold'],['otherIncomeCents','Other ordinary business income']])field(row,business,key,`${label} (USD)`,{money:true});
         field(row,business,'materialParticipation','Material participation confirmed',{check:true});field(row,business,'fullyAtRisk','All investment at risk confirmed',{check:true});expenseFields(row,business);button(row,'Remove this Schedule C',()=>value.businesses.splice(index,1));});
       if(value.businesses.length<5)button(businesses,'Add Schedule C business',()=>value.businesses.push({id:crypto.randomUUID(),owner:'taxpayer',name:'',ein:'',businessCode:'',receiptsCents:0,returnsCents:0,costOfGoodsCents:0,otherIncomeCents:0,expenses:[],materialParticipation:false,fullyAtRisk:false}));
+      householdFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       energyFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
     }else{
       const value=draft.entity,income=group(body,'Business income and deductions');field(income,value,'businessName','Business / activity name');field(income,value,'businessCode','Six-digit principal activity code');field(income,value,'accountingMethod','Tax accounting method',{options:[['cash','Cash'],['accrual','Accrual']]});

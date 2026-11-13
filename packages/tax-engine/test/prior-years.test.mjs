@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-import {execFileSync} from 'node:child_process';
+import {pdfText} from './pdf-text.mjs';
 import {ordinaryTax} from '../ordinary-tax.mjs';
 import {calculateReturn,newReturn,calculationYears} from '../index.mjs';
 import {generateDraftPdf} from '../pdf.mjs';
 import {reviewed,business,wage} from './fixtures.mjs';
 const loadTemplate=(id,year)=>readFile(new URL(`../forms/${year}/${id}.pdf`,import.meta.url));
 function pageWords(bytes){
-  const xml=execFileSync('pdftotext',['-bbox-layout','-','-'],{input:bytes,maxBuffer:4*1024*1024}).toString();
+  const xml=pdfText(bytes,'-bbox-layout');
   return [...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)].map(([,page])=>[...page.matchAll(/<word\b([^>]*)>([^<]*)<\/word>/g)].map(([,attrs,text])=>({text,x:Number(attrs.match(/xMin="([^"]+)"/)[1]),top:(Number(attrs.match(/yMin="([^"]+)"/)[1])+Number(attrs.match(/yMax="([^"]+)"/)[1]))/2})));
 }
 function at(pages,page,text,minX,top){assert(pages[page-1].some(word=>word.text===String(text)&&word.x>=minX&&Math.abs(word.top-top)<8),`Actual annual PDF: ${text}, page ${page}, x >= ${minX}, top ${top}`);}

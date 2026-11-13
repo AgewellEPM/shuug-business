@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { execFileSync } from 'node:child_process';
+import {pdfText} from './pdf-text.mjs';
 import { PDFDocument } from 'pdf-lib';
 import { generateDraftPdf } from '../pdf.mjs';
 import { reviewed,business,wage } from './fixtures.mjs';
 const loadTemplate=id=>readFile(new URL(`../forms/2025/${id}.pdf`,import.meta.url));
-const words=bytes=>execFileSync('pdftotext',['-layout','-','-'],{input:bytes,maxBuffer:1024*1024}).toString();
+const words=bytes=>pdfText(bytes,'-layout');
 function amountAt(bytes,pageNumber,expected,x,top){
-  const xml=execFileSync('pdftotext',['-bbox-layout','-','-'],{input:bytes,maxBuffer:2*1024*1024}).toString(),page=[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)][pageNumber-1]?.[1];assert(page,'Actual output page exists');
+  const xml=pdfText(bytes,'-bbox-layout'),page=[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)][pageNumber-1]?.[1];assert(page,'Actual output page exists');
   assert([...page.matchAll(/<word\b([^>]*)>([^<]*)<\/word>/g)].some(([,attrs,text])=>text===String(expected)&&Number(attrs.match(/xMin="([^"]+)"/)[1])>=x&&Math.abs((Number(attrs.match(/yMin="([^"]+)"/)[1])+Number(attrs.match(/yMax="([^"]+)"/)[1]))/2-top)<8),`Actual PDF must place ${expected} at its official amount row, page ${pageNumber}, top ${top}`);
 }
 

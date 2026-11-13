@@ -25,7 +25,11 @@ support. No approved filing account/provider or separate custody environment is
 available yet; live activation depends on those external prerequisites.
 
 November 13 qualification continuation: the limited annual packs now cover
-2023–2025, including ordinary Form 8959 tax and withholding reconciliation.
+2023–2025, including ordinary Form 8959 tax/withholding, limited residential
+energy credits (Form 5695 / Schedule 3), and ordinary Schedule H household payroll
+with FUTA Section A. Section B, broader credits and other listed treatments remain
+unfinished. Annual source pins, printed PDF amounts and encrypted client/staff
+flows have focused verification; they do not constitute agency approval.
 Private account-code/password/authenticator enrollment, password and authenticator
 recovery and expired-enrollment renewal are implemented through separate firm
 approval. Names/email remain encrypted. These supersede the corresponding dated
