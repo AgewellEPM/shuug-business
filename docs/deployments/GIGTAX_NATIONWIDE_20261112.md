@@ -4,6 +4,27 @@ Active scope: connect state business research nationwide using **free public
 sources only**, then let the owner drill into every state and assign towns/cities
 to sales agents. Full automatic registry coverage is not complete.
 
+## Nationwide published business-contact source — November 13
+
+The free Overture Places catalogue is now deployed in all 50 states/DC, with
+102,768 tax/accounting place records. It supplies reviewable website, business
+phone and business email proposals; it does not replace state principal/owner
+records. Town assignments still cover 44,456 localities, including 169 CT towns.
+
+Source 9a8b7058f1a8de2ba45bc8be8e40fadb7fbc8a52 is GitHub verified. Ready deployment
+dpl_CSw4cdSwU57ou3GyTJmn5hfhD5KB serves https://gigtax.pro/sales. All 209 sales/MCP
+checks, four builder checks, TypeScript and 678 deployed artifact hashes pass.
+The installed MCP verified catalogue suggestions and a selected sourced business
+in every one of 51 sampled localities. Existing Hartford map, principal lookup,
+website reader, authentication and commissions pass; no saved records changed.
+
+Full source/licensing, matching rules, sample limits and receipts are in
+[GIGTAX_BUSINESS_PLACES_20261113.md](GIGTAX_BUSINESS_PLACES_20261113.md).
+The wider goal remains incomplete: automatic state registry lookup covers nine
+states; 42 regions still need connectors. Public-source contact coverage is
+partial and does not establish current ownership, direct personal contact or
+deliverability. Human Safari/phone acceptance remains pending.
+
 ## Iowa and Alaska free-source expansion — November 13
 
 Two additional official sources are connected: Iowa's monthly active-business

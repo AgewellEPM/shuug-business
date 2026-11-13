@@ -1,6 +1,6 @@
 # Nationwide published business-contact catalogue — November 13
 
-Prepared and tested; deployment acceptance is still pending at this source checkpoint.
+Deployed and verified at https://gigtax.pro/sales. Human visual acceptance remains pending.
 Canonical checkout: Worktrees/GigTaxProsSalesIntegrated-20261107.
 Branch: feat/gig-tax-pros-sales-integrated. Existing remote: AgewellEPM/shuug-business.
 
@@ -76,8 +76,29 @@ public attribution text contains source notices and licenses.
 Prepared release: ~/BuildCache/GigTaxNationwide-20261112/release-business-places-final-20261113.
 Preservation receipt: gigtax-business-places-preservation-20261113.json.
 Test log: /private/tmp/gigtax-business-places-tests-20261113.log.
-Pending at this source checkpoint: source backup, deployment and installed-MCP
-acceptance.
+Source 9a8b7058f1a8de2ba45bc8be8e40fadb7fbc8a52 is GitHub-SHA-verified.
+Ready deployment dpl_CSw4cdSwU57ou3GyTJmn5hfhD5KB serves the production domain.
+All 678 uploaded artifacts, 105 static HTTP files and 87 protected static files
+match the prepared release; routes/headers/CSP are unchanged. The installed MCP
+checks pass for authentication, Hartford map/principal/contact research, pipeline,
+contracts and commission rates. Hartford remains 170 candidates/121 mapped
+addresses; the known official website reader still returns a sourced business
+phone from two checked pages.
+
+The nationwide installed-MCP probe passed all 51 regions. In every sampled
+locality it found catalogue website suggestions and verified a selected source
+record with its snapshot and observation dates. Selected businesses were all
+non-chain candidates. This proves sampled cross-source matching, not complete
+business coverage: Hartford had 22 catalogue matches among 170 candidates,
+16 with website suggestions and ten with sufficiently matched contact evidence.
+The earlier Albany Accounting sample still has no automatic website suggestion;
+manual confirmed-site reading works. Empty legacy search now reports unavailable
+rather than asserting that no result exists.
+
+Evidence: gigtax-business-places-live-20261113.json and
+gigtax-business-places-deployed-live-20261113.json. Saved offices, agents and
+contacts remained unchanged (all zero); no outreach, paid provider or payment.
+All owned extraction/verifier processes completed and MCP children closed.
 Human Safari/phone visual acceptance remains Luke's. Mail is unconfigured and
 payments deferred. The wider connect-all goal remains incomplete: automatic
 selected-record registry coverage is nine states and the other 42 regions remain
