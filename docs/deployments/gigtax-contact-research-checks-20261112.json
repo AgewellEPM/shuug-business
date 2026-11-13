@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-11-13T02:36:30.277457+00:00",
+  "sourceCommit": "0d83bbff6c05691c8408d1b4153f099e5b8d9285",
+  "focusedSalesTests": {
+    "pass": 177,
+    "fail": 0,
+    "command": "node --test --test-reporter=tap sales/*.test.mjs scripts/sales/*.test.mjs"
+  },
+  "finalFocusedTests": {
+    "pass": 6,
+    "fail": 0
+  },
+  "fullProjectTypeScript": {
+    "pass": true,
+    "command": "node node_modules/typescript/bin/tsc --noEmit --incremental false"
+  },
+  "diffWhitespaceCheck": true,
+  "browserRuntimeUsed": false,
+  "limits": "Synthetic fixture writes only; separate production reads verify actual deployment. Human visual acceptance and email delivery are unverified."
+}
