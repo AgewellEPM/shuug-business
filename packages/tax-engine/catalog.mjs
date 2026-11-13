@@ -1,5 +1,5 @@
 export const returnTypes=Object.freeze([
-  Object.freeze({id:'1040',label:'Individual / self-employed',form:'1040',family:'individual',support:'Federal 2023–2025 ordinary-income and Schedule C preparation'}),
+  Object.freeze({id:'1040',label:'Individual / self-employed',form:'1040',family:'individual',support:'Federal 2023–2025 income / Schedule C; partial 2026 calculations'}),
   Object.freeze({id:'1065',label:'Partnership',form:'1065',family:'business',support:'Federal 2023–2025 ordinary business income and partner allocation workpapers'}),
   Object.freeze({id:'1120S',label:'S corporation',form:'1120-S',family:'business',support:'Federal 2023–2025 ordinary business income and shareholder allocation workpapers'}),
   Object.freeze({id:'1120',label:'C corporation',form:'1120',family:'business',support:'Federal 2023–2025 ordinary corporate income preparation'}),
@@ -11,4 +11,4 @@ export const federalSources=Object.freeze({
   scheduleSE:'https://www.irs.gov/pub/irs-prior/f1040sse--2025.pdf',qbi:'https://www.irs.gov/pub/irs-prior/i8995--2025.pdf',
   partnership:'https://www.irs.gov/pub/irs-prior/f1065--2025.pdf',sCorporation:'https://www.irs.gov/pub/irs-prior/f1120s--2025.pdf',corporation:'https://www.irs.gov/pub/irs-prior/i1120--2025.pdf',
 });
-export const scopeNotice='2023–2025 limited federal preparation. 2026 calculations are not installed. State returns, unimplemented schedules and production e-filing require their own completed coverage and approvals. A calculated draft is not a filed return.';
+export const scopeNotice='Limited 2023–2025 federal and Connecticut resident preparation; partial 2026 federal calculations and Schedule C/SE forms. Other states and unimplemented treatments need additional coverage. Production filing requires agency approval and transmission; a calculated draft is not a filed return.';

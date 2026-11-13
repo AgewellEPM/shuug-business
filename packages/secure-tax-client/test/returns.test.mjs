@@ -79,7 +79,7 @@ test('year selection preserves entered data, drives annual calculations and stay
   const editor=mountReturnEditor(document,document.querySelector('main'),{proposalOnly:true,allowCreation:true,confirm:()=>true,run:task=>{operation=task();return operation;},onSave:async value=>{saved=value;}});editor.setEnabled(true);
   try{for(const [year,tax]of [[2023,'4121.00'],[2024,'4019.00']]){
     editor.startNew('1040');fill(document,'name','Synthetic annual return');click(document,'Add W-2');await operation;fill(document,'wagesCents','50000');
-    const select=document.getElementById('return-year');assert.deepEqual([...select.options].map(option=>option.value),['2023','2024','2025']);select.value=String(year);select.dispatchEvent(new view.window.Event('change'));assert.equal(editor.getInput().party.name,'Synthetic annual return');
+    const select=document.getElementById('return-year');assert.deepEqual([...select.options].map(option=>option.value),['2023','2024','2025','2026']);select.value=String(year);select.dispatchEvent(new view.window.Event('change'));assert.equal(editor.getInput().party.name,'Synthetic annual return');
     click(document,'Calculate draft');await operation;assert.match(document.body.textContent,new RegExp(tax));click(document,'Save private new-return review kit');await operation;assert.equal(saved.year,year);
     editor.edit(saved,'annual-existing');assert.equal(select.disabled,true);select.value=String(year===2023?2024:2023);select.dispatchEvent(new view.window.Event('change'));assert.equal(editor.getInput().year,year);click(document,'Discard correction');
   }}finally{view.window.close();}

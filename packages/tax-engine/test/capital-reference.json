@@ -1,0 +1,230 @@
+{
+  "kind": "Annual IRS arithmetic examples and separately labeled synthetic vectors; not IRS certification or an independent tax-professional review",
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "i1040sd",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sd--2023.pdf",
+      "bytes": 437537,
+      "sha256": "c7f1e7207e2a2c04fcc15f1555ab156c4c7dbda60d1332b87ceecace8e7cd68b"
+    },
+    {
+      "year": 2023,
+      "id": "i8949",
+      "url": "https://www.irs.gov/pub/irs-prior/i8949--2023.pdf",
+      "bytes": 249869,
+      "sha256": "0c21928d8434b05b06d3d9b0a070514f7f201c60bfa6be5540248ca116a3bb28"
+    },
+    {
+      "year": 2023,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2023.pdf",
+      "bytes": 4389662,
+      "sha256": "90c8759c7a829d8c74296187cdbdb47bc9025480fffc41ff5e7225889c8fea7e"
+    },
+    {
+      "year": 2024,
+      "id": "i1040sd",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sd--2024.pdf",
+      "bytes": 432337,
+      "sha256": "430790bd2be8c79cacdc8e27828f41f7c2d63609cf286f4161a379473d512f06"
+    },
+    {
+      "year": 2024,
+      "id": "i8949",
+      "url": "https://www.irs.gov/pub/irs-prior/i8949--2024.pdf",
+      "bytes": 252968,
+      "sha256": "d32a75d0e183c0f1b08c6b5627ba7f379ea0e2167308842c8a7e3223f5af67b0"
+    },
+    {
+      "year": 2024,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2024.pdf",
+      "bytes": 4375877,
+      "sha256": "0ae53ed5020d69e6571d40cd7955b7735f44a28df483626d128628d2810e93d4"
+    },
+    {
+      "year": 2025,
+      "id": "i1040sd",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sd--2025.pdf",
+      "bytes": 298718,
+      "sha256": "650643a686378b7573e4f4476ee4e7c9f9bab1384314dca32dc336f7b2276002"
+    },
+    {
+      "year": 2025,
+      "id": "i8949",
+      "url": "https://www.irs.gov/pub/irs-prior/i8949--2025.pdf",
+      "bytes": 255808,
+      "sha256": "f077991c83b086810c46cbad3755e0f126cb8dfd88cf8bf8ab2d5605d6e7ab45"
+    },
+    {
+      "year": 2025,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2025.pdf",
+      "bytes": 4434643,
+      "sha256": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a"
+    },
+    {
+      "year": 2023,
+      "id": "p550",
+      "url": "https://www.irs.gov/pub/irs-prior/p550--2023.pdf",
+      "bytes": 2313009,
+      "sha256": "16b09e1ad5b0d71dbb2a575efb1d2678a46e2e17d08c8b4a2a8e85ead405f20a"
+    },
+    {
+      "year": 2024,
+      "id": "p550",
+      "url": "https://www.irs.gov/pub/irs-prior/p550--2024.pdf",
+      "bytes": 2412046,
+      "sha256": "0c0e3209ad1e533fa09bfc43dd21d1494cf4ebf73b45a0a57ed367488398d86c"
+    },
+    {
+      "year": 2025,
+      "id": "p550",
+      "url": "https://www.irs.gov/pub/irs-prior/p550--2025.pdf",
+      "bytes": 2401930,
+      "sha256": "83552968a07e63d1c81e5b4f311fc0e54728b5ff9654b5a0d2ba6292c5574317"
+    }
+  ],
+  "published8949": [
+    {
+      "example": "Column (h), Example 1 — Gain",
+      "proceeds": 6000,
+      "basis": 2000,
+      "adjustment": 0,
+      "gain": 4000
+    },
+    {
+      "example": "Column (h), Example 2 — Loss",
+      "proceeds": 6000,
+      "basis": 8000,
+      "adjustment": 0,
+      "gain": -2000
+    },
+    {
+      "example": "Column (h), Example 3 — Adjustment; published arithmetic only, synthetic code E interpretation",
+      "proceeds": 6000,
+      "basis": 2000,
+      "adjustment": -1000,
+      "code": "E",
+      "gain": 3000
+    },
+    {
+      "example": "Column (h), Example 4 — Incorrect reported basis, covered short-term stock",
+      "proceeds": 1000,
+      "basis": 900,
+      "adjustment": 800,
+      "code": "B",
+      "gain": 900
+    }
+  ],
+  "syntheticPreferential": [
+    {
+      "year": 2023,
+      "taxable": 100000,
+      "preferential": 100000,
+      "tax": 8306
+    },
+    {
+      "year": 2024,
+      "taxable": 100000,
+      "preferential": 100000,
+      "tax": 7946
+    },
+    {
+      "year": 2025,
+      "taxable": 100000,
+      "preferential": 100000,
+      "tax": 7748
+    },
+    {
+      "year": 2023,
+      "taxable": 600000,
+      "preferential": 600000,
+      "tax": 88691
+    },
+    {
+      "year": 2024,
+      "taxable": 600000,
+      "preferential": 600000,
+      "tax": 87001
+    },
+    {
+      "year": 2025,
+      "taxable": 600000,
+      "preferential": 600000,
+      "tax": 86078
+    },
+    {
+      "year": 2023,
+      "taxable": 150000,
+      "preferential": 50000,
+      "tax": 24900
+    },
+    {
+      "year": 2024,
+      "taxable": 150000,
+      "preferential": 50000,
+      "tax": 24553
+    },
+    {
+      "year": 2025,
+      "taxable": 150000,
+      "preferential": 50000,
+      "tax": 24414
+    }
+  ],
+  "syntheticLosses": [
+    {
+      "short": -10000,
+      "long": 4000,
+      "taxable": 10000,
+      "nextShort": 3000,
+      "nextLong": 0
+    },
+    {
+      "short": 4000,
+      "long": -10000,
+      "taxable": 10000,
+      "nextShort": 0,
+      "nextLong": 3000
+    },
+    {
+      "short": -1000,
+      "long": -9000,
+      "taxable": 10000,
+      "nextShort": 0,
+      "nextLong": 7000
+    },
+    {
+      "short": -5000,
+      "long": -5000,
+      "taxable": -2000,
+      "nextShort": 4000,
+      "nextLong": 5000
+    },
+    {
+      "short": -5000,
+      "long": -5000,
+      "taxable": -3000,
+      "nextShort": 5000,
+      "nextLong": 5000
+    },
+    {
+      "short": -5000,
+      "long": -5000,
+      "taxable": 10000,
+      "status": "marriedSeparate",
+      "nextShort": 3500,
+      "nextLong": 5000
+    }
+  ],
+  "publishedCarryover": {
+    "source": "Annual Publication 550, Figuring your carryover, Bob and Shelly example",
+    "netLoss": 7000,
+    "taxable": 26000,
+    "status": "marriedJoint",
+    "deduction": 3000,
+    "nextTotal": 4000
+  }
+}

@@ -11,6 +11,9 @@ import {newHouseholdFuta,newHouseholdFutaRow} from '../../packages/tax-engine/ho
 import {newInvestmentIncome,investmentIncome,netInvestmentTax} from '../../packages/tax-engine/investment-income.mjs';
 import {calculationYears,requestedTaxYears} from '../../packages/tax-engine/index.mjs';
 import {pdfYearPack} from '../../packages/tax-engine/form-years.mjs';
+import {federal2026Availability} from '../../packages/tax-engine/annual-2026.mjs';
+import {capitalIncome,capitalLossCarryforward,newCapitalIncome} from '../../packages/tax-engine/capital-income.mjs';
+import {qualifiedCapitalTax} from '../../packages/tax-engine/capital-tax.mjs';
 
 const engine=fileURLToPath(new URL('../../packages/tax-engine/',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -26,13 +29,14 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const householdExamples=JSON.parse(await readFile(path.join(engine,'test/irs-household-examples.json'),'utf8'));
   const householdFutaExamples=JSON.parse(await readFile(path.join(engine,'test/irs-household-futa-examples.json'),'utf8'));
   const investmentExamples=JSON.parse(await readFile(path.join(engine,'test/investment-reference.json'),'utf8'));
+  const capitalExamples=JSON.parse(await readFile(path.join(engine,'test/capital-reference.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
     for(const scenario of catalog.selectedScenarios)sourceEvidence.push({id:scenario.id,...await checkedSource(path.join(sourcesDirectory,scenario.sourceFile),scenario)});
     sourceEvidence.push({id:'8959-instructions',...await checkedSource(path.join(sourcesDirectory,'i8959--2025.pdf'),examples.source)});
     sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
     const checked=new Map();
-    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions]){
+    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions]){
       if(checked.has(source.url)){const previous=checked.get(source.url);if(previous.bytes!==source.bytes||previous.sha256!==source.sha256)throw new Error('Instruction fixtures disagree about a reviewed source pin.');continue;}
       const filename=new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});checked.set(source.url,source);
     }
@@ -43,7 +47,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     const expected={required:example.required,taxCents:example.expectedAdditionalTaxDollars*100,wageSubjectCents:example.expectedWageSubjectDollars*100,selfEmploymentSubjectCents:example.expectedSelfEmploymentSubjectDollars*100};
     return {id:example.id,pass:JSON.stringify(actual)===JSON.stringify(expected),actual,expected};
   });
-  const energyInstructionChecks=calculationYears.flatMap(year=>energyExamples.examples.map(example=>{
+  const energyInstructionChecks=[2023,2024,2025].flatMap(year=>energyExamples.examples.map(example=>{
     const value=newEnergyCredits();Object.assign(value.home,{street:'1 Example Street',city:'Hartford',state:'CT',zip:'06103'});for(const key of Object.keys(value.review))value.review[key]=true;
     value.items=example.costs.map(([category,dollars],index)=>({id:'synthetic-'+index,category,costCents:dollars*100,qmid:'A1B2',source:'Synthetic eligibility record for arithmetic verification'}));
     const result=energyCredits(value,{year,taxBeforeCreditsCents:1000000});return {year,id:example.id,pass:result.creditCents===example.expectedCreditDollars*100&&result.diagnostics.length===0,actualCreditCents:result.creditCents,expectedCreditCents:example.expectedCreditDollars*100};
@@ -71,7 +75,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const lateResult=householdEmployment([lateInput],{year:late.year,filingStatus:'single'}),lateDetails=lateResult.forms[0].household.futaDetails;
   const lateActual={taxCents:lateResult.taxCents,worksheet1:lateDetails.worksheet1,worksheet2:Object.fromEntries(Object.keys(late.worksheet2).map(key=>[key,lateDetails.worksheet2?.[key]??null]))},lateExpected={taxCents:late.householdTaxCents,worksheet1:late.worksheet1,worksheet2:late.worksheet2};
   householdFutaDerivedChecks.push({year:late.year,id:'futa-late-contributions-then-reduction',kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(lateActual)===JSON.stringify(lateExpected)&&!lateResult.diagnostics.length,actual:lateActual,expected:lateExpected});
-  const investmentDerivedChecks=calculationYears.flatMap(year=>investmentExamples.cases.map((example,index)=>{
+  const investmentDerivedChecks=[2023,2024,2025].flatMap(year=>investmentExamples.cases.map((example,index)=>{
     const value=newInvestmentIncome();value.foreignAccount='no';value.foreignTrust='no';for(const key of Object.keys(value.review))value.review[key]=true;
     if(example.interestDollars)value.interestPayers=[{id:'synthetic-interest',payer:'Synthetic Bank',amountCents:example.interestDollars*100,source:'Synthetic ordinary-income vector'}];
     if(example.dividendsDollars)value.dividendPayers=[{id:'synthetic-dividends',payer:'Synthetic Fund',amountCents:example.dividendsDollars*100,source:'Synthetic nonqualified-income vector'}];
@@ -81,6 +85,24 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     const expected={scheduleB:{'2':example.interestDollars*100,'3':0,'4':example.interestDollars*100,'6':example.dividendsDollars*100},niitCents:example.taxDollars*100,thresholdCents:example.agiDollars>example.thresholdDollars?example.thresholdDollars*100:null};
     return {year,id:'ordinary-investment-'+index,kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!income.diagnostics.length&&!niit.diagnostics.length,actual,expected};
   }));
+  const capitalValue=()=>{const value=newCapitalIncome();for(const key of Object.keys(value.review))value.review[key]=true;return value;};
+  const capitalTrade=(year,category,proceeds,basis,adjustments=[])=>({id:'synthetic-'+category,description:'Synthetic example security',category,dateAcquired:`${category<'D'?year:year-2}-01-01`,dateSold:`${year}-06-01`,proceedsCents:proceeds*100,basisCents:basis*100,adjustments,source:'Published arithmetic or labeled synthetic vector'});
+  const capitalPublishedChecks=[2023,2024,2025].flatMap(year=>capitalExamples.published8949.map((row,index)=>{
+    const value=capitalValue();value.trades=[capitalTrade(year,'A',row.proceeds,row.basis,row.code?[{code:row.code,amountCents:row.adjustment*100,explanation:row.example}]:[])];const result=capitalIncome(value,{year,filingStatus:'single'}),actual=result.shortTermCents,expected=row.gain*100;
+    return {year,id:'8949-column-h-example-'+(index+1),kind:index===2?'published-arithmetic-synthetic-adjustment':'published-instruction-example',pass:actual===expected&&!result.diagnostics.length,actualGainCents:actual,expectedGainCents:expected};
+  }));
+  for(const year of [2023,2024,2025]){
+    const row=capitalExamples.publishedCarryover,value=capitalValue();value.trades=[capitalTrade(year,'D',0,row.netLoss)];const result=capitalIncome(value,{year,filingStatus:row.status}),carry=capitalLossCarryforward(result,{taxableIncomeBeforeFloorCents:row.taxable*100}),actual={deductionCents:result.lossDeductionCents,carryforwardCents:carry.shortTermLossCents+carry.longTermLossCents},expected={deductionCents:row.deduction*100,carryforwardCents:row.nextTotal*100};
+    capitalPublishedChecks.push({year,id:'pub550-bob-shelly-carryover',kind:'published-instruction-example',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!result.diagnostics.length,actual,expected});
+  }
+  const capitalDerivedChecks=capitalExamples.syntheticPreferential.map(row=>{
+    const actual=qualifiedCapitalTax({year:row.year,filingStatus:'single',taxableIncomeCents:row.taxable*100,qualifiedDividendsCents:row.preferential*100}).taxCents,expected=row.tax*100;
+    return {year:row.year,id:`qualified-tax-${row.taxable}-${row.preferential}`,kind:'derived-synthetic-instruction-vector',pass:actual===expected,actualTaxCents:actual,expectedTaxCents:expected};
+  });
+  for(const year of [2023,2024,2025])for(const [index,row]of capitalExamples.syntheticLosses.entries()){
+    const value=capitalValue();value.trades=[capitalTrade(year,'A',Math.max(0,row.short),Math.max(0,-row.short)),capitalTrade(year,'D',Math.max(0,row.long),Math.max(0,-row.long))];const result=capitalIncome(value,{year,filingStatus:row.status??'single'}),carry=capitalLossCarryforward(result,{taxableIncomeBeforeFloorCents:row.taxable*100}),actual={shortCents:carry.shortTermLossCents,longCents:carry.longTermLossCents},expected={shortCents:row.nextShort*100,longCents:row.nextLong*100};
+    capitalDerivedChecks.push({year,id:'capital-loss-character-'+index,kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!result.diagnostics.length,actual,expected});
+  }
   const installedPacks=[];
   for(const year of calculationYears){
     const pack=pdfYearPack(year),forms=[];
@@ -108,10 +130,10 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   }
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
-    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,sourceEvidence,installedPacks,scenarios,
-    requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),stateCalculationPacks:[],
+    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks,...capitalPublishedChecks,...capitalDerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,capitalPublishedChecks,capitalDerivedChecks,sourceEvidence,installedPacks,scenarios,
+    requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),partialCalculationYears:[2026],federal2026Availability,stateCalculationPacks:[{state:'CT',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[2023],filingApproved:false}],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
-    limits:['Instruction examples are not ATS scenario execution.','FUTA and investment vectors are synthetic cases derived from instructions; they are not published IRS taxpayer examples.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
+    limits:['Instruction examples are not ATS scenario execution.','FUTA, NIIT and capital derived vectors are synthetic cases; published capital examples are labeled separately, including the generic arithmetic example with a synthetic adjustment interpretation.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   try{

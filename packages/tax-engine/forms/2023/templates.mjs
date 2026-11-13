@@ -151,5 +151,23 @@ export const officialForms2023=Object.freeze([
     "pages": 1,
     "fieldCount": 38,
     "taxYear": 2023
+  },
+  {
+    "id": "f1040sd",
+    "url": "https://www.irs.gov/pub/irs-prior/f1040sd--2023.pdf",
+    "sha256": "3421941cbc675e004d38ff3045e865f82bb97a5db080c9630a34057f4165ec07",
+    "bytes": 96288,
+    "pages": 2,
+    "fieldCount": 55,
+    "taxYear": 2023
+  },
+  {
+    "id": "f8949",
+    "url": "https://www.irs.gov/pub/irs-prior/f8949--2023.pdf",
+    "sha256": "8d42e05176c6a8c63bf025cb26546a878fc73c462b234ec70fd5a824c3b145a7",
+    "bytes": 127813,
+    "pages": 2,
+    "fieldCount": 244,
+    "taxYear": 2023
   }
 ].map(Object.freeze));

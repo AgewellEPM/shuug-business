@@ -1,17 +1,25 @@
 import {decode64} from '../envelope.mjs';
 import {legacySha256,verifyLegacyImportReport} from '../legacy-import.mjs';
+import {assertLegacyBookSource,isLegacyBooks,legacyBookCounts} from '../legacy-books.mjs';
 const utf8=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true}),same=(a,b)=>a.length===b.length&&a.every((v,i)=>v===b[i]);
 const scopeOf=client=>JSON.stringify(client.scope),fail=()=>{throw new Error('A migrated object has invalid contents, links or provenance. No import was started.');};
 const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
 function sourceKey(domain,value){
-  const field={'driver-record':'recordId','driver-receipt':'receiptId','tax-document':'documentId'}[domain],legacy=value?.legacy;
+  const book=isLegacyBooks(value)||value?.kind==='legacy-client-book',source=isLegacyBooks(value)?value.source:value;
+  const field=book?'bookId':{'driver-record':'recordId','driver-receipt':'receiptId','tax-document':'documentId'}[domain],legacy=source?.legacy;
   if(!field||!legacy||!uuid(legacy.accountId)||!uuid(legacy[field])||(domain!=='driver-receipt'&&!uuid(legacy.clientId))||(legacy.clientId!==undefined&&legacy.clientId!==null&&!uuid(legacy.clientId)))fail();
-  return JSON.stringify([domain,legacy.accountId,legacy.clientId??null,legacy[field]]);
+  // A client business book can be reached through more than one old customer
+  // account. Its stable book ID, not the login used to export it, is the source.
+  return JSON.stringify(book?['client-book',legacy.bookId]:[domain,legacy.accountId,legacy.clientId??null,legacy[field]]);
 }
-async function normalize(bytes,entry,report){
+async function normalize(bytes,entry,report,preparation){
   const value=JSON.parse(decoder.decode(bytes)),migration={version:1,backupManifestSha256:report.backupManifestSha256};
   if(value.version!==1||!value.legacy||typeof value.legacy!=='object')fail();
   sourceKey(entry.domain,value);
+  if(entry.sourceType==='client-book'){
+    assertLegacyBookSource(value);if(await legacySha256(bytes)!==entry.sourceSha256)fail();
+    return {version:1,type:'legacy-accounting',source:value,migration,preparation};
+  }
   if(entry.domain==='driver-record'){
     const record=value.record;if(value.kind!=='legacy-driver-record'||record?.id!==entry.objectId||!['trip','expense','income'].includes(record.kind)||typeof record.deleted!=='boolean'||!Number.isSafeInteger(record.revision)||record.revision<1||!record.body||typeof record.body!=='object'||Array.isArray(record.body))fail();
     if(record.body.receiptId&&!report.entries.some(item=>item.domain==='driver-receipt'&&item.objectId===record.body.receiptId))fail();
@@ -55,21 +63,23 @@ export class LegacyImport {
         const original=await this.#client.openLegacyExport(envelope,report.recipientManifest);
         try{
           this.#check(generation);
-          const value=await normalize(original,entry,report);this.#check(generation);
+          const value=await normalize(original,entry,report,{reportBytes:decoder.decode(reportBytes),signature});this.#check(generation);
           const bytes=utf8.encode(JSON.stringify(value));let retained=false;
           try{
             total+=bytes.length;if(total>64*1024**2)throw new Error('Opened migration content exceeds the 64 MiB browser limit.');this.#check(generation);
-            this.#rows.push({objectId:entry.objectId,domain:entry.domain,bytes,label:value.filename??`${value.record.deleted?'Archived deleted ':''}${value.record.kind}: ${value.record.body.description??value.record.body.merchant??value.record.body.purpose??'Legacy record'}`,status:'review'});retained=true;
+            this.#rows.push({objectId:entry.objectId,domain:entry.domain,bytes,label:isLegacyBooks(value)?`Business books: ${value.source.book.name} · ${value.source.state?.entries.length??'unknown'} journal entries`:value.filename??`${value.record.deleted?'Archived deleted ':''}${value.record.kind}: ${value.record.body.description??value.record.body.merchant??value.record.body.purpose??'Legacy record'}`,status:'review'});retained=true;
           }finally{if(!retained)bytes.fill(0);}
         }finally{original.fill(0);}
       }
+      const counts={};for(const row of this.#rows){const value=JSON.parse(decoder.decode(row.bytes));if(isLegacyBooks(value))for(const [name,count]of Object.entries(legacyBookCounts(value.source)))counts[name]=(counts[name]??0)+count;}
+      for(const [name,count]of Object.entries(counts))if(report.supportedCounts[name]!==count)fail();
       await this.#client.sync();this.#check(generation);await this.#reconcile(generation);this.report=report;return this.rows;
     }catch(error){this.clear();throw error;}finally{this.#running=false;}
   }
   async #reconcile(generation){
     let size=[...this.#client.records.values()].reduce((sum,item)=>sum+item.plaintext.length,0),count=this.#client.records.size;
     const sources=new Map(),selected=new Map(),rowsById=new Map(this.#rows.map(row=>[row.objectId,row]));
-    const remember=(domain,value,objectId)=>{if(!value?.migration||!value?.legacy||!['driver-record','driver-receipt','tax-document'].includes(domain))return;const key=sourceKey(domain,value),prior=sources.get(key);if(prior&&prior!==objectId)throw new Error('This legacy source already has conflicting destination or pending objects. Reconcile its revisions separately.');sources.set(key,objectId);};
+    const remember=(domain,value,objectId)=>{if(!value?.migration||!(value?.legacy||isLegacyBooks(value))||!['driver-record','driver-receipt','tax-document'].includes(domain))return;const key=sourceKey(domain,value),prior=sources.get(key);if(prior&&prior!==objectId)throw new Error('This legacy source already has conflicting destination or pending objects. Reconcile its revisions separately.');sources.set(key,objectId);};
     for(const item of this.#client.records.values()){let value;try{value=JSON.parse(decoder.decode(item.plaintext));}catch{continue;}remember(item.domain,value,item.objectId);}
     for(const row of this.#rows){const key=sourceKey(row.domain,JSON.parse(decoder.decode(row.bytes)));if(selected.has(key))throw new Error('The selected export contains the same legacy source more than once. No import was started.');selected.set(key,row.objectId);}
     // A previous backup may have a durable encrypted retry with a different

@@ -1,0 +1,272 @@
+[
+  {
+    "name": "topmostSubform[0].Page1[0].f1_1[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 36,
+      "y": 684.5,
+      "width": 323,
+      "height": 13.500999999999976
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_2[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 489.6,
+      "y": 684,
+      "width": 86.39999999999998,
+      "height": 23.000999999999976
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].c1_1[0]",
+    "type": "PDFCheckBox",
+    "rect": {
+      "x": 565,
+      "y": 626.002,
+      "width": 8,
+      "height": 8
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_3[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 588.502,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_4[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 508,
+      "y": 564.501,
+      "width": 65,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_5[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 528.501,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_6[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 516.502,
+      "width": 71,
+      "height": 10.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_7[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 504.5,
+      "width": 71,
+      "height": 10.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_8[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 480.502,
+      "width": 71,
+      "height": 11.498999999999967
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_9[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 456.501,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_10[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 411.4,
+      "y": 432.5,
+      "width": 70,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_11[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 420.501,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_12[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 408.502,
+      "width": 71,
+      "height": 10.998999999999967
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_13[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 575,
+      "y": 384.001,
+      "width": 1,
+      "height": 11.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_14[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 411.4,
+      "y": 348.501,
+      "width": 70,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_15[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 411.4,
+      "y": 336.502,
+      "width": 70,
+      "height": 10.998999999999967
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_16[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 411.4,
+      "y": 324.5,
+      "width": 70,
+      "height": 10.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_17[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 312.501,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_18[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 300.502,
+      "width": 71,
+      "height": 10.998999999999967
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_19[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 288.5,
+      "width": 71,
+      "height": 10.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_20[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 276.501,
+      "width": 71,
+      "height": 10.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_21[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 252.5,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page1[0].f1_22[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 411.4,
+      "y": 216.5,
+      "width": 70,
+      "height": 11.498999999999995
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page2[0].f2_1[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 575,
+      "y": 696.002,
+      "width": 1,
+      "height": 11.999000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page2[0].f2_2[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 672.501,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page2[0].f2_3[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 624.502,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  },
+  {
+    "name": "topmostSubform[0].Page2[0].f2_4[0]",
+    "type": "PDFTextField",
+    "rect": {
+      "x": 505,
+      "y": 600.501,
+      "width": 71,
+      "height": 11.499000000000024
+    }
+  }
+]

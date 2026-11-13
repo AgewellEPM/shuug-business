@@ -1,0 +1,108 @@
+{
+  "taxYear": 2026,
+  "reviewedAt": "2026-11-13T05:33:22.807Z",
+  "classification": "Final authoritative annual rates and partial final forms; no final2026TaxTable or mainreturn installed.",
+  "sources": [
+    {
+      "id": "rp-25-32",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "bytes": 260406,
+      "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    },
+    {
+      "id": "ssa2026",
+      "url": "https://www.govinfo.gov/content/pkg/FR-2025-11-03/pdf/2025-19763.pdf",
+      "bytes": 224273,
+      "sha256": "4d2754905fbbe1f1cc44b043853098c58abb163dc8cc97b7b7417bd8d9326f97"
+    },
+    {
+      "id": "i1040sse",
+      "url": "https://www.irs.gov/pub/irs-pdf/i1040sse.pdf",
+      "bytes": 202900,
+      "sha256": "7054fa6c86d893018f69d15f461430a58a1ee3759e817de660ef6cdfe84dc2c0"
+    },
+    {
+      "id": "section199A",
+      "url": "https://uscode.house.gov/us/usc/119-118/t26/s199A/",
+      "bytes": 55131,
+      "sha256": "6d2795bf9c676ed4af0f17cc8a2e17f726ff38500d8e2e9c1437ef14b6a2b3dc",
+      "status": 200
+    },
+    {
+      "id": "f1040es",
+      "url": "https://www.irs.gov/pub/irs-pdf/f1040es.pdf",
+      "status": 200,
+      "bytes": 331490,
+      "sha256": "396ffad25baa737b33a67d27624f7444be3ac4e7245d287aebe5f89864f90b54"
+    }
+  ],
+  "availableFinalForms": [
+    {
+      "id": "f1040sc",
+      "url": "https://www.irs.gov/pub/irs-pdf/f1040sc.pdf",
+      "status": 200,
+      "bytes": 119172,
+      "sha256": "cc44e7d1150e54d991835814c1191f60a32617730ca9e50e6f532b51293a86b4"
+    },
+    {
+      "id": "f1040sse",
+      "url": "https://www.irs.gov/pub/irs-pdf/f1040sse.pdf",
+      "status": 200,
+      "bytes": 77739,
+      "sha256": "a42f5a19c0e84a966a49b5f4ca021d3f49c4fda2e087da0b00bf2003525f8655"
+    }
+  ],
+  "unavailableAnnualBoundaries": [
+    {
+      "id": "f1040",
+      "url": "https://www.irs.gov/pub/irs-pdf/f1040.pdf",
+      "status": 200,
+      "bytes": 220237,
+      "sha256": "3d31c226df0d189ced80e039d01cf0f8820c1019681a0f0ca6264de277b7e982",
+      "observedTaxYear": 2025,
+      "requiredTaxYear": 2026
+    },
+    {
+      "id": "i1040tt",
+      "url": "https://www.irs.gov/pub/irs-pdf/i1040tt.pdf",
+      "status": 200,
+      "bytes": 1452403,
+      "sha256": "8ae019bd3b28b07b37e46e18597d8e899222a2224ce7482c015b130033403532",
+      "observedTaxYear": 2025,
+      "requiredTaxYear": 2026
+    },
+    {
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-pdf/i1040gi.pdf",
+      "status": 200,
+      "bytes": 4434643,
+      "sha256": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a",
+      "observedTaxYear": 2025,
+      "requiredTaxYear": 2026
+    },
+    {
+      "id": "i1040sc",
+      "url": "https://www.irs.gov/pub/irs-pdf/i1040sc.pdf",
+      "bytes": 357575,
+      "sha256": "b5536db91498a450572e37078d7d5ee8fdc400e385d4fee3a26c230a33e399b6",
+      "observedTaxYear": 2025,
+      "requiredTaxYear": 2026
+    }
+  ],
+  "draftEvidence": [
+    {
+      "id": "f1040--draft",
+      "url": "https://www.irs.gov/pub/irs-dft/f1040--dft.pdf",
+      "bytes": 408372,
+      "sha256": "e044e765ace334c76bda7910bd3193fc813c7789d06340124359b885c98d58d0",
+      "status": 200,
+      "observedTaxYear": 2026,
+      "usableForFiling": false
+    }
+  ],
+  "limits": [
+    "No data extracted from draft instructions is used for calculation.",
+    "Statutory rate schedules apply only at or above100000USD taxable income; below that boundary ordinarytax staysunknown pendingfinal TaxTable.",
+    "FinalScheduleC andSE do not establish a complete annual return pack."
+  ]
+}

@@ -11,8 +11,9 @@ test('passing published examples and pinned local blanks never become agency or 
   assert(report.scenarios.every(scenario=>scenario.fullScenarioExecuted===false&&scenario.sourceBytesVerified===false&&scenario.status==='blocked'));
   assert(report.installedPacks.every(pack=>pack.forms.every(form=>form.filingApproved===false)));
   assert.equal(report.householdFutaDerivedChecks.length,13);assert.equal(report.investmentDerivedChecks.length,24);
+  assert.equal(report.capitalPublishedChecks.length,15);assert.equal(report.capitalDerivedChecks.length,27);assert(report.capitalPublishedChecks.every(check=>check.pass));assert(report.capitalDerivedChecks.every(check=>check.pass&&check.kind==='derived-synthetic-instruction-vector'));assert.equal(report.capitalPublishedChecks.filter(check=>check.kind==='published-arithmetic-synthetic-adjustment').length,3);
   assert([...report.householdFutaDerivedChecks,...report.investmentDerivedChecks].every(check=>check.pass&&check.kind==='derived-synthetic-instruction-vector'));
-  assert(report.installedPacks.every(pack=>['f1040sb','f8960'].every(id=>pack.forms.some(form=>form.id===id))));assert.equal(report.readiness,'prototype');
+  assert(report.installedPacks.filter(pack=>pack.year<=2025).every(pack=>['f1040sb','f8960','f1040sd','f8949'].every(id=>pack.forms.some(form=>form.id===id))));assert.equal(report.readiness,'prototype');
 });
 test('selected official scenario bytes must match the reviewed pin before claiming source verification',async()=>{
   const directory=await mkdtemp(path.join(tmpdir(),'shuug-qualification-'));

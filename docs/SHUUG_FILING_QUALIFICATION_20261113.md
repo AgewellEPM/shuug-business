@@ -1,7 +1,8 @@
 # Filing qualification work
 
 Shuug has **no IRS or state software approval**. The current release remains a
-prototype with limited federal preparation for 2023–2025. The requested scope
+prototype with limited 2023–2025 federal/Connecticut resident preparation and
+partial 2026 individual calculations. The requested scope
 is 2023–2026, four federal families and all 50 states. The new calculation and
 evidence below advance that scope without changing the draft or filing boundary.
 
@@ -35,7 +36,11 @@ node scripts/tax/qualification-report.mjs --out /new/path/qualification.json
 The report checks every installed blank against its reviewed pin, runs six
 published 8959 examples, three published energy-credit examples for each of three
 years, the annual Publication 926 payroll example for each year, and inventories
-the engine source. It distinguishes
+the engine source. Capital checks now include annual published examples, clearly
+labeled interpretations and separate synthetic vectors; see
+[capital coverage](../packages/tax-engine/CAPITAL-INCOME.md),
+[2026 availability](../packages/tax-engine/ANNUAL-2026.md), and
+[Connecticut scope](../packages/tax-engine/CONNECTICUT.md). It distinguishes
 partial form support from missing forms, with agency approval and release
 readiness recorded separately. An existing output is never overwritten. Zero
 exit status means the local checks ran successfully; it does not mean approval.
@@ -47,7 +52,11 @@ For source verification, download the four public PDFs identified in
 from the source pinned in `packages/tax-engine/test/irs-energy-examples.json`, into
 a separate directory. Also include the six annual publication/instruction PDFs
 pinned in `packages/tax-engine/test/irs-household-examples.json` using their URL
-filenames. Pass `--sources /that/directory`. Any changed source fails the run instead of silently
+filenames. Include the annual instructions pinned by
+`test/investment-reference.json` and `test/capital-reference.json` under the tax
+engine package, using their original URL filenames; shared sources appear once.
+The combined source check currently verifies 30 distinct files.
+Pass `--sources /that/directory`. Any changed source fails the run instead of silently
 updating its expected hash. The default run does not claim those external source
 bytes were checked. No credentials, customer data or network transmission are used.
 

@@ -202,5 +202,5 @@ test('return saves survive a lost acknowledgment and reopen from identical encry
   const puts=f.calls.filter(call=>call.options.method==='PUT');assert.equal(puts[0].options.body,puts[1].options.body);await reopened.sync();const restored=JSON.parse(new TextDecoder().decode(reopened.records.get(id).plaintext));assert.deepEqual(restored,input);assert.equal(calculateReturn(restored).summary.totalTaxCents,2100000);
 });
 test('return storage failure or unsupported year sends no taxpayer write',async()=>{
-  const f=await fixture(),input=newReturn();f.storage.failPending=true;await assert.rejects(()=>saveReturn(f.vault,input),/storage unavailable/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);f.storage.failPending=false;input.year=2026;await assert.rejects(()=>saveReturn(f.vault,input),/Correct the return/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);
+  const f=await fixture(),input=newReturn();f.storage.failPending=true;await assert.rejects(()=>saveReturn(f.vault,input),/storage unavailable/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);f.storage.failPending=false;input.year=2027;await assert.rejects(()=>saveReturn(f.vault,input),/Correct the return/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);
 });

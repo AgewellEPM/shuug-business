@@ -13,6 +13,7 @@ import { isTaxReturn,renderReturn } from './return-view.mjs';
 import { saveReturn } from './return-save.mjs';
 import { renderCase } from './case-view.mjs';
 import { renderOffice } from './office-view.mjs';
+import { renderLegacyBooks } from './legacy-books-view.mjs';
 
 const $=id=>document.getElementById(id), labels={
   'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses',
@@ -84,7 +85,8 @@ function renderGroups(){
       meta.textContent=`Item ${item.objectId} · revision ${item.revision}`;row.append(title,meta);
       const file=data?.version===1&&data?.type==='private-file'&&typeof data?.data==='string';
       const journal=journalSections(data,{workspaceId:client.config.workspaceId,...client.identity,objectId:item.objectId,domain:item.domain});
-      if(item.verifiedOffice||data?.type==='client-office'){title.textContent='Your client books and firm billing';row.append(renderOffice(document,item,client.records));
+      if(item.verifiedLegacyBooks||data?.type==='legacy-accounting'){title.textContent='Imported business accounting';row.append(renderLegacyBooks(document,item,{download,run}));
+      }else if(item.verifiedOffice||data?.type==='client-office'){title.textContent='Your client books and firm billing';row.append(renderOffice(document,item,client.records));
       }else if(item.verifiedCase||data?.type==='tax-case'){
         title.textContent='Your client case';row.append(renderCase(document,item,client.records));
       }else if(item.domain==='tax-document'&&isTaxReturn(data)){

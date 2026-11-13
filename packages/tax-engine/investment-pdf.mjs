@@ -27,11 +27,11 @@ export function investmentWorkpaper(input,line){
   const value=input.individual?.investmentIncome;if(!value)return;
   line('Schedule B supporting statement — interest and ordinary dividend payers',12);
   line('Original source amounts retain cents below. Form totals round the original sum once. If rounding individual rows would not reconcile, Schedule B refers to this complete statement and reports one rounded total. No Form 8938, 3520/3520-A or FBAR is prepared/transmitted here.');
-  for(const [key,label]of [['interestPayers','Taxable interest'],['dividendPayers','Nonqualified ordinary dividends']]){
-    line(label,11);for(const payer of value[key])line(`${payer.payer||'Payer name not entered'}: ${displayMoney(payer.amountCents)} USD. Source: ${payer.source||'not entered'}`);
+  for(const [key,label]of [['interestPayers','Taxable interest'],['dividendPayers','Ordinary dividends including qualified subset']]){
+    line(label,11);for(const payer of value[key])line(`${payer.payer||'Payer name not entered'}: ${displayMoney(payer.amountCents)} USD.${key==='dividendPayers'?` Qualified subset: ${displayMoney(payer.qualifiedDividendsCents??0)} USD.`:''} Source: ${payer.source||'not entered'}`);
     line(`Original total: ${displayMoney(sumMoney(value[key].map(payer=>payer.amountCents)))} USD.`);
   }
   line(`Foreign account/signature authority: ${value.foreignAccount}; FBAR required: ${value.fbarRequired}; account countries: ${value.foreignCountries||'not entered'}; foreign trust: ${value.foreignTrust}.`);
-  line('Form 8960 scope: ordinary taxable interest and nonqualified dividends only; MAGI equals AGI and eligible investment deductions/modifications are zero only after the explicit reviews.');
+  line('Form 8960 scope: taxable interest, ordinary dividends including qualified dividends, and reviewed ordinary Schedule D securities. MAGI equals AGI and Part II deductions/modifications are zero only after explicit review. Capital gains/losses must have matching regular-tax and NIIT treatment.');
   for(const [key,checked]of Object.entries(value.review))line(`${key}: ${checked?'reviewed':'unreviewed'}.`);
 }

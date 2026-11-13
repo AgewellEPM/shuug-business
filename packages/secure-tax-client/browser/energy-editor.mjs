@@ -3,6 +3,7 @@ import {newEnergyCredits,energyCategories,energyReviews,panelEnabledTypes} from 
 export function energyFields({document,parent,individual,year,field,group,button,readers}){
   const section=group(parent,'Residential energy credits (Form 5695)');
   section.id='residential-energy-editor';
+  if(year===2026){const note=document.createElement('p');note.textContent='2026: new expenditures cannot use the 2025 home-energy credits. Source records and prior carryforwards can be preserved here, but the 2026 credit/form calculation is not installed.';section.append(note);}
   const notice=document.createElement('p');notice.textContent='Supported: one qualifying home, clean-energy costs/carryforward and energy-efficient improvements. Fuel cells, multiple homes, separate-return joint occupants and fractional condo/co-op allocations need additional treatment. Enter eligible costs after rebates, business-use and installation rules; keep receipts and manufacturer records.';section.append(notice);
   if(!individual.energyCredits){button(section,'Add residential energy credits',()=>{individual.energyCredits=newEnergyCredits();});return;}
   const value=individual.energyCredits,address=group(section,'Property address');

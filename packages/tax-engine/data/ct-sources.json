@@ -1,0 +1,54 @@
+{
+  "reviewedOn": "2026-11-13",
+  "sources": {
+    "2023": {
+      "instructions": "https://portal.ct.gov/-/media/drs/forms/2023/income/2023-ct-1040-instructions_1223.pdf",
+      "instructionSha256": "fb5b65b0081464528876ac0fa9ee794e75c0d4859676b3a3405517f7f2e9c0a2",
+      "form": {
+        "id": "ct1040",
+        "year": 2023,
+        "title": "2023 Connecticut resident income tax return",
+        "url": "https://portal.ct.gov/-/media/drs/forms/2023/income/ct-1040_1223.pdf",
+        "sha256": "4b6cbca6b349b9bec56e8b718df9c236561aca7e57bda31e6454c5bacbc72a24",
+        "bytes": 450476,
+        "pages": 4,
+        "fieldCount": 0,
+        "overlay": true,
+        "sourceDraft": true
+      }
+    },
+    "2024": {
+      "instructions": "https://portal.ct.gov/-/media/drs/forms/2024/income/2024-ct-1040-instructions_1224.pdf",
+      "instructionSha256": "fad02854c8e39e179c6fd5cf0b36b9c9ef638baa679762236e5f06acb3412c42",
+      "form": {
+        "id": "ct1040",
+        "year": 2024,
+        "title": "2024 Connecticut resident income tax return",
+        "url": "https://portal.ct.gov/-/media/drs/forms/2024/income/ct-1040_1224.pdf",
+        "sha256": "63ef57eba0b794985be947fa04971e02062e12d001c2879bce90f2ee5448dba0",
+        "bytes": 449555,
+        "pages": 4,
+        "fieldCount": 0,
+        "overlay": true,
+        "sourceDraft": false
+      }
+    },
+    "2025": {
+      "instructions": "https://portal.ct.gov/-/media/drs/forms/2025/income/2025-ct-1040-instructions_1225.pdf",
+      "instructionSha256": "0e2cabf0fd48b9fa86d926adfb9e3c6dad3cbf17badfcf11321d8e4bceb24386",
+      "form": {
+        "id": "ct1040",
+        "year": 2025,
+        "title": "2025 Connecticut resident income tax return",
+        "url": "https://portal.ct.gov/-/media/drs/forms/2025/income/ct-1040_1225.pdf",
+        "sha256": "fadbe2acfd629a61c59266fd5d5f80cb0f717da556203b8cd73f6ae49d538b9b",
+        "bytes": 424566,
+        "pages": 4,
+        "fieldCount": 0,
+        "overlay": true,
+        "sourceDraft": false
+      }
+    }
+  },
+  "method": "Annual CT-1040 Tax Calculation Schedule, Tables A-E, property credit table. Original four-page PDFs have zero AcroForm fields; pinned coordinate overlays preserve all source pages. 2023 DRS-linked source itself contains DRAFT 12-12-2023."
+}

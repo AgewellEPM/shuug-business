@@ -1,0 +1,3 @@
+const rows={};for(const [line,start]of [['1b',7],['2',11],['3',15],['8b',27],['9',31],['10',35]])for(const [index,column]of ['d','e','g','h'].entries())rows[line+column]=`1/${start+index}`;
+export const capitalScheduleMap=Object.freeze({...rows,'4':'1/19','5':'1/20','6':'1/21','7':'1/22','11':'1/39','12':'1/40','13':'1/41','14':'1/42','15':'1/43','16':'2/1','18':'2/2','19':'2/3','21':'2/4'});
+export function capital8949Map(year){const start=year===2025?91:115,result={};for(const page of [1,2])for(const [column,offset]of [['d',0],['e',1],['g',3],['h',4]])result[`${page}${column}`]=`${page}/${start+offset}`;return Object.freeze(result);}

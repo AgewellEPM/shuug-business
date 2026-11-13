@@ -26,6 +26,7 @@ export function householdEmployment(values,{year,filingStatus}){
   const annual=householdYearRules[year],federal=federalYearRules(year);
   if(values===undefined)return {required:false,taxCents:0,forms:[],diagnostics:[]};
   const employers=list(values,'Household employers',2),owners=new Set(),eins=new Set(),forms=[],diagnostics=[];
+  if(employers.length&&!annual)return {required:true,taxCents:null,forms:[],diagnostics:[diagnostic('HOUSEHOLD_ANNUAL_RULES_REQUIRED','This tax year has no reviewed Schedule H/FUTA pack. Payroll inputs are retained; prior-year thresholds and credit-reduction rates were not reused.')]};
   let total=0,unknown=false,required=false;
   for(const value of employers){
     strictObject(value,['owner','ein','employees','priorYearFutaQuartersCents','unemployment','review'],'Household employer');

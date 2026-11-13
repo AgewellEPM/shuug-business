@@ -1,4 +1,6 @@
 import {investmentWorkpaper} from './investment-pdf.mjs';
+import {capitalWorkpaper} from './capital-pdf.mjs';
+import {ctWorkpaper,renderCTForm} from './state-ct-pdf.mjs';
 import { PDFDocument, StandardFonts, rgb, degrees, PDFName } from 'pdf-lib';
 import { calculateReturn, scopeNotice } from './index.mjs';
 import { displayMoney } from './money.mjs';
@@ -43,10 +45,12 @@ function workpaper(pdf,font,input,result){
   line(`Name in the source workpaper: ${input.party.name}`);line(`Filing status: ${input.individual?.filingStatus??'Business entity'}`);line(`Calculated from the encrypted return input; status: ${result.status}.`);
   for(const [key,value]of Object.entries(result.summary))line(`${key.replace(/Cents$/,'').replace(/([A-Z])/g,' $1')}: ${displayMoney(value)} USD`);
   line('Preparation diagnostics',14);for(const item of result.diagnostics)line(`${item.severity.toUpperCase()}: ${item.message}`);
+  if(result.pdfUnavailableForms?.length)line('Official templates omitted because this annual pack is incomplete: '+result.pdfUnavailableForms.join(', ')+'. The calculation fields below are workpapers, not finalized form line assignments.');
+  for(const item of result.forms.filter(item=>result.pdfUnavailableForms?.includes(item.form))){line(`${item.form} calculation workpaper`,12);for(const [key,value]of Object.entries(item.lines))line(`${key}: ${displayMoney(value)} USD`);}
   const businesses=input.individual?.businesses??[input.entity];
   for(const business of businesses){line(`Deduction workpaper: ${business.name??business.businessName??'Business'}`,12);for(const expense of business.expenses)line(`${expense.category}: ${displayMoney(expense.amountCents)} USD. ${expense.description}`);}
   if(input.notes){line('Preparation notes',12);line(input.notes);}
-  energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);
+  energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);capitalWorkpaper(input,line,result);ctWorkpaper(input,result,line);
 }
 
 /** All calculation and rendering happen in the trusted caller. The loader only
@@ -58,6 +62,11 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
   const output=await PDFDocument.create(),font=await output.embedFont(StandardFonts.Helvetica),audit=[];
   workpaper(output,font,original,result);householdContinuationPdf(output,font,original,result);
   for(const item of result.forms){
+    if(original.year===2026&&result.pdfUnavailableForms?.includes(item.form))continue;
+    if(item.form==='ct1040'){
+      const rendered=await renderCTForm(original,item,{loadTemplate});
+      try{const pdf=await PDFDocument.load(rendered.bytes),firstPage=output.getPageCount()+1;removeActions(pdf);for(const page of await output.copyPages(pdf,pdf.getPageIndices()))output.addPage(page);audit.push({...rendered.audit,firstPage,pageCount:pdf.getPageCount()});}finally{rendered.bytes.fill(0);}continue;
+    }
     const approved=templates.find(form=>form.id===item.form);if(!approved||!lineMaps[item.form])throw new Error('An official form has no reviewed annual template/map.');
     const bytes=new Uint8Array(await loadTemplate(item.form,original.year));
     if(bytes.length!==approved.bytes||hex(new Uint8Array(await crypto.subtle.digest('SHA-256',bytes)))!==approved.sha256)throw new Error('The bundled official form failed its pinned integrity check.');
@@ -73,5 +82,5 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
   }
   for(const page of output.getPages())page.drawText('SHUUG DRAFT - DO NOT FILE',{x:90,y:360,size:30,font,color:rgb(.65,.12,.12),opacity:.18,rotate:degrees(35)});
   output.setTitle(`Shuug ${original.year} Form ${original.kind} draft`);output.setProducer('Shuug local tax preparation');removeActions(output);
-  return {bytes:await output.save(),result,audit};
+  return {bytes:await output.save(),result,audit,omittedForms:result.pdfUnavailableForms??[]};
 }

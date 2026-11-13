@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "type": "shuug-tax-and-accounting-expansion-evidence",
+  "scope": [
+    "2023\u20132025 ordinary capital gains and qualified dividends",
+    "2026 partial federal calculations and final Schedule C/SE",
+    "2023\u20132025 Connecticut resident return preparation",
+    "Authenticated encrypted legacy client business-book history"
+  ],
+  "readiness": "prototype",
+  "nodeTests": {
+    "passed": 332,
+    "failed": 0,
+    "skipped": 1,
+    "skippedReason": "Pre-existing optional native Journal executable fixture unavailable"
+  },
+  "compiledSyntheticHttp": {
+    "checks": 477,
+    "passed": true,
+    "taxReturnsCreatedApprovedReopened": true,
+    "encryptedBackupRestore": true,
+    "legacyBooksSourceVerified": true,
+    "canonicalLegacyPosting": false
+  },
+  "packagedClient": {
+    "modules": 152,
+    "sourceMatchedFiles": 173,
+    "publicTemplateFetches": 50,
+    "exports": 16,
+    "defaultConfigDisabled": true,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "publicTlsVerified": false
+  },
+  "offlineKeyKit": {
+    "files": 416,
+    "allHashesVerified": true,
+    "sourceModulesMatched": true,
+    "initialized": false
+  },
+  "qualification": {
+    "sourceFilesVerified": 30,
+    "internalChecksPassed": true,
+    "agencyApproval": false,
+    "releaseReady": false
+  },
+  "remaining": [
+    "Full federal and entity treatment coverage",
+    "Final 2026 main forms, Tax Table and unsupported annual packs",
+    "Other state/local and supplemental CT return coverage",
+    "Canonical migration posting and all other legacy domains",
+    "IRS/state enrollment, testing, transmission and acknowledgments",
+    "Real separate key custody, independent review, installed rollout and human acceptance"
+  ],
+  "realClientDataUsed": false,
+  "installedServiceChanged": false,
+  "sourcePurged": false
+}

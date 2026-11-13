@@ -6,6 +6,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {sealEnvelope,openEnvelope,verifyEnrollmentManifest,encode64,MAX_CIPHERTEXT_BYTES} from './envelope.mjs';
 import {signLegacyImportReport} from './legacy-import.mjs';
+import {assertLegacyBookSource,legacyBookCounts,legacyEntryDigest} from './legacy-books.mjs';
 
 const MAX_FILES=100000,MAX_BACKUP_BYTES=8*1024**3,MAX_FILE_BYTES=2*1024**3,MAX_ENTRIES=10000,MAX_EXPORT_PLAINTEXT=384*1024**2;
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -166,6 +167,21 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
   if(documentCount){key=canonicalBase64(boundedFile(path.join(scratch,'vault.key'),1024).toString('utf8').trim(),32);usedFiles.add('vault.key');}
   const documents=documentCount?db.prepare('SELECT * FROM tax_client_documents WHERE accountId=? AND clientId=? ORDER BY createdAt,id').all(account.id,account.clientId):[];
   for(const row of documents){usedFiles.add(`tax-documents/${row.id}`);plans.push({domain:'tax-document',objectId:objectIdFor('tax-document',row.id),load:()=>{const bytes=legacyDocument(scratch,row,key);try{return {version:1,kind:'legacy-tax-document',file:{name:row.name,mime:row.mime,size:row.size,sha256:row.digest,bytesBase64url:encode64(bytes)},status:row.status,legacy:{documentId:row.id,accountId:row.accountId,clientId:row.clientId,requestId:row.requestId,engagementId:row.engagementId,createdAt:row.createdAt,reviewedAt:row.reviewedAt}};}finally{bytes.fill(0);}}});}
+  const bookCounts={};
+  if(existsTable(db,'documents')){
+   const selectedBooks=db.prepare("SELECT id,body FROM documents WHERE kind='client-book' AND json_extract(body,'$.clientId')=? ORDER BY id").all(account.clientId);
+   if(plans.length+selectedBooks.length>MAX_ENTRIES)fail('This account exceeds the preparation object limit.');
+   const sourceBooks=new Set();
+   for(const row of selectedBooks){
+    const book=JSON.parse(row.body);if(!uuid.test(book.id)||book.clientId!==account.clientId||row.id!==`client-book:${book.id}`||sourceBooks.has(book.id))fail('A selected client book has invalid routing.');sourceBooks.add(book.id);
+    const stateDocumentId=`state:client-journal:${book.id}`,periodDocumentId=`accounting-periods:${book.id}`;
+    const state=db.prepare("SELECT body FROM documents WHERE id=? AND kind='state'").get(stateDocumentId),periods=db.prepare("SELECT body FROM documents WHERE id=? AND kind='accounting-periods'").get(periodDocumentId);
+    const payload=assertLegacyBookSource({version:1,kind:'legacy-client-book',book,state:state?JSON.parse(state.body):null,periods:periods?JSON.parse(periods.body):null,legacy:{accountId:account.id,clientId:account.clientId,bookId:book.id,bookDocumentId:row.id,stateDocumentId,periodDocumentId}});
+    if(payload.periods?.active&&await legacyEntryDigest(payload.periods.active.entries)!==payload.periods.active.digest)fail('A selected period seal has changed.');
+    for(const [name,value]of Object.entries(legacyBookCounts(payload)))bookCounts[name]=(bookCounts[name]??0)+value;
+    plans.push({domain:'tax-document',sourceType:'client-book',objectId:objectIdFor('client-book',book.id),payload});
+   }
+  }
   if(plans.length>MAX_ENTRIES)fail('This account exceeds the preparation object limit.');
   const unsupported=inventory(db,account.id,account.clientId,receiptCount,receiptIds.size,backupInfo.files,usedFiles);
   mkdirSync(output,{mode:0o700});outputOwned=true;mkdirSync(path.join(output,'objects'),{mode:0o700});
@@ -181,11 +197,11 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
     const opened=await openEnvelope(envelope,context,verified.recipients,'firm-recovery',unlocked.recovery);
     try{if(!Buffer.from(opened).equals(plain))fail('Encrypted export recovery verification failed.');}finally{opened.fill(0);}
     const bytes=Buffer.from(JSON.stringify(envelope)+'\n');writeFileSync(path.join(output,'objects',`${plan.objectId}.json`),bytes,{mode:0o600,flag:'wx'});
-    entries.push({objectId:plan.objectId,revision:1,domain:plan.domain,envelopeBytes:bytes.length,sha256:sha(bytes)});
+    entries.push({objectId:plan.objectId,revision:1,domain:plan.domain,envelopeBytes:bytes.length,sha256:sha(bytes),...(plan.sourceType?{sourceType:plan.sourceType,sourceSha256:sha(plain)}:{})});
    }finally{plain.fill(0);}
   }
   const report={version:1,kind:'shuug-legacy-encrypted-preparation',createdAt:new Date().toISOString(),recipientManifest:manifest,backupManifestSha256,backupCreatedAt:backupInfo.createdAt,
-   entries,supportedCounts:{driverRecords:records.length,linkedDriverReceipts:receiptIds.size,submittedTaxDocuments:documents.length},unsupported,
+   entries,supportedCounts:{driverRecords:records.length,linkedDriverReceipts:receiptIds.size,submittedTaxDocuments:documents.length,...bookCounts},unsupported,
    sourceBackupVerified:true,disposableSqliteRestoreVerified:true,firmRecoveryVerified:entries.length>0,clientRecoveryVerified:false,
    migrationComplete:false,uploaded:false,sourcePurged:false,legacyExposureRemains:true,physicalErasureVerified:false,
    nextRequiredSteps:['Open every exported object with the client recipient on a separately trusted client','Review supported/unsupported coverage and encrypted legacy link mappings','Perform an explicitly authorized encrypted import with duplicate reconciliation','Verify encrypted backup recovery before any separately consented legacy removal']};

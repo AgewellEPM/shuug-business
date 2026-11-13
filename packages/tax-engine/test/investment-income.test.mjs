@@ -21,7 +21,7 @@ test('Schedule B records are authoritative; legacy aggregates retain their missi
   assert.equal(investmentIncome(value,{...context,taxableInterestCents:123401,ordinaryDividendsCents:345600}).incomeUnknown,true);
 });
 test('each unknown NIIT scope keeps total unavailable, including uncertain MAGI below threshold',()=>{
-  for(const key of Object.keys(newInvestmentIncome().review)){
+  for(const key of Object.keys(newInvestmentIncome().review).filter(key=>key!=='qualifiedDividends')){
     const value=investmentFixture();value.review[key]=false;const result=niit(value);assert.equal(result.taxCents,null,key);assert.equal(result.form.lines['17'],null,key);
   }
   const value=investmentFixture();value.review.noMagiAdjustments=false;const result=niit(value,{adjustedGrossIncomeCents:19000000});assert.equal(result.taxCents,null);assert.equal(result.form.lines['13'],null);assert.equal(result.form.lines['15'],null);

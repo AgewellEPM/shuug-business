@@ -3,21 +3,28 @@
 This package supplies limited **2023–2025 federal draft preparation packs** for both
 individual/self-employed and business returns. It is integrated with the
 independently trusted encrypted client and its existing client/staff authorization
-boundary. It is not a completed filing product.
+boundary. Partial 2026 individual calculations and final Schedule C/SE templates
+are also installed, plus a limited Connecticut resident pack for 2023–2025.
+It is not a completed filing product.
 
 Inputs are versioned structured records containing integer cents. Calculations
 use exact integer arithmetic, explicit whole-dollar rounding, the complete
-2,062-row official IRS Tax Table for each year below $100,000, and that year's Tax
-Computation Worksheet above it. Different years never inherit these rates.
+2,062-row official IRS Tax Table for 2023–2025 below $100,000, and that year's Tax
+Computation Worksheet above it. The final 2026 Tax Table is missing, so tax below
+$100,000 remains unknown; higher amounts use the published 2026 statutory rates.
+Different years never inherit these rates.
 
 | Return | Current calculation / draft form coverage |
 | --- | --- |
-| Individual 1040 | Ordinary W-2 wages, taxable interest, nonqualified ordinary dividends, standard deduction, entered withholding/estimates |
+| Individual 1040 | Ordinary W-2 wages, taxable interest, ordinary/qualified dividends, standard deduction, entered withholding/estimates |
 | Self-employed | Schedule C eligible expenses/profit, per-person Schedule SE wage cap and Medicare tax, deductible half of SE tax, limited simplified 8995 QBI, Schedules 1 and 2 |
 | Additional Medicare Tax | Form 8959 ordinary Medicare wages/SE income and W-2 box 6 withholding reconciliation; RRTA/unreported wages and uncollected box-12 tax excluded |
 | Residential energy credits | Form 5695 / Schedule 3, reviewed eligible costs at one home, annual caps and tax limits, clean-energy carryforward; 2025 manufacturer identifiers |
 | Household employment | Schedule H annual worker limits, Medicare/withholding, FUTA Sections A/B, late contributions and annual credit reduction; separate taxpayer/spouse employers |
-| Investment income | Schedule B payer records/foreign disclosures and limited Form 8960 ordinary interest/dividends, reviewed MAGI and deduction scope |
+| Investment income | Schedule B payer records/foreign disclosures and limited Form 8960 interest/dividends/capital gains, reviewed MAGI and deduction scope |
+| Capital income | Schedule D / 8949 ordinary securities, reviewed adjustment codes and short/long carryovers; qualified dividend / capital-gain tax worksheet |
+| Connecticut resident | 2023–2025 CT-1040 resident calculation, annual rates/credits, reviewed adjustments, property/use tax and payments; other jurisdictions/supplements remain explicit gaps |
+| 2026 individual | Published annual standard deduction, SS base and QBI minimum; final C/SE templates. Main 1040 and several schedules remain unavailable |
 | Partnership 1065 | Ordinary business income/deductions, exact ordinary-income owner allocations, partial K-1 workpapers |
 | S corporation 1120-S | Ordinary business income/deductions, exact ordinary-income shareholder allocations, partial K-1 workpapers |
 | C corporation 1120 | Ordinary taxable business income, regular corporate tax, estimates/balance, Schedule J |
@@ -35,9 +42,12 @@ a preparer's declaration, not independent verification. Every result has
 
 ## Forms and sources
 
-Each of `forms/2023`, `forms/2024` and `forms/2025` contains seventeen original public IRS PDF templates. `manifest.json`
+Each of `forms/2023`, `forms/2024` and `forms/2025` contains nineteen original public IRS PDF templates. `manifest.json`
 and `templates.mjs` pin the original URL, SHA-256, byte count, pages and fields.
-The generator checks these before filling mapped fields, flattens the form,
+Connecticut CT-1040 originals have no fillable fields, so their reviewed annual
+coordinate overlays use separate pinned state templates. The 2023 DRS-linked
+original still carries its agency draft mark; no verified final 2023 state template
+is claimed. The generator checks templates before filling mapped fields, flattens the form,
 removes interactive actions/annotations, and adds calculation/diagnostic pages.
 Every page is visibly marked **SHUUG DRAFT - DO NOT FILE**. Blank disclosures,
 signatures, questions and unsupported schedules remain unfinished. Unsupported

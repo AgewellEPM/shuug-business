@@ -1,4 +1,6 @@
 import {investmentFields} from './investment-editor.mjs';
+import {capitalFields} from './capital-editor.mjs';
+import {stateFields} from './state-editor.mjs';
 import { newReturn,calculateReturn,calculationYears,returnTypes,filingStatuses,expenseCategories,parseMoney,displayMoney,scopeNotice } from '@shuug/tax-engine';
 import { renderReturn } from './return-view.mjs';
 import {householdFields} from './household-editor.mjs';
@@ -8,7 +10,7 @@ const treatments=[
   ['dependents-credits','Dependents or other credits not completed in the energy section, including EITC'],
   ['senior-blind-dependent','Age 65+, blindness, or a taxpayer claimed as a dependent'],
   ['schedule-1a','Tips, overtime, senior or car-loan interest deductions (Schedule 1-A)'],
-  ['capital-income','Qualified dividends, capital gains, digital assets or asset sales'],
+  ['capital-income','Unsupported capital assets, special-rate gains or complex investment sales'],
   ['retirement-benefits','Retirement distributions or Social Security benefits'],
   ['rental-pass-through','Rentals, farm income or received partnership/S corporation K-1s'],
   ['itemized-adjustments','Itemized deductions, spouse itemizing, health/retirement/education adjustments'],
@@ -17,7 +19,7 @@ const treatments=[
   ['railroad-unreported-wages','Railroad retirement (RRTA), unreported tips/wages (Forms 4137/8919), or W-2 box 12 uncollected taxes'],
   ['foreign','Foreign income, owners, accounts, treaty or withholding requirements'],
   ['entity-special','Entity credits, special taxes/deductions, NOLs, capital/basis or ownership changes'],
-  ['state-local','State or local returns'],['amendment','Amended, fiscal-year or short-year return'],
+  ['state-local','Other state/local taxes affecting this federal return'],['amendment','Amended, fiscal-year or short-year return'],
 ];
 const node=(document,tag,text)=>{const value=document.createElement(tag);if(text!==undefined)value.textContent=text;return value;};
 
@@ -28,18 +30,18 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
   const section=node(document,'section');section.id='tax-preparation';
   const heading=node(document,'h2','Prepare a tax return'),notice=node(document,'p',scopeNotice),kind=node(document,'select');kind.id='return-kind';
   const kindLabel=node(document,'label','Return type');kindLabel.htmlFor=kind.id;const year=node(document,'select'),yearLabel=node(document,'label','Tax year');year.id='return-year';yearLabel.htmlFor=year.id;for(const value of calculationYears){const option=node(document,'option',String(value));option.value=String(value);year.append(option);}for(const type of returnTypes){const option=node(document,'option',type.label);option.value=type.id;kind.append(option);}
-  const scope=node(document,'p','Current calculations accept reviewed ordinary wages, taxable interest, nonqualified ordinary dividends, eligible business amounts, supported residential energy credits and household-employment taxes. Other schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
+  const scope=node(document,'p','The 2023–2025 calculations accept reviewed wages, interest, ordinary/qualified dividends, ordinary securities gains/losses, eligible business amounts, supported residential energy credits and household-employment taxes. 2026 has partial annual calculations and final Schedule C/SE templates; its missing main form and Tax Table remain explicit. Other schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
   const body=node(document,'div'),output=node(document,'div'),calculate=node(document,'button','Calculate draft'),save=node(document,'button',proposalOnly?'Save private correction review kit':'Encrypt and save return'),clear=node(document,'button',proposalOnly?'Discard correction':'New return');for(const button of [calculate,save,clear])button.type='button';clear.className='secondary';
   if(proposalOnly)scope.textContent+=' Preparing a return proposal downloads encrypted input and a readable private review in one file. Keep that file on trusted firm devices. The separate key environment must approve its exact content before owner publication creates or changes a client return.';
   section.append(heading,notice,kindLabel,kind,yearLabel,year,scope,body,calculate,save,clear,output);container.append(section);
   const modified=()=>{dirty=true;output.replaceChildren(node(document,'p','Input changed. Calculate again to review the current draft.'));onDirty();};
-  function field(parent,target,key,label,{money=false,options=null,check=false,multiline=false,privateId=false,optionalMoney=false}={}){
+  function field(parent,target,key,label,{money=false,options=null,check=false,multiline=false,privateId=false,optionalMoney=false,negativeMoney=false}={}){
     const id=`return-field-${++sequence}`,wrapper=node(document,'div'),caption=node(document,'label',label),input=node(document,options?'select':multiline?'textarea':'input');caption.htmlFor=id;input.id=id;input.dataset.returnField=key;
     if(options){for(const [value,name]of options){const option=node(document,'option',name);option.value=value;input.append(option);}input.value=target[key];}
     else if(check){input.type='checkbox';input.checked=target[key]===true;wrapper.className='tax-check';}
     else{if(!multiline)input.type=privateId?'password':'text';input.value=money?(target[key]||optionalMoney&&target[key]===0?displayMoney(target[key]):''):target[key]??'';input.maxLength=multiline?10000:money?18:200;if(money){input.inputMode='decimal';input.placeholder=optionalMoney?'Enter source amount':'0.00';}if(privateId){input.autocomplete='off';input.maxLength=11;}}
     input.disabled=!enabled;wrapper.append(caption,input);parent.append(wrapper);
-    readers.push(()=>{if(optionalMoney&&input.value.trim()===''){delete target[key];return;}target[key]=check?input.checked:money?(parseMoney(input.value)??0):input.value;});return input;
+    readers.push(()=>{if(optionalMoney&&input.value.trim()===''){delete target[key];return;}target[key]=check?input.checked:money?(parseMoney(input.value,{negative:negativeMoney})??0):input.value;});return input;
   }
   function group(parent,label){const details=node(document,'details');details.open=true;details.append(node(document,'summary',label));parent.append(details);return details;}
   function button(parent,text,action){const value=node(document,'button',text);value.type='button';value.className='secondary';value.disabled=!enabled;value.addEventListener('click',()=>run(async()=>{collect();action();dirty=true;draw();onDirty();}));parent.append(value);}
@@ -66,6 +68,8 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
         field(row,business,'materialParticipation','Material participation confirmed',{check:true});field(row,business,'fullyAtRisk','All investment at risk confirmed',{check:true});expenseFields(row,business);button(row,'Remove this Schedule C',()=>value.businesses.splice(index,1));});
       if(value.businesses.length<5)button(businesses,'Add Schedule C business',()=>value.businesses.push({id:crypto.randomUUID(),owner:'taxpayer',name:'',ein:'',businessCode:'',receiptsCents:0,returnsCents:0,costOfGoodsCents:0,otherIncomeCents:0,expenses:[],materialParticipation:false,fullyAtRisk:false}));
       investmentFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
+      capitalFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
+      stateFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       householdFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       energyFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
     }else{

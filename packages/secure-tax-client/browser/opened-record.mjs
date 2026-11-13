@@ -2,6 +2,7 @@ import { secureEnvelopeDigest } from '../staff-grants.mjs';
 import { isCasePayload, verifyCasePayload } from '../case-certificate.mjs';
 import { isCaseObjectId } from '../case-contract.mjs';
 import { isOfficeBody } from '../office-model.mjs';
+import { isLegacyBooks,verifyLegacyBooks } from '../legacy-books.mjs';
 
 export function assertClientWritablePayload(plaintext,objectId){
   if(isCaseObjectId(objectId))throw new Error('Case work is published only through the reviewed firm workflow. This generic client write was not uploaded.');
@@ -14,6 +15,7 @@ export function assertClientWritablePayload(plaintext,objectId){
 export async function openedRecordMetadata(plaintext,envelope,clientId,pins){
   const envelopeDigest=await secureEnvelopeDigest(envelope);let value;
   try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plaintext));}catch{if(isCaseObjectId(envelope.context.objectId))throw new Error('The reserved case record does not contain a verifiable firm review.');return {envelopeDigest};}
+  if(isLegacyBooks(value)&&!isCaseObjectId(envelope.context.objectId))return {envelopeDigest,verifiedLegacyBooks:await verifyLegacyBooks(value,{...envelope.context,clientId},pins)};
   if(!isCaseObjectId(envelope.context.objectId)&&value?.type!=='tax-case'&&!isCasePayload(value))return {envelopeDigest};
   const verifiedCase=await verifyCasePayload(value,{...envelope.context,clientId},pins);
   return isOfficeBody(verifiedCase)?{envelopeDigest,verifiedOffice:verifiedCase}:{envelopeDigest,verifiedCase};
