@@ -169,5 +169,15 @@ export const officialForms2023=Object.freeze([
     "pages": 2,
     "fieldCount": 244,
     "taxYear": 2023
+  },
+  {
+    "id": "f1125a",
+    "taxYear": 2023,
+    "revisionYear": 2018,
+    "url": "https://www.irs.gov/pub/irs-prior/f1125a--2018.pdf",
+    "bytes": 83827,
+    "sha256": "115aa4ff161e36381bfcbff249b5a16df952d934c1491f0548767dc2beb5f314",
+    "pages": 3,
+    "fieldCount": 30
   }
 ].map(Object.freeze));

@@ -12,6 +12,7 @@ test('passing published examples and pinned local blanks never become agency or 
   assert(report.installedPacks.every(pack=>pack.forms.every(form=>form.filingApproved===false)));
   assert.equal(report.householdFutaDerivedChecks.length,13);assert.equal(report.investmentDerivedChecks.length,24);
   assert.equal(report.capitalPublishedChecks.length,15);assert.equal(report.capitalDerivedChecks.length,27);assert(report.capitalPublishedChecks.every(check=>check.pass));assert(report.capitalDerivedChecks.every(check=>check.pass&&check.kind==='derived-synthetic-instruction-vector'));assert.equal(report.capitalPublishedChecks.filter(check=>check.kind==='published-arithmetic-synthetic-adjustment').length,3);
+  assert.equal(report.retirementPublishedChecks.length,3);assert.equal(report.retirementDerivedChecks.length,45);assert(report.retirementPublishedChecks.every(check=>check.pass&&check.kind==='published-instruction-example'));assert(report.retirementDerivedChecks.every(check=>check.pass&&check.kind==='derived-synthetic-instruction-vector'));assert.equal(report.sourceEvidence.length,0);
   assert([...report.householdFutaDerivedChecks,...report.investmentDerivedChecks].every(check=>check.pass&&check.kind==='derived-synthetic-instruction-vector'));
   assert(report.installedPacks.filter(pack=>pack.year<=2025).every(pack=>['f1040sb','f8960','f1040sd','f8949'].every(id=>pack.forms.some(form=>form.id===id))));assert.equal(report.readiness,'prototype');
 });

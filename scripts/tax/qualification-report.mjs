@@ -14,6 +14,7 @@ import {pdfYearPack} from '../../packages/tax-engine/form-years.mjs';
 import {federal2026Availability} from '../../packages/tax-engine/annual-2026.mjs';
 import {capitalIncome,capitalLossCarryforward,newCapitalIncome} from '../../packages/tax-engine/capital-income.mjs';
 import {qualifiedCapitalTax} from '../../packages/tax-engine/capital-tax.mjs';
+import {retirementIncome,socialSecurityBenefits,newRetirementIncome,newRetirementDistribution,newSocialSecurityBenefit} from '../../packages/tax-engine/retirement-income.mjs';
 
 const engine=fileURLToPath(new URL('../../packages/tax-engine/',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -30,13 +31,14 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const householdFutaExamples=JSON.parse(await readFile(path.join(engine,'test/irs-household-futa-examples.json'),'utf8'));
   const investmentExamples=JSON.parse(await readFile(path.join(engine,'test/investment-reference.json'),'utf8'));
   const capitalExamples=JSON.parse(await readFile(path.join(engine,'test/capital-reference.json'),'utf8'));
+  const retirementExamples=JSON.parse(await readFile(path.join(engine,'test/retirement-reference.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
     for(const scenario of catalog.selectedScenarios)sourceEvidence.push({id:scenario.id,...await checkedSource(path.join(sourcesDirectory,scenario.sourceFile),scenario)});
     sourceEvidence.push({id:'8959-instructions',...await checkedSource(path.join(sourcesDirectory,'i8959--2025.pdf'),examples.source)});
     sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
     const checked=new Map();
-    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions]){
+    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions,...retirementExamples.annualInstructions]){
       if(checked.has(source.url)){const previous=checked.get(source.url);if(previous.bytes!==source.bytes||previous.sha256!==source.sha256)throw new Error('Instruction fixtures disagree about a reviewed source pin.');continue;}
       const filename=new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});checked.set(source.url,source);
     }
@@ -103,6 +105,15 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     const value=capitalValue();value.trades=[capitalTrade(year,'A',Math.max(0,row.short),Math.max(0,-row.short)),capitalTrade(year,'D',Math.max(0,row.long),Math.max(0,-row.long))];const result=capitalIncome(value,{year,filingStatus:row.status??'single'}),carry=capitalLossCarryforward(result,{taxableIncomeBeforeFloorCents:row.taxable*100}),actual={shortCents:carry.shortTermLossCents,longCents:carry.longTermLossCents},expected={shortCents:row.nextShort*100,longCents:row.nextLong*100};
     capitalDerivedChecks.push({year,id:'capital-loss-character-'+index,kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!result.diagnostics.length,actual,expected});
   }
+  const retirementPublishedChecks=[2023,2024,2025].map(year=>{
+    const row=retirementExamples.publishedSupportedExample,value=newRetirementIncome(),pension=newRetirementDistribution(),benefit=newSocialSecurityBenefit();for(const key of Object.keys(value.review))value.review[key]=true;for(const key of Object.keys(pension.review))pension.review[key]=true;
+    Object.assign(pension,{id:'synthetic-published-pension',payer:'Synthetic pension payer for published example',plan:'qualifiedPlan',grossCents:row.pension*100,reportedTaxableCents:row.pension*100,distributionCodes:'7',treatment:'fullyTaxable',source:'Annual Publication915 Example1, fully taxable pension'});Object.assign(benefit,{id:'synthetic-published-benefit',benefitsPaidCents:row.benefits*100,source:'Annual Publication915 Example1, SSA1099 net benefits'});value.distributions=[pension];value.benefits=[benefit];
+    const result=retirementIncome(value,{year,filingStatus:row.status,otherIncomeCents:(row.wages+row.interest)*100,adjustmentsCents:0}),actual={pensionCents:result.lines['5b'],grossBenefitsCents:result.lines['6a'],taxableBenefitsCents:result.lines['6b']},expected={pensionCents:row.pension*100,grossBenefitsCents:row.benefits*100,taxableBenefitsCents:row.taxableBenefits*100};return {year,id:'pub915-example1',kind:'published-instruction-example',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!result.diagnostics.length,actual,expected};
+  });
+  const retirementDerivedChecks=[2023,2024,2025].flatMap(year=>retirementExamples.syntheticBenefits.map((row,index)=>{
+    const actual=socialSecurityBenefits({year,filingStatus:row.status,netBenefitsCents:row.benefits*100,otherIncomeCents:row.otherIncome*100,taxExemptInterestCents:row.exempt*100,adjustmentsCents:row.adjustments*100,livedApartAllYear:row.apart??'unknown'}).taxableCents,expected=row.taxable*100;
+    return {year,id:'social-security-boundary-'+index,kind:'derived-synthetic-instruction-vector',pass:actual===expected,actualTaxableBenefitsCents:actual,expectedTaxableBenefitsCents:expected};
+  }));
   const installedPacks=[];
   for(const year of calculationYears){
     const pack=pdfYearPack(year),forms=[];
@@ -130,10 +141,10 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   }
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
-    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks,...capitalPublishedChecks,...capitalDerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,capitalPublishedChecks,capitalDerivedChecks,sourceEvidence,installedPacks,scenarios,
-    requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),partialCalculationYears:[2026],federal2026Availability,stateCalculationPacks:[{state:'CT',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[2023],filingApproved:false}],
+    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks,...capitalPublishedChecks,...capitalDerivedChecks,...retirementPublishedChecks,...retirementDerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,capitalPublishedChecks,capitalDerivedChecks,retirementPublishedChecks,retirementDerivedChecks,sourceEvidence,installedPacks,scenarios,
+    requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),partialCalculationYears:[2026],federal2026Availability,stateCalculationPacks:[{state:'NY',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[],filingApproved:false},{state:'CT',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[2023],filingApproved:false}],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
-    limits:['Instruction examples are not ATS scenario execution.','FUTA, NIIT and capital derived vectors are synthetic cases; published capital examples are labeled separately, including the generic arithmetic example with a synthetic adjustment interpretation.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
+    limits:['Instruction examples are not ATS scenario execution.','FUTA, NIIT, capital and retirement derived vectors are synthetic cases; published capital/benefit examples are labeled separately, including the generic capital arithmetic example with a synthetic adjustment interpretation.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   try{

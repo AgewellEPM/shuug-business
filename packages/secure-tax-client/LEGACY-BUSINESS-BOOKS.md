@@ -72,13 +72,14 @@ reversal link, or a missing billing journal reference is visibly flagged for
 accounting review. The retained versions remain available; no repair is inferred.
 Trial balance covers all retained journal dates, not tax or cash-basis treatment.
 
-**This is authenticated source retention and review, not canonical posting.**
-There is no automatic creation of current ledger entries, current business
-receivables, firm-fee invoices, payments, tax deductions or filing authority.
-Explicit staff-reviewed conversion into canonical ledger periods, reconciliation
-of prior imports and omitted bank/delivery/provider stores, backup recovery,
-and any separately authorized legacy removal remain outstanding. Migration and
-product-completion flags remain false. The copied backup is never modified.
+**Import alone is authenticated source retention and review.** It does not
+automatically create current ledger entries, business receivables, firm-fee
+invoices, payments, tax deductions or filing authority. A separate reviewed
+conversion is now available; see [canonical conversion](LEGACY-BOOK-CONVERSION.md).
+Reconciliation of revised imports and omitted bank/delivery/provider stores,
+backup recovery, and any separately authorized legacy removal remain distinct
+requirements. Migration and product-completion flags remain false. The copied
+backup is never modified.
 
 ## Evidence
 

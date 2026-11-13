@@ -37,6 +37,17 @@ unfinished. The [qualification workflow](SHUUG_FILING_QUALIFICATION_20261113.md)
 records selected official ATS gaps and the actual approval path. No IRS/state
 approval, live transport or complete federal/state coverage is claimed.
 
+November 13 implementation continuation adds source-based inventory/COGS and
+Form 1125-A, ordinary retirement distributions and Social Security worksheets,
+and New York resident IT-201/IT-2 alongside Connecticut. Imported signed business
+books can now become canonical posted ledgers after firm review, preserving
+reversals, period history and source discrepancies. These are source changes with
+synthetic integration evidence; the dated installed assessment above is retained.
+See the [engine scope](../packages/tax-engine/README.md) and
+[conversion contract](../packages/secure-tax-client/LEGACY-BOOK-CONVERSION.md).
+The full product remains a prototype with incomplete tax and migration coverage,
+external filing/custody prerequisites and installed rollout still outstanding.
+
 ## Already implemented
 
 - Owner/staff/client MFA, encrypted device backups, signed enrollment, per-device

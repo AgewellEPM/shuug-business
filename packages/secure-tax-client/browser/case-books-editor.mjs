@@ -5,8 +5,8 @@ export function parseBookAmount(value){
   const [whole,fraction='']=value.split('.'),cents=Number(whole)*100+Number(fraction.padEnd(2,'0'));if(cents>99999999999)throw new Error('This amount exceeds the supported journal limit.');return cents;
 }
 const reference=record=>({objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain});
-export function drawCaseBookAction(document,form,{type,body,field,records,onDirty,idPrefix='case'}){
-  const book=replayCaseBooks(body.history,body.year),notes=()=>field('Client-visible ledger note (encrypted)','books-notes',{type:'textarea'});
+export function drawCaseBookAction(document,form,{type,body,field,records,onDirty,idPrefix='case',initialBook=null}){
+  const book=initialBook??replayCaseBooks(body.history,body.year),notes=()=>field('Client-visible ledger note (encrypted)','books-notes',{type:'textarea'});
   if(type==='books.open'){
     const title=field('Working ledger title','books-title',{maximum:160});title.value=`${body.title} books`.slice(0,160);
     const from=field('Ledger start','books-from',{type:'date'}),through=field('Ledger end','books-through',{type:'date'});from.value=`${body.year}-01-01`;through.value=`${body.year}-12-31`;
@@ -37,7 +37,7 @@ export function drawCaseBookAction(document,form,{type,body,field,records,onDirt
   function addLine(){
     const index=inputs.length+1,row=node(document,'fieldset');row.append(node(document,'legend',`Journal line ${index}`));
     const account=node(document,'select'),debit=node(document,'input'),credit=node(document,'input');account.id=`${idPrefix}-books-line-${index}-account`;debit.id=`${idPrefix}-books-line-${index}-debit`;credit.id=`${idPrefix}-books-line-${index}-credit`;
-    for(const item of book.accounts){const option=node(document,'option',`${item.number} · ${item.name}`);option.value=String(item.number);account.append(option);}account.value=String(book.accounts[Math.min(index-1,book.accounts.length-1)].number);
+    const active=book.accounts.filter(item=>item.active!==false);for(const item of active){const option=node(document,'option',`${item.number} · ${item.name}`);option.value=String(item.number);account.append(option);}account.value=String(active[Math.min(index-1,active.length-1)]?.number??'');
     for(const input of [debit,credit]){input.type='text';input.inputMode='decimal';input.placeholder='0.00';input.maxLength=12;}
     for(const [label,input]of [['Account',account],['Debit USD',debit],['Credit USD',credit]]){const caption=node(document,'label',label);caption.htmlFor=input.id;row.append(caption,input);}rows.append(row);inputs.push({account,debit,credit});
   }

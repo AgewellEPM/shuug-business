@@ -67,8 +67,8 @@ or executed scenarios:
 | --- | --- |
 | 1040 / 1 | Complete W-2 XML, disclosures, full scenario import/expected-output validation; Schedule H / Form 5695 / Schedule 3 now have partial preparation support |
 | 1065 / 1 | B-2/C/M-3, complete K-1s, depreciation, asset sales, rental real estate, credits and signature attachment |
-| 1120-S / 5 | Full K-1s, inventory/officer compensation, depreciation, asset sales, rental real estate and signature attachment |
-| 1120 / 1 | B/D/G/M-3/O, inventory/officer compensation, credits, depreciation, asset sales and signature attachment |
+| 1120-S / 5 | Full K-1s, remaining inventory methods/officer compensation, depreciation, asset sales, rental real estate and signature attachment |
+| 1120 / 1 | B/D/G/M-3/O, remaining inventory methods/officer compensation, credits, depreciation, asset sales and signature attachment |
 
 Every selected scenario is currently blocked. Public original URLs, SHA-256s,
 byte counts and cover-page requirements are retained in the catalog. Having a
@@ -84,6 +84,14 @@ The [household-employment continuation](SHUUG_HOUSEHOLD_EMPLOYMENT_20261113.md)
 adds ordinary Schedule H, annual employer/worker limits and FUTA Section A.
 Its reference checks compare the published payroll example after declared
 whole-dollar rounding. They do not execute the selected 1040 ATS scenario.
+
+The [inventory](../packages/tax-engine/INVENTORY.md) and
+[retirement](../packages/tax-engine/RETIREMENT-INCOME.md) continuation adds
+source-based COGS with Form 1125-A, ordinary distributions, and the Social
+Security worksheet. The report checks a supported published Publication 915
+example for each year and labels the separate synthetic benefit-boundary vectors.
+New York IT-201/IT-2 is also installed with scoped resident coverage. These additions
+reduce preparation gaps; the full selected ATS scenarios remain unexecuted.
 
 ## Actual agency qualification
 

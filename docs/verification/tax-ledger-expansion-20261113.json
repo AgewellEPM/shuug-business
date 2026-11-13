@@ -1,0 +1,76 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-13",
+  "readiness": "prototype",
+  "baseCommit": "a7279ec3fee4203a58723dd6f781033622d619b5",
+  "scope": [
+    "Source-based inventory/COGS and Schedule C Part III / Form 1125-A",
+    "Ordinary retirement distributions and Social Security worksheets for 2023\u20132025",
+    "Scoped New York resident IT-201 / IT-2 preparation for 2023\u20132025",
+    "Firm-reviewed conversion of authenticated legacy business books into canonical ledgers",
+    "Federal source-coverage checks for New York dependent, age and special wage disclosures"
+  ],
+  "verification": {
+    "engineAndClient": {
+      "tests": 388,
+      "passed": 387,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Pre-existing optional native Journal executable fixture unavailable"
+    },
+    "secureServer": {
+      "passed": 67,
+      "files": 6
+    },
+    "cloudWorker": {
+      "passed": 12,
+      "realProviderCalls": 0
+    },
+    "compiledHttp": {
+      "checks": 481,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "synthetic": true,
+      "encryptedNewReturnsAndCorrections": true,
+      "legacyPostingsReopenedByCustomerAndStaff": true,
+      "backupRestoreVerified": true,
+      "feeBalancesPreserved": true
+    },
+    "independentClientArtifact": {
+      "modules": 167,
+      "publicPdfFetches": 65,
+      "exports": 16,
+      "copiedSourceAndVendorFilesMatched": 379,
+      "execution": "Node V8 and JSDOM, with original PDF rendering"
+    },
+    "keyPackages": {
+      "offlineFiles": 417,
+      "cloudFiles": 400,
+      "sourceHashesAndDependencyClosureVerified": true,
+      "importOnlySmokeModules": 8,
+      "initialized": false,
+      "provisioned": false
+    },
+    "primaryReferences": {
+      "qualificationPinnedFiles": 42,
+      "retirementPublishedChecks": 3,
+      "retirementSyntheticChecks": 45,
+      "newYorkPinnedSourcesAndTemplates": 12,
+      "newYorkAnnualTableRowsCompared": 7812,
+      "instructionExamplesAreAgencyApproval": false
+    },
+    "teamReview": "Same-provider engineering reviews found and corrected source-boundary and posting-integrity defects; no independent-provider or agency review claimed"
+  },
+  "limitations": {
+    "completeFederalCoverage": false,
+    "completeStateCoverage": false,
+    "completeMigrationCoverage": false,
+    "agencySubmissionAttempted": false,
+    "agencyApproval": false,
+    "realKeyCustodyVerified": false,
+    "installedCustomerWorkflowVerified": false,
+    "installedServiceChanged": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "releaseReady": false
+  }
+}

@@ -1,12 +1,19 @@
 import {newCTStateReturn,newCTAdjustment,newCTWithholding,newCTPropertyTax,ctReviews,ctAdjustmentLines,ctUnsupportedTreatments,stateJurisdictions} from '@shuug/tax-engine';
+import {newNYStateReturn} from '@shuug/tax-engine';
+import {nyStateFields} from './ny-state-editor.mjs';
 
 export function stateFields({document,parent,individual,year,field,group,button,readers}){
  const section=group(parent,'State income-tax returns');section.id='state-return-editor';
  const note=(parent,text)=>{const p=document.createElement('p');p.textContent=text;parent.append(p);};
- note(section,'Connecticut full-year resident calculations and CT-1040 draft forms are available for 2023–2025. Federal AGI flows into the state calculation. Other states, part-year/nonresident returns and 2026 state forms need an additional pack; selecting a state does not establish filing coverage.');
+ note(section,'Connecticut and New York full-year resident calculations and draft forms are available for 2023–2025. Federal AGI flows into each state calculation. Other states, part-year/nonresident returns and 2026 state forms need an additional pack; selecting a state does not establish filing coverage.');
  const values=individual.stateReturns??[];
  for(const [index,value]of values.entries()){
   const state=group(section,`${value.state} state return`);
+  if(value.state==='NY'){
+   if(value.residency===undefined){note(state,'Complete the New York source inputs for this previously saved state requirement. Any earlier fields remain preserved.');button(state,'Complete New York source inputs',()=>{individual.stateReturns[index]={...newNYStateReturn(),...value};});}
+   else nyStateFields({document,parent:state,individual,value,year,field,group,button,readers});
+   button(state,'Remove New York state return',()=>individual.stateReturns.splice(index,1));continue;
+  }
   if(value.state!=='CT'){note(state,`${value.state} has no installed annual calculation/form pack. Saved source fields remain preserved in this encrypted return.`);button(state,`Remove ${value.state} state return`,()=>individual.stateReturns.splice(index,1));continue;}
   if(year===2023)note(state,'The currently published DRS 2023 PDF carries an original draft mark. Shuug preserves that mark and requires a verified final template before filing.');
   field(state,value,'residency','Connecticut residency',{options:[['resident','Full-year resident'],['partYear','Part-year resident — requires CT-1040NR/PY'],['nonresident','Nonresident — requires CT-1040NR/PY']]});
@@ -28,6 +35,7 @@ export function stateFields({document,parent,individual,year,field,group,button,
   button(state,'Remove Connecticut state return',()=>individual.stateReturns.splice(index,1));
  }
  if(!values.some(value=>value.state==='CT'))button(section,'Add Connecticut resident return',()=>{individual.stateReturns??=[];individual.stateReturns.push(newCTStateReturn());});
- const additional={state:stateJurisdictions.find(state=>state!=='CT'&&!values.some(value=>value.state===state))??''},choices=stateJurisdictions.filter(state=>state!=='CT'&&!values.some(value=>value.state===state)).map(state=>[state,`${state} — additional pack required`]);
+ if(!values.some(value=>value.state==='NY'))button(section,'Add New York resident return',()=>{individual.stateReturns??=[];individual.stateReturns.push(newNYStateReturn());});
+ const additional={state:stateJurisdictions.find(state=>!['CT','NY'].includes(state)&&!values.some(value=>value.state===state))??''},choices=stateJurisdictions.filter(state=>!['CT','NY'].includes(state)&&!values.some(value=>value.state===state)).map(state=>[state,`${state} — additional pack required`]);
  if(choices.length){field(section,additional,'state','Another required state',{options:choices});button(section,'Record another required state',()=>{individual.stateReturns??=[];individual.stateReturns.push({state:additional.state});});}
 }

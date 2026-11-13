@@ -36,8 +36,8 @@ export function assertBookInput(type,input){
   return input;
 }
 function postingDate(book,value){if(value<book.from||value>book.through)fail('The journal date must fall within this case ledger period.');if(book.closedThrough&&value<=book.closedThrough)fail('This ledger period is closed. Use a later open date for an adjustment.');}
-export function replayCaseBooks(history,year){
-  let book=null;
+export function replayCaseBooks(history,year,initial=null){
+  let book=initial===null?null:structuredClone(initial);
   for(const event of history){
     if(!BOOK_ACTIONS.includes(event.type))continue;const input=assertBookInput(event.type,event.input);
     if(event.type==='books.open'){
@@ -45,9 +45,10 @@ export function replayCaseBooks(history,year){
       book={title:input.title,currency:input.currency,from:input.from,through:input.through,accounts:structuredClone(input.accounts),entries:[],closedThrough:null,version:event.actionId};
     }else{
       if(!book)fail('Open this case’s working ledger first.');
+      if(['books.journal.post','books.journal.reverse'].includes(event.type)&&book.entries.some(entry=>entry.id===event.actionId))fail('A canonical journal ID cannot replace or duplicate an existing posting.');
       if(event.type==='books.account.add'){if(book.accounts.length>=100||book.accounts.some(item=>item.number===input.account.number))fail('Choose an unused account number; at most 100 accounts are supported.');book.accounts.push(structuredClone(input.account));}
       if(event.type==='books.journal.post'){
-        postingDate(book,input.date);if(input.lines.some(line=>!book.accounts.some(item=>item.number===line.accountNumber)))fail('Every journal line must use an existing account.');
+        postingDate(book,input.date);if(input.lines.some(line=>!book.accounts.some(item=>item.number===line.accountNumber&&item.active!==false)))fail('Every journal line must use an existing account that is active.');
         book.entries.push({id:event.actionId,date:input.date,memo:input.memo,lines:structuredClone(input.lines),document:structuredClone(input.document),reverses:null,actor:event.actor,at:event.at});
       }
       if(event.type==='books.journal.reverse'){

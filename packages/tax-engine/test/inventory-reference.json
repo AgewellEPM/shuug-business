@@ -1,0 +1,56 @@
+{
+  "sources": [
+    {
+      "id": "f1125a",
+      "taxYear": 2023,
+      "revisionYear": 2018,
+      "url": "https://www.irs.gov/pub/irs-prior/f1125a--2018.pdf",
+      "bytes": 83827,
+      "sha256": "115aa4ff161e36381bfcbff249b5a16df952d934c1491f0548767dc2beb5f314",
+      "pages": 3,
+      "fieldCount": 30
+    },
+    {
+      "id": "i1040sc",
+      "year": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sc--2023.pdf",
+      "bytes": 466899,
+      "sha256": "1b7a9aaa105fb1e85b01c9fb2f3a212d1f3395065e664944633db588211ca525"
+    },
+    {
+      "id": "f1125a",
+      "taxYear": 2024,
+      "revisionYear": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/f1125a--2024.pdf",
+      "bytes": 87984,
+      "sha256": "447270f7a058c5b8e3f3e31853bf2bf97470ccc0f5f07359fbcd5ec6a23be5c2",
+      "pages": 3,
+      "fieldCount": 25
+    },
+    {
+      "id": "i1040sc",
+      "year": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sc--2024.pdf",
+      "bytes": 473307,
+      "sha256": "a68b4717ef5f8c364fec6f04af43c1ea9b1488d83b89390e95576338d63f189a"
+    },
+    {
+      "id": "f1125a",
+      "taxYear": 2025,
+      "revisionYear": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/f1125a--2024.pdf",
+      "bytes": 87984,
+      "sha256": "447270f7a058c5b8e3f3e31853bf2bf97470ccc0f5f07359fbcd5ec6a23be5c2",
+      "pages": 3,
+      "fieldCount": 25
+    },
+    {
+      "id": "i1040sc",
+      "year": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sc--2025.pdf",
+      "bytes": 357575,
+      "sha256": "b5536db91498a450572e37078d7d5ee8fdc400e385d4fee3a26c230a33e399b6"
+    }
+  ],
+  "examples": "Synthetic component rollforwards; no published agency qualification vectors claimed."
+}

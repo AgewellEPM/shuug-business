@@ -24,6 +24,8 @@ export async function inspectCaseReview({pinsFile,kitFile,output}){
         selectedFile='selected-draft.json';evidenceBytes=new TextEncoder().encode(JSON.stringify(payload,null,2)+'\n');summary={reference:evidence.reference,metadata:{version:payload.version,type:payload.type,year:payload.year,kind:payload.kind},selectedFile};
       }else if(payload.type==='client-office'){
         selectedFile='selected-client-finance.json';evidenceBytes=new TextEncoder().encode(JSON.stringify(payload,null,2)+'\n');summary={reference:evidence.reference,metadata:{version:payload.version,type:payload.type},selectedFile};
+      }else if(payload.type==='legacy-accounting'){
+        selectedFile='selected-legacy-business-books.json';evidenceBytes=new TextEncoder().encode(JSON.stringify(payload,null,2)+'\n');summary={reference:evidence.reference,metadata:{version:payload.version,type:payload.type,bookId:payload.source.book.id,name:payload.source.book.name},selectedFile};
       }else throw new Error('Unsupported selected evidence.');
     }
     const view={version:1,type:'shuug-private-case-review-view',warning,kitSha256,reviewedKit:'private-kit.json',binding:review.binding,proposalCreatedAt:kit.proposal.createdAt,proposalExpiresAt:kit.proposal.expiresAt,before:review.before,command:review.command,after:review.after,evidence:summary};

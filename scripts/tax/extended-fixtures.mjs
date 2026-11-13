@@ -1,0 +1,10 @@
+/** Synthetic integration inputs only. No taxpayer data or external account. */
+export function addExpandedSources(api,input){
+ if(input.entity){
+  const value=api.newInventory();Object.assign(value,{methodChanged:'no',subnormalWriteDown:'no',lifo:'none',section263a:'exempt',source:'Synthetic inventory registers and count',capitalizationExplanation:'Synthetic reviewed capitalization exemption',beginningCents:100000,purchasesCents:300000,closingCents:100000});for(const key of Object.keys(value.review))value.review[key]=true;input.entity.inventory=value;return;
+ }
+ const retirement=api.newRetirementIncome(),distribution=api.newRetirementDistribution();Object.assign(distribution,{payer:'Synthetic Retirement Custodian',grossCents:100000,federalWithholdingCents:10000,reportedTaxableCents:100000,distributionCodes:'7',treatment:'fullyTaxable',source:'Synthetic 1099-R'});for(const key of Object.keys(distribution.review))distribution.review[key]=true;
+ const benefit=api.newSocialSecurityBenefit();Object.assign(benefit,{benefitsPaidCents:1000000,source:'Synthetic SSA-1099'});retirement.distributions=[distribution];retirement.benefits=[benefit];for(const key of Object.keys(retirement.review))retirement.review[key]=true;input.individual.retirementIncome=retirement;
+ const ny=api.newNYStateReturn();Object.assign(ny,{locality:'none',claimedDependent:'no',taxpayerDob:'1963-01-01',county:'Albany',homeStreet:'1 Synthetic Home',homeCity:'Albany',homeZip:'12207',schoolDistrict:'Albany',schoolCode:'005',foreignAccount:'no',nycLivingQuarters:'no',yonkersLivingQuarters:'no',yonkersWork:'no'});for(const key of Object.keys(ny.review))ny.review[key]=true;ny.mctmt.reviewed=true;ny.mctmt.source='Synthetic no allocated self-employment earnings';ny.useTax.reviewed=true;
+ ny.wageRecords=input.individual.w2s.map(wage=>({...api.newNYWageRecord(wage.id),payerId:'000123457',street:'1 Synthetic Street',city:'Albany',state:'NY',zip:'12207',nyWagesCents:wage.wagesCents,nyWithholdingCents:100000,source:'Synthetic W-2 state record',reviewed:true}));input.individual.stateReturns??=[];input.individual.stateReturns.push(ny);
+}

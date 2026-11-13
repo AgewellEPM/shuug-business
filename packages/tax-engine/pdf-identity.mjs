@@ -1,10 +1,14 @@
 import {investmentIdentity} from './investment-pdf.mjs';
 import {capitalIdentity} from './capital-pdf.mjs';
+import {inventoryIdentity} from './inventory-pdf.mjs';
+import {retirementIdentity} from './retirement-pdf.mjs';
 import {identity2026} from './form-maps-2026.mjs';
 import {householdIdentity} from './household-pdf.mjs';
 import {energyIdentity} from './energy-pdf.mjs';
 const digits=value=>value.replaceAll('-','');
 export function identityFields(input,item,set){
+  retirementIdentity(input,item,set);
+  if(inventoryIdentity(input,item,set))return;
   const p=input.party,person=item.owner==='spouse'?{name:input.individual.spouseName,taxId:input.individual.spouseTaxId}:p;
   if(input.year===2026&&identity2026(input,item,set))return;
   if(['f1040sd','f8949'].includes(item.form)){capitalIdentity(input,item,set);return;}

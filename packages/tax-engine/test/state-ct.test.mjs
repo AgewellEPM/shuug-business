@@ -48,7 +48,7 @@ test('uncertain federal AGI, unreviewed sources and extra state schedules never 
 });
 test('state and annual packs remain separate, unsupported residency has no counterfeit resident form',()=>{
  const f=fixture();f.value.residency='partYear';assert.deepEqual(compute(f).forms,[]);f.value.residency='resident';f.input.year=2026;assert.equal(compute(f).summary.totalTaxCents,null);assert.deepEqual(compute(f).forms,[]);
- f.input.individual.stateReturns.push({state:'NY',retainedSource:'Synthetic preserved value'});const before=structuredClone(f.input);const result=calculateStateReturns(f.input,f.federal);assert.equal(result.states.length,2);assert.equal(result.states[1].summary.totalTaxCents,null);assert.deepEqual(f.input,before);assert.equal(stateCoverage(2025).filter(row=>row.status==='resident-scope').length,1);assert.equal(stateCoverage(2026).filter(row=>row.status==='resident-scope').length,0);
+ f.input.individual.stateReturns.push({state:'NY',retainedSource:'Synthetic preserved value'});const before=structuredClone(f.input);const result=calculateStateReturns(f.input,f.federal);assert.equal(result.states.length,2);assert.equal(result.states[1].summary.totalTaxCents,null);assert.deepEqual(f.input,before);assert.equal(stateCoverage(2025).filter(row=>row.status==='resident-scope').length,2);assert.equal(stateCoverage(2026).filter(row=>row.status==='resident-scope').length,0);
  f.input.individual.stateReturns.push({state:'NY'});assert.throws(()=>calculateStateReturns(f.input,f.federal),/at most once/);
 });
 test('property and withholding whole-dollar displayed rows reconcile with their totals',()=>{

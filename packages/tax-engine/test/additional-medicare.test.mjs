@@ -38,3 +38,8 @@ test('new Medicare coverage does not conceal investment tax or other excluded wa
  const input=reviewed();input.individual.w2s=[{...wage('taxpayer',220000),medicareTaxWithheldCents:337000}];input.individual.taxableInterestCents=100;let result=calculateReturn(input);assert.equal(result.summary.totalTaxCents,null);assert(result.diagnostics.some(item=>item.code==='NET_INVESTMENT_TAX_REQUIRED'));
  input.individual.taxableInterestCents=0;input.features=['railroad-unreported-wages'];result=calculateReturn(input);assert.equal(result.summary.totalTaxCents,null);assert(result.diagnostics.some(item=>item.code==='ADDITIONAL_TREATMENT'));
 });
+test('unknown business earnings suppress dependent Medicare tax but preserve actual wage withholding',()=>{
+ const value={filingStatus:'single',w2s:[{medicareWagesCents:22000000,medicareTaxWithheldCents:337000}],selfEmploymentEarnings:[],selfEmploymentUnknown:true},result=additionalMedicare(value);assert.equal(result.required,true);assert.equal(result.taxCents,null);assert.equal(result.withholdingCents,18000);assert.equal(result.form.lines['7'],18000);for(const line of ['8','12','13','18'])assert.equal(result.form.lines[line],null);
+ const lower=additionalMedicare({...value,w2s:[{medicareWagesCents:1000000,medicareTaxWithheldCents:14500}],selfEmploymentEarnings:[-1000000]});assert.equal(lower.required,true);assert.equal(lower.taxCents,null);assert.equal(lower.withholdingCents,0);
+ assert.equal(additionalMedicare({...value,w2s:[{medicareWagesCents:1000000}]}).withholdingCents,null);
+});

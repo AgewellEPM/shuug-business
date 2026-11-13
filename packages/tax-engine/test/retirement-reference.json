@@ -1,0 +1,244 @@
+{
+  "kind": "Annual primary-source pins, one supported published IRS taxpayer example, and separately labeled synthetic worksheet boundary vectors",
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2023.pdf",
+      "bytes": 4389662,
+      "sha256": "90c8759c7a829d8c74296187cdbdb47bc9025480fffc41ff5e7225889c8fea7e"
+    },
+    {
+      "year": 2023,
+      "id": "p915",
+      "url": "https://www.irs.gov/pub/irs-prior/p915--2023.pdf",
+      "bytes": 1511794,
+      "sha256": "f9824cc67987d4e4eb0cc3fbc4aa81a49e72813eb9b0a5902634d67c632a5abe"
+    },
+    {
+      "year": 2023,
+      "id": "p590b",
+      "url": "https://www.irs.gov/pub/irs-prior/p590b--2023.pdf",
+      "bytes": 2001387,
+      "sha256": "c7c2928317757c6708ef404f97a24ed2930e3c153cc24b99ba708714d23b30b3"
+    },
+    {
+      "year": 2023,
+      "id": "p575",
+      "url": "https://www.irs.gov/pub/irs-prior/p575--2023.pdf",
+      "bytes": 1668771,
+      "sha256": "ac949b4e6ac6c1b31b633f9229b494ab286a04d256974787a04a24e2534fa338"
+    },
+    {
+      "year": 2023,
+      "id": "i1099r",
+      "url": "https://www.irs.gov/pub/irs-prior/i1099r--2023.pdf",
+      "bytes": 385632,
+      "sha256": "ab052a1ce4267accaaa81e9ed1b1d7d8ca9420bbb66ab0680ff08cf309038180"
+    },
+    {
+      "year": 2024,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2024.pdf",
+      "bytes": 4375877,
+      "sha256": "0ae53ed5020d69e6571d40cd7955b7735f44a28df483626d128628d2810e93d4"
+    },
+    {
+      "year": 2024,
+      "id": "p915",
+      "url": "https://www.irs.gov/pub/irs-prior/p915--2024.pdf",
+      "bytes": 1521215,
+      "sha256": "34d7d33f5e772214934f9b263c79e8379813167bffb8218b1cf4e15c985b93f2"
+    },
+    {
+      "year": 2024,
+      "id": "p590b",
+      "url": "https://www.irs.gov/pub/irs-prior/p590b--2024.pdf",
+      "bytes": 2099433,
+      "sha256": "28f8ddddb8ca488ef900bbfb5ba0f95b051e7220e36785aed387d4d351f92e91"
+    },
+    {
+      "year": 2024,
+      "id": "p575",
+      "url": "https://www.irs.gov/pub/irs-prior/p575--2024.pdf",
+      "bytes": 1754781,
+      "sha256": "c7eddb14a396338e741262bcb2ee9a9f07f592dd98f1ff85ca809f6febbe4794"
+    },
+    {
+      "year": 2024,
+      "id": "i1099r",
+      "url": "https://www.irs.gov/pub/irs-prior/i1099r--2024.pdf",
+      "bytes": 398131,
+      "sha256": "ca90e8f0c67225efbfaebe869c49c3a23266da3b6155ea5e826a02c0bac8dad9"
+    },
+    {
+      "year": 2025,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2025.pdf",
+      "bytes": 4434643,
+      "sha256": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a"
+    },
+    {
+      "year": 2025,
+      "id": "p915",
+      "url": "https://www.irs.gov/pub/irs-prior/p915--2025.pdf",
+      "bytes": 1570254,
+      "sha256": "44c4053dab046c737e4eadff7cf8a8d23fe55d6147bde995c6055b55af6db22b"
+    },
+    {
+      "year": 2025,
+      "id": "p590b",
+      "url": "https://www.irs.gov/pub/irs-prior/p590b--2025.pdf",
+      "bytes": 2097777,
+      "sha256": "d18a592e55ce56d43953dc338272ece3984565792d6dca06989a6ca8121f7360"
+    },
+    {
+      "year": 2025,
+      "id": "p575",
+      "url": "https://www.irs.gov/pub/irs-prior/p575--2025.pdf",
+      "bytes": 1616319,
+      "sha256": "30bd37ccfcb1fe2e191abadbb38ce7cf7fcbb638e3065335436dd6025a35caa5"
+    },
+    {
+      "year": 2025,
+      "id": "i1099r",
+      "url": "https://www.irs.gov/pub/irs-prior/i1099r--2025.pdf",
+      "bytes": 408494,
+      "sha256": "a2ebc2c5ab6be07cfddefa8941f54138cb4b646f5240db2f1469c4f97a8db61e"
+    }
+  ],
+  "publishedSupportedExample": {
+    "source": "Publication 915, Example1 (all 2023–2025 annual editions)",
+    "status": "single",
+    "wages": 9400,
+    "interest": 990,
+    "pension": 18600,
+    "benefits": 5980,
+    "taxableBenefits": 2990
+  },
+  "syntheticBenefits": [
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 20000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 0
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 21000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 500
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 29000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 4500
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 30000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 5350
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 40000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 8500
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 20000,
+      "exempt": 10000,
+      "adjustments": 0,
+      "taxable": 5350
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": 30000,
+      "exempt": 0,
+      "adjustments": 1000,
+      "taxable": 4500
+    },
+    {
+      "status": "single",
+      "benefits": 10000,
+      "otherIncome": -6000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 0
+    },
+    {
+      "status": "marriedJoint",
+      "benefits": 10000,
+      "otherIncome": 28000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 500
+    },
+    {
+      "status": "marriedJoint",
+      "benefits": 10000,
+      "otherIncome": 40000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 5850
+    },
+    {
+      "status": "survivingSpouse",
+      "benefits": 10000,
+      "otherIncome": 30000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 5350
+    },
+    {
+      "status": "headOfHousehold",
+      "benefits": 10000,
+      "otherIncome": 30000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 5350
+    },
+    {
+      "status": "marriedSeparate",
+      "apart": "yes",
+      "benefits": 10000,
+      "otherIncome": 20000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 0
+    },
+    {
+      "status": "marriedSeparate",
+      "apart": "no",
+      "benefits": 10000,
+      "otherIncome": 0,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 4250
+    },
+    {
+      "status": "marriedSeparate",
+      "apart": "no",
+      "benefits": 10000,
+      "otherIncome": 6000,
+      "exempt": 0,
+      "adjustments": 0,
+      "taxable": 8500
+    }
+  ]
+}

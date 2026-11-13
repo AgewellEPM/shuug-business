@@ -1,0 +1,4 @@
+import {newRetirementIncome,newRetirementDistribution,newSocialSecurityBenefit} from '../retirement-income.mjs';
+export function retirementFixture(){const value=newRetirementIncome();for(const key of Object.keys(value.review))value.review[key]=true;return value;}
+export function distribution(plan='traditionalIRA',gross=10000,overrides={}){const row={...newRetirementDistribution(),id:'synthetic-'+plan,payer:'Synthetic Retirement Payer',plan,grossCents:gross*100,reportedTaxableCents:gross*100,distributionCodes:'7',treatment:'fullyTaxable',source:'Synthetic 1099-R and reviewed basis record',...overrides};for(const key of Object.keys(row.review))row.review[key]=true;return row;}
+export function benefit(net=10000,overrides={}){return {...newSocialSecurityBenefit(),id:'synthetic-benefit',benefitsPaidCents:net*100,source:'Synthetic SSA-1099 source',...overrides};}

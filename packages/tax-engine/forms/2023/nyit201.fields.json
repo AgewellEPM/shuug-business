@@ -1,0 +1,3383 @@
+[
+  {
+    "name": "Itemized",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 236,
+          "y": 396,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 276,
+          "y": 396,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "Dependent",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 236,
+          "y": 372,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 276,
+          "y": 372,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "E2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 531,
+          "y": 348,
+          "width": 45,
+          "height": 16
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_first_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 659.998,
+          "width": 101.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_MI",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 138.5,
+          "y": 659.998,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_last_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 156.5,
+          "y": 659.998,
+          "width": 197.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_first_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 636,
+          "width": 101.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_MI",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 138.5,
+          "y": 636,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_last_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 156.5,
+          "y": 636,
+          "width": 197.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_mail_address",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 612,
+          "width": 329.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_mail_city",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 588,
+          "width": 179.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_mail_state",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 216.5,
+          "y": 588,
+          "width": 23.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_mail_zip",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 240.5,
+          "y": 588,
+          "width": 71.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_home_address",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 564,
+          "width": 311.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_home_city",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 540,
+          "width": 179.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_home_zip",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 240.5,
+          "y": 540,
+          "width": 71.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_DOB",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.5,
+          "y": 659.998,
+          "width": 95.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_DOB",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.5,
+          "y": 636,
+          "width": 95.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_SSN",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 450.5,
+          "y": 636,
+          "width": 125,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_mail_apt",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 366.5,
+          "y": 612,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_mail_country",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 312.5,
+          "y": 588,
+          "width": 137.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_home_apt",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 348.5,
+          "y": 564,
+          "width": 101.50200000000001,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "SD_code",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 531.5,
+          "y": 564,
+          "width": 44,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "SD_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 450.5,
+          "y": 588,
+          "width": 125,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "NYS_county_residence",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 450.5,
+          "y": 612,
+          "width": 125,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_date_death",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.5,
+          "y": 540,
+          "width": 95.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_date_death",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 471.5,
+          "y": 540,
+          "width": 95.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Fiscal_year_start",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 504,
+          "y": 704.996,
+          "width": 57,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Fiscal_year_end",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 504,
+          "y": 690,
+          "width": 71.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Filing_status",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 114,
+          "y": 516,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 114,
+          "y": 492,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 114,
+          "y": 468,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 114,
+          "y": 444,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 114,
+          "y": 420,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "Foreign_account",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 521,
+          "y": 516,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 561,
+          "y": 516,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "yonkers_freeze_credit",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 521,
+          "y": 492,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 561,
+          "y": 492,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "G1_con_code",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 509,
+          "y": 275.5,
+          "width": 31,
+          "height": 16.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "G2_con_code",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 545,
+          "y": 275.5,
+          "width": 31,
+          "height": 16.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 235,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 211,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 187,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 163,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 139,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 115,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_first7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 36.5,
+          "y": 91,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 235,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 211,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 187,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 163,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 139,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 115,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_middle7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 144.5,
+          "y": 91,
+          "width": 17.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 235,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 211,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 187,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 163,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 139,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 115,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_last7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 162.5,
+          "y": 91,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 235,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 211,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 187,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 163,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 139,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 115,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_relationship7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 270.5,
+          "y": 91,
+          "width": 83.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.5,
+          "y": 235,
+          "width": 125.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.317,
+          "y": 211,
+          "width": 125.67399999999998,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.317,
+          "y": 187,
+          "width": 125.67399999999998,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.317,
+          "y": 163,
+          "width": 125.67399999999998,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.317,
+          "y": 139,
+          "width": 125.67399999999998,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.317,
+          "y": 115,
+          "width": 125.67399999999998,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_ssn7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 354.317,
+          "y": 91,
+          "width": 125.67399999999998,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.5,
+          "y": 235,
+          "width": 95,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.52,
+          "y": 211,
+          "width": 95.04700000000003,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.52,
+          "y": 187,
+          "width": 95.04700000000003,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.52,
+          "y": 163,
+          "width": 95.04700000000003,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.52,
+          "y": 139,
+          "width": 95.04700000000003,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.52,
+          "y": 115,
+          "width": 95.04700000000003,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_dependent_dob7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 480.52,
+          "y": 91,
+          "width": 95.04700000000003,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "H_additional_dependents",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 237,
+          "y": 73,
+          "width": 12,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_SSN",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 450.5,
+          "y": 659.998,
+          "width": 125,
+          "height": 12
+        }
+      },
+      {
+        "page": 1,
+        "rect": {
+          "x": 180.5,
+          "y": 732,
+          "width": 125,
+          "height": 10
+        }
+      },
+      {
+        "page": 2,
+        "rect": {
+          "x": 309.5,
+          "y": 732.5,
+          "width": 125,
+          "height": 10
+        }
+      },
+      {
+        "page": 3,
+        "rect": {
+          "x": 238.5,
+          "y": 732,
+          "width": 125,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line 9_box",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 411,
+          "y": 588,
+          "width": 15,
+          "height": 10.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line 10_box",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 411,
+          "y": 576,
+          "width": 15,
+          "height": 10.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 672,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line3",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 660,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line5",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 636,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line6",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 624,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line7",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 612,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line8",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 600,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line9",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 588,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line10",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 576,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line11",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 564,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line12",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 304,
+          "y": 540,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "15_identify",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 176,
+          "y": 492,
+          "width": 254,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line13",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 528,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line14",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 516,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line15",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 504,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line16",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 492,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line17",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 474,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line18",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 462,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line20",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 396,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line21",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 384,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line22",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 372,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line23",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 360,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line24",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 348,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line25",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 300,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line26",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 288,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line27",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 276,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line28",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 264,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line29",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 252,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line30",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 240,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line31",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 306.5,
+          "y": 228,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line32",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 216,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line33",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 198,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line4",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 648,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line34",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 132,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line35",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 114,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line36",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 102,
+          "width": 97.5,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line37",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 84,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "34Deduction",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 263.5,
+          "y": 131,
+          "width": 14.5,
+          "height": 10
+        }
+      },
+      {
+        "page": 1,
+        "rect": {
+          "x": 374,
+          "y": 131,
+          "width": 14.5,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "18_identify",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 254,
+          "y": 462,
+          "width": 176,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Name_as_page1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 36.5,
+          "y": 732.5,
+          "width": 265.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line38",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 690,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line39",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 672,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line40",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 660,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line41",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 648,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line42",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 636,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line43",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 624,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line44",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 606,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line45",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 594,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line46",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 576,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line48",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 516,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line49",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 491,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line50",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 480,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line51",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 468,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line52",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 456,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line53",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 444,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line54",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 419,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line54a",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 159.5,
+          "y": 395,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line55",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 324,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line56",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 312,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line57",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 300,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line58",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 288,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line59",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 264,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line60",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 240,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line61",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 450.5,
+          "y": 210,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line62",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450.5,
+          "y": 726,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line63",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 696,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line70",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 600,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line70a",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 588,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line71",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 576,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line72",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 564,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line73",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 552,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line74",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 540,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line75",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 528,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "65_EIC",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 268.818,
+          "y": 672,
+          "width": 19.726,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "70_EIC",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 268.667,
+          "y": 600,
+          "width": 19.975000000000023,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line76",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450.5,
+          "y": 510,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line77",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450.5,
+          "y": 474,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line80",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450.5,
+          "y": 336,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line81",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 312,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line82",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 300,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line78_refund",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 369.75,
+          "y": 403,
+          "width": 12,
+          "height": 12
+        }
+      },
+      {
+        "page": 3,
+        "rect": {
+          "x": 202,
+          "y": 403,
+          "width": 12,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line80_box",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 226,
+          "y": 348,
+          "width": 15,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line83_box",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 564,
+          "y": 276,
+          "width": 12,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line83a_account",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 252,
+          "y": 258,
+          "width": 12,
+          "height": 12
+        }
+      },
+      {
+        "page": 3,
+        "rect": {
+          "x": 131,
+          "y": 258,
+          "width": 12,
+          "height": 12
+        }
+      },
+      {
+        "page": 3,
+        "rect": {
+          "x": 369,
+          "y": 258,
+          "width": 12,
+          "height": 12
+        }
+      },
+      {
+        "page": 3,
+        "rect": {
+          "x": 492,
+          "y": 258,
+          "width": 12,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line83b_routing",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 138.5,
+          "y": 240,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line83c_account_num",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 363,
+          "y": 240,
+          "width": 203.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line84_withdrawal_Date",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 289.5,
+          "y": 222,
+          "width": 95,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line84_withdrawal_amount",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 441.5,
+          "y": 222,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "3rd_party_box",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 58.25,
+          "y": 179.5,
+          "width": 12,
+          "height": 9.5
+        }
+      },
+      {
+        "page": 3,
+        "rect": {
+          "x": 93.0454,
+          "y": 179.5,
+          "width": 11.999600000000001,
+          "height": 9.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "designee_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 114.5,
+          "y": 192,
+          "width": 218.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "designee_email",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 142,
+          "y": 178,
+          "width": 347,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "designee_ac",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 339,
+          "y": 192,
+          "width": 24,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "designees_phone",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 367,
+          "y": 192,
+          "width": 122,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "designee_pin",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 489.5,
+          "y": 178,
+          "width": 85.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "TP_occupation",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 355,
+          "y": 119,
+          "width": 220,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Spouse_occupation",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 476,
+          "y": 102,
+          "width": 99,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "signed_date",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 355,
+          "y": 84,
+          "width": 100,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "day_ac",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 460.429,
+          "y": 84,
+          "width": 24,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "day_phone",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 488,
+          "y": 84,
+          "width": 87,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "sign_email",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 381,
+          "y": 72,
+          "width": 194,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prep_NYTPRIN",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 180.5,
+          "y": 156,
+          "width": 95.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "NYTPRIN_excl_code",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 313.5,
+          "y": 156,
+          "width": 33.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prep_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 192,
+          "y": 138,
+          "width": 155,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "firm_name",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 37,
+          "y": 120,
+          "width": 201.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Firm_address1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 37,
+          "y": 100,
+          "width": 202,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Firm_address2",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 37,
+          "y": 85,
+          "width": 239,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Firm_email",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 62,
+          "y": 72,
+          "width": 285.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prep_PTIN_SSN",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 239.5,
+          "y": 120,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prep_EIN",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 239.5,
+          "y": 102,
+          "width": 107.5,
+          "height": 12
+        }
+      }
+    ]
+  },
+  {
+    "name": "Prep_date",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 276,
+          "y": 83.257,
+          "width": 71,
+          "height": 11.742999999999995
+        }
+      }
+    ]
+  },
+  {
+    "name": "E1",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 521,
+          "y": 372,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 561,
+          "y": 372,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line69a",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 612,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line69",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 624,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line68",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 636,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line67",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 648,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line66",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 660,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line65",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 672,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line64",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 684,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line79",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 306.5,
+          "y": 372,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line47",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 540,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line47a",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306,
+          "y": 528,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line78",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450.5,
+          "y": 462,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line78a",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450,
+          "y": 438,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line78b",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 3,
+        "rect": {
+          "x": 450,
+          "y": 420,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line19",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 444,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line1",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 1,
+        "rect": {
+          "x": 450.5,
+          "y": 690,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "F1_NYC",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 545,
+          "y": 323.5,
+          "width": 31,
+          "height": 16.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "F2_NYC",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 545,
+          "y": 299.5,
+          "width": 31,
+          "height": 16.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "D1_Yonkers",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 545,
+          "y": 468.5,
+          "width": 31,
+          "height": 16.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "D4",
+    "type": "PDFCheckBox",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 521,
+          "y": 408,
+          "width": 15,
+          "height": 15
+        }
+      },
+      {
+        "page": 0,
+        "rect": {
+          "x": 561,
+          "y": 408,
+          "width": 15,
+          "height": 15
+        }
+      }
+    ]
+  },
+  {
+    "name": "D3_Yonkers",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 0,
+        "rect": {
+          "x": 545,
+          "y": 444.5,
+          "width": 31,
+          "height": 16.5
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line54b",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 159.5,
+          "y": 372,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line54e",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 336,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line54d",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 348,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  },
+  {
+    "name": "Line54c",
+    "type": "PDFTextField",
+    "widgets": [
+      {
+        "page": 2,
+        "rect": {
+          "x": 306.5,
+          "y": 360,
+          "width": 113,
+          "height": 10
+        }
+      }
+    ]
+  }
+]

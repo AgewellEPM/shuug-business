@@ -4,7 +4,7 @@ This package supplies limited **2023–2025 federal draft preparation packs** fo
 individual/self-employed and business returns. It is integrated with the
 independently trusted encrypted client and its existing client/staff authorization
 boundary. Partial 2026 individual calculations and final Schedule C/SE templates
-are also installed, plus a limited Connecticut resident pack for 2023–2025.
+are also installed, plus limited Connecticut and New York resident packs for 2023–2025.
 It is not a completed filing product.
 
 Inputs are versioned structured records containing integer cents. Calculations
@@ -23,6 +23,9 @@ Different years never inherit these rates.
 | Household employment | Schedule H annual worker limits, Medicare/withholding, FUTA Sections A/B, late contributions and annual credit reduction; separate taxpayer/spouse employers |
 | Investment income | Schedule B payer records/foreign disclosures and limited Form 8960 interest/dividends/capital gains, reviewed MAGI and deduction scope |
 | Capital income | Schedule D / 8949 ordinary securities, reviewed adjustment codes and short/long carryovers; qualified dividend / capital-gain tax worksheet |
+| Retirement and benefits | Reviewed ordinary IRA/pension distributions, qualified Roth distributions, eligible rollovers and Social Security benefits worksheet; basis, annuity, early-distribution and special elections remain limited |
+| Inventory | Schedule C Part III and Form 1125-A for reviewed cost/LCM components; source-based capitalization, itemized costs and aggregate reconciliation |
+| New York resident | 2023–2025 IT-201 / IT-2, annual NYS/NYC/Yonkers rates, benefit recapture, household/school credits, reviewed MCTMT and mandatory linked W-2 supplements |
 | Connecticut resident | 2023–2025 CT-1040 resident calculation, annual rates/credits, reviewed adjustments, property/use tax and payments; other jurisdictions/supplements remain explicit gaps |
 | 2026 individual | Published annual standard deduction, SS base and QBI minimum; final C/SE templates. Main 1040 and several schedules remain unavailable |
 | Partnership 1065 | Ordinary business income/deductions, exact ordinary-income owner allocations, partial K-1 workpapers |
@@ -39,10 +42,17 @@ Known missing additional taxes, complex QBI and loss limitations suppress a
 complete tax/balance figure rather than supply zero. A saved review checkbox is
 a preparer's declaration, not independent verification. Every result has
 `filingReady: false`; there is no transmission or acknowledgment fabrication.
+New York intake can reveal federal dependent-credit, claimability or age-65
+requirements. Those source facts now withhold affected federal deduction, credit
+and settlement totals until their federal worksheets exist, while retaining known
+AGI for state preparation. A state record never supplies a missing federal credit. IT-2 source facts also
+flag unresolved federal allocated tips, statutory-employee routing, dependent-care,
+HSA/adoption benefits and uncollected/409A additional taxes. Ordinary W-2 box 1
+input cannot silently absorb those missing treatments.
 
 ## Forms and sources
 
-Each of `forms/2023`, `forms/2024` and `forms/2025` contains nineteen original public IRS PDF templates. `manifest.json`
+Each of `forms/2023`, `forms/2024` and `forms/2025` contains twenty original public IRS PDF templates. `manifest.json`
 and `templates.mjs` pin the original URL, SHA-256, byte count, pages and fields.
 Connecticut CT-1040 originals have no fillable fields, so their reviewed annual
 coordinate overlays use separate pinned state templates. The 2023 DRS-linked
@@ -112,8 +122,9 @@ per worker and quarter. Prior-year FUTA quarters preserve unknown versus zero.
 Employer payroll liabilities reach Schedule 2, never the employer's withholding
 credits. [Section B](HOUSEHOLD-FUTA.md) now uses reviewed state rate periods, contribution timing and per-worker state wage allocations, including annual credit reductions and printed continuation tables. State payroll returns and employer W-2/W-3 are separate.
 
-Complete dependent/credit/age eligibility, Schedule 1-A, qualified-dividend and
-capital-gain treatment, retirement/rental/pass-through income, inventory/assets,
+Complete dependent/credit/age eligibility, Schedule 1-A, remaining special capital
+and retirement treatments, rental/pass-through income, alternative inventory
+methods, depreciation/assets,
 entity disclosures, K/K-1 basis/capital/separately stated items, special taxes,
 additional years and state/local returns. Complete broader encrypted office
 editing/review, trusted enrollment/migration and frontend/key custody,
@@ -123,3 +134,6 @@ IRS MeF/state transmission, testing/production approvals, acknowledgment and
 rejection/amendment workflows remain real product requirements. Draft generation,
 synthetic tests and a configured MCP workspace do not supply them. Payment
 activation remains deferred under the current project instruction.
+
+Detailed scope: [inventory](INVENTORY.md), [retirement](RETIREMENT-INCOME.md),
+[New York](NEW-YORK.md) and [legacy posting conversion](../secure-tax-client/LEGACY-BOOK-CONVERSION.md).

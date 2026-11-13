@@ -1,6 +1,7 @@
 import {strictObject,list,text,diagnostic} from './model.mjs';
 import {checkedMoney,sumMoney,wholeDollars as R} from './money.mjs';
 import {ctYears,ctTaxCalculation,ctPropertyTaxCredit} from './state-ct-rates.mjs';
+import {calculateNYResident,nyYears} from './state-ny.mjs';
 
 export const ctReviews=Object.freeze([
  ['residency','Full-year Connecticut residency, matching federal filing status and spouse residency reviewed'],
@@ -23,7 +24,7 @@ export const newCTAdjustment=()=>({line:'31',amountCents:0,source:'',description
 export const newCTWithholding=()=>({payer:'',payerId:'',wagesCents:0,withholdingCents:0,source:'',reviewed:false});
 export const newCTPropertyTax=()=>({kind:'residence',town:'',description:'',paidDates:'',amountCents:0,source:'',reviewed:false});
 export const stateJurisdictions=Object.freeze('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' '));
-export const stateCoverage=year=>stateJurisdictions.map(state=>({state,year,status:state==='CT'&&ctYears.includes(year)?'resident-scope':'not-installed',description:state==='CT'&&ctYears.includes(year)?'CT-1040 full-year resident calculation and draft form; additional schedules remain limited.':'No reviewed annual state calculation/form pack is installed.'}));
+export const stateCoverage=year=>stateJurisdictions.map(state=>{const installed=state==='CT'&&ctYears.includes(year)||state==='NY'&&nyYears.includes(year);return {state,year,status:installed?'resident-scope':'not-installed',description:installed?`${state==='CT'?'CT-1040':'IT-201 / IT-2'} full-year resident calculation and draft forms; additional schedules remain limited.`:'No reviewed annual state calculation/form pack is installed.'};});
 const emptySummary=()=>({adjustedGrossIncomeCents:null,incomeTaxCents:null,propertyTaxCreditCents:null,useTaxCents:null,totalTaxCents:null,paymentsCents:null,refundCents:null,amountOwedCents:null});
 const validDate=(date,year)=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&date.slice(0,4)===String(year)&&Number.isFinite(Date.parse(date+'T00:00:00Z'))&&new Date(date+'T00:00:00Z').toISOString().slice(0,10)===date;
 const flags=(value,keys,label)=>{strictObject(value,keys,label);for(const key of keys)if(typeof value[key]!=='boolean')throw new Error(`${label} requires explicit yes/no values.`);};
@@ -97,7 +98,9 @@ export function calculateStateReturns(input,federalResult){
  const values=input.individual?.stateReturns;if(values===undefined)return {states:[],forms:[],diagnostics:[]};const seen=new Set(),states=[];
  for(const value of list(values,'State returns',51)){
   if(!value||typeof value!=='object'||Array.isArray(value)||!stateJurisdictions.includes(value.state)||seen.has(value.state))throw new Error('Choose each U.S. state or District of Columbia at most once.');seen.add(value.state);
-  if(value.state==='CT')states.push(calculateCTResident(input,value,federalResult));else states.push({state:value.state,year:input.year,summary:emptySummary(),forms:[],diagnostics:[diagnostic('STATE_PACK_UNAVAILABLE',`No reviewed ${input.year} ${value.state} state calculation/form pack is installed. Its preserved inputs require completion outside this pack.`)]});
+  if(value.state==='CT')states.push(calculateCTResident(input,value,federalResult));
+  else if(value.state==='NY'&&value.residency!==undefined)states.push(calculateNYResident(input,value,federalResult));
+  else states.push({state:value.state,year:input.year,summary:emptySummary(),forms:[],diagnostics:[diagnostic(value.state==='NY'?'NY_SOURCE_INPUT_REQUIRED':'STATE_PACK_UNAVAILABLE',value.state==='NY'?'Complete the New York residency and source inputs before calculating the saved state requirement.':`No reviewed ${input.year} ${value.state} state calculation/form pack is installed. Its preserved inputs require completion outside this pack.`)]});
  }
  return {states,forms:states.flatMap(state=>state.forms),diagnostics:states.flatMap(state=>state.diagnostics)};
 }

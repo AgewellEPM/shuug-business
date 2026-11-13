@@ -11,4 +11,4 @@ export const federalSources=Object.freeze({
   scheduleSE:'https://www.irs.gov/pub/irs-prior/f1040sse--2025.pdf',qbi:'https://www.irs.gov/pub/irs-prior/i8995--2025.pdf',
   partnership:'https://www.irs.gov/pub/irs-prior/f1065--2025.pdf',sCorporation:'https://www.irs.gov/pub/irs-prior/f1120s--2025.pdf',corporation:'https://www.irs.gov/pub/irs-prior/i1120--2025.pdf',
 });
-export const scopeNotice='Limited 2023–2025 federal and Connecticut resident preparation; partial 2026 federal calculations and Schedule C/SE forms. Other states and unimplemented treatments need additional coverage. Production filing requires agency approval and transmission; a calculated draft is not a filed return.';
+export const scopeNotice='Limited 2023–2025 federal, Connecticut and New York resident preparation; partial 2026 federal calculations and Schedule C/SE forms. Other states and unimplemented treatments need additional coverage. Production filing requires agency approval and transmission; a calculated draft is not a filed return.';
