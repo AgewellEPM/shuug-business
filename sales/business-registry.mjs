@@ -1,6 +1,8 @@
 import { HttpError } from './model.mjs';
 import { publicText } from './public-data.mjs';
 import { validLocation } from './geocoding.mjs';
+import { isTaxBusiness, matchBusiness } from './registry-matching.mjs';
+export { normalizedBusiness } from './registry-matching.mjs';
 
 // Official CT Secretary of the State datasets. Select only professional fields;
 // principal residence addresses and demographic survey fields are never read.
@@ -9,19 +11,8 @@ export const CT_PRINCIPALS = 'https://data.ct.gov/resource/ka36-64k6.json';
 const SELECT = 'id,name,status,business_type,accountnumber,billingstreet,billing_unit,billingcity,billingstate,billingpostalcode,business_email_address,naics_code,naics_sub_code,create_dt,geo_location';
 const cache = new Map();
 const literal = value => `'${String(value).replaceAll("'", "''")}'`;
-export const normalizedBusiness = value => String(value || '').toUpperCase().replace(/&/g, ' AND ').replace(/\b(?:L\.?L\.?C\.?|INCORPORATED|INC|CORPORATION|CORP|LLP|LP|PC)\b\.?/g, '').replace(/[^A-Z0-9]/g, '');
-const street = value => String(value || '').toUpperCase().replace(/\b(?:STREET|ROAD|AVENUE|BOULEVARD|DRIVE|LANE|COURT|PLACE|SUITE)\b/g, word => ({ STREET:'ST', ROAD:'RD', AVENUE:'AVE', BOULEVARD:'BLVD', DRIVE:'DR', LANE:'LN', COURT:'CT', PLACE:'PL', SUITE:'STE' })[word]).replace(/\b(?:STE|UNIT|APT|FLOOR|FL)\b.*$/, '').replace(/[^A-Z0-9]/g, '');
-const isTaxBusiness = row => /\b(?:tax|taxes|taxation|accounting|accountant|accountants|bookkeeping|bookkeeper)\b/i.test(row.name || '') || /54121[139]/.test(`${row.naics_code || ''} ${row.naics_sub_code || ''}`);
-const nameAnchors = value => String(value || '').toUpperCase().match(/[A-Z0-9]+/g)?.filter(word => word.length > 2 && !['LLC','INC','CORP','AND','THE','TAX','TAXES','ACCOUNTING','SERVICES','SERVICE','SOLUTION','SOLUTIONS','COMPANY'].includes(word)) || [];
 export function registryMatch(candidate, row) {
-  const record = businessRecord(row), name = normalizedBusiness(candidate.name);
-  const sameName = Boolean(name) && normalizedBusiness(record.name) === name;
-  const sameCity = String(record.city).trim().toUpperCase() === String(candidate.city).trim().toUpperCase();
-  const sameAddress = Boolean(street(candidate.address)) && street(record.address) === street(candidate.address) && sameCity;
-  const anchors = nameAnchors(candidate.name), words = new Set(nameAnchors(record.name));
-  const relatedName = sameCity && isTaxBusiness(row) && anchors.length > 0 && anchors.every(word => words.has(word));
-  const match = candidate.registryId === record.registryId ? 'registry_record' : sameName && sameAddress ? 'name_and_address' : sameName ? 'name_only' : relatedName ? 'related_name' : sameAddress && isTaxBusiness(row) ? 'address_only' : null;
-  return match ? { ...record, match, score: ({ registry_record:6, name_and_address:5, name_only:4, related_name:3, address_only:2 })[match] } : null;
+  return matchBusiness(candidate,businessRecord(row));
 }
 async function query(endpoint, where, select, limit, fetcher) {
   const url = new URL(endpoint); url.searchParams.set('$where', where); url.searchParams.set('$select', select); url.searchParams.set('$limit', String(limit)); url.searchParams.set('$order', endpoint === CT_BUSINESSES ? 'name,id' : 'name__c');
@@ -37,7 +28,7 @@ export function businessRecord(row) {
   return { registryId: String(row.id), name: String(row.name || ''), legalName: String(row.name || ''), address: [row.billingstreet, row.billing_unit].filter(Boolean).join(', '),
     city: row.billingcity || '', state: row.billingstate || 'CT', zip: row.billingpostalcode || '', businessId: row.accountnumber || '', status: row.status || '', businessType: row.business_type || '',
     email: /^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(row.business_email_address || '') ? row.business_email_address : '', industry: [row.naics_code, row.naics_sub_code].filter(Boolean).join(' · '),
-    extractedAt: row.create_dt || null, sourceURL: businessSource(row.id), sourceKind: 'ct_registry',
+    extractedAt: row.create_dt || null, sourceURL: businessSource(row.id), sourceKind: 'ct_registry', registryState:'CT', sourceName:'Connecticut business registry',
     ...(valid && validLocation(row.billingstate || 'CT', Number(coordinates[1]), Number(coordinates[0])) ? { location: { lat: Number(coordinates[1]), lng: Number(coordinates[0]), source: 'Connecticut registry', precision: 'Registered business address' } } : {}) };
 }
 export async function taxBusinesses(region, locality, fetcher = fetch) {

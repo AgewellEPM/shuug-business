@@ -40,6 +40,13 @@ test('principal research tokens are bound to a sourced business, user, territory
   await assert.rejects(local({...agent,states:['MA']},'research-local-contacts',{candidateToken:token}),/territory/);
   now+=3600001;await assert.rejects(local(agent,'research-local-contacts',{candidateToken:token}),/expired/);
 });
+test('empty website search tries one simpler business query and reports remaining gaps without hiding directory contacts',async()=>{
+  const queries=[];
+  const result=await researchLocalContacts(office,{}, {search:async query=>{queries.push(query);return queries.length===1?[]:[{url:'https://fixture-business.org'}];}});
+  assert.equal(queries.length,2);assert.equal(queries[1],'7082 LLC Hartford CT');assert.equal(result.websiteSearch.status,'results');assert(result.evidence.some(row=>row.field==='phone'));
+  const empty=await researchLocalContacts(office,{}, {search:async()=>[]});
+  assert.equal(empty.websiteSearch.status,'no_results');assert.equal(empty.websiteSearch.queries.length,2);assert.match(empty.message,/No automatic website suggestions/);assert(empty.evidence.length);
+});
 test('map contact research honors saved do-not-contact records without modifying the pipeline',async()=>{
   const f=contactFixture(),saved=await f.createOffice();let searches=0;
   const candidate={...office,name:saved.town,address:JSON.parse(saved.notes).address,city:saved.locality,state:saved.state};

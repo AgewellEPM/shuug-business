@@ -20,16 +20,22 @@ export async function researchLocalContacts(candidate, body, { search = async ()
   const context = { name:candidate.name, address:candidate.address, city:candidate.city, state:candidate.state, contact:candidate.contact || '', contactRole:candidate.contactRole || 'unverified' };
   if (!body.website) {
     const query = [candidate.contact ? `"${candidate.contact}"` : '', `"${candidate.name}"`, candidate.city, candidate.state, 'tax accounting official business contact'].filter(Boolean).join(' ').slice(0,500);
-    let found = [], issues = [];
-    try { found = await search(query); }
+    let found = [], issues = [], queries = [query];
+    try {
+      found = await search(query);
+      if (!Array.isArray(found) || !found.length) {
+        const simpler = [candidate.name,candidate.city,candidate.state].filter(Boolean).join(' ').slice(0,500);
+        if(simpler!==query){queries.push(simpler);found=await search(simpler);}
+      }
+    }
     catch { issues = [{ message:'Website search is unavailable. Enter a confirmed business website to continue.' }]; }
     const candidates = [...new Map((Array.isArray(found) ? found : []).flatMap(item => {
       const url = businessURL(item.url); return url ? [[url,{ url, title:String(item.title || url).slice(0,240), snippet:String(item.snippet || '').slice(0,400) }]] : [];
     })).values()].slice(0,8);
     const google = new URL('https://www.google.com/search'); google.searchParams.set('q',query);
     const linkedin = new URL('https://www.linkedin.com/search/results/people/'); linkedin.searchParams.set('keywords',[candidate.contact,candidate.name,candidate.city,candidate.state].filter(Boolean).join(' '));
-    return { context, checkedAt, evidence:known, needsWebsiteSelection:true, candidates, searchLinks:[{label:'Search business sources',url:google.href},{label:'Find professional profile',url:linkedin.href}], issues,
-      message:'Confirm the business and person match before choosing the official website. Search results alone do not establish an affiliation.' };
+    return { context, checkedAt, evidence:known, needsWebsiteSelection:true, candidates, websiteSearch:{status:issues.length?'unavailable':candidates.length?'results':'no_results',queries}, searchLinks:[{label:'Search business sources',url:google.href},{label:'Find professional profile',url:linkedin.href}], issues,
+      message:candidates.length?'Confirm the business and person match before choosing the official website. Search results alone do not establish an affiliation.':'No automatic website suggestions were returned. Use the business search links or enter its official website. Published directory contacts remain available below.' };
   }
   if (body.websiteReviewed !== true) throw new HttpError(400,'Confirm that this is the business’s official website before reading its contact pages.');
   const website = businessURL(text(body.website,700,true));

@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { artifactFiles, sha, uploadedFiles } from './prepare-contacts-release.mjs';
 
 const STATIC = new Set(['sales.html','sales.js','local-offices.js','local-offices.css','local-contacts.js',...['leaflet.js','leaflet.css','LICENSE','images/layers.png','images/layers-2x.png','images/marker-icon.png','images/marker-icon-2x.png','images/marker-shadow.png'].map(name=>'vendor/leaflet-1.9.4/'+name)]);
-const MODULES = new Set(['service.mjs','discovery.mjs','local-discovery.mjs','business-registry.mjs','geocoding.mjs','public-data.mjs','local-contacts.mjs']);
+const MODULES = new Set(['service.mjs','discovery.mjs','local-discovery.mjs','business-registry.mjs','registry-catalog.mjs','registry-matching.mjs','registry-socrata.mjs','state-registry.mjs','geocoding.mjs','public-data.mjs','local-contacts.mjs']);
 const permitted = name => name.startsWith('static/') ? STATIC.has(name.slice(7)) : /^functions\/api\/(sales|offices|sales-webhook|sales-mail-webhook)\.func\/[^/]+$/.test(name) && MODULES.has(path.basename(name));
 export function validateMapConfig(before, after) {
   const original = JSON.parse(before), candidate = JSON.parse(after), base = original.routes.find(route=>route.src==='/.*'&&route.headers?.['Content-Security-Policy']).headers['Content-Security-Policy'];

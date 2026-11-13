@@ -55,7 +55,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
   }
   async function dispatch(user, action, b = {}) {
-    if (['search-local', 'map-geocode', 'lookup-business', 'research-local-contacts'].includes(action)) return local(user, action, b);
+    if (['search-local', 'map-geocode', 'lookup-business', 'research-local-contacts', 'state-coverage'].includes(action)) return local(user, action, b);
     if (action === 'bootstrap') {
       const [all, agents, terms, enrollments, events] = await Promise.all([db.list('offices'), db.list('agents'), db.terms(), db.list('enrollments'), db.list('events')]);
       const offices = all.filter(r => visible(user, r)).map(row => {

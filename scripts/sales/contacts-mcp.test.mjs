@@ -39,6 +39,8 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     assert.equal(client.getServerVersion().name, 'shuug-business');
     assert.deepEqual((await client.listTools()).tools.map(t => t.name), ['sdr_catalog', 'sdr_read', 'sdr_command', 'sdr_progress', 'sdr_contract', 'sdr_sender']);
     assert.equal((await call(client, 'sdr_catalog')).storage, 'Existing GigTax private sales records');
+    const coverage = await call(client, 'sdr_read', { resource:'state_coverage' });
+    assert.equal(coverage.states.length,51);assert.equal(coverage.states.filter(row=>row.automaticRecords).length,6);
     const mappedSearch = await call(client, 'sdr_read', { resource: 'local_offices', city: 'hartord', state: 'CT' });
     assert.equal(mappedSearch.correction.to, 'Hartford');
     const candidateToken = mappedSearch.results[0].candidateToken;
@@ -68,6 +70,7 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     assert.equal((await call(client, 'sdr_read', { resource: 'contracts' })).contracts.length, 1);
     const other = await f.app.dispatch(f.owner, 'create-agent', { name: 'Synthetic MCP Agent', email: 'agent@example.test', states: ['CT'] });
     const agent = await connect(other.code, 'agent@example.test');
+    assert.deepEqual((await call(agent,'sdr_read',{resource:'state_coverage'})).states.map(row=>row.state),['CT']);
     assert.match((await call(agent, 'sdr_read', { resource: 'business', candidateToken })).error, /another agent/);
     assert.equal((await call(agent, 'sdr_read', { resource: 'rolodex' })).contacts.length, 0);
     assert.match((await call(agent, 'sdr_read', { resource: 'office', id: String(office.id) })).error, /not found/);
