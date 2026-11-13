@@ -3,7 +3,7 @@
   const e = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
   const safe = value => { try { const u=new URL(value); return ['https:','http:'].includes(u.protocol)&&!u.username&&!u.password ? u.href : ''; } catch { return ''; } };
   const link = (url,label) => safe(url) ? `<a href="${e(safe(url))}" target="_blank" rel="noopener noreferrer">${e(label)} ↗</a>` : '';
-  const labels = {contact:'Listed person',email:'Business email',phone:'Business phone'};
+  const labels = {contact:'Listed contact',email:'Business email',phone:'Business phone'};
   window.GigTaxLocalContacts = {
     mount({host,candidate,api,status,onPrepare}) {
       let generation=0,report;
@@ -12,7 +12,7 @@
       const announce=(value,error=false)=>{message.textContent=value;status(value,error);};
       const busy=value=>host.querySelectorAll('button').forEach(button=>button.disabled=value);
       function evidenceRows(evidence) {
-        return evidence.filter(item=>labels[item.field]).map((item,index)=>`<label class="local-contact-choice"><input type="checkbox" data-local-contact-evidence="${index}"><span><strong>${e(labels[item.field])}: ${e(item.value)}</strong>${item.role?`<small>${e(item.role)}</small>`:''}<small>${e(item.excerpt || '')}</small>${link(item.sourceURL,'Check source')}<small>${e(item.checkedAt || report.checkedAt)} · ${e(item.scope==='business'?'Business channel · person association unverified':'Listed person · role needs review')}</small></span></label>`).join('');
+        return evidence.filter(item=>labels[item.field]).map((item,index)=>`<label class="local-contact-choice"><input type="checkbox" data-local-contact-evidence="${index}"><span><strong>${e(labels[item.field])}: ${e(item.value)}</strong>${item.role?`<small>${e(item.role)}</small>`:''}<small>${e(item.excerpt || '')}</small>${link(item.sourceURL,'Check source')}<small>${e(item.checkedAt || report.checkedAt)} · ${e(item.scope==='business'?'Business channel · person association unverified':'Listed contact · role needs review')}</small></span></label>`).join('');
       }
       function render(payload) {
         report=payload;

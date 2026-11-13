@@ -9,8 +9,8 @@ import {matchBusiness} from './registry-matching.mjs';
 test('coverage exposes every state/DC, separates official links from connected records, and respects territories',async()=>{
   const coverage=allRegistryCoverage();
   assert.equal(coverage.length,51);assert.equal(new Set(coverage.map(row=>row.state)).size,51);
-  assert.deepEqual(coverage.filter(row=>row.automaticRecords).map(row=>row.state).sort(),['CO','CT','NM','NY','OR','PA','TX']);
-  assert.deepEqual(coverage.filter(row=>row.automaticLocalDiscovery).map(row=>row.state).sort(),['CO','CT','NY','OR','PA','TX']);
+  assert.deepEqual(coverage.filter(row=>row.automaticRecords).map(row=>row.state).sort(),['AK','CO','CT','IA','NM','NY','OR','PA','TX']);
+  assert.deepEqual(coverage.filter(row=>row.automaticLocalDiscovery).map(row=>row.state).sort(),['AK','CO','CT','IA','NY','OR','PA','TX']);
   for(const row of coverage){assert.equal(new URL(row.officialURL).protocol,'https:');assert(row.note);}
   const app=localDiscovery({GIGTAX_SALES_SESSION_KEY:'a'.repeat(64)});
   assert.deepEqual((await app({role:'agent',states:['NY','NJ']},'state-coverage',{})).states.map(row=>row.state),['NJ','NY']);

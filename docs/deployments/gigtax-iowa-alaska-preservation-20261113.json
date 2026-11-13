@@ -1,0 +1,57 @@
+{
+  "ok": true,
+  "preparedAt": "2026-11-13T05:32:33.349Z",
+  "baselineDeployment": "dpl_ApZduyiPvq2NcSYtpojGW9PVrroL",
+  "preparedOutput": "/Users/lukekist/BuildCache/GigTaxNationwide-20261112/release-iowa-alaska-20261113/.vercel/output",
+  "baselineVerifiedArtifacts": 449,
+  "existingRoutesHeadersCspPreserved": true,
+  "changed": [
+    "functions/api/offices.func/registry-catalog.mjs",
+    "functions/api/offices.func/state-registry.mjs",
+    "functions/api/sales-mail-webhook.func/registry-catalog.mjs",
+    "functions/api/sales-mail-webhook.func/state-registry.mjs",
+    "functions/api/sales-webhook.func/registry-catalog.mjs",
+    "functions/api/sales-webhook.func/state-registry.mjs",
+    "functions/api/sales.func/registry-catalog.mjs",
+    "functions/api/sales.func/state-registry.mjs",
+    "static/local-contacts.js",
+    "static/local-offices.js"
+  ],
+  "added": [
+    "functions/api/offices.func/iowa-data.mjs",
+    "functions/api/offices.func/registry-alaska.mjs",
+    "functions/api/offices.func/registry-iowa.mjs",
+    "functions/api/sales-mail-webhook.func/iowa-data.mjs",
+    "functions/api/sales-mail-webhook.func/registry-alaska.mjs",
+    "functions/api/sales-mail-webhook.func/registry-iowa.mjs",
+    "functions/api/sales-webhook.func/iowa-data.mjs",
+    "functions/api/sales-webhook.func/registry-alaska.mjs",
+    "functions/api/sales-webhook.func/registry-iowa.mjs",
+    "functions/api/sales.func/iowa-data.mjs",
+    "functions/api/sales.func/registry-alaska.mjs",
+    "functions/api/sales.func/registry-iowa.mjs"
+  ],
+  "removed": [],
+  "artifacts": 461,
+  "protectedPublic": 88,
+  "focusedTests": 201,
+  "typeScript": "passed",
+  "sourceModuleBytesMatch": true,
+  "sourceReads": [
+    {
+      "state": "IA",
+      "city": "Des Moines",
+      "candidates": 65,
+      "truncated": false,
+      "registryIDRoundTrip": true
+    },
+    {
+      "state": "AK",
+      "city": "Anchorage",
+      "candidates": 190,
+      "truncated": false,
+      "registryIDRoundTrip": true,
+      "publicRecordSourceLinkVerified": true
+    }
+  ]
+}

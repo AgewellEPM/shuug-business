@@ -4,6 +4,43 @@ Active scope: connect state business research nationwide using **free public
 sources only**, then let the owner drill into every state and assign towns/cities
 to sales agents. Full automatic registry coverage is not complete.
 
+## Iowa and Alaska free-source expansion — November 13
+
+Two additional official sources are connected: Iowa's monthly active-business
+dataset and Alaska's partial business-license extract. Automatic selected-record
+lookup covers nine states (AK, CO, CT, IA, NM, NY, OR, PA, TX); eight support local
+registry discovery. The remaining 42 regions still need automatic connectors.
+Town/city assignments remain available in all 50 states/DC, including all 169
+Connecticut towns, independently of registry-source coverage.
+
+Iowa uses the public data viewer for [dataset 554](https://data.iowa.gov/catalog/dataset/554).
+The adapter resolves its current read-only query reference from bounded same-site
+scripts without executing them. Fixed business fields and escaped literals limit
+queries to 500 displayed rows; action rotation gets one refresh. The monthly feed
+omits sole proprietors and some partnerships and supplies registered agents rather
+than owners. Agent addresses are excluded. The interface preserves Iowa Secretary
+of State/Data Hub attribution and the CC BY 4.0 license link.
+
+Alaska uses the official [DCCED license layer](https://maps.commerce.alaska.gov/server/rest/services/Economics_Related/Business_Licenses/MapServer/2).
+Its state/city matching excludes roughly 12% of active licenses; it is not a
+complete corporations registry. The source note and primary licensing link make
+that limit explicit. Literal public name searches are bounded and locally filtered;
+selected license IDs round-trip independently of corporate entity IDs. Published
+owner fields may identify a person or an entity and remain unverified. Mailing
+addresses and the layer's arbitrary community-centroid geometry are excluded.
+Actual street-address geocoding remains the only source of displayed pins.
+
+Direct source checks returned 65 Des Moines and 190 Anchorage tax/accounting
+records, with selected-ID matches and the Alaska record source link verified.
+All 201 focused sales/MCP checks and full TypeScript pass. The artifact guard
+verified the current 449-file deployment and prepared 461 files, preserving all
+88 protected static files and existing routes/headers/CSP. The prepared release is
+`~/BuildCache/GigTaxNationwide-20261112/release-iowa-alaska-20261113`.
+A fresh installed-MCP read verified all 51 deployed town catalogs, 44,456 locality
+names and CT pagination/search; saved offices and agents remained unchanged.
+Source changes are ready for deployment; post-deployment source checks remain.
+No real office, contact, salesperson, message or payment is created by these checks.
+
 ## New Mexico selected-business lookup milestone
 
 The free public Secretary of State search and filing-detail routes now provide
@@ -148,10 +185,10 @@ inconsistent. No visual acceptance or complete registry coverage claimed.
 - Luke reviews the live town assignment interface in Safari/phone. No real agents
   exist yet, so add the intended salesperson in Sales team before assigning their
   towns in Territories. No actual person's access or assignments were fabricated.
-- Remaining official sources require individual free adapters. Iowa moved its
-  public data to `idh-be.iowa.gov/api/v1/datasets/554/rows.json`; the documented
-  download ignored `limit=1` and exceeded the bounded probe. Its separate SOS API
-  advertises paid subscriptions; none was purchased. Florida/California automated
+- Remaining official sources require individual free adapters. Iowa's public
+  viewer adapter is described above; its bulk download ignored `limit=1` and
+  exceeded the bounded probe. Its separate SOS API advertises paid subscriptions;
+  none was purchased. Florida/California automated
   search probes were blocked; no challenge bypass was attempted. New Mexico's
   selected-name connector is described above. Similar public route probes for
   Idaho/North Dakota returned 404 and Montana returned 403 even outside the
