@@ -1,7 +1,7 @@
 import { caseSnapshot } from '../case-model.mjs';
 import { renderCaseBooks } from './case-books-view.mjs';
 const node=(document,tag,text)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;return element;};
-const actions={'case.create':'Case created','request.add':'Document requested','document.review':'Document decision recorded','draft.link':'Draft linked','books.open':'Case ledger opened','books.account.add':'Ledger account added','books.journal.post':'Journal posted','books.journal.reverse':'Journal reversed','books.period.close':'Posting period closed'};
+const actions={'case.create':'Case created','request.add':'Document requested','document.review':'Document decision recorded','draft.link':'Draft linked','books.link':'Shared client ledger reviewed and linked','books.open':'Case ledger opened','books.account.add':'Ledger account added','books.journal.post':'Journal posted','books.journal.reverse':'Journal reversed','books.period.close':'Posting period closed'};
 
 /** Only controller-verified case bodies enter this projection. Historical firm
  * decisions remain visible, but current dependency freshness controls readiness. */
@@ -20,6 +20,7 @@ export function renderCase(document,record,records){
   if(!snapshot.requests.length)requests.append(node(document,'p','No document requests have been approved for this case.'));section.append(requests);
   const draft=node(document,'p',!snapshot.draft?'No draft is linked':snapshot.draft.freshness==='current'?`Linked draft is current — exact revision ${snapshot.draft.reference.revision}`:snapshot.draft.freshness==='stale'?'Linked draft changed — link the current draft again':'Linked draft is unavailable');draft.className='case-draft';draft.dataset.freshness=snapshot.draft?.freshness??'unlinked';section.append(draft);
   if(snapshot.draft?.booksFreshness==='stale')section.append(node(document,'p','Case ledger changed since draft review — review and link the draft against the current books.'));
-  section.append(renderCaseBooks(document,snapshot.books));
+  if(snapshot.bookLink)section.append(node(document,'p',`Linked shared client books: ${snapshot.bookLink.freshness}. Historical case postings remain retained and are not combined with this ledger.`));
+  section.append(renderCaseBooks(document,snapshot.books,{scope:snapshot.bookLink?'client':'case'}));
   const history=node(document,'details');history.append(node(document,'summary','Verified firm review history'));for(const event of body.history.slice(-100))history.append(node(document,'p',`${event.at} · ${actions[event.type]} · ${event.actor}${event.notes?` · ${event.notes}`:''}`));if(body.history.length>100)history.append(node(document,'p','The latest 100 verified events are shown. Earlier events remain in the encrypted case.'));section.append(history);return section;
 }

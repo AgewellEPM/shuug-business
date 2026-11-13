@@ -2,10 +2,11 @@
 import {decode64} from './envelope.mjs';
 import {checkedReturnDraft} from './return-proposals.mjs';
 import {BOOK_ACTIONS,assertBookInput,replayCaseBooks,caseBookReport} from './case-books.mjs';
+import {OFFICE_ACTIONS,isOfficeBody,assertOfficeBody,assertOfficeCommand,applyOfficeTransition,officeLedgers,officeSnapshot} from './office-model.mjs';
 
 export const CASE_BODY_MAX_BYTES=128*1024,CASE_PRIVATE_JSON_MAX_BYTES=20*1024*1024;
 const MAX_STRING=15*1024*1024,MAX_FILE_BYTES=10*1024*1024,utf8=new TextEncoder();
-const kinds=['1040','1065','1120S','1120'],actions=['case.create','request.add','document.review','draft.link',...BOOK_ACTIONS];
+const kinds=['1040','1065','1120S','1120'],actions=['case.create','request.add','document.review','draft.link','books.link',...BOOK_ACTIONS];
 const fail=()=>{throw new Error('The private tax case, transition or selected evidence is invalid.');};
 export function exactCaseObject(value,keys){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join('|')!==[...keys].sort().join('|'))fail();
@@ -38,12 +39,14 @@ export function assertCaseReference(reference,{draft=false}={}){
   decode64(reference.envelopeDigest,32);return reference;
 }
 export function sameCaseReference(first,second){try{assertCaseReference(first);assertCaseReference(second);return ['objectId','revision','envelopeDigest','domain'].every(key=>first[key]===second[key]);}catch{return false;}}
+export function caseBookVersion(history,year){const link=history.findLast(event=>event.type==='books.link');return link?'linked:'+link.actionId:replayCaseBooks(history,year)?.version??null;}
 function review(value,history){
   if(value===null)return;
   exactCaseObject(value,['document','decision','notes','actor','at']);assertCaseReference(value.document);if(!['reviewed','replacement_requested'].includes(value.decision))fail();text(value.notes,2000);identifier(value.actor);assertCaseTime(value.at);
   if(!history.some(event=>event.type==='document.review'&&event.actor===value.actor&&event.at===value.at))fail();
 }
 export function assertCaseBody(body){
+  if(isOfficeBody(body))return assertOfficeBody(body);
   exactCaseObject(body,['title','year','kind','requests','draft','history']);text(body.title,160,true);if(body.year!==2025||!kinds.includes(body.kind))fail();
   if(!Array.isArray(body.requests)||body.requests.length>100||!Array.isArray(body.history)||!body.history.length||body.history.length>256)fail();
   const actionIds=new Set();let previous=-Infinity;
@@ -57,10 +60,11 @@ export function assertCaseBody(body){
   if(body.draft!==null)assertCaseReference(body.draft,{draft:true});
   if((body.draft!==null)!==body.history.some(event=>event.type==='draft.link'))fail();
   replayCaseBooks(body.history,body.year);
+  let shared=false;for(const event of body.history){if(event.type==='books.link')shared=true;else if(shared&&BOOK_ACTIONS.includes(event.type))fail();}
   // A draft link explicitly records the exact book state reviewed at that time.
   // Existing document-only cases keep their original body/certificate format.
   for(const [index,event]of body.history.entries())if(event.type==='draft.link'){
-    const version=replayCaseBooks(body.history.slice(0,index),body.year)?.version??null;
+    const version=caseBookVersion(body.history.slice(0,index),body.year);
     if((event.input.booksVersion??null)!==version)fail();
   }
   // Replay private command facts without file contents. Actual evidence was
@@ -77,11 +81,13 @@ export function assertCaseBody(body){
   if(utf8.encode(canonicalCaseJson(body)).length>CASE_BODY_MAX_BYTES)fail();return body;
 }
 export function assertCaseCommand(command){
+  if(OFFICE_ACTIONS.includes(command?.type))return assertOfficeCommand(command);
   exactCaseObject(command,['actionId','type','input']);identifier(command.actionId);if(!actions.includes(command.type))fail();const input=command.input;
   if(command.type==='case.create'){exactCaseObject(input,['title','year','kind']);text(input.title,160,true);if(input.year!==2025||!kinds.includes(input.kind))fail();}
   if(command.type==='request.add'){exactCaseObject(input,['requestId','title','due','notes']);identifier(input.requestId);text(input.title,160,true);due(input.due);text(input.notes,2000);}
   if(command.type==='document.review'){exactCaseObject(input,['requestId','document','decision','notes']);identifier(input.requestId);assertCaseReference(input.document);if(!['reviewed','replacement_requested'].includes(input.decision))fail();text(input.notes,2000);}
   if(command.type==='draft.link'){exactCaseObject(input,['document','notes',...Object.hasOwn(input??{},'booksVersion')?['booksVersion']:[]]);assertCaseReference(input.document,{draft:true});text(input.notes,2000);if(input.booksVersion!==undefined&&input.booksVersion!==null)identifier(input.booksVersion);}
+  if(command.type==='books.link'){exactCaseObject(input,['document','ledgerId','ledgerVersion','notes']);assertCaseReference(input.document,{draft:true});identifier(input.ledgerId);identifier(input.ledgerVersion);text(input.notes,2000);}
   if(BOOK_ACTIONS.includes(command.type)){assertBookInput(command.type,input);if(command.type==='books.journal.post'&&input.document!==null)assertCaseReference(input.document);}
   return command;
 }
@@ -105,10 +111,13 @@ export function validateCaseEvidence(evidence){
   if(evidence.payload?.type==='private-file')validatePrivateFile(evidence.payload,evidence.reference);
   else if(evidence.payload?.type==='tax-return'){
     assertCaseReference(evidence.reference,{draft:true});checkedReturnDraft(evidence.payload);
+  }else if(evidence.payload?.type==='client-office'){
+    assertCaseReference(evidence.reference,{draft:true});assertOfficeBody(evidence.payload.body);
   }else fail();
   canonicalCaseJson(evidence);return evidence;
 }
 export function applyCaseTransition(before,command,{actor,at,evidence=null}={}){
+  if(OFFICE_ACTIONS.includes(command?.type)||isOfficeBody(before)){if(evidence!==null)validateCaseEvidence(evidence);return applyOfficeTransition(before,command,{actor,at,evidence});}
   identifier(actor);assertCaseTime(at);assertCaseCommand(command);if(before!==null)assertCaseBody(before);
   if(command.type==='case.create'?before!==null:before===null)fail();
   if(before&&(before.history.some(event=>event.actionId===command.actionId)||Date.parse(at)<Date.parse(before.history.at(-1).at)))fail();
@@ -126,6 +135,10 @@ export function applyCaseTransition(before,command,{actor,at,evidence=null}={}){
     if(evidence.payload.type!=='tax-return'||evidence.payload.year!==after.year||evidence.payload.kind!==after.kind)fail();after.draft=structuredClone(input.document);
   }
   if(command.type==='books.journal.post'&&input.document!==null&&evidence.payload.type!=='private-file')fail();
+  if(command.type==='books.link'){
+    if(evidence.payload.type!=='client-office')fail();const ledger=officeLedgers(evidence.payload.body.history).find(item=>item.id===input.ledgerId);
+    if(!ledger||ledger.version!==input.ledgerVersion||ledger.from!==`${after.year}-01-01`||ledger.through!==`${after.year}-12-31`)fail();
+  }
   after.history.push({actionId:command.actionId,type:command.type,input:structuredClone(input),actor,at,notes:command.type==='case.create'?'':input.notes});return assertCaseBody(after);
 }
 function freshness(reference,records){const record=records.get(reference.objectId);if(!record||record.deleted)return 'unavailable';return sameCaseReference(reference,{objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain})?'current':'stale';}
@@ -136,7 +149,9 @@ export function caseSnapshot(body,records){
   const requests=body.requests.map(request=>{const state=request.review?freshness(request.review.document,records):'unreviewed';return {...structuredClone(request),freshness:state,ready:state==='current'&&request.review.decision==='reviewed'};});
   const draft=body.draft?{reference:structuredClone(body.draft),freshness:freshness(body.draft,records)}:null;
   const book=replayCaseBooks(body.history,body.year),bookSources=book?.entries.filter(entry=>entry.document!==null&&!entry.reverses).map(entry=>({entryId:entry.id,reference:entry.document,active:!book.entries.some(other=>other.reverses===entry.id),freshness:freshness(entry.document,records)}))??[];
-  const books=book?{...book,report:caseBookReport(book),sources:bookSources,sourcesCurrent:bookSources.every(source=>!source.active||source.freshness==='current')}:null;
-  if(draft){const linked=body.history.findLast(event=>event.type==='draft.link');draft.booksFreshness=(linked.input.booksVersion??null)===(book?.version??null)?'current':'stale';}
-  return {requests,draft,books,ready:requests.length>0&&requests.every(request=>request.ready)&&draft?.freshness==='current'&&draft.booksFreshness==='current'&&(!books||books.sourcesCurrent),filingReady:false};
+  let books=book?{...book,report:caseBookReport(book),sources:bookSources,sourcesCurrent:bookSources.every(source=>!source.active||source.freshness==='current')}:null,bookLink=null;
+  const event=body.history.findLast(event=>event.type==='books.link');
+  if(event){const {document,ledgerId,ledgerVersion}=event.input,office=records.get(document.objectId)?.verifiedOffice;books=office?officeSnapshot(office,records).ledgers.find(item=>item.id===ledgerId)??null:null;bookLink={reference:document,ledgerId,ledgerVersion,freshness:!books?'unavailable':books.version===ledgerVersion?'current':'stale'};}
+  if(draft){const linked=body.history.findLast(event=>event.type==='draft.link');draft.booksFreshness=(linked.input.booksVersion??null)===caseBookVersion(body.history,body.year)&&(!bookLink||bookLink.freshness==='current')?'current':'stale';}
+  return {requests,draft,books,bookLink,ready:requests.length>0&&requests.every(request=>request.ready)&&draft?.freshness==='current'&&draft.booksFreshness==='current'&&(!bookLink||bookLink.freshness==='current')&&(!books||books.sourcesCurrent),filingReady:false};
 }

@@ -18,6 +18,9 @@ import {renderPortalDashboard} from '../browser/client-portal-view.mjs';
 import {newReturn} from '../../tax-engine/index.mjs';
 import {CASE_OBJECT_PREFIX,isCaseObjectId} from '../case-contract.mjs';
 import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks} from '../case-books.mjs';
+import {officeObjectId,officeSnapshot,officeLedgers} from '../office-model.mjs';
+import {mountOfficeEditor} from '../browser/office-editor.mjs';
+import {renderOffice} from '../browser/office-view.mjs';
 const encode=value=>new TextEncoder().encode(JSON.stringify(value)),command=(type,input)=>({actionId:crypto.randomUUID(),type,input});
 const ref=record=>({objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain});
 class MemoryStore{
@@ -143,5 +146,28 @@ test('encrypted book revisions invalidate prior draft review and stale source po
     await f.apply(id,command('books.journal.post',{date:'2025-07-01',memo:'Synthetic certified posting',lines:[{accountNumber:1000,debitCents:500,creditCents:0},{accountNumber:4000,debitCents:0,creditCents:500}],document:ref(f.staff.records.get('book-evidence')),notes:''}),'book-evidence');
     for(const controller of [f.client,f.staff]){const status=caseSnapshot(controller.records.get(id).verifiedCase,controller.records);assert.equal(status.draft.booksFreshness,'stale');assert.equal(status.books.sourcesCurrent,true);}
     await f.put(await privateFile(),'book-evidence',2);await f.client.sync();await f.staff.sync();for(const controller of [f.client,f.staff]){const status=caseSnapshot(controller.records.get(id).verifiedCase,controller.records);assert.equal(status.books.sourcesCurrent,false);assert.equal(status.books.sources[0].freshness,'stale');assert.equal(status.books.report.bankCents,500);}
+  }finally{f.staff.lock();f.client.lock();}
+});
+test('canonical finance certificates, ordinary invoice forms and shared readers preserve the client fee balance',async()=>{
+  const f=await fixture(),created=await f.apply(null,command('office.create',{title:'SYNTHETIC PRIVATE CLIENT FINANCE',notes:''})),id=created.id;assert.equal(id,await officeObjectId({...f.binding,workspaceId:f.config.workspaceId}));assert.equal(f.client.records.get(id).verifiedCase,undefined);assert.equal(f.client.records.get(id).verifiedOffice.title,'SYNTHETIC PRIVATE CLIENT FINANCE');
+  const dom=new JSDOM('<!doctype html><body><main></main></body>'),document=dom.window.document;let editor,pending;
+  const run=action=>{editor.setEnabled(false);pending=action().finally(()=>editor.setEnabled(true));return pending;};editor=mountOfficeEditor(document,document.querySelector('main'),{getClient:()=>f.staff,run,confirm:()=>true,onSave:(...args)=>f.apply(...args)});editor.setEnabled(true);editor.refresh();
+  const set=(id,value)=>{const input=document.getElementById(id);assert(input,id);input.value=value;input.dispatchEvent(new dom.window.Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));};
+  try{
+    set('office-action','fee.issue');set('office-number','SYNTHETIC-INVOICE-1');set('office-date','2025-01-01');set('office-due','2025-02-01');set('office-issuer','SYNTHETIC PRIVATE FIRM');set('office-bill-to','SYNTHETIC PRIVATE CLIENT');const inputs=editor.element.querySelectorAll('fieldset input');inputs[0].value='SYNTHETIC PRIVATE TAX SERVICE';inputs[2].value='100.00';
+    [...editor.element.querySelectorAll('button')].find(button=>button.textContent==='Save private finance review kit').click();await pending;assert.equal(editor.dirty,false);
+    const invoiceId=officeSnapshot(f.client.records.get(id).verifiedOffice,f.client.records).fees.invoices[0].invoiceId;await f.apply(id,command('fee.payment',{invoiceId,date:'2025-01-02',amountCents:2500,method:'Synthetic transfer',reference:'SYNTHETIC-PAYMENT-1',document:null,notes:''}));
+    for(const controller of [f.staff,f.client]){const view=renderOffice(document,controller.records.get(id),controller.records);assert.equal(view.querySelector('.firm-fee-balance').dataset.balanceCents,'7500');assert.match(view.textContent,/Amount owed: 75\.00 USD/);assert.match(view.textContent,/does not move money/);assert(!view.textContent.includes('business receivables 75.00'));}
+    const calls=f.calls.length;await assert.rejects(()=>f.client.save('tax-document',encode({version:1,type:'client-office',body:{}}),'ordinary-id'));await assert.rejects(()=>f.client.remove(id));assert.equal(f.calls.length,calls);
+    for(const marker of ['SYNTHETIC PRIVATE CLIENT FINANCE','SYNTHETIC PRIVATE TAX SERVICE','SYNTHETIC-INVOICE-1','SYNTHETIC-PAYMENT-1'])assert(!JSON.stringify(f.calls).includes(marker));editor.clear();editor.setEnabled(false);assert(!editor.element.textContent.includes('SYNTHETIC PRIVATE'));
+  }finally{dom.window.close();f.staff.lock();f.client.lock();}
+});
+test('a verified shared ledger links to a case through real encrypted evidence and forged finance certificates fail closed',async()=>{
+  const f=await fixture(),office=await f.apply(null,command('office.create',{title:'Shared client',notes:''})),id=office.id;
+  try{
+    await f.apply(id,command('ledger.open',{ledgerId:'shared-ledger',title:'Shared books',currency:'USD',from:'2025-01-01',through:'2025-12-31',accounts:structuredClone(DEFAULT_BOOK_ACCOUNTS),notes:''}));const tax=await f.apply(null,command('case.create',{title:'Linked tax case',year:2025,kind:'1120'}));
+    await f.apply(tax.id,command('books.link',{document:ref(f.staff.records.get(id)),ledgerId:'shared-ledger',ledgerVersion:officeLedgers(f.staff.records.get(id).verifiedOffice.history)[0].version,notes:''}),id);assert.equal(caseSnapshot(f.client.records.get(tax.id).verifiedCase,f.client.records).bookLink.freshness,'current');
+    await f.apply(id,command('ledger.account.add',{ledgerId:'shared-ledger',account:{number:1050,name:'Another bank',classification:'bank'},notes:''}));assert.equal(caseSnapshot(f.client.records.get(tax.id).verifiedCase,f.client.records).bookLink.freshness,'stale');
+    const payload=JSON.parse(new TextDecoder().decode(f.client.records.get(id).plaintext));payload.body.title='Forged finance';await f.put(payload,id,f.objects.get(id).revision);await assert.rejects(()=>f.client.sync());assert.equal(f.client.unlocked,false);await assert.rejects(()=>f.staff.sync());assert.equal(f.staff.unlocked,false);
   }finally{f.staff.lock();f.client.lock();}
 });

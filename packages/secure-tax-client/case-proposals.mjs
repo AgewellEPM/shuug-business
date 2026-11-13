@@ -3,12 +3,13 @@ import {encode64,decode64,verifyEnrollmentManifest,openEnvelope} from './envelop
 import {verifyStaffGrant,secureEnvelopeDigest,openStaffCapsule,verifyStaffCapsuleSignature} from './staff-grants.mjs';
 import {assertCaseBody,assertCaseCommand,validateCaseEvidence,applyCaseTransition} from './case-model.mjs';
 import {verifyCasePayload} from './case-certificate.mjs';
+import {isOfficeBody,OFFICE_MAX_BYTES} from './office-model.mjs';
 import {CASE_BINDING,MAX_CASE_PROPOSAL_BYTES,assertCaseBinding,assertCaseProposal,canonicalCaseProposalAad,canonicalCaseProposal,canonicalCaseReview,exactCaseObject} from './case-contract.mjs';
 const hpke=new CipherSuite({kem:new DhkemP256HkdfSha256(),kdf:new HkdfSha256(),aead:new Aes256Gcm()}),utf8=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true}),info=utf8.encode('shuug/secure-tax-case-proposal/v1');
 const fail=()=>{throw new Error('The encrypted case, selected evidence or private transition review does not match.');};
 const digest=async value=>encode64(new Uint8Array(await crypto.subtle.digest('SHA-256',utf8.encode(value))));
 export const caseProposalDigest=value=>digest(canonicalCaseProposal(value));
-export function checkedCaseBody(value){assertCaseBody(value);if(utf8.encode(canonicalCaseReview(value)).length>128*1024)fail();return value;}
+export function checkedCaseBody(value){assertCaseBody(value);if(utf8.encode(canonicalCaseReview(value)).length>(isOfficeBody(value)?OFFICE_MAX_BYTES:128*1024))fail();return value;}
 export const caseContext=(envelope,clientId)=>({...envelope.context,clientId});
 export async function privateCaseReviewCommitment(review){
   exactCaseObject(review,['version','type','binding','reviewSalt','before','command','after','evidence']);if(review.version!==1||review.type!=='shuug-private-case-transition-review')fail();exactCaseObject(review.binding,CASE_BINDING);assertCaseBinding(review.binding);decode64(review.reviewSalt,32);
@@ -33,7 +34,7 @@ export async function selectedCaseEvidence(envelope,capsule,manifest,grant,expec
   await verifyStaffCapsuleSignature(capsule,pins,now);const grantProof=await verifyStaffGrant(grant,expected,pins,now),envelopeDigest=await secureEnvelopeDigest(envelope);
   if(capsule.grantId!==grant.grantId||capsule.grantEpoch!==grant.epoch||capsule.grantDigest!==grantProof.grantDigest||capsule.staffKeyId!==grant.staff.keyId||capsule.manifestId!==manifest.manifestId||capsule.manifestEpoch!==manifest.epoch||capsule.envelopeDigest!==envelopeDigest||['workspaceId','accountId','objectId','revision','domain'].some(key=>capsule.context[key]!==context[key])||Date.parse(capsule.issuedAt)<Math.max(Date.parse(grant.issuedAt),Date.parse(manifest.issuedAt))||Date.parse(capsule.expiresAt)>Math.min(Date.parse(grant.expiresAt),Date.parse(manifest.expiresAt)))fail();
   const bytes=await open(envelope,capsule,{...expected,objectId:context.objectId,revision:context.revision,domain:context.domain});
-  try{return validateCaseEvidence({reference:{objectId:context.objectId,revision:context.revision,envelopeDigest,domain:context.domain},payload:JSON.parse(decoder.decode(bytes))});}finally{bytes.fill(0);}
+  try{const payload=JSON.parse(decoder.decode(bytes));if(payload?.type==='client-office')await verifyCasePayload(payload,caseContext(envelope,expected.clientId),pins,now);return validateCaseEvidence({reference:{objectId:context.objectId,revision:context.revision,envelopeDigest,domain:context.domain},payload});}finally{bytes.fill(0);}
 }
 export async function prepareCaseTransition({envelope=null,manifest,grant,capsule=null,expected,pins,staffPrivateKey,command,evidenceEnvelope=null,evidenceCapsule=null,now=Date.now()}){
   command=structuredClone(command);assertCaseCommand(command);const {binding}=await scope(envelope,manifest,grant,expected,pins,now);let before=null;

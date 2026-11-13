@@ -1,10 +1,10 @@
 import {caseBookReport,caseBookCsv} from '../case-books.mjs';
 const node=(document,tag,text)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;return element;};
 export const bookMoney=value=>`${value<0?'-':''}${Math.floor(Math.abs(value)/100).toLocaleString('en-US')}.${String(Math.abs(value)%100).padStart(2,'0')}`;
-export function renderCaseBooks(document,books){
-  const section=node(document,'section');section.className='case-books';section.append(node(document,'h4','Case working ledger'));
+export function renderCaseBooks(document,books,{scope='case'}={}){
+  const section=node(document,'section');section.className='case-books';section.append(node(document,'h4',scope==='client'?'Shared client ledger':'Case working ledger'));
   if(!books){section.append(node(document,'p','No encrypted working ledger has been opened for this case.'));return section;}
-  section.dataset.sourcesCurrent=String(books.sourcesCurrent);section.append(node(document,'p',`${books.title} · USD · ${books.from} through ${books.through}`),node(document,'p','These are this case’s approved postings. Older books and other cases are not merged. Balances use ledger timing; they are not cash/accrual reports, tax deductions, or fees owed to the firm.'));
+  section.dataset.sourcesCurrent=String(books.sourcesCurrent);section.append(node(document,'p',`${books.title} · USD · ${books.from} through ${books.through}`),node(document,'p',`${scope==='client'?'These approved postings are shared across linked cases.':'These are this case’s approved postings. Older books and other cases are not merged.'} Balances use ledger timing; they are not cash/accrual reports, tax deductions, or fees owed to the firm.`));
   section.append(node(document,'p',books.closedThrough?`Posting closed through ${books.closedThrough}.`:'No posting period has been closed.'));
   const unsupported=books.entries.filter(entry=>!entry.reverses&&entry.document===null).length;
   section.append(node(document,'p',books.sourcesCurrent?'All active attached journal sources match currently opened revisions.':'An active journal source changed or is unavailable. Review the affected posting and draft again.'));

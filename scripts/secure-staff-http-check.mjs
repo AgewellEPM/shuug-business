@@ -39,6 +39,8 @@ import {privateReturnCreationReviewCommitment} from '../packages/secure-tax-clie
 import {approveCaseTransition} from '../packages/secure-tax-client/firm-cases.mjs';
 import {privateCaseReviewCommitment} from '../packages/secure-tax-client/case-proposals.mjs';
 import {caseSnapshot} from '../packages/secure-tax-client/case-model.mjs';
+import {OFFICE_ACTIONS} from '../packages/secure-tax-client/office-model.mjs';
+import {proveClientFinance,verifyRestoredFinance} from './secure-finance-http-proof.mjs';
 import {DEFAULT_BOOK_ACCOUNTS,BOOK_ACTIONS,replayCaseBooks,caseBookReport} from '../packages/secure-tax-client/case-books.mjs';
 import {renderCase} from '../packages/secure-tax-client/browser/case-view.mjs';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
@@ -58,7 +60,7 @@ async function freePort(){const s=createServer();await new Promise((ok,bad)=>{s.
 async function stop(child){if(!child?.pid||child.exitCode!==null||child.signalCode!==null)return;const exited=once(child,'exit'),timer=setTimeout(()=>child.kill('SIGKILL'),5000);child.kill('SIGTERM');try{await exited;}finally{clearTimeout(timer);}}
 const root=mkdtempSync(`${tmpdir()}/shuug-secure-staff-proof-`),host=path.join(root,'host'),trusted=path.join(root,'trusted');
 mkdirSync(host,{mode:0o700});mkdirSync(trusted,{mode:0o700});
-let child,log='',checks=0,grantPageRequests=0,staffApiRequests=0,customerApiRequests=0,largeGrantList=null,returnProof=null,caseProof=null,booksProof=null,workspaceBuilder=null;
+let child,log='',checks=0,grantPageRequests=0,staffApiRequests=0,customerApiRequests=0,largeGrantList=null,returnProof=null,caseProof=null,booksProof=null,financeProof=null,workspaceBuilder=null;
 try{
   process.env.DEALDESK_DATA_DIR=host;process.env.DEMO_DATA='false';process.env.DATABASE_URL='';process.env.SHUUG_REQUIRE_MFA='false';
   const password=`Synthetic-password-${randomUUID()}`,firmPassphrase=`Synthetic offhost backup ${randomUUID()}`,backupPassword=`Synthetic device backup ${randomUUID()}`;
@@ -267,7 +269,7 @@ try{
       }finally{privateBytes.fill(0);}
     }
     const receipt=await owner.client.installApprovedCase(packet);assert.equal(receipt.duplicate,false);assert.equal((await owner.client.installApprovedCase(packet)).duplicate,true);caseTransitions++;checks++;
-    await portal.sync();await remote.sync();await afterRestore.client.sync();const customerCase=portal.records.get(receipt.objectId),staffCase=afterRestore.client.records.get(receipt.objectId);assert.deepEqual(customerCase.verifiedCase,reviewKit.privateReview.after);assert.deepEqual(staffCase.verifiedCase,customerCase.verifiedCase);checks++;
+    await portal.sync();await remote.sync();await afterRestore.client.sync();const customerCase=portal.records.get(receipt.objectId),staffCase=afterRestore.client.records.get(receipt.objectId);assert.deepEqual(customerCase.verifiedCase??customerCase.verifiedOffice,reviewKit.privateReview.after);assert.deepEqual(staffCase.verifiedCase??staffCase.verifiedOffice,customerCase.verifiedCase??customerCase.verifiedOffice);checks++;
     assert(!JSON.stringify(packet).includes(marker));assert(!Object.hasOwn(packet.approval,'command'));return receipt.objectId;
   }
   async function shareLatest(id){const object=await json(`/objects/${id}`,{token:tokens.get('portal-remote')});await owner.client.installCapsule(await createStaffCapsule(object.envelope,manifest,portalGrant,firm,expected(portalGrant,{context:object.envelope.context})));await portal.sync();await afterRestore.client.sync();}
@@ -318,6 +320,11 @@ try{
   const beforeClosedAttempt=staffApiRequests;await assert.rejects(()=>afterRestore.client.prepareCaseAction(selectedCase.id,{actionId:randomUUID(),type:'books.journal.post',input:{date:'2025-01-31',memo:'Synthetic closed period denial',lines:[bookLine(1050,1,0),bookLine(4000,0,1)],document:null,notes:''}}),/closed/);assert(staffApiRequests>beforeClosedAttempt);assert.equal(afterRestore.client.unlocked,false);checks++;
   await afterRestore.client.unlock(newDevice.keyId);await afterRestore.client.selectGrant(portalGrant.grantId);await afterRestore.client.sync();
   booksProof={kinds:caseIds.map(item=>item.kind),approvedBookActions:14,clientAndStaffBankCents:12000,clientAndStaffNetIncomeCents:12000,classifiedCustomBankIncluded:true,retainedReversalAndEarlierBalances:true,closedPeriodRejected:true,ledgerChangesInvalidateDraftReview:true,exactBookVersionRelinkVerified:true,caseScoped:true,legacyBooksImported:false,firmBillingImplemented:false};
+  const finance=await proveClientFinance({scope:{workspaceId:publicPins.workspaceId,accountId:account.id,clientId:client.id},readers:[portal,afterRestore.client],caseIds,taxReturns,caseAction,reference,marker});financeProof=finance.proof;checks++;
+  const duplicateFinance=await afterRestore.client.prepareCaseAction(null,{actionId:randomUUID(),type:'office.create',input:{title:'Synthetic duplicate finance record',notes:''}});
+  const duplicateFinancePacket=await approveCaseTransition({proposal:duplicateFinance.proposal,envelope:null,manifest:duplicateFinance.manifest,grant:duplicateFinance.grant,expected:duplicateFinance.expected,reviewedCommitment:duplicateFinance.proposal.reviewCommitment,reviewReference:'synthetic-duplicate-denial',unlocked:firm});
+  await json('/staff/cases',{token:tokens.get('owner'),method:'POST',body:duplicateFinancePacket},409);await portal.sync();assert.deepEqual(portal.records.get(finance.id).verifiedOffice,finance.body);financeProof.duplicateCanonicalCreationRejected=true;checks++;
+
   const protectedCase=portal.records.get(selectedCase.id),clientAttempt=new TextEncoder().encode(JSON.stringify({version:1,type:'business-note',title:'Synthetic forbidden case replacement'})),beforeClientAttempt=customerApiRequests;
   await assert.rejects(()=>portal.save('tax-document',clientAttempt,protectedCase.objectId));await assert.rejects(()=>portal.remove(protectedCase.objectId));assert.equal(customerApiRequests,beforeClientAttempt);checks++;
   const forbiddenContext={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:protectedCase.objectId,revision:protectedCase.revision+1,domain:'tax-document'},forbiddenEnvelope=await sealEnvelope(clientAttempt,forbiddenContext,recipients,'client',clientKey.privateKey);
@@ -326,10 +333,10 @@ try{
   const caseAudits=workspaceDatabase(db=>db.prepare("SELECT snapshot FROM audit WHERE action='secure-tax.case.approved'").all());assert.equal(caseAudits.length,caseTransitions);for(const row of caseAudits){const value=JSON.parse(row.snapshot);assert.deepEqual(Object.keys(value).sort(),['approval','sharingCapsuleId']);for(const privateId of [statement.context.objectId,newStatement.objectId,...taxReturns.map(item=>item.objectId)])assert(!row.snapshot.includes(privateId));assert(!row.snapshot.includes(marker));}checks++;
   caseProof={kinds:caseIds.map(item=>item.kind),approvedTransitions:caseTransitions,privateKitsRefusedBeforeUpload:true,clientAndStaffVerifyPrivateFirmCertificates:true,changedEvidenceInvalidatesReview:true,deletedEvidenceInvalidatesReview:true,replacementHistoryPreserved:true,changedDraftInvalidatesLink:true,currentAndIncompleteCasesRendered:true,genericClientWriteAndDeleteRefused:true,unpublishedCaseEnvelopeAndClientReencryptionRefused:true,privateDependenciesAndActionsAbsentFromHostMetadata:true,filingAuthorizationImplemented:false};
   await stop(child);child=null;const portalBackup=backupWorkspace(restored,path.join(root,'portal-backup')),portalRestored=path.join(root,'portal-restored');restoreWorkspace(path.join(root,'portal-backup'),portalRestored);
-  env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,14);
-  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,9900);assert.equal((await afterRestore.client.sync()).items,13);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;
+  env.DEALDESK_DATA_DIR=portalRestored;process.env.DEALDESK_DATA_DIR=portalRestored;await start();await portal.connect();await portal.unlock(customerKeyId);assert.equal((await portal.sync()).items,15);
+  assert.equal(portalSnapshot(portal.records).counts.statements,1);assert.equal(portalSnapshot(portal.records).totals[0].incomeCents,9900);assert.equal((await afterRestore.client.sync()).items,14);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;
   for(const item of expectedCaseBodies){assert.deepEqual(portal.records.get(item.id).verifiedCase,item.body);assert.deepEqual(afterRestore.client.records.get(item.id).verifiedCase,item.body);}await json(`/objects/${selectedCase.id}`,{token:tokens.get('portal-remote'),method:'DELETE',body:{expectedRevision:protectedCase.revision}},403);caseProof.certifiedCasesAndOwnershipSurviveRestore=true;checks++;
-  for(const item of caseIds)for(const reader of [portal,afterRestore.client]){const status=caseSnapshot(reader.records.get(item.id).verifiedCase,reader.records);assert.equal(status.books.report.bankCents,12000);assert.equal(status.books.closedThrough,'2025-01-31');assert.equal(status.draft.booksFreshness,'current');}booksProof.cleanRestoreVerified=true;checks++;
+  for(const item of caseIds)for(const reader of [portal,afterRestore.client]){const status=caseSnapshot(reader.records.get(item.id).verifiedCase,reader.records);assert.equal(status.books.report.bankCents,12000);assert.equal(status.books.closedThrough,'2025-01-31');assert.equal(status.draft.booksFreshness,'current');}booksProof.cleanRestoreVerified=true;verifyRestoredFinance(finance,[portal,afterRestore.client]);checks++;
   portal.lock();assert.equal(portal.records.size,0);assert.equal(queue.clear().unpreparedDiscarded,0);retriedQueue.clear();remote.lock();checks++;
   for(let index=0;index<130;index++)await owner.client.installGrant(await signStaffGrant({...replacementRequest},firm,{grantId:`synthetic-paged-access-${String(index).padStart(3,'0')}`,epoch:1,domains:['tax-document']}));
   const beforePages=grantPageRequests,completeGrants=await afterRestore.client.refreshGrants();assert(completeGrants.length>=131);checks++;
@@ -344,12 +351,12 @@ try{
   await stop(child);child=null;
   function hostFiles(dir){return readdirSync(dir,{withFileTypes:true}).flatMap(entry=>entry.isDirectory()?hostFiles(path.join(dir,entry.name)):[path.join(dir,entry.name)]);}
   const files=hostFiles(env.DEALDESK_DATA_DIR);
-  for(const filename of files){const bytes=readFileSync(filename);assert(!bytes.includes(Buffer.from(marker)), 'Host copy contains protected plaintext.');for(const action of ['case.create','request.add','document.review','draft.link',...BOOK_ACTIONS])assert(!bytes.includes(Buffer.from(`"${action}"`)),'Host copy contains a private case action.');assert(!filename.startsWith(trusted));}
+  for(const filename of files){const bytes=readFileSync(filename);assert(!bytes.includes(Buffer.from(marker)), 'Host copy contains protected plaintext.');for(const action of ['case.create','request.add','document.review','draft.link','books.link',...BOOK_ACTIONS,...OFFICE_ACTIONS])assert(!bytes.includes(Buffer.from(`"${action}"`)),'Host copy contains a private case action.');assert(!filename.startsWith(trusted));}
   checks++;
   console.log(JSON.stringify({ok:true,checks,buildId:readFileSync('.next/BUILD_ID','utf8').trim(),syntheticWorkspace:true,freshClientHadNoLegacyBooks:true,mandatoryStaffMfaVerifiedWithGlobalFlagOff:true,
     originalV2ClientEnvelopesPreserved:true,staffOpenedProtectedBooksAndDocumentBytes:true,encryptedDeviceBackupRecovered:true,newDeviceGrantedAfterOriginalRevocation:true,
     oldDeviceCannotOpenReplacementCapsules:true,newProcessFirmRecoveryCliVerified:true,staleRevisionFailsClosed:true,restoredDataAndRevocationVerified:true,backupFiles:copied.files,copiedHostPlaintextMarkerAbsent:true,
     portal:{multiFileUploads:3,exactBytesOpened:true,lostReceiptRetryUsesSameCiphertext:true,encryptedPendingQueueRestored:true,localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts:true,authorizedClientRefreshVerified:true,staffSeesFilesAfterSignedSharing:true,automaticStaffRefreshAndSharedSummaryVerified:true,unsharedNewItemClearsStaffView:true,approvedRevisionRefreshVerified:true,pageExitClearsStaffView:true,cleanRestoreVerified:true,restoreFiles:portalBackup.files,instantPushVerified:false,staffReturnCorrectionsRequireFirmApproval:true,fullStaffEditingImplemented:false},
-    largeGrantList,returnProof,caseProof,booksProof,workspaceBuilder,realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
+    largeGrantList,returnProof,caseProof,booksProof,financeProof,workspaceBuilder,realOffhostCustodyVerified:false,publicTlsVerified:false,transport:'Explicit HTTPS-origin adapter to owned loopback HTTP fixture',realClientDataUsed:false,installedServiceChanged:false},null,2));
 }catch(error){console.error('Owned fixture diagnostics:\n'+log);throw error;}
 finally{await stop(child);rmSync(root,{recursive:true,force:true});}

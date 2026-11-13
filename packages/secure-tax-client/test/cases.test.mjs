@@ -13,6 +13,7 @@ import {verifyCasePayload} from '../case-certificate.mjs';
 import {caseSnapshot} from '../case-model.mjs';
 import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks,caseBookReport} from '../case-books.mjs';
 import {newReturn} from '../../tax-engine/index.mjs';
+import {officeObjectId,officeSnapshot} from '../office-model.mjs';
 import {mkdtemp,writeFile,readFile,readdir,symlink,stat,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -24,11 +25,12 @@ import {buildOfflineKit} from '../build-offline-kit.mjs';
 const utf8=new TextEncoder(),decoder=new TextDecoder(),nativeProof='/private/tmp/native-secure-tax-envelope-proof';
 const command=(type,input)=>({actionId:crypto.randomUUID(),type,input});
 async function nativeClient(){const value=JSON.parse(execFileSync(nativeProof,['fixture'],{encoding:'utf8',maxBuffer:1024*1024}));assert.equal(value.syntheticOnly,true);const pub=decode64(value.clientPublicKey,65),privateKey=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:encode64(pub.slice(1,33)),y:encode64(pub.slice(33)),d:value.clientPrivateKey},{name:'ECDH',namedCurve:'P-256'},false,['deriveBits']);return {publicKey:value.clientPublicKey,privateKey,syntheticPrivate:value.clientPrivateKey};}
-async function fixture({native=false,kind='1120',epoch=1}={}){
+async function fixture({native=false,kind='1120',epoch=1,office=false}={}){
   const passphrase='Synthetic private office case custody passphrase.',{bundle,publicPins:pins}=await createFirmBundle('synthetic-case-custody',passphrase),unlocked=await unlockFirmBundle(bundle,passphrase,pins),client=await(native?nativeClient():generateRecipientKeyPair()),staff=await generateRecipientKeyPair(),now=Date.now()-5000;
   const manifest=await signEnrollmentRequest({version:1,workspaceId:pins.workspaceId,accountId:'synthetic-account',clientId:'synthetic-client',client:{keyId:await publicKeyId(client.publicKey),publicKey:client.publicKey}},unlocked,{epoch,now:now-1000}),staffKeyId=await publicKeyId(staff.publicKey),grant=await signStaffGrant({version:1,workspaceId:pins.workspaceId,accountId:manifest.accountId,clientId:manifest.clientId,staffAccountId:'synthetic-preparer',staff:{keyId:staffKeyId,publicKey:staff.publicKey}},unlocked,{epoch,domains:['tax-document','driver-receipt'],now:now-1000}),recipients={clientPublicKey:client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey};
   const f={pins,bundle,passphrase,unlocked,client,staff,manifest,grant,recipients,now,kind,packet:null};
-  f.expected=(objectId=CASE_OBJECT_PREFIX+'synthetic-case',revision=f.packet?.envelope.context.revision??0,domain='tax-document')=>({accountId:manifest.accountId,clientId:manifest.clientId,staffAccountId:grant.staffAccountId,staffKeyId,minimumGrantEpoch:epoch,minimumManifestEpoch:epoch,objectId,revision,domain});
+  const defaultObjectId=office?await officeObjectId(manifest):CASE_OBJECT_PREFIX+'synthetic-case';
+  f.expected=(objectId=defaultObjectId,revision=f.packet?.envelope.context.revision??0,domain='tax-document')=>({accountId:manifest.accountId,clientId:manifest.clientId,staffAccountId:grant.staffAccountId,staffKeyId,minimumGrantEpoch:epoch,minimumManifestEpoch:epoch,objectId,revision,domain});
   f.stage=async(cmd,evidence=null,changes={})=>{f.now++;const input={envelope:f.packet?.envelope??null,capsule:f.packet?.capsule??null,manifest,grant,expected:f.expected(),pins,staffPrivateKey:staff.privateKey,command:cmd,evidenceEnvelope:evidence?.envelope??null,evidenceCapsule:evidence?.capsule??null,now:f.now,...changes};return {input,prepared:await prepareCaseTransition(input)};};
   f.approve=(s,changes={})=>approveCaseTransition({proposal:s.prepared.proposal,envelope:s.input.envelope,manifest:s.input.manifest,grant:s.input.grant,expected:s.input.expected,reviewedCommitment:s.prepared.proposal.reviewCommitment,reviewReference:'synthetic-reviewed-case',unlocked,now:f.now,...changes});
   f.transition=async(cmd,evidence=null)=>{const s=await f.stage(cmd,evidence);f.packet=await f.approve(s);return s;};
@@ -84,6 +86,22 @@ test('standalone case operator kit approves reviewed files and emits opaque clou
     const posting=await f.stage(command('books.journal.post',{date:'2025-01-01',memo:'SYNTHETIC PRIVATE OPERATOR POSTING',lines:[{accountNumber:1000,debitCents:4321,creditCents:0},{accountNumber:4000,debitCents:0,creditCents:4321}],document:evidence.reference,notes:''}),evidence),bookKit={...kit,proposal:posting.prepared.proposal,sourceEnvelope:posting.input.envelope,expected:posting.input.expected,privateReview:posting.prepared.privateReview},bookBytes=Buffer.from(JSON.stringify(bookKit)),bookSha=createHash('sha256').update(bookBytes).digest('hex'),bookOut=path.join(directory,'approved-book.json');await writeFile(kitFile,bookBytes);
     const bookResult=await run('case-offline-cli.mjs',args.map(value=>value===sha?bookSha:value===out?bookOut:value),f.passphrase);assert.equal(bookResult.code,0,bookResult.error);const bookPacket=JSON.parse(await readFile(bookOut,'utf8'));await verifyCaseApproval(bookPacket,f.pins);const bookBody=await f.open(bookPacket);assert.equal(caseBookReport(replayCaseBooks(bookBody.history,2025)).bankCents,4321);
     const reviewDirectory=path.join(directory,'book-review');const inspected=await run('inspect-case-review.mjs',['--public-pins',pins,'--kit',kitFile,'--out',reviewDirectory]);assert.equal(inspected.code,0,inspected.error);const view=JSON.parse(await readFile(path.join(reviewDirectory,'review.json'),'utf8'));assert.equal(view.caseLedgerReports.before.bankCents,0);assert.equal(view.caseLedgerReports.after.bankCents,4321);
+  }finally{await rm(directory,{recursive:true,force:true});}
+});
+test('packaged offline operator reviews and approves canonical encrypted client billing',async()=>{
+  const f=await fixture({office:true});await f.transition(command('office.create',{title:'SYNTHETIC PRIVATE FINANCE',notes:''}));
+  const s=await f.stage(command('fee.issue',{invoiceId:'offline-invoice',number:'OFFLINE-001',date:'2025-01-01',due:'2025-02-01',issuer:'Synthetic firm',billTo:'Synthetic client',lines:[{description:'Synthetic preparation',quantity:'1',unitCents:8765,discountCents:0,taxCents:0}],terms:'',notes:''}));
+  const directory=await mkdtemp(path.join(tmpdir(),'shuug-finance-operator-')),tools=path.join(directory,'tools');
+  try{
+    await buildOfflineKit(tools);const kit={version:1,type:'shuug-private-case-review-kit',proposal:s.prepared.proposal,sourceEnvelope:s.input.envelope,manifest:f.manifest,grant:f.grant,expected:s.input.expected,privateReview:s.prepared.privateReview};
+    const kitFile=path.join(directory,'private.json'),bundle=path.join(directory,'firm.json'),pins=path.join(directory,'pins.json'),out=path.join(directory,'approved.json'),view=path.join(directory,'review');
+    const bytes=Buffer.from(JSON.stringify(kit)),sha=createHash('sha256').update(bytes).digest('hex');await writeFile(kitFile,bytes);await writeFile(bundle,JSON.stringify(f.bundle));await writeFile(pins,JSON.stringify(f.pins));
+    execFileSync(process.execPath,[path.join(tools,'inspect-case-review.mjs'),'--public-pins',pins,'--kit',kitFile,'--out',view],{cwd:directory,stdio:['ignore','pipe','pipe'],timeout:15000});
+    const report=JSON.parse(await readFile(path.join(view,'review.json'),'utf8'));assert.equal(report.clientFinance.before.fees.totals.outstandingCents,0);assert.equal(report.clientFinance.after.fees.totals.outstandingCents,8765);
+    const args=[path.join(tools,'case-offline-cli.mjs'),'--confirm-off-host','--confirm-fields-reviewed','--passphrase-fd','3','--bundle',bundle,'--public-pins',pins,'--kit',kitFile,'--reviewed-sha256',sha,'--review-reference','synthetic-finance-review','--out',out];
+    const child=spawn(process.execPath,args,{cwd:directory,env:{PATH:process.env.PATH},stdio:['ignore','pipe','pipe','pipe']});let error='';child.stderr.on('data',bytes=>{error+=bytes;});child.stdio[3].end(f.passphrase);const timer=setTimeout(()=>child.kill('SIGKILL'),15000);try{const [code]=await once(child,'exit');assert.equal(code,0,error);}finally{clearTimeout(timer);}
+    const packet=JSON.parse(await readFile(out,'utf8'));await verifyCaseApproval(packet,f.pins);assert.equal(officeSnapshot(await f.open(packet),new Map()).fees.totals.outstandingCents,8765);assert.equal((await stat(out)).mode&0o777,0o600);
+    const wrong=await f.stage(command('office.create',{title:'Synthetic misplaced finance',notes:''}),null,{envelope:null,capsule:null,expected:f.expected('shuug-case:wrong',0)});await assert.rejects(()=>f.approve(wrong));
   }finally{await rm(directory,{recursive:true,force:true});}
 });
 test('actual Swift client opens a firm-certified encrypted case',{skip:!existsSync(nativeProof)},async()=>{

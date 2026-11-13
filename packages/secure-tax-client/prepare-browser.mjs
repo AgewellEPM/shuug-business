@@ -5,7 +5,7 @@ import path from 'node:path';
 import { validateTrustedConfig } from './browser/config.mjs';
 
 const source=fileURLToPath(new URL('.',import.meta.url));
-const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','staff-updates.mjs','client-portal.mjs','client-portal-view.mjs','return-editor.mjs','return-view.mjs','return-save.mjs','opened-record.mjs','case-view.mjs','case-editor.mjs','case-books-editor.mjs','case-books-view.mjs'];
+const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','staff-updates.mjs','client-portal.mjs','client-portal-view.mjs','return-editor.mjs','return-view.mjs','return-save.mjs','opened-record.mjs','case-view.mjs','case-editor.mjs','case-books-editor.mjs','case-books-view.mjs','office-view.mjs','office-editor.mjs'];
 const engineFiles=['index.mjs','model.mjs','catalog.mjs','money.mjs','individual.mjs','business.mjs','schedule-c.mjs','ordinary-tax.mjs','form-maps.mjs','pdf.mjs','data/2025-tax-table.mjs','forms/2025/templates.mjs','forms/2025/manifest.json'];
 export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
   if(config)await validateTrustedConfig(config,config.uiOrigin);
@@ -25,7 +25,7 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   await mkdir(path.join(output,'browser'),{recursive:true});
   for(const file of browserFiles)await cp(path.join(source,'browser',file),path.join(output,'browser',file));
   await cp(path.join(source,'envelope.mjs'),path.join(output,'envelope.mjs'));
-  for(const file of ['staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','return-edit-approval.mjs','return-create-contract.mjs','return-creations.mjs','return-create-approval.mjs','case-model.mjs','case-books.mjs','case-certificate.mjs','case-contract.mjs','case-proposals.mjs','case-approval.mjs'])await cp(path.join(source,file),path.join(output,file));
+  for(const file of ['staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','return-edit-approval.mjs','return-create-contract.mjs','return-creations.mjs','return-create-approval.mjs','case-model.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-contract.mjs','case-proposals.mjs','case-approval.mjs'])await cp(path.join(source,file),path.join(output,file));
   for(const [name] of vendor){
     await mkdir(path.join(output,'vendor',name),{recursive:true});
     await cp(path.join(source,'node_modules',name,'esm'),path.join(output,'vendor',name,'esm'),{recursive:true});

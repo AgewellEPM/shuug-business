@@ -41,7 +41,7 @@ export function replayCaseBooks(history,year){
   for(const event of history){
     if(!BOOK_ACTIONS.includes(event.type))continue;const input=assertBookInput(event.type,event.input);
     if(event.type==='books.open'){
-      if(book)fail('This case already has a working ledger.');if(input.from.slice(0,4)!==String(year)||input.through.slice(0,4)!==String(year))fail('Use dates within the case tax year.');
+      if(book)fail('This case already has a working ledger.');if(year!==null&&(input.from.slice(0,4)!==String(year)||input.through.slice(0,4)!==String(year)))fail('Use dates within the case tax year.');
       book={title:input.title,currency:input.currency,from:input.from,through:input.through,accounts:structuredClone(input.accounts),entries:[],closedThrough:null,version:event.actionId};
     }else{
       if(!book)fail('Open this case’s working ledger first.');

@@ -1,5 +1,6 @@
 import { PortalUploadQueue, PortalRefresh, UPLOAD_PURPOSES, UPLOAD_CATEGORIES, portalSnapshot, formatPortalMoney } from './client-portal.mjs';
 import { renderCase } from './case-view.mjs';
+import { renderOffice } from './office-view.mjs';
 
 const statuses={selected:'Selected on this device',encrypting:'Encrypting on this device',pending:'Encrypted retry ready',uploading:'Sending encrypted bytes',complete:'Upload acknowledged',failed:'Needs retry or review'};
 const readableSize=value=>Number.isSafeInteger(value)?`${(value/1024).toFixed(1)} KiB`:'Size not recorded';
@@ -8,6 +9,7 @@ function choice(document,id,title,options){const label=node(document,'label',tit
 
 export function renderPortalDashboard(document,records,{staff=false}={}){
   const snapshot=portalSnapshot(records),container=node(document,'div'),cards=node(document,'div');cards.className='portal-cards';
+  for(const record of records.values())if(record.verifiedOffice)container.append(renderOffice(document,record,records));
   for(const [key,title]of [['statements','Bank statements'],['receipts','Receipts'],['invoices','Invoice documents'],['documents','Other documents'],['income','Entered income records'],['expenses','Entered expense records'],['trips','Trips / completed work'],['notes','Business notes']]){const card=node(document,'div');card.className='portal-card';card.append(node(document,'strong',String(snapshot.counts[key])),node(document,'span',title));cards.append(card);}
   container.append(cards,node(document,'p',`${staff?'Counts cover only opened records in this signed client scope. Allowed areas may cover only part of the client’s records.':'Counts come from this account’s currently opened encrypted objects.'} Invoice files are supporting documents, not automatically posted receivables. Device snapshots, bank deposits and provider payouts are not added to entered income.`));
   for(const total of snapshot.totals){container.append(node(document,'p',total.known?`${total.currency}: entered income ${formatPortalMoney(total.incomeCents)} · entered expenses ${formatPortalMoney(total.expenseCents)}. Recorded amounts only; no deduction, tax or balance calculation.`:`${total.currency}: totals unavailable because recorded amounts exceed this client’s exact integer bounds. Review individual records; no rounded total was substituted.`));}

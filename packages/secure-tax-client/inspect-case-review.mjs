@@ -8,6 +8,7 @@ import {decode64} from './envelope.mjs';
 import {selectedJson} from './return-edit-review.mjs';
 import {readReviewedCaseKit} from './case-review.mjs';
 import {replayCaseBooks,caseBookReport} from './case-books.mjs';
+import {isOfficeBody,officeSnapshot} from './office-model.mjs';
 const warning='Candidate private review copies. Review the case fields, command and actual selected file. This inspector cannot establish that readable evidence matches the encrypted proposal; final firm approval reconstructs that correspondence. After review, approve only the copied private-kit.json using the exact hash in kit-sha256.txt.';
 export async function inspectCaseReview({pinsFile,kitFile,output}){
   const pins=(await selectedJson(pinsFile,4096)).value,{bytes}=await selectedJson(kitFile,64*1024*1024);let owned=false,evidenceBytes;
@@ -20,11 +21,14 @@ export async function inspectCaseReview({pinsFile,kitFile,output}){
         const {data,...metadata}=payload;summary={reference:evidence.reference,metadata,selectedFile};
       }else if(payload.type==='tax-return'){
         selectedFile='selected-draft.json';evidenceBytes=new TextEncoder().encode(JSON.stringify(payload,null,2)+'\n');summary={reference:evidence.reference,metadata:{version:payload.version,type:payload.type,year:payload.year,kind:payload.kind},selectedFile};
+      }else if(payload.type==='client-office'){
+        selectedFile='selected-client-finance.json';evidenceBytes=new TextEncoder().encode(JSON.stringify(payload,null,2)+'\n');summary={reference:evidence.reference,metadata:{version:payload.version,type:payload.type},selectedFile};
       }else throw new Error('Unsupported selected evidence.');
     }
     const view={version:1,type:'shuug-private-case-review-view',warning,kitSha256,reviewedKit:'private-kit.json',binding:review.binding,proposalCreatedAt:kit.proposal.createdAt,proposalExpiresAt:kit.proposal.expiresAt,before:review.before,command:review.command,after:review.after,evidence:summary};
     const beforeBooks=review.before?replayCaseBooks(review.before.history,review.before.year):null,afterBooks=replayCaseBooks(review.after.history,review.after.year);
     if(afterBooks)view.caseLedgerReports={before:beforeBooks?caseBookReport(beforeBooks):null,after:caseBookReport(afterBooks)};
+    if(isOfficeBody(review.after))view.clientFinance={before:review.before?officeSnapshot(review.before,new Map()):null,after:officeSnapshot(review.after,new Map()),sourceFreshnessNote:'This inspector has no live object set; source availability is not established here.'};
     await mkdir(output,{mode:0o700});owned=true;
     await writeFile(path.join(output,'private-kit.json'),bytes,{mode:0o600,flag:'wx'});
     await writeFile(path.join(output,'review.json'),JSON.stringify(view,null,2)+'\n',{mode:0o600,flag:'wx'});
