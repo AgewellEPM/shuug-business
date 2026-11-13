@@ -7,7 +7,7 @@ const fail=()=>{throw new Error('The encrypted return proposal, source revision 
 const digest=async value=>encode64(new Uint8Array(await crypto.subtle.digest('SHA-256',utf8.encode(value))));
 export const returnProposalDigest=value=>digest(canonicalReturnProposal(value));
 export function checkedReturnDraft(value){
-  if(!value||value.version!==1||value.type!=='tax-return'||value.year!==2025||!['1040','1065','1120S','1120'].includes(value.kind))fail();
+  if(!value||value.version!==1||value.type!=='tax-return'||![2023,2024,2025].includes(value.year)||!['1040','1065','1120S','1120'].includes(value.kind))fail();
   const text=canonicalPrivateReview(value);if(utf8.encode(text).length>250000)fail();return value;
 }
 export async function privateReturnReviewCommitment(review){

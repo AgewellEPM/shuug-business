@@ -1,0 +1,107 @@
+{
+  "taxYear": 2023,
+  "source": "Original public IRS prior-year PDFs",
+  "fieldMapsReviewed": true,
+  "fieldMapReview": "Engineering check of populated fields against official labels and geometry; annual flattened PDF tests. Not an independent tax review or filing approval.",
+  "forms": [
+    {
+      "id": "f1040",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040--2023.pdf",
+      "sha256": "a410ce39e1f9b75ab3ddd8c314b9e7dce022ed6e3aebde5418a58b88f1e0213c",
+      "bytes": 160747,
+      "pages": 2,
+      "fieldCount": 139
+    },
+    {
+      "id": "f1040s1",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s1--2023.pdf",
+      "sha256": "8b747fa3399ced68be92c199b61b3771134f2dc1b0f5faeef433e0f94278b006",
+      "bytes": 87845,
+      "pages": 2,
+      "fieldCount": 67
+    },
+    {
+      "id": "f1040s2",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s2--2023.pdf",
+      "sha256": "ccfe610c15371e722c3743943e0f20e278114c3a040e2e00aceb68ea3c6eab33",
+      "bytes": 78878,
+      "pages": 2,
+      "fieldCount": 44
+    },
+    {
+      "id": "f1040sc",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sc--2023.pdf",
+      "sha256": "d475d0c135c0ebc599eadd1a228cbb124a60b0b6ca69a32ae0d355f5708755ff",
+      "bytes": 122476,
+      "pages": 2,
+      "fieldCount": 105
+    },
+    {
+      "id": "f1040sse",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sse--2023.pdf",
+      "sha256": "ae11beaaedd525f47155e1692c7f7e5386c912c334912978f5f87507dcdc0b30",
+      "bytes": 79915,
+      "pages": 2,
+      "fieldCount": 27
+    },
+    {
+      "id": "f1065",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1065--2023.pdf",
+      "sha256": "dfbed1281bfbc3ec22291780912d8551c6fcda974bb47a645c69886be8558d36",
+      "bytes": 312152,
+      "pages": 6,
+      "fieldCount": 421
+    },
+    {
+      "id": "f1065sk1",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1065sk1--2023.pdf",
+      "sha256": "8f517f6c3a7453e1d6b5855c1a4747c58adf1123d6e714460f9eab2664b56122",
+      "bytes": 105148,
+      "pages": 1,
+      "fieldCount": 129
+    },
+    {
+      "id": "f1120",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120--2023.pdf",
+      "sha256": "af3f3912d57e9212fe0952247d7bfa8a727a5c40bfec516e57a469c55d659e07",
+      "bytes": 325204,
+      "pages": 6,
+      "fieldCount": 461
+    },
+    {
+      "id": "f1120s",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120s--2023.pdf",
+      "sha256": "b50665260337fdb45b4c09403da511d02fec1f6eabc1d2b125e84c64ebacba71",
+      "bytes": 256660,
+      "pages": 5,
+      "fieldCount": 378
+    },
+    {
+      "id": "f1120ssk",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120ssk--2023.pdf",
+      "sha256": "9eea9f69982e770b70a8c6c09a08fe65ffe1ee2e6a580ff6a7015bc76495170a",
+      "bytes": 80966,
+      "pages": 1,
+      "fieldCount": 111
+    },
+    {
+      "id": "f8995",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f8995--2023.pdf",
+      "sha256": "66514dbc128113ba63bffb21a4444bf21ce89e661b97091d9e98463f8712c929",
+      "bytes": 72858,
+      "pages": 1,
+      "fieldCount": 33
+    }
+  ]
+}

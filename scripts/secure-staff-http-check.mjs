@@ -220,8 +220,8 @@ try{
     await afterRestore.client.unlock(newDevice.keyId);await afterRestore.client.selectGrant(portalGrant.grantId);
   }finally{staffUpdates.destroy();staffDom.window.close();}
   const taxReturns=[];
-  for(const kind of ['1040','1065','1120S','1120']){
-    const input=newReturn(kind);Object.assign(input.party,{name:'Synthetic Return',taxId:'000123456',street:'1 Example St',city:'Hartford',state:'CT',zip:'06103'});input.notes=marker;for(const key of Object.keys(input.review))input.review[key]=true;
+  for(const year of [2025,2023,2024])for(const kind of ['1040','1065','1120S','1120']){
+    const input=newReturn(kind,year);Object.assign(input.party,{name:'Synthetic Return',taxId:'000123456',street:'1 Example St',city:'Hartford',state:'CT',zip:'06103'});input.notes=marker;for(const key of Object.keys(input.review))input.review[key]=true;
     if(input.individual)input.individual.w2s=[{id:randomUUID(),owner:'taxpayer',employer:'Synthetic employer',wagesCents:5000000,socialSecurityWagesCents:5000000,medicareWagesCents:5000000,federalWithholdingCents:500000}];
     else{Object.assign(input.entity,{businessName:'Synthetic business',businessCode:'541219',receiptsCents:10000000});if(kind!=='1120')input.entity.owners=[{id:'owner-a',name:'Synthetic Owner A',taxId:'000111111',shareBps:5000},{id:'owner-b',name:'Synthetic Owner B',taxId:'000222222',shareBps:5000}];}
     const creationKit=await afterRestore.client.prepareNewReturn(input);assert.equal(creationKit.privateReview.before,null);assert.equal(await privateReturnCreationReviewCommitment(creationKit.privateReview),creationKit.proposal.reviewCommitment);checks++;
@@ -231,11 +231,11 @@ try{
     const receipt=await owner.client.installApprovedReturnCreation(creationPacket);assert.equal(receipt.duplicate,false);assert.equal((await owner.client.installApprovedReturnCreation(creationPacket)).duplicate,true);checks++;
     await portal.sync();const opened=JSON.parse(new TextDecoder().decode(portal.records.get(receipt.objectId).plaintext));assert.deepEqual(opened,input);checks++;
     const object=await json(`/objects/${receipt.objectId}`,{token:tokens.get('portal-remote')});assert.equal(object.envelope.author.role,'firm-recovery');assert.equal(object.envelope.context.revision,1);
-    taxReturns.push({kind,objectId:receipt.objectId,input});
+    taxReturns.push({year,kind,objectId:receipt.objectId,input});
   }
-  assert.equal((await afterRestore.client.sync()).items,11);await remote.sync();checks++;
+  assert.equal((await afterRestore.client.sync()).items,7+taxReturns.length);await remote.sync();checks++;
   const exported=[];
-  for(const saved of taxReturns){const input=JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(saved.objectId).plaintext));assert.deepEqual(input,saved.input);const packet=await generateDraftPdf(input,{loadTemplate:id=>new Uint8Array(readFileSync(`packages/tax-engine/forms/2025/${id}.pdf`))});assert(packet.bytes.length>1000);assert.equal(packet.result.filingReady,false);exported.push({kind:saved.kind,formCopies:packet.audit.length,bytes:packet.bytes.length});packet.bytes.fill(0);checks++;}
+  for(const saved of taxReturns){const input=JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(saved.objectId).plaintext));assert.deepEqual(input,saved.input);const packet=await generateDraftPdf(input,{loadTemplate:(id,year)=>new Uint8Array(readFileSync(`packages/tax-engine/forms/${year}/${id}.pdf`))});assert(packet.bytes.length>1000);assert.equal(packet.result.filingReady,false);exported.push({year:saved.year,kind:saved.kind,formCopies:packet.audit.length,bytes:packet.bytes.length});packet.bytes.fill(0);checks++;}
   const corrected=taxReturns.find(item=>item.kind==='1120');corrected.input.entity.receiptsCents=20000000;await saveReturn(remote,corrected.input,corrected.objectId);
   await assert.rejects(()=>afterRestore.client.sync());assert.equal(afterRestore.client.records.size,0);checks++;
   const correction=await json(`/objects/${corrected.objectId}`,{token:tokens.get('portal-remote')});await owner.client.installCapsule(await createStaffCapsule(correction.envelope,manifest,portalGrant,firm,expected(portalGrant,{context:correction.envelope.context})));
@@ -248,8 +248,8 @@ try{
   assert.equal((await owner.client.installApprovedReturnEdit(publicPacket)).duplicate,false);assert.equal((await owner.client.installApprovedReturnEdit(publicPacket)).duplicate,true);checks++;
   await portal.sync();assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(portal.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;
   const staffCorrection=await json(`/objects/${corrected.objectId}`,{token:tokens.get('portal-remote')});assert.equal(staffCorrection.envelope.author.role,'firm-recovery');
-  assert.equal((await afterRestore.client.sync()).items,11);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;corrected.input=staffInput;
-  returnProof={year:2025,kinds:taxReturns.map(item=>item.kind),staffOriginatedKinds:taxReturns.map(item=>item.kind),initialReturnRequiresFirmApproval:true,initialPrivateReviewRefusedBeforeUpload:true,initialRevisionSharedAtomically:true,encryptedSaveClientReopenStaffRead:true,exported,unsharedRevisionClearsStaffView:true,correctedClientInputVisibleAfterSharing:true,staffReturnCorrectionProposalVerified:true,privateReviewRefusedBeforeUpload:true,ownerMfaAndFirmApprovalPublicationVerified:true,clientSeesApprovedStaffCorrection:true,approvedRevisionSharedAtomically:true,staffDirectWritesEnabled:false,productionFilingPerformed:false};
+  assert.equal((await afterRestore.client.sync()).items,7+taxReturns.length);assert.equal(calculateReturn(JSON.parse(new TextDecoder().decode(afterRestore.client.records.get(corrected.objectId).plaintext))).summary.totalTaxCents,5250000);checks++;corrected.input=staffInput;
+  returnProof={years:[2023,2024,2025],kinds:taxReturns.map(item=>item.kind),staffOriginatedKinds:taxReturns.map(item=>item.kind),initialReturnRequiresFirmApproval:true,initialPrivateReviewRefusedBeforeUpload:true,initialRevisionSharedAtomically:true,encryptedSaveClientReopenStaffRead:true,exported,unsharedRevisionClearsStaffView:true,correctedClientInputVisibleAfterSharing:true,staffReturnCorrectionProposalVerified:true,privateReviewRefusedBeforeUpload:true,ownerMfaAndFirmApprovalPublicationVerified:true,clientSeesApprovedStaffCorrection:true,approvedRevisionSharedAtomically:true,staffDirectWritesEnabled:false,productionFilingPerformed:false};
   const removed=await saveReturn(remote,corrected.input);await remote.remove(removed.objectId);
   const tombstone=await json(`/objects/${removed.objectId}`,{token:tokens.get('portal-remote')});assert.equal(tombstone.deleted,true);
   const resurrectionContext={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:removed.objectId,revision:tombstone.revision+1,domain:'tax-document'},resurrection=await sealEnvelope(new TextEncoder().encode(JSON.stringify(corrected.input)),resurrectionContext,recipients,'client',clientKey.privateKey);
@@ -274,6 +274,13 @@ try{
     assert(!JSON.stringify(packet).includes(marker));assert(!Object.hasOwn(packet.approval,'command'));return receipt.objectId;
   }
   async function shareLatest(id){const object=await json(`/objects/${id}`,{token:tokens.get('portal-remote')});await owner.client.installCapsule(await createStaffCapsule(object.envelope,manifest,portalGrant,firm,expected(portalGrant,{context:object.envelope.context})));await portal.sync();await afterRestore.client.sync();}
+  const annualCaseIds=[];
+  for(const year of [2023,2024])for(const kind of ['1040','1120']){
+    const id=await caseAction(null,'case.create',{title:`Synthetic annual ${year} case`,year,kind}),draft=taxReturns.find(item=>item.kind===kind&&item.year===year);
+    await caseAction(id,'draft.link',{document:reference(draft.objectId),notes:'Synthetic same-year draft'},draft.objectId);annualCaseIds.push({id,year,kind});
+    for(const reader of [portal,afterRestore.client]){const body=reader.records.get(id).verifiedCase;assert.equal(body.year,year);assert.equal(caseSnapshot(body,reader.records).draft.freshness,'current');}checks++;
+  }
+  returnProof.annualCaseBindings=annualCaseIds.map(({year,kind})=>({year,kind}));
   for(const kind of ['1040','1120']){
     const id=await caseAction(null,'case.create',{title:`Synthetic ${kind} case ${marker}`,year:2025,kind}),requestId=randomUUID();caseIds.push({id,kind,requestId});
     await caseAction(id,'request.add',{requestId,title:'Bank statement',due:'2026-12-01',notes:marker});
@@ -331,7 +338,7 @@ try{
   await assert.rejects(()=>portal.save('tax-document',clientAttempt,protectedCase.objectId));await assert.rejects(()=>portal.remove(protectedCase.objectId));assert.equal(customerApiRequests,beforeClientAttempt);checks++;
   const forbiddenContext={workspaceId:publicPins.workspaceId,accountId:account.id,objectId:protectedCase.objectId,revision:protectedCase.revision+1,domain:'tax-document'},forbiddenEnvelope=await sealEnvelope(clientAttempt,forbiddenContext,recipients,'client',clientKey.privateKey);
   await json(`/objects/${protectedCase.objectId}`,{token:tokens.get('portal-remote'),method:'PUT',body:{mutationId:randomUUID(),expectedRevision:protectedCase.revision,envelope:forbiddenEnvelope}},403);await json(`/objects/${protectedCase.objectId}`,{token:tokens.get('portal-remote'),method:'DELETE',body:{expectedRevision:protectedCase.revision}},403);
-  const expectedCaseBodies=caseIds.map(item=>({id:item.id,body:structuredClone(portal.records.get(item.id).verifiedCase)}));
+  const expectedCaseBodies=[...caseIds,...annualCaseIds].map(item=>({id:item.id,body:structuredClone(portal.records.get(item.id).verifiedCase)}));
   const caseAudits=workspaceDatabase(db=>db.prepare("SELECT snapshot FROM audit WHERE action='secure-tax.case.approved'").all());assert.equal(caseAudits.length,caseTransitions);for(const row of caseAudits){const value=JSON.parse(row.snapshot);assert.deepEqual(Object.keys(value).sort(),['approval','sharingCapsuleId']);for(const privateId of [statement.context.objectId,newStatement.objectId,...taxReturns.map(item=>item.objectId)])assert(!row.snapshot.includes(privateId));assert(!row.snapshot.includes(marker));}checks++;
   caseProof={kinds:caseIds.map(item=>item.kind),approvedTransitions:caseTransitions,privateKitsRefusedBeforeUpload:true,clientAndStaffVerifyPrivateFirmCertificates:true,changedEvidenceInvalidatesReview:true,deletedEvidenceInvalidatesReview:true,replacementHistoryPreserved:true,changedDraftInvalidatesLink:true,currentAndIncompleteCasesRendered:true,genericClientWriteAndDeleteRefused:true,unpublishedCaseEnvelopeAndClientReencryptionRefused:true,privateDependenciesAndActionsAbsentFromHostMetadata:true,filingAuthorizationImplemented:false};
   const expectedPortalItems=portal.records.size,expectedStaffItems=afterRestore.client.records.size;

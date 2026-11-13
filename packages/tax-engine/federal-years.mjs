@@ -1,0 +1,15 @@
+// Annual constants for the explicitly limited ordinary-income draft model.
+// These do not establish complete return coverage, final forms or filing approval.
+export const calculationYears=Object.freeze([2023,2024,2025]);
+export const requestedTaxYears=Object.freeze([2023,2024,2025,2026]);
+const deductions=(single,joint,head)=>Object.freeze({single,marriedJoint:joint,marriedSeparate:single,headOfHousehold:head,survivingSpouse:joint});
+const rules=Object.freeze({
+  2023:Object.freeze({standardDeductions:deductions(1385000,2770000,2080000),socialSecurityBaseCents:16020000,qbiSingleThresholdCents:18210000,qbiJointThresholdCents:36420000}),
+  2024:Object.freeze({standardDeductions:deductions(1460000,2920000,2190000),socialSecurityBaseCents:16860000,qbiSingleThresholdCents:19195000,qbiJointThresholdCents:38390000}),
+  2025:Object.freeze({standardDeductions:deductions(1575000,3150000,2362500),socialSecurityBaseCents:17610000,qbiSingleThresholdCents:19730000,qbiJointThresholdCents:39460000}),
+});
+export function federalYearRules(year){if(!Number.isInteger(year)||!Object.hasOwn(rules,year))throw new Error('No reviewed ordinary-income rules are installed for this tax year.');return rules[year];}
+export function federalSourcesFor(year){
+  federalYearRules(year);const prior=id=>`https://www.irs.gov/pub/irs-prior/${id}--${year}.pdf`;
+  return Object.freeze({individual:prior('i1040gi'),taxTable:prior('i1040tt'),scheduleC:prior('f1040sc'),scheduleSE:prior('f1040sse'),qbi:prior('i8995'),partnership:prior('f1065'),sCorporation:prior('f1120s'),corporation:prior('i1120')});
+}

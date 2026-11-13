@@ -1,4 +1,5 @@
 import { checkedMoney } from './money.mjs';
+import {calculationYears} from './federal-years.mjs';
 
 export const kinds=Object.freeze(['1040','1065','1120S','1120']);
 export const expenseCategories=Object.freeze([
@@ -8,9 +9,10 @@ export const expenseCategories=Object.freeze([
   ['propertyRent','Other business rent'],['repairs','Repairs and maintenance'],['supplies','Supplies'],['taxes','Business taxes and licenses'],
   ['travel','Business travel'],['meals','Eligible deductible meal amount'],['utilities','Utilities'],['wages','Salaries and wages'],['other','Other eligible deductions'],
 ].map(Object.freeze));
-export function newReturn(kind='1040'){
+export function newReturn(kind='1040',year=2025){
   if(!kinds.includes(kind))throw new Error('Choose an installed return type.');
-  return {version:1,type:'tax-return',year:2025,kind,party:{name:'',firstName:'',lastName:'',taxId:'',street:'',city:'',state:'',zip:''},
+  if(!calculationYears.includes(year))throw new Error('Choose an installed tax-year draft pack.');
+  return {version:1,type:'tax-return',year,kind,party:{name:'',firstName:'',lastName:'',taxId:'',street:'',city:'',state:'',zip:''},
     review:{identity:false,income:false,deductions:false,credits:false,ownership:false,coverage:false},features:[],notes:'',
     ...(kind==='1040'?{individual:{filingStatus:'single',spouseName:'',spouseFirstName:'',spouseLastName:'',spouseTaxId:'',w2s:[],taxableInterestCents:0,ordinaryDividendsCents:0,priorQbiLossCents:0,estimatedPaymentsCents:0,priorYearAppliedCents:0,businesses:[]}}:
       {entity:{businessName:'',businessCode:'',accountingMethod:'cash',receiptsCents:0,returnsCents:0,costOfGoodsCents:0,otherIncomeCents:0,officerCompensationCents:0,guaranteedPaymentsCents:0,estimatedPaymentsCents:0,expenses:[],owners:[]}})};

@@ -1,4 +1,4 @@
-import { returnTypes } from '@shuug/tax-engine';
+import { returnTypes,requestedTaxYears } from '@shuug/tax-engine';
 import { assertCaseCommand,caseBookVersion } from '../case-model.mjs';
 import { isTaxReturn } from './return-view.mjs';
 import { BOOK_ACTIONS,replayCaseBooks } from '../case-books.mjs';
@@ -34,7 +34,7 @@ export function mountCaseEditor(document,container,{getClient,run,onSave,onDirty
     for(const [value,text]of caseId?[['request.add','Add a document request'],['document.review','Review a selected document'],['draft.link','Link a prepared draft'],['books.link','Link shared client books'],['authorization.review','Record reviewed authorization evidence'],...bookActions]:[['case.create','Create a client case']]){const option=node(document,'option',text);option.value=value;actionChoice.append(option);}actionChoice.value=action;
     evidenceId=()=>null;
     if(action==='case.create'){
-      const title=field('Case title','title',{maximum:160}),kind=field('Return type','kind',{options:returnTypes.map(type=>[type.id,type.label])});form.append(node(document,'p','Tax year: 2025 federal draft coverage.'));readInput=()=>({title:title.value.trim(),year:2025,kind:kind.value});
+      const title=field('Case title','title',{maximum:160}),kind=field('Return type','kind',{options:returnTypes.map(type=>[type.id,type.label])}),year=field('Tax year','year',{options:requestedTaxYears.map(year=>[String(year),year===2026?'2026 — case intake and books only':String(year)])});year.value='2025';form.append(node(document,'p','2023–2025 have limited federal draft calculations. 2026 accepts case intake and books; its calculation and form pack is not installed.'));readInput=()=>({title:title.value.trim(),year:Number(year.value),kind:kind.value});
     }else if(action==='request.add'){
       const title=field('Requested document','request-title',{maximum:160}),due=field('Staff target date (optional)','due',{type:'date'}),notes=field('Client-visible request note (encrypted)','request-notes',{type:'textarea'});readInput=()=>({requestId:crypto.randomUUID(),title:title.value.trim(),due:due.value,notes:notes.value});
     }else if(action==='books.link'){

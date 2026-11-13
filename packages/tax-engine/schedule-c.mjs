@@ -1,7 +1,7 @@
 import { strictObject, text, amountFields, expenses, diagnostic } from './model.mjs';
 import { sumMoney, wholeDollars } from './money.mjs';
 export const scheduleCLines=Object.freeze({advertising:'8',vehicle:'9',commissions:'10',contractLabor:'11',employeeBenefits:'14',insurance:'15',mortgageInterest:'16a',otherInterest:'16b',professional:'17',office:'18',retirement:'19',equipmentRent:'20a',propertyRent:'20b',repairs:'21',supplies:'22',taxes:'23',travel:'24a',meals:'24b',utilities:'25',wages:'26',other:'27b'});
-export function scheduleC(input,index=0){
+export function scheduleC(input,index=0,year=2025){
   strictObject(input,['id','owner','name','ein','businessCode','receiptsCents','returnsCents','costOfGoodsCents','otherIncomeCents','expenses','materialParticipation','fullyAtRisk'],'Schedule C business');
   for(const key of ['id','name','ein','businessCode'])text(input[key],`Business ${key}`);if(!['taxpayer','spouse'].includes(input.owner))throw new Error('Assign each Schedule C to the taxpayer or spouse.');
   amountFields(input,['receiptsCents','returnsCents','costOfGoodsCents','otherIncomeCents'],'Schedule C');
@@ -10,6 +10,7 @@ export function scheduleC(input,index=0){
   lines['3']=sumMoney([lines['1'],-lines['2']]);lines['5']=sumMoney([lines['3'],-lines['4']]);lines['7']=sumMoney([lines['5'],lines['6']]);
   for(const [key,line]of Object.entries(scheduleCLines))lines[line]=wholeDollars(deductions[key]??0);
   lines['28']=sumMoney(Object.values(scheduleCLines).map(line=>lines[line]));lines['29']=sumMoney([lines['7'],-lines['28']]);lines['30']=0;lines['31']=lines['29'];
+  if(year<2025){lines['27a']=lines['27b'];delete lines['27b'];}
   const diagnostics=[];
   if(!input.name.trim())diagnostics.push(diagnostic('BUSINESS_NAME_REQUIRED','Name each Schedule C business.',{field:`individual.businesses.${index}.name`}));
   if(input.costOfGoodsCents>0)diagnostics.push(diagnostic('INVENTORY_WORKPAPER_REQUIRED','Cost of goods sold needs its inventory and Form 1125-A/Schedule C Part III workpaper.'));

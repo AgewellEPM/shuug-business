@@ -58,7 +58,7 @@ test('a legitimate proposer cannot approve a private review that lies about orig
 });
 test('private review commitments are salted and cannot silently change the return year or family',async()=>{
   const f=await fixture(),second=await prepareReturnProposal(f.input);assert.notEqual(second.proposal.reviewCommitment,f.prepared.proposal.reviewCommitment);
-  await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,kind:'1065'}}));await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,year:2026}}));
+  await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,kind:'1065'}}));await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,year:2026}}));await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,year:2023}}));
 });
 test('standalone firm kit approves reviewed input locally and prepares cloud jobs without readable review data',async()=>{
   const f=await fixture(),directory=await mkdtemp(path.join(tmpdir(),'shuug-return-operator-')),kitPath=path.join(directory,'tools');

@@ -40,6 +40,8 @@ export function calculateBusiness(input){
   }else{
     lines['29a']=0;lines['29b']=0;lines['29c']=0;lines['30']=Math.max(0,lines['28']);lines['31']=input.features.length?null:P(lines['30'],2100);lines['32']=0;lines['33']=R(entity.estimatedPaymentsCents);lines['35']=lines['31']===null?null:Math.max(0,lines['31']-lines['33']);lines['36']=lines['31']===null?null:Math.max(0,lines['33']-lines['31']);
     forms[0].schedules={J:{'1a':lines['31'],'2':lines['31'],'3':0,'4':lines['31'],'6':0,'7':lines['31'],'10':0,'11a':lines['31'],'12':lines['31'],'14':lines['33'],'19':lines['33'],'21':0,'22a':0,'22b':0,'23':lines['33']}};
+    if(input.year===2024){delete forms[0].schedules.J['22a'];delete forms[0].schedules.J['22b'];forms[0].schedules.J['22']=0;}
+    if(input.year===2023)forms[0].schedules={J:{'1':lines['31'],'2':0,'3':0,'4':lines['31'],'6':0,'7':lines['31'],'8':0,'10':0,'11':lines['31'],'14':lines['33'],'16':lines['33'],'19':lines['33'],'21':0,'22':0,'23':lines['33']}};
     diagnostics.push(diagnostic('CORPORATE_DISCLOSURES','Complete Schedule C/K/L/M disclosures, special deductions and applicable exceptions before the corporate package is filing-ready.'));
   }
   if(entity.costOfGoodsCents)diagnostics.push(diagnostic('FORM1125A_REQUIRED','Cost of goods sold requires the completed Form 1125-A/inventory workpaper.'));

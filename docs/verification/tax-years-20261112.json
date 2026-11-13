@@ -1,0 +1,472 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-13T01:59:58.993856+00:00",
+  "baseCommit": "48289d3eb31bd393326a50f7622d3dc43072d0d5",
+  "scope": "2023/2024 annual federal ordinary-income draft packs, all four families; incomplete filing product",
+  "verification": {
+    "nodeBroadSuite": {
+      "passed": 180,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Existing full native Journal fixture helper unavailable; actual Swift envelope checks passed."
+    },
+    "finalYearBoundaries": {
+      "passed": 15,
+      "failed": 0
+    },
+    "compiledHttp": {
+      "ok": true,
+      "checks": 469,
+      "buildId": "5MU8AwN75LCZWR1MP9AUk",
+      "syntheticWorkspace": true,
+      "freshClientHadNoLegacyBooks": true,
+      "mandatoryStaffMfaVerifiedWithGlobalFlagOff": true,
+      "originalV2ClientEnvelopesPreserved": true,
+      "staffOpenedProtectedBooksAndDocumentBytes": true,
+      "encryptedDeviceBackupRecovered": true,
+      "newDeviceGrantedAfterOriginalRevocation": true,
+      "oldDeviceCannotOpenReplacementCapsules": true,
+      "newProcessFirmRecoveryCliVerified": true,
+      "staleRevisionFailsClosed": true,
+      "restoredDataAndRevocationVerified": true,
+      "backupFiles": 6,
+      "copiedHostPlaintextMarkerAbsent": true,
+      "portal": {
+        "multiFileUploads": 3,
+        "exactBytesOpened": true,
+        "lostReceiptRetryUsesSameCiphertext": true,
+        "encryptedPendingQueueRestored": true,
+        "localDashboardDistinguishesUploadedInvoicesFromLedgerAmounts": true,
+        "authorizedClientRefreshVerified": true,
+        "staffSeesFilesAfterSignedSharing": true,
+        "automaticStaffRefreshAndSharedSummaryVerified": true,
+        "unsharedNewItemClearsStaffView": true,
+        "approvedRevisionRefreshVerified": true,
+        "pageExitClearsStaffView": true,
+        "cleanRestoreVerified": true,
+        "restoreFiles": 6,
+        "instantPushVerified": false,
+        "staffReturnCorrectionsRequireFirmApproval": true,
+        "fullStaffEditingImplemented": false
+      },
+      "largeGrantList": {
+        "activeGrants": 131,
+        "pagesRead": 6,
+        "boundedPageBytes": 65536,
+        "completeSnapshotVerified": true
+      },
+      "returnProof": {
+        "years": [
+          2023,
+          2024,
+          2025
+        ],
+        "kinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120",
+          "1040",
+          "1065",
+          "1120S",
+          "1120",
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "staffOriginatedKinds": [
+          "1040",
+          "1065",
+          "1120S",
+          "1120",
+          "1040",
+          "1065",
+          "1120S",
+          "1120",
+          "1040",
+          "1065",
+          "1120S",
+          "1120"
+        ],
+        "initialReturnRequiresFirmApproval": true,
+        "initialPrivateReviewRefusedBeforeUpload": true,
+        "initialRevisionSharedAtomically": true,
+        "encryptedSaveClientReopenStaffRead": true,
+        "exported": [
+          {
+            "year": 2025,
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 118390
+          },
+          {
+            "year": 2025,
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 375404
+          },
+          {
+            "year": 2025,
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 350443
+          },
+          {
+            "year": 2025,
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 254594
+          },
+          {
+            "year": 2023,
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 90164
+          },
+          {
+            "year": 2023,
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 375104
+          },
+          {
+            "year": 2023,
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 340219
+          },
+          {
+            "year": 2023,
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 242975
+          },
+          {
+            "year": 2024,
+            "kind": "1040",
+            "formCopies": 1,
+            "bytes": 91422
+          },
+          {
+            "year": 2024,
+            "kind": "1065",
+            "formCopies": 3,
+            "bytes": 363598
+          },
+          {
+            "year": 2024,
+            "kind": "1120S",
+            "formCopies": 3,
+            "bytes": 345936
+          },
+          {
+            "year": 2024,
+            "kind": "1120",
+            "formCopies": 1,
+            "bytes": 249936
+          }
+        ],
+        "unsharedRevisionClearsStaffView": true,
+        "correctedClientInputVisibleAfterSharing": true,
+        "staffReturnCorrectionProposalVerified": true,
+        "privateReviewRefusedBeforeUpload": true,
+        "ownerMfaAndFirmApprovalPublicationVerified": true,
+        "clientSeesApprovedStaffCorrection": true,
+        "approvedRevisionSharedAtomically": true,
+        "staffDirectWritesEnabled": false,
+        "productionFilingPerformed": false,
+        "terminalDeletionVerified": true,
+        "annualCaseBindings": [
+          {
+            "year": 2023,
+            "kind": "1040"
+          },
+          {
+            "year": 2023,
+            "kind": "1120"
+          },
+          {
+            "year": 2024,
+            "kind": "1040"
+          },
+          {
+            "year": 2024,
+            "kind": "1120"
+          }
+        ]
+      },
+      "caseProof": {
+        "kinds": [
+          "1040",
+          "1120"
+        ],
+        "approvedTransitions": 67,
+        "privateKitsRefusedBeforeUpload": true,
+        "clientAndStaffVerifyPrivateFirmCertificates": true,
+        "changedEvidenceInvalidatesReview": true,
+        "deletedEvidenceInvalidatesReview": true,
+        "replacementHistoryPreserved": true,
+        "changedDraftInvalidatesLink": true,
+        "currentAndIncompleteCasesRendered": true,
+        "genericClientWriteAndDeleteRefused": true,
+        "unpublishedCaseEnvelopeAndClientReencryptionRefused": true,
+        "privateDependenciesAndActionsAbsentFromHostMetadata": true,
+        "filingAuthorizationImplemented": false,
+        "certifiedCasesAndOwnershipSurviveRestore": true
+      },
+      "booksProof": {
+        "kinds": [
+          "1040",
+          "1120"
+        ],
+        "approvedBookActions": 14,
+        "clientAndStaffBankCents": 12000,
+        "clientAndStaffNetIncomeCents": 12000,
+        "classifiedCustomBankIncluded": true,
+        "retainedReversalAndEarlierBalances": true,
+        "closedPeriodRejected": true,
+        "ledgerChangesInvalidateDraftReview": true,
+        "exactBookVersionRelinkVerified": true,
+        "caseScoped": true,
+        "legacyBooksImported": false,
+        "firmBillingImplemented": false,
+        "cleanRestoreVerified": true
+      },
+      "financeProof": {
+        "canonicalPerEnrolledClientAccount": true,
+        "sharedAcrossCases": 2,
+        "clientAndStaffBalanceCents": 0,
+        "invoiceCents": 10000,
+        "paymentsCents": 8000,
+        "creditsCents": 3000,
+        "refundsCents": 1000,
+        "businessBankCents": 12000,
+        "feeChangesPreserveBookReview": true,
+        "bookChangesInvalidateAllLinkedCases": true,
+        "exactSharedBookReviewRestored": true,
+        "paymentCollectionActivated": false,
+        "legacyDataImported": false,
+        "duplicateCanonicalCreationRejected": true,
+        "cleanRestoreVerified": true
+      },
+      "authorizationProof": {
+        "kinds": [
+          "1040",
+          "1120"
+        ],
+        "reviewedEvidenceCurrent": true,
+        "signedPdfBytesBound": true,
+        "exactPackageBound": true,
+        "businessBookChangeInvalidatesAuthorization": true,
+        "feeOnlyChangesPreserveAuthorization": true,
+        "priorSignatureReuseRejected": true,
+        "newSignatureRequiredAfterChange": true,
+        "clientAndStaffAgree": true,
+        "filingReady": false,
+        "identityProofingPerformed": false,
+        "electronicSignaturesCreated": false,
+        "realSignatureUsed": false,
+        "cleanRestoreVerified": true
+      },
+      "workspaceBuilder": {
+        "realStdioMcp": true,
+        "compiledBackend": true,
+        "tools": 45,
+        "previewAndApplyVerified": true,
+        "partialTaxPreparationReported": true,
+        "requestedGoalComplete": false
+      },
+      "realOffhostCustodyVerified": false,
+      "publicTlsVerified": false,
+      "transport": "Explicit HTTPS-origin adapter to owned loopback HTTP fixture",
+      "realClientDataUsed": false,
+      "installedServiceChanged": false
+    },
+    "packagedClient": {
+      "ok": true,
+      "artifact": "/Users/lukekist/BuildCache/ShuugTaxYears-20261112/tax-client-v1",
+      "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+      "modules": 109,
+      "defaultConfigDisabled": true,
+      "noAccountRequest": true,
+      "staffCorrectionEditorMounted": true,
+      "staffNewReturnControlMounted": true,
+      "staffCaseEditorMounted": true,
+      "staffCaseControlsDisabled": true,
+      "staffCaseControlCount": 7,
+      "staffFinanceEditorMounted": true,
+      "staffFinanceControlsDisabled": true,
+      "staffFinanceControlCount": 6,
+      "privateFirmModulesExcluded": true,
+      "publicTemplateFetches": 12,
+      "xfasRemoved": 12,
+      "exported": [
+        {
+          "year": 2023,
+          "kind": "1040",
+          "bytes": 90275
+        },
+        {
+          "year": 2023,
+          "kind": "1065",
+          "bytes": 224095
+        },
+        {
+          "year": 2023,
+          "kind": "1120S",
+          "bytes": 206003
+        },
+        {
+          "year": 2023,
+          "kind": "1120",
+          "bytes": 243188
+        },
+        {
+          "year": 2024,
+          "kind": "1040",
+          "bytes": 91538
+        },
+        {
+          "year": 2024,
+          "kind": "1065",
+          "bytes": 226664
+        },
+        {
+          "year": 2024,
+          "kind": "1120S",
+          "bytes": 208027
+        },
+        {
+          "year": 2024,
+          "kind": "1120",
+          "bytes": 250150
+        },
+        {
+          "year": 2025,
+          "kind": "1040",
+          "bytes": 118504
+        },
+        {
+          "year": 2025,
+          "kind": "1065",
+          "bytes": 238484
+        },
+        {
+          "year": 2025,
+          "kind": "1120S",
+          "bytes": 212338
+        },
+        {
+          "year": 2025,
+          "kind": "1120",
+          "bytes": 254782
+        }
+      ],
+      "safariVerified": false,
+      "visualAcceptance": false,
+      "publicTlsVerified": false
+    },
+    "custodyInventoriesMatchSource": true,
+    "cloudZipCrcVerified": true
+  },
+  "limits": {
+    "completeTaxCoverage": false,
+    "stateReturnsImplemented": false,
+    "calculationYears": [
+      2023,
+      2024,
+      2025
+    ],
+    "caseIntakeYears": [
+      2023,
+      2024,
+      2025,
+      2026
+    ],
+    "filingReady": false,
+    "installedServiceChanged": false,
+    "actualTransmissions": 0,
+    "separateKeyEnvironmentConfigured": false,
+    "namesAndEmailPermittedOnAppHost": false
+  },
+  "sourceSha256": {
+    "docs/SHUUG_TAX_YEARS_20261112.md": "dae2302441607628c901e0d6ea3b0a1b2f92771ed579b74ebd80ea58ab411200",
+    "packages/secure-tax-client/browser/case-editor.mjs": "26a0bf67d673349c0b4a7c39c88c954d98407f1c7bbd1962d01c24cbe738bfd2",
+    "packages/secure-tax-client/browser/return-editor.mjs": "72a374b5ba69d60d67bc65ba8c600562e9011e23c1403dbd0bf66678db51c257",
+    "packages/secure-tax-client/case-model.mjs": "64efe3d2330dff0e62e1662f660d1fcdad0e8f9fe226a1362dd9713f7095b3ec",
+    "packages/secure-tax-client/prepare-browser.mjs": "e42b637243e4eec5469f23143dacc4ae6dc02235c63fa9f50a350d7c9495f322",
+    "packages/secure-tax-client/return-proposals.mjs": "82b1de3fc12901299c058cb4a7167e40d90749223169710dfafa7d75e7efe3bf",
+    "packages/secure-tax-client/test/case-books.test.mjs": "27f05ae7f12a6d0634fe00390835a3207f4bd92ee7f7fdcce9ae5639759be7b4",
+    "packages/secure-tax-client/test/return-creations.test.mjs": "d3a93f81fde4e6bfddca038dcedd1b070605883260592127f9f793d3f4548fc4",
+    "packages/secure-tax-client/test/return-edits.test.mjs": "80eae8eaa698552936d71d8db09d46aa549da003b5e7ba510f67fdeded96cd6c",
+    "packages/secure-tax-client/test/returns.test.mjs": "99b48993b5e0d5dfe54ab8f9c0d7b8de3201b2711ab2ea6fd9d1f5e1a6370881",
+    "packages/tax-engine/business.mjs": "0e0678a602bf358c620653e37942cf62349626918d2994c1f3411a9a9877d180",
+    "packages/tax-engine/catalog.mjs": "cab976bbc60160a403a63d6e460fb89ea35f56c44253aaef1b4910548cdbd0f9",
+    "packages/tax-engine/data/2023-tax-table.mjs": "a83725d2702608133bac3c0780cb8fc71d20306bed7b570fe15d3fd65ce2b105",
+    "packages/tax-engine/data/2024-tax-table.mjs": "b46cbe707a4a9a45422551c6cf142d84cbc54290583cd87f4f75807da467714f",
+    "packages/tax-engine/federal-years.mjs": "a31a0f7d275bdb568f581e3779335a322a964241d4dc90048c94e21e56a775fc",
+    "packages/tax-engine/form-maps-prior.mjs": "1aaaf23cbc1c92978890ded58cbbc8d2ebf6124a54f399d9879cb0049ea0dafb",
+    "packages/tax-engine/form-years.mjs": "17138a2af328257305f987ceb9836b443ddeb91b11649e3e1e1d45f33d380250",
+    "packages/tax-engine/forms/2023/f1040.fields.json": "08d6f33956e020d71ca9f5d2a5cc35b32619c34422eba802bc083ddfde980774",
+    "packages/tax-engine/forms/2023/f1040.pdf": "a410ce39e1f9b75ab3ddd8c314b9e7dce022ed6e3aebde5418a58b88f1e0213c",
+    "packages/tax-engine/forms/2023/f1040s1.fields.json": "ca711de8d1243a4135c0dfc02ec4e6b940c0732192cc1102c2497ecd8e28d168",
+    "packages/tax-engine/forms/2023/f1040s1.pdf": "8b747fa3399ced68be92c199b61b3771134f2dc1b0f5faeef433e0f94278b006",
+    "packages/tax-engine/forms/2023/f1040s2.fields.json": "4d8cb7a272ae359b2e3fb1e24112c5083323501ee626c53c4add7f45cc828639",
+    "packages/tax-engine/forms/2023/f1040s2.pdf": "ccfe610c15371e722c3743943e0f20e278114c3a040e2e00aceb68ea3c6eab33",
+    "packages/tax-engine/forms/2023/f1040sc.fields.json": "f80111559ca85935de071b95dab449151a82b3e00e441bcb3929359aea888880",
+    "packages/tax-engine/forms/2023/f1040sc.pdf": "d475d0c135c0ebc599eadd1a228cbb124a60b0b6ca69a32ae0d355f5708755ff",
+    "packages/tax-engine/forms/2023/f1040sse.fields.json": "084d19df5aeab13173ed7110be8b88dc7cdc26b26b2a983c47866f0e71d2b617",
+    "packages/tax-engine/forms/2023/f1040sse.pdf": "ae11beaaedd525f47155e1692c7f7e5386c912c334912978f5f87507dcdc0b30",
+    "packages/tax-engine/forms/2023/f1065.fields.json": "cfe22030c6fe3588d42be931e361c27f713813b708764cbfeb85efe3b83aa144",
+    "packages/tax-engine/forms/2023/f1065.pdf": "dfbed1281bfbc3ec22291780912d8551c6fcda974bb47a645c69886be8558d36",
+    "packages/tax-engine/forms/2023/f1065sk1.fields.json": "9e6badb95c4f7dd3f98aaac93a6f6b166ca0070e5e2890427382500bec2fc6aa",
+    "packages/tax-engine/forms/2023/f1065sk1.pdf": "8f517f6c3a7453e1d6b5855c1a4747c58adf1123d6e714460f9eab2664b56122",
+    "packages/tax-engine/forms/2023/f1120.fields.json": "b55b9fd4da44dd9d5d7bc5576500a4763453e2be679fa3c4ec39ea9c4d5214a7",
+    "packages/tax-engine/forms/2023/f1120.pdf": "af3f3912d57e9212fe0952247d7bfa8a727a5c40bfec516e57a469c55d659e07",
+    "packages/tax-engine/forms/2023/f1120s.fields.json": "97980f796a90f348efda9907a3a997f15abf8ebdf61ba2cab9e8fab36ed2535b",
+    "packages/tax-engine/forms/2023/f1120s.pdf": "b50665260337fdb45b4c09403da511d02fec1f6eabc1d2b125e84c64ebacba71",
+    "packages/tax-engine/forms/2023/f1120ssk.fields.json": "1da64adb6dd104518a69bccecea80c694c865ee05048bac8cc7d0ff08cc4eadc",
+    "packages/tax-engine/forms/2023/f1120ssk.pdf": "9eea9f69982e770b70a8c6c09a08fe65ffe1ee2e6a580ff6a7015bc76495170a",
+    "packages/tax-engine/forms/2023/f8995.fields.json": "4e374abbeceb7437cdf1e6a039d68fdf140fca7ec7771edbe097e509f36cbbcb",
+    "packages/tax-engine/forms/2023/f8995.pdf": "66514dbc128113ba63bffb21a4444bf21ce89e661b97091d9e98463f8712c929",
+    "packages/tax-engine/forms/2023/manifest.json": "7e3a445379a41dc6173762afe1c321578d1d06772dc5f6823b4f9cff65fcb46b",
+    "packages/tax-engine/forms/2023/templates.mjs": "c085a540c1c1f24c58e6676c24352b76b648cc185ab190c7ecac2c8415249086",
+    "packages/tax-engine/forms/2024/f1040.fields.json": "01ba674f7f930d3f3d756e682c229350dcc443c13945df015bf2ed1784ddbec4",
+    "packages/tax-engine/forms/2024/f1040.pdf": "0a7a54354283044cb41373c6faabfa50955d44bdf91b4b76fa1ca2bf13f6d718",
+    "packages/tax-engine/forms/2024/f1040s1.fields.json": "446a9f2504e07511c6c55da4b5b26c9a58d02ba498c678d683cdf8929a032c89",
+    "packages/tax-engine/forms/2024/f1040s1.pdf": "2fe9bc204a82a037a50b21c6eda9949e266eafa423e604f312bc177fc721b552",
+    "packages/tax-engine/forms/2024/f1040s2.fields.json": "84f1b862fdd7b8f64504fe62bbec15131e0116d490d9bf7392c0ebbdd8c535a0",
+    "packages/tax-engine/forms/2024/f1040s2.pdf": "2efb90815ed0b92c0a30d23517258382c4087334c76fa07ac033ca70e883420e",
+    "packages/tax-engine/forms/2024/f1040sc.fields.json": "2dfaf9e6d2ecc34e16d9067f37a37870e74319d9ba55f6fd316d9f4dbea27a3f",
+    "packages/tax-engine/forms/2024/f1040sc.pdf": "f56bfd48f3604fc015b7ea22a70c6c36535a723ba84a2b9a961bc9838d070ce6",
+    "packages/tax-engine/forms/2024/f1040sse.fields.json": "4eda8596b7d3d1f872a7973bf879baf81dbdf0914fd7b67e745796563031b996",
+    "packages/tax-engine/forms/2024/f1040sse.pdf": "ac8ba97e554b67275d0e888d709e0ecadc9b45634c52cd934fa9bdcfd15179b0",
+    "packages/tax-engine/forms/2024/f1065.fields.json": "ecaf6ebe9ccaafbadef989b74af1058b39230a6fbd1b19d5aa01e3e7753ac6d5",
+    "packages/tax-engine/forms/2024/f1065.pdf": "0e090f62c33132f08628c72c964cc7359f4cbbf75581786d1ffb7999ee2f01e4",
+    "packages/tax-engine/forms/2024/f1065sk1.fields.json": "02614a0e3ec51656e939c145cd3339e06dc51f87117f0c35143be4013babb28e",
+    "packages/tax-engine/forms/2024/f1065sk1.pdf": "58e55bd504214d6678801fda33917a851fbdf6e26e7140fc9d1bc3d5b7902f9f",
+    "packages/tax-engine/forms/2024/f1120.fields.json": "88aa80c9dd5a5a96f39cc17c3aff7005f80bb50c1d069493a362f992c3cbced7",
+    "packages/tax-engine/forms/2024/f1120.pdf": "abf0266bdbea750c05e53fc9f771f428d32d18e4508d1c0dd4827486aba2d7fc",
+    "packages/tax-engine/forms/2024/f1120s.fields.json": "c8c05ac4d8779524beb2a9586aa82dd07eeb02d8b5ec3bb6c25fdbc17708911d",
+    "packages/tax-engine/forms/2024/f1120s.pdf": "02cd70856f7387b51a628fc116a7f12745e45781ccc48bf0d5b86d97a5a3167c",
+    "packages/tax-engine/forms/2024/f1120ssk.fields.json": "d6c70913d57b141d99e6d24591bb8ef7a3b4a2deb48ad0903b5f120d98f44e9d",
+    "packages/tax-engine/forms/2024/f1120ssk.pdf": "c90fec338c02c39e56cc2dd6ebd8c5e921ec5b653cd75b149c040f88e2e54be4",
+    "packages/tax-engine/forms/2024/f8995.fields.json": "4e374abbeceb7437cdf1e6a039d68fdf140fca7ec7771edbe097e509f36cbbcb",
+    "packages/tax-engine/forms/2024/f8995.pdf": "08f4c0332be3262fda77744c3cc1e32b03cd7a5f3ab52b748991efb273cdd822",
+    "packages/tax-engine/forms/2024/manifest.json": "2970c16ca1d2b20570d563e31cfdd5e5c69cdb9d62147cb4be7d932c87a559be",
+    "packages/tax-engine/forms/2024/templates.mjs": "9ceaae6512a25dc22d0c2c0edfee3285e2eb2931c3a34d307c6d06f9e678332d",
+    "packages/tax-engine/index.mjs": "d6ef4acba2633dbf462575e84723953409d59b7df5f6a91a154bbfb2adb43112",
+    "packages/tax-engine/individual.mjs": "7e3a3f63e1fa62c77cef0a1f241eb78fdeb0ab002d55030c79576c6c040d36dc",
+    "packages/tax-engine/model.mjs": "2ab153e2b5f0ab4b35c05cbff09b9182398f638eceba85541eb2375059687940",
+    "packages/tax-engine/ordinary-tax.mjs": "6ccb793ec04e373979c6306ae52353c6066b84d121a752b86b130426047931b7",
+    "packages/tax-engine/pdf-identity.mjs": "35ad84829ab5845a128ba738f6ef484c1d2ca9d0ae5db17f24968cf08138238a",
+    "packages/tax-engine/pdf.mjs": "46dae0a98748c3cb4829858878eaf0eee10076de91d3f720ff54c93de17898cb",
+    "packages/tax-engine/schedule-c.mjs": "56f0b2a1db033b98fc4c4a54a280f1e0705b7f997704d197a372e133052a7ef8",
+    "packages/tax-engine/test/prior-years.test.mjs": "a6bb8286524c92506839a6e43f8731345671f00b4836aadf00d7eb7907358a62",
+    "scripts/secure-staff-http-check.mjs": "7b0891c0dda39db1355e24a7ebdf20bf99c6f53a084fd52e3e2b57c1558dc409",
+    "scripts/tax/import_prior_tax_tables.py": "c20672096dfbbed439173ee85e6b65fcd212fb7c174aa0c2bcc0040a5d2182c7",
+    "scripts/tax/inspect_irs_forms.mjs": "7105b9f53ca68166426f31a3dbd92eef49b9c8134d9c61d755f70163e42bddb4",
+    "scripts/tax/verify_browser_artifact.mjs": "e5f8ba0c4217587c79fb9ae11aab4987d2115d45873ee8e1feaade5c0537acfd"
+  }
+}

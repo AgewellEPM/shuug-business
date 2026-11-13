@@ -1,4 +1,4 @@
-import { newReturn,calculateReturn,returnTypes,filingStatuses,expenseCategories,parseMoney,displayMoney,scopeNotice } from '@shuug/tax-engine';
+import { newReturn,calculateReturn,calculationYears,returnTypes,filingStatuses,expenseCategories,parseMoney,displayMoney,scopeNotice } from '@shuug/tax-engine';
 import { renderReturn } from './return-view.mjs';
 
 const treatments=[
@@ -13,7 +13,7 @@ const treatments=[
   ['limitations','Passive, at-risk, excess-loss, AMT or net-investment-income limitations'],
   ['foreign','Foreign income, owners, accounts, treaty or withholding requirements'],
   ['entity-special','Entity credits, special taxes/deductions, NOLs, capital/basis or ownership changes'],
-  ['state-local','State or local returns'],['amendment','Amended, fiscal-year, short-year or prior-year return'],
+  ['state-local','State or local returns'],['amendment','Amended, fiscal-year or short-year return'],
 ];
 const node=(document,tag,text)=>{const value=document.createElement(tag);if(text!==undefined)value.textContent=text;return value;};
 
@@ -23,11 +23,11 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
   let draft=newReturn(),editingId=null,creating=false,dirty=false,enabled=false,readers=[],sequence=0;
   const section=node(document,'section');section.id='tax-preparation';
   const heading=node(document,'h2','Prepare a tax return'),notice=node(document,'p',scopeNotice),kind=node(document,'select');kind.id='return-kind';
-  const kindLabel=node(document,'label','Return type');kindLabel.htmlFor=kind.id;for(const type of returnTypes){const option=node(document,'option',type.label);option.value=type.id;kind.append(option);}
+  const kindLabel=node(document,'label','Return type');kindLabel.htmlFor=kind.id;const year=node(document,'select'),yearLabel=node(document,'label','Tax year');year.id='return-year';yearLabel.htmlFor=year.id;for(const value of calculationYears){const option=node(document,'option',String(value));option.value=String(value);year.append(option);}for(const type of returnTypes){const option=node(document,'option',type.label);option.value=type.id;kind.append(option);}
   const scope=node(document,'p','Current calculations accept reviewed ordinary wages, taxable interest, nonqualified ordinary dividends and eligible business amounts. Extra schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
   const body=node(document,'div'),output=node(document,'div'),calculate=node(document,'button','Calculate draft'),save=node(document,'button',proposalOnly?'Save private correction review kit':'Encrypt and save return'),clear=node(document,'button',proposalOnly?'Discard correction':'New return');for(const button of [calculate,save,clear])button.type='button';clear.className='secondary';
   if(proposalOnly)scope.textContent+=' Preparing a return proposal downloads encrypted input and a readable private review in one file. Keep that file on trusted firm devices. The separate key environment must approve its exact content before owner publication creates or changes a client return.';
-  section.append(heading,notice,kindLabel,kind,scope,body,calculate,save,clear,output);container.append(section);
+  section.append(heading,notice,kindLabel,kind,yearLabel,year,scope,body,calculate,save,clear,output);container.append(section);
   const modified=()=>{dirty=true;output.replaceChildren(node(document,'p','Input changed. Calculate again to review the current draft.'));onDirty();};
   function field(parent,target,key,label,{money=false,options=null,check=false,multiline=false,privateId=false}={}){
     const id=`return-field-${++sequence}`,wrapper=node(document,'div'),caption=node(document,'label',label),input=node(document,options?'select':multiline?'textarea':'input');caption.htmlFor=id;input.id=id;input.dataset.returnField=key;
@@ -49,7 +49,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
     readers.push(()=>{business.expenses=[...rows.values()].filter(item=>item.amountCents||item.description);});
   }
   function draw(){
-    readers=[];sequence=0;body.replaceChildren();output.replaceChildren();kind.value=draft.kind;heading.textContent=proposalOnly?(creating?'Prepare a new client return':'Propose a return correction'):editingId?'Edit encrypted tax return':'Prepare a tax return';section.hidden=proposalOnly&&!editingId&&!creating;
+    readers=[];sequence=0;body.replaceChildren();output.replaceChildren();kind.value=draft.kind;year.value=String(draft.year);heading.textContent=proposalOnly?(creating?'Prepare a new client return':'Propose a return correction'):editingId?'Edit encrypted tax return':'Prepare a tax return';section.hidden=proposalOnly&&!editingId&&!creating;
     save.textContent=proposalOnly?(creating?'Save private new-return review kit':'Save private correction review kit'):'Encrypt and save return';clear.textContent=proposalOnly?(creating?'Discard new return':'Discard correction'):'New return';
     const identity=group(body,'Return identity');for(const [key,label]of [['name','Full taxpayer / entity legal name'],...(draft.individual?[['firstName','First name and middle initial for Form 1040'],['lastName','Last name for Form 1040']]:[]),['taxId','Taxpayer ID / EIN (hidden)'],['street','Street address'],['city','City'],['state','State'],['zip','ZIP code']])field(identity,draft.party,key,label,{privateId:key==='taxId'});
     if(draft.individual){
@@ -72,15 +72,16 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
     const chosen=new Map(),known=new Set(treatments.map(([id])=>id));for(const [id,label]of [...treatments,...draft.features.filter(id=>!known.has(id)).map(id=>[id,id])]){const value={selected:draft.features.includes(id)};field(coverage,value,'selected',label,{check:true});chosen.set(id,value);}readers.push(()=>{draft.features=[...chosen].filter(([,value])=>value.selected).map(([id])=>id);});
     for(const [key,label]of [['identity','Identity and filing details reviewed'],['income','All income sources reviewed'],['deductions','Deduction eligibility and limitations reviewed'],['credits','Credit eligibility reviewed; any credit needing calculation selected above'],...(draft.entity?[['ownership','Entity ownership and allocations reviewed']]:[]),['coverage','Installed coverage reviewed; every additional treatment selected above']])field(coverage,draft.review,key,label,{check:true});field(coverage,draft,'notes','Preparation notes (encrypted)',{multiline:true});updateEnabled();
   }
-  function updateEnabled(){for(const control of section.querySelectorAll('input,textarea,select,button'))control.disabled=!enabled;kind.disabled=!enabled||proposalOnly&&!creating;}
+  function updateEnabled(){for(const control of section.querySelectorAll('input,textarea,select,button'))control.disabled=!enabled;kind.disabled=!enabled||proposalOnly&&!creating;year.disabled=!enabled||editingId!==null;}
   function clearView(){draft=newReturn(kind.value);editingId=null;creating=false;dirty=false;draw();onDirty();}
   const api={get dirty(){return dirty||editingId!==null||creating;},get editingId(){return editingId;},get proposalMode(){return proposalOnly?(creating?'creation':'correction'):null;},get active(){return dirty||editingId!==null||creating||output.childElementCount>0;},setEnabled(value){enabled=value;updateEnabled();},clear:clearView,
     edit(data,id){validate(data);if(!confirmDiscard())return false;draft=structuredClone(data);editingId=id;creating=false;dirty=false;draw();section.scrollIntoView?.({behavior:'smooth',block:'start'});onDirty();return true;},
-    startNew(kind='1040'){if(!proposalOnly||!allowCreation||!returnTypes.some(type=>type.id===kind))throw new Error('New return proposals are unavailable in this editor.');if(!confirmDiscard())return false;draft=newReturn(kind);editingId=null;creating=true;dirty=false;draw();section.scrollIntoView?.({behavior:'smooth',block:'start'});onDirty();return true;},
+    startNew(kind='1040',year=2025){if(!proposalOnly||!allowCreation||!returnTypes.some(type=>type.id===kind))throw new Error('New return proposals are unavailable in this editor.');if(!confirmDiscard())return false;draft=newReturn(kind,year);editingId=null;creating=true;dirty=false;draw();section.scrollIntoView?.({behavior:'smooth',block:'start'});onDirty();return true;},
     getInput:()=>collect(),element:section};
   function confirmDiscard(){return !api.dirty||creating&&!dirty||confirm('Discard the current unsaved return input and open another return? Saved ciphertext is retained.');}
   body.addEventListener('input',modified);body.addEventListener('change',modified);
-  kind.addEventListener('change',()=>{const next=kind.value;if(proposalOnly&&!creating||!confirmDiscard()){kind.value=draft.kind;return;}draft=newReturn(next);editingId=null;dirty=false;draw();onDirty();});
+  kind.addEventListener('change',()=>{const next=kind.value;if(proposalOnly&&!creating||!confirmDiscard()){kind.value=draft.kind;return;}draft=newReturn(next,draft.year);editingId=null;dirty=false;draw();onDirty();});
+  year.addEventListener('change',()=>{if(editingId!==null){year.value=String(draft.year);return;}collect();draft.year=Number(year.value);modified();draw();});
   clear.addEventListener('click',()=>{if(confirmDiscard())clearView();});
   calculate.addEventListener('click',()=>run(async()=>{const value=validate(collect()),generation=captureScope();output.replaceChildren(renderReturn(document,value,{run,download,isCurrent:()=>isCurrentScope(generation)&&!document.hidden}));}));
   save.addEventListener('click',()=>run(async()=>{const value=validate(collect()),generation=captureScope(),id=editingId;if(!isCurrentScope(generation))throw new Error('The account view changed.');await onSave(value,id,preparedId=>{if(isCurrentScope(generation))editingId=preparedId;});if(isCurrentScope(generation))clearView();}));

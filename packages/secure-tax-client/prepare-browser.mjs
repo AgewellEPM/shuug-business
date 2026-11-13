@@ -6,7 +6,7 @@ import { validateTrustedConfig } from './browser/config.mjs';
 
 const source=fileURLToPath(new URL('.',import.meta.url));
 const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','staff-updates.mjs','client-portal.mjs','client-portal-view.mjs','return-editor.mjs','return-view.mjs','return-save.mjs','opened-record.mjs','case-view.mjs','case-editor.mjs','case-authorization-editor.mjs','case-books-editor.mjs','case-books-view.mjs','office-view.mjs','office-editor.mjs'];
-const engineFiles=['index.mjs','model.mjs','catalog.mjs','money.mjs','individual.mjs','business.mjs','schedule-c.mjs','ordinary-tax.mjs','form-maps.mjs','pdf.mjs','data/2025-tax-table.mjs','forms/2025/templates.mjs','forms/2025/manifest.json'];
+const engineFiles=['index.mjs','model.mjs','catalog.mjs','money.mjs','individual.mjs','business.mjs','schedule-c.mjs','ordinary-tax.mjs','federal-years.mjs','form-maps.mjs','form-maps-prior.mjs','form-years.mjs','pdf-identity.mjs','pdf.mjs',...[2023,2024,2025].flatMap(year=>[`data/${year}-tax-table.mjs`,`forms/${year}/templates.mjs`,`forms/${year}/manifest.json`])];
 export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
   if(config)await validateTrustedConfig(config,config.uiOrigin);
   const existing=await readdir(output).catch(error=>{if(error.code==='ENOENT')return [];throw error;});
@@ -20,8 +20,8 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   }
   const engine=path.resolve(source,'../tax-engine'),pdfPackage=JSON.parse(await readFile(path.join(engine,'node_modules/pdf-lib/package.json'),'utf8')),engineLock=JSON.parse(await readFile(path.join(engine,'package-lock.json'),'utf8'));
   if(pdfPackage.version!=='1.17.1'||engineLock.packages['node_modules/pdf-lib']?.version!=='1.17.1')throw new Error('The PDF dependency does not match the reviewed lock.');
-  const templates=JSON.parse(await readFile(path.join(engine,'forms/2025/manifest.json'),'utf8'));
-  for(const file of [...engineFiles,...templates.forms.map(form=>`forms/2025/${form.id}.pdf`)]){const destination=path.join(output,'tax-engine',file);await mkdir(path.dirname(destination),{recursive:true});await cp(path.join(engine,file),destination);}
+  const templateFiles=[];for(const year of [2023,2024,2025]){const manifest=JSON.parse(await readFile(path.join(engine,`forms/${year}/manifest.json`),'utf8'));templateFiles.push(...manifest.forms.map(form=>`forms/${year}/${form.id}.pdf`));}
+  for(const file of [...engineFiles,...templateFiles]){const destination=path.join(output,'tax-engine',file);await mkdir(path.dirname(destination),{recursive:true});await cp(path.join(engine,file),destination);}
   await mkdir(path.join(output,'browser'),{recursive:true});
   for(const file of browserFiles)await cp(path.join(source,'browser',file),path.join(output,'browser',file));
   await cp(path.join(source,'envelope.mjs'),path.join(output,'envelope.mjs'));
@@ -45,7 +45,7 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   await writeFile(path.join(output,'staff.html'),staff.replace('<!-- BUILD_CSP -->',`<meta http-equiv="Content-Security-Policy" content="${csp}">`).replace('<!-- BUILD_IMPORTMAP -->',`<script type="importmap">${importmap}</script>`).replace('href="./style.css"','href="./browser/style.css"').replace('src="./staff-app.mjs"','src="./browser/staff-app.mjs"'));
   await writeFile(path.join(output,'_headers'),`/*\n  Content-Security-Policy: ${csp}; frame-ancestors 'none'\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Cross-Origin-Opener-Policy: same-origin\n  Cache-Control: no-store\n`);
   await writeFile(path.join(output,'vercel.json'),JSON.stringify({headers:[{source:'/(.*)',headers:[{key:'Content-Security-Policy',value:`${csp}; frame-ancestors 'none'`},{key:'X-Content-Type-Options',value:'nosniff'},{key:'Referrer-Policy',value:'no-referrer'},{key:'Permissions-Policy',value:'camera=(), microphone=(), geolocation=()'},{key:'Cross-Origin-Opener-Policy',value:'same-origin'},{key:'Cache-Control',value:'no-store'}]}]},null,2));
-  await writeFile(path.join(output,'build-public.json'),JSON.stringify({version:1,configured:!!config,dependencies:{...Object.fromEntries(vendor),'pdf-lib':'1.17.1'},taxPreparation:{year:2025,returnTypes:['1040','1065','1120S','1120'],draftOnly:true},activationAvailable:false},null,2));
+  await writeFile(path.join(output,'build-public.json'),JSON.stringify({version:1,configured:!!config,dependencies:{...Object.fromEntries(vendor),'pdf-lib':'1.17.1'},taxPreparation:{defaultYear:2025,years:[2023,2024,2025],caseIntakeYears:[2023,2024,2025,2026],returnTypes:['1040','1065','1120S','1120'],draftOnly:true},activationAvailable:false},null,2));
   return {output,configured:!!config,activationAvailable:false};
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){

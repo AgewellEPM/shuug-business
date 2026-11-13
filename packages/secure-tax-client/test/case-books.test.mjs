@@ -75,3 +75,15 @@ test('exact decimal inputs and private CSV never silently round or enable spread
   for(const value of ['1.001','-1','1e3','Infinity','1,000',' 1','1000000000.00'])assert.throws(()=>parseBookAmount(value));
   let body=open(create());body=apply(body,'books.account.add',{account:{number:6010,name:'=HYPERLINK("bad")',classification:'expense'},notes:''});const csv=caseBookCsv(report(body));assert(csv.includes('"\'=HYPERLINK(""bad"")"'));assert(csv.includes('Debit cents'));assert.throws(()=>caseBookReport(books(body),{from:'2026-01-01'}));
 });
+
+test('annual cases keep book dates and draft years bound, while 2026 is intake only',()=>{
+  for(const year of [2023,2024,2026]){
+    let body=apply(null,'case.create',{title:'Synthetic annual case',year,kind:'1040'});
+    body=apply(body,'books.open',{title:'Annual working books',currency:'USD',from:`${year}-01-01`,through:`${year}-12-31`,accounts:structuredClone(DEFAULT_BOOK_ACCOUNTS),notes:''});
+    body=post(body,`${year}-01-01`,'Annual opening',[line(1000,100,0),line(3000,0,100)]);assert.equal(report(body).bankCents,100);
+    const wrong={reference,payload:newReturn('1040',2025)},input={document:reference,notes:'',booksVersion:books(body).version};assert.throws(()=>apply(body,'draft.link',input,wrong));
+    if(year!==2026){const right={reference,payload:newReturn('1040',year)};body=apply(body,'draft.link',input,right);assert.equal(body.year,year);assertCaseBody(body);}
+    assert.equal(caseSnapshot(body,new Map()).filingReady,false);
+  }
+  for(const year of [2022,2027,'2023'])assert.throws(()=>apply(null,'case.create',{title:'Unsupported case',year,kind:'1040'}));
+});
