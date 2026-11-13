@@ -29,7 +29,7 @@ test('combat candidate choices remain unsaved until elected and never increase t
 });
 
 test('positive federal EIC does not silently settle unsupported Connecticut or New York EIC schedules',()=>{
- const input=eicFixture({children:0,wages:10000,joint:false}),ct=newCTStateReturn(),ny=newNYStateReturn();for(const state of [ct,ny])for(const key of Object.keys(state.review))state.review[key]=true;input.individual.stateReturns=[ct,ny];const result=calculateReturn(input);assert(result.summary.earnedIncomeCreditCents>0);for(const state of result.states){assert.equal(state.summary.paymentsCents,null);assert.equal(state.summary.refundCents,null);assert.equal(state.summary.amountOwedCents,null);}for(const code of ['CT_FEDERAL_EIC_UNRESOLVED','NY_FEDERAL_EIC_UNRESOLVED'])assert(result.diagnostics.some(row=>row.code===code));
+ const input=eicFixture({children:0,wages:10000,joint:false}),ct=newCTStateReturn(),ny=newNYStateReturn();for(const state of [ct,ny])for(const key of Object.keys(state.review))state.review[key]=true;input.individual.stateReturns=[ct,ny];const result=calculateReturn(input);assert(result.summary.earnedIncomeCreditCents>0);for(const state of result.states){assert.equal(state.summary.paymentsCents,null);assert.equal(state.summary.refundCents,null);assert.equal(state.summary.amountOwedCents,null);}for(const code of ['CT_EITC_SOURCE_REQUIRED','NY_FEDERAL_EIC_UNRESOLVED'])assert(result.diagnostics.some(row=>row.code===code));
 });
 
 test('annual unavailable awards and missing or malformed source reviews never become a credit',()=>{

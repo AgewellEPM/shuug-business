@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "type": "shuug-ct-family-integration-verification",
+  "date": "2026-11-13",
+  "readiness": "prototype",
+  "scope": "Ordinary original full-year Connecticut resident CT-EITC and CT-Dependent for2023\u20132025; matching federal/state status. Source intake remains available with strict validation for2026/2027; their state calculation/form packs are unavailable.",
+  "sourceSha256": {
+    "packages/tax-engine/state-returns.mjs": "7a87ed1ce2646f7ffe25983906d47a125844ec973ed34c84c689a22cff4564af",
+    "packages/tax-engine/state-ct-dependent.mjs": "e3be9638ecaf8aad75614e66414b3c44e9df75ba00f0e797ec451dfe846bd7ee",
+    "packages/tax-engine/state-ct-eitc.mjs": "f6ddc80fe10df235a91b0d47935af1c5827e6a785d47067ab9eaecc04a8dba3c",
+    "packages/tax-engine/state-ct-eitc-model.mjs": "975e9a57364f37b980dd342c945e4521af176ee57fe70d6506a80749da2e3bf0",
+    "packages/tax-engine/state-ct-dependent-pdf.mjs": "b526f5db2001739d70bde40afb0a05c577d773a3fb647af8b92fbc258d3186eb",
+    "packages/tax-engine/state-ct-eitc-pdf.mjs": "9e06a125a6a3998b5e716ebfe610d0bc2a87fce108c6516d946d0e5c4d51ea42",
+    "packages/tax-engine/state-ct-overlay.mjs": "280111ca50c259762881fbf300a33968db469917463dc4758666287287bf5af5",
+    "packages/tax-engine/state-ct-family-maps.mjs": "78b5596fe6733d03b2311b7833815fc9298ddd4320bcabc3579fe931f650e4b1",
+    "packages/tax-engine/index.mjs": "cb8ced5b4f68555540e59d927c9837fa63addcb5993b8544091b9a0a4b90da46",
+    "packages/tax-engine/form-years.mjs": "032561f75c42e2366ad1d5418b9270ce49f33335954c1eb0a6ad116551806222",
+    "packages/tax-engine/pdf.mjs": "58b08bf20871dbc2d63159f1f65fecb3b7fbab75f6dffdd17ed65bd61aae1ace",
+    "packages/secure-tax-client/browser/ct-family-editor.mjs": "95838307396088bbd70ab6193588e24a03d1e527b989208402404cf425b284cf",
+    "packages/secure-tax-client/browser/state-editor.mjs": "9b16136f23bf558075bb16dd345d97ccac21bcf0e0a26e0c9f93e52b5d1e8d14",
+    "packages/secure-tax-client/prepare-browser.mjs": "bafbdaeb057dbc7f9048e2984c4429f39ea57ad92c5c329c2b85b382309ae53f",
+    "scripts/secure-staff-http-check.mjs": "7a8f573d4d3dc12e1add7ce37c515760154d0b7eedc3325f36b1b30bb3d9d774",
+    "scripts/tax/verify_browser_artifact.mjs": "c318d07ef83845703776e95211bfc56ef6d0075922a156ae10fde7cc073a45ea"
+  },
+  "verification": {
+    "suite": {
+      "tests": 591,
+      "passed": 590,
+      "failed": 0,
+      "skipped": 1,
+      "skip": "Pre-existing optional native Journal dependency",
+      "timing": "Before final optional-state-section validation extraction; focused final checks cover that change."
+    },
+    "focusedFinal": {
+      "tests": 31,
+      "passed": 31,
+      "failed": 0
+    },
+    "compiledSyntheticHttp": {
+      "checks": 719,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "returns": 23,
+      "exports": 17,
+      "ctCases": [
+        {
+          "year": 2023,
+          "initialEicCents": 545500,
+          "correctedEicCents": 515000,
+          "correctedRefundCents": 835000,
+          "selectedCombatPayCents": 200000,
+          "firstChildReviewedMonths": 7,
+          "scheduleEicExported": true,
+          "initialCtEicCents": 218200,
+          "correctedCtEicCents": 206000,
+          "ctDependentAndEitcExported": true
+        },
+        {
+          "year": 2024,
+          "initialEicCents": 613100,
+          "correctedEicCents": 582600,
+          "correctedRefundCents": 922600,
+          "selectedCombatPayCents": 200000,
+          "firstChildReviewedMonths": 7,
+          "scheduleEicExported": true,
+          "initialCtEicCents": 245200,
+          "correctedCtEicCents": 233000,
+          "ctDependentAndEitcExported": true
+        },
+        {
+          "year": 2025,
+          "initialEicCents": 649800,
+          "correctedEicCents": 619300,
+          "correctedRefundCents": 959300,
+          "selectedCombatPayCents": 200000,
+          "firstChildReviewedMonths": 7,
+          "scheduleEicExported": true,
+          "initialCtEicCents": 284900,
+          "correctedCtEicCents": 272700,
+          "ctDependentAndEitcExported": true
+        }
+      ],
+      "customerAndStaffReopened": true,
+      "correctedAndRestored": true,
+      "hostPlaintextMarkerAbsent": true,
+      "timing": "Before final2026/2027 structural validation extraction; server source/build unchanged."
+    },
+    "packagedClient": {
+      "modules": 203,
+      "publicPdfFetches": 87,
+      "exports": 21,
+      "sourceBytesMatched": 430,
+      "runtime": "NodeV8 and JSDOM; no browser runtime",
+      "ctCases": [
+        {
+          "year": 2023,
+          "earnedIncomeCreditCents": 545500,
+          "ctEicCents": 218200,
+          "ctDependentAndEitcExported": true,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "f1040s8",
+            "ct1040",
+            "ctdependent",
+            "ct1040eitc"
+          ],
+          "bytes": 897206
+        },
+        {
+          "year": 2024,
+          "earnedIncomeCreditCents": 613100,
+          "ctEicCents": 245200,
+          "ctDependentAndEitcExported": true,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "f1040s8",
+            "ct1040",
+            "ctdependent",
+            "ct1040eitc"
+          ],
+          "bytes": 898073
+        },
+        {
+          "year": 2025,
+          "earnedIncomeCreditCents": 649800,
+          "ctEicCents": 284900,
+          "ctDependentAndEitcExported": true,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "f1040s8",
+            "ct1040",
+            "ctdependent",
+            "ct1040eitc"
+          ],
+          "bytes": 879525
+        },
+        {
+          "year": 2025,
+          "earnedIncomeCreditCents": 0,
+          "connecticutChildSupplementUnresolved": true,
+          "forms": [
+            "f1040",
+            "ct1040"
+          ],
+          "bytes": 453113
+        }
+      ]
+    },
+    "primarySourceVerification": {
+      "ctEitcPins": 11,
+      "printedRuleChecks": 24,
+      "originalNewAnnualForms": 6
+    },
+    "qualification": {
+      "checks": 218,
+      "sourcePins": 89,
+      "passed": true,
+      "formsByYear": {
+        "2023": 27,
+        "2024": 27,
+        "2025": 28,
+        "2026": 3,
+        "2027": 0
+      },
+      "scope": "Arithmetic, source pins and installed form pins; not agency qualification. Concurrent unfinished NY source files in the local inventory are not part of this CT checkpoint."
+    }
+  },
+  "limits": [
+    "Separate filing status/allocation, amended and part-year/nonresident CT returns remain unsupported.",
+    "Mixed withholding and income-row overflow need further source treatment; no source rows are dropped.",
+    "Within-range zero federal table amounts and non-valid-SSN qualifying-child supplement cases remain unresolved.",
+    "CT-Dependent ITIN/ATIN entry needs additional primary guidance; all valid SSN dependent rows are retained through continuation statements.",
+    "Original2023CT-1040 source draft mark is preserved.",
+    "2026/2027 final state packs are not substituted with older forms.",
+    "Same-provider review and synthetic cases are not certification, independent security review, filing acceptance, installed-service proof or visual acceptance."
+  ],
+  "installedServiceChanged": false,
+  "realCustomerDataUsed": false,
+  "offhostCustodyVerified": false,
+  "agencySubmissionAttempted": false,
+  "agencyApproval": false,
+  "releaseReady": false
+}

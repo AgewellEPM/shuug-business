@@ -55,8 +55,9 @@ deductions; dependent intake and annual Schedule 8812 child/other-dependent
 credits; and source-linked Connecticut retirement adjustments. These facts
 save and reopen through the encrypted client/staff workflow and appear in the
 original annual PDFs. A separate EIC source check runs on every individual
-return: an unproved credit keeps settlement amounts unknown. Full EIC awards
-and broader family/state credits remain unfinished. The final 2026 Schedule
+return: an unproved credit keeps settlement amounts unknown. The EIC and
+Connecticut continuations below extend ordinary family coverage; broader
+family/state treatments remain unfinished. The final 2026 Schedule
 8812 is installed alongside C/SE; the complete 2026 annual pack remains missing.
 See the [eligibility verification receipt](verification/federal-eligibility-expansion-20261113.json).
 These changes supersede the corresponding source gaps in the dated assessment
@@ -78,13 +79,28 @@ awards**, using separate eligibility sources, the exact annual tables,
 Worksheets A/B, explicit per-filer combat-pay elections and original Schedule EIC
 PDFs. The amount flows into ACTC, payments and federal settlement. Source
 conflicts remain unresolved, including contradictory birth dates, residence
-days/months, child links and combat totals. State EIC schedules, special federal
+days/months, child links and combat totals. Broader state EIC schedules, special federal
 treatments and 2026–2027 annual award materials remain unfinished. See the
 [EIC scope](../packages/tax-engine/EARNED-INCOME-CREDIT.md) and
 [verification receipt](verification/eic-awards-20261113.json).
 The [Connecticut zero-table safeguard](verification/ct-eic-zero-table-guard-20261113.json)
 also leaves an unresolved 2025 child-supplement case unknown instead of assuming
 that zero federal EIC necessarily means zero Connecticut credit.
+
+November 13 Connecticut continuation connects ordinary **2023–2025 CT-EITC
+and CT-Dependent** to the encrypted editor, state settlement and original annual
+PDFs. The state credit uses the computed federal award and saved combat election,
+linked original W-2/business identifiers, and the 2025 qualifying-child supplement.
+Claimed dependent identities come from the federal records, including complete
+continuation statements. Corrections recompute CT-1040 line20a and payments;
+incomplete source reviews keep the affected totals unresolved. See the
+[CT EITC scope](../packages/tax-engine/CT-EITC.md) and
+[original schedule coverage](../packages/tax-engine/CT-FAMILY-PDF.md), with
+[integration evidence](verification/ct-family-20261113.json).
+Separate-status allocation, mixed withholding, non-SSN dependent disclosure and
+specified child-supplement uncertainties remain open. Newer state years require
+their own annual packs; validated 2026/2027 source intake is retained. These
+changes do not establish filing approval or change the installed service.
 
 ## Already implemented
 

@@ -1,0 +1,36 @@
+{
+  "classification": "Synthetic CT resident/source facts and independently derived Connecticut arithmetic based on published federal Grey-family credit amounts. These are not published Connecticut taxpayer examples.",
+  "derivedAnnual": [
+    {
+      "year": 2023,
+      "federalEicDollars": 5455,
+      "baseDollars": 2182,
+      "supplementDollars": 0,
+      "creditDollars": 2182
+    },
+    {
+      "year": 2024,
+      "federalEicDollars": 6131,
+      "baseDollars": 2452,
+      "supplementDollars": 0,
+      "creditDollars": 2452
+    },
+    {
+      "year": 2025,
+      "federalEicDollars": 6498,
+      "baseDollars": 2599,
+      "supplementDollars": 250,
+      "creditDollars": 2849
+    }
+  ],
+  "publishedRoundingExample": {
+    "sourceFile": "ct-rounding-information.html",
+    "inputCents": [
+      129,
+      321
+    ],
+    "printedCents": 500,
+    "scope": "General state whole-dollar rounding; not an EITC worked example."
+  },
+  "sourceManifest": "../data/ct-eitc-sources.json"
+}

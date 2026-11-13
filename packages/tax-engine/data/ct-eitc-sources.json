@@ -1,0 +1,117 @@
+{
+  "reviewedOn": "2026-11-13",
+  "classification": "Original Connecticut DRS annual forms/instructions, official CT guidance and amended statute; source integrity is not agency approval.",
+  "sources": [
+    {
+      "year": 2023,
+      "id": "schedule-ct-eitc",
+      "file": "schedule-ct-eitc--2023.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2023/income/schedule-ct-eitc_1223.pdf",
+      "bytes": 251092,
+      "sha256": "04a43c50bb4dacf008561937d2b8265538eb2edbed91492c324a81f5094be968"
+    },
+    {
+      "year": 2023,
+      "id": "ct1040-instructions",
+      "file": "ct1040-instructions--2023.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2023/income/2023-ct-1040-instructions_1223.pdf",
+      "bytes": 1027048,
+      "sha256": "fb5b65b0081464528876ac0fa9ee794e75c0d4859676b3a3405517f7f2e9c0a2"
+    },
+    {
+      "year": 2024,
+      "id": "schedule-ct-eitc",
+      "file": "schedule-ct-eitc--2024.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2024/income/schedule-ct-eitc_1224.pdf",
+      "bytes": 251797,
+      "sha256": "5511c1c374d0d0fddddd2a24b8a2940f0194105f8c1e972ce7f766124efdf2ca"
+    },
+    {
+      "year": 2024,
+      "id": "ct1040-instructions",
+      "file": "ct1040-instructions--2024.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2024/income/2024-ct-1040-instructions_1224.pdf",
+      "bytes": 1043023,
+      "sha256": "fad02854c8e39e179c6fd5cf0b36b9c9ef638baa679762236e5f06acb3412c42"
+    },
+    {
+      "year": 2025,
+      "id": "schedule-ct-eitc",
+      "file": "schedule-ct-eitc--2025.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2025/income/schedule-ct-eitc_1225.pdf",
+      "bytes": 227894,
+      "sha256": "79d54adb622d36651adee69d0148cc98d1b3c1a463b0b5b86b4553737a7d3c45"
+    },
+    {
+      "year": 2025,
+      "id": "ct1040-instructions",
+      "file": "ct1040-instructions--2025.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2025/income/2025-ct-1040-instructions_1225.pdf",
+      "bytes": 998064,
+      "sha256": "0e2cabf0fd48b9fa86d926adfb9e3c6dad3cbf17badfcf11321d8e4bceb24386"
+    },
+    {
+      "year": 2025,
+      "id": "ct-eitc-information",
+      "file": "ct-eitc-information.html",
+      "url": "https://portal.ct.gov/drs/ct---eitc/ct-eitc-information/ct-earned-income-tax-credit",
+      "bytes": 41505,
+      "sha256": "4077d1b5a9c9a213860ba4e5ad19d59bee32adad21f8a24f740371a370bbda39"
+    },
+    {
+      "year": 2025,
+      "id": "ct-2025-legislation",
+      "file": "ct-2025-legislation.html",
+      "url": "https://portal.ct.gov/drs/miscellaneous-taxes/other-tax-page/state-tax-developments/2025-developments/income-tax",
+      "bytes": 33487,
+      "sha256": "764cfc2f0fac3fde00aa692a6ef823d990e0878a03f437c79ceef0676fa99e7e"
+    },
+    {
+      "year": 2024,
+      "id": "ct-2024-corrections",
+      "file": "ct-2024-corrections.html",
+      "url": "https://portal.ct.gov/drs/drs-forms/drs-corrections/2024-form-updates",
+      "bytes": 35825,
+      "sha256": "c77c816ca4ed2735d25965c2619de81a6739fa1db7a32efbdba562d3dafc214e"
+    },
+    {
+      "file": "cga-2026-supplement-chapter229.html",
+      "url": "https://www.cga.ct.gov/2026/sup/chap_229.htm",
+      "bytes": 132979,
+      "sha256": "2faa8eebcad4e951d01bfd563941ba74e4f8d7d2b0d29a84a631cf19f8752511"
+    },
+    {
+      "file": "ct-rounding-information.html",
+      "url": "https://portal.ct.gov/drs/individuals/resident-income-tax/other-helpful-information",
+      "bytes": 72022,
+      "sha256": "6e98d7b45348714084f539b0c3c8a4351247c554cf4398198a8b63bbd2a28e7a"
+    }
+  ],
+  "annualRules": {
+    "2023": {
+      "rateBps": 4000,
+      "investmentLimitDollars": 11000,
+      "childSupplementDollars": 0
+    },
+    "2024": {
+      "rateBps": 4000,
+      "investmentLimitDollars": 11600,
+      "childSupplementDollars": 0
+    },
+    "2025": {
+      "rateBps": 4000,
+      "investmentLimitDollars": 11950,
+      "childSupplementDollars": 250
+    }
+  },
+  "sourceAnomalies": [
+    "2023 CT line instructions call federal EIC line27a, while the actual 2023 federal and CT schedules identify line27.",
+    "Schedule line6 and instructions phrase mixed-withholding disclosure differently; this branch is retained as unresolved.",
+    "2025 statute qualifying-child language and schedule valid-SSN/listed-child requirement do not explicitly settle the self-only/no-valid-child-SSN or eligible federal zero-table boundaries."
+  ],
+  "originalScheduleStructure": {
+    "pages": 2,
+    "fieldCount": 0,
+    "sourceDraft": false
+  }
+}

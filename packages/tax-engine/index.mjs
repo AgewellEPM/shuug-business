@@ -16,6 +16,8 @@ export { newReturn,expenseCategories } from './model.mjs';
 export {newInventory,newInventoryCost,inventoryMethods,inventoryReviews} from './inventory.mjs';
 export {newRetirementIncome,newRetirementDistribution,newSocialSecurityBenefit,newTaxExemptPayer,retirementPlans,retirementTreatments,retirementDistributionReviews,retirementReviews} from './retirement-income.mjs';
 export {newCTRetirement,newCTRetirementDistribution,ctRetirementKinds} from './state-ct-retirement.mjs';
+export {newCTEarnedIncomeCredit,newCTEitcWage,newCTEitcBusiness,ctEitcReviews} from './state-ct-eitc-model.mjs';
+export {newCTDependentDisclosure} from './state-ct-dependent.mjs';
 export {newNYStateReturn,newNYWageRecord,newNYModification,newNYDependent,nyReviews,nyModifications,nyUnsupportedTreatments} from './state-ny-model.mjs';
 export { returnTypes,filingStatuses,scopeNotice,federalSources } from './catalog.mjs';
 export { parseMoney,displayMoney,sumMoney } from './money.mjs';

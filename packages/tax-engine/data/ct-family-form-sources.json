@@ -1,0 +1,109 @@
+{
+  "scope": "Original annual CT EITC and dependent forms, reviewed overlays; no filing certification",
+  "forms": [
+    {
+      "id": "ct1040eitc",
+      "year": 2023,
+      "title": "2023 Connecticut Earned Income Tax Credit",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2023/income/schedule-ct-eitc_1223.pdf",
+      "sha256": "04a43c50bb4dacf008561937d2b8265538eb2edbed91492c324a81f5094be968",
+      "bytes": 251092,
+      "pages": 2,
+      "fieldCount": 0,
+      "overlay": true,
+      "sourceDraft": false
+    },
+    {
+      "id": "ct1040eitc",
+      "year": 2024,
+      "title": "2024 Connecticut Earned Income Tax Credit",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2024/income/schedule-ct-eitc_1224.pdf",
+      "sha256": "5511c1c374d0d0fddddd2a24b8a2940f0194105f8c1e972ce7f766124efdf2ca",
+      "bytes": 251797,
+      "pages": 2,
+      "fieldCount": 0,
+      "overlay": true,
+      "sourceDraft": false
+    },
+    {
+      "id": "ct1040eitc",
+      "year": 2025,
+      "title": "2025 Connecticut Earned Income Tax Credit",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2025/income/schedule-ct-eitc_1225.pdf",
+      "sha256": "79d54adb622d36651adee69d0148cc98d1b3c1a463b0b5b86b4553737a7d3c45",
+      "bytes": 227894,
+      "pages": 2,
+      "fieldCount": 0,
+      "overlay": true,
+      "sourceDraft": false
+    },
+    {
+      "id": "ctdependent",
+      "year": 2023,
+      "title": "2023 Connecticut Resident Dependent Information",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2023/income/schedule-ct-dependent_1223.pdf",
+      "sha256": "fc39205168dd315f23cad66ce5ecaa7296f90483f1140a701c140f2766f66680",
+      "bytes": 151220,
+      "pages": 1,
+      "fieldCount": 0,
+      "overlay": true,
+      "sourceDraft": false
+    },
+    {
+      "id": "ctdependent",
+      "year": 2024,
+      "title": "2024 Connecticut Resident Dependent Information",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2024/income/schedule-ct-dependent_1224.pdf",
+      "sha256": "5c825c7649db279e23dcc720f50ea7482160bd5768c7f1415607f04514beeaa5",
+      "bytes": 150654,
+      "pages": 1,
+      "fieldCount": 0,
+      "overlay": true,
+      "sourceDraft": false
+    },
+    {
+      "id": "ctdependent",
+      "year": 2025,
+      "title": "2025 Connecticut Resident Dependent Information",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2025/income/schedule-ct-dependent_1225.pdf",
+      "sha256": "2278c6c621c6dd84caeb80b9e7fd2d7118a9c69189bd758f739049af38274ca0",
+      "bytes": 152264,
+      "pages": 1,
+      "fieldCount": 0,
+      "overlay": true,
+      "sourceDraft": false
+    }
+  ],
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "ct1040-instructions",
+      "file": "ct1040-instructions--2023.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2023/income/2023-ct-1040-instructions_1223.pdf",
+      "status": 200,
+      "resolvedUrl": "https://portal.ct.gov/-/media/drs/forms/2023/income/2023-ct-1040-instructions_1223.pdf",
+      "bytes": 1027048,
+      "sha256": "fb5b65b0081464528876ac0fa9ee794e75c0d4859676b3a3405517f7f2e9c0a2"
+    },
+    {
+      "year": 2024,
+      "id": "ct1040-instructions",
+      "file": "ct1040-instructions--2024.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2024/income/2024-ct-1040-instructions_1224.pdf",
+      "status": 200,
+      "resolvedUrl": "https://portal.ct.gov/-/media/drs/forms/2024/income/2024-ct-1040-instructions_1224.pdf",
+      "bytes": 1043023,
+      "sha256": "fad02854c8e39e179c6fd5cf0b36b9c9ef638baa679762236e5f06acb3412c42"
+    },
+    {
+      "year": 2025,
+      "id": "ct1040-instructions",
+      "file": "ct1040-instructions--2025.pdf",
+      "url": "https://portal.ct.gov/-/media/drs/forms/2025/income/2025-ct-1040-instructions_1225.pdf",
+      "status": 200,
+      "resolvedUrl": "https://portal.ct.gov/-/media/drs/forms/2025/income/2025-ct-1040-instructions_1225.pdf",
+      "bytes": 998064,
+      "sha256": "0e2cabf0fd48b9fa86d926adfb9e3c6dad3cbf17badfcf11321d8e4bceb24386"
+    }
+  ]
+}
