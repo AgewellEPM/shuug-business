@@ -20,6 +20,7 @@ export {newCTEarnedIncomeCredit,newCTEitcWage,newCTEitcBusiness,ctEitcReviews} f
 export {newCTDependentDisclosure} from './state-ct-dependent.mjs';
 export {newNYStateReturn,newNYWageRecord,newNYModification,newNYDependent,nyReviews,nyModifications,nyUnsupportedTreatments} from './state-ny-model.mjs';
 export {newNYEic,newNYNoncustodialEic,newNYEicChild,newNYEicOrder,nyEicReviews} from './state-ny-eic-model.mjs';
+export {newNYEmpireChildCredit,newNYEmpireChild,nyEmpireChildReviews} from './state-ny-child-model.mjs';
 export { returnTypes,filingStatuses,scopeNotice,federalSources } from './catalog.mjs';
 export { parseMoney,displayMoney,sumMoney } from './money.mjs';
 export {newHouseholdEmployer,newHouseholdEmployee,householdReviews} from './household-employment.mjs';

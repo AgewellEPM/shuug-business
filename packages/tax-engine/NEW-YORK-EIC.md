@@ -109,15 +109,17 @@ Primary instructions:
 
 Part-year/mixed-city residency, differing federal/state filing status, amended
 claims, positive resident/accumulation credits and exceptional earned-income
-sources still need their own calculation/source paths. Other New York family
-credits, including Empire State child, dependent-care and NYC income-tax
-elimination credits, retain their separate coverage gates. An EIC calculation
-does not resolve those credits or imply a complete New York return. No 2026/2027
-state form or rate is inferred from this annual pack.
+sources still need their own calculation/source paths. The
+[Empire State child credit](NEW-YORK-CHILD-CREDIT.md) has its own source and
+annual calculation. Dependent-care and NYC income-tax elimination credits retain
+separate coverage gates. An EIC calculation does not resolve those credits or
+imply a complete New York return. No2026/2027 state form or rate is inferred from
+this annual pack.
 
 The 2025 Empire State child definition is independent of the federal dependent
 claim. A retained potential qualifying child can therefore leave IT-201 line63
 and settlement unknown even when absent from the state dependent list. Reviewed
 negative residence/relationship facts can exclude that person. An age exclusion
 also requires sourced, reviewed identity; an unreviewed birth date cannot establish
-a zero credit. This guard does not calculate or award IT-213.
+a zero credit. The separate IT-213 calculation can resolve this child-credit
+requirement; it does not establish zero dependent-care credit.

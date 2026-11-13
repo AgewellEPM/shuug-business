@@ -1,0 +1,103 @@
+{
+  "classification": "Published rounding components and independently derived synthetic full-return regression vectors; no IRS or NY whole-return example or agency approval is claimed.",
+  "publishedComponents": [
+    {
+      "years": [
+        2023,
+        2024
+      ],
+      "instruction": "Worksheet A line6 rounds positive excess to the next $1000",
+      "inputDollars": 425,
+      "expectedDollars": 1000
+    },
+    {
+      "years": [
+        2023,
+        2024
+      ],
+      "instruction": "Worksheet A line6 rounds positive excess to the next $1000",
+      "inputDollars": 1025,
+      "expectedDollars": 2000
+    },
+    {
+      "years": [
+        2025
+      ],
+      "instruction": "IT213 line6 rounds FAGI down to nearest $1000",
+      "inputDollars": 35999,
+      "expectedDollars": 35000
+    }
+  ],
+  "ordinarySyntheticReturns": [
+    {
+      "year": 2023,
+      "wagesDollars": 30000,
+      "children": 1,
+      "filingStatus": "single",
+      "expectedCreditDollars": 330
+    },
+    {
+      "year": 2023,
+      "wagesDollars": 80000,
+      "children": 1,
+      "filingStatus": "single",
+      "expectedCreditDollars": 248
+    },
+    {
+      "year": 2024,
+      "wagesDollars": 30000,
+      "children": 1,
+      "filingStatus": "single",
+      "expectedCreditDollars": 330
+    },
+    {
+      "year": 2024,
+      "wagesDollars": 80000,
+      "children": 1,
+      "filingStatus": "single",
+      "expectedCreditDollars": 248
+    },
+    {
+      "year": 2025,
+      "wagesDollars": 30000,
+      "children": 1,
+      "filingStatus": "single",
+      "expectedCreditDollars": 330
+    },
+    {
+      "year": 2025,
+      "wagesDollars": 80000,
+      "children": 1,
+      "filingStatus": "single",
+      "expectedCreditDollars": 247
+    }
+  ],
+  "boundaryRegressions": [
+    {
+      "year": 2024,
+      "wagesDollars": 6000,
+      "taxableInterestDollars": 24000,
+      "children": 3,
+      "federalTaxBeforeCreditsDollars": 1619,
+      "actualSocialSecurityAndMedicareDollars": 459,
+      "federalActcDollars": 525,
+      "federalPayrollDisplayAbsent": true,
+      "expectedNyActcDollars": 459,
+      "expectedCreditDollars": 686
+    },
+    {
+      "year": 2024,
+      "wagesDollars": 6000,
+      "taxableInterestDollars": 24000,
+      "children": 1,
+      "childIdentifier": "timely ITIN",
+      "childCitizenship": "US resident noncitizen",
+      "solarCostsDollars": 10000,
+      "actualOdcDollars": 500,
+      "actualCleanEnergyCreditDollars": 1119,
+      "federalCreditLimitBApplicable": false,
+      "expectedNySubworksheet9Dollars": 0,
+      "expectedCreditDollars": 330
+    }
+  ]
+}

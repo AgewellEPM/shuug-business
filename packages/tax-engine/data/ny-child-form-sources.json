@@ -1,0 +1,96 @@
+{
+  "scope": "Unchanged annual NY IT213 and prescribed IT213ATT originals; native fields mapped by printed annual geometry.",
+  "forms": [
+    {
+      "id": "nyit213",
+      "year": 2023,
+      "title": "2023 New York Empire State Child Credit",
+      "url": "https://www.tax.ny.gov/pdf/2023/inc/it213_2023_fill_in.pdf",
+      "sha256": "5d5b638c4538a7e0262c74a21516d240bff3194ab71ab7c6c3afa0b227e6dc85",
+      "bytes": 433595,
+      "pages": 2,
+      "fieldCount": 56
+    },
+    {
+      "id": "nyit213att",
+      "year": 2023,
+      "title": "2023 New York Empire State Child Credit Additional Children",
+      "url": "https://www.tax.ny.gov/pdf/2023/inc/it213att_2023_fill_in.pdf",
+      "sha256": "8b4d5c1b7a796a42e886fda6061282fd6dd671eb0cded1834f69462222622ab1",
+      "bytes": 359581,
+      "pages": 1,
+      "fieldCount": 104
+    },
+    {
+      "id": "nyit213",
+      "year": 2024,
+      "title": "2024 New York Empire State Child Credit",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it213_2024_fill_in.pdf",
+      "sha256": "d8e29440ff78dd7b08b3ded04b7cb2f0bd82b34862a154f50dcc27fd873020c9",
+      "bytes": 429185,
+      "pages": 2,
+      "fieldCount": 52
+    },
+    {
+      "id": "nyit213att",
+      "year": 2024,
+      "title": "2024 New York Empire State Child Credit Additional Children",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it213att_2024_fill_in.pdf",
+      "sha256": "ead26880b615b76eb8b7e5b1472e8fb41c7221e7d35f94d7feade5915a7559ac",
+      "bytes": 361305,
+      "pages": 1,
+      "fieldCount": 104
+    },
+    {
+      "id": "nyit213",
+      "year": 2025,
+      "title": "2025 New York Empire State Child Credit",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it213_2025_fill_in.pdf",
+      "sha256": "bec59b0410b4098075161320b945a4d91b34337f79f2090b5ec0f42e32415895",
+      "bytes": 196202,
+      "pages": 1,
+      "fieldCount": 47
+    },
+    {
+      "id": "nyit213att",
+      "year": 2025,
+      "title": "2025 New York Empire State Child Credit Additional Children",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it213att_2025_fill_in.pdf",
+      "sha256": "1c88dbd20709e8dde30b1b9e30f776d689d48d99683e0ef5eae21cb5950b12bb",
+      "bytes": 364448,
+      "pages": 1,
+      "fieldCount": 104
+    }
+  ],
+  "notes": [
+    "2024 native money field names are stale; actual printed lines are mapped explicitly.",
+    "Each annual main form holds six children; each same-year IT213ATT holds seventeen additional children.",
+    "2023/2024 fields named Year of Birth require the complete printed mmddyyyy birth date."
+  ],
+  "instructions": [
+    {
+      "file": "2023-it213i.html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2023/it/it213i-2023.htm",
+      "bytes": 42978,
+      "sha256": "6fd5c59e382f897bfeabe1c17d3e7b419834033948bb32b34a049573178b4f26",
+      "year": 2023,
+      "id": "it213i-html"
+    },
+    {
+      "file": "2024-it213i.pdf",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it213i_2024.pdf",
+      "bytes": 267011,
+      "sha256": "b31b263569bd0c08148e0ba30ea86cc9e215074c7bd1110d6f060e0899ceece0",
+      "year": 2024,
+      "id": "it213i"
+    },
+    {
+      "file": "2025-it213i.pdf",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it213i_2025.pdf",
+      "bytes": 168969,
+      "sha256": "2f159e12f0888ea569ea82d62cde0e36c6389a1ae098b3ca9f257d3ef70399e6",
+      "year": 2025,
+      "id": "it213i"
+    }
+  ]
+}

@@ -1,0 +1,828 @@
+{
+  "pages": 2,
+  "sizes": [
+    {
+      "width": 612,
+      "height": 792
+    },
+    {
+      "width": 612,
+      "height": 792
+    }
+  ],
+  "fields": [
+    {
+      "name": "Your last name",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 648,
+            "width": 396,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Your SSN",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432,
+            "y": 648,
+            "width": 144,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Spouse's last name",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 624,
+            "width": 396,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Spouse's SSN",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432,
+            "y": 624,
+            "width": 144,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 1",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 516,
+            "y": 564,
+            "width": 15,
+            "height": 15
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561,
+            "y": 564,
+            "width": 15,
+            "height": 15
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "Line 2",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 516,
+            "y": 528,
+            "width": 15,
+            "height": 15
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561,
+            "y": 528,
+            "width": 15,
+            "height": 15
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "Line 3",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 516,
+            "y": 468,
+            "width": 15,
+            "height": 15
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561,
+            "y": 468,
+            "width": 15,
+            "height": 15
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "Last Name 1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 192,
+            "y": 263,
+            "width": 215.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Year of Birth 1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 515.5,
+            "y": 263,
+            "width": 60,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last Name 2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 192,
+            "y": 239,
+            "width": 215.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Year of Birth 2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 515.5,
+            "y": 239,
+            "width": 60,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last Name 3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 192,
+            "y": 215,
+            "width": 215.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Year of Birth 3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 515.5,
+            "y": 215,
+            "width": 60,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last Name 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 192,
+            "y": 191,
+            "width": 215.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Year of Birth 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 515.5,
+            "y": 191,
+            "width": 60,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last Name 5",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 192,
+            "y": 167,
+            "width": 215.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Year of Birth 5",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 515.5,
+            "y": 167,
+            "width": 60,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Last Name 6",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 192,
+            "y": 143,
+            "width": 215.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Year of Birth 6",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 515.5,
+            "y": 143,
+            "width": 60,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 6 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 636,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 7 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 612,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 15 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 372,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Name 1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 263,
+            "width": 138,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Name 2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 239,
+            "width": 138,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Name 3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 215,
+            "width": 138,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Name 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 191,
+            "width": 138,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Name 5",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 167,
+            "width": 138,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "First Name 6",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 143,
+            "width": 138,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "MI 1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 174,
+            "y": 263,
+            "width": 18,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "MI 2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 174,
+            "y": 239,
+            "width": 18,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "MI 3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 174,
+            "y": 215,
+            "width": 18,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "MI 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 174,
+            "y": 191,
+            "width": 18,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "MI 5",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 174,
+            "y": 167,
+            "width": 18,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "MI 6",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 174,
+            "y": 143,
+            "width": 18,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSN 1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432.5,
+            "y": 263,
+            "width": 83,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSN 2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432.5,
+            "y": 239,
+            "width": 83,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSN 3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432.5,
+            "y": 215,
+            "width": 83,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSN 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432.5,
+            "y": 191,
+            "width": 83,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSN 5",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432.5,
+            "y": 167,
+            "width": 83,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "SSN 6",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 432.5,
+            "y": 143,
+            "width": 83,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suffix 1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 408,
+            "y": 263,
+            "width": 24,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suffix 2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 408,
+            "y": 239,
+            "width": 24,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suffix 3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 408,
+            "y": 215,
+            "width": 24,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suffix 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 408,
+            "y": 191,
+            "width": 24,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suffix 5",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 408,
+            "y": 167,
+            "width": 24,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Suffix 6",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 408,
+            "y": 143,
+            "width": 24,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 4",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 498,
+            "y": 420,
+            "width": 30,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 16 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 324,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 14 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 468,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 13 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 492,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 8 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 588,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 9 Dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 474,
+            "y": 564,
+            "width": 90,
+            "height": 12
+          }
+        }
+      ]
+    }
+  ]
+}

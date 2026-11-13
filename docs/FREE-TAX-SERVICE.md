@@ -113,12 +113,27 @@ can keep an older return unresolved even when its federal EIC is zero.
 See [New York EIC scope](../packages/tax-engine/NEW-YORK-EIC.md) and
 [original PDF coverage](../packages/tax-engine/NY-EIC-PDF.md), with
 [integration evidence](verification/ny-eic-20261113.json).
-Other family credits remain separate requirements: the 2025 Empire State child
-rules can cover a retained child without a federal dependent claim, so that
-potential credit now keeps line63 and settlement unresolved until reviewed and
-calculated. Support-order calendar boundaries, special income, separate filing
-status and newer annual packs remain explicit limits. No agency filing or
-installed rollout has occurred.
+Support-order calendar boundaries, special income, separate filing status and
+newer annual packs remain explicit limits. No agency filing or installed rollout
+has occurred.
+
+The Empire State child-credit continuation adds **2023–2025 IT-213** and original
+annual IT-213-ATT child continuations. It derives the older New York Worksheets
+A/B from actual federal sources and applies the independent2025 child rules to
+retained person records, including a child not claimed as a federal dependent.
+The encrypted source editor preserves separate state claims, source reviews and
+shared identity links; the resulting amount transfers to IT-201 line63.
+The old payroll alternative is derived from original reviewed W-2/SE sources even
+when the current federal worksheet omits that calculation row. Original annual
+PDFs preserve child identities and additional children without truncation.
+See [child-credit scope](../packages/tax-engine/NEW-YORK-CHILD-CREDIT.md) and
+[original PDF coverage](../packages/tax-engine/NY-CHILD-PDF.md).
+Dependent-care/IT-216 and NYC IT-270 remain separate calculations. A completed
+Empire review does not establish zero care credit for a retained unclaimed
+child under13 or a possible incapacity case. Special child residency/priority,
+separate status, certain foreign or other-credit treatments and2024 late
+identifiers retain their explicit unresolved boundaries.2026/2027 source intake
+is validated without substituting an earlier state calculation or form.
 
 ## Already implemented
 

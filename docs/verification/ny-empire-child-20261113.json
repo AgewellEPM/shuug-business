@@ -1,0 +1,248 @@
+{
+  "version": 1,
+  "date": "2026-11-13",
+  "type": "shuug-ny-empire-child-credit-verification",
+  "readiness": "prototype",
+  "scope": "Ordinary full-year resident2023\u20132025 Empire State child-credit calculation, reviewed encrypted source editing, original IT213/IT213ATT and IT20163; strict2026/2027 intake without prior-year substitution.",
+  "sourceSha256": {
+    "docs/FREE-TAX-SERVICE.md": "c0e17e6240d036d2bdd0d646f52a180e7613a63a862f8de42f6d2aff53b88795",
+    "packages/secure-tax-client/browser/ny-child-editor.mjs": "6487719ba80ec2627e8608c76c60be7e38e98c0658109427f86f50dca99673c6",
+    "packages/secure-tax-client/browser/ny-state-editor.mjs": "1fd867c9c2993b0a49de65c6c5ebfd3c887c582d1b046331d928089ef35e031b",
+    "packages/secure-tax-client/browser/return-view.mjs": "41f44e6e3fa7f838a5d2dbaaeebfa31eacb8c8770db550c90497fbaf1c6f216b",
+    "packages/secure-tax-client/prepare-browser.mjs": "d4cb2bd61effbc8259fda07f05a5b3719d1620f3828af2cf7714226f9d1e04a4",
+    "packages/secure-tax-client/test/ny-child-editor.test.mjs": "4ddf63c7fab3b138eaaf48cbca21628dc58eb105d6928cd6511fc2a5dc07f1dc",
+    "packages/tax-engine/NEW-YORK-CHILD-CREDIT.md": "84b39a301e6d7d80269348988b96841600ef227ff2c728236bc642f63054c908",
+    "packages/tax-engine/NEW-YORK-EIC.md": "cb9b4289cc7f2ef82baa2b5a3ec60b0899f2eb7cbf16eba540902536f6ae088a",
+    "packages/tax-engine/NY-CHILD-PDF.md": "f1b4671ec9c28ccd82593fcb6324600ab13764a4b8a6bd22eda3992b0f6bb6e8",
+    "packages/tax-engine/data/ny-child-form-sources.json": "21bc0fd5138e00575c1ba1bee0f97e9310d0b8d3e7ac5c9c9b764b424c9c891c",
+    "packages/tax-engine/data/state-ny-child-reference.json": "e15c6d19810a5c0dc8e05200a17188a81188d4a537c7d55eaa17493e37d33f9b",
+    "packages/tax-engine/data/state-ny-child-sources.json": "ee99ed65c78fce73344bb1a7fabd64b821a2a64351c1f57d75f28cea224e3b80",
+    "packages/tax-engine/form-years.mjs": "4c9d3423df8516328471bf337d3a2381c149a6f1095dbc3f8cb7cf6090df2485",
+    "packages/tax-engine/forms/2023/nyit213.fields.json": "2c7470cdaa18c1a43db38728f4804fa072eda44358a927cc2e74ce4ab84831ac",
+    "packages/tax-engine/forms/2023/nyit213att.fields.json": "ad50e6fc699096a6abdaa5f0f67686d31f241a4241a30dc3ccdf34e6ed86e0d6",
+    "packages/tax-engine/forms/2024/nyit213.fields.json": "249ec04a0aed41f65df08193eb36008f3eac190dc3895724e04b8255d216d941",
+    "packages/tax-engine/forms/2024/nyit213att.fields.json": "ad50e6fc699096a6abdaa5f0f67686d31f241a4241a30dc3ccdf34e6ed86e0d6",
+    "packages/tax-engine/forms/2025/nyit213.fields.json": "3e3cced9d06a656e693427af90aea4306bd14aa70195150075c574b3bc0ed62f",
+    "packages/tax-engine/forms/2025/nyit213att.fields.json": "ad50e6fc699096a6abdaa5f0f67686d31f241a4241a30dc3ccdf34e6ed86e0d6",
+    "packages/tax-engine/index.mjs": "3592041bf666f15ed26855cbaee7365f9663165d592679b210995e8b680fa4a1",
+    "packages/tax-engine/pdf.mjs": "7357ce94023f3da9136535d3417712758590c6b313e02323c690d0cd106e9c44",
+    "packages/tax-engine/state-ny-child-credit.mjs": "e3ef593f274c21b375c950a2bba5ac6b453873fe5cf18d56c556efd4051f6e79",
+    "packages/tax-engine/state-ny-child-eligibility.mjs": "6ce0d0cd09b377a6ccc9fd1fcc83be4a241d09039dc1a22649d01c51e00d6c08",
+    "packages/tax-engine/state-ny-child-legacy.mjs": "68100dd093a523321fbc6c9ad305ce355628b3828ca15a06bb94cc75c6c7bd95",
+    "packages/tax-engine/state-ny-child-maps.mjs": "530b33fc8801f7c33225681d8ce2a71b08c6e25a98391b39b6d5cff89aba080c",
+    "packages/tax-engine/state-ny-child-model.mjs": "f1dbce8199fc403228a253d250b0cbb91e1569adaa55c6a5d1380acc43715f11",
+    "packages/tax-engine/state-ny-child-payroll.mjs": "f1ef66fd122972b8531d621f3f105e2d0f1a76503d2754f00c8bff836c3892ad",
+    "packages/tax-engine/state-ny-child-pdf.mjs": "63e5e51154f96019b3221b579c261fded2bc5511a04e1802ea232d401c593a81",
+    "packages/tax-engine/state-ny.mjs": "87dbd10502700ab80538160419c32d1a9d7ff0308f2588fbc20d2f71df56766f",
+    "packages/tax-engine/test/state-ny-child-fixtures.mjs": "8a4f5134c708ecf7176a98ed79ceedb3dc3ce16ea848a1ad9cb00ac6c0891965",
+    "packages/tax-engine/test/state-ny-child-integration.test.mjs": "dd638a65a3b94a3f4adfb66956b14cf3bd0e7cc6da338b069a6a77796ad1c912",
+    "packages/tax-engine/test/state-ny-child-pdf.test.mjs": "3cf89398932195734ce33f1ac62565459e9c4c5022d1289485b3a5836bf2dfc1",
+    "packages/tax-engine/test/state-ny-child.test.mjs": "03825222c21391fddf0e4e2510716eb313d1449cdd37e927d47c42d30426942c",
+    "scripts/secure-staff-http-check.mjs": "1238e00fe7787e80c3cd0ce3670aef5c57dd9ff90c86d977c23da45b846c046a",
+    "scripts/tax/ny-child-http-proof.mjs": "f0303b09ab85672e93a69922065277a159d08e8c3799555a146ee87f58533a53",
+    "scripts/tax/qualification-report.mjs": "3f2efa61700a1a540bcbd90cd9fb79d2a8c9918ce9ea133cae33ba545b92f0b7",
+    "scripts/tax/verify_browser_artifact.mjs": "ec970c9aafc43eaf7511a8530eb555fdbfdd19fb74aab826039ceab0a569a154"
+  },
+  "verification": {
+    "suite": {
+      "tests": 682,
+      "passed": 681,
+      "failed": 0,
+      "skipped": 1,
+      "skip": "Pre-existing optional native Journal dependency",
+      "changedFilesStableDuringRun": 44
+    },
+    "compiledSyntheticHttp": {
+      "checks": 863,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "returns": 36,
+      "exports": 43,
+      "newChildCases": [
+        {
+          "year": 2023,
+          "scenario": "claimed",
+          "initialCreditCents": 33000,
+          "correctedCreditCents": 24800,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2024,
+          "scenario": "claimed",
+          "initialCreditCents": 33000,
+          "correctedCreditCents": 24800,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2025,
+          "scenario": "claimed",
+          "initialCreditCents": 33000,
+          "correctedCreditCents": 24700,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2025,
+          "scenario": "unclaimed",
+          "initialCreditCents": 33000,
+          "correctedCreditCents": 24700,
+          "originalAndCorrectedPdfExported": true
+        }
+      ],
+      "customerAndStaffReopened": true,
+      "materialCorrectionVerified": true,
+      "backupRestoreVerified": true,
+      "copiedHostPlaintextMarkerAbsent": true,
+      "serverSourceChanged": false
+    },
+    "packagedClient": {
+      "modules": 219,
+      "pdfFetches": 178,
+      "exports": 40,
+      "sourceFilesMatched": 458,
+      "newChildCases": [
+        {
+          "year": 2023,
+          "scenario": "claimed",
+          "creditCents": 33000,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "f1040s8",
+            "nyit201",
+            "nyit2",
+            "nyit215",
+            "nyit213"
+          ],
+          "bytes": 1237705
+        },
+        {
+          "year": 2024,
+          "scenario": "claimed",
+          "creditCents": 33000,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "f1040s8",
+            "nyit201",
+            "nyit2",
+            "nyit215",
+            "nyit213"
+          ],
+          "bytes": 1233623
+        },
+        {
+          "year": 2025,
+          "scenario": "claimed",
+          "creditCents": 33000,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "f1040s8",
+            "nyit201",
+            "nyit2",
+            "nyit215",
+            "nyit213"
+          ],
+          "bytes": 1255524
+        },
+        {
+          "year": 2025,
+          "scenario": "unclaimed",
+          "creditCents": 33000,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "nyit201",
+            "nyit2",
+            "nyit215",
+            "nyit213"
+          ],
+          "bytes": 1199356
+        },
+        {
+          "year": 2024,
+          "scenario": "reconstructed-payroll",
+          "creditCents": 68600,
+          "forms": [
+            "f1040",
+            "f1040sb",
+            "f1040s8",
+            "nyit201",
+            "nyit2",
+            "nyit213"
+          ],
+          "bytes": 987240
+        },
+        {
+          "year": 2024,
+          "scenario": "itin-odc-clean-energy",
+          "creditCents": 33000,
+          "forms": [
+            "f1040",
+            "f1040sb",
+            "f5695",
+            "f1040s3",
+            "f1040s8",
+            "nyit201",
+            "nyit2",
+            "nyit213"
+          ],
+          "bytes": 1096877
+        }
+      ],
+      "runtime": "Actual packaged ESM and original PDFs executed in Node V8/JSDOM; no browser runtime"
+    },
+    "primarySources": {
+      "instructionAndSupportingPins": 12,
+      "annualFormPins": 6,
+      "oldLawPayrollInferenceExplicit": true,
+      "sameProviderBoundedReviewChecks": 22,
+      "independentProviderReview": false
+    },
+    "qualification": {
+      "checks": 233,
+      "sourcePins": 120,
+      "engineHashesMatched": 408,
+      "formsByYear": {
+        "2023": 31,
+        "2024": 31,
+        "2025": 32,
+        "2026": 3,
+        "2027": 0
+      },
+      "agencyQualification": false
+    },
+    "originalPdfChecks": {
+      "passed": 14,
+      "childrenThroughOriginalContinuations": 100,
+      "actualReturnPackets": true,
+      "printedRowGeometryChecked": true
+    },
+    "custodyKits": {
+      "existingUnconfiguredKitSourceMatches": {
+        "offline": 415,
+        "cloud": 399
+      },
+      "newKeyOperations": false,
+      "provisioned": false
+    },
+    "careBoundary": {
+      "midyearThirteenthBirthdayRemainsUnresolved": true,
+      "PermanentDisabilityAnswerDoesNotProveNoCareIncapacity": true,
+      "positiveEmpireCreditPreserved": true
+    }
+  },
+  "limits": [
+    "The New York old-law payroll alternative is derived from original current W2/SE/EIC sources and pinned2017rules; when modern federal PartII is inapplicable this does not claim that a modern Schedule8812line25 was filed.",
+    "IT216 dependent-care and NYC IT270 remain separate requirements. Reviewed IT213, year-end age and a negative permanent-disability answer do not establish care-service ages, expenses or absence of care incapacity; these retained child care questions remain unresolved.",
+    "2024 late identifiers, mixed residency/status, special child residency/priority and unsupported foreign/other-credit treatments remain unresolved.",
+    "2026/2027 annual state packs are not inferred; federal annual coverage remains partial.",
+    "These synthetic workflows, source checks and original-form geometry are not agency approval, independent certification, public TLS, real custody or installed-office acceptance."
+  ],
+  "installedServiceChanged": false,
+  "realCustomerDataUsed": false,
+  "offhostCustodyVerified": false,
+  "agencySubmissionAttempted": false,
+  "agencyApproval": false,
+  "visualAcceptance": false,
+  "releaseReady": false
+}

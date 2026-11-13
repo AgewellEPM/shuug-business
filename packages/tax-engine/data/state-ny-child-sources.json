@@ -1,0 +1,116 @@
+{
+  "jurisdiction": "NY",
+  "forms": [
+    "nyit213",
+    "nyit213att"
+  ],
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "instructions": [
+    {
+      "year": 2024,
+      "id": "it213i",
+      "file": "2024-it213i.pdf",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it213i_2024.pdf",
+      "bytes": 267011,
+      "sha256": "b31b263569bd0c08148e0ba30ea86cc9e215074c7bd1110d6f060e0899ceece0"
+    },
+    {
+      "year": 2025,
+      "id": "it213i",
+      "file": "2025-it213i.pdf",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it213i_2025.pdf",
+      "bytes": 168969,
+      "sha256": "2f159e12f0888ea569ea82d62cde0e36c6389a1ae098b3ca9f257d3ef70399e6"
+    },
+    {
+      "file": "2023-it213i.html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2023/it/it213i-2023.htm",
+      "bytes": 42978,
+      "sha256": "6fd5c59e382f897bfeabe1c17d3e7b419834033948bb32b34a049573178b4f26"
+    },
+    {
+      "file": "empire-n16_2.pdf",
+      "url": "https://www.tax.ny.gov/pdf/notices/n16_2.pdf",
+      "bytes": 30525,
+      "sha256": "81cd0d57756cf543edf16b6c97352b15268eedbe1ea0ab073e4112dbbe5501e0"
+    },
+    {
+      "file": "empire-current-credit-page.html",
+      "url": "https://www.tax.ny.gov/pit/credits/empire_state_child_credit.htm",
+      "bytes": 26265,
+      "sha256": "d5299d40dd50d2f8eec3f3c60bda4ebbb8da49313db0bb58c8ef3bbf43dd4c7e"
+    },
+    {
+      "file": "empire-2025-it201i.html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2025/it/it201i-2025.htm",
+      "bytes": 289099,
+      "sha256": "e4ce0bb2d490535d74acb022a51c5761c17955ce4ace74510f2f17181fb1295f"
+    },
+    {
+      "file": "empire-2024-it213i.html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2024/it/it213i-2024.htm",
+      "bytes": 42515,
+      "sha256": "4ca13a0fd98b1c0e5a90fbd843b005392ba5c7d14015b7513dd6657fff296237"
+    },
+    {
+      "file": "empire-2023-i1040s8.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040s8--2023.pdf",
+      "bytes": 324388,
+      "sha256": "a04f9c82df0526d78c464b7a6e0b669eb790cb722e94063c65563d7d00c05e05"
+    },
+    {
+      "file": "empire-2024-i1040s8.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040s8--2024.pdf",
+      "bytes": 326617,
+      "sha256": "90a5507b485f6e8c5ebb7aaaca0d9f999a0ad709269ac22c48320992d25f8d60"
+    },
+    {
+      "file": "empire-oldlaw-f1040s8--2017.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2017.pdf",
+      "bytes": 121741,
+      "sha256": "a366455954f96736adc89b2f2ee68fc3bcd61d949eb5df03be92230fbe499267"
+    },
+    {
+      "file": "empire-oldlaw-p972--2017.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p972--2017.pdf",
+      "bytes": 1416699,
+      "sha256": "6fb1fd20de4329d0d6481ec371385a967278e79449e2c8b2567fc87d13890c62"
+    },
+    {
+      "file": "empire-oldlaw-usc24--2016.pdf",
+      "url": "https://www.govinfo.gov/content/pkg/USCODE-2016-title26/pdf/USCODE-2016-title26-subtitleA-chap1-subchapA-partIV-subpartA-sec24.pdf",
+      "bytes": 170551,
+      "sha256": "0418a072a2d370aa75c00a50a7ba86e9932ec32a69155f6accdc8e0443f8e05b"
+    }
+  ],
+  "reference": {
+    "file": "state-ny-child-reference.json",
+    "bytes": 2597,
+    "sha256": "e15c6d19810a5c0dc8e05200a17188a81188d4a537c7d55eaa17493e37d33f9b"
+  },
+  "originalFormManifest": "ny-child-form-sources.json",
+  "notes": [
+    "2023 annual instruction PDF returned404; official annual HTML is pinned.",
+    "2023/24 worksheets recalculate2017 credit rules; actual federal Credit Limit B amounts are imported only when applicable.",
+    "2024 late-identifier treatment remains unresolved because removal of the2023 form row does not establish repeal of NY NoticeN16-2.",
+    "2025 independent state child eligibility does not require a federal dependent claim or an employment-valid/timely SSN when the annual valid SSN/ITIN criterion is established.",
+    "No2026/2027 calculation or older-original substitution is included."
+  ],
+  "oldLawPayrollInterpretation": {
+    "conclusion": "NY WorksheetB7 tests NYIT213line4, which includes timely ITIN/ODC children; reconstruct the old-law payroll alternative using current authenticated original payroll sources. It is not a claim that modern federal8812PartII applied or a missing modern line25 was filed.",
+    "inference": true,
+    "annualAuthority": [
+      "https://www.tax.ny.gov/forms/html-instructions/2023/it/it213i-2023.htm",
+      "https://www.tax.ny.gov/forms/html-instructions/2024/it/it213i-2024.htm"
+    ],
+    "statutoryAuthority": {
+      "url": "https://www.nysenate.gov/legislation/laws/TAX/606",
+      "clause": "606(c-1)(1): all references to IRC24 use the version immediately before PL115-97",
+      "originalBytes": "not retained; official web extraction reviewed"
+    }
+  }
+}
