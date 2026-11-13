@@ -58,13 +58,15 @@ export const REGISTRIES = Object.freeze({
   WY: { name:"Wyoming", url:"https://wyobiz.wyo.gov/Business/FilingSearch.aspx" },
 });
 
-const automatic = new Set(['AK','CT','CO','IA','NM','NY','OR','PA','TX']);
-const localDiscovery = new Set(['AK','CT','CO','IA','NY','OR','PA','TX']);
-const people = {CT:'Listed principals',NY:'Chairman / CEO when published',OR:'Authorized representatives when published',CO:'Registered agent only; not an owner',IA:'Registered agent only; not an owner',AK:'Listed license owners, people or entities; partial extract and business match require review',NM:'Officers and directors when published; organizers and registered agents are not owner findings',PA:'No principal fields in this data feed',TX:'No principal fields in this data feed'};
+const automatic = new Set(['AK','CT','CO','DC','DE','IA','NM','NY','OR','PA','TX']);
+const localDiscovery = new Set(['AK','CT','CO','DC','DE','IA','NY','OR','PA','TX']);
+const people = {CT:'Listed principals',NY:'Chairman / CEO when published',OR:'Authorized representatives when published',CO:'Registered agent only; not an owner',IA:'Registered agent only; not an owner',AK:'Listed license owners, people or entities; partial extract and business match require review',NM:'Officers and directors when published; organizers and registered agents are not owner findings',DC:'Names in the official beneficial-owner table, joined by filing number; current ownership and office match require review',DE:'No owner or principal fields in the revenue license feed; business/trade names are not owner findings',PA:'No principal fields in this data feed',TX:'No principal fields in this data feed'};
 const notes={
   NM:'Select a directory office for automatic legal-name and officer/director lookup. This source omits business addresses, so town-wide registry discovery is not connected.',
   IA:'Monthly Iowa active-entity data. Sole proprietors and some partnerships are not included; the feed publishes registered agents, not owners or business email/phone.',
   AK:'Partial Alaska DCCED business-license extract. Roughly 12% of active licenses are excluded by its state/city matching. Confirm listed owners and current status in the primary licensing record.',
+  DC:'D.C. DLCP corporate registrations and selected-filing beneficial-owner names (CC BY 4.0). Sole proprietors and unregistered businesses may be absent. Registered agents remain separate.',
+  DE:'Delaware Division of Revenue business licenses, separate from corporate entity filings. Published legal/trade names and license dates require review; no owner, phone or email fields.',
 };
 export function registryCoverage(region) {
   state(region); const entry=REGISTRIES[region];
@@ -78,5 +80,5 @@ export const allRegistryCoverage = () => STATES.map(registryCoverage);
 export function registryLinks(candidate) {
   const coverage=registryCoverage(candidate.registryState || candidate.state);
   const query=new URL('https://www.google.com/search'); query.searchParams.set('q',`site:${new URL(coverage.officialURL).hostname} "${candidate.name}"`);
-  return [{label:`Open ${coverage.name} official business registry`,url:coverage.officialURL},...(coverage.state==='AK'?[{label:'Open Alaska primary business-license search',url:'https://www.commerce.alaska.gov/cbp/businesslicense/search/License'}]:[]),{label:'Search this business on the official registry site',url:query.href}];
+  return [{label:`Open ${coverage.name} official business registry`,url:coverage.officialURL},...(coverage.state==='AK'?[{label:'Open Alaska primary business-license search',url:'https://www.commerce.alaska.gov/cbp/businesslicense/search/License'}]:[]),...(coverage.state==='DE'?[{label:'Open Delaware revenue business-license search',url:'https://revenue.delaware.gov/business-license-search/'}]:[]),{label:'Search this business on the official registry site',url:query.href}];
 }

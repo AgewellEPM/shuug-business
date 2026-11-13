@@ -4,6 +4,7 @@ import {homedir} from 'node:os';
 import path from 'node:path';
 import {Client} from '@modelcontextprotocol/sdk/client/index.js';
 import {StdioClientTransport} from '@modelcontextprotocol/sdk/client/stdio.js';
+import {allRegistryCoverage} from '../../sales/registry-catalog.mjs';
 
 // Installed MCP -> live portal -> free official sources. No CRM writes/outreach.
 assert(process.argv[2],'Supply a new receipt filename.');
@@ -18,8 +19,7 @@ try {
     return JSON.parse(response.content.find(item=>item.type==='text').text);
   }
   const before=await call('workspace'),coverage=await call('state_coverage');
-  assert.equal(coverage.states.filter(row=>row.automaticRecords).length,9);
-  assert.equal(coverage.states.filter(row=>row.automaticLocalDiscovery).length,8);
+  for(const field of ['automaticRecords','automaticLocalDiscovery'])assert.deepEqual(coverage.states.filter(row=>row[field]).map(row=>row.state).sort(),allRegistryCoverage().filter(row=>row[field]).map(row=>row.state).sort());
   for(const [state,city] of [['IA','Des Moines'],['AK','Anchorage']]) {
     const search=await call('local_offices',{state,city});
     assert.equal(search.registrySupported,true);assert.equal(search.registryAvailable,true);assert(search.registryTotal>0);
@@ -51,7 +51,7 @@ try {
       sourcedContactEvidence:true,websiteSuggestions:contact.candidates.length,websiteSearchStatus:contact.websiteSearch.status,ownerAutomaticallyVerified:false});
   }
   const after=await call('workspace');for(const key of ['offices','agents','rolodex','contracts','mailboxes'])assert.deepEqual(after[key],before[key]);
-  Object.assign(result,{automaticRecordRegions:9,automaticLocalDiscoveryRegions:8,savedRecordsUnchanged:true,messagesSent:0,ok:true});
+  Object.assign(result,{automaticRecordRegions:coverage.states.filter(row=>row.automaticRecords).length,automaticLocalDiscoveryRegions:coverage.states.filter(row=>row.automaticLocalDiscovery).length,savedRecordsUnchanged:true,messagesSent:0,ok:true});
 }catch(error){result.error=error.message;}
 finally {
   await client.close();result.limits='Iowa is monthly active-entity data without owners; Alaska is a partial business-license extract, not a complete entity registry. No owner identity, complete contacts, email deliverability or human visual acceptance established.';

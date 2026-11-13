@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { artifactFiles, sha, uploadedFiles } from './prepare-contacts-release.mjs';
 
 const STATIC = new Set(['sales.html','sales.js','sales-console.js','territories.js','territories.css','local-offices.js','local-offices.css','local-contacts.js','sales-research.js','business-data-attribution.txt',...['leaflet.js','leaflet.css','LICENSE','images/layers.png','images/layers-2x.png','images/marker-icon.png','images/marker-icon-2x.png','images/marker-shadow.png'].map(name=>'vendor/leaflet-1.9.4/'+name)]);
-const MODULES = new Set(['service.mjs','model.mjs','territories.mjs','territory-access.mjs','discovery.mjs','local-discovery.mjs','business-registry.mjs','registry-catalog.mjs','registry-matching.mjs','registry-socrata.mjs','registry-new-mexico.mjs','iowa-data.mjs','registry-iowa.mjs','registry-alaska.mjs','state-registry.mjs','geocoding.mjs','public-data.mjs','local-contacts.mjs','backend.mjs','prospect-tools.mjs','business-places.mjs']);
+const MODULES = new Set(['service.mjs','model.mjs','territories.mjs','territory-access.mjs','discovery.mjs','local-discovery.mjs','business-registry.mjs','registry-catalog.mjs','registry-matching.mjs','registry-socrata.mjs','registry-new-mexico.mjs','iowa-data.mjs','registry-iowa.mjs','registry-alaska.mjs','registry-delaware.mjs','registry-dc.mjs','state-registry.mjs','geocoding.mjs','public-data.mjs','local-contacts.mjs','backend.mjs','prospect-tools.mjs','business-places.mjs']);
 const functionRoot = /^functions\/api\/(sales|offices|sales-webhook|sales-mail-webhook)\.func\//;
 const permitted = name => {
   if(name.startsWith('static/'))return STATIC.has(name.slice(7));
