@@ -14,6 +14,7 @@ import {caseSnapshot} from '../case-model.mjs';
 import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks,caseBookReport} from '../case-books.mjs';
 import {newReturn} from '../../tax-engine/index.mjs';
 import {officeObjectId,officeSnapshot} from '../office-model.mjs';
+import {prepareAuthorizationInput} from '../case-authorization.mjs';
 import {mkdtemp,writeFile,readFile,readdir,symlink,stat,rm} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
@@ -86,6 +87,13 @@ test('standalone case operator kit approves reviewed files and emits opaque clou
     const posting=await f.stage(command('books.journal.post',{date:'2025-01-01',memo:'SYNTHETIC PRIVATE OPERATOR POSTING',lines:[{accountNumber:1000,debitCents:4321,creditCents:0},{accountNumber:4000,debitCents:0,creditCents:4321}],document:evidence.reference,notes:''}),evidence),bookKit={...kit,proposal:posting.prepared.proposal,sourceEnvelope:posting.input.envelope,expected:posting.input.expected,privateReview:posting.prepared.privateReview},bookBytes=Buffer.from(JSON.stringify(bookKit)),bookSha=createHash('sha256').update(bookBytes).digest('hex'),bookOut=path.join(directory,'approved-book.json');await writeFile(kitFile,bookBytes);
     const bookResult=await run('case-offline-cli.mjs',args.map(value=>value===sha?bookSha:value===out?bookOut:value),f.passphrase);assert.equal(bookResult.code,0,bookResult.error);const bookPacket=JSON.parse(await readFile(bookOut,'utf8'));await verifyCaseApproval(bookPacket,f.pins);const bookBody=await f.open(bookPacket);assert.equal(caseBookReport(replayCaseBooks(bookBody.history,2025)).bankCents,4321);
     const reviewDirectory=path.join(directory,'book-review');const inspected=await run('inspect-case-review.mjs',['--public-pins',pins,'--kit',kitFile,'--out',reviewDirectory]);assert.equal(inspected.code,0,inspected.error);const view=JSON.parse(await readFile(path.join(reviewDirectory,'review.json'),'utf8'));assert.equal(view.caseLedgerReports.before.bankCents,0);assert.equal(view.caseLedgerReports.after.bankCents,4321);
+    f.packet=bookPacket;await f.transition(command('document.review',{requestId:'operator-request',document:evidence.reference,decision:'reviewed',notes:''}),evidence);
+    const returnEvidence=await f.evidence(newReturn('1120'),'synthetic-offline-return');await f.transition(command('draft.link',{document:returnEvidence.reference,booksVersion:replayCaseBooks((await f.open()).history,2025).version,notes:''}),returnEvidence);
+    const signature=privateFile(),authInput=await prepareAuthorizationInput(await f.open(),{workspaceId:f.pins.workspaceId,...f.expected()},{...evidence.reference,plaintext:utf8.encode(JSON.stringify(signature))},{method:'wet-ink',signedOn:'2026-11-01',signers:[{name:'Synthetic officer',capacity:'Corporate officer'}],signaturesReviewed:true,notes:'SYNTHETIC PRIVATE AUTHORIZATION'}),auth=await f.stage(command('authorization.review',authInput),evidence);
+    const authKit={...kit,proposal:auth.prepared.proposal,sourceEnvelope:auth.input.envelope,expected:auth.input.expected,privateReview:auth.prepared.privateReview},authBytes=Buffer.from(JSON.stringify(authKit)),authSha=createHash('sha256').update(authBytes).digest('hex'),authOut=path.join(directory,'approved-authorization.json');await writeFile(kitFile,authBytes);
+    const authResult=await run('case-offline-cli.mjs',args.map(value=>value===sha?authSha:value===out?authOut:value),f.passphrase);assert.equal(authResult.code,0,authResult.error);const authBody=await f.open(JSON.parse(await readFile(authOut,'utf8')));assert.equal(authBody.history.at(-1).type,'authorization.review');assert.equal(authBody.history.at(-1).input.packageDigest,authInput.packageDigest);
+    const authView=path.join(directory,'authorization-review');assert.equal((await run('inspect-case-review.mjs',['--public-pins',pins,'--kit',kitFile,'--out',authView])).code,0);assert.equal(JSON.parse(await readFile(path.join(authView,'review.json'),'utf8')).authorizationPackage.digest,authInput.packageDigest);
+
   }finally{await rm(directory,{recursive:true,force:true});}
 });
 test('packaged offline operator reviews and approves canonical encrypted client billing',async()=>{

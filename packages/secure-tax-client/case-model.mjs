@@ -4,9 +4,12 @@ import {checkedReturnDraft} from './return-proposals.mjs';
 import {BOOK_ACTIONS,assertBookInput,replayCaseBooks,caseBookReport} from './case-books.mjs';
 import {OFFICE_ACTIONS,isOfficeBody,assertOfficeBody,assertOfficeCommand,applyOfficeTransition,officeLedgers,officeSnapshot} from './office-model.mjs';
 
-export const CASE_BODY_MAX_BYTES=128*1024,CASE_PRIVATE_JSON_MAX_BYTES=20*1024*1024;
-const MAX_STRING=15*1024*1024,MAX_FILE_BYTES=10*1024*1024,utf8=new TextEncoder();
-const kinds=['1040','1065','1120S','1120'],actions=['case.create','request.add','document.review','draft.link','books.link',...BOOK_ACTIONS];
+import {canonicalCaseJson} from './case-json.mjs';
+import {AUTHORIZATION_ACTION,assertAuthorizationInput,assertAuthorizationHistory,caseContentVersion} from './case-authorization.mjs';
+export {canonicalCaseJson,CASE_PRIVATE_JSON_MAX_BYTES} from './case-json.mjs';
+export const CASE_BODY_MAX_BYTES=128*1024;
+const MAX_FILE_BYTES=10*1024*1024,utf8=new TextEncoder();
+const kinds=['1040','1065','1120S','1120'],actions=['case.create','request.add','document.review','draft.link','books.link',AUTHORIZATION_ACTION,...BOOK_ACTIONS];
 const fail=()=>{throw new Error('The private tax case, transition or selected evidence is invalid.');};
 export function exactCaseObject(value,keys){
   if(!value||typeof value!=='object'||Array.isArray(value)||Object.keys(value).sort().join('|')!==[...keys].sort().join('|'))fail();
@@ -16,23 +19,6 @@ function text(value,maximum,required=false){if(typeof value!=='string'||value.le
 export function assertCaseTime(value){if(typeof value!=='string'||!Number.isFinite(Date.parse(value))||new Date(value).toISOString()!==value)fail();return value;}
 function due(value){if(value==='')return;if(typeof value!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(value)||!Number.isFinite(Date.parse(value+'T00:00:00.000Z'))||new Date(value+'T00:00:00.000Z').toISOString().slice(0,10)!==value)fail();}
 
-/** Larger than the ordinary return commitment because one selected file may
- * contain up to 10 MiB of bytes. Body validation has its own much smaller cap. */
-export function canonicalCaseJson(value){
-  let total=0;const add=value=>{total+=utf8.encode(value).length;if(total>CASE_PRIVATE_JSON_MAX_BYTES)fail();return value;};
-  function visit(value,depth){
-    if(depth>24)fail();
-    if(value===null||typeof value==='boolean')return add(JSON.stringify(value));
-    if(typeof value==='number'){if(!Number.isSafeInteger(value))fail();return add(JSON.stringify(value));}
-    if(typeof value==='string'){if(value.length>MAX_STRING)fail();return add(JSON.stringify(value));}
-    if(Array.isArray(value)){if(value.length>5000)fail();return add('[')+value.map(item=>visit(item,depth+1)).join(add(','))+add(']');}
-    if(value&&typeof value==='object'&&[Object.prototype,null].includes(Object.getPrototypeOf(value))){
-      const keys=Object.keys(value).sort();if(keys.length>100)fail();
-      return add('{')+keys.map(key=>{if(key.length>256)fail();return add(JSON.stringify(key))+add(':')+visit(value[key],depth+1);}).join(add(','))+add('}');
-    }fail();
-  }
-  const result=visit(value,0);if(utf8.encode(result).length>CASE_PRIVATE_JSON_MAX_BYTES)fail();return result;
-}
 export function assertCaseReference(reference,{draft=false}={}){
   exactCaseObject(reference,['objectId','revision','envelopeDigest','domain']);identifier(reference.objectId);
   if(!Number.isSafeInteger(reference.revision)||reference.revision<1||reference.revision>1e9||!['tax-document','driver-receipt'].includes(reference.domain)||draft&&reference.domain!=='tax-document')fail();
@@ -59,7 +45,7 @@ export function assertCaseBody(body){
   if(body.requests.length!==body.history.filter(event=>event.type==='request.add').length)fail();
   if(body.draft!==null)assertCaseReference(body.draft,{draft:true});
   if((body.draft!==null)!==body.history.some(event=>event.type==='draft.link'))fail();
-  replayCaseBooks(body.history,body.year);
+  replayCaseBooks(body.history,body.year);assertAuthorizationHistory(body.history);
   let shared=false;for(const event of body.history){if(event.type==='books.link')shared=true;else if(shared&&BOOK_ACTIONS.includes(event.type))fail();}
   // A draft link explicitly records the exact book state reviewed at that time.
   // Existing document-only cases keep their original body/certificate format.
@@ -88,6 +74,7 @@ export function assertCaseCommand(command){
   if(command.type==='document.review'){exactCaseObject(input,['requestId','document','decision','notes']);identifier(input.requestId);assertCaseReference(input.document);if(!['reviewed','replacement_requested'].includes(input.decision))fail();text(input.notes,2000);}
   if(command.type==='draft.link'){exactCaseObject(input,['document','notes',...Object.hasOwn(input??{},'booksVersion')?['booksVersion']:[]]);assertCaseReference(input.document,{draft:true});text(input.notes,2000);if(input.booksVersion!==undefined&&input.booksVersion!==null)identifier(input.booksVersion);}
   if(command.type==='books.link'){exactCaseObject(input,['document','ledgerId','ledgerVersion','notes']);assertCaseReference(input.document,{draft:true});identifier(input.ledgerId);identifier(input.ledgerVersion);text(input.notes,2000);}
+  if(command.type===AUTHORIZATION_ACTION)assertAuthorizationInput(input);
   if(BOOK_ACTIONS.includes(command.type)){assertBookInput(command.type,input);if(command.type==='books.journal.post'&&input.document!==null)assertCaseReference(input.document);}
   return command;
 }
@@ -134,7 +121,7 @@ export function applyCaseTransition(before,command,{actor,at,evidence=null}={}){
   if(command.type==='draft.link'){
     if(evidence.payload.type!=='tax-return'||evidence.payload.year!==after.year||evidence.payload.kind!==after.kind)fail();after.draft=structuredClone(input.document);
   }
-  if(command.type==='books.journal.post'&&input.document!==null&&evidence.payload.type!=='private-file')fail();
+  if((command.type===AUTHORIZATION_ACTION||command.type==='books.journal.post'&&input.document!==null)&&evidence.payload.type!=='private-file')fail();
   if(command.type==='books.link'){
     if(evidence.payload.type!=='client-office')fail();const ledger=officeLedgers(evidence.payload.body.history).find(item=>item.id===input.ledgerId);
     if(!ledger||ledger.version!==input.ledgerVersion||ledger.from!==`${after.year}-01-01`||ledger.through!==`${after.year}-12-31`)fail();
@@ -153,5 +140,8 @@ export function caseSnapshot(body,records){
   const event=body.history.findLast(event=>event.type==='books.link');
   if(event){const {document,ledgerId,ledgerVersion}=event.input,office=records.get(document.objectId)?.verifiedOffice;books=office?officeSnapshot(office,records).ledgers.find(item=>item.id===ledgerId)??null:null;bookLink={reference:document,ledgerId,ledgerVersion,freshness:!books?'unavailable':books.version===ledgerVersion?'current':'stale'};}
   if(draft){const linked=body.history.findLast(event=>event.type==='draft.link');draft.booksFreshness=(linked.input.booksVersion??null)===caseBookVersion(body.history,body.year)&&(!bookLink||bookLink.freshness==='current')?'current':'stale';}
-  return {requests,draft,books,bookLink,ready:requests.length>0&&requests.every(request=>request.ready)&&draft?.freshness==='current'&&draft.booksFreshness==='current'&&(!bookLink||bookLink.freshness==='current')&&(!books||books.sourcesCurrent),filingReady:false};
+  const ready=requests.length>0&&requests.every(request=>request.ready)&&draft?.freshness==='current'&&draft.booksFreshness==='current'&&(!bookLink||bookLink.freshness==='current')&&(!books||books.sourcesCurrent);
+  const signed=body.history.findLast(event=>event.type===AUTHORIZATION_ACTION);let authorization=null;
+  if(signed){const source=freshness(signed.input.document,records);authorization={...structuredClone(signed.input),actor:signed.actor,at:signed.at,freshness:source==='unavailable'?'unavailable':source==='current'&&ready&&signed.input.contentVersion===caseContentVersion(body)?'current':'stale',verification:'staff-reviewed-signed-evidence',filingReady:false};}
+  return {requests,draft,books,bookLink,authorization,ready,filingReady:false};
 }

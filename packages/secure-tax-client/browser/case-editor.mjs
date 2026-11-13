@@ -4,6 +4,7 @@ import { isTaxReturn } from './return-view.mjs';
 import { BOOK_ACTIONS,replayCaseBooks } from '../case-books.mjs';
 import { drawCaseBookAction } from './case-books-editor.mjs';
 import {officeLedgers} from '../office-model.mjs';
+import {drawAuthorizationAction} from './case-authorization-editor.mjs';
 const node=(document,tag,text)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;return element;};
 const parsed=record=>{try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(record.plaintext));}catch{return null;}};
 const reference=record=>({objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain});
@@ -30,7 +31,7 @@ export function mountCaseEditor(document,container,{getClient,run,onSave,onDirty
     if(book&&action==='books.open')action='books.journal.post';
     const shared=body?.history.some(event=>event.type==='books.link'),bookActions=shared?[]:book?[['books.account.add','Add a ledger account'],['books.journal.post','Post a balanced journal'],['books.journal.reverse','Reverse an approved journal'],['books.period.close','Close a ledger period']]:[['books.open','Open this case’s working ledger']];
     if(shared&&BOOK_ACTIONS.includes(action))action='books.link';
-    for(const [value,text]of caseId?[['request.add','Add a document request'],['document.review','Review a selected document'],['draft.link','Link a prepared draft'],['books.link','Link shared client books'],...bookActions]:[['case.create','Create a client case']]){const option=node(document,'option',text);option.value=value;actionChoice.append(option);}actionChoice.value=action;
+    for(const [value,text]of caseId?[['request.add','Add a document request'],['document.review','Review a selected document'],['draft.link','Link a prepared draft'],['books.link','Link shared client books'],['authorization.review','Record reviewed authorization evidence'],...bookActions]:[['case.create','Create a client case']]){const option=node(document,'option',text);option.value=value;actionChoice.append(option);}actionChoice.value=action;
     evidenceId=()=>null;
     if(action==='case.create'){
       const title=field('Case title','title',{maximum:160}),kind=field('Return type','kind',{options:returnTypes.map(type=>[type.id,type.label])});form.append(node(document,'p','Tax year: 2025 federal draft coverage.'));readInput=()=>({title:title.value.trim(),year:2025,kind:kind.value});
@@ -39,6 +40,8 @@ export function mountCaseEditor(document,container,{getClient,run,onSave,onDirty
     }else if(action==='books.link'){
       const choices=[['','Choose matching shared client books']],available=new Map();for(const record of records().values())if(record.verifiedOffice)for(const ledger of officeLedgers(record.verifiedOffice.history))if(ledger.from===`${body.year}-01-01`&&ledger.through===`${body.year}-12-31`){available.set(ledger.id,{record,ledger});choices.push([ledger.id,`${ledger.title} · ${ledger.from} through ${ledger.through}`]);}
       const choice=field('Shared business ledger','shared-ledger',{options:choices}),notes=field('Client-visible link note','shared-ledger-notes',{type:'textarea'});evidenceId=()=>available.get(choice.value)?.record.objectId??null;readInput=()=>{const selected=available.get(choice.value);if(!selected)throw new Error('Open and select the shared ledger for this case year.');return {document:reference(selected.record),ledgerId:selected.ledger.id,ledgerVersion:selected.ledger.version,notes:notes.value};};form.append(node(document,'p','Linked client books become the source for this case. Historical case postings remain retained; linking does not copy or migrate them. Book changes require a fresh link and draft review.'));
+    }else if(action==='authorization.review'){
+      ({readInput,evidenceId}=drawAuthorizationAction(document,form,{body,caseId,field,records,getClient}));
     }else if(BOOK_ACTIONS.includes(action)){
       ({readInput,evidenceId}=drawCaseBookAction(document,form,{type:action,body,field,records:records(),onDirty:modified}));
     }else{
@@ -65,6 +68,6 @@ export function mountCaseEditor(document,container,{getClient,run,onSave,onDirty
   actionChoice.addEventListener('change',()=>{if(dirty&&!confirm('Discard the unsaved case input and choose another action?')){actionChoice.value=action;return;}action=actionChoice.value;dirty=false;draw();onDirty();});
   form.addEventListener('input',modified);form.addEventListener('change',modified);
   discard.addEventListener('click',()=>{if(!dirty||confirm('Discard the unsaved case input? No approved case is changed.'))discardInput();});
-  save.addEventListener('click',()=>{if(!enabled)return;return run(async()=>{const generation=captureScope(),command=assertCaseCommand({actionId:crypto.randomUUID(),type:action,input:readInput()}),id=caseId||null,selectedEvidence=evidenceId();if(!isCurrentScope(generation))throw new Error('The client case scope changed.');await onSave(id,command,selectedEvidence);if(isCurrentScope(generation)){dirty=false;refresh();onDirty();}});});
+  save.addEventListener('click',()=>{if(!enabled)return;return run(async()=>{const generation=captureScope(),command=assertCaseCommand({actionId:crypto.randomUUID(),type:action,input:await readInput()}),id=caseId||null,selectedEvidence=evidenceId();if(!isCurrentScope(generation))throw new Error('The client case scope changed.');await onSave(id,command,selectedEvidence);if(isCurrentScope(generation)){dirty=false;refresh();onDirty();}});});
   draw();choices();controls();return {element:section,get dirty(){return dirty;},get active(){return dirty||!!caseId;},setEnabled(value){enabled=!!value;controls();},refresh,clear(){dirty=false;caseId='';action='case.create';choose.replaceChildren(node(document,'option','No client case selected'));choose.value='';draw();onDirty();}};
 }

@@ -21,6 +21,7 @@ import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks} from '../case-books.mjs';
 import {officeObjectId,officeSnapshot,officeLedgers} from '../office-model.mjs';
 import {mountOfficeEditor} from '../browser/office-editor.mjs';
 import {renderOffice} from '../browser/office-view.mjs';
+import {prepareAuthorizationInput,authorizationPackage} from '../case-authorization.mjs';
 const encode=value=>new TextEncoder().encode(JSON.stringify(value)),command=(type,input)=>({actionId:crypto.randomUUID(),type,input});
 const ref=record=>({objectId:record.objectId,revision:record.revision,envelopeDigest:record.envelopeDigest,domain:record.domain});
 class MemoryStore{
@@ -170,4 +171,35 @@ test('a verified shared ledger links to a case through real encrypted evidence a
     await f.apply(id,command('ledger.account.add',{ledgerId:'shared-ledger',account:{number:1050,name:'Another bank',classification:'bank'},notes:''}));assert.equal(caseSnapshot(f.client.records.get(tax.id).verifiedCase,f.client.records).bookLink.freshness,'stale');
     const payload=JSON.parse(new TextDecoder().decode(f.client.records.get(id).plaintext));payload.body.title='Forged finance';await f.put(payload,id,f.objects.get(id).revision);await assert.rejects(()=>f.client.sync());assert.equal(f.client.unlocked,false);await assert.rejects(()=>f.staff.sync());assert.equal(f.staff.unlocked,false);
   }finally{f.staff.lock();f.client.lock();}
+});
+test('ordinary authorization review binds actual signed-file bytes to an exact package and refuses reuse after a changed return',async()=>{
+  for(const kind of ['1040','1120']){
+    const f=await fixture(),created=await f.apply(null,command('case.create',{title:'Synthetic authorization case',year:2025,kind})),id=created.id,requestId='authorization-source-request';
+    const dom=new JSDOM('<!doctype html><body><main></main></body>'),document=dom.window.document;let pending,editor;
+    try{
+      await f.apply(id,command('request.add',{requestId,title:'Source file',due:'',notes:''}));const source=await privateFile();await f.put(source,'auth-source');await f.put(newReturn(kind),'auth-draft');await f.put(source,'signed-authorization');await f.staff.sync();await f.client.sync();
+      await f.apply(id,command('document.review',{requestId,document:ref(f.staff.records.get('auth-source')),decision:'reviewed',notes:''}),'auth-source');await f.apply(id,command('draft.link',{document:ref(f.staff.records.get('auth-draft')),notes:''}),'auth-draft');
+      const scope={workspaceId:f.config.workspaceId,...f.binding,objectId:id},fields={method:'wet-ink',signedOn:'2026-11-01',signers:[{name:'Synthetic taxpayer',capacity:kind==='1040'?'Taxpayer':'Corporate officer'}],signaturesReviewed:true,notes:'SYNTHETIC PRIVATE AUTHORIZATION'};
+      const originalPackage=await authorizationPackage(f.staff.records.get(id).verifiedCase,scope);
+      const run=action=>{pending=action();return pending;};editor=mountCaseEditor(document,document.querySelector('main'),{getClient:()=>f.staff,run,confirm:()=>true,onSave:async(...args)=>f.apply(...args)});editor.setEnabled(true);editor.refresh();
+      const set=(key,value)=>{const input=document.getElementById(key);input.value=value;input.dispatchEvent(new dom.window.Event(input.tagName==='SELECT'?'change':'input',{bubbles:true}));};
+      set('case-choice',id);set('case-action','authorization.review');set('case-authorization-file','signed-authorization');set('case-authorization-date',fields.signedOn);set('case-authorization-signers','Synthetic taxpayer | '+fields.signers[0].capacity);set('case-authorization-notes',fields.notes);document.getElementById('case-authorization-reviewed').checked=true;
+      [...editor.element.querySelectorAll('button')].find(item=>item.textContent==='Save private case review kit').click();await pending;
+      assert.equal(editor.dirty,false);assert.equal(document.getElementById('case-authorization-signers').value,'');
+      assert.equal((await authorizationPackage(f.staff.records.get(id).verifiedCase,scope)).digest,originalPackage.digest);
+      for(const reader of [f.staff,f.client]){const snapshot=caseSnapshot(reader.records.get(id).verifiedCase,reader.records);assert.equal(snapshot.authorization.freshness,'current');assert.equal(snapshot.filingReady,false);assert.equal(renderCase(document,reader.records.get(id),reader.records).querySelector('.case-authorization').dataset.freshness,'current');}
+      const changed=newReturn(kind);changed.notes='Synthetic revised return';await f.put(changed,'auth-draft',2);await f.staff.sync();await f.client.sync();assert.equal(caseSnapshot(f.client.records.get(id).verifiedCase,f.client.records).authorization.freshness,'stale');
+      await f.apply(id,command('draft.link',{document:ref(f.staff.records.get('auth-draft')),notes:'Reviewed changed return'}),'auth-draft');
+      await f.put({...source,filename:'renamed-copy.pdf'},'same-signature-new-id');await f.staff.sync();
+      const reused=await prepareAuthorizationInput(f.staff.records.get(id).verifiedCase,scope,f.staff.records.get('same-signature-new-id'),fields);
+      await assert.rejects(()=>f.staff.prepareCaseAction(id,command('authorization.review',reused),'same-signature-new-id'),/earlier package/);
+      await f.staff.unlock(f.staffKey.keyId);await f.staff.selectGrant(f.grant.grantId);await f.staff.sync();
+      const bytes=new TextEncoder().encode('%PDF-SYNTHETIC NEW SIGNED AUTHORIZATION');await f.put({...source,data:Buffer.from(bytes).toString('base64url'),byteLength:bytes.length},'fresh-signed-authorization');await f.staff.sync();
+      const fresh=await prepareAuthorizationInput(f.staff.records.get(id).verifiedCase,scope,f.staff.records.get('fresh-signed-authorization'),fields);
+      assert.notEqual(fresh.packageDigest,originalPackage.digest);await f.apply(id,command('authorization.review',fresh),'fresh-signed-authorization');
+      for(const reader of [f.staff,f.client]){const body=reader.records.get(id).verifiedCase;assert.equal(caseSnapshot(body,reader.records).authorization.freshness,'current');assert.equal(body.history.filter(event=>event.type==='authorization.review').length,2);}
+      f.remove('fresh-signed-authorization');await f.staff.sync();await f.client.sync();assert.equal(caseSnapshot(f.client.records.get(id).verifiedCase,f.client.records).authorization.freshness,'unavailable');editor.clear();assert(!document.body.textContent.includes('Synthetic taxpayer'));
+      const requests=f.calls.filter(call=>call.options.body&&call.url.endsWith('/cases'));for(const call of requests)assert(!call.options.body.includes(fields.notes));
+    }finally{dom.window.close();f.staff.lock();f.client.lock();}
+  }
 });

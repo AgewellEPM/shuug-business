@@ -3,6 +3,7 @@ import {encode64,publicKeyId,sealEnvelope,openEnvelope} from './envelope.mjs';
 import {secureEnvelopeDigest} from './staff-grants.mjs';
 import {createStaffCapsule} from './firm-staff.mjs';
 import {applyCaseTransition} from './case-model.mjs';
+import {verifyAuthorizationEvidence} from './case-authorization.mjs';
 import {signCasePayload} from './case-certificate.mjs';
 import {CASE_BINDING,assertCaseApproval,canonicalCaseApproval} from './case-contract.mjs';
 import {verifyCaseProposalScope,openCaseTransition,caseProposalDigest,privateCaseReviewCommitment,checkedCaseBody,selectedCaseEvidence,openFirmCaseSource} from './case-proposals.mjs';
@@ -10,7 +11,8 @@ const utf8=new TextEncoder(),fail=()=>{throw new Error('The case transition does
 export async function approveCaseTransition({proposal,envelope=null,manifest,grant,expected,reviewedCommitment,reviewReference,unlocked,now=Date.now()}){
   if(typeof reviewedCommitment!=='string'||reviewedCommitment!==proposal.reviewCommitment)fail();
   const {binding,enrollment}=await verifyCaseProposalScope(proposal,envelope,manifest,grant,expected,unlocked.publicPins,now),transition=await openCaseTransition(proposal,grant,unlocked.recovery,unlocked.publicPins.firmRecoveryPublicKey),before=await openFirmCaseSource(envelope,manifest,expected,unlocked.publicPins,unlocked.recovery,now);
-  const evidence=await selectedCaseEvidence(transition.evidenceEnvelope,transition.evidenceCapsule,manifest,grant,expected,unlocked.publicPins,e=>openEnvelope(e,e.context,enrollment.recipients,'firm-recovery',unlocked.recovery),now),after=checkedCaseBody(applyCaseTransition(before,transition.command,{actor:grant.staffAccountId,at:proposal.createdAt,evidence}));
+  const evidence=await selectedCaseEvidence(transition.evidenceEnvelope,transition.evidenceCapsule,manifest,grant,expected,unlocked.publicPins,e=>openEnvelope(e,e.context,enrollment.recipients,'firm-recovery',unlocked.recovery),now);await verifyAuthorizationEvidence(transition.command,before,evidence,{workspaceId:unlocked.publicPins.workspaceId,...expected});
+  const after=checkedCaseBody(applyCaseTransition(before,transition.command,{actor:grant.staffAccountId,at:proposal.createdAt,evidence}));
   const review={version:1,type:'shuug-private-case-transition-review',binding,reviewSalt:transition.reviewSalt,before,command:transition.command,after,evidence};if(await privateCaseReviewCommitment(review)!==reviewedCommitment)fail();
   const context={workspaceId:binding.workspaceId,accountId:binding.accountId,clientId:binding.clientId,objectId:binding.objectId,revision:binding.sourceRevision+1,domain:'tax-document'},payload=await signCasePayload(after,context,unlocked,{actor:grant.staffAccountId,now}),plaintext=utf8.encode(JSON.stringify(payload));
   try{

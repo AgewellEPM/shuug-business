@@ -10,6 +10,7 @@ import { prepareCaseTransition } from '../case-proposals.mjs';
 import { verifyCaseApproval } from '../case-approval.mjs';
 import { CASE_OBJECT_PREFIX } from '../case-contract.mjs';
 import {officeObjectId} from '../office-model.mjs';
+import {caseSnapshot} from '../case-model.mjs';
 import { openedRecordMetadata } from './opened-record.mjs';
 
 const prefix='/api/website/customer/secure/staff';
@@ -220,6 +221,7 @@ export class StaffVaultClient {
     const original=objectId===null?null:this.records.get(objectId),evidence=evidenceObjectId===null?null:this.records.get(evidenceObjectId);
     if(objectId!==null&&(!(original?.verifiedCase||original?.verifiedOffice)||original.domain!=='tax-document'))throw new Error('Open the case’s current verified firm review before changing its work.');
     if(evidenceObjectId!==null&&(!evidence||!['tax-document','driver-receipt'].includes(evidence.domain)||!evidence.envelopeDigest))throw new Error('Open the current shared document or draft before selecting it as evidence.');
+    if(command?.type==='authorization.review'&&(!original?.verifiedCase||!caseSnapshot(original.verifiedCase,this.records).ready))throw new Error('Resolve changed or missing case sources and draft review before recording authorization evidence.');
     const action=clone(command),generation=this.#generation,selected=clone(this.#selection);this.#busy=true;
     try{
       await this.refreshGrants();this.#same(generation);const observedManifest=await this.#storage.getBinding(this.#manifestBindingId(selected));this.#same(generation);

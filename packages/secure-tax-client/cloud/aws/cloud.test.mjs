@@ -20,6 +20,7 @@ import {verifyCasePayload} from '../../case-certificate.mjs';
 import {DEFAULT_BOOK_ACCOUNTS,replayCaseBooks,caseBookReport} from '../../case-books.mjs';
 import {newReturn} from '../../../tax-engine/index.mjs';
 import {officeObjectId,officeSnapshot} from '../../office-model.mjs';
+import {prepareAuthorizationInput} from '../../case-authorization.mjs';
 const workspaceId='synthetic-aws-key-custody',config={workspaceId,keyAccountId:'111111111111',dataHostAccountId:'222222222222'};
 const context={invokedFunctionArn:'arn:aws:lambda:us-east-1:111111111111:function:synthetic-key-server:approved'};
 const utf8=new TextEncoder(),text=new TextDecoder(),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
@@ -144,6 +145,11 @@ test('cloud case transitions keep commands and selected evidence encrypted while
   await perform('books.open',{title:'SYNTHETIC PRIVATE BOOKS',currency:'USD',from:'2025-01-01',through:'2025-12-31',accounts:structuredClone(DEFAULT_BOOK_ACCOUNTS),notes:''});
   await perform('books.journal.post',{date:'2025-06-01',memo:'SYNTHETIC PRIVATE BOOK POSTING',lines:[{accountNumber:1000,debitCents:12345,creditCents:0},{accountNumber:4000,debitCents:0,creditCents:12345}],document:{objectId:eContext.objectId,revision:1,envelopeDigest:capsule.envelopeDigest,domain:'tax-document'},notes:'SYNTHETIC PRIVATE BOOK NOTE'},{envelope,capsule});
   const ledgerBytes=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);try{const body=await verifyCasePayload(JSON.parse(text.decode(ledgerBytes)),{...packet.envelope.context,clientId:request.clientId},pins),report=caseBookReport(replayCaseBooks(body.history,body.year));assert.equal(report.bankCents,12345);assert.equal(report.netIncomeCents,12345);assert.equal(body.history.length,5);}finally{ledgerBytes.fill(0);}
+  const returnContext={workspaceId,accountId:request.accountId,objectId:'synthetic-cloud-return',revision:1,domain:'tax-document'},returnEnvelope=await sealEnvelope(utf8.encode(JSON.stringify(newReturn('1120'))),returnContext,recipients,'client',client.privateKey),returnExpected={...expected,objectId:returnContext.objectId},returnCapsule=(await f.run('share',{expectedPins:pins,envelope:returnEnvelope,manifest,grant,expected:returnExpected},staffRequest.staff.keyId)).result.capsule;
+  const bookPlain=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);let bookVersion;try{bookVersion=replayCaseBooks(JSON.parse(text.decode(bookPlain)).body.history,2025).version;}finally{bookPlain.fill(0);}
+  await perform('draft.link',{document:{objectId:returnContext.objectId,revision:1,envelopeDigest:returnCapsule.envelopeDigest,domain:'tax-document'},booksVersion:bookVersion,notes:''},{envelope:returnEnvelope,capsule:returnCapsule});
+  const authPlain=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);let authInput;try{authInput=await prepareAuthorizationInput(JSON.parse(text.decode(authPlain)).body,{workspaceId,...expected,objectId},{objectId:eContext.objectId,revision:1,envelopeDigest:capsule.envelopeDigest,domain:'tax-document',plaintext:utf8.encode(JSON.stringify(payload))},{method:'wet-ink',signedOn:'2026-11-01',signers:[{name:'Synthetic officer',capacity:'Corporate officer'}],signaturesReviewed:true,notes:'SYNTHETIC PRIVATE AUTHORIZATION'});}finally{authPlain.fill(0);}
+  await perform('authorization.review',authInput,{envelope,capsule});
   packet=null;objectId=await officeObjectId(request);
   await perform('office.create',{title:'SYNTHETIC PRIVATE FINANCE',notes:''});
   await perform('fee.issue',{invoiceId:'cloud-invoice',number:'CLOUD-001',date:'2025-01-01',due:'2025-02-01',issuer:'SYNTHETIC PRIVATE FIRM',billTo:'SYNTHETIC PRIVATE CLIENT',lines:[{description:'SYNTHETIC PRIVATE SERVICE',quantity:'1',unitCents:12345,discountCents:0,taxCents:0}],terms:'',notes:''});

@@ -83,6 +83,13 @@ See [the finance workflow](SHUUG_CLIENT_FINANCE_20261112.md). This closes the
 source balance-projection gap in row 6 and advances row 1; legacy migration,
 exact-package authorization, real delivery and rollout remain open.
 
+November 12 authorization continuation: reviewed uploaded signature PDFs now
+bind to the exact encrypted case package and actual file bytes. Changed sources,
+returns or shared books invalidate current status; retained history rejects an
+old signature reuploaded for a changed package. See [the evidence workflow](SHUUG_AUTHORIZATION_EVIDENCE_20261112.md).
+This does not implement electronic signing, identity proofing, immutable signature
+retention or live filing. Those gates and the installed journey remain open.
+
 | Order | Confirmed gap | Observable completion criterion |
 | --- | --- | --- |
 | 1 | **One complete encrypted office workflow.** Ordinary Tax work and Client books still reject enrolled clients at tax-office/access.ts:13 and accounting/client-books.ts:19,31. Preparer origination, encrypted case/document review and bounded case working ledgers now work in the independent client. Normal uploads still need fresh trusted sharing capsules. Shared client books and authoritative fee balances now work in the independent client; exact-package client approval and the complete installed journey remain missing. | An assigned preparer starts an individual and an entity return, reviews/replaces uploaded records, adjusts books, prepares/reviews the return and obtains exact-package client authorization. Client-visible state, approval invalidation, sharing, revocation, restart and recovery work without readable taxpayer data on the app host. |

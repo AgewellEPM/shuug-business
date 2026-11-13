@@ -4,6 +4,7 @@ import {verifyStaffGrant,secureEnvelopeDigest,openStaffCapsule,verifyStaffCapsul
 import {assertCaseBody,assertCaseCommand,validateCaseEvidence,applyCaseTransition} from './case-model.mjs';
 import {verifyCasePayload} from './case-certificate.mjs';
 import {isOfficeBody,OFFICE_MAX_BYTES} from './office-model.mjs';
+import {verifyAuthorizationEvidence} from './case-authorization.mjs';
 import {CASE_BINDING,MAX_CASE_PROPOSAL_BYTES,assertCaseBinding,assertCaseProposal,canonicalCaseProposalAad,canonicalCaseProposal,canonicalCaseReview,exactCaseObject} from './case-contract.mjs';
 const hpke=new CipherSuite({kem:new DhkemP256HkdfSha256(),kdf:new HkdfSha256(),aead:new Aes256Gcm()}),utf8=new TextEncoder(),decoder=new TextDecoder('utf-8',{fatal:true}),info=utf8.encode('shuug/secure-tax-case-proposal/v1');
 const fail=()=>{throw new Error('The encrypted case, selected evidence or private transition review does not match.');};
@@ -39,7 +40,8 @@ export async function selectedCaseEvidence(envelope,capsule,manifest,grant,expec
 export async function prepareCaseTransition({envelope=null,manifest,grant,capsule=null,expected,pins,staffPrivateKey,command,evidenceEnvelope=null,evidenceCapsule=null,now=Date.now()}){
   command=structuredClone(command);assertCaseCommand(command);const {binding}=await scope(envelope,manifest,grant,expected,pins,now);let before=null;
   if(envelope!==null){const bytes=await openStaffCapsule(capsule,envelope,manifest,grant,expected,pins,staffPrivateKey,now);try{before=checkedCaseBody(await verifyCasePayload(JSON.parse(decoder.decode(bytes)),caseContext(envelope,expected.clientId),pins,now));}finally{bytes.fill(0);}}else if(capsule!==null)fail();
-  const evidence=await selectedCaseEvidence(evidenceEnvelope,evidenceCapsule,manifest,grant,expected,pins,(e,c,scope)=>openStaffCapsule(c,e,manifest,grant,scope,pins,staffPrivateKey,now),now),at=new Date(now).toISOString(),after=checkedCaseBody(applyCaseTransition(before,command,{actor:grant.staffAccountId,at,evidence}));
+  const evidence=await selectedCaseEvidence(evidenceEnvelope,evidenceCapsule,manifest,grant,expected,pins,(e,c,scope)=>openStaffCapsule(c,e,manifest,grant,scope,pins,staffPrivateKey,now),now);await verifyAuthorizationEvidence(command,before,evidence,{workspaceId:pins.workspaceId,...expected});
+  const at=new Date(now).toISOString(),after=checkedCaseBody(applyCaseTransition(before,command,{actor:grant.staffAccountId,at,evidence}));
   const review={version:1,type:'shuug-private-case-transition-review',binding,reviewSalt:encode64(crypto.getRandomValues(new Uint8Array(32))),before,command,after,evidence},reviewCommitment=await privateCaseReviewCommitment(review);
   const proposal={version:1,type:'shuug-secure-tax-case-proposal',proposalId:crypto.randomUUID(),...binding,reviewCommitment,createdAt:at,expiresAt:new Date(Math.min(now+86400000,Date.parse(grant.expiresAt),Date.parse(manifest.expiresAt))).toISOString(),wrap:null};
   const sender=await hpke.createSenderContext({recipientPublicKey:await hpke.kem.deserializePublicKey(decode64(pins.firmRecoveryPublicKey,65)),senderKey:{privateKey:staffPrivateKey,publicKey:await hpke.kem.deserializePublicKey(decode64(grant.staff.publicKey,65))},info}),bytes=utf8.encode(JSON.stringify({version:1,type:'shuug-case-transition',reviewSalt:review.reviewSalt,command,evidenceEnvelope,evidenceCapsule}));
