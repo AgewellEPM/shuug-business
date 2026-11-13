@@ -1,0 +1,50 @@
+{
+  "jurisdiction": "NY",
+  "reviewedOn": "2026-11-13",
+  "scope": "Source boundaries for unfinished Empire State child credit and NYC income-tax elimination credit; these pins do not claim implementation or approval",
+  "sources": [
+    {
+      "year": 2025,
+      "id": "it213i",
+      "file": "2025-it213i.pdf",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it213i_2025.pdf",
+      "bytes": 168969,
+      "sha256": "2f159e12f0888ea569ea82d62cde0e36c6389a1ae098b3ca9f257d3ef70399e6"
+    },
+    {
+      "year": 2025,
+      "id": "it270i",
+      "file": "2025-it270i.pdf",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it270i_2025.pdf",
+      "bytes": 186275,
+      "sha256": "1f8f971a8a59ce9be9342d39ac9912ed53d8c2a769526299ca0c2cc55b8a0868"
+    }
+  ],
+  "sourceClauses": [
+    {
+      "sourceFile": "2025-it213i.pdf",
+      "location": "New for 2025; General information; qualifying child and tie-breaker lists",
+      "effect": "The 2025 Empire State child credit is decoupled from the federal child tax credit. Its independent qualifying-child definition does not require an actual federal dependent claim. Retained unclaimed potential qualifying children therefore require review before a known zero child credit or state settlement."
+    },
+    {
+      "sourceFile": "2025-it270i.pdf",
+      "location": "General information, first and second eligibility bullets; effective date",
+      "effect": "NYC income-tax elimination credit begins 2025 and requires one or more claimed dependents on IT-201 item H orIT-203 item I. No claimed dependents is an exclusion for this credit; adult claimed dependents still count."
+    }
+  ],
+  "primaryReferences": [
+    {
+      "id": "tax-law-606",
+      "url": "https://www.nysenate.gov/legislation/laws/TAX/606",
+      "subsection": "606(c-1)(1-a)(D)-(F)",
+      "observed": "The current enacted statute independently defines qualifying children and tie-breakers for 2025\u20132027; no federal dependency-claim condition is in that definition.",
+      "verification": "Read official statute through web reader on 2026-11-13. Direct original-byte retrieval was unavailable; no bytes or SHA256 are claimed for this reference.",
+      "originalBytesAvailable": false
+    }
+  ],
+  "limits": [
+    "The annual instruction PDFs are the original-byte evidence for these boundaries.",
+    "This manifest does not implement IT213/IT216/IT270 or certify a tax result.",
+    "Potential child eligibility requires retained source review; federal EIC or federal claimed-dependent counts alone do not establish2025 Empire State credit eligibility."
+  ]
+}

@@ -1,4 +1,4 @@
-import {readFile,readdir,writeFile,mkdir,rm,lstat} from 'node:fs/promises';
+import {readFile,readdir,writeFile,mkdir,rm,lstat,realpath} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
@@ -51,7 +51,8 @@ export async function buildArtifact(output){
   }catch(error){if(owned)await rm(output,{recursive:true,force:true});throw error;}
   return manifest;
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
+const isMain=Boolean(process.argv[1])&&await realpath(path.resolve(process.argv[1])).then(file=>import.meta.url===pathToFileURL(file).href,()=>false);
+if(isMain){
   const args=process.argv.slice(2);if(args.length!==2||args[0]!=='--output')throw new Error('Usage: node build-artifact.mjs --output /new/absolute/directory');
   const result=await buildArtifact(path.resolve(args[1]));console.log(JSON.stringify({ok:true,artifactSha256:result.artifactSha256,artifactSha256Base64:result.artifactSha256Base64,files:result.files.length,provisioned:false},null,2));
 }

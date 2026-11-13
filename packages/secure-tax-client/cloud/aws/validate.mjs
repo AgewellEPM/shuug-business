@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import {realpath} from 'node:fs/promises';
+import {pathToFileURL} from 'node:url';
+import path from 'node:path';
 import {cloudFormation,bootstrapCloudFormation} from './template.mjs';
 export function validateTemplate(template=cloudFormation()){
   assert.equal(template.AWSTemplateFormatVersion,'2010-09-09');
@@ -34,4 +37,5 @@ export function validateTemplate(template=cloudFormation()){
   const bootstrap=bootstrapCloudFormation();assert.equal(bootstrap.Resources.ArtifactBucket.Properties.VersioningConfiguration.Status,'Enabled');
   return {ok:true,resources:Object.keys(r).length,sourcePolicyChecksPassed:true,awsServiceValidationPerformed:false};
 }
-if(import.meta.url===new URL(process.argv[1]??'',`file://${process.cwd()}/`).href)console.log(JSON.stringify(validateTemplate(),null,2));
+const isMain=Boolean(process.argv[1])&&await realpath(path.resolve(process.argv[1])).then(file=>import.meta.url===pathToFileURL(file).href,()=>false);
+if(isMain)console.log(JSON.stringify(validateTemplate(),null,2));

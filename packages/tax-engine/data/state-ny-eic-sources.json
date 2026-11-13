@@ -1,0 +1,151 @@
+{
+  "jurisdiction": "NY",
+  "forms": [
+    "nyit215",
+    "nyit209"
+  ],
+  "years": [
+    2023,
+    2024,
+    2025
+  ],
+  "instructions": [
+    {
+      "year": 2023,
+      "id": "it209i",
+      "url": "https://www.tax.ny.gov/pdf/2023/inc/it209i_2023.pdf",
+      "file": "2023-it209i.pdf",
+      "bytes": 385360,
+      "sha256": "b102f8d984164f0c8218073326d14e876e52da19951f596f5d9695bb4be97ab1"
+    },
+    {
+      "year": 2024,
+      "id": "it215i",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it215i_2024.pdf",
+      "file": "2024-it215i.pdf",
+      "bytes": 266339,
+      "sha256": "4aead0fc70445633831938811b9a6a272324fe3bb5c7f82cafca5ca9935e2569"
+    },
+    {
+      "year": 2024,
+      "id": "it209i",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it209i_2024.pdf",
+      "file": "2024-it209i.pdf",
+      "bytes": 366846,
+      "sha256": "c2f13802567f1d600a8dfdc58333b735f961cb73a3d1f5a78d3b0d9bba912c93"
+    },
+    {
+      "year": 2025,
+      "id": "it215i",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it215i_2025.pdf",
+      "file": "2025-it215i.pdf",
+      "bytes": 274976,
+      "sha256": "50a119620fd3bf8e6e73386a08a078c7e818db8fc50402dbc1b182d3e53193a3"
+    },
+    {
+      "year": 2025,
+      "id": "it209i",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it209i_2025.pdf",
+      "file": "2025-it209i.pdf",
+      "bytes": 370536,
+      "sha256": "25ab7ba71ba910c78b2996cd03fcbf28c2f2a41dae04712b5df914d52513d5ec"
+    },
+    {
+      "year": 2023,
+      "id": "it215i-html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2023/it/it215i-2023.htm",
+      "file": "2023-it215i.html",
+      "bytes": 41894,
+      "sha256": "f6ae968f81f0b4c8052a5f0143b263102c0bd0ee612205153d24aaf24292de79"
+    },
+    {
+      "year": 2024,
+      "id": "it215i-html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2024/it/it215i-2024.htm",
+      "file": "2024-it215i.html",
+      "bytes": 41962,
+      "sha256": "582d7b232669c01287185d7f5a118bc27beb24f446ac39b8f85dcb32b189c364"
+    },
+    {
+      "year": 2025,
+      "id": "it215i-html",
+      "url": "https://www.tax.ny.gov/forms/html-instructions/2025/it/it215i-2025.htm",
+      "file": "2025-it215i.html",
+      "bytes": 41802,
+      "sha256": "1400b1c74bacda2f39fe200e23e844c26b6b0db8043870ea2caedc9d4d9cf7cc"
+    }
+  ],
+  "formsSources": [
+    {
+      "year": 2023,
+      "id": "it215",
+      "url": "https://www.tax.ny.gov/pdf/2023/inc/it215_2023_fill_in.pdf",
+      "file": "2023-it215.pdf",
+      "bytes": 463522,
+      "sha256": "184440023a6752733de1ca70550915d3fab1043e661bd45b9c3ad137cf990204"
+    },
+    {
+      "year": 2023,
+      "id": "it209",
+      "url": "https://www.tax.ny.gov/pdf/2023/inc/it209_2023_fill_in.pdf",
+      "file": "2023-it209.pdf",
+      "bytes": 510027,
+      "sha256": "87a5960ade5c47e31cdbb8f18ab9f6536b8df43c3611abaf31576d19ed7c6e91"
+    },
+    {
+      "year": 2024,
+      "id": "it215",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it215_2024_fill_in.pdf",
+      "file": "2024-it215.pdf",
+      "bytes": 463593,
+      "sha256": "c72593e2a31e12f42af4abeb3a4c93521c09dfbd1e1e148d01e0a6cdc92ef45f"
+    },
+    {
+      "year": 2024,
+      "id": "it209",
+      "url": "https://www.tax.ny.gov/pdf/2024/inc/it209_2024_fill_in.pdf",
+      "file": "2024-it209.pdf",
+      "bytes": 506207,
+      "sha256": "725e64f5fb1d207d7c4bd5f48e12d1d0f918158de0851a26af87a1e31f9e1490"
+    },
+    {
+      "year": 2025,
+      "id": "it215",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it215_2025_fill_in.pdf",
+      "file": "2025-it215.pdf",
+      "bytes": 478912,
+      "sha256": "a78af9f80c94aa6da2e27f3cbb366582cf65f538d67b070d7d5e0cfe34e787ee"
+    },
+    {
+      "year": 2025,
+      "id": "it209",
+      "url": "https://www.tax.ny.gov/pdf/2025/inc/it209_2025_fill_in.pdf",
+      "file": "2025-it209.pdf",
+      "bytes": 506696,
+      "sha256": "add54805a9a720ab43a082c4e7dce08c78330ba021c6fe78d7965b10413d7c59"
+    }
+  ],
+  "reference": {
+    "file": "state-ny-eic-reference.json",
+    "sha256": "4f0ed3eb6b4d6c55fa2ab384b71b682c1dcdcfb8e8bc800db82c3054ee3487fa",
+    "bytes": 70661
+  },
+  "notes": [
+    "2023 IT-215 instructions use the official annual HTML original because the annual PDF path returned 404.",
+    "NY IT-209 columns a/b/c are independently compared cell by cell and at every partial-interval footnote to the installed federal exact tables before sharing their lookup implementation. Annual NY comparison thresholds remain distinct.",
+    "External OTDA eligibility verification is required by New York; this local calculation does not provide it.",
+    "Annual one-half-year order language does not establish a universal day-count rule. 181\u2013183-day periods remain unknown. Official OTDA06-ADM-12-T Attachment5 search evidence says six months; direct downloads returned502/connection reset, so no byte pin is claimed for that supporting research."
+  ],
+  "supportingResearch": [
+    {
+      "url": "https://otda.ny.gov/policy/directives/2006/ADM/06-ADM-12-T-Attachment-5.pdf",
+      "verifiedBytes": false,
+      "finding": "Official SCU process describes at least six months; boundary day-count interpretation is not implemented."
+    },
+    {
+      "url": "https://otda.ny.gov/policy/directives/2025/INF/25-INF-02.pdf",
+      "verifiedBytes": false,
+      "finding": "Current2025directive retains referral to06-ADM-12-T."
+    }
+  ]
+}

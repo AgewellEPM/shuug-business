@@ -11,6 +11,7 @@ import {ctWorkpaper,renderCTForm} from './state-ct-pdf.mjs';
 import {ctEitcWorkpaper,renderCTEitcForm} from './state-ct-eitc-pdf.mjs';
 import {ctDependentWorkpaper,renderCTDependentForm} from './state-ct-dependent-pdf.mjs';
 import {nyWorkpaper,renderNYForm} from './state-ny-pdf.mjs';
+import {nyEicWorkpaper,renderNYEicForm} from './state-ny-eic-pdf.mjs';
 import { PDFDocument, StandardFonts, rgb, degrees, PDFName } from 'pdf-lib';
 import { calculateReturn, scopeNotice } from './index.mjs';
 import { displayMoney } from './money.mjs';
@@ -60,7 +61,7 @@ function workpaper(pdf,font,input,result){
   const businesses=input.individual?.businesses??[input.entity];
   for(const business of businesses){line(`Deduction workpaper: ${business.name??business.businessName??'Business'}`,12);for(const expense of business.expenses)line(`${expense.category}: ${displayMoney(expense.amountCents)} USD. ${expense.description}`);}
   if(input.notes){line('Preparation notes',12);line(input.notes);}
-  earnedIncomeCreditWorkpaper(input,result,line);eicWorkpaper(input,result,line);childCreditWorkpaper(input,result,line);schedule1AWorkpaper(input,result,line);eligibilityWorkpaper(input,line,result);energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);capitalWorkpaper(input,line,result);retirementWorkpaper(input,line,result);inventoryWorkpaper(input,result,line);ctWorkpaper(input,result,line);ctEitcWorkpaper(input,result,line);ctDependentWorkpaper(input,result,line);nyWorkpaper(input,result,line);
+  earnedIncomeCreditWorkpaper(input,result,line);eicWorkpaper(input,result,line);childCreditWorkpaper(input,result,line);schedule1AWorkpaper(input,result,line);eligibilityWorkpaper(input,line,result);energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);capitalWorkpaper(input,line,result);retirementWorkpaper(input,line,result);inventoryWorkpaper(input,result,line);ctWorkpaper(input,result,line);ctEitcWorkpaper(input,result,line);ctDependentWorkpaper(input,result,line);nyWorkpaper(input,result,line);nyEicWorkpaper(input,result,line);
 }
 
 /** All calculation and rendering happen in the trusted caller. The loader only
@@ -73,7 +74,7 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
   workpaper(output,font,original,result);dependentContinuationPdf(output,font,original,result);householdContinuationPdf(output,font,original,result);
   for(const item of result.forms){
     if(result.pdfUnavailableForms?.includes(item.form))continue;
-    const stateRenderer={ct1040:renderCTForm,ct1040eitc:renderCTEitcForm,ctdependent:renderCTDependentForm,nyit201:renderNYForm,nyit2:renderNYForm}[item.form];
+    const stateRenderer={ct1040:renderCTForm,ct1040eitc:renderCTEitcForm,ctdependent:renderCTDependentForm,nyit201:renderNYForm,nyit2:renderNYForm,nyit215:renderNYEicForm,nyit209:renderNYEicForm}[item.form];
     if(stateRenderer){
       const rendered=await stateRenderer(original,item,{loadTemplate});
       try{const pdf=await PDFDocument.load(rendered.bytes),firstPage=output.getPageCount()+1;removeActions(pdf);for(const page of await output.copyPages(pdf,pdf.getPageIndices()))output.addPage(page);audit.push({...rendered.audit,firstPage,pageCount:pdf.getPageCount()});}finally{rendered.bytes.fill(0);}continue;

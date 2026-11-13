@@ -1,0 +1,412 @@
+{
+  "version": 1,
+  "type": "shuug-ny-eic-integration-verification",
+  "date": "2026-11-13",
+  "readiness": "prototype",
+  "scope": "Ordinary original full-year New York IT-215/IT-209 and NYC EIC for2023\u20132025; strict2026/2027 state source intake without prior-year substitution.",
+  "sourceSha256": {
+    "packages/secure-tax-client/browser/ny-eic-editor.mjs": "cfbaa46cef3c005a5d2e160babc96c89b2d4ca1c8840968357dfdc4a8d1193e9",
+    "packages/secure-tax-client/browser/ny-state-editor.mjs": "652a79f262e5a2492f2ca9037d589b1e851eb1d8a5a6a435a5d434a78286a1a0",
+    "packages/secure-tax-client/browser/return-view.mjs": "b492dc9b469b67f97bd1397f9f4bfc0000d2b482b387c47d951f2ffebe284375",
+    "packages/secure-tax-client/build-offline-kit.mjs": "4edf1896d82202f91dd945958c3f273d46a739f6bb3e8647b48641780a9df492",
+    "packages/secure-tax-client/cloud/aws/build-artifact.mjs": "050c1180c3e99b9f707ef04d363f184d4c48f54f8b3e3d053f684eaf9491bf03",
+    "packages/secure-tax-client/cloud/aws/validate.mjs": "7cda043bfb2112e2a83917a15211ad857a1ffb72c671d4822a0fe0cd680f6b33",
+    "packages/secure-tax-client/inspect-case-review.mjs": "d186779b45a047bad3cd2b105d41c711686c818de746201ad9f42414e3b0b3af",
+    "packages/secure-tax-client/prepare-browser.mjs": "57a43788fd09ccb8f71f972ccecea3edb61295df8b5547626209810ce8bd00ed",
+    "packages/secure-tax-client/public-config.mjs": "815fc95f6355b13808feefe51333533740c8922fe32e54edd1e2d17a61617213",
+    "packages/tax-engine/form-years.mjs": "f4fc2d31bb6b28924c485e958fa1bd4650a785755cf24ffaea4d291c2ce8d216",
+    "packages/tax-engine/index.mjs": "341ffff06e71dbfd4ee8387367b18c216087cb06f2b147595b81eb2c45539a70",
+    "packages/tax-engine/pdf.mjs": "82fe408a5d10666e84b8b3d768716fd76d65b274a35e83f7d8c802e79d5f4802",
+    "packages/tax-engine/state-ny-eic-calculation.mjs": "a23a8c39488cb5e15fe741ecdd4dfcda8b929ac12e63e2e16fd210a1cab01276",
+    "packages/tax-engine/state-ny-eic-maps.mjs": "96f0c851775a8345ca90369f6c065dbed8e75a67374fa3db6dad13148b8f2385",
+    "packages/tax-engine/state-ny-eic-model.mjs": "788688952c4af1b1104e60b0728b4ac79511900ff31046ec90918dfe39438843",
+    "packages/tax-engine/state-ny-eic-noncustodial.mjs": "b6ea594ebf4c4b70db9508861c1e4148769bf973b0b1058fc306dc29f917ce20",
+    "packages/tax-engine/state-ny-eic-pdf.mjs": "ba0e60188fd38a1e71381bb45edc42efd0dea85193375b6bd8f9deab179b204d",
+    "packages/tax-engine/state-ny-eic-sources.mjs": "e425a4c85d8acdcbf779e9e6d3776c7336fb048d481737891de57b1f2a2d8c94",
+    "packages/tax-engine/state-ny-eic.mjs": "0b3377c996c12b2243a1d4376cfa1fefe09e26bd516b3affad6242b3deec2384",
+    "packages/tax-engine/state-ny-model.mjs": "dcfd024b7ad4bfd5c03402637ae7140613be95823b853d2acf644741e06b5818",
+    "packages/tax-engine/state-ny.mjs": "a8ef485afd5b1067615da2c62f8e0a8fa337505c20e32da201de42319e958674",
+    "scripts/secure-staff-http-check.mjs": "53765ef30987ffc36f3da1d45e08aa02ce7bd18f427ce2e0a7e79341cd793014",
+    "scripts/tax/ny-eic-http-proof.mjs": "b253170ebf9187c129448b40bc8a3540192cf15f440faa845daf07340245a6f9",
+    "scripts/tax/qualification-report.mjs": "b87bcedfeb4375e754721487732e2ad4d43bf2f10629dd1e3cdbebb173222b60",
+    "scripts/tax/verify_browser_artifact.mjs": "2924d75fe74bf6831becf146e59e4d729617614836631ccacbee59897697a1bf"
+  },
+  "verification": {
+    "suite": {
+      "tests": 637,
+      "passed": 636,
+      "failed": 0,
+      "skipped": 1,
+      "skip": "Pre-existing optional native Journal dependency"
+    },
+    "compiledSyntheticHttp": {
+      "checks": 819,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "returns": 32,
+      "exports": 35,
+      "newNyCases": [
+        {
+          "year": 2023,
+          "scenario": "ordinary",
+          "initialFederalEicCents": 58300,
+          "initialCredits": {
+            "65": 13000,
+            "66": 0,
+            "70": 14600
+          },
+          "correctedCredits": {
+            "65": null,
+            "66": null,
+            "70": 14600
+          },
+          "correctedSettlementKnown": false,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2023,
+          "scenario": "noncustodial",
+          "initialFederalEicCents": 58300,
+          "initialCredits": {
+            "65": 0,
+            "66": 145800,
+            "70": 0
+          },
+          "correctedCredits": {
+            "65": 13000,
+            "66": 0,
+            "70": 0
+          },
+          "correctedSettlementKnown": true,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2023,
+          "scenario": "noncustodial-federal-zero",
+          "initialFederalEicCents": 0,
+          "initialCredits": {
+            "65": 0,
+            "66": 52800,
+            "70": 0
+          },
+          "correctedCredits": {
+            "65": 0,
+            "66": 0,
+            "70": 0
+          },
+          "correctedSettlementKnown": true,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2024,
+          "scenario": "ordinary",
+          "initialFederalEicCents": 63200,
+          "initialCredits": {
+            "65": 14500,
+            "66": 0,
+            "70": 15800
+          },
+          "correctedCredits": {
+            "65": null,
+            "66": null,
+            "70": 15800
+          },
+          "correctedSettlementKnown": false,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2024,
+          "scenario": "noncustodial",
+          "initialFederalEicCents": 63200,
+          "initialCredits": {
+            "65": 0,
+            "66": 158000,
+            "70": 0
+          },
+          "correctedCredits": {
+            "65": 14500,
+            "66": 0,
+            "70": 0
+          },
+          "correctedSettlementKnown": true,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2024,
+          "scenario": "noncustodial-federal-zero",
+          "initialFederalEicCents": 0,
+          "initialCredits": {
+            "65": 0,
+            "66": 60900,
+            "70": 0
+          },
+          "correctedCredits": {
+            "65": 0,
+            "66": 0,
+            "70": 0
+          },
+          "correctedSettlementKnown": true,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2025,
+          "scenario": "ordinary",
+          "initialFederalEicCents": 64900,
+          "initialCredits": {
+            "65": 15000,
+            "66": 0,
+            "70": 16200
+          },
+          "correctedCredits": {
+            "65": null,
+            "66": null,
+            "70": 16200
+          },
+          "correctedSettlementKnown": false,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2025,
+          "scenario": "noncustodial",
+          "initialFederalEicCents": 64900,
+          "initialCredits": {
+            "65": 0,
+            "66": 162300,
+            "70": 0
+          },
+          "correctedCredits": {
+            "65": 15000,
+            "66": 0,
+            "70": 0
+          },
+          "correctedSettlementKnown": true,
+          "originalAndCorrectedPdfExported": true
+        },
+        {
+          "year": 2025,
+          "scenario": "noncustodial-federal-zero",
+          "initialFederalEicCents": 0,
+          "initialCredits": {
+            "65": 0,
+            "66": 65200,
+            "70": 0
+          },
+          "correctedCredits": {
+            "65": 0,
+            "66": 0,
+            "70": 0
+          },
+          "correctedSettlementKnown": true,
+          "originalAndCorrectedPdfExported": true
+        }
+      ],
+      "customerAndStaffReopened": true,
+      "correctedAndRestored": true,
+      "hostPlaintextMarkerAbsent": true,
+      "serverSourceChanged": false
+    },
+    "packagedClient": {
+      "modules": 211,
+      "publicPdfFetches": 128,
+      "exports": 31,
+      "sourceBytesMatched": 444,
+      "runtime": "NodeV8/JSDOM from actual packaged ESM; no browser runtime",
+      "absoluteSymlinkBuildVerified": true,
+      "newNyCases": [
+        {
+          "year": 2023,
+          "scenario": "ordinary",
+          "stateCreditCents": 13000,
+          "noncustodialCreditCents": 0,
+          "cityCreditCents": 14600,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit215"
+          ],
+          "bytes": 902793
+        },
+        {
+          "year": 2023,
+          "scenario": "noncustodial",
+          "stateCreditCents": 0,
+          "noncustodialCreditCents": 145800,
+          "cityCreditCents": 0,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit209"
+          ],
+          "bytes": 944457
+        },
+        {
+          "year": 2023,
+          "scenario": "noncustodial-federal-zero",
+          "stateCreditCents": 0,
+          "noncustodialCreditCents": 52800,
+          "cityCreditCents": 0,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit209"
+          ],
+          "bytes": 943319
+        },
+        {
+          "year": 2024,
+          "scenario": "ordinary",
+          "stateCreditCents": 14500,
+          "noncustodialCreditCents": 0,
+          "cityCreditCents": 15800,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit215"
+          ],
+          "bytes": 904914
+        },
+        {
+          "year": 2024,
+          "scenario": "noncustodial",
+          "stateCreditCents": 0,
+          "noncustodialCreditCents": 158000,
+          "cityCreditCents": 0,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit209"
+          ],
+          "bytes": 942453
+        },
+        {
+          "year": 2024,
+          "scenario": "noncustodial-federal-zero",
+          "stateCreditCents": 0,
+          "noncustodialCreditCents": 60900,
+          "cityCreditCents": 0,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit209"
+          ],
+          "bytes": 940929
+        },
+        {
+          "year": 2025,
+          "scenario": "ordinary",
+          "stateCreditCents": 15000,
+          "noncustodialCreditCents": 0,
+          "cityCreditCents": 16200,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit215"
+          ],
+          "bytes": 945771
+        },
+        {
+          "year": 2025,
+          "scenario": "noncustodial",
+          "stateCreditCents": 0,
+          "noncustodialCreditCents": 162300,
+          "cityCreditCents": 0,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit209"
+          ],
+          "bytes": 977835
+        },
+        {
+          "year": 2025,
+          "scenario": "noncustodial-federal-zero",
+          "stateCreditCents": 0,
+          "noncustodialCreditCents": 65200,
+          "cityCreditCents": 0,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2",
+            "nyit209"
+          ],
+          "bytes": 976671
+        },
+        {
+          "year": 2025,
+          "scenario": "unclaimed-child-needs-IT213",
+          "empireChildCreditUnresolved": true,
+          "stateEicCents": 97800,
+          "forms": [
+            "f1040",
+            "f1040sei",
+            "nyit201",
+            "nyit2",
+            "nyit215"
+          ],
+          "bytes": 1009009
+        }
+      ]
+    },
+    "primarySources": {
+      "nyInstructionAndFormPins": 14,
+      "it209NumericCells": 8760,
+      "it209Rows": 2923,
+      "terminalFootnotes": 9,
+      "additionalFamilyBoundaryPdfs": 2,
+      "sameProviderReview": true,
+      "independentProviderReview": false
+    },
+    "qualification": {
+      "checks": 227,
+      "sourcePins": 105,
+      "engineHashesMatched": 380,
+      "formsByYear": {
+        "2023": 29,
+        "2024": 29,
+        "2025": 30,
+        "2026": 3,
+        "2027": 0
+      },
+      "agencyQualification": false
+    },
+    "pathRepair": {
+      "productionEntrypoints": 7,
+      "encodedPathTestRepairs": 3,
+      "focusedChecksPassed": 27,
+      "actualCliOutputsVerified": true,
+      "browserOfflineCloudBuildersVerified": true
+    },
+    "custodyPackages": {
+      "offlineFiles": 417,
+      "offlineCurrentSourceMatches": 415,
+      "cloudFiles": 400,
+      "cloudCurrentSourceMatches": 399,
+      "closureAndLocalTemplateChecksPassed": true,
+      "initialized": false,
+      "provisioned": false
+    }
+  },
+  "limits": [
+    "Other New York family credits (IT-213/216/270), special earned income, separate status, mixed/part-year local residency and amended claims remain incomplete.",
+    "The2025 Empire State child rule can cover an unclaimed child; retained potential eligibility keeps line63/settlement unknown.",
+    "SCU effective periods181\u2013183days and unresolved successor-order continuity stay unknown; no calendar equivalence or official eligibility verification is invented.",
+    "OTDA six-month supporting research and TAX606 statutory reference lack original byte pins; downloaded annual instruction/form pins are separately verified.",
+    "Missing noncustodial source review can keep prior saved NY returns unresolved despite federal EIC0.",
+    "No2026/2027 annual state pack is inferred; federal annual materials remain partial.",
+    "Synthetic arithmetic, original form geometry and source checks are not agency approval, independent security certification or installed-office acceptance."
+  ],
+  "installedServiceChanged": false,
+  "realCustomerDataUsed": false,
+  "offhostCustodyVerified": false,
+  "agencySubmissionAttempted": false,
+  "agencyApproval": false,
+  "visualAcceptance": false,
+  "releaseReady": false
+}

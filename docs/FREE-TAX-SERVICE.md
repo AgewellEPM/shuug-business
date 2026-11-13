@@ -102,6 +102,24 @@ specified child-supplement uncertainties remain open. Newer state years require
 their own annual packs; validated 2026/2027 source intake is retained. These
 changes do not establish filing approval or change the installed service.
 
+November 13 New York continuation connects **2023–2025 IT-215 and IT-209**:
+ordinary state/NYC EIC, the household-credit adjustment and city rate worksheet,
+and a separately sourced noncustodial-parent alternative. Original child/support
+records and independent combat-pay elections save and reopen in the encrypted
+editor. The selected credit flows to IT-201 lines65/66, with NYC on line70; the
+larger state claim is chosen without claiming both. Original annual schedules
+and continuations are included in the draft packet. Missing noncustodial sources
+can keep an older return unresolved even when its federal EIC is zero.
+See [New York EIC scope](../packages/tax-engine/NEW-YORK-EIC.md) and
+[original PDF coverage](../packages/tax-engine/NY-EIC-PDF.md), with
+[integration evidence](verification/ny-eic-20261113.json).
+Other family credits remain separate requirements: the 2025 Empire State child
+rules can cover a retained child without a federal dependent claim, so that
+potential credit now keeps line63 and settlement unresolved until reviewed and
+calculated. Support-order calendar boundaries, special income, separate filing
+status and newer annual packs remain explicit limits. No agency filing or
+installed rollout has occurred.
+
 ## Already implemented
 
 - Owner/staff/client MFA, encrypted device backups, signed enrollment, per-device

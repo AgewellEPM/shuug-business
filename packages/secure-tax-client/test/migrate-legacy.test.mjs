@@ -6,6 +6,7 @@ import {DatabaseSync} from 'node:sqlite';
 import {spawnSync} from 'node:child_process';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../firm-recovery.mjs';
 import {generateRecipientKeyPair,publicKeyId,openEnvelope} from '../envelope.mjs';
 import {prepareLegacyMigration} from '../migrate-legacy.mjs';
@@ -139,7 +140,7 @@ test('offline CLI requires explicit copied-backup/offhost inputs and never uploa
  const value=await fixture();
  try{
   const file=name=>path.join(value.directory,name);for(const [name,data] of [['firm.json',value.bundle],['pins.json',value.publicPins],['manifest.json',value.manifest],['expected.json',value.expected]])writeFileSync(file(name),JSON.stringify(data));
-  const cli=new URL('../migrate-legacy-cli.mjs',import.meta.url).pathname,args=['--confirm-off-host','--confirm-copied-backup','--backup',value.backup,'--backup-manifest-sha256',value.options.backupManifestSha256,'--bundle',file('firm.json'),'--public-pins',file('pins.json'),'--manifest',file('manifest.json'),'--expected',file('expected.json'),'--passphrase-fd','0','--out',value.options.outputDirectory];
+  const cli=fileURLToPath(new URL('../migrate-legacy-cli.mjs',import.meta.url)),args=['--confirm-off-host','--confirm-copied-backup','--backup',value.backup,'--backup-manifest-sha256',value.options.backupManifestSha256,'--bundle',file('firm.json'),'--public-pins',file('pins.json'),'--manifest',file('manifest.json'),'--expected',file('expected.json'),'--passphrase-fd','0','--out',value.options.outputDirectory];
   const run=values=>spawnSync(process.execPath,[cli,...values],{input:pass+'\n',encoding:'utf8',maxBuffer:4096});
   assert.equal(run(args.slice(1)).status,1);const result=run(args);assert.equal(result.status,0,result.stderr);assert.deepEqual(JSON.parse(result.stdout).supportedCounts,{driverRecords:3,linkedDriverReceipts:1,submittedTaxDocuments:1});
   assert(!result.stdout.includes('000-12-3456'));assert.equal(existsSync(path.join(value.backup,'vault.key')),true);assert.equal(run(args).status,1);

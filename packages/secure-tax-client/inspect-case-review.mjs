@@ -41,7 +41,8 @@ export async function inspectCaseReview({pinsFile,kitFile,output}){
     return {ok:true,files:selectedFile?4:3,kitSha256,candidateCopies:true,fieldsReviewed:false,encryptedCorrespondenceVerified:false,approvalCreated:false,uploaded:false,warning};
   }catch(error){if(owned)await rm(output,{recursive:true,force:true});throw error;}finally{bytes.fill(0);evidenceBytes?.fill(0);}
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(await realpath(path.resolve(process.argv[1]))).href){
+const isMain=Boolean(process.argv[1])&&await realpath(path.resolve(process.argv[1])).then(file=>import.meta.url===pathToFileURL(file).href,()=>false);
+if(isMain){
   const usage='Use --public-pins FILE --kit PRIVATE_KIT.json --out NEW_PRIVATE_DIRECTORY';
   try{
     const args=process.argv.slice(2),options=new Map(),names=['--public-pins','--kit','--out'];

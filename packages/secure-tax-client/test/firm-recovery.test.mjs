@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,writeFileSync,readFileSync,statSync,rmSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest,recoverFirmObject} from '../firm-recovery.mjs';
 import {generateRecipientKeyPair,publicKeyId,sealEnvelope,verifyEnrollmentManifest} from '../envelope.mjs';
@@ -37,7 +38,7 @@ test('encrypted offhost keys sign client-bound manifests and recover a real encr
 });
 test('offline CLI requires offhost acknowledgement, writes private exclusive files and recovers only explicit input',async()=>{
  const directory=mkdtempSync(path.join(tmpdir(),'synthetic-firm-recovery-'));
- const file=n=>path.join(directory,n),cli=new URL('../offline-cli.mjs',import.meta.url).pathname;
+ const file=n=>path.join(directory,n),cli=fileURLToPath(new URL('../offline-cli.mjs',import.meta.url));
  const run=(args,input=pass+'\n')=>spawnSync(process.execPath,[cli,...args],{input,encoding:'utf8',maxBuffer:4096});
  const common=['--confirm-off-host','--passphrase-fd','0','--bundle',file('bundle.json'),'--public-pins',file('pins.json')];
  try{

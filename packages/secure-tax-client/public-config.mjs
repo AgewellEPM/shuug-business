@@ -1,6 +1,6 @@
 // Converts independently approved PUBLIC pins for each distribution target.
 // No private bundle is accepted, read or created by this tool.
-import {readFile,mkdir,open,unlink,rmdir} from 'node:fs/promises';
+import {readFile,mkdir,open,unlink,rmdir,realpath} from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {validateTrustedConfig} from './browser/config.mjs';
@@ -27,7 +27,8 @@ export async function writePublicConfiguration(configuration,output){
  }catch(error){for(const file of created){try{await unlink(file);}catch{}}try{await rmdir(output);}catch{}throw error;}
  return {output,privateKeysIncluded:false,activationPerformed:false};
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
+const isMain=Boolean(process.argv[1])&&await realpath(path.resolve(process.argv[1])).then(file=>import.meta.url===pathToFileURL(file).href,()=>false);
+if(isMain){
  try{
   const args=process.argv.slice(2),values={};
   for(let i=0;i<args.length;i+=2){const name=args[i];if(!['--pins','--api-origin','--ui-origin','--output'].includes(name)||!args[i+1]||values[name])throw new Error('Invalid public configuration arguments.');values[name]=args[i+1];}

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtempSync,writeFileSync,readFileSync,rmSync,existsSync,statSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
+import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest,recoverFirmObject} from '../firm-recovery.mjs';
 import {generateRecipientKeyPair,publicKeyId,sealEnvelope,openEnvelope,encode64,decode64} from '../envelope.mjs';
@@ -105,7 +106,7 @@ test('new-process offhost CLI reissues a lost-device grant/capsule, revokes the 
   const f=await fixture(),replacement=await generateRecipientKeyPair(),directory=mkdtempSync(path.join(tmpdir(),'synthetic-staff-recovery-'));
   const past=Date.now()-3*86400000,priorValidAt=new Date(past+1000).toISOString();
   f.grant=await signStaffGrant(f.request,f.unlocked,{grantId:f.grant.grantId,epoch:1,validDays:1,now:past,domains:['tax-document']});
-  const file=name=>path.join(directory,name),cli=new URL('../staff-offline-cli.mjs',import.meta.url).pathname;
+  const file=name=>path.join(directory,name),cli=fileURLToPath(new URL('../staff-offline-cli.mjs',import.meta.url));
   const common=['--confirm-off-host','--passphrase-fd','0','--bundle',file('bundle.json'),'--public-pins',file('pins.json')];
   const run=args=>spawnSync(process.execPath,[cli,...args],{input:password+'\n',encoding:'utf8',maxBuffer:4096});
   const request={...f.request,staff:{keyId:await publicKeyId(replacement.publicKey),publicKey:replacement.publicKey}},expected={...f.expected,staffKeyId:request.staff.keyId};

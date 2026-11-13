@@ -1,0 +1,1081 @@
+{
+  "pages": 2,
+  "sizes": [
+    {
+      "width": 612,
+      "height": 792
+    },
+    {
+      "width": 612,
+      "height": 792
+    }
+  ],
+  "fields": [
+    {
+      "name": "Your last name",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 36,
+            "y": 660,
+            "width": 399,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Your SSN",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 435,
+            "y": 660,
+            "width": 141,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 1",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 518.5,
+            "y": 639,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561.5,
+            "y": 639,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "Line 2",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 518.5,
+            "y": 604.589,
+            "width": 14.089000000000055,
+            "height": 10.410999999999945
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561.5,
+            "y": 604,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "Line 3",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 518.5,
+            "y": 579,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561.5,
+            "y": 579,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "Line 5",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 518,
+            "y": 330.5,
+            "width": 14,
+            "height": 9.5
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 562,
+            "y": 330.5,
+            "width": 14,
+            "height": 9.5
+          },
+          "onValue": "No"
+        }
+      ]
+    },
+    {
+      "name": "6 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 306,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "7 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 294,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 282,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "8 ein15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 240,
+            "y": 270,
+            "width": 108,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "9 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 258,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "10 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 246,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "12 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 222,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "13 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 360,
+            "y": 198,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "14 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 360,
+            "y": 186,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "15 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 174,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "16 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 162,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "18 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 660,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "19 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 648,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "20 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 624,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "21 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 612,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "22 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 552,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "23 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 378,
+            "y": 528,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "24 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 378,
+            "y": 504,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "25 first number15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 480,
+            "width": 90,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "26 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 468,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "27 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 408,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "28a dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 363,
+            "y": 372,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "28b dollars",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 372,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worksheet B 1 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 324,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worksheet B 2 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 378,
+            "y": 312,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worksheet B 3 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 378,
+            "y": 300,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worksheet B 4 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 289,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "Worksheet B 5 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 1,
+          "rect": {
+            "x": 486,
+            "y": 276,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 486,
+            "y": 138,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "17 federal adjusted gross income dollars15",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 360,
+            "y": 126,
+            "width": 78,
+            "height": 10
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34fn1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 72.5,
+            "y": 533,
+            "width": 120.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34mi1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 193,
+            "y": 533,
+            "width": 17.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34ln1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 210.5,
+            "y": 533,
+            "width": 204.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34suf1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 414.5,
+            "y": 533,
+            "width": 23.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34real1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 438.5,
+            "y": 533,
+            "width": 137.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "month1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 123,
+            "y": 509,
+            "width": 20.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34student1",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 186.643,
+            "y": 512,
+            "width": 12,
+            "height": 12
+          },
+          "onValue": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "ln34disability1",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 251.893,
+            "y": 512,
+            "width": 11.999999999999972,
+            "height": 12
+          },
+          "onValue": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "ln34ssn1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 270.5,
+            "y": 509,
+            "width": 95.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34birth1",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 366.5,
+            "y": 509,
+            "width": 84,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34fn2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 72.5,
+            "y": 485,
+            "width": 120.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34mi2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 193,
+            "y": 485,
+            "width": 17.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34ln2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 210.5,
+            "y": 485,
+            "width": 204.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34suf2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 414.5,
+            "y": 485,
+            "width": 23.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34real2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 438.5,
+            "y": 485,
+            "width": 137.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "month2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 123,
+            "y": 461,
+            "width": 20.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34student2",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 186.643,
+            "y": 464,
+            "width": 12,
+            "height": 12
+          },
+          "onValue": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "ln34disability2",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 251.893,
+            "y": 464,
+            "width": 11.999999999999972,
+            "height": 12
+          },
+          "onValue": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "ln34ssn2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 270.5,
+            "y": 461,
+            "width": 95.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34birth2",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 366.5,
+            "y": 461,
+            "width": 84,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34fn3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 72.5,
+            "y": 437,
+            "width": 120.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34mi3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 193,
+            "y": 437,
+            "width": 17.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34ln3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 210.5,
+            "y": 437,
+            "width": 204.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34suf3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 414.5,
+            "y": 437,
+            "width": 23.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34real3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 438.5,
+            "y": 437,
+            "width": 137.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "month3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 123,
+            "y": 413,
+            "width": 20.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34student3",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 186.643,
+            "y": 416,
+            "width": 12,
+            "height": 12
+          },
+          "onValue": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "ln34disability3",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 251.893,
+            "y": 416,
+            "width": 11.999999999999972,
+            "height": 12
+          },
+          "onValue": "Yes"
+        }
+      ]
+    },
+    {
+      "name": "ln34ssn3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 270.5,
+            "y": 413,
+            "width": 95.5,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "ln34birth3",
+      "type": "PDFTextField",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 366.5,
+            "y": 413,
+            "width": 84,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "Line 1a",
+      "type": "PDFCheckBox",
+      "widgets": [
+        {
+          "page": 0,
+          "rect": {
+            "x": 518.5,
+            "y": 626.597,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "Yes"
+        },
+        {
+          "page": 0,
+          "rect": {
+            "x": 561.5,
+            "y": 626.597,
+            "width": 14.5,
+            "height": 10
+          },
+          "onValue": "No"
+        }
+      ]
+    }
+  ]
+}

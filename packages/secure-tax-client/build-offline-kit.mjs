@@ -1,4 +1,4 @@
-import {readFile,readdir,mkdir,writeFile,lstat,rm} from 'node:fs/promises';
+import {readFile,readdir,mkdir,writeFile,lstat,rm,realpath} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
@@ -116,4 +116,5 @@ export async function buildOfflineKit(output){
   try{await mkdir(output,{mode:0o700});owned=true;for(const file of contents){const destination=path.join(output,file.path);await mkdir(path.dirname(destination),{recursive:true,mode:0o700});await writeFile(destination,file.bytes,{mode:0o600,flag:'wx'});}await writeFile(path.join(output,'kit-manifest.json'),JSON.stringify(manifest,null,2)+'\n',{mode:0o600,flag:'wx'});}
   catch(error){if(owned)await rm(output,{recursive:true,force:true});throw error;}return manifest;
 }
-if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){const args=process.argv.slice(2);if(args.length!==2||args[0]!=='--output')throw new Error('Usage: node build-offline-kit.mjs --output /new/absolute/directory');const result=await buildOfflineKit(path.resolve(args[1]));console.log(JSON.stringify({ok:true,files:result.files.length,initialized:false,containsPrivateKeys:false}));}
+const isMain=Boolean(process.argv[1])&&await realpath(path.resolve(process.argv[1])).then(file=>import.meta.url===pathToFileURL(file).href,()=>false);
+if(isMain){const args=process.argv.slice(2);if(args.length!==2||args[0]!=='--output')throw new Error('Usage: node build-offline-kit.mjs --output /new/absolute/directory');const result=await buildOfflineKit(path.resolve(args[1]));console.log(JSON.stringify({ok:true,files:result.files.length,initialized:false,containsPrivateKeys:false}));}
