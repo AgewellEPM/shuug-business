@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T08:46:26.048Z",
+  "state": "KY",
+  "city": "Elizabethtown",
+  "directoryCandidates": 31,
+  "registryMatches": 1,
+  "selectedNameAndAddressVerified": true,
+  "selectedProfileIDRoundTrip": true,
+  "officialCurrentOfficerNamesAndRolesVerified": true,
+  "principals": 2,
+  "registeredAgents": 1,
+  "lastAnnualReport": "6/10/2026",
+  "principalSourceRetainedInResearch": true,
+  "automaticRecordRegions": 12,
+  "automaticLocalDiscoveryRegions": 10,
+  "websiteSuggestions": 1,
+  "websiteSearchStatus": "results",
+  "savedRecordsUnchanged": true,
+  "messagesSent": 0,
+  "ownerAutomaticallyVerified": false,
+  "limits": "One selected directory office and profile. Kentucky town-wide registry discovery remains unavailable; sole proprietors, confirmed owners, complete contacts, email deliverability and human visual acceptance are not established. No bulk subscription, document purchase or real CRM write."
+}

@@ -1,0 +1,3927 @@
+{
+  "ok": true,
+  "preparedAt": "2026-11-13T08:42:03.877Z",
+  "baselineDeployment": "dpl_NPxFM3W5HphmKtzY4AshCiSTYnyP",
+  "preparedOutput": "/private/tmp/gigtax-kentucky-20261113/release/.vercel/output",
+  "projectId": "prj_bOMkaHb4SWjMAgwXfEJa7mQfjRrz",
+  "orgId": "team_KbZcSA3vllTFUuB0DJJVeW83",
+  "baselineVerifiedArtifacts": 686,
+  "existingRoutesHeadersCspPreserved": true,
+  "privateMapRoute": {
+    "src": "/sales(?:\\.html)?",
+    "headers": {
+      "Content-Security-Policy": "default-src 'self'; script-src 'self' 'sha256-4P79tkIohrc+CfISoW2yzEMBS1YG/Lnu5kEBQ3sBxMw=' 'sha256-8ZBbm5Lgyu/3sd1wS6FQ/UJ1rJnrWwNTWb5c/DBcYGs=' 'sha256-9rpzqQvYv0DrRH2dm5Z+C0lrfuPou1ylUmg9PQa2LVc=' 'sha256-Aeibop/ZVua9rVxnNEZkuMb/sYQjDhvzNkWGpqNZuUY=' 'sha256-Bt4sRfsOUnz2DfW7U5BUFHfjINC3IeQbQZx5GqRUHXQ=' 'sha256-Dnox6PX8RFIyZfbHqRk5ILFOQ9Mei4kLjNjxTOIvaMU=' 'sha256-GeDC4rkRvq8aDRU6NnXsPlE0c0Irm3YaTtI93PWhJlo=' 'sha256-H04AT/aFFcONTJ7qvZrM1jR5GvqiIIKnOdckYyC7sAE=' 'sha256-IbewftagnC09izul/Vh/NoMd3kbG0OOHDDmnOi5NcLo=' 'sha256-Kz0jCV4zERnAE/Hc4pcmWhOUNh9TnW7xqH4STJuskuw=' 'sha256-NgyIE7RIpdT4htGNGIxZkc9r6qqhLGNlGlGNkcfYCmg=' 'sha256-Q3jU/0js5rmXYQg22XYHEIVySe6+FtIy/TA8m7Fke0Y=' 'sha256-Qiw9gycmkU6OnLgwDKIiY4fBCgSMPgEdHOZpWCq47tw=' 'sha256-VwaJCTNOZc6XEHWDvykLWuV24vC6JZSrJ0LBgIlEkcA=' 'sha256-cgUmpZH42taAVnXMbcr9PZeZgW7dFYoAIKhurjMdC7U=' 'sha256-eNsU1xi9zSFARQCn+Ru11QBN74mWhh9iCKRQ7aCMGgg=' 'sha256-gKVlFbXF7CBHc9gzoL1zRXjZnlaLh81nFojV7zpVASM=' 'sha256-jqOc8Eh6xersH9+DNB1h1aFwu1QWfQ8HWVgkbFCXEpM=' 'sha256-qPeEd6rifHv6aPWnNYAZi3qmhHOB7UEtoLr3pzWaLps=' 'sha256-uPj1nc0MyBQGoW1g1KHWxwQdZ5Is7SB4eq1SqIbdfyE=' 'sha256-vE0dMsl1z7zAAfHLpVvM16TNgBGfA+McgzCE0oREgzE=' 'sha256-wSpKc7p/QA5dZ/fiUKqB+7iZamydnuSyGnPKuCDRbJU=' 'sha256-xdF4+96AJtuBYlN3saPsOGnI2zmnccgGlGyDZHKl7VE='; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'self'; frame-ancestors 'none'; form-action 'self'"
+    },
+    "continue": true
+  },
+  "workflowReadChecks": true,
+  "revenueReadChecks": true,
+  "localMapReadChecks": true,
+  "localContactReadChecks": true,
+  "changed": [
+    "functions/api/offices.func/registry-catalog.mjs",
+    "functions/api/offices.func/state-registry.mjs",
+    "functions/api/sales-mail-webhook.func/registry-catalog.mjs",
+    "functions/api/sales-mail-webhook.func/state-registry.mjs",
+    "functions/api/sales-webhook.func/registry-catalog.mjs",
+    "functions/api/sales-webhook.func/state-registry.mjs",
+    "functions/api/sales.func/registry-catalog.mjs",
+    "functions/api/sales.func/state-registry.mjs"
+  ],
+  "added": [
+    "functions/api/offices.func/registry-kentucky.mjs",
+    "functions/api/sales-mail-webhook.func/registry-kentucky.mjs",
+    "functions/api/sales-webhook.func/registry-kentucky.mjs",
+    "functions/api/sales.func/registry-kentucky.mjs"
+  ],
+  "removed": [],
+  "protectedPublic": [
+    {
+      "path": "static/.well-known/apple-app-site-association",
+      "sha1": "07e815340879c78ac6dcc8fdbecb4ac6c663454c",
+      "sha256": "8ea65b26b48b4d2fd8488b341fd24fe3dcd4777b6f976bae0f7663b13c619cd6"
+    },
+    {
+      "path": "static/404.html",
+      "sha1": "580ad0c1935fee30f87d2f104067b5fa5950b308",
+      "sha256": "9dd14c69049140b8893d9b3cdef9c94fc01453dbb9d7594fd570bf4de8ae4142"
+    },
+    {
+      "path": "static/about-the-app.html",
+      "sha1": "09a1904e1fe03287be0c7a854731d24dea46b73a",
+      "sha256": "a5ae946d012455824a0e0eac0990d1339e08c91d277f01d0e38f5b0e0ff83e71"
+    },
+    {
+      "path": "static/about.css",
+      "sha1": "1fba8f327897d4700d1f0b11e5bbdd76d8133e35",
+      "sha256": "9af2946e6841b154addefc5141d9c653dc48dcdf2fac599d63bdec0e3bb05a10"
+    },
+    {
+      "path": "static/about.html",
+      "sha1": "0bd85d4fb09d2d617dee9371689975d457cdf00f",
+      "sha256": "df6aa078dc635ffb3db2d4a426259b01e54861ade7e2cf77413e7a73a215dbfe"
+    },
+    {
+      "path": "static/accessibility.html",
+      "sha1": "f6964d4f773f40ab5737691f6c7cfe41c92acd65",
+      "sha256": "50a0e138cfb06c970b7e3151214ab3c010516e276ed0155a275e4a0bbe2ca42a"
+    },
+    {
+      "path": "static/app-download.css",
+      "sha1": "db2705d7edac47e9e55605bf49bc7c37f200fa2b",
+      "sha256": "240fd171609dcb793878963704750afe4758ef3a57d31eb496b806e55534bc5c"
+    },
+    {
+      "path": "static/app-download.js",
+      "sha1": "3b6bb4a63c289bd56c79b970aba6da5aec1d55a0",
+      "sha256": "629c9760308502e7afd874f2987df0aacb9993b1878168e55648968756a84197"
+    },
+    {
+      "path": "static/app.js",
+      "sha1": "002a962480fa7af68c1968e5de3b6f85d0326c7b",
+      "sha256": "ef7a2e8e3ea963c95c01a6f3560d9d7634d5b1ee97f6dd45b5fd3a0960eff402"
+    },
+    {
+      "path": "static/assets/about-reference.png",
+      "sha1": "22b7ca4ce7ad93489824a2744721ef4216cf81ea",
+      "sha256": "34860a030042946926d629e4c2460663752190d7e7e34aaba4d2a398b7c1a018"
+    },
+    {
+      "path": "static/assets/app-download-qr.svg",
+      "sha1": "2e45b4b3fdf1945eba199103c67d4048b25990d4",
+      "sha256": "d37c585c1593df2b60417d7aaf379c01a2c010830a9343281996cdf70a4086a1"
+    },
+    {
+      "path": "static/assets/app-download-reference.png",
+      "sha1": "43d041dbedd50b96921514fc6d2f2caf838bebd4",
+      "sha256": "547e445e19841d58d6ba43718e51410f53ae01913af145b6f799e0b600c636a6"
+    },
+    {
+      "path": "static/assets/artwork.png",
+      "sha1": "9542c99ba9e74cfdd2352ae87d0ec6ca49017f99",
+      "sha256": "c3297662e50f448c01622cd75ad9cd0f82e8d87a6b0c108d42334202bb43f042"
+    },
+    {
+      "path": "static/assets/brand-mark.svg",
+      "sha1": "3397bf910cb4a6e482c30404188752e5c77c3f1d",
+      "sha256": "a87a16639ce5b0cbb7b1673cdea742838d80c72c668d0a43263b1713242f48f2"
+    },
+    {
+      "path": "static/assets/drivers-reference.png",
+      "sha1": "aaadddc72ad22f2875e47690db161f55b7babf16",
+      "sha256": "1d52c47ae25f0a0df8407915789f1b8d029d31edb4b40f458025537f372442c4"
+    },
+    {
+      "path": "static/assets/get-the-app-reference.png",
+      "sha1": "7c6589de73726c8616ddde6dcf03ec1e3a3cb701",
+      "sha256": "3764246c956a7dc159294c288ee8df554421bba245918f4f73f466b78a4405e4"
+    },
+    {
+      "path": "static/assets/how-it-works-reference.png",
+      "sha1": "798406d6a56f991f84c4c04c8f801bfcf9bb1d1a",
+      "sha256": "ba5209b599548401d09e7f6b25c2a6ae8584858ab07d759ba3f9eccde2307caa"
+    },
+    {
+      "path": "static/assets/platforms/SOURCES.md",
+      "sha1": "464c7ef2781c7e7b67d663bad0994fa929045cd6",
+      "sha256": "4d4fed46e53c09d042fc93318d72dc57a2b36800b8711ccb343157367a2217c5"
+    },
+    {
+      "path": "static/assets/platforms/amazon-flex.svg",
+      "sha1": "d3eaebed08f963b247d8c4b11cd314cd0c357622",
+      "sha256": "8f1aa3e0a9d61f1af69e7217d52b42c38c2584a2683d95e826d5eada7f20375b"
+    },
+    {
+      "path": "static/assets/platforms/doordash.svg",
+      "sha1": "285b9753f5232734b24fb91ea97c271a38894a88",
+      "sha256": "b9d8db015ff3ef814caead4592305c5bd07e66e7a9261dfc1fa98f9e93327fb0"
+    },
+    {
+      "path": "static/assets/platforms/instacart.svg",
+      "sha1": "ada4ef5475ae55bd49653a244be0db2b7e700b8b",
+      "sha256": "49213a467707e0f1f40af1086da270d36979f2ca2460b37bdc781e267d1358be"
+    },
+    {
+      "path": "static/assets/platforms/lyft.png",
+      "sha1": "da0f90d13420bf9e9245a21dd43b7717f2e7d13b",
+      "sha256": "89e57382b3b451c2e4204a2e49c7d3c7d450d225a0482a8ae8c6925a65eaa521"
+    },
+    {
+      "path": "static/assets/platforms/uber.svg",
+      "sha1": "021f52e8447d09d5113eb2b29c813d75aee1f6f8",
+      "sha256": "315ee2c791e47289844f059e1f403c1f43ad167b9e37dbb77151553fdee74eae"
+    },
+    {
+      "path": "static/assets/services-reference.png",
+      "sha1": "2fcdec0ea6d2cfc43a8ed5a8554f0046b3d06aaf",
+      "sha256": "99a98e22cc530a3c5da112dd202689a9371a3b3b6610aa1fe8c260872c628c94"
+    },
+    {
+      "path": "static/assets/us-national-vision.svg",
+      "sha1": "b7952bdf393eeaee49c193c0f237fd28ebf3d520",
+      "sha256": "272385770da0b997ee9ea6cfa86fd35f8ff3316f305b6e6f8faad386d8c48e0e"
+    },
+    {
+      "path": "static/bank-return.html",
+      "sha1": "2647aeffc1d6d56612e3d2a506e9a1f319655bfe",
+      "sha256": "53a8dd6a563523ab5b3ee67128829de8f4d003f23c958d7cf40de55394aee650"
+    },
+    {
+      "path": "static/bookkeeping.html",
+      "sha1": "7dbec374008e523925ccc2a788d2985603087eab",
+      "sha256": "b772c427e6ced859a5c73b2513a8f226e0517e471da9c16519b4da702efb9241"
+    },
+    {
+      "path": "static/client-portal.html",
+      "sha1": "f5bb7c9996bbd0332fb1a06d91d148861b85db4a",
+      "sha256": "b2cae8961ddb09093bbea8bf328c0852e37f33927b5657388d92a32e3d10951c"
+    },
+    {
+      "path": "static/contact.html",
+      "sha1": "3a4e7f372ceb47a9435416e6bee094dfb2dc3a1d",
+      "sha256": "542324f74235d3d49a95b7b237d1a01c78bfd81390b6dc9cc1fb814b545158c0"
+    },
+    {
+      "path": "static/contract-signature.js",
+      "sha1": "422904550fddf57c569a40ce12df84d8450f4d2a",
+      "sha256": "a696a7d4cdd43e9e0773b665e3004a83f66f1f2c8614ed66940c725c690f1ee7"
+    },
+    {
+      "path": "static/directory-admin.js",
+      "sha1": "38c58a09128c5173b288a412d01bf1423a0cf126",
+      "sha256": "c1568ca26b68e99e633822b80763bea34de59f1b9a85a2d78c2e06d846cdfce0"
+    },
+    {
+      "path": "static/document-checklist.html",
+      "sha1": "00d954994f647aedbdd728164378ffb93fcd3253",
+      "sha256": "81c422ec18654b3a9e8520cd2b34039a68e287907c3e831e37ce349c78ef0bca"
+    },
+    {
+      "path": "static/drivers.css",
+      "sha1": "9a5db8852ef8fcb9a96923ce965d23d25ef77c7c",
+      "sha256": "5d13b7577e378bf237b16479b6a585b337ab6c0354d481927b728d85b9460e00"
+    },
+    {
+      "path": "static/drivers.html",
+      "sha1": "3b42c07d49de9ec1e74ebda2ad988665f20543e2",
+      "sha256": "68819ac3db2cac0380daefb4901b39c00158e23f7ec71621fd6d190bb54ccefe"
+    },
+    {
+      "path": "static/faq.html",
+      "sha1": "8b829ab30cc71666ba0a1925797aa38b172d0d81",
+      "sha256": "521fba99a6fe9a561f4bca5db723a17f5ac6f0e2601461b480cdfe51b5ba898e"
+    },
+    {
+      "path": "static/favicon.svg",
+      "sha1": "ff23d42d3cd289e5827516c4207fc0c89884ebab",
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "path": "static/free.html",
+      "sha1": "c49551378068c26483c07de34cf801cbc2413710",
+      "sha256": "812c73672feb0f0098d7f67add01af8a558cf8eaf8ecb1525908917ae05440d0"
+    },
+    {
+      "path": "static/get-started.html",
+      "sha1": "b9365f648dc7a5965745fe78102f240e794ac578",
+      "sha256": "e4e9914aadfd10de43e70ebd668e953947c886e7ba2383b35b3832b434bca094"
+    },
+    {
+      "path": "static/get-the-app.css",
+      "sha1": "6c66e78b1c3676817a5187ba5846b608f0eeeac0",
+      "sha256": "8794fbd898c5c752f27fc26576bf513bef38f91d756d4bb49ace23c921d4d870"
+    },
+    {
+      "path": "static/get-the-app.html",
+      "sha1": "2321529102ced23b46921f5c43b70d523ef7fc85",
+      "sha256": "f14bd074910e14bd623f39863adf12a4b5fd991d8a6b2a135ca6b19ba29f7ddc"
+    },
+    {
+      "path": "static/get-the-app.js",
+      "sha1": "910e2a29bc2ebb4a85819257a8a6a17f23dfd493",
+      "sha256": "f50aab3a67e101903c99ddb2a9aa9b05642a99d950653bccbb03c02bfd3248a1"
+    },
+    {
+      "path": "static/guides/uber-lyft-tax-forms.html",
+      "sha1": "7a4aa7ef6ed7e3f7056dd290e8701897fbeed2e8",
+      "sha256": "dbbae386ce281ac21e7ad1bc53bdb9a7703b78e86ec69bd0352d3e9a3434d260"
+    },
+    {
+      "path": "static/hero-mobile.css",
+      "sha1": "229d76a30e148f0292f10c34a11b0aa2e3f8de74",
+      "sha256": "a09a844c04e7ea3e1f40c3a98a8c344277e42a034c91bcefd8a97fb18d932c2f"
+    },
+    {
+      "path": "static/hero-parallax.js",
+      "sha1": "e578cf861ccce72ba69e797ec638ec2e3f5f5de3",
+      "sha256": "bc18e06f16a2f8e6a1d909e1b56e4cd209e65a76e02ac01cbdcf5477347a13a5"
+    },
+    {
+      "path": "static/home-tour.css",
+      "sha1": "6a5ea9cad278e8f31538daaf740e4ecae993efb5",
+      "sha256": "d2c07376ca2a5c5e92774f2b80c511a1c36583f38971f84cbafc457fe28eddd7"
+    },
+    {
+      "path": "static/home-tour.js",
+      "sha1": "1a106c58ac415e4d4d1a6da2525cf3cc7526b957",
+      "sha256": "21d5fafae05a5cb04dce0c11c4d4e51021b570f272fd1df605a6ca3a4d1e7ac3"
+    },
+    {
+      "path": "static/how-it-works.css",
+      "sha1": "573773afd59611cda7399540fb8ecda051b3c16b",
+      "sha256": "67937478f898c652435a2e72a9d77ed49ad7980878eb97aa6fd0383a0e6cdea0"
+    },
+    {
+      "path": "static/how-it-works.html",
+      "sha1": "8d8760eb116f41cdf0ab3ac10c97a977ceaabb95",
+      "sha256": "3e2a74b737589df30ce0edfbb26fddc057d5f7abc22702485fbd369becdfb350"
+    },
+    {
+      "path": "static/index.html",
+      "sha1": "5d73f01b76deffd9068ccf98605308935777ca6f",
+      "sha256": "9544ba8a5d28cbcf55d66e6e405fdf2d95bedded97d40170c14bab2951fa9414"
+    },
+    {
+      "path": "static/inner-pages.css",
+      "sha1": "0011699caf7cd6e7d46a5c3e1b04a3958f7ae8ea",
+      "sha256": "188d1d9ab2e4bd79f841902b54c603ca45e1e87b207186895d31cfc6a415acee"
+    },
+    {
+      "path": "static/inner-pages.js",
+      "sha1": "9dcbd578dca6e3a011689d31f05f17005017ccfc",
+      "sha256": "72b7bf8100ccea4cde2ea22f8c009cc705065f469b7a2fd6a9a1ff09c4471c97"
+    },
+    {
+      "path": "static/links.js",
+      "sha1": "c3f9e8312ebaa5d4cf147716ae47e4a54196d877",
+      "sha256": "7351d2805e1b4b2ccd197a20eb312d22c2e9356a345bb370c3af87725a33e593"
+    },
+    {
+      "path": "static/marketing-pages.css",
+      "sha1": "c972e65f65b99e5681306e7353b7aa346c4e1098",
+      "sha256": "3d2e73dcbff830ba8d14366376b88e974047905fac6cfd49ac55e95840a08f8d"
+    },
+    {
+      "path": "static/mileage-and-expenses.html",
+      "sha1": "8a2842b8798dfeb0eb2f5acc17b229376e90df59",
+      "sha256": "9ac05e91235b44acf2a5d6a4a8a2398b4d43581daf0873dae605f5f995fbb1f1"
+    },
+    {
+      "path": "static/national-vision.css",
+      "sha1": "dd1042503c7742bd254e30849a37bb5711fb4b56",
+      "sha256": "54585937205eeba7e8bceeb9db09db0c3b4f2240bd55f9bc0fefe61b644fc6d0"
+    },
+    {
+      "path": "static/navigation.css",
+      "sha1": "781497d1a6f4eaffea8182d834f60385d670434b",
+      "sha256": "4d58b6981de713699388f6a412811c6996b28f19ba72a2e8dc0dbb581d3f0227"
+    },
+    {
+      "path": "static/office-signup.html",
+      "sha1": "a5a5ed38f57ccde8795ef05e0a3ffc8a36e715c0",
+      "sha256": "6b9405ff2847cf38422ae9831b34333560d01c1709c6f48f8af08c212f361266"
+    },
+    {
+      "path": "static/offices.html",
+      "sha1": "0b0a1dd3ec1bb63416fbb5f85f683cb42e03654b",
+      "sha256": "9d35d4b9b934de75e3961f8276f2a2ddad055670b56b4954a7aa1467cc8efc5f"
+    },
+    {
+      "path": "static/offices.js",
+      "sha1": "43dc59b9ef235af4c3856cec296b804edca22c3d",
+      "sha256": "35fd5c5e4accc13d815a59fa75ade48988bdcd9e856d5d0e6a02f03bbe6fd471"
+    },
+    {
+      "path": "static/privacy.html",
+      "sha1": "d45cd1b3113881f732ce2f937d8892962a7df80b",
+      "sha256": "1fd3608dcad04d466d72beeeeabb9ae824457200721c722e5681f42e03b85378"
+    },
+    {
+      "path": "static/quarterly-taxes.html",
+      "sha1": "67c013d74a6933d0bee7a7d6a71949717539f017",
+      "sha256": "2c9b82742e76a9b85b7ae104f784c4100226e5c42d970bdb9d6aa124db55c773"
+    },
+    {
+      "path": "static/resources.html",
+      "sha1": "1fb1ce962c717975eb39d2a4a844b46663d0a555",
+      "sha256": "235fc98bfabf0b9e5c05ccab325443fb96c48c9ac203d0751b8c7a866ce8feae"
+    },
+    {
+      "path": "static/robots.txt",
+      "sha1": "9b7e28b4a9bf7ee1cfc158fcd0e42301c9345217",
+      "sha256": "3918c5fb2666cb1a9b0e2324d100deba6b6e5caf1a847390c1ea956233d0068a"
+    },
+    {
+      "path": "static/sales-console.css",
+      "sha1": "972bced5d07a9f7a209624a393d2014098e80cbe",
+      "sha256": "17b925fb51a65285cb33777cac41a11f81730c3aeea93122418de4b2ec8a8796"
+    },
+    {
+      "path": "static/sales-contacts.js",
+      "sha1": "b839576411580c5d681a6a3f7c58ce175b365065",
+      "sha256": "44c596a3ccada993cd757fd19669dfaec9a9b532303accecfc8c1950f957e07b"
+    },
+    {
+      "path": "static/sales-contracts.js",
+      "sha1": "f1cb49cecb413a194f19e16330b01c32f5471992",
+      "sha256": "75d430aebb2a373467d209f772612312f9ecdf098a90caf40ddc58815370d29a"
+    },
+    {
+      "path": "static/sales-progress.js",
+      "sha1": "597bf3ce12a3423343ec51873cb4b4d2b2b65496",
+      "sha256": "163e523903cba7ca54d00071656386feb84d96169802440b07c53979c88ea2fa"
+    },
+    {
+      "path": "static/sales-workflows.js",
+      "sha1": "dbbbb1516263cac50a83e9033c1603d5f3a8dcfb",
+      "sha256": "d555c7b28580a7f9d45484683e01f838f1180cb17d3397a25dc9c7051b8329a6"
+    },
+    {
+      "path": "static/sales.css",
+      "sha1": "3d4bb1d86a6871378c29f321186a95444684ad4c",
+      "sha256": "18510ba528e93ea9d078f068422b71fbe3fe6a627d275fc2ab9d54df5d16bfd4"
+    },
+    {
+      "path": "static/services.css",
+      "sha1": "64708c50dbaf399f6f4ed475f8dd90774c436d59",
+      "sha256": "8e5ea72b529ef6728c791d43cd47b2726023166cf9a05dc45c16a07d374c1ddb"
+    },
+    {
+      "path": "static/services.html",
+      "sha1": "9ecd43b4ff1f970ff42a5f246fb03815a39b36b8",
+      "sha256": "ab6c9622537693bfe9e9e9142ef4dbc141de00a40dea215909d47b79088f8f83"
+    },
+    {
+      "path": "static/site-config.json",
+      "sha1": "c3f0ea4441ccbc2819633e2de2bcb1e4ea9baf23",
+      "sha256": "aacd58c55029304ea12003eab83c80bff5bae228a54ae8f97b8d6891e9f82c1d"
+    },
+    {
+      "path": "static/site-manifest.json",
+      "sha1": "38144978f45db7d5602df796f2e64e11c5859b2d",
+      "sha256": "04878cbe3a6d9feb9255be032ce91cf3dc2d5755ddcd46da43e8984ded4c36d9"
+    },
+    {
+      "path": "static/sitemap.xml",
+      "sha1": "d4be1801be0111bfbb4af3ac4fefc108a3afe7d3",
+      "sha256": "e709d155943507a8beb6345d202341bd9cc4323a2d0d4f3a0b4a051649b6b5c8"
+    },
+    {
+      "path": "static/styles.css",
+      "sha1": "c78bada4bfda0ec5f5aa9230f6bd7ca29478f93b",
+      "sha256": "811ca8fc8b2fd19b0ae39c54096997e2f433e98c0cadadf2f0e417a6e17e0b23"
+    },
+    {
+      "path": "static/tax-preparation.html",
+      "sha1": "23c928fd494a2d0b40fd748b1d66fe04b0b05d6d",
+      "sha256": "c7f726d52dab98e28093c77565fa664a2fc21e00df6b68b38884ae489551f537"
+    },
+    {
+      "path": "static/terms.html",
+      "sha1": "d6dcb59894477bd8ab58d49262f3b7c783e3e59a",
+      "sha256": "ac1b4f5a2ea33e7110cf144822c12f9b77e357515ce566011ada05e3f5591709"
+    },
+    {
+      "path": "static/tour/README.txt",
+      "sha1": "823cb803b5985520c3ae4ada9a01c6c8fe7fec0f",
+      "sha256": "08e0cb4141f7d9ec4e74d82125bbb7ef337a4b21c056bda4271aa48b68f3d62b"
+    },
+    {
+      "path": "static/tour/brand.svg",
+      "sha1": "ff23d42d3cd289e5827516c4207fc0c89884ebab",
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "path": "static/tour/captions.en.vtt",
+      "sha1": "2934afdc97faee28cc14f00e6dad5059c01cb043",
+      "sha256": "8ee3eba40b73ce7e5cf8d1842b7e3c3fbe9c1e1e946821e911c185493e9286d0"
+    },
+    {
+      "path": "static/tour/chapters.json",
+      "sha1": "b0b0d6860a03ba0a6c60399ce51aa353b7d6a372",
+      "sha256": "f64999b94aef508069f63763a9febd7e0462cb415418e9708bed9867afda885b"
+    },
+    {
+      "path": "static/tour/getting-started.mp4",
+      "sha1": "f8b9ba35ab3bdc3124e6e5f19b15a9214c00cde0",
+      "sha256": "bbf9518e89d11f9e603096d7e0ecc336e16a5010c0d78335dadc2306811cc6dc"
+    },
+    {
+      "path": "static/tour/index.html",
+      "sha1": "0f59a6af3cbdc07a69801c9a15d25508998cfc55",
+      "sha256": "371d98d80ef24663a739f27d72fb7240c7fc9ae2b9b8924e887ce77866354e77"
+    },
+    {
+      "path": "static/tour/mobile.css",
+      "sha1": "6392e537b881d63a1fe6e5b43ea62566a504c321",
+      "sha256": "9d1b5026426b22964cb62bce497df0b86e44d79508b93f9ce6603d3aa472f3c1"
+    },
+    {
+      "path": "static/tour/player.css",
+      "sha1": "fa86f2acdeb4e53bbad9b03114a51e354fbf347d",
+      "sha256": "56f6701aebdf153333732df474910e0b3380d5bc63c8dc2fe0cb029fb5c72d7f"
+    },
+    {
+      "path": "static/tour/player.js",
+      "sha1": "fb89398c7f9abb69e55d69ce36c9af5e03f14e3c",
+      "sha256": "b8acc2d67920b84e4a13501750873fab99b135641ec6c28abbb4e1e06838cffa"
+    },
+    {
+      "path": "static/tour/poster.jpg",
+      "sha1": "e4557709d127c2f45d7ac0d8fe957f00bc89b3dc",
+      "sha256": "7ab43973b80ca1fa44512486cabbfcf6dc470238ca7e090a274a4ddc8aa122a9"
+    }
+  ],
+  "files": [
+    {
+      "path": "config.json",
+      "sha1": "52ff64110ed797d0ee575aa57c3adbe8ed1568aa",
+      "sha256": "ba99a096c57e184c9f071ca98ea3b5c672aebce4dabc2be9aebc94e46be04681"
+    },
+    {
+      "path": "functions/api/offices.func/.vc-config.json",
+      "sha1": "e49aa2b9a1564771194e44f89bfc719c0afca8be",
+      "sha256": "4ab99443429883ea965dd123fac3e0c79cf7ea33eeb93ab7320e8066182526ba"
+    },
+    {
+      "path": "functions/api/offices.func/atomic.mjs",
+      "sha1": "cd75f3f312673d23ad9ee5e747bb729e5357f71f",
+      "sha256": "c324f4c5d994a9ad346bf36da98b323a221f770c8f6e4d65b9d0a3289881245e"
+    },
+    {
+      "path": "functions/api/offices.func/backend.mjs",
+      "sha1": "b76541678985fb5d3a9e861752d6970ad2ce9b35",
+      "sha256": "820f7dccd56d88e7419c4f5acf79ddd4b2611a9aa21a3d9d30aca3ca42d7f981"
+    },
+    {
+      "path": "functions/api/offices.func/billing.mjs",
+      "sha1": "3170bde9dba960efb498b91681687d3ee8fa606f",
+      "sha256": "000fd94e6059267fa2f873e39bf92954d3079a883b7e4045ac9abf066741627c"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/AK.json.gz",
+      "sha1": "4cc22b5df29e7575e74f745cf1514429febd8caa",
+      "sha256": "a1f99a85d2eb04d953867cdd03ab68f736ad568364865b7e855d6684cceb18b1"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/AL.json.gz",
+      "sha1": "59d8ff514abbcb7edd8f379e43093748929f4aa7",
+      "sha256": "08b50019e2a2000e7dfc0e953b58baacb0f23b42fdef5a30e10d74aa264fb7c0"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/AR.json.gz",
+      "sha1": "714e676953e63c5991cd5731c3e1b9318f434f84",
+      "sha256": "b8dd9ef427f4b85a2a682c991ee96ac2b8f15f55443385a5d636479a4b39ade4"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/AZ.json.gz",
+      "sha1": "65d296e847801b5bc4699ed0cd881a861194e70c",
+      "sha256": "1c923821d9cc585932e40de891836bbd8eed156374db4edf8e09f5b582e2562b"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/CA.json.gz",
+      "sha1": "3f5074ba6ef6a5e5a79ed3d3f84a8b43ca95bbdb",
+      "sha256": "43233f41b4293a574bc15e60acba5e167a36ef877b60959b8484172aad468e91"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/CO.json.gz",
+      "sha1": "b8c3cf0b1f3f633e288b951761faab8a4d36434a",
+      "sha256": "62bef742d5b22c4c2c41a500c45b084202203cf1a1e28c29909ed43322a1a487"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/CT.json.gz",
+      "sha1": "83fd676aeac25c8ddeffcc3198539405fcaf6069",
+      "sha256": "b4815fbe37bfba98196241c5655b847164725012d1a8563c5166642e854fb41c"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/DC.json.gz",
+      "sha1": "2951f0b3c68fac5aa0959f60725711e7ff2caf86",
+      "sha256": "4d66adc8d0d6a40ed797d1353837822be5baf3eed1c2087e45aaa2b5bc7799b6"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/DE.json.gz",
+      "sha1": "cbad0e8feafd93d866390db813cfa142928c95a9",
+      "sha256": "dd088fda3aab29ceeed0caf28131141d3f626b1660ef086e20837c0455489438"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/FL.json.gz",
+      "sha1": "87a58812028aa5a9bda59bfd1d2ca24dc6612e96",
+      "sha256": "870f5c27c26b427bdcf4d9a54e19daa3e0ec3a520db86a015229d25644dade97"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/GA.json.gz",
+      "sha1": "419815ea6ef610b56669817bcb27bd0dc574fcf1",
+      "sha256": "e5ac12384d0032454f47a3b5ad2b53d4017e3c019496a7059fcd423df3c4a8c9"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/HI.json.gz",
+      "sha1": "36d608039bcbb90522b7020a0ebcc8b874608069",
+      "sha256": "f24c5db5f84c5440dc90f80dc7a19eab1c76508a1328c2b9fc154afa3fd3b516"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/IA.json.gz",
+      "sha1": "8eeb3961933bf2fab2e59c497f800b97c6b1298f",
+      "sha256": "5a568dac0a9155ca48c8adbe900406db2ed25a9c4e3c99d4d3a582b533e91d4c"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/ID.json.gz",
+      "sha1": "f958418e38cd76134ff4dde1b6c471f905a02718",
+      "sha256": "3bf64d8ae48dda09115c95d5defcc0b8aa5dfe6aa1d6d55b12c914b4f77ef0b7"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/IL.json.gz",
+      "sha1": "4012ac686ea0009f92979cd60bdc68d5a2d16a7b",
+      "sha256": "5b70d3d6936fa2ef164aedc5e93d94137240f81cdd822b4c3ccec73b8dab826f"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/IN.json.gz",
+      "sha1": "a973be4000726daccba024bad975efa1f53cb1eb",
+      "sha256": "f4ef68a69e85497fbb4d9abda5884dc6d8d4177e284679cb4cce746f5bc18928"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/KS.json.gz",
+      "sha1": "25e35e4a5d44d966a37c1925bce6d50e11d21405",
+      "sha256": "1eb7b01748d38367dddfb27f249f1e9806b7af791ada79316fe3824335366547"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/KY.json.gz",
+      "sha1": "bf39bbb09850d731e0967f9fcc5170e41185c813",
+      "sha256": "8e476cf8172db725213c691c31a434b4bf7ee96e338f895514b2715b2d7379b1"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/LA.json.gz",
+      "sha1": "67b0a772fdc362876b087064264cc20ff64edcb4",
+      "sha256": "71a44826b82379c381df83aaecdff5bdf6263870c65cf039939b20d015568649"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MA.json.gz",
+      "sha1": "e179250376d61da7d5a1395427acd0c5d1565edb",
+      "sha256": "3322f7d4fa5de348cb88fa0cb16cc99d888cf68aa1ecba147fdff823903187d8"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MD.json.gz",
+      "sha1": "b223a8c8d75524f75c103e0132d14942fce8e9d2",
+      "sha256": "847233816d7a538cb6cebb2877f2015c0d698a83ca80b0b952524132480719a6"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/ME.json.gz",
+      "sha1": "ce76f6f11352db6cbfc684aa2c03dc7308236f04",
+      "sha256": "d559fc542ba0833128329cd94a1c386dd3f53e5290c22c52c647f50e097a769d"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MI.json.gz",
+      "sha1": "d02626b5b766136ff20d00d5428c97f6d7573d2e",
+      "sha256": "752222116220f6d931f2b019504b80c3ed7a1562e4ec43898ea5b3120ee7d0d6"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MN.json.gz",
+      "sha1": "ca575abedea49d9c21e6d86fe08e5e722d116474",
+      "sha256": "7bcd78e23a642ae36dfc89e09678eec7e67a6afbce68459f77f725cf792ed075"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MO.json.gz",
+      "sha1": "dec458706bbb6aa45f58ff0009710893b3369bb8",
+      "sha256": "fd2be14a728aa875b64a358f78ba1dd99e37697af366c6c5483ac5ca0a74c6e3"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MS.json.gz",
+      "sha1": "e93ac23d80bac45fa273d7bcd015814382e928eb",
+      "sha256": "33e89ca4734fef6f09a6dbbd7b985ec7e1b6ec7d36d0d01f6c7e2b9d309ffa7f"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/MT.json.gz",
+      "sha1": "77f23769eefebd0548d4afc9df5b5e8095ac500e",
+      "sha256": "f028afff52dcc7af62d93cf47719575709de25454a75a1e3c7540bca27e44fa6"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NC.json.gz",
+      "sha1": "365f9265512e8cc1b26132c578cc626312c305bf",
+      "sha256": "89b669a7037a3f99f0a2626b17536eff5ec444b9c3a47d340b55330106f2f643"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/ND.json.gz",
+      "sha1": "9094a3aac0c0259decc70f367a57056362a0ea79",
+      "sha256": "3e045323c2014ac3e8b76bc3cb9747c15ef4f004c24831a8a799768cb7bfd364"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NE.json.gz",
+      "sha1": "58f3821ea9f145f200cbe0b98f4c5fbd03033f18",
+      "sha256": "7ac62c1ee68c610c6369da1bd8fb23db890cac2cec93b1bf50b922bb807eb580"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NH.json.gz",
+      "sha1": "d1062ef7f52454e647d5cc3e624dca9ff22d6b1d",
+      "sha256": "3d7ff6145f3aa580d6cbf645a27fb3c385190e6181dfe478d8a2108279f30637"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NJ.json.gz",
+      "sha1": "9900542e9a789df166c6e0aae9a7a0114f02754a",
+      "sha256": "e9795324319589de76d1c54d59af7a013a063d93800b0e8e92c68068ca56d645"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NM.json.gz",
+      "sha1": "eb1b3030b190fa5bcff50cfd0bbed094334e9df0",
+      "sha256": "e9a9db944508f6928840bd5d9f7d688f49709f3577a2b1bb7a4a2f9c3eb5d8d8"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NOTICE.txt",
+      "sha1": "61af465b468b31b78abe0493f7e48a32f988621b",
+      "sha256": "36adad4dca980705f81c05e36946b6e522cb12d4bb7fc68968a4a8a89c4cd5dc"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NV.json.gz",
+      "sha1": "359c5de08868d1a62cdd0c5ef3eddf8fde747a88",
+      "sha256": "bed54a7c4078bf5b69595f6d939528904e5210f03d42a2218585c1c282c46d37"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/NY.json.gz",
+      "sha1": "20b929ffe79a4269acb5fac19f9f20b7c439a783",
+      "sha256": "01ae537f5dc5a8b5c06f7e878f18a297930256843468137724291df74e77933c"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/OH.json.gz",
+      "sha1": "7f4447c5c0ac55f66884788bbc0e0bcdf45e13b3",
+      "sha256": "ccbf693f731a7ed6cab1579b2824fb6b333f55eb92e391f18ff19c7706f42b17"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/OK.json.gz",
+      "sha1": "cd2e04c0f4e03176dcc9bcbab2bf17eb6740d981",
+      "sha256": "6c4e8bcc8c2bb89784dd123ea37ace4e422ca79024f9d51872296e1f3908fbfc"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/OR.json.gz",
+      "sha1": "281916e9597799b30069aff3b72cfd3da799db84",
+      "sha256": "e842bde849831aa2a51f28701dd3cab86de5d831b8c329a855df63294cdfd058"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/PA.json.gz",
+      "sha1": "a345851351c6c543798a58c70b6aa476603ea75d",
+      "sha256": "318e384c52d70069c9af3494a774e6762a019f1818030dec00f369633cc5f654"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/RI.json.gz",
+      "sha1": "23ee5f7b79935020378f6413b876746d294270d2",
+      "sha256": "bacf6067f3b9e1be24555fd017f51c9217e05fe8eac95b1c998bd42a4afe2ed4"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/SC.json.gz",
+      "sha1": "79875439240edb8c3f0195a3cb69e5b66aadb078",
+      "sha256": "d58fe6e1bbc21c12961cc3e5fa315eb0621f9d1f02a417012f0af1ffcb5aa82b"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/SD.json.gz",
+      "sha1": "40540384a225514aadf280b5de5c7f63ca91207b",
+      "sha256": "49ef0879fdf3bcaf90ed7b7fc727e49e79e8e4b2e1e6274f9be89da627adb882"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/TN.json.gz",
+      "sha1": "f343dee76dfcc1267d3abb74a9ba239873430ec0",
+      "sha256": "ca306880f562a0dc40d10c0baf09aab48c8c1b2835ebdee1d91061d94cd3b7a1"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/TX.json.gz",
+      "sha1": "7a34524f9ea4826e5eee3d0d4891fa7de14805b7",
+      "sha256": "00878dab2abb5981917ce0ecc884a5b57e2f00adbfc7cc7f4f5985e4eafb5741"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/UT.json.gz",
+      "sha1": "6a8dc5e068597e92503f9a0dfa664f5dfa4a6a8f",
+      "sha256": "de5099af9cb709f314bdf3dbc3b735fbd5efbb2b56f9d0bf73983132e8f55ea4"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/VA.json.gz",
+      "sha1": "cadbc32d4ffa2ac0bbb74ca166a70e5b7c0c6628",
+      "sha256": "55acb4734bc77ba803416261c81ae9fbc40b36e96d200fb4b369eccf3d02322e"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/VT.json.gz",
+      "sha1": "437b9d4be86474709ef7e09664ec243107e9bd3c",
+      "sha256": "c1ef155bb6484b00ae39dc238712f2dca10d5f8ef8029fda13b65eab1b9b27fd"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/WA.json.gz",
+      "sha1": "970c7a329cd240ed6354d1f5001a5b816a7676e3",
+      "sha256": "2b78aa926d71e43fb7aae99a9528a9d5b761d18338144bd2e76973af417c6c6f"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/WI.json.gz",
+      "sha1": "35ea2902bb4ba7cfb070ef50082768a9f60efbe0",
+      "sha256": "46b2b78dd241eabd4dcaba2eeda89b5f04c8e7b65638c726a7bc49a47e1fb836"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/WV.json.gz",
+      "sha1": "476e045e020216d51ce770ead846a729f1636d24",
+      "sha256": "99a0c914906f9f7308ffa48e4121abe022c87da255ce2da368316e923734feea"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/WY.json.gz",
+      "sha1": "1f899f994c99e444ffd1796519052f7fdd257f0b",
+      "sha256": "96097adc601feaf9dbc80f06979abcfb1d0df4b3f998ecffd0a99e81316ec3f0"
+    },
+    {
+      "path": "functions/api/offices.func/business-places-data/manifest.json",
+      "sha1": "f6514a4af4862f9cd98ac9213f4338545e5cc700",
+      "sha256": "48f9edf2ed3d0543c450cca47917f94720169a171cfdce1cbf75b663dec36d92"
+    },
+    {
+      "path": "functions/api/offices.func/business-places.mjs",
+      "sha1": "82f4c48c6fd31368090684ba0adc2852ed471ba3",
+      "sha256": "8b37237dc0262ad50e8370c065b61ad5543714db995b3cd5e041af1566b3ef56"
+    },
+    {
+      "path": "functions/api/offices.func/business-registry.mjs",
+      "sha1": "3dcc4c5afc9491d9d7f8a2dbe93f1ebca2b4a44a",
+      "sha256": "6e16a80fab9217a79b14d34560a7662a202edf4a23d5893c9afb46f59847fe88"
+    },
+    {
+      "path": "functions/api/offices.func/contacts.mjs",
+      "sha1": "3700110123ccd18cc85a5f73f975a3f4fef732c4",
+      "sha256": "4351ab310eaeb566508805d20cc030dc7bd4aa7ff1d9b3cab04f393159dd2c4a"
+    },
+    {
+      "path": "functions/api/offices.func/contract-delivery.mjs",
+      "sha1": "b06ac775a1411291e34a2982213d57ce1fa14b6b",
+      "sha256": "19d33853e6bab69048db687261d853823cd33186ba5fa46c9b9daaeeded4b5cb"
+    },
+    {
+      "path": "functions/api/offices.func/contracts.mjs",
+      "sha1": "942456169addaa68ab2d04afb2237bd83a460ce8",
+      "sha256": "5b2480006f5366ff1e65a36988fb6a3640a3a2d1f4eab8be3fe8bce2122aeb3b"
+    },
+    {
+      "path": "functions/api/offices.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf",
+      "sha256": "731e34a9228f8bfcc6a9a94bd50b943ccd4326c0c9b8ef5be053ca99fa43a981"
+    },
+    {
+      "path": "functions/api/offices.func/directory.mjs",
+      "sha1": "f34bcf4b122e8d7876cb62e9ea7184c24b080e69",
+      "sha256": "29511753c51455ac82951af8aade7982d3008c775e43c937f4a28bab2badc973"
+    },
+    {
+      "path": "functions/api/offices.func/discovery.mjs",
+      "sha1": "52d492ab957bff9efa4bcbc9ddb6c14954ba45a9",
+      "sha256": "044ee8a4985190c255fc73547a6defe87c9c0532d0a7f08d3ee34f994e856abb"
+    },
+    {
+      "path": "functions/api/offices.func/geocoding.mjs",
+      "sha1": "2ecfa39d2cf94217182eabccc38c1ad79a6dad7d",
+      "sha256": "f26aab4783e438c51edfbb18c77a1cfc3e81252ead8e11fff6b92bc8e729d05a"
+    },
+    {
+      "path": "functions/api/offices.func/handler.mjs",
+      "sha1": "be1587e36d86eab447887261f40108152ab56739",
+      "sha256": "e8d29c5d08d41abe65b9fadcc23ce1d8adb0b4071ca8e6f8b8a4332ed00c127f"
+    },
+    {
+      "path": "functions/api/offices.func/iowa-data.mjs",
+      "sha1": "f40638283ed6838025d8a9674a4960275dd6bf82",
+      "sha256": "404f97427a3a9c370f5138354efe6505f386ec1ae8eefb114acb3feee14c482b"
+    },
+    {
+      "path": "functions/api/offices.func/local-contacts.mjs",
+      "sha1": "c2b56e29186d701e173f91a3a42263895785d2f5",
+      "sha256": "b0d51c517f74a36368e81b22a618e6435cae05fff6df66c214d5ca8a0bc96c58"
+    },
+    {
+      "path": "functions/api/offices.func/local-discovery.mjs",
+      "sha1": "5126b6364f7affbf01691267dae74322c5ff9ad3",
+      "sha256": "2f28fab646bfea1ab90c2031ed6e00e8be074a5350e933cde997feaffd9c56eb"
+    },
+    {
+      "path": "functions/api/offices.func/mail-provider.mjs",
+      "sha1": "8d74b54524862658d508b67c4d07bcb4f3fd5b81",
+      "sha256": "7e13160f8d687065b70ee584609db900dacf1f350df95fef710ec196eb5e4ca1"
+    },
+    {
+      "path": "functions/api/offices.func/mail-webhook.mjs",
+      "sha1": "7777b4f2af8dc94ff2de73e44d4a34b7b960235f",
+      "sha256": "505ba3a5fe871039e737a73eeb8f6519d5accc0f6c3d1b6f894e2be523e78427"
+    },
+    {
+      "path": "functions/api/offices.func/model.mjs",
+      "sha1": "7dc8b25cad08f7faff3d140ef56500579c7500b6",
+      "sha256": "99f58e9333162443c29721957d9da298e5ef66756d9eba2c8a3842b32337d825"
+    },
+    {
+      "path": "functions/api/offices.func/payments.mjs",
+      "sha1": "ec18fe248dc1a6101b32ad9a6572335621195fb0",
+      "sha256": "5c78255a6caba0b9a0c71fdc3de71a8eb53bd0cfcfce647a7e1c25dc4ba6812c"
+    },
+    {
+      "path": "functions/api/offices.func/pipeline.mjs",
+      "sha1": "b5fc0975132b2f182d85cfc45a65f26d0d5fd1d5",
+      "sha256": "b4b50d29c4205625b787b8ec2e3036f3e7f7bf1459444861b007b9286c172eb0"
+    },
+    {
+      "path": "functions/api/offices.func/prospect-tools.mjs",
+      "sha1": "e2fcdc02e2b7349951c7c61e1b6969a9d71a97ed",
+      "sha256": "11be49255c01ca267641e57d139f2f85e1240c073bddc188e2b76ac41eaf8e05"
+    },
+    {
+      "path": "functions/api/offices.func/public-data.mjs",
+      "sha1": "840f70f0a3c4bc4ef2513808738fd03a0ac24a61",
+      "sha256": "7fea0811527723a1ebeca0ede058a827496521d410d8ae50c60f88607e11f58b"
+    },
+    {
+      "path": "functions/api/offices.func/registry-alaska.mjs",
+      "sha1": "74f6e173dd92edcf77291405539a76fd6e626d32",
+      "sha256": "86575bbced93bc055992345d780d96ae6a3c6c8d53ea2e8218f5119859a6e94e"
+    },
+    {
+      "path": "functions/api/offices.func/registry-catalog.mjs",
+      "sha1": "bfdfd40ef80f4d4bda1884b035ecd6fd114e7ed5",
+      "sha256": "8f3b74159d82006f4e10eb1ec582e46f81d8c5b694954a4bd196f870473b73ea"
+    },
+    {
+      "path": "functions/api/offices.func/registry-dc.mjs",
+      "sha1": "4c2d6bc8f74dd23dac36dfb1e2f1fe8b46e9d2f6",
+      "sha256": "ee1f2ba950a5b5af6fced4b5b6ea74dff0c2c081a5ca67826ccc9d2b53f309c2"
+    },
+    {
+      "path": "functions/api/offices.func/registry-delaware.mjs",
+      "sha1": "5ad4040f3bca053495d9a4855c502d6794d4b309",
+      "sha256": "152131a88998e9eedc034d5575429a4e1af160a3f9aad987df3c51bd2cb76419"
+    },
+    {
+      "path": "functions/api/offices.func/registry-iowa.mjs",
+      "sha1": "3f7fcbc90c1f0bd04d3ae4f6e9d3de7ae92ced48",
+      "sha256": "57d662f0782f66a82073f0911be89f28ea9c819bb96fab8bd185dfd04ba9b76a"
+    },
+    {
+      "path": "functions/api/offices.func/registry-kentucky.mjs",
+      "sha1": "9eb9d8992d5e75a42aaeb38eb11294e9c832a8b1",
+      "sha256": "b7f75623e5559e1bc59504122291ffd04df9eb0ca9f33724eee666596e52c258"
+    },
+    {
+      "path": "functions/api/offices.func/registry-matching.mjs",
+      "sha1": "48028fb8aec4cd7b384ecfd0dbf4c2ca4734464d",
+      "sha256": "a8e4924314cd1dfc5f067061673b23f445587693f96e34466e9f00f0ecc310fe"
+    },
+    {
+      "path": "functions/api/offices.func/registry-new-mexico.mjs",
+      "sha1": "bba4c60b3c61bd8e4f3832e6ff61b868a12da721",
+      "sha256": "7406bdbec348d359fad143f16cc37d20d939c46392b8b33296e9405b4939622b"
+    },
+    {
+      "path": "functions/api/offices.func/registry-socrata.mjs",
+      "sha1": "af68a1f8d4c144eefc28b523cfdbf27bf2e3f59e",
+      "sha256": "323632fbc34ac6cfdc30a3308050e150c8ead7b1ac25c9c7eb30c1b5d4d04f44"
+    },
+    {
+      "path": "functions/api/offices.func/research.mjs",
+      "sha1": "89c950da548780fe29c8904ba9c6676c097827b3",
+      "sha256": "bbeebb4a1497115b43bfd59c2ff2955d325da2a15ede6b52f5588d371bfd4f3b"
+    },
+    {
+      "path": "functions/api/offices.func/revenue.mjs",
+      "sha1": "54afea0b764eeef74c3d3a79c2f8c6745d7bc64a",
+      "sha256": "bc3bbd783c74021e70d2896b2d237736d4d9f5c2b76e7f91b417004f5d5b39e5"
+    },
+    {
+      "path": "functions/api/offices.func/service.mjs",
+      "sha1": "1b5a8c3183ba6fc47b8e0fad4d3bb9952b0e6f89",
+      "sha256": "e683c61ed438815721edef11e3fc05ebace52c91c9e8c8450a58aee1086150ef"
+    },
+    {
+      "path": "functions/api/offices.func/state-registry.mjs",
+      "sha1": "697a8611d5099f615597e2983d00a0a06da77e5a",
+      "sha256": "dffbdd5c678c5c740eadab409495b97cf953c669740139fa8aa3cd14e4c142a5"
+    },
+    {
+      "path": "functions/api/offices.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b",
+      "sha256": "8d26eee64f33c8c696bc69549c2b3702e1589963bcd5b2c7ce34c05a4cbfd165"
+    },
+    {
+      "path": "functions/api/offices.func/territories.mjs",
+      "sha1": "6903af58f15d99f0085484fefe3c748eebfc2e87",
+      "sha256": "d02fa3e2a922e949e4088728384b0bd775260d503b55daf57ce8af6d6eb41def"
+    },
+    {
+      "path": "functions/api/offices.func/territory-access.mjs",
+      "sha1": "bf483a249121f21e94aa1034c738a0cf3dcc7cf8",
+      "sha256": "800042a2c5ecc3015d1566e676dbaa0b089d8c08ce71064bcb53f12a7196cc11"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/AK.json",
+      "sha1": "227648c7bc58136177315a39b05102f066a41989",
+      "sha256": "8c81860ac7aff1e6acd7449f42e6e5e0f610b1a016fa3c2df0652d04cc873dfd"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/AL.json",
+      "sha1": "f3f712ff486b830311325da9699dd976ba35de26",
+      "sha256": "c77ba346b6792109ccc3362feba810a7f52574145a8a14b3cc9dee99d05d93d8"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/AR.json",
+      "sha1": "45c3bc9bf175a416433a8e916b8d508765438dc3",
+      "sha256": "fa5cb784eabd4a1606bd6412893d47c90e8686bd799965aba9cb71fd0f8e6d7a"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/AZ.json",
+      "sha1": "1488aabd4fff19f90db00441a01f06d175943011",
+      "sha256": "f029043a8726ff05635fcf5b47e6902a9f035e1483dcea2c0821ef75da158985"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/CA.json",
+      "sha1": "26cca6071ba3733fdee3f51d25bd5d1b00daef9d",
+      "sha256": "000d3791b8fce0e774f5fcf5a8180021061a030b0b539b88bb863456884a6c5a"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/CO.json",
+      "sha1": "899670c323d4e793b8afce5b3e5c3c750b01396a",
+      "sha256": "de211fb6751d7875db72e5662f1e9928f099c1dae67ab2c0f97ac68e02e5ecb5"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/CT.json",
+      "sha1": "2391a7e1d67521abd391b055b52c6f99c2581be1",
+      "sha256": "8bc14c7650bf33adba8fb77d058a650150c36f8bbd3f4f64d8fd5596fb4b8ee8"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/DC.json",
+      "sha1": "dfb103cbd6d968e483389ba77c70ad81db6fceed",
+      "sha256": "4ac52c0f5e3790df995fcc9453c7028da271163b21550592e33d6e298d679231"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/DE.json",
+      "sha1": "ce2b32f07e18d033db2253a3a02775cc00bfb11d",
+      "sha256": "12210bb360e9fa1afee18b0e51842963e0e17e0a914c391cd56466efeaab7711"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/FL.json",
+      "sha1": "586451b50cc2c7dbfb9051368f04b19f25eb3d60",
+      "sha256": "7fb369ea01694651280cbd3efb26e672c793f8e38b4013b121f040569f25a282"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/GA.json",
+      "sha1": "126ca4bb43b0feaa364b583ec76ed1dc16df64ff",
+      "sha256": "3a4566719486052b82839d366ddf3bcda9c7d92846b9006b88c0952eb54665f2"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/HI.json",
+      "sha1": "41e899e8f060c0b86ea1a525d71fc995b363cd11",
+      "sha256": "9a040c864ce8a1f6c758b66b5abe7c5d18fffbd04f2d66c6843010d0a440a4a3"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/IA.json",
+      "sha1": "a34af07348e94da1048ce5e6c90fb4fdec1784cc",
+      "sha256": "d657b57b03cfc90b85ae679ee7da41fe9dc38f2004180d120003bb659baa397c"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/ID.json",
+      "sha1": "316974d9d1476abf4ebca31a8d2f88ffe2f421b7",
+      "sha256": "83d91d7d04eb03e38abc7f8894a24ea6ca410df7f955388c54114fcfc62f6f9a"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/IL.json",
+      "sha1": "aaef7e6ec5a3c0401998ebcf4b08191fce619b93",
+      "sha256": "f8bacb2794eb909da4f5deb531c33a86485b097f14fd7f9966c180ddbdbb69b2"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/IN.json",
+      "sha1": "efe34e01bbed53543d061c88aaf87c20d989782c",
+      "sha256": "c2de0e2375d58702d007708bfb0d1c629fd0697017a0dd0a2f0ddebc2eec1add"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/KS.json",
+      "sha1": "42bec5e11a50450bfacdc24bf8c31952cb59781f",
+      "sha256": "a16932ae1cdbfd88893995ba9908cb8a6717e31777916010001039ed95f11e96"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/KY.json",
+      "sha1": "d2e82d4c074a0dd9aa4aede1918966ff6afccf38",
+      "sha256": "1936089dcd8d0188f3dbc15fb3e7f989be6761069e2f792924c089737ff22fe2"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/LA.json",
+      "sha1": "544b61d17d38613b3f227db9c919395b93e9953a",
+      "sha256": "94f2822b4898475d8ad3d0f9d488f6d3a0b84c4935b66fdfa16b526950e55e16"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MA.json",
+      "sha1": "38201470ab92f5ef67ce73ab2ad65b9b9a47ca23",
+      "sha256": "3d9acc7fa53339820ed58270b4389728dd21506aaa951d2b8ae0bcec822d7b21"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MD.json",
+      "sha1": "13fde30b67acf369bd04041e094b4d0784f25ed1",
+      "sha256": "b3c79525686dba632071b3ba70e1f2a3c20045f9072e3a8ed83a410600596bbe"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/ME.json",
+      "sha1": "2cb405b4e03dc4b7449ac36dc4db07b0d8fd61e9",
+      "sha256": "2fed4184f370e4bbde3a229c47947522007ec542bd0e939975e2f137dd6c5a04"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MI.json",
+      "sha1": "da3c95bf2835b3ed40ac6d04cb3b1b9c7251105d",
+      "sha256": "e4dbda65d443968a1530e2dfb027d3556d01739b06d017b2f270a6768379a674"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MN.json",
+      "sha1": "4d8bb827babb0918eccfeff0dcc62a53aad849aa",
+      "sha256": "58b49295a422925063605f4a831f2858481919e79ce4bc88e4dddeb97d7526a1"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MO.json",
+      "sha1": "6bd6ace0ab482ab3c224d9ceddfc9e859e2acbd4",
+      "sha256": "2769b025f54636e395174ff6afc2d72e6e71c914a5cb2f768821fbf7c9ec775c"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MS.json",
+      "sha1": "07dd8ddd47525a74d751b124a99e9d6c1ef53874",
+      "sha256": "38ba4bfe9ad265ff9cecfedccbf824818f4776bd4b495e4117664498049d87b0"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/MT.json",
+      "sha1": "cbefcf11c11406908b9907a15cf4b5992f82b2e9",
+      "sha256": "104546c62ce074023794c54a2f332eb9bf979ac9c102215cd86d28ed4e15f336"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NC.json",
+      "sha1": "0d301f628128834a85c30a4e055ecd1c1186c9c9",
+      "sha256": "36edbf8863cd8709b26a3779399a476e25e69888ff6aa82d27d7952573a9d276"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/ND.json",
+      "sha1": "6c16bb875471dc2ca64bec4943b3a977a4d1ed05",
+      "sha256": "70b754142ad03818783b717a847b292bfa9458edeb9998ac6ddba704f41bb0d1"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NE.json",
+      "sha1": "ac5fc905c5bbee615e1c55c35577871501a637b9",
+      "sha256": "fd3637a1263f6f2a89774d03c0b6c7af025be3d8c551e43b0e568f26c72df29e"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NH.json",
+      "sha1": "b9aee7b49b56787f76ace48e4980ef7b52496d99",
+      "sha256": "dc15f926ba5021f7ab7e0c1fc35579d4c071076383bc68e7a34340a83eba59a6"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NJ.json",
+      "sha1": "7b7100c398e95a0b217aecc73f4772f9b80e1fd9",
+      "sha256": "6acf2c583d19914bcebd88e51390f3e07b7d2cd33e532d84b85b23eca8d84832"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NM.json",
+      "sha1": "0752c0a9f41763322e64b4b8cc833d325b21d287",
+      "sha256": "5016eba531cc2feeca3fc53aa45cb0ade852efd5537815648eb6da26ada36af8"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NV.json",
+      "sha1": "fe57d56bfcf6d9901cb04a4bfd369290b4d34d1b",
+      "sha256": "a0547a5eba7734a618d8277b58b2350945726aae085364318c5575f665181de4"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/NY.json",
+      "sha1": "c4d1e9d0fe79a5849a02d38e9374416f40d55145",
+      "sha256": "cdaecf6d9375c6e6dc61aef33786375a5c17a8e95e93e7b7626ac4515961e769"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/OH.json",
+      "sha1": "739742501519be384ab5704e6b03fd16cf247892",
+      "sha256": "5b3979d2593224143cb5bde25c1409120fe158fbcc36801034daa2b39a06d991"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/OK.json",
+      "sha1": "d9ddda6159e1368eab21580c4c144f98fdc90164",
+      "sha256": "8ce2c0affa9437b3b5f52806c255f7ce5e0e79bed2ac379d56ea26bb842c3c2d"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/OR.json",
+      "sha1": "e3eee08649b64c322c80928f73701615752e196d",
+      "sha256": "5e498e2b150c7bcb78bfef48ebc6ecc0708188965d79af874929705d15181deb"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/PA.json",
+      "sha1": "67b4dbaab2445641c7f04cf9f44519f7374b3019",
+      "sha256": "1cff554118109ddd0b8afdbcd7fa0919b67973c44a9b6706bc4c45746d2e86d8"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/RI.json",
+      "sha1": "70edf1a0139a189c040b5959dc61098ff26faa32",
+      "sha256": "0aa97ea4339ebc8c226c3e4857b2d0ebeaf846524209f6402551173146bde778"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/SC.json",
+      "sha1": "93c0ad1b346c71096e846fb26479904ea5fc366a",
+      "sha256": "a5de66bafaad76bb10c1cfcb1714bfaf11dbb92afe9fb0000cebbdb8c8394b28"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/SD.json",
+      "sha1": "7cdf1d12fda4cf55392d8d8892c157c3a3c91619",
+      "sha256": "545537cf37ccbf19b8079758c7ce7f488fe3c894c78d006d9eea2bffc7101184"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/TN.json",
+      "sha1": "2ed314e8122ad65e2658ba1cb49bb10908cd756a",
+      "sha256": "a584a2eeca161c00f35ee2bbb8ae85457094171e7f0d2cc338a7188c68099b95"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/TX.json",
+      "sha1": "f86ac943930b66f5ee3810a0cfe226b92b095ed5",
+      "sha256": "64d182779b6e237ae69049d6de8fd4e4710c0070104fa16e768d8e3abdcd2137"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/UT.json",
+      "sha1": "c5b0652ab8605aea7d97d9ad2b21c09ca1a1b73f",
+      "sha256": "9d8cf7171efe392c109f645b1500194d090386549879a42efe98c1a23d8c77ff"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/VA.json",
+      "sha1": "f4fbfc2e45d5e32e5f404b4528085d1b270b9659",
+      "sha256": "8b3e2a8a655a555cc93d099e96acecb59ebff2e9c161dd5b62312471b3490de5"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/VT.json",
+      "sha1": "71905e275367e15232e5a75109d6e42c3aab8014",
+      "sha256": "ae7d90398253b804fcb747ae8161686a62a4ca8d462136f748e58f94b03bde7f"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/WA.json",
+      "sha1": "ae7b755c63bb96c18907c339825d77b2509d86de",
+      "sha256": "ed60c4119795a2d59c5023bba7e42e7d412cf4f4b020c228ca56c231d18b48e9"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/WI.json",
+      "sha1": "a03941036885d7cf4c5dcfa0b6fbab0712e59bab",
+      "sha256": "8fb2546ecc270534788f63bfc0f972c521082a4acb88fa647b2abec715176613"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/WV.json",
+      "sha1": "d55c5c5630b2a0821b3331afd2c75e79f6b06dde",
+      "sha256": "72b8db2f9b4afa413e2f40b9a37ecb38db444ee6e48ff3e244fea6a4152cc1d9"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/WY.json",
+      "sha1": "4faf643370fd7407a1a5ad516ce5fa6cc98e9998",
+      "sha256": "c2c770fddc8b21eefc32ab65727233410a914564fedff9b7aa0e22165b0e5e49"
+    },
+    {
+      "path": "functions/api/offices.func/territory-data/manifest.json",
+      "sha1": "86bc28308a8cf88c650a966de16213c103c41386",
+      "sha256": "8f04551ab6d68c447f2c0c717db7ba0f5e3d646aaa98a26c052bef960f137de0"
+    },
+    {
+      "path": "functions/api/offices.func/webhook.mjs",
+      "sha1": "cdf9a4e827d6c9f01375b57b98a22c7383c20ae8",
+      "sha256": "a6204809ff067c47508159c391698472d85c57f4b5d385eb88022b97612c30dc"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/.vc-config.json",
+      "sha1": "c002c7bca87bd3b0670ef315287c16c28ca5c100",
+      "sha256": "8fda0971af87b8075c5c2fa37e2bc0c929d34a31ac84d60a6996d69c6470677e"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/atomic.mjs",
+      "sha1": "cd75f3f312673d23ad9ee5e747bb729e5357f71f",
+      "sha256": "c324f4c5d994a9ad346bf36da98b323a221f770c8f6e4d65b9d0a3289881245e"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/backend.mjs",
+      "sha1": "b76541678985fb5d3a9e861752d6970ad2ce9b35",
+      "sha256": "820f7dccd56d88e7419c4f5acf79ddd4b2611a9aa21a3d9d30aca3ca42d7f981"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/billing.mjs",
+      "sha1": "3170bde9dba960efb498b91681687d3ee8fa606f",
+      "sha256": "000fd94e6059267fa2f873e39bf92954d3079a883b7e4045ac9abf066741627c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/AK.json.gz",
+      "sha1": "4cc22b5df29e7575e74f745cf1514429febd8caa",
+      "sha256": "a1f99a85d2eb04d953867cdd03ab68f736ad568364865b7e855d6684cceb18b1"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/AL.json.gz",
+      "sha1": "59d8ff514abbcb7edd8f379e43093748929f4aa7",
+      "sha256": "08b50019e2a2000e7dfc0e953b58baacb0f23b42fdef5a30e10d74aa264fb7c0"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/AR.json.gz",
+      "sha1": "714e676953e63c5991cd5731c3e1b9318f434f84",
+      "sha256": "b8dd9ef427f4b85a2a682c991ee96ac2b8f15f55443385a5d636479a4b39ade4"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/AZ.json.gz",
+      "sha1": "65d296e847801b5bc4699ed0cd881a861194e70c",
+      "sha256": "1c923821d9cc585932e40de891836bbd8eed156374db4edf8e09f5b582e2562b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/CA.json.gz",
+      "sha1": "3f5074ba6ef6a5e5a79ed3d3f84a8b43ca95bbdb",
+      "sha256": "43233f41b4293a574bc15e60acba5e167a36ef877b60959b8484172aad468e91"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/CO.json.gz",
+      "sha1": "b8c3cf0b1f3f633e288b951761faab8a4d36434a",
+      "sha256": "62bef742d5b22c4c2c41a500c45b084202203cf1a1e28c29909ed43322a1a487"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/CT.json.gz",
+      "sha1": "83fd676aeac25c8ddeffcc3198539405fcaf6069",
+      "sha256": "b4815fbe37bfba98196241c5655b847164725012d1a8563c5166642e854fb41c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/DC.json.gz",
+      "sha1": "2951f0b3c68fac5aa0959f60725711e7ff2caf86",
+      "sha256": "4d66adc8d0d6a40ed797d1353837822be5baf3eed1c2087e45aaa2b5bc7799b6"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/DE.json.gz",
+      "sha1": "cbad0e8feafd93d866390db813cfa142928c95a9",
+      "sha256": "dd088fda3aab29ceeed0caf28131141d3f626b1660ef086e20837c0455489438"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/FL.json.gz",
+      "sha1": "87a58812028aa5a9bda59bfd1d2ca24dc6612e96",
+      "sha256": "870f5c27c26b427bdcf4d9a54e19daa3e0ec3a520db86a015229d25644dade97"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/GA.json.gz",
+      "sha1": "419815ea6ef610b56669817bcb27bd0dc574fcf1",
+      "sha256": "e5ac12384d0032454f47a3b5ad2b53d4017e3c019496a7059fcd423df3c4a8c9"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/HI.json.gz",
+      "sha1": "36d608039bcbb90522b7020a0ebcc8b874608069",
+      "sha256": "f24c5db5f84c5440dc90f80dc7a19eab1c76508a1328c2b9fc154afa3fd3b516"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/IA.json.gz",
+      "sha1": "8eeb3961933bf2fab2e59c497f800b97c6b1298f",
+      "sha256": "5a568dac0a9155ca48c8adbe900406db2ed25a9c4e3c99d4d3a582b533e91d4c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/ID.json.gz",
+      "sha1": "f958418e38cd76134ff4dde1b6c471f905a02718",
+      "sha256": "3bf64d8ae48dda09115c95d5defcc0b8aa5dfe6aa1d6d55b12c914b4f77ef0b7"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/IL.json.gz",
+      "sha1": "4012ac686ea0009f92979cd60bdc68d5a2d16a7b",
+      "sha256": "5b70d3d6936fa2ef164aedc5e93d94137240f81cdd822b4c3ccec73b8dab826f"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/IN.json.gz",
+      "sha1": "a973be4000726daccba024bad975efa1f53cb1eb",
+      "sha256": "f4ef68a69e85497fbb4d9abda5884dc6d8d4177e284679cb4cce746f5bc18928"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/KS.json.gz",
+      "sha1": "25e35e4a5d44d966a37c1925bce6d50e11d21405",
+      "sha256": "1eb7b01748d38367dddfb27f249f1e9806b7af791ada79316fe3824335366547"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/KY.json.gz",
+      "sha1": "bf39bbb09850d731e0967f9fcc5170e41185c813",
+      "sha256": "8e476cf8172db725213c691c31a434b4bf7ee96e338f895514b2715b2d7379b1"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/LA.json.gz",
+      "sha1": "67b0a772fdc362876b087064264cc20ff64edcb4",
+      "sha256": "71a44826b82379c381df83aaecdff5bdf6263870c65cf039939b20d015568649"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MA.json.gz",
+      "sha1": "e179250376d61da7d5a1395427acd0c5d1565edb",
+      "sha256": "3322f7d4fa5de348cb88fa0cb16cc99d888cf68aa1ecba147fdff823903187d8"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MD.json.gz",
+      "sha1": "b223a8c8d75524f75c103e0132d14942fce8e9d2",
+      "sha256": "847233816d7a538cb6cebb2877f2015c0d698a83ca80b0b952524132480719a6"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/ME.json.gz",
+      "sha1": "ce76f6f11352db6cbfc684aa2c03dc7308236f04",
+      "sha256": "d559fc542ba0833128329cd94a1c386dd3f53e5290c22c52c647f50e097a769d"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MI.json.gz",
+      "sha1": "d02626b5b766136ff20d00d5428c97f6d7573d2e",
+      "sha256": "752222116220f6d931f2b019504b80c3ed7a1562e4ec43898ea5b3120ee7d0d6"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MN.json.gz",
+      "sha1": "ca575abedea49d9c21e6d86fe08e5e722d116474",
+      "sha256": "7bcd78e23a642ae36dfc89e09678eec7e67a6afbce68459f77f725cf792ed075"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MO.json.gz",
+      "sha1": "dec458706bbb6aa45f58ff0009710893b3369bb8",
+      "sha256": "fd2be14a728aa875b64a358f78ba1dd99e37697af366c6c5483ac5ca0a74c6e3"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MS.json.gz",
+      "sha1": "e93ac23d80bac45fa273d7bcd015814382e928eb",
+      "sha256": "33e89ca4734fef6f09a6dbbd7b985ec7e1b6ec7d36d0d01f6c7e2b9d309ffa7f"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/MT.json.gz",
+      "sha1": "77f23769eefebd0548d4afc9df5b5e8095ac500e",
+      "sha256": "f028afff52dcc7af62d93cf47719575709de25454a75a1e3c7540bca27e44fa6"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NC.json.gz",
+      "sha1": "365f9265512e8cc1b26132c578cc626312c305bf",
+      "sha256": "89b669a7037a3f99f0a2626b17536eff5ec444b9c3a47d340b55330106f2f643"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/ND.json.gz",
+      "sha1": "9094a3aac0c0259decc70f367a57056362a0ea79",
+      "sha256": "3e045323c2014ac3e8b76bc3cb9747c15ef4f004c24831a8a799768cb7bfd364"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NE.json.gz",
+      "sha1": "58f3821ea9f145f200cbe0b98f4c5fbd03033f18",
+      "sha256": "7ac62c1ee68c610c6369da1bd8fb23db890cac2cec93b1bf50b922bb807eb580"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NH.json.gz",
+      "sha1": "d1062ef7f52454e647d5cc3e624dca9ff22d6b1d",
+      "sha256": "3d7ff6145f3aa580d6cbf645a27fb3c385190e6181dfe478d8a2108279f30637"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NJ.json.gz",
+      "sha1": "9900542e9a789df166c6e0aae9a7a0114f02754a",
+      "sha256": "e9795324319589de76d1c54d59af7a013a063d93800b0e8e92c68068ca56d645"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NM.json.gz",
+      "sha1": "eb1b3030b190fa5bcff50cfd0bbed094334e9df0",
+      "sha256": "e9a9db944508f6928840bd5d9f7d688f49709f3577a2b1bb7a4a2f9c3eb5d8d8"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NOTICE.txt",
+      "sha1": "61af465b468b31b78abe0493f7e48a32f988621b",
+      "sha256": "36adad4dca980705f81c05e36946b6e522cb12d4bb7fc68968a4a8a89c4cd5dc"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NV.json.gz",
+      "sha1": "359c5de08868d1a62cdd0c5ef3eddf8fde747a88",
+      "sha256": "bed54a7c4078bf5b69595f6d939528904e5210f03d42a2218585c1c282c46d37"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/NY.json.gz",
+      "sha1": "20b929ffe79a4269acb5fac19f9f20b7c439a783",
+      "sha256": "01ae537f5dc5a8b5c06f7e878f18a297930256843468137724291df74e77933c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/OH.json.gz",
+      "sha1": "7f4447c5c0ac55f66884788bbc0e0bcdf45e13b3",
+      "sha256": "ccbf693f731a7ed6cab1579b2824fb6b333f55eb92e391f18ff19c7706f42b17"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/OK.json.gz",
+      "sha1": "cd2e04c0f4e03176dcc9bcbab2bf17eb6740d981",
+      "sha256": "6c4e8bcc8c2bb89784dd123ea37ace4e422ca79024f9d51872296e1f3908fbfc"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/OR.json.gz",
+      "sha1": "281916e9597799b30069aff3b72cfd3da799db84",
+      "sha256": "e842bde849831aa2a51f28701dd3cab86de5d831b8c329a855df63294cdfd058"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/PA.json.gz",
+      "sha1": "a345851351c6c543798a58c70b6aa476603ea75d",
+      "sha256": "318e384c52d70069c9af3494a774e6762a019f1818030dec00f369633cc5f654"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/RI.json.gz",
+      "sha1": "23ee5f7b79935020378f6413b876746d294270d2",
+      "sha256": "bacf6067f3b9e1be24555fd017f51c9217e05fe8eac95b1c998bd42a4afe2ed4"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/SC.json.gz",
+      "sha1": "79875439240edb8c3f0195a3cb69e5b66aadb078",
+      "sha256": "d58fe6e1bbc21c12961cc3e5fa315eb0621f9d1f02a417012f0af1ffcb5aa82b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/SD.json.gz",
+      "sha1": "40540384a225514aadf280b5de5c7f63ca91207b",
+      "sha256": "49ef0879fdf3bcaf90ed7b7fc727e49e79e8e4b2e1e6274f9be89da627adb882"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/TN.json.gz",
+      "sha1": "f343dee76dfcc1267d3abb74a9ba239873430ec0",
+      "sha256": "ca306880f562a0dc40d10c0baf09aab48c8c1b2835ebdee1d91061d94cd3b7a1"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/TX.json.gz",
+      "sha1": "7a34524f9ea4826e5eee3d0d4891fa7de14805b7",
+      "sha256": "00878dab2abb5981917ce0ecc884a5b57e2f00adbfc7cc7f4f5985e4eafb5741"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/UT.json.gz",
+      "sha1": "6a8dc5e068597e92503f9a0dfa664f5dfa4a6a8f",
+      "sha256": "de5099af9cb709f314bdf3dbc3b735fbd5efbb2b56f9d0bf73983132e8f55ea4"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/VA.json.gz",
+      "sha1": "cadbc32d4ffa2ac0bbb74ca166a70e5b7c0c6628",
+      "sha256": "55acb4734bc77ba803416261c81ae9fbc40b36e96d200fb4b369eccf3d02322e"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/VT.json.gz",
+      "sha1": "437b9d4be86474709ef7e09664ec243107e9bd3c",
+      "sha256": "c1ef155bb6484b00ae39dc238712f2dca10d5f8ef8029fda13b65eab1b9b27fd"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/WA.json.gz",
+      "sha1": "970c7a329cd240ed6354d1f5001a5b816a7676e3",
+      "sha256": "2b78aa926d71e43fb7aae99a9528a9d5b761d18338144bd2e76973af417c6c6f"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/WI.json.gz",
+      "sha1": "35ea2902bb4ba7cfb070ef50082768a9f60efbe0",
+      "sha256": "46b2b78dd241eabd4dcaba2eeda89b5f04c8e7b65638c726a7bc49a47e1fb836"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/WV.json.gz",
+      "sha1": "476e045e020216d51ce770ead846a729f1636d24",
+      "sha256": "99a0c914906f9f7308ffa48e4121abe022c87da255ce2da368316e923734feea"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/WY.json.gz",
+      "sha1": "1f899f994c99e444ffd1796519052f7fdd257f0b",
+      "sha256": "96097adc601feaf9dbc80f06979abcfb1d0df4b3f998ecffd0a99e81316ec3f0"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places-data/manifest.json",
+      "sha1": "f6514a4af4862f9cd98ac9213f4338545e5cc700",
+      "sha256": "48f9edf2ed3d0543c450cca47917f94720169a171cfdce1cbf75b663dec36d92"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-places.mjs",
+      "sha1": "82f4c48c6fd31368090684ba0adc2852ed471ba3",
+      "sha256": "8b37237dc0262ad50e8370c065b61ad5543714db995b3cd5e041af1566b3ef56"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/business-registry.mjs",
+      "sha1": "3dcc4c5afc9491d9d7f8a2dbe93f1ebca2b4a44a",
+      "sha256": "6e16a80fab9217a79b14d34560a7662a202edf4a23d5893c9afb46f59847fe88"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/contacts.mjs",
+      "sha1": "3700110123ccd18cc85a5f73f975a3f4fef732c4",
+      "sha256": "4351ab310eaeb566508805d20cc030dc7bd4aa7ff1d9b3cab04f393159dd2c4a"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/contract-delivery.mjs",
+      "sha1": "b06ac775a1411291e34a2982213d57ce1fa14b6b",
+      "sha256": "19d33853e6bab69048db687261d853823cd33186ba5fa46c9b9daaeeded4b5cb"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/contracts.mjs",
+      "sha1": "942456169addaa68ab2d04afb2237bd83a460ce8",
+      "sha256": "5b2480006f5366ff1e65a36988fb6a3640a3a2d1f4eab8be3fe8bce2122aeb3b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf",
+      "sha256": "731e34a9228f8bfcc6a9a94bd50b943ccd4326c0c9b8ef5be053ca99fa43a981"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/directory.mjs",
+      "sha1": "f34bcf4b122e8d7876cb62e9ea7184c24b080e69",
+      "sha256": "29511753c51455ac82951af8aade7982d3008c775e43c937f4a28bab2badc973"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/discovery.mjs",
+      "sha1": "52d492ab957bff9efa4bcbc9ddb6c14954ba45a9",
+      "sha256": "044ee8a4985190c255fc73547a6defe87c9c0532d0a7f08d3ee34f994e856abb"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/geocoding.mjs",
+      "sha1": "2ecfa39d2cf94217182eabccc38c1ad79a6dad7d",
+      "sha256": "f26aab4783e438c51edfbb18c77a1cfc3e81252ead8e11fff6b92bc8e729d05a"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/handler.mjs",
+      "sha1": "be1587e36d86eab447887261f40108152ab56739",
+      "sha256": "e8d29c5d08d41abe65b9fadcc23ce1d8adb0b4071ca8e6f8b8a4332ed00c127f"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/iowa-data.mjs",
+      "sha1": "f40638283ed6838025d8a9674a4960275dd6bf82",
+      "sha256": "404f97427a3a9c370f5138354efe6505f386ec1ae8eefb114acb3feee14c482b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/local-contacts.mjs",
+      "sha1": "c2b56e29186d701e173f91a3a42263895785d2f5",
+      "sha256": "b0d51c517f74a36368e81b22a618e6435cae05fff6df66c214d5ca8a0bc96c58"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/local-discovery.mjs",
+      "sha1": "5126b6364f7affbf01691267dae74322c5ff9ad3",
+      "sha256": "2f28fab646bfea1ab90c2031ed6e00e8be074a5350e933cde997feaffd9c56eb"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/mail-provider.mjs",
+      "sha1": "8d74b54524862658d508b67c4d07bcb4f3fd5b81",
+      "sha256": "7e13160f8d687065b70ee584609db900dacf1f350df95fef710ec196eb5e4ca1"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/mail-webhook.mjs",
+      "sha1": "7777b4f2af8dc94ff2de73e44d4a34b7b960235f",
+      "sha256": "505ba3a5fe871039e737a73eeb8f6519d5accc0f6c3d1b6f894e2be523e78427"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/model.mjs",
+      "sha1": "7dc8b25cad08f7faff3d140ef56500579c7500b6",
+      "sha256": "99f58e9333162443c29721957d9da298e5ef66756d9eba2c8a3842b32337d825"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/payments.mjs",
+      "sha1": "ec18fe248dc1a6101b32ad9a6572335621195fb0",
+      "sha256": "5c78255a6caba0b9a0c71fdc3de71a8eb53bd0cfcfce647a7e1c25dc4ba6812c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/pipeline.mjs",
+      "sha1": "b5fc0975132b2f182d85cfc45a65f26d0d5fd1d5",
+      "sha256": "b4b50d29c4205625b787b8ec2e3036f3e7f7bf1459444861b007b9286c172eb0"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/prospect-tools.mjs",
+      "sha1": "e2fcdc02e2b7349951c7c61e1b6969a9d71a97ed",
+      "sha256": "11be49255c01ca267641e57d139f2f85e1240c073bddc188e2b76ac41eaf8e05"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/public-data.mjs",
+      "sha1": "840f70f0a3c4bc4ef2513808738fd03a0ac24a61",
+      "sha256": "7fea0811527723a1ebeca0ede058a827496521d410d8ae50c60f88607e11f58b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-alaska.mjs",
+      "sha1": "74f6e173dd92edcf77291405539a76fd6e626d32",
+      "sha256": "86575bbced93bc055992345d780d96ae6a3c6c8d53ea2e8218f5119859a6e94e"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-catalog.mjs",
+      "sha1": "bfdfd40ef80f4d4bda1884b035ecd6fd114e7ed5",
+      "sha256": "8f3b74159d82006f4e10eb1ec582e46f81d8c5b694954a4bd196f870473b73ea"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-dc.mjs",
+      "sha1": "4c2d6bc8f74dd23dac36dfb1e2f1fe8b46e9d2f6",
+      "sha256": "ee1f2ba950a5b5af6fced4b5b6ea74dff0c2c081a5ca67826ccc9d2b53f309c2"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-delaware.mjs",
+      "sha1": "5ad4040f3bca053495d9a4855c502d6794d4b309",
+      "sha256": "152131a88998e9eedc034d5575429a4e1af160a3f9aad987df3c51bd2cb76419"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-iowa.mjs",
+      "sha1": "3f7fcbc90c1f0bd04d3ae4f6e9d3de7ae92ced48",
+      "sha256": "57d662f0782f66a82073f0911be89f28ea9c819bb96fab8bd185dfd04ba9b76a"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-kentucky.mjs",
+      "sha1": "9eb9d8992d5e75a42aaeb38eb11294e9c832a8b1",
+      "sha256": "b7f75623e5559e1bc59504122291ffd04df9eb0ca9f33724eee666596e52c258"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-matching.mjs",
+      "sha1": "48028fb8aec4cd7b384ecfd0dbf4c2ca4734464d",
+      "sha256": "a8e4924314cd1dfc5f067061673b23f445587693f96e34466e9f00f0ecc310fe"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-new-mexico.mjs",
+      "sha1": "bba4c60b3c61bd8e4f3832e6ff61b868a12da721",
+      "sha256": "7406bdbec348d359fad143f16cc37d20d939c46392b8b33296e9405b4939622b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/registry-socrata.mjs",
+      "sha1": "af68a1f8d4c144eefc28b523cfdbf27bf2e3f59e",
+      "sha256": "323632fbc34ac6cfdc30a3308050e150c8ead7b1ac25c9c7eb30c1b5d4d04f44"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/research.mjs",
+      "sha1": "89c950da548780fe29c8904ba9c6676c097827b3",
+      "sha256": "bbeebb4a1497115b43bfd59c2ff2955d325da2a15ede6b52f5588d371bfd4f3b"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/revenue.mjs",
+      "sha1": "54afea0b764eeef74c3d3a79c2f8c6745d7bc64a",
+      "sha256": "bc3bbd783c74021e70d2896b2d237736d4d9f5c2b76e7f91b417004f5d5b39e5"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/service.mjs",
+      "sha1": "1b5a8c3183ba6fc47b8e0fad4d3bb9952b0e6f89",
+      "sha256": "e683c61ed438815721edef11e3fc05ebace52c91c9e8c8450a58aee1086150ef"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/state-registry.mjs",
+      "sha1": "697a8611d5099f615597e2983d00a0a06da77e5a",
+      "sha256": "dffbdd5c678c5c740eadab409495b97cf953c669740139fa8aa3cd14e4c142a5"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b",
+      "sha256": "8d26eee64f33c8c696bc69549c2b3702e1589963bcd5b2c7ce34c05a4cbfd165"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territories.mjs",
+      "sha1": "6903af58f15d99f0085484fefe3c748eebfc2e87",
+      "sha256": "d02fa3e2a922e949e4088728384b0bd775260d503b55daf57ce8af6d6eb41def"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-access.mjs",
+      "sha1": "bf483a249121f21e94aa1034c738a0cf3dcc7cf8",
+      "sha256": "800042a2c5ecc3015d1566e676dbaa0b089d8c08ce71064bcb53f12a7196cc11"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/AK.json",
+      "sha1": "227648c7bc58136177315a39b05102f066a41989",
+      "sha256": "8c81860ac7aff1e6acd7449f42e6e5e0f610b1a016fa3c2df0652d04cc873dfd"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/AL.json",
+      "sha1": "f3f712ff486b830311325da9699dd976ba35de26",
+      "sha256": "c77ba346b6792109ccc3362feba810a7f52574145a8a14b3cc9dee99d05d93d8"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/AR.json",
+      "sha1": "45c3bc9bf175a416433a8e916b8d508765438dc3",
+      "sha256": "fa5cb784eabd4a1606bd6412893d47c90e8686bd799965aba9cb71fd0f8e6d7a"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/AZ.json",
+      "sha1": "1488aabd4fff19f90db00441a01f06d175943011",
+      "sha256": "f029043a8726ff05635fcf5b47e6902a9f035e1483dcea2c0821ef75da158985"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/CA.json",
+      "sha1": "26cca6071ba3733fdee3f51d25bd5d1b00daef9d",
+      "sha256": "000d3791b8fce0e774f5fcf5a8180021061a030b0b539b88bb863456884a6c5a"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/CO.json",
+      "sha1": "899670c323d4e793b8afce5b3e5c3c750b01396a",
+      "sha256": "de211fb6751d7875db72e5662f1e9928f099c1dae67ab2c0f97ac68e02e5ecb5"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/CT.json",
+      "sha1": "2391a7e1d67521abd391b055b52c6f99c2581be1",
+      "sha256": "8bc14c7650bf33adba8fb77d058a650150c36f8bbd3f4f64d8fd5596fb4b8ee8"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/DC.json",
+      "sha1": "dfb103cbd6d968e483389ba77c70ad81db6fceed",
+      "sha256": "4ac52c0f5e3790df995fcc9453c7028da271163b21550592e33d6e298d679231"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/DE.json",
+      "sha1": "ce2b32f07e18d033db2253a3a02775cc00bfb11d",
+      "sha256": "12210bb360e9fa1afee18b0e51842963e0e17e0a914c391cd56466efeaab7711"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/FL.json",
+      "sha1": "586451b50cc2c7dbfb9051368f04b19f25eb3d60",
+      "sha256": "7fb369ea01694651280cbd3efb26e672c793f8e38b4013b121f040569f25a282"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/GA.json",
+      "sha1": "126ca4bb43b0feaa364b583ec76ed1dc16df64ff",
+      "sha256": "3a4566719486052b82839d366ddf3bcda9c7d92846b9006b88c0952eb54665f2"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/HI.json",
+      "sha1": "41e899e8f060c0b86ea1a525d71fc995b363cd11",
+      "sha256": "9a040c864ce8a1f6c758b66b5abe7c5d18fffbd04f2d66c6843010d0a440a4a3"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/IA.json",
+      "sha1": "a34af07348e94da1048ce5e6c90fb4fdec1784cc",
+      "sha256": "d657b57b03cfc90b85ae679ee7da41fe9dc38f2004180d120003bb659baa397c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/ID.json",
+      "sha1": "316974d9d1476abf4ebca31a8d2f88ffe2f421b7",
+      "sha256": "83d91d7d04eb03e38abc7f8894a24ea6ca410df7f955388c54114fcfc62f6f9a"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/IL.json",
+      "sha1": "aaef7e6ec5a3c0401998ebcf4b08191fce619b93",
+      "sha256": "f8bacb2794eb909da4f5deb531c33a86485b097f14fd7f9966c180ddbdbb69b2"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/IN.json",
+      "sha1": "efe34e01bbed53543d061c88aaf87c20d989782c",
+      "sha256": "c2de0e2375d58702d007708bfb0d1c629fd0697017a0dd0a2f0ddebc2eec1add"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/KS.json",
+      "sha1": "42bec5e11a50450bfacdc24bf8c31952cb59781f",
+      "sha256": "a16932ae1cdbfd88893995ba9908cb8a6717e31777916010001039ed95f11e96"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/KY.json",
+      "sha1": "d2e82d4c074a0dd9aa4aede1918966ff6afccf38",
+      "sha256": "1936089dcd8d0188f3dbc15fb3e7f989be6761069e2f792924c089737ff22fe2"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/LA.json",
+      "sha1": "544b61d17d38613b3f227db9c919395b93e9953a",
+      "sha256": "94f2822b4898475d8ad3d0f9d488f6d3a0b84c4935b66fdfa16b526950e55e16"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MA.json",
+      "sha1": "38201470ab92f5ef67ce73ab2ad65b9b9a47ca23",
+      "sha256": "3d9acc7fa53339820ed58270b4389728dd21506aaa951d2b8ae0bcec822d7b21"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MD.json",
+      "sha1": "13fde30b67acf369bd04041e094b4d0784f25ed1",
+      "sha256": "b3c79525686dba632071b3ba70e1f2a3c20045f9072e3a8ed83a410600596bbe"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/ME.json",
+      "sha1": "2cb405b4e03dc4b7449ac36dc4db07b0d8fd61e9",
+      "sha256": "2fed4184f370e4bbde3a229c47947522007ec542bd0e939975e2f137dd6c5a04"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MI.json",
+      "sha1": "da3c95bf2835b3ed40ac6d04cb3b1b9c7251105d",
+      "sha256": "e4dbda65d443968a1530e2dfb027d3556d01739b06d017b2f270a6768379a674"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MN.json",
+      "sha1": "4d8bb827babb0918eccfeff0dcc62a53aad849aa",
+      "sha256": "58b49295a422925063605f4a831f2858481919e79ce4bc88e4dddeb97d7526a1"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MO.json",
+      "sha1": "6bd6ace0ab482ab3c224d9ceddfc9e859e2acbd4",
+      "sha256": "2769b025f54636e395174ff6afc2d72e6e71c914a5cb2f768821fbf7c9ec775c"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MS.json",
+      "sha1": "07dd8ddd47525a74d751b124a99e9d6c1ef53874",
+      "sha256": "38ba4bfe9ad265ff9cecfedccbf824818f4776bd4b495e4117664498049d87b0"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/MT.json",
+      "sha1": "cbefcf11c11406908b9907a15cf4b5992f82b2e9",
+      "sha256": "104546c62ce074023794c54a2f332eb9bf979ac9c102215cd86d28ed4e15f336"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NC.json",
+      "sha1": "0d301f628128834a85c30a4e055ecd1c1186c9c9",
+      "sha256": "36edbf8863cd8709b26a3779399a476e25e69888ff6aa82d27d7952573a9d276"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/ND.json",
+      "sha1": "6c16bb875471dc2ca64bec4943b3a977a4d1ed05",
+      "sha256": "70b754142ad03818783b717a847b292bfa9458edeb9998ac6ddba704f41bb0d1"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NE.json",
+      "sha1": "ac5fc905c5bbee615e1c55c35577871501a637b9",
+      "sha256": "fd3637a1263f6f2a89774d03c0b6c7af025be3d8c551e43b0e568f26c72df29e"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NH.json",
+      "sha1": "b9aee7b49b56787f76ace48e4980ef7b52496d99",
+      "sha256": "dc15f926ba5021f7ab7e0c1fc35579d4c071076383bc68e7a34340a83eba59a6"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NJ.json",
+      "sha1": "7b7100c398e95a0b217aecc73f4772f9b80e1fd9",
+      "sha256": "6acf2c583d19914bcebd88e51390f3e07b7d2cd33e532d84b85b23eca8d84832"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NM.json",
+      "sha1": "0752c0a9f41763322e64b4b8cc833d325b21d287",
+      "sha256": "5016eba531cc2feeca3fc53aa45cb0ade852efd5537815648eb6da26ada36af8"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NV.json",
+      "sha1": "fe57d56bfcf6d9901cb04a4bfd369290b4d34d1b",
+      "sha256": "a0547a5eba7734a618d8277b58b2350945726aae085364318c5575f665181de4"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/NY.json",
+      "sha1": "c4d1e9d0fe79a5849a02d38e9374416f40d55145",
+      "sha256": "cdaecf6d9375c6e6dc61aef33786375a5c17a8e95e93e7b7626ac4515961e769"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/OH.json",
+      "sha1": "739742501519be384ab5704e6b03fd16cf247892",
+      "sha256": "5b3979d2593224143cb5bde25c1409120fe158fbcc36801034daa2b39a06d991"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/OK.json",
+      "sha1": "d9ddda6159e1368eab21580c4c144f98fdc90164",
+      "sha256": "8ce2c0affa9437b3b5f52806c255f7ce5e0e79bed2ac379d56ea26bb842c3c2d"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/OR.json",
+      "sha1": "e3eee08649b64c322c80928f73701615752e196d",
+      "sha256": "5e498e2b150c7bcb78bfef48ebc6ecc0708188965d79af874929705d15181deb"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/PA.json",
+      "sha1": "67b4dbaab2445641c7f04cf9f44519f7374b3019",
+      "sha256": "1cff554118109ddd0b8afdbcd7fa0919b67973c44a9b6706bc4c45746d2e86d8"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/RI.json",
+      "sha1": "70edf1a0139a189c040b5959dc61098ff26faa32",
+      "sha256": "0aa97ea4339ebc8c226c3e4857b2d0ebeaf846524209f6402551173146bde778"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/SC.json",
+      "sha1": "93c0ad1b346c71096e846fb26479904ea5fc366a",
+      "sha256": "a5de66bafaad76bb10c1cfcb1714bfaf11dbb92afe9fb0000cebbdb8c8394b28"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/SD.json",
+      "sha1": "7cdf1d12fda4cf55392d8d8892c157c3a3c91619",
+      "sha256": "545537cf37ccbf19b8079758c7ce7f488fe3c894c78d006d9eea2bffc7101184"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/TN.json",
+      "sha1": "2ed314e8122ad65e2658ba1cb49bb10908cd756a",
+      "sha256": "a584a2eeca161c00f35ee2bbb8ae85457094171e7f0d2cc338a7188c68099b95"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/TX.json",
+      "sha1": "f86ac943930b66f5ee3810a0cfe226b92b095ed5",
+      "sha256": "64d182779b6e237ae69049d6de8fd4e4710c0070104fa16e768d8e3abdcd2137"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/UT.json",
+      "sha1": "c5b0652ab8605aea7d97d9ad2b21c09ca1a1b73f",
+      "sha256": "9d8cf7171efe392c109f645b1500194d090386549879a42efe98c1a23d8c77ff"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/VA.json",
+      "sha1": "f4fbfc2e45d5e32e5f404b4528085d1b270b9659",
+      "sha256": "8b3e2a8a655a555cc93d099e96acecb59ebff2e9c161dd5b62312471b3490de5"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/VT.json",
+      "sha1": "71905e275367e15232e5a75109d6e42c3aab8014",
+      "sha256": "ae7d90398253b804fcb747ae8161686a62a4ca8d462136f748e58f94b03bde7f"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/WA.json",
+      "sha1": "ae7b755c63bb96c18907c339825d77b2509d86de",
+      "sha256": "ed60c4119795a2d59c5023bba7e42e7d412cf4f4b020c228ca56c231d18b48e9"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/WI.json",
+      "sha1": "a03941036885d7cf4c5dcfa0b6fbab0712e59bab",
+      "sha256": "8fb2546ecc270534788f63bfc0f972c521082a4acb88fa647b2abec715176613"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/WV.json",
+      "sha1": "d55c5c5630b2a0821b3331afd2c75e79f6b06dde",
+      "sha256": "72b8db2f9b4afa413e2f40b9a37ecb38db444ee6e48ff3e244fea6a4152cc1d9"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/WY.json",
+      "sha1": "4faf643370fd7407a1a5ad516ce5fa6cc98e9998",
+      "sha256": "c2c770fddc8b21eefc32ab65727233410a914564fedff9b7aa0e22165b0e5e49"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/territory-data/manifest.json",
+      "sha1": "86bc28308a8cf88c650a966de16213c103c41386",
+      "sha256": "8f04551ab6d68c447f2c0c717db7ba0f5e3d646aaa98a26c052bef960f137de0"
+    },
+    {
+      "path": "functions/api/sales-mail-webhook.func/webhook.mjs",
+      "sha1": "cdf9a4e827d6c9f01375b57b98a22c7383c20ae8",
+      "sha256": "a6204809ff067c47508159c391698472d85c57f4b5d385eb88022b97612c30dc"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/.vc-config.json",
+      "sha1": "f85e669b9d5ce1a72604192972fcebf62a93ca2b",
+      "sha256": "a41c356e5b4be1ead673fec14349eb6e5379d20cb2b82a85e3cbe16e885e643a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/atomic.mjs",
+      "sha1": "cd75f3f312673d23ad9ee5e747bb729e5357f71f",
+      "sha256": "c324f4c5d994a9ad346bf36da98b323a221f770c8f6e4d65b9d0a3289881245e"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/backend.mjs",
+      "sha1": "b76541678985fb5d3a9e861752d6970ad2ce9b35",
+      "sha256": "820f7dccd56d88e7419c4f5acf79ddd4b2611a9aa21a3d9d30aca3ca42d7f981"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/billing.mjs",
+      "sha1": "3170bde9dba960efb498b91681687d3ee8fa606f",
+      "sha256": "000fd94e6059267fa2f873e39bf92954d3079a883b7e4045ac9abf066741627c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/AK.json.gz",
+      "sha1": "4cc22b5df29e7575e74f745cf1514429febd8caa",
+      "sha256": "a1f99a85d2eb04d953867cdd03ab68f736ad568364865b7e855d6684cceb18b1"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/AL.json.gz",
+      "sha1": "59d8ff514abbcb7edd8f379e43093748929f4aa7",
+      "sha256": "08b50019e2a2000e7dfc0e953b58baacb0f23b42fdef5a30e10d74aa264fb7c0"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/AR.json.gz",
+      "sha1": "714e676953e63c5991cd5731c3e1b9318f434f84",
+      "sha256": "b8dd9ef427f4b85a2a682c991ee96ac2b8f15f55443385a5d636479a4b39ade4"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/AZ.json.gz",
+      "sha1": "65d296e847801b5bc4699ed0cd881a861194e70c",
+      "sha256": "1c923821d9cc585932e40de891836bbd8eed156374db4edf8e09f5b582e2562b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/CA.json.gz",
+      "sha1": "3f5074ba6ef6a5e5a79ed3d3f84a8b43ca95bbdb",
+      "sha256": "43233f41b4293a574bc15e60acba5e167a36ef877b60959b8484172aad468e91"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/CO.json.gz",
+      "sha1": "b8c3cf0b1f3f633e288b951761faab8a4d36434a",
+      "sha256": "62bef742d5b22c4c2c41a500c45b084202203cf1a1e28c29909ed43322a1a487"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/CT.json.gz",
+      "sha1": "83fd676aeac25c8ddeffcc3198539405fcaf6069",
+      "sha256": "b4815fbe37bfba98196241c5655b847164725012d1a8563c5166642e854fb41c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/DC.json.gz",
+      "sha1": "2951f0b3c68fac5aa0959f60725711e7ff2caf86",
+      "sha256": "4d66adc8d0d6a40ed797d1353837822be5baf3eed1c2087e45aaa2b5bc7799b6"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/DE.json.gz",
+      "sha1": "cbad0e8feafd93d866390db813cfa142928c95a9",
+      "sha256": "dd088fda3aab29ceeed0caf28131141d3f626b1660ef086e20837c0455489438"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/FL.json.gz",
+      "sha1": "87a58812028aa5a9bda59bfd1d2ca24dc6612e96",
+      "sha256": "870f5c27c26b427bdcf4d9a54e19daa3e0ec3a520db86a015229d25644dade97"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/GA.json.gz",
+      "sha1": "419815ea6ef610b56669817bcb27bd0dc574fcf1",
+      "sha256": "e5ac12384d0032454f47a3b5ad2b53d4017e3c019496a7059fcd423df3c4a8c9"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/HI.json.gz",
+      "sha1": "36d608039bcbb90522b7020a0ebcc8b874608069",
+      "sha256": "f24c5db5f84c5440dc90f80dc7a19eab1c76508a1328c2b9fc154afa3fd3b516"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/IA.json.gz",
+      "sha1": "8eeb3961933bf2fab2e59c497f800b97c6b1298f",
+      "sha256": "5a568dac0a9155ca48c8adbe900406db2ed25a9c4e3c99d4d3a582b533e91d4c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/ID.json.gz",
+      "sha1": "f958418e38cd76134ff4dde1b6c471f905a02718",
+      "sha256": "3bf64d8ae48dda09115c95d5defcc0b8aa5dfe6aa1d6d55b12c914b4f77ef0b7"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/IL.json.gz",
+      "sha1": "4012ac686ea0009f92979cd60bdc68d5a2d16a7b",
+      "sha256": "5b70d3d6936fa2ef164aedc5e93d94137240f81cdd822b4c3ccec73b8dab826f"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/IN.json.gz",
+      "sha1": "a973be4000726daccba024bad975efa1f53cb1eb",
+      "sha256": "f4ef68a69e85497fbb4d9abda5884dc6d8d4177e284679cb4cce746f5bc18928"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/KS.json.gz",
+      "sha1": "25e35e4a5d44d966a37c1925bce6d50e11d21405",
+      "sha256": "1eb7b01748d38367dddfb27f249f1e9806b7af791ada79316fe3824335366547"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/KY.json.gz",
+      "sha1": "bf39bbb09850d731e0967f9fcc5170e41185c813",
+      "sha256": "8e476cf8172db725213c691c31a434b4bf7ee96e338f895514b2715b2d7379b1"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/LA.json.gz",
+      "sha1": "67b0a772fdc362876b087064264cc20ff64edcb4",
+      "sha256": "71a44826b82379c381df83aaecdff5bdf6263870c65cf039939b20d015568649"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MA.json.gz",
+      "sha1": "e179250376d61da7d5a1395427acd0c5d1565edb",
+      "sha256": "3322f7d4fa5de348cb88fa0cb16cc99d888cf68aa1ecba147fdff823903187d8"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MD.json.gz",
+      "sha1": "b223a8c8d75524f75c103e0132d14942fce8e9d2",
+      "sha256": "847233816d7a538cb6cebb2877f2015c0d698a83ca80b0b952524132480719a6"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/ME.json.gz",
+      "sha1": "ce76f6f11352db6cbfc684aa2c03dc7308236f04",
+      "sha256": "d559fc542ba0833128329cd94a1c386dd3f53e5290c22c52c647f50e097a769d"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MI.json.gz",
+      "sha1": "d02626b5b766136ff20d00d5428c97f6d7573d2e",
+      "sha256": "752222116220f6d931f2b019504b80c3ed7a1562e4ec43898ea5b3120ee7d0d6"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MN.json.gz",
+      "sha1": "ca575abedea49d9c21e6d86fe08e5e722d116474",
+      "sha256": "7bcd78e23a642ae36dfc89e09678eec7e67a6afbce68459f77f725cf792ed075"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MO.json.gz",
+      "sha1": "dec458706bbb6aa45f58ff0009710893b3369bb8",
+      "sha256": "fd2be14a728aa875b64a358f78ba1dd99e37697af366c6c5483ac5ca0a74c6e3"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MS.json.gz",
+      "sha1": "e93ac23d80bac45fa273d7bcd015814382e928eb",
+      "sha256": "33e89ca4734fef6f09a6dbbd7b985ec7e1b6ec7d36d0d01f6c7e2b9d309ffa7f"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/MT.json.gz",
+      "sha1": "77f23769eefebd0548d4afc9df5b5e8095ac500e",
+      "sha256": "f028afff52dcc7af62d93cf47719575709de25454a75a1e3c7540bca27e44fa6"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NC.json.gz",
+      "sha1": "365f9265512e8cc1b26132c578cc626312c305bf",
+      "sha256": "89b669a7037a3f99f0a2626b17536eff5ec444b9c3a47d340b55330106f2f643"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/ND.json.gz",
+      "sha1": "9094a3aac0c0259decc70f367a57056362a0ea79",
+      "sha256": "3e045323c2014ac3e8b76bc3cb9747c15ef4f004c24831a8a799768cb7bfd364"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NE.json.gz",
+      "sha1": "58f3821ea9f145f200cbe0b98f4c5fbd03033f18",
+      "sha256": "7ac62c1ee68c610c6369da1bd8fb23db890cac2cec93b1bf50b922bb807eb580"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NH.json.gz",
+      "sha1": "d1062ef7f52454e647d5cc3e624dca9ff22d6b1d",
+      "sha256": "3d7ff6145f3aa580d6cbf645a27fb3c385190e6181dfe478d8a2108279f30637"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NJ.json.gz",
+      "sha1": "9900542e9a789df166c6e0aae9a7a0114f02754a",
+      "sha256": "e9795324319589de76d1c54d59af7a013a063d93800b0e8e92c68068ca56d645"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NM.json.gz",
+      "sha1": "eb1b3030b190fa5bcff50cfd0bbed094334e9df0",
+      "sha256": "e9a9db944508f6928840bd5d9f7d688f49709f3577a2b1bb7a4a2f9c3eb5d8d8"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NOTICE.txt",
+      "sha1": "61af465b468b31b78abe0493f7e48a32f988621b",
+      "sha256": "36adad4dca980705f81c05e36946b6e522cb12d4bb7fc68968a4a8a89c4cd5dc"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NV.json.gz",
+      "sha1": "359c5de08868d1a62cdd0c5ef3eddf8fde747a88",
+      "sha256": "bed54a7c4078bf5b69595f6d939528904e5210f03d42a2218585c1c282c46d37"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/NY.json.gz",
+      "sha1": "20b929ffe79a4269acb5fac19f9f20b7c439a783",
+      "sha256": "01ae537f5dc5a8b5c06f7e878f18a297930256843468137724291df74e77933c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/OH.json.gz",
+      "sha1": "7f4447c5c0ac55f66884788bbc0e0bcdf45e13b3",
+      "sha256": "ccbf693f731a7ed6cab1579b2824fb6b333f55eb92e391f18ff19c7706f42b17"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/OK.json.gz",
+      "sha1": "cd2e04c0f4e03176dcc9bcbab2bf17eb6740d981",
+      "sha256": "6c4e8bcc8c2bb89784dd123ea37ace4e422ca79024f9d51872296e1f3908fbfc"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/OR.json.gz",
+      "sha1": "281916e9597799b30069aff3b72cfd3da799db84",
+      "sha256": "e842bde849831aa2a51f28701dd3cab86de5d831b8c329a855df63294cdfd058"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/PA.json.gz",
+      "sha1": "a345851351c6c543798a58c70b6aa476603ea75d",
+      "sha256": "318e384c52d70069c9af3494a774e6762a019f1818030dec00f369633cc5f654"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/RI.json.gz",
+      "sha1": "23ee5f7b79935020378f6413b876746d294270d2",
+      "sha256": "bacf6067f3b9e1be24555fd017f51c9217e05fe8eac95b1c998bd42a4afe2ed4"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/SC.json.gz",
+      "sha1": "79875439240edb8c3f0195a3cb69e5b66aadb078",
+      "sha256": "d58fe6e1bbc21c12961cc3e5fa315eb0621f9d1f02a417012f0af1ffcb5aa82b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/SD.json.gz",
+      "sha1": "40540384a225514aadf280b5de5c7f63ca91207b",
+      "sha256": "49ef0879fdf3bcaf90ed7b7fc727e49e79e8e4b2e1e6274f9be89da627adb882"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/TN.json.gz",
+      "sha1": "f343dee76dfcc1267d3abb74a9ba239873430ec0",
+      "sha256": "ca306880f562a0dc40d10c0baf09aab48c8c1b2835ebdee1d91061d94cd3b7a1"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/TX.json.gz",
+      "sha1": "7a34524f9ea4826e5eee3d0d4891fa7de14805b7",
+      "sha256": "00878dab2abb5981917ce0ecc884a5b57e2f00adbfc7cc7f4f5985e4eafb5741"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/UT.json.gz",
+      "sha1": "6a8dc5e068597e92503f9a0dfa664f5dfa4a6a8f",
+      "sha256": "de5099af9cb709f314bdf3dbc3b735fbd5efbb2b56f9d0bf73983132e8f55ea4"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/VA.json.gz",
+      "sha1": "cadbc32d4ffa2ac0bbb74ca166a70e5b7c0c6628",
+      "sha256": "55acb4734bc77ba803416261c81ae9fbc40b36e96d200fb4b369eccf3d02322e"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/VT.json.gz",
+      "sha1": "437b9d4be86474709ef7e09664ec243107e9bd3c",
+      "sha256": "c1ef155bb6484b00ae39dc238712f2dca10d5f8ef8029fda13b65eab1b9b27fd"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/WA.json.gz",
+      "sha1": "970c7a329cd240ed6354d1f5001a5b816a7676e3",
+      "sha256": "2b78aa926d71e43fb7aae99a9528a9d5b761d18338144bd2e76973af417c6c6f"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/WI.json.gz",
+      "sha1": "35ea2902bb4ba7cfb070ef50082768a9f60efbe0",
+      "sha256": "46b2b78dd241eabd4dcaba2eeda89b5f04c8e7b65638c726a7bc49a47e1fb836"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/WV.json.gz",
+      "sha1": "476e045e020216d51ce770ead846a729f1636d24",
+      "sha256": "99a0c914906f9f7308ffa48e4121abe022c87da255ce2da368316e923734feea"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/WY.json.gz",
+      "sha1": "1f899f994c99e444ffd1796519052f7fdd257f0b",
+      "sha256": "96097adc601feaf9dbc80f06979abcfb1d0df4b3f998ecffd0a99e81316ec3f0"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places-data/manifest.json",
+      "sha1": "f6514a4af4862f9cd98ac9213f4338545e5cc700",
+      "sha256": "48f9edf2ed3d0543c450cca47917f94720169a171cfdce1cbf75b663dec36d92"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-places.mjs",
+      "sha1": "82f4c48c6fd31368090684ba0adc2852ed471ba3",
+      "sha256": "8b37237dc0262ad50e8370c065b61ad5543714db995b3cd5e041af1566b3ef56"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/business-registry.mjs",
+      "sha1": "3dcc4c5afc9491d9d7f8a2dbe93f1ebca2b4a44a",
+      "sha256": "6e16a80fab9217a79b14d34560a7662a202edf4a23d5893c9afb46f59847fe88"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/contacts.mjs",
+      "sha1": "3700110123ccd18cc85a5f73f975a3f4fef732c4",
+      "sha256": "4351ab310eaeb566508805d20cc030dc7bd4aa7ff1d9b3cab04f393159dd2c4a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/contract-delivery.mjs",
+      "sha1": "b06ac775a1411291e34a2982213d57ce1fa14b6b",
+      "sha256": "19d33853e6bab69048db687261d853823cd33186ba5fa46c9b9daaeeded4b5cb"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/contracts.mjs",
+      "sha1": "942456169addaa68ab2d04afb2237bd83a460ce8",
+      "sha256": "5b2480006f5366ff1e65a36988fb6a3640a3a2d1f4eab8be3fe8bce2122aeb3b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf",
+      "sha256": "731e34a9228f8bfcc6a9a94bd50b943ccd4326c0c9b8ef5be053ca99fa43a981"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/directory.mjs",
+      "sha1": "f34bcf4b122e8d7876cb62e9ea7184c24b080e69",
+      "sha256": "29511753c51455ac82951af8aade7982d3008c775e43c937f4a28bab2badc973"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/discovery.mjs",
+      "sha1": "52d492ab957bff9efa4bcbc9ddb6c14954ba45a9",
+      "sha256": "044ee8a4985190c255fc73547a6defe87c9c0532d0a7f08d3ee34f994e856abb"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/geocoding.mjs",
+      "sha1": "2ecfa39d2cf94217182eabccc38c1ad79a6dad7d",
+      "sha256": "f26aab4783e438c51edfbb18c77a1cfc3e81252ead8e11fff6b92bc8e729d05a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/handler.mjs",
+      "sha1": "be1587e36d86eab447887261f40108152ab56739",
+      "sha256": "e8d29c5d08d41abe65b9fadcc23ce1d8adb0b4071ca8e6f8b8a4332ed00c127f"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/iowa-data.mjs",
+      "sha1": "f40638283ed6838025d8a9674a4960275dd6bf82",
+      "sha256": "404f97427a3a9c370f5138354efe6505f386ec1ae8eefb114acb3feee14c482b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/local-contacts.mjs",
+      "sha1": "c2b56e29186d701e173f91a3a42263895785d2f5",
+      "sha256": "b0d51c517f74a36368e81b22a618e6435cae05fff6df66c214d5ca8a0bc96c58"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/local-discovery.mjs",
+      "sha1": "5126b6364f7affbf01691267dae74322c5ff9ad3",
+      "sha256": "2f28fab646bfea1ab90c2031ed6e00e8be074a5350e933cde997feaffd9c56eb"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/mail-provider.mjs",
+      "sha1": "8d74b54524862658d508b67c4d07bcb4f3fd5b81",
+      "sha256": "7e13160f8d687065b70ee584609db900dacf1f350df95fef710ec196eb5e4ca1"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/mail-webhook.mjs",
+      "sha1": "7777b4f2af8dc94ff2de73e44d4a34b7b960235f",
+      "sha256": "505ba3a5fe871039e737a73eeb8f6519d5accc0f6c3d1b6f894e2be523e78427"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/model.mjs",
+      "sha1": "7dc8b25cad08f7faff3d140ef56500579c7500b6",
+      "sha256": "99f58e9333162443c29721957d9da298e5ef66756d9eba2c8a3842b32337d825"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/payments.mjs",
+      "sha1": "ec18fe248dc1a6101b32ad9a6572335621195fb0",
+      "sha256": "5c78255a6caba0b9a0c71fdc3de71a8eb53bd0cfcfce647a7e1c25dc4ba6812c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/pipeline.mjs",
+      "sha1": "b5fc0975132b2f182d85cfc45a65f26d0d5fd1d5",
+      "sha256": "b4b50d29c4205625b787b8ec2e3036f3e7f7bf1459444861b007b9286c172eb0"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/prospect-tools.mjs",
+      "sha1": "e2fcdc02e2b7349951c7c61e1b6969a9d71a97ed",
+      "sha256": "11be49255c01ca267641e57d139f2f85e1240c073bddc188e2b76ac41eaf8e05"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/public-data.mjs",
+      "sha1": "840f70f0a3c4bc4ef2513808738fd03a0ac24a61",
+      "sha256": "7fea0811527723a1ebeca0ede058a827496521d410d8ae50c60f88607e11f58b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-alaska.mjs",
+      "sha1": "74f6e173dd92edcf77291405539a76fd6e626d32",
+      "sha256": "86575bbced93bc055992345d780d96ae6a3c6c8d53ea2e8218f5119859a6e94e"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-catalog.mjs",
+      "sha1": "bfdfd40ef80f4d4bda1884b035ecd6fd114e7ed5",
+      "sha256": "8f3b74159d82006f4e10eb1ec582e46f81d8c5b694954a4bd196f870473b73ea"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-dc.mjs",
+      "sha1": "4c2d6bc8f74dd23dac36dfb1e2f1fe8b46e9d2f6",
+      "sha256": "ee1f2ba950a5b5af6fced4b5b6ea74dff0c2c081a5ca67826ccc9d2b53f309c2"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-delaware.mjs",
+      "sha1": "5ad4040f3bca053495d9a4855c502d6794d4b309",
+      "sha256": "152131a88998e9eedc034d5575429a4e1af160a3f9aad987df3c51bd2cb76419"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-iowa.mjs",
+      "sha1": "3f7fcbc90c1f0bd04d3ae4f6e9d3de7ae92ced48",
+      "sha256": "57d662f0782f66a82073f0911be89f28ea9c819bb96fab8bd185dfd04ba9b76a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-kentucky.mjs",
+      "sha1": "9eb9d8992d5e75a42aaeb38eb11294e9c832a8b1",
+      "sha256": "b7f75623e5559e1bc59504122291ffd04df9eb0ca9f33724eee666596e52c258"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-matching.mjs",
+      "sha1": "48028fb8aec4cd7b384ecfd0dbf4c2ca4734464d",
+      "sha256": "a8e4924314cd1dfc5f067061673b23f445587693f96e34466e9f00f0ecc310fe"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-new-mexico.mjs",
+      "sha1": "bba4c60b3c61bd8e4f3832e6ff61b868a12da721",
+      "sha256": "7406bdbec348d359fad143f16cc37d20d939c46392b8b33296e9405b4939622b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/registry-socrata.mjs",
+      "sha1": "af68a1f8d4c144eefc28b523cfdbf27bf2e3f59e",
+      "sha256": "323632fbc34ac6cfdc30a3308050e150c8ead7b1ac25c9c7eb30c1b5d4d04f44"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/research.mjs",
+      "sha1": "89c950da548780fe29c8904ba9c6676c097827b3",
+      "sha256": "bbeebb4a1497115b43bfd59c2ff2955d325da2a15ede6b52f5588d371bfd4f3b"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/revenue.mjs",
+      "sha1": "54afea0b764eeef74c3d3a79c2f8c6745d7bc64a",
+      "sha256": "bc3bbd783c74021e70d2896b2d237736d4d9f5c2b76e7f91b417004f5d5b39e5"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/service.mjs",
+      "sha1": "1b5a8c3183ba6fc47b8e0fad4d3bb9952b0e6f89",
+      "sha256": "e683c61ed438815721edef11e3fc05ebace52c91c9e8c8450a58aee1086150ef"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/state-registry.mjs",
+      "sha1": "697a8611d5099f615597e2983d00a0a06da77e5a",
+      "sha256": "dffbdd5c678c5c740eadab409495b97cf953c669740139fa8aa3cd14e4c142a5"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b",
+      "sha256": "8d26eee64f33c8c696bc69549c2b3702e1589963bcd5b2c7ce34c05a4cbfd165"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territories.mjs",
+      "sha1": "6903af58f15d99f0085484fefe3c748eebfc2e87",
+      "sha256": "d02fa3e2a922e949e4088728384b0bd775260d503b55daf57ce8af6d6eb41def"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-access.mjs",
+      "sha1": "bf483a249121f21e94aa1034c738a0cf3dcc7cf8",
+      "sha256": "800042a2c5ecc3015d1566e676dbaa0b089d8c08ce71064bcb53f12a7196cc11"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/AK.json",
+      "sha1": "227648c7bc58136177315a39b05102f066a41989",
+      "sha256": "8c81860ac7aff1e6acd7449f42e6e5e0f610b1a016fa3c2df0652d04cc873dfd"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/AL.json",
+      "sha1": "f3f712ff486b830311325da9699dd976ba35de26",
+      "sha256": "c77ba346b6792109ccc3362feba810a7f52574145a8a14b3cc9dee99d05d93d8"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/AR.json",
+      "sha1": "45c3bc9bf175a416433a8e916b8d508765438dc3",
+      "sha256": "fa5cb784eabd4a1606bd6412893d47c90e8686bd799965aba9cb71fd0f8e6d7a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/AZ.json",
+      "sha1": "1488aabd4fff19f90db00441a01f06d175943011",
+      "sha256": "f029043a8726ff05635fcf5b47e6902a9f035e1483dcea2c0821ef75da158985"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/CA.json",
+      "sha1": "26cca6071ba3733fdee3f51d25bd5d1b00daef9d",
+      "sha256": "000d3791b8fce0e774f5fcf5a8180021061a030b0b539b88bb863456884a6c5a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/CO.json",
+      "sha1": "899670c323d4e793b8afce5b3e5c3c750b01396a",
+      "sha256": "de211fb6751d7875db72e5662f1e9928f099c1dae67ab2c0f97ac68e02e5ecb5"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/CT.json",
+      "sha1": "2391a7e1d67521abd391b055b52c6f99c2581be1",
+      "sha256": "8bc14c7650bf33adba8fb77d058a650150c36f8bbd3f4f64d8fd5596fb4b8ee8"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/DC.json",
+      "sha1": "dfb103cbd6d968e483389ba77c70ad81db6fceed",
+      "sha256": "4ac52c0f5e3790df995fcc9453c7028da271163b21550592e33d6e298d679231"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/DE.json",
+      "sha1": "ce2b32f07e18d033db2253a3a02775cc00bfb11d",
+      "sha256": "12210bb360e9fa1afee18b0e51842963e0e17e0a914c391cd56466efeaab7711"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/FL.json",
+      "sha1": "586451b50cc2c7dbfb9051368f04b19f25eb3d60",
+      "sha256": "7fb369ea01694651280cbd3efb26e672c793f8e38b4013b121f040569f25a282"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/GA.json",
+      "sha1": "126ca4bb43b0feaa364b583ec76ed1dc16df64ff",
+      "sha256": "3a4566719486052b82839d366ddf3bcda9c7d92846b9006b88c0952eb54665f2"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/HI.json",
+      "sha1": "41e899e8f060c0b86ea1a525d71fc995b363cd11",
+      "sha256": "9a040c864ce8a1f6c758b66b5abe7c5d18fffbd04f2d66c6843010d0a440a4a3"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/IA.json",
+      "sha1": "a34af07348e94da1048ce5e6c90fb4fdec1784cc",
+      "sha256": "d657b57b03cfc90b85ae679ee7da41fe9dc38f2004180d120003bb659baa397c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/ID.json",
+      "sha1": "316974d9d1476abf4ebca31a8d2f88ffe2f421b7",
+      "sha256": "83d91d7d04eb03e38abc7f8894a24ea6ca410df7f955388c54114fcfc62f6f9a"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/IL.json",
+      "sha1": "aaef7e6ec5a3c0401998ebcf4b08191fce619b93",
+      "sha256": "f8bacb2794eb909da4f5deb531c33a86485b097f14fd7f9966c180ddbdbb69b2"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/IN.json",
+      "sha1": "efe34e01bbed53543d061c88aaf87c20d989782c",
+      "sha256": "c2de0e2375d58702d007708bfb0d1c629fd0697017a0dd0a2f0ddebc2eec1add"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/KS.json",
+      "sha1": "42bec5e11a50450bfacdc24bf8c31952cb59781f",
+      "sha256": "a16932ae1cdbfd88893995ba9908cb8a6717e31777916010001039ed95f11e96"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/KY.json",
+      "sha1": "d2e82d4c074a0dd9aa4aede1918966ff6afccf38",
+      "sha256": "1936089dcd8d0188f3dbc15fb3e7f989be6761069e2f792924c089737ff22fe2"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/LA.json",
+      "sha1": "544b61d17d38613b3f227db9c919395b93e9953a",
+      "sha256": "94f2822b4898475d8ad3d0f9d488f6d3a0b84c4935b66fdfa16b526950e55e16"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MA.json",
+      "sha1": "38201470ab92f5ef67ce73ab2ad65b9b9a47ca23",
+      "sha256": "3d9acc7fa53339820ed58270b4389728dd21506aaa951d2b8ae0bcec822d7b21"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MD.json",
+      "sha1": "13fde30b67acf369bd04041e094b4d0784f25ed1",
+      "sha256": "b3c79525686dba632071b3ba70e1f2a3c20045f9072e3a8ed83a410600596bbe"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/ME.json",
+      "sha1": "2cb405b4e03dc4b7449ac36dc4db07b0d8fd61e9",
+      "sha256": "2fed4184f370e4bbde3a229c47947522007ec542bd0e939975e2f137dd6c5a04"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MI.json",
+      "sha1": "da3c95bf2835b3ed40ac6d04cb3b1b9c7251105d",
+      "sha256": "e4dbda65d443968a1530e2dfb027d3556d01739b06d017b2f270a6768379a674"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MN.json",
+      "sha1": "4d8bb827babb0918eccfeff0dcc62a53aad849aa",
+      "sha256": "58b49295a422925063605f4a831f2858481919e79ce4bc88e4dddeb97d7526a1"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MO.json",
+      "sha1": "6bd6ace0ab482ab3c224d9ceddfc9e859e2acbd4",
+      "sha256": "2769b025f54636e395174ff6afc2d72e6e71c914a5cb2f768821fbf7c9ec775c"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MS.json",
+      "sha1": "07dd8ddd47525a74d751b124a99e9d6c1ef53874",
+      "sha256": "38ba4bfe9ad265ff9cecfedccbf824818f4776bd4b495e4117664498049d87b0"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/MT.json",
+      "sha1": "cbefcf11c11406908b9907a15cf4b5992f82b2e9",
+      "sha256": "104546c62ce074023794c54a2f332eb9bf979ac9c102215cd86d28ed4e15f336"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NC.json",
+      "sha1": "0d301f628128834a85c30a4e055ecd1c1186c9c9",
+      "sha256": "36edbf8863cd8709b26a3779399a476e25e69888ff6aa82d27d7952573a9d276"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/ND.json",
+      "sha1": "6c16bb875471dc2ca64bec4943b3a977a4d1ed05",
+      "sha256": "70b754142ad03818783b717a847b292bfa9458edeb9998ac6ddba704f41bb0d1"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NE.json",
+      "sha1": "ac5fc905c5bbee615e1c55c35577871501a637b9",
+      "sha256": "fd3637a1263f6f2a89774d03c0b6c7af025be3d8c551e43b0e568f26c72df29e"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NH.json",
+      "sha1": "b9aee7b49b56787f76ace48e4980ef7b52496d99",
+      "sha256": "dc15f926ba5021f7ab7e0c1fc35579d4c071076383bc68e7a34340a83eba59a6"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NJ.json",
+      "sha1": "7b7100c398e95a0b217aecc73f4772f9b80e1fd9",
+      "sha256": "6acf2c583d19914bcebd88e51390f3e07b7d2cd33e532d84b85b23eca8d84832"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NM.json",
+      "sha1": "0752c0a9f41763322e64b4b8cc833d325b21d287",
+      "sha256": "5016eba531cc2feeca3fc53aa45cb0ade852efd5537815648eb6da26ada36af8"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NV.json",
+      "sha1": "fe57d56bfcf6d9901cb04a4bfd369290b4d34d1b",
+      "sha256": "a0547a5eba7734a618d8277b58b2350945726aae085364318c5575f665181de4"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/NY.json",
+      "sha1": "c4d1e9d0fe79a5849a02d38e9374416f40d55145",
+      "sha256": "cdaecf6d9375c6e6dc61aef33786375a5c17a8e95e93e7b7626ac4515961e769"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/OH.json",
+      "sha1": "739742501519be384ab5704e6b03fd16cf247892",
+      "sha256": "5b3979d2593224143cb5bde25c1409120fe158fbcc36801034daa2b39a06d991"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/OK.json",
+      "sha1": "d9ddda6159e1368eab21580c4c144f98fdc90164",
+      "sha256": "8ce2c0affa9437b3b5f52806c255f7ce5e0e79bed2ac379d56ea26bb842c3c2d"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/OR.json",
+      "sha1": "e3eee08649b64c322c80928f73701615752e196d",
+      "sha256": "5e498e2b150c7bcb78bfef48ebc6ecc0708188965d79af874929705d15181deb"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/PA.json",
+      "sha1": "67b4dbaab2445641c7f04cf9f44519f7374b3019",
+      "sha256": "1cff554118109ddd0b8afdbcd7fa0919b67973c44a9b6706bc4c45746d2e86d8"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/RI.json",
+      "sha1": "70edf1a0139a189c040b5959dc61098ff26faa32",
+      "sha256": "0aa97ea4339ebc8c226c3e4857b2d0ebeaf846524209f6402551173146bde778"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/SC.json",
+      "sha1": "93c0ad1b346c71096e846fb26479904ea5fc366a",
+      "sha256": "a5de66bafaad76bb10c1cfcb1714bfaf11dbb92afe9fb0000cebbdb8c8394b28"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/SD.json",
+      "sha1": "7cdf1d12fda4cf55392d8d8892c157c3a3c91619",
+      "sha256": "545537cf37ccbf19b8079758c7ce7f488fe3c894c78d006d9eea2bffc7101184"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/TN.json",
+      "sha1": "2ed314e8122ad65e2658ba1cb49bb10908cd756a",
+      "sha256": "a584a2eeca161c00f35ee2bbb8ae85457094171e7f0d2cc338a7188c68099b95"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/TX.json",
+      "sha1": "f86ac943930b66f5ee3810a0cfe226b92b095ed5",
+      "sha256": "64d182779b6e237ae69049d6de8fd4e4710c0070104fa16e768d8e3abdcd2137"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/UT.json",
+      "sha1": "c5b0652ab8605aea7d97d9ad2b21c09ca1a1b73f",
+      "sha256": "9d8cf7171efe392c109f645b1500194d090386549879a42efe98c1a23d8c77ff"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/VA.json",
+      "sha1": "f4fbfc2e45d5e32e5f404b4528085d1b270b9659",
+      "sha256": "8b3e2a8a655a555cc93d099e96acecb59ebff2e9c161dd5b62312471b3490de5"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/VT.json",
+      "sha1": "71905e275367e15232e5a75109d6e42c3aab8014",
+      "sha256": "ae7d90398253b804fcb747ae8161686a62a4ca8d462136f748e58f94b03bde7f"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/WA.json",
+      "sha1": "ae7b755c63bb96c18907c339825d77b2509d86de",
+      "sha256": "ed60c4119795a2d59c5023bba7e42e7d412cf4f4b020c228ca56c231d18b48e9"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/WI.json",
+      "sha1": "a03941036885d7cf4c5dcfa0b6fbab0712e59bab",
+      "sha256": "8fb2546ecc270534788f63bfc0f972c521082a4acb88fa647b2abec715176613"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/WV.json",
+      "sha1": "d55c5c5630b2a0821b3331afd2c75e79f6b06dde",
+      "sha256": "72b8db2f9b4afa413e2f40b9a37ecb38db444ee6e48ff3e244fea6a4152cc1d9"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/WY.json",
+      "sha1": "4faf643370fd7407a1a5ad516ce5fa6cc98e9998",
+      "sha256": "c2c770fddc8b21eefc32ab65727233410a914564fedff9b7aa0e22165b0e5e49"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/territory-data/manifest.json",
+      "sha1": "86bc28308a8cf88c650a966de16213c103c41386",
+      "sha256": "8f04551ab6d68c447f2c0c717db7ba0f5e3d646aaa98a26c052bef960f137de0"
+    },
+    {
+      "path": "functions/api/sales-webhook.func/webhook.mjs",
+      "sha1": "cdf9a4e827d6c9f01375b57b98a22c7383c20ae8",
+      "sha256": "a6204809ff067c47508159c391698472d85c57f4b5d385eb88022b97612c30dc"
+    },
+    {
+      "path": "functions/api/sales.func/.vc-config.json",
+      "sha1": "0bc56e78c1fd8bf24593772569ba97ac9664a017",
+      "sha256": "77b83dce801556f964a6cca2e4086b08eb2df27d7d3d30b2a2aa9f4dc0a63a50"
+    },
+    {
+      "path": "functions/api/sales.func/atomic.mjs",
+      "sha1": "cd75f3f312673d23ad9ee5e747bb729e5357f71f",
+      "sha256": "c324f4c5d994a9ad346bf36da98b323a221f770c8f6e4d65b9d0a3289881245e"
+    },
+    {
+      "path": "functions/api/sales.func/backend.mjs",
+      "sha1": "b76541678985fb5d3a9e861752d6970ad2ce9b35",
+      "sha256": "820f7dccd56d88e7419c4f5acf79ddd4b2611a9aa21a3d9d30aca3ca42d7f981"
+    },
+    {
+      "path": "functions/api/sales.func/billing.mjs",
+      "sha1": "3170bde9dba960efb498b91681687d3ee8fa606f",
+      "sha256": "000fd94e6059267fa2f873e39bf92954d3079a883b7e4045ac9abf066741627c"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/AK.json.gz",
+      "sha1": "4cc22b5df29e7575e74f745cf1514429febd8caa",
+      "sha256": "a1f99a85d2eb04d953867cdd03ab68f736ad568364865b7e855d6684cceb18b1"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/AL.json.gz",
+      "sha1": "59d8ff514abbcb7edd8f379e43093748929f4aa7",
+      "sha256": "08b50019e2a2000e7dfc0e953b58baacb0f23b42fdef5a30e10d74aa264fb7c0"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/AR.json.gz",
+      "sha1": "714e676953e63c5991cd5731c3e1b9318f434f84",
+      "sha256": "b8dd9ef427f4b85a2a682c991ee96ac2b8f15f55443385a5d636479a4b39ade4"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/AZ.json.gz",
+      "sha1": "65d296e847801b5bc4699ed0cd881a861194e70c",
+      "sha256": "1c923821d9cc585932e40de891836bbd8eed156374db4edf8e09f5b582e2562b"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/CA.json.gz",
+      "sha1": "3f5074ba6ef6a5e5a79ed3d3f84a8b43ca95bbdb",
+      "sha256": "43233f41b4293a574bc15e60acba5e167a36ef877b60959b8484172aad468e91"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/CO.json.gz",
+      "sha1": "b8c3cf0b1f3f633e288b951761faab8a4d36434a",
+      "sha256": "62bef742d5b22c4c2c41a500c45b084202203cf1a1e28c29909ed43322a1a487"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/CT.json.gz",
+      "sha1": "83fd676aeac25c8ddeffcc3198539405fcaf6069",
+      "sha256": "b4815fbe37bfba98196241c5655b847164725012d1a8563c5166642e854fb41c"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/DC.json.gz",
+      "sha1": "2951f0b3c68fac5aa0959f60725711e7ff2caf86",
+      "sha256": "4d66adc8d0d6a40ed797d1353837822be5baf3eed1c2087e45aaa2b5bc7799b6"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/DE.json.gz",
+      "sha1": "cbad0e8feafd93d866390db813cfa142928c95a9",
+      "sha256": "dd088fda3aab29ceeed0caf28131141d3f626b1660ef086e20837c0455489438"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/FL.json.gz",
+      "sha1": "87a58812028aa5a9bda59bfd1d2ca24dc6612e96",
+      "sha256": "870f5c27c26b427bdcf4d9a54e19daa3e0ec3a520db86a015229d25644dade97"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/GA.json.gz",
+      "sha1": "419815ea6ef610b56669817bcb27bd0dc574fcf1",
+      "sha256": "e5ac12384d0032454f47a3b5ad2b53d4017e3c019496a7059fcd423df3c4a8c9"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/HI.json.gz",
+      "sha1": "36d608039bcbb90522b7020a0ebcc8b874608069",
+      "sha256": "f24c5db5f84c5440dc90f80dc7a19eab1c76508a1328c2b9fc154afa3fd3b516"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/IA.json.gz",
+      "sha1": "8eeb3961933bf2fab2e59c497f800b97c6b1298f",
+      "sha256": "5a568dac0a9155ca48c8adbe900406db2ed25a9c4e3c99d4d3a582b533e91d4c"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/ID.json.gz",
+      "sha1": "f958418e38cd76134ff4dde1b6c471f905a02718",
+      "sha256": "3bf64d8ae48dda09115c95d5defcc0b8aa5dfe6aa1d6d55b12c914b4f77ef0b7"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/IL.json.gz",
+      "sha1": "4012ac686ea0009f92979cd60bdc68d5a2d16a7b",
+      "sha256": "5b70d3d6936fa2ef164aedc5e93d94137240f81cdd822b4c3ccec73b8dab826f"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/IN.json.gz",
+      "sha1": "a973be4000726daccba024bad975efa1f53cb1eb",
+      "sha256": "f4ef68a69e85497fbb4d9abda5884dc6d8d4177e284679cb4cce746f5bc18928"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/KS.json.gz",
+      "sha1": "25e35e4a5d44d966a37c1925bce6d50e11d21405",
+      "sha256": "1eb7b01748d38367dddfb27f249f1e9806b7af791ada79316fe3824335366547"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/KY.json.gz",
+      "sha1": "bf39bbb09850d731e0967f9fcc5170e41185c813",
+      "sha256": "8e476cf8172db725213c691c31a434b4bf7ee96e338f895514b2715b2d7379b1"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/LA.json.gz",
+      "sha1": "67b0a772fdc362876b087064264cc20ff64edcb4",
+      "sha256": "71a44826b82379c381df83aaecdff5bdf6263870c65cf039939b20d015568649"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MA.json.gz",
+      "sha1": "e179250376d61da7d5a1395427acd0c5d1565edb",
+      "sha256": "3322f7d4fa5de348cb88fa0cb16cc99d888cf68aa1ecba147fdff823903187d8"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MD.json.gz",
+      "sha1": "b223a8c8d75524f75c103e0132d14942fce8e9d2",
+      "sha256": "847233816d7a538cb6cebb2877f2015c0d698a83ca80b0b952524132480719a6"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/ME.json.gz",
+      "sha1": "ce76f6f11352db6cbfc684aa2c03dc7308236f04",
+      "sha256": "d559fc542ba0833128329cd94a1c386dd3f53e5290c22c52c647f50e097a769d"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MI.json.gz",
+      "sha1": "d02626b5b766136ff20d00d5428c97f6d7573d2e",
+      "sha256": "752222116220f6d931f2b019504b80c3ed7a1562e4ec43898ea5b3120ee7d0d6"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MN.json.gz",
+      "sha1": "ca575abedea49d9c21e6d86fe08e5e722d116474",
+      "sha256": "7bcd78e23a642ae36dfc89e09678eec7e67a6afbce68459f77f725cf792ed075"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MO.json.gz",
+      "sha1": "dec458706bbb6aa45f58ff0009710893b3369bb8",
+      "sha256": "fd2be14a728aa875b64a358f78ba1dd99e37697af366c6c5483ac5ca0a74c6e3"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MS.json.gz",
+      "sha1": "e93ac23d80bac45fa273d7bcd015814382e928eb",
+      "sha256": "33e89ca4734fef6f09a6dbbd7b985ec7e1b6ec7d36d0d01f6c7e2b9d309ffa7f"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/MT.json.gz",
+      "sha1": "77f23769eefebd0548d4afc9df5b5e8095ac500e",
+      "sha256": "f028afff52dcc7af62d93cf47719575709de25454a75a1e3c7540bca27e44fa6"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NC.json.gz",
+      "sha1": "365f9265512e8cc1b26132c578cc626312c305bf",
+      "sha256": "89b669a7037a3f99f0a2626b17536eff5ec444b9c3a47d340b55330106f2f643"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/ND.json.gz",
+      "sha1": "9094a3aac0c0259decc70f367a57056362a0ea79",
+      "sha256": "3e045323c2014ac3e8b76bc3cb9747c15ef4f004c24831a8a799768cb7bfd364"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NE.json.gz",
+      "sha1": "58f3821ea9f145f200cbe0b98f4c5fbd03033f18",
+      "sha256": "7ac62c1ee68c610c6369da1bd8fb23db890cac2cec93b1bf50b922bb807eb580"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NH.json.gz",
+      "sha1": "d1062ef7f52454e647d5cc3e624dca9ff22d6b1d",
+      "sha256": "3d7ff6145f3aa580d6cbf645a27fb3c385190e6181dfe478d8a2108279f30637"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NJ.json.gz",
+      "sha1": "9900542e9a789df166c6e0aae9a7a0114f02754a",
+      "sha256": "e9795324319589de76d1c54d59af7a013a063d93800b0e8e92c68068ca56d645"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NM.json.gz",
+      "sha1": "eb1b3030b190fa5bcff50cfd0bbed094334e9df0",
+      "sha256": "e9a9db944508f6928840bd5d9f7d688f49709f3577a2b1bb7a4a2f9c3eb5d8d8"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NOTICE.txt",
+      "sha1": "61af465b468b31b78abe0493f7e48a32f988621b",
+      "sha256": "36adad4dca980705f81c05e36946b6e522cb12d4bb7fc68968a4a8a89c4cd5dc"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NV.json.gz",
+      "sha1": "359c5de08868d1a62cdd0c5ef3eddf8fde747a88",
+      "sha256": "bed54a7c4078bf5b69595f6d939528904e5210f03d42a2218585c1c282c46d37"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/NY.json.gz",
+      "sha1": "20b929ffe79a4269acb5fac19f9f20b7c439a783",
+      "sha256": "01ae537f5dc5a8b5c06f7e878f18a297930256843468137724291df74e77933c"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/OH.json.gz",
+      "sha1": "7f4447c5c0ac55f66884788bbc0e0bcdf45e13b3",
+      "sha256": "ccbf693f731a7ed6cab1579b2824fb6b333f55eb92e391f18ff19c7706f42b17"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/OK.json.gz",
+      "sha1": "cd2e04c0f4e03176dcc9bcbab2bf17eb6740d981",
+      "sha256": "6c4e8bcc8c2bb89784dd123ea37ace4e422ca79024f9d51872296e1f3908fbfc"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/OR.json.gz",
+      "sha1": "281916e9597799b30069aff3b72cfd3da799db84",
+      "sha256": "e842bde849831aa2a51f28701dd3cab86de5d831b8c329a855df63294cdfd058"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/PA.json.gz",
+      "sha1": "a345851351c6c543798a58c70b6aa476603ea75d",
+      "sha256": "318e384c52d70069c9af3494a774e6762a019f1818030dec00f369633cc5f654"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/RI.json.gz",
+      "sha1": "23ee5f7b79935020378f6413b876746d294270d2",
+      "sha256": "bacf6067f3b9e1be24555fd017f51c9217e05fe8eac95b1c998bd42a4afe2ed4"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/SC.json.gz",
+      "sha1": "79875439240edb8c3f0195a3cb69e5b66aadb078",
+      "sha256": "d58fe6e1bbc21c12961cc3e5fa315eb0621f9d1f02a417012f0af1ffcb5aa82b"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/SD.json.gz",
+      "sha1": "40540384a225514aadf280b5de5c7f63ca91207b",
+      "sha256": "49ef0879fdf3bcaf90ed7b7fc727e49e79e8e4b2e1e6274f9be89da627adb882"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/TN.json.gz",
+      "sha1": "f343dee76dfcc1267d3abb74a9ba239873430ec0",
+      "sha256": "ca306880f562a0dc40d10c0baf09aab48c8c1b2835ebdee1d91061d94cd3b7a1"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/TX.json.gz",
+      "sha1": "7a34524f9ea4826e5eee3d0d4891fa7de14805b7",
+      "sha256": "00878dab2abb5981917ce0ecc884a5b57e2f00adbfc7cc7f4f5985e4eafb5741"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/UT.json.gz",
+      "sha1": "6a8dc5e068597e92503f9a0dfa664f5dfa4a6a8f",
+      "sha256": "de5099af9cb709f314bdf3dbc3b735fbd5efbb2b56f9d0bf73983132e8f55ea4"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/VA.json.gz",
+      "sha1": "cadbc32d4ffa2ac0bbb74ca166a70e5b7c0c6628",
+      "sha256": "55acb4734bc77ba803416261c81ae9fbc40b36e96d200fb4b369eccf3d02322e"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/VT.json.gz",
+      "sha1": "437b9d4be86474709ef7e09664ec243107e9bd3c",
+      "sha256": "c1ef155bb6484b00ae39dc238712f2dca10d5f8ef8029fda13b65eab1b9b27fd"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/WA.json.gz",
+      "sha1": "970c7a329cd240ed6354d1f5001a5b816a7676e3",
+      "sha256": "2b78aa926d71e43fb7aae99a9528a9d5b761d18338144bd2e76973af417c6c6f"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/WI.json.gz",
+      "sha1": "35ea2902bb4ba7cfb070ef50082768a9f60efbe0",
+      "sha256": "46b2b78dd241eabd4dcaba2eeda89b5f04c8e7b65638c726a7bc49a47e1fb836"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/WV.json.gz",
+      "sha1": "476e045e020216d51ce770ead846a729f1636d24",
+      "sha256": "99a0c914906f9f7308ffa48e4121abe022c87da255ce2da368316e923734feea"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/WY.json.gz",
+      "sha1": "1f899f994c99e444ffd1796519052f7fdd257f0b",
+      "sha256": "96097adc601feaf9dbc80f06979abcfb1d0df4b3f998ecffd0a99e81316ec3f0"
+    },
+    {
+      "path": "functions/api/sales.func/business-places-data/manifest.json",
+      "sha1": "f6514a4af4862f9cd98ac9213f4338545e5cc700",
+      "sha256": "48f9edf2ed3d0543c450cca47917f94720169a171cfdce1cbf75b663dec36d92"
+    },
+    {
+      "path": "functions/api/sales.func/business-places.mjs",
+      "sha1": "82f4c48c6fd31368090684ba0adc2852ed471ba3",
+      "sha256": "8b37237dc0262ad50e8370c065b61ad5543714db995b3cd5e041af1566b3ef56"
+    },
+    {
+      "path": "functions/api/sales.func/business-registry.mjs",
+      "sha1": "3dcc4c5afc9491d9d7f8a2dbe93f1ebca2b4a44a",
+      "sha256": "6e16a80fab9217a79b14d34560a7662a202edf4a23d5893c9afb46f59847fe88"
+    },
+    {
+      "path": "functions/api/sales.func/contacts.mjs",
+      "sha1": "3700110123ccd18cc85a5f73f975a3f4fef732c4",
+      "sha256": "4351ab310eaeb566508805d20cc030dc7bd4aa7ff1d9b3cab04f393159dd2c4a"
+    },
+    {
+      "path": "functions/api/sales.func/contract-delivery.mjs",
+      "sha1": "b06ac775a1411291e34a2982213d57ce1fa14b6b",
+      "sha256": "19d33853e6bab69048db687261d853823cd33186ba5fa46c9b9daaeeded4b5cb"
+    },
+    {
+      "path": "functions/api/sales.func/contracts.mjs",
+      "sha1": "942456169addaa68ab2d04afb2237bd83a460ce8",
+      "sha256": "5b2480006f5366ff1e65a36988fb6a3640a3a2d1f4eab8be3fe8bce2122aeb3b"
+    },
+    {
+      "path": "functions/api/sales.func/directory-handler.mjs",
+      "sha1": "7e50a9173fc84723fa85a845b6c4998419d332bf",
+      "sha256": "731e34a9228f8bfcc6a9a94bd50b943ccd4326c0c9b8ef5be053ca99fa43a981"
+    },
+    {
+      "path": "functions/api/sales.func/directory.mjs",
+      "sha1": "f34bcf4b122e8d7876cb62e9ea7184c24b080e69",
+      "sha256": "29511753c51455ac82951af8aade7982d3008c775e43c937f4a28bab2badc973"
+    },
+    {
+      "path": "functions/api/sales.func/discovery.mjs",
+      "sha1": "52d492ab957bff9efa4bcbc9ddb6c14954ba45a9",
+      "sha256": "044ee8a4985190c255fc73547a6defe87c9c0532d0a7f08d3ee34f994e856abb"
+    },
+    {
+      "path": "functions/api/sales.func/geocoding.mjs",
+      "sha1": "2ecfa39d2cf94217182eabccc38c1ad79a6dad7d",
+      "sha256": "f26aab4783e438c51edfbb18c77a1cfc3e81252ead8e11fff6b92bc8e729d05a"
+    },
+    {
+      "path": "functions/api/sales.func/handler.mjs",
+      "sha1": "be1587e36d86eab447887261f40108152ab56739",
+      "sha256": "e8d29c5d08d41abe65b9fadcc23ce1d8adb0b4071ca8e6f8b8a4332ed00c127f"
+    },
+    {
+      "path": "functions/api/sales.func/iowa-data.mjs",
+      "sha1": "f40638283ed6838025d8a9674a4960275dd6bf82",
+      "sha256": "404f97427a3a9c370f5138354efe6505f386ec1ae8eefb114acb3feee14c482b"
+    },
+    {
+      "path": "functions/api/sales.func/local-contacts.mjs",
+      "sha1": "c2b56e29186d701e173f91a3a42263895785d2f5",
+      "sha256": "b0d51c517f74a36368e81b22a618e6435cae05fff6df66c214d5ca8a0bc96c58"
+    },
+    {
+      "path": "functions/api/sales.func/local-discovery.mjs",
+      "sha1": "5126b6364f7affbf01691267dae74322c5ff9ad3",
+      "sha256": "2f28fab646bfea1ab90c2031ed6e00e8be074a5350e933cde997feaffd9c56eb"
+    },
+    {
+      "path": "functions/api/sales.func/mail-provider.mjs",
+      "sha1": "8d74b54524862658d508b67c4d07bcb4f3fd5b81",
+      "sha256": "7e13160f8d687065b70ee584609db900dacf1f350df95fef710ec196eb5e4ca1"
+    },
+    {
+      "path": "functions/api/sales.func/mail-webhook.mjs",
+      "sha1": "7777b4f2af8dc94ff2de73e44d4a34b7b960235f",
+      "sha256": "505ba3a5fe871039e737a73eeb8f6519d5accc0f6c3d1b6f894e2be523e78427"
+    },
+    {
+      "path": "functions/api/sales.func/model.mjs",
+      "sha1": "7dc8b25cad08f7faff3d140ef56500579c7500b6",
+      "sha256": "99f58e9333162443c29721957d9da298e5ef66756d9eba2c8a3842b32337d825"
+    },
+    {
+      "path": "functions/api/sales.func/payments.mjs",
+      "sha1": "ec18fe248dc1a6101b32ad9a6572335621195fb0",
+      "sha256": "5c78255a6caba0b9a0c71fdc3de71a8eb53bd0cfcfce647a7e1c25dc4ba6812c"
+    },
+    {
+      "path": "functions/api/sales.func/pipeline.mjs",
+      "sha1": "b5fc0975132b2f182d85cfc45a65f26d0d5fd1d5",
+      "sha256": "b4b50d29c4205625b787b8ec2e3036f3e7f7bf1459444861b007b9286c172eb0"
+    },
+    {
+      "path": "functions/api/sales.func/prospect-tools.mjs",
+      "sha1": "e2fcdc02e2b7349951c7c61e1b6969a9d71a97ed",
+      "sha256": "11be49255c01ca267641e57d139f2f85e1240c073bddc188e2b76ac41eaf8e05"
+    },
+    {
+      "path": "functions/api/sales.func/public-data.mjs",
+      "sha1": "840f70f0a3c4bc4ef2513808738fd03a0ac24a61",
+      "sha256": "7fea0811527723a1ebeca0ede058a827496521d410d8ae50c60f88607e11f58b"
+    },
+    {
+      "path": "functions/api/sales.func/registry-alaska.mjs",
+      "sha1": "74f6e173dd92edcf77291405539a76fd6e626d32",
+      "sha256": "86575bbced93bc055992345d780d96ae6a3c6c8d53ea2e8218f5119859a6e94e"
+    },
+    {
+      "path": "functions/api/sales.func/registry-catalog.mjs",
+      "sha1": "bfdfd40ef80f4d4bda1884b035ecd6fd114e7ed5",
+      "sha256": "8f3b74159d82006f4e10eb1ec582e46f81d8c5b694954a4bd196f870473b73ea"
+    },
+    {
+      "path": "functions/api/sales.func/registry-dc.mjs",
+      "sha1": "4c2d6bc8f74dd23dac36dfb1e2f1fe8b46e9d2f6",
+      "sha256": "ee1f2ba950a5b5af6fced4b5b6ea74dff0c2c081a5ca67826ccc9d2b53f309c2"
+    },
+    {
+      "path": "functions/api/sales.func/registry-delaware.mjs",
+      "sha1": "5ad4040f3bca053495d9a4855c502d6794d4b309",
+      "sha256": "152131a88998e9eedc034d5575429a4e1af160a3f9aad987df3c51bd2cb76419"
+    },
+    {
+      "path": "functions/api/sales.func/registry-iowa.mjs",
+      "sha1": "3f7fcbc90c1f0bd04d3ae4f6e9d3de7ae92ced48",
+      "sha256": "57d662f0782f66a82073f0911be89f28ea9c819bb96fab8bd185dfd04ba9b76a"
+    },
+    {
+      "path": "functions/api/sales.func/registry-kentucky.mjs",
+      "sha1": "9eb9d8992d5e75a42aaeb38eb11294e9c832a8b1",
+      "sha256": "b7f75623e5559e1bc59504122291ffd04df9eb0ca9f33724eee666596e52c258"
+    },
+    {
+      "path": "functions/api/sales.func/registry-matching.mjs",
+      "sha1": "48028fb8aec4cd7b384ecfd0dbf4c2ca4734464d",
+      "sha256": "a8e4924314cd1dfc5f067061673b23f445587693f96e34466e9f00f0ecc310fe"
+    },
+    {
+      "path": "functions/api/sales.func/registry-new-mexico.mjs",
+      "sha1": "bba4c60b3c61bd8e4f3832e6ff61b868a12da721",
+      "sha256": "7406bdbec348d359fad143f16cc37d20d939c46392b8b33296e9405b4939622b"
+    },
+    {
+      "path": "functions/api/sales.func/registry-socrata.mjs",
+      "sha1": "af68a1f8d4c144eefc28b523cfdbf27bf2e3f59e",
+      "sha256": "323632fbc34ac6cfdc30a3308050e150c8ead7b1ac25c9c7eb30c1b5d4d04f44"
+    },
+    {
+      "path": "functions/api/sales.func/research.mjs",
+      "sha1": "89c950da548780fe29c8904ba9c6676c097827b3",
+      "sha256": "bbeebb4a1497115b43bfd59c2ff2955d325da2a15ede6b52f5588d371bfd4f3b"
+    },
+    {
+      "path": "functions/api/sales.func/revenue.mjs",
+      "sha1": "54afea0b764eeef74c3d3a79c2f8c6745d7bc64a",
+      "sha256": "bc3bbd783c74021e70d2896b2d237736d4d9f5c2b76e7f91b417004f5d5b39e5"
+    },
+    {
+      "path": "functions/api/sales.func/service.mjs",
+      "sha1": "1b5a8c3183ba6fc47b8e0fad4d3bb9952b0e6f89",
+      "sha256": "e683c61ed438815721edef11e3fc05ebace52c91c9e8c8450a58aee1086150ef"
+    },
+    {
+      "path": "functions/api/sales.func/state-registry.mjs",
+      "sha1": "697a8611d5099f615597e2983d00a0a06da77e5a",
+      "sha256": "dffbdd5c678c5c740eadab409495b97cf953c669740139fa8aa3cd14e4c142a5"
+    },
+    {
+      "path": "functions/api/sales.func/terms.mjs",
+      "sha1": "3603045616d22c398168f109cb53984cf8a00c9b",
+      "sha256": "8d26eee64f33c8c696bc69549c2b3702e1589963bcd5b2c7ce34c05a4cbfd165"
+    },
+    {
+      "path": "functions/api/sales.func/territories.mjs",
+      "sha1": "6903af58f15d99f0085484fefe3c748eebfc2e87",
+      "sha256": "d02fa3e2a922e949e4088728384b0bd775260d503b55daf57ce8af6d6eb41def"
+    },
+    {
+      "path": "functions/api/sales.func/territory-access.mjs",
+      "sha1": "bf483a249121f21e94aa1034c738a0cf3dcc7cf8",
+      "sha256": "800042a2c5ecc3015d1566e676dbaa0b089d8c08ce71064bcb53f12a7196cc11"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/AK.json",
+      "sha1": "227648c7bc58136177315a39b05102f066a41989",
+      "sha256": "8c81860ac7aff1e6acd7449f42e6e5e0f610b1a016fa3c2df0652d04cc873dfd"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/AL.json",
+      "sha1": "f3f712ff486b830311325da9699dd976ba35de26",
+      "sha256": "c77ba346b6792109ccc3362feba810a7f52574145a8a14b3cc9dee99d05d93d8"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/AR.json",
+      "sha1": "45c3bc9bf175a416433a8e916b8d508765438dc3",
+      "sha256": "fa5cb784eabd4a1606bd6412893d47c90e8686bd799965aba9cb71fd0f8e6d7a"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/AZ.json",
+      "sha1": "1488aabd4fff19f90db00441a01f06d175943011",
+      "sha256": "f029043a8726ff05635fcf5b47e6902a9f035e1483dcea2c0821ef75da158985"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/CA.json",
+      "sha1": "26cca6071ba3733fdee3f51d25bd5d1b00daef9d",
+      "sha256": "000d3791b8fce0e774f5fcf5a8180021061a030b0b539b88bb863456884a6c5a"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/CO.json",
+      "sha1": "899670c323d4e793b8afce5b3e5c3c750b01396a",
+      "sha256": "de211fb6751d7875db72e5662f1e9928f099c1dae67ab2c0f97ac68e02e5ecb5"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/CT.json",
+      "sha1": "2391a7e1d67521abd391b055b52c6f99c2581be1",
+      "sha256": "8bc14c7650bf33adba8fb77d058a650150c36f8bbd3f4f64d8fd5596fb4b8ee8"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/DC.json",
+      "sha1": "dfb103cbd6d968e483389ba77c70ad81db6fceed",
+      "sha256": "4ac52c0f5e3790df995fcc9453c7028da271163b21550592e33d6e298d679231"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/DE.json",
+      "sha1": "ce2b32f07e18d033db2253a3a02775cc00bfb11d",
+      "sha256": "12210bb360e9fa1afee18b0e51842963e0e17e0a914c391cd56466efeaab7711"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/FL.json",
+      "sha1": "586451b50cc2c7dbfb9051368f04b19f25eb3d60",
+      "sha256": "7fb369ea01694651280cbd3efb26e672c793f8e38b4013b121f040569f25a282"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/GA.json",
+      "sha1": "126ca4bb43b0feaa364b583ec76ed1dc16df64ff",
+      "sha256": "3a4566719486052b82839d366ddf3bcda9c7d92846b9006b88c0952eb54665f2"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/HI.json",
+      "sha1": "41e899e8f060c0b86ea1a525d71fc995b363cd11",
+      "sha256": "9a040c864ce8a1f6c758b66b5abe7c5d18fffbd04f2d66c6843010d0a440a4a3"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/IA.json",
+      "sha1": "a34af07348e94da1048ce5e6c90fb4fdec1784cc",
+      "sha256": "d657b57b03cfc90b85ae679ee7da41fe9dc38f2004180d120003bb659baa397c"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/ID.json",
+      "sha1": "316974d9d1476abf4ebca31a8d2f88ffe2f421b7",
+      "sha256": "83d91d7d04eb03e38abc7f8894a24ea6ca410df7f955388c54114fcfc62f6f9a"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/IL.json",
+      "sha1": "aaef7e6ec5a3c0401998ebcf4b08191fce619b93",
+      "sha256": "f8bacb2794eb909da4f5deb531c33a86485b097f14fd7f9966c180ddbdbb69b2"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/IN.json",
+      "sha1": "efe34e01bbed53543d061c88aaf87c20d989782c",
+      "sha256": "c2de0e2375d58702d007708bfb0d1c629fd0697017a0dd0a2f0ddebc2eec1add"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/KS.json",
+      "sha1": "42bec5e11a50450bfacdc24bf8c31952cb59781f",
+      "sha256": "a16932ae1cdbfd88893995ba9908cb8a6717e31777916010001039ed95f11e96"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/KY.json",
+      "sha1": "d2e82d4c074a0dd9aa4aede1918966ff6afccf38",
+      "sha256": "1936089dcd8d0188f3dbc15fb3e7f989be6761069e2f792924c089737ff22fe2"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/LA.json",
+      "sha1": "544b61d17d38613b3f227db9c919395b93e9953a",
+      "sha256": "94f2822b4898475d8ad3d0f9d488f6d3a0b84c4935b66fdfa16b526950e55e16"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MA.json",
+      "sha1": "38201470ab92f5ef67ce73ab2ad65b9b9a47ca23",
+      "sha256": "3d9acc7fa53339820ed58270b4389728dd21506aaa951d2b8ae0bcec822d7b21"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MD.json",
+      "sha1": "13fde30b67acf369bd04041e094b4d0784f25ed1",
+      "sha256": "b3c79525686dba632071b3ba70e1f2a3c20045f9072e3a8ed83a410600596bbe"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/ME.json",
+      "sha1": "2cb405b4e03dc4b7449ac36dc4db07b0d8fd61e9",
+      "sha256": "2fed4184f370e4bbde3a229c47947522007ec542bd0e939975e2f137dd6c5a04"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MI.json",
+      "sha1": "da3c95bf2835b3ed40ac6d04cb3b1b9c7251105d",
+      "sha256": "e4dbda65d443968a1530e2dfb027d3556d01739b06d017b2f270a6768379a674"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MN.json",
+      "sha1": "4d8bb827babb0918eccfeff0dcc62a53aad849aa",
+      "sha256": "58b49295a422925063605f4a831f2858481919e79ce4bc88e4dddeb97d7526a1"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MO.json",
+      "sha1": "6bd6ace0ab482ab3c224d9ceddfc9e859e2acbd4",
+      "sha256": "2769b025f54636e395174ff6afc2d72e6e71c914a5cb2f768821fbf7c9ec775c"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MS.json",
+      "sha1": "07dd8ddd47525a74d751b124a99e9d6c1ef53874",
+      "sha256": "38ba4bfe9ad265ff9cecfedccbf824818f4776bd4b495e4117664498049d87b0"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/MT.json",
+      "sha1": "cbefcf11c11406908b9907a15cf4b5992f82b2e9",
+      "sha256": "104546c62ce074023794c54a2f332eb9bf979ac9c102215cd86d28ed4e15f336"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NC.json",
+      "sha1": "0d301f628128834a85c30a4e055ecd1c1186c9c9",
+      "sha256": "36edbf8863cd8709b26a3779399a476e25e69888ff6aa82d27d7952573a9d276"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/ND.json",
+      "sha1": "6c16bb875471dc2ca64bec4943b3a977a4d1ed05",
+      "sha256": "70b754142ad03818783b717a847b292bfa9458edeb9998ac6ddba704f41bb0d1"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NE.json",
+      "sha1": "ac5fc905c5bbee615e1c55c35577871501a637b9",
+      "sha256": "fd3637a1263f6f2a89774d03c0b6c7af025be3d8c551e43b0e568f26c72df29e"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NH.json",
+      "sha1": "b9aee7b49b56787f76ace48e4980ef7b52496d99",
+      "sha256": "dc15f926ba5021f7ab7e0c1fc35579d4c071076383bc68e7a34340a83eba59a6"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NJ.json",
+      "sha1": "7b7100c398e95a0b217aecc73f4772f9b80e1fd9",
+      "sha256": "6acf2c583d19914bcebd88e51390f3e07b7d2cd33e532d84b85b23eca8d84832"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NM.json",
+      "sha1": "0752c0a9f41763322e64b4b8cc833d325b21d287",
+      "sha256": "5016eba531cc2feeca3fc53aa45cb0ade852efd5537815648eb6da26ada36af8"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NV.json",
+      "sha1": "fe57d56bfcf6d9901cb04a4bfd369290b4d34d1b",
+      "sha256": "a0547a5eba7734a618d8277b58b2350945726aae085364318c5575f665181de4"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/NY.json",
+      "sha1": "c4d1e9d0fe79a5849a02d38e9374416f40d55145",
+      "sha256": "cdaecf6d9375c6e6dc61aef33786375a5c17a8e95e93e7b7626ac4515961e769"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/OH.json",
+      "sha1": "739742501519be384ab5704e6b03fd16cf247892",
+      "sha256": "5b3979d2593224143cb5bde25c1409120fe158fbcc36801034daa2b39a06d991"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/OK.json",
+      "sha1": "d9ddda6159e1368eab21580c4c144f98fdc90164",
+      "sha256": "8ce2c0affa9437b3b5f52806c255f7ce5e0e79bed2ac379d56ea26bb842c3c2d"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/OR.json",
+      "sha1": "e3eee08649b64c322c80928f73701615752e196d",
+      "sha256": "5e498e2b150c7bcb78bfef48ebc6ecc0708188965d79af874929705d15181deb"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/PA.json",
+      "sha1": "67b4dbaab2445641c7f04cf9f44519f7374b3019",
+      "sha256": "1cff554118109ddd0b8afdbcd7fa0919b67973c44a9b6706bc4c45746d2e86d8"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/RI.json",
+      "sha1": "70edf1a0139a189c040b5959dc61098ff26faa32",
+      "sha256": "0aa97ea4339ebc8c226c3e4857b2d0ebeaf846524209f6402551173146bde778"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/SC.json",
+      "sha1": "93c0ad1b346c71096e846fb26479904ea5fc366a",
+      "sha256": "a5de66bafaad76bb10c1cfcb1714bfaf11dbb92afe9fb0000cebbdb8c8394b28"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/SD.json",
+      "sha1": "7cdf1d12fda4cf55392d8d8892c157c3a3c91619",
+      "sha256": "545537cf37ccbf19b8079758c7ce7f488fe3c894c78d006d9eea2bffc7101184"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/TN.json",
+      "sha1": "2ed314e8122ad65e2658ba1cb49bb10908cd756a",
+      "sha256": "a584a2eeca161c00f35ee2bbb8ae85457094171e7f0d2cc338a7188c68099b95"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/TX.json",
+      "sha1": "f86ac943930b66f5ee3810a0cfe226b92b095ed5",
+      "sha256": "64d182779b6e237ae69049d6de8fd4e4710c0070104fa16e768d8e3abdcd2137"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/UT.json",
+      "sha1": "c5b0652ab8605aea7d97d9ad2b21c09ca1a1b73f",
+      "sha256": "9d8cf7171efe392c109f645b1500194d090386549879a42efe98c1a23d8c77ff"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/VA.json",
+      "sha1": "f4fbfc2e45d5e32e5f404b4528085d1b270b9659",
+      "sha256": "8b3e2a8a655a555cc93d099e96acecb59ebff2e9c161dd5b62312471b3490de5"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/VT.json",
+      "sha1": "71905e275367e15232e5a75109d6e42c3aab8014",
+      "sha256": "ae7d90398253b804fcb747ae8161686a62a4ca8d462136f748e58f94b03bde7f"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/WA.json",
+      "sha1": "ae7b755c63bb96c18907c339825d77b2509d86de",
+      "sha256": "ed60c4119795a2d59c5023bba7e42e7d412cf4f4b020c228ca56c231d18b48e9"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/WI.json",
+      "sha1": "a03941036885d7cf4c5dcfa0b6fbab0712e59bab",
+      "sha256": "8fb2546ecc270534788f63bfc0f972c521082a4acb88fa647b2abec715176613"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/WV.json",
+      "sha1": "d55c5c5630b2a0821b3331afd2c75e79f6b06dde",
+      "sha256": "72b8db2f9b4afa413e2f40b9a37ecb38db444ee6e48ff3e244fea6a4152cc1d9"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/WY.json",
+      "sha1": "4faf643370fd7407a1a5ad516ce5fa6cc98e9998",
+      "sha256": "c2c770fddc8b21eefc32ab65727233410a914564fedff9b7aa0e22165b0e5e49"
+    },
+    {
+      "path": "functions/api/sales.func/territory-data/manifest.json",
+      "sha1": "86bc28308a8cf88c650a966de16213c103c41386",
+      "sha256": "8f04551ab6d68c447f2c0c717db7ba0f5e3d646aaa98a26c052bef960f137de0"
+    },
+    {
+      "path": "functions/api/sales.func/webhook.mjs",
+      "sha1": "cdf9a4e827d6c9f01375b57b98a22c7383c20ae8",
+      "sha256": "a6204809ff067c47508159c391698472d85c57f4b5d385eb88022b97612c30dc"
+    },
+    {
+      "path": "static/.well-known/apple-app-site-association",
+      "sha1": "07e815340879c78ac6dcc8fdbecb4ac6c663454c",
+      "sha256": "8ea65b26b48b4d2fd8488b341fd24fe3dcd4777b6f976bae0f7663b13c619cd6"
+    },
+    {
+      "path": "static/404.html",
+      "sha1": "580ad0c1935fee30f87d2f104067b5fa5950b308",
+      "sha256": "9dd14c69049140b8893d9b3cdef9c94fc01453dbb9d7594fd570bf4de8ae4142"
+    },
+    {
+      "path": "static/about-the-app.html",
+      "sha1": "09a1904e1fe03287be0c7a854731d24dea46b73a",
+      "sha256": "a5ae946d012455824a0e0eac0990d1339e08c91d277f01d0e38f5b0e0ff83e71"
+    },
+    {
+      "path": "static/about.css",
+      "sha1": "1fba8f327897d4700d1f0b11e5bbdd76d8133e35",
+      "sha256": "9af2946e6841b154addefc5141d9c653dc48dcdf2fac599d63bdec0e3bb05a10"
+    },
+    {
+      "path": "static/about.html",
+      "sha1": "0bd85d4fb09d2d617dee9371689975d457cdf00f",
+      "sha256": "df6aa078dc635ffb3db2d4a426259b01e54861ade7e2cf77413e7a73a215dbfe"
+    },
+    {
+      "path": "static/accessibility.html",
+      "sha1": "f6964d4f773f40ab5737691f6c7cfe41c92acd65",
+      "sha256": "50a0e138cfb06c970b7e3151214ab3c010516e276ed0155a275e4a0bbe2ca42a"
+    },
+    {
+      "path": "static/app-download.css",
+      "sha1": "db2705d7edac47e9e55605bf49bc7c37f200fa2b",
+      "sha256": "240fd171609dcb793878963704750afe4758ef3a57d31eb496b806e55534bc5c"
+    },
+    {
+      "path": "static/app-download.js",
+      "sha1": "3b6bb4a63c289bd56c79b970aba6da5aec1d55a0",
+      "sha256": "629c9760308502e7afd874f2987df0aacb9993b1878168e55648968756a84197"
+    },
+    {
+      "path": "static/app.js",
+      "sha1": "002a962480fa7af68c1968e5de3b6f85d0326c7b",
+      "sha256": "ef7a2e8e3ea963c95c01a6f3560d9d7634d5b1ee97f6dd45b5fd3a0960eff402"
+    },
+    {
+      "path": "static/assets/about-reference.png",
+      "sha1": "22b7ca4ce7ad93489824a2744721ef4216cf81ea",
+      "sha256": "34860a030042946926d629e4c2460663752190d7e7e34aaba4d2a398b7c1a018"
+    },
+    {
+      "path": "static/assets/app-download-qr.svg",
+      "sha1": "2e45b4b3fdf1945eba199103c67d4048b25990d4",
+      "sha256": "d37c585c1593df2b60417d7aaf379c01a2c010830a9343281996cdf70a4086a1"
+    },
+    {
+      "path": "static/assets/app-download-reference.png",
+      "sha1": "43d041dbedd50b96921514fc6d2f2caf838bebd4",
+      "sha256": "547e445e19841d58d6ba43718e51410f53ae01913af145b6f799e0b600c636a6"
+    },
+    {
+      "path": "static/assets/artwork.png",
+      "sha1": "9542c99ba9e74cfdd2352ae87d0ec6ca49017f99",
+      "sha256": "c3297662e50f448c01622cd75ad9cd0f82e8d87a6b0c108d42334202bb43f042"
+    },
+    {
+      "path": "static/assets/brand-mark.svg",
+      "sha1": "3397bf910cb4a6e482c30404188752e5c77c3f1d",
+      "sha256": "a87a16639ce5b0cbb7b1673cdea742838d80c72c668d0a43263b1713242f48f2"
+    },
+    {
+      "path": "static/assets/drivers-reference.png",
+      "sha1": "aaadddc72ad22f2875e47690db161f55b7babf16",
+      "sha256": "1d52c47ae25f0a0df8407915789f1b8d029d31edb4b40f458025537f372442c4"
+    },
+    {
+      "path": "static/assets/get-the-app-reference.png",
+      "sha1": "7c6589de73726c8616ddde6dcf03ec1e3a3cb701",
+      "sha256": "3764246c956a7dc159294c288ee8df554421bba245918f4f73f466b78a4405e4"
+    },
+    {
+      "path": "static/assets/how-it-works-reference.png",
+      "sha1": "798406d6a56f991f84c4c04c8f801bfcf9bb1d1a",
+      "sha256": "ba5209b599548401d09e7f6b25c2a6ae8584858ab07d759ba3f9eccde2307caa"
+    },
+    {
+      "path": "static/assets/platforms/SOURCES.md",
+      "sha1": "464c7ef2781c7e7b67d663bad0994fa929045cd6",
+      "sha256": "4d4fed46e53c09d042fc93318d72dc57a2b36800b8711ccb343157367a2217c5"
+    },
+    {
+      "path": "static/assets/platforms/amazon-flex.svg",
+      "sha1": "d3eaebed08f963b247d8c4b11cd314cd0c357622",
+      "sha256": "8f1aa3e0a9d61f1af69e7217d52b42c38c2584a2683d95e826d5eada7f20375b"
+    },
+    {
+      "path": "static/assets/platforms/doordash.svg",
+      "sha1": "285b9753f5232734b24fb91ea97c271a38894a88",
+      "sha256": "b9d8db015ff3ef814caead4592305c5bd07e66e7a9261dfc1fa98f9e93327fb0"
+    },
+    {
+      "path": "static/assets/platforms/instacart.svg",
+      "sha1": "ada4ef5475ae55bd49653a244be0db2b7e700b8b",
+      "sha256": "49213a467707e0f1f40af1086da270d36979f2ca2460b37bdc781e267d1358be"
+    },
+    {
+      "path": "static/assets/platforms/lyft.png",
+      "sha1": "da0f90d13420bf9e9245a21dd43b7717f2e7d13b",
+      "sha256": "89e57382b3b451c2e4204a2e49c7d3c7d450d225a0482a8ae8c6925a65eaa521"
+    },
+    {
+      "path": "static/assets/platforms/uber.svg",
+      "sha1": "021f52e8447d09d5113eb2b29c813d75aee1f6f8",
+      "sha256": "315ee2c791e47289844f059e1f403c1f43ad167b9e37dbb77151553fdee74eae"
+    },
+    {
+      "path": "static/assets/services-reference.png",
+      "sha1": "2fcdec0ea6d2cfc43a8ed5a8554f0046b3d06aaf",
+      "sha256": "99a98e22cc530a3c5da112dd202689a9371a3b3b6610aa1fe8c260872c628c94"
+    },
+    {
+      "path": "static/assets/us-national-vision.svg",
+      "sha1": "b7952bdf393eeaee49c193c0f237fd28ebf3d520",
+      "sha256": "272385770da0b997ee9ea6cfa86fd35f8ff3316f305b6e6f8faad386d8c48e0e"
+    },
+    {
+      "path": "static/bank-return.html",
+      "sha1": "2647aeffc1d6d56612e3d2a506e9a1f319655bfe",
+      "sha256": "53a8dd6a563523ab5b3ee67128829de8f4d003f23c958d7cf40de55394aee650"
+    },
+    {
+      "path": "static/bookkeeping.html",
+      "sha1": "7dbec374008e523925ccc2a788d2985603087eab",
+      "sha256": "b772c427e6ced859a5c73b2513a8f226e0517e471da9c16519b4da702efb9241"
+    },
+    {
+      "path": "static/business-data-attribution.txt",
+      "sha1": "61af465b468b31b78abe0493f7e48a32f988621b",
+      "sha256": "36adad4dca980705f81c05e36946b6e522cb12d4bb7fc68968a4a8a89c4cd5dc"
+    },
+    {
+      "path": "static/client-portal.html",
+      "sha1": "f5bb7c9996bbd0332fb1a06d91d148861b85db4a",
+      "sha256": "b2cae8961ddb09093bbea8bf328c0852e37f33927b5657388d92a32e3d10951c"
+    },
+    {
+      "path": "static/contact.html",
+      "sha1": "3a4e7f372ceb47a9435416e6bee094dfb2dc3a1d",
+      "sha256": "542324f74235d3d49a95b7b237d1a01c78bfd81390b6dc9cc1fb814b545158c0"
+    },
+    {
+      "path": "static/contract-signature.js",
+      "sha1": "422904550fddf57c569a40ce12df84d8450f4d2a",
+      "sha256": "a696a7d4cdd43e9e0773b665e3004a83f66f1f2c8614ed66940c725c690f1ee7"
+    },
+    {
+      "path": "static/directory-admin.js",
+      "sha1": "38c58a09128c5173b288a412d01bf1423a0cf126",
+      "sha256": "c1568ca26b68e99e633822b80763bea34de59f1b9a85a2d78c2e06d846cdfce0"
+    },
+    {
+      "path": "static/document-checklist.html",
+      "sha1": "00d954994f647aedbdd728164378ffb93fcd3253",
+      "sha256": "81c422ec18654b3a9e8520cd2b34039a68e287907c3e831e37ce349c78ef0bca"
+    },
+    {
+      "path": "static/drivers.css",
+      "sha1": "9a5db8852ef8fcb9a96923ce965d23d25ef77c7c",
+      "sha256": "5d13b7577e378bf237b16479b6a585b337ab6c0354d481927b728d85b9460e00"
+    },
+    {
+      "path": "static/drivers.html",
+      "sha1": "3b42c07d49de9ec1e74ebda2ad988665f20543e2",
+      "sha256": "68819ac3db2cac0380daefb4901b39c00158e23f7ec71621fd6d190bb54ccefe"
+    },
+    {
+      "path": "static/faq.html",
+      "sha1": "8b829ab30cc71666ba0a1925797aa38b172d0d81",
+      "sha256": "521fba99a6fe9a561f4bca5db723a17f5ac6f0e2601461b480cdfe51b5ba898e"
+    },
+    {
+      "path": "static/favicon.svg",
+      "sha1": "ff23d42d3cd289e5827516c4207fc0c89884ebab",
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "path": "static/free.html",
+      "sha1": "c49551378068c26483c07de34cf801cbc2413710",
+      "sha256": "812c73672feb0f0098d7f67add01af8a558cf8eaf8ecb1525908917ae05440d0"
+    },
+    {
+      "path": "static/get-started.html",
+      "sha1": "b9365f648dc7a5965745fe78102f240e794ac578",
+      "sha256": "e4e9914aadfd10de43e70ebd668e953947c886e7ba2383b35b3832b434bca094"
+    },
+    {
+      "path": "static/get-the-app.css",
+      "sha1": "6c66e78b1c3676817a5187ba5846b608f0eeeac0",
+      "sha256": "8794fbd898c5c752f27fc26576bf513bef38f91d756d4bb49ace23c921d4d870"
+    },
+    {
+      "path": "static/get-the-app.html",
+      "sha1": "2321529102ced23b46921f5c43b70d523ef7fc85",
+      "sha256": "f14bd074910e14bd623f39863adf12a4b5fd991d8a6b2a135ca6b19ba29f7ddc"
+    },
+    {
+      "path": "static/get-the-app.js",
+      "sha1": "910e2a29bc2ebb4a85819257a8a6a17f23dfd493",
+      "sha256": "f50aab3a67e101903c99ddb2a9aa9b05642a99d950653bccbb03c02bfd3248a1"
+    },
+    {
+      "path": "static/guides/uber-lyft-tax-forms.html",
+      "sha1": "7a4aa7ef6ed7e3f7056dd290e8701897fbeed2e8",
+      "sha256": "dbbae386ce281ac21e7ad1bc53bdb9a7703b78e86ec69bd0352d3e9a3434d260"
+    },
+    {
+      "path": "static/hero-mobile.css",
+      "sha1": "229d76a30e148f0292f10c34a11b0aa2e3f8de74",
+      "sha256": "a09a844c04e7ea3e1f40c3a98a8c344277e42a034c91bcefd8a97fb18d932c2f"
+    },
+    {
+      "path": "static/hero-parallax.js",
+      "sha1": "e578cf861ccce72ba69e797ec638ec2e3f5f5de3",
+      "sha256": "bc18e06f16a2f8e6a1d909e1b56e4cd209e65a76e02ac01cbdcf5477347a13a5"
+    },
+    {
+      "path": "static/home-tour.css",
+      "sha1": "6a5ea9cad278e8f31538daaf740e4ecae993efb5",
+      "sha256": "d2c07376ca2a5c5e92774f2b80c511a1c36583f38971f84cbafc457fe28eddd7"
+    },
+    {
+      "path": "static/home-tour.js",
+      "sha1": "1a106c58ac415e4d4d1a6da2525cf3cc7526b957",
+      "sha256": "21d5fafae05a5cb04dce0c11c4d4e51021b570f272fd1df605a6ca3a4d1e7ac3"
+    },
+    {
+      "path": "static/how-it-works.css",
+      "sha1": "573773afd59611cda7399540fb8ecda051b3c16b",
+      "sha256": "67937478f898c652435a2e72a9d77ed49ad7980878eb97aa6fd0383a0e6cdea0"
+    },
+    {
+      "path": "static/how-it-works.html",
+      "sha1": "8d8760eb116f41cdf0ab3ac10c97a977ceaabb95",
+      "sha256": "3e2a74b737589df30ce0edfbb26fddc057d5f7abc22702485fbd369becdfb350"
+    },
+    {
+      "path": "static/index.html",
+      "sha1": "5d73f01b76deffd9068ccf98605308935777ca6f",
+      "sha256": "9544ba8a5d28cbcf55d66e6e405fdf2d95bedded97d40170c14bab2951fa9414"
+    },
+    {
+      "path": "static/inner-pages.css",
+      "sha1": "0011699caf7cd6e7d46a5c3e1b04a3958f7ae8ea",
+      "sha256": "188d1d9ab2e4bd79f841902b54c603ca45e1e87b207186895d31cfc6a415acee"
+    },
+    {
+      "path": "static/inner-pages.js",
+      "sha1": "9dcbd578dca6e3a011689d31f05f17005017ccfc",
+      "sha256": "72b7bf8100ccea4cde2ea22f8c009cc705065f469b7a2fd6a9a1ff09c4471c97"
+    },
+    {
+      "path": "static/links.js",
+      "sha1": "c3f9e8312ebaa5d4cf147716ae47e4a54196d877",
+      "sha256": "7351d2805e1b4b2ccd197a20eb312d22c2e9356a345bb370c3af87725a33e593"
+    },
+    {
+      "path": "static/local-contacts.js",
+      "sha1": "821c793da32e62f5651e7091aa11f7ab575ef249",
+      "sha256": "5150366779a5e9013acd8b57c61b4dfb127b10dd298aec47ceda20873fe819d3"
+    },
+    {
+      "path": "static/local-offices.css",
+      "sha1": "a278c977f0836a6fde0fcfccf9615e4f8463058d",
+      "sha256": "8249f4d7aef5eecaa51e1ae920eb4c3f6e086cd5f8a8c5a1b6e91eef50b2f05a"
+    },
+    {
+      "path": "static/local-offices.js",
+      "sha1": "fffd6134cb043da6fe6f16af986783243d50bc0a",
+      "sha256": "6d947034ff6394b99c8262c64fab81998363f2d860911e9584c3c740852582bc"
+    },
+    {
+      "path": "static/marketing-pages.css",
+      "sha1": "c972e65f65b99e5681306e7353b7aa346c4e1098",
+      "sha256": "3d2e73dcbff830ba8d14366376b88e974047905fac6cfd49ac55e95840a08f8d"
+    },
+    {
+      "path": "static/mileage-and-expenses.html",
+      "sha1": "8a2842b8798dfeb0eb2f5acc17b229376e90df59",
+      "sha256": "9ac05e91235b44acf2a5d6a4a8a2398b4d43581daf0873dae605f5f995fbb1f1"
+    },
+    {
+      "path": "static/national-vision.css",
+      "sha1": "dd1042503c7742bd254e30849a37bb5711fb4b56",
+      "sha256": "54585937205eeba7e8bceeb9db09db0c3b4f2240bd55f9bc0fefe61b644fc6d0"
+    },
+    {
+      "path": "static/navigation.css",
+      "sha1": "781497d1a6f4eaffea8182d834f60385d670434b",
+      "sha256": "4d58b6981de713699388f6a412811c6996b28f19ba72a2e8dc0dbb581d3f0227"
+    },
+    {
+      "path": "static/office-signup.html",
+      "sha1": "a5a5ed38f57ccde8795ef05e0a3ffc8a36e715c0",
+      "sha256": "6b9405ff2847cf38422ae9831b34333560d01c1709c6f48f8af08c212f361266"
+    },
+    {
+      "path": "static/offices.html",
+      "sha1": "0b0a1dd3ec1bb63416fbb5f85f683cb42e03654b",
+      "sha256": "9d35d4b9b934de75e3961f8276f2a2ddad055670b56b4954a7aa1467cc8efc5f"
+    },
+    {
+      "path": "static/offices.js",
+      "sha1": "43dc59b9ef235af4c3856cec296b804edca22c3d",
+      "sha256": "35fd5c5e4accc13d815a59fa75ade48988bdcd9e856d5d0e6a02f03bbe6fd471"
+    },
+    {
+      "path": "static/privacy.html",
+      "sha1": "d45cd1b3113881f732ce2f937d8892962a7df80b",
+      "sha256": "1fd3608dcad04d466d72beeeeabb9ae824457200721c722e5681f42e03b85378"
+    },
+    {
+      "path": "static/quarterly-taxes.html",
+      "sha1": "67c013d74a6933d0bee7a7d6a71949717539f017",
+      "sha256": "2c9b82742e76a9b85b7ae104f784c4100226e5c42d970bdb9d6aa124db55c773"
+    },
+    {
+      "path": "static/resources.html",
+      "sha1": "1fb1ce962c717975eb39d2a4a844b46663d0a555",
+      "sha256": "235fc98bfabf0b9e5c05ccab325443fb96c48c9ac203d0751b8c7a866ce8feae"
+    },
+    {
+      "path": "static/robots.txt",
+      "sha1": "9b7e28b4a9bf7ee1cfc158fcd0e42301c9345217",
+      "sha256": "3918c5fb2666cb1a9b0e2324d100deba6b6e5caf1a847390c1ea956233d0068a"
+    },
+    {
+      "path": "static/sales-console.css",
+      "sha1": "972bced5d07a9f7a209624a393d2014098e80cbe",
+      "sha256": "17b925fb51a65285cb33777cac41a11f81730c3aeea93122418de4b2ec8a8796"
+    },
+    {
+      "path": "static/sales-console.js",
+      "sha1": "362784c1f39190fa744f7206de7fffa948c8d0e9",
+      "sha256": "1b917c3d4bdcc8a5d7d470aff357280b174df3547851a36182c0e27beaaa61ef"
+    },
+    {
+      "path": "static/sales-contacts.js",
+      "sha1": "b839576411580c5d681a6a3f7c58ce175b365065",
+      "sha256": "44c596a3ccada993cd757fd19669dfaec9a9b532303accecfc8c1950f957e07b"
+    },
+    {
+      "path": "static/sales-contracts.js",
+      "sha1": "f1cb49cecb413a194f19e16330b01c32f5471992",
+      "sha256": "75d430aebb2a373467d209f772612312f9ecdf098a90caf40ddc58815370d29a"
+    },
+    {
+      "path": "static/sales-progress.js",
+      "sha1": "597bf3ce12a3423343ec51873cb4b4d2b2b65496",
+      "sha256": "163e523903cba7ca54d00071656386feb84d96169802440b07c53979c88ea2fa"
+    },
+    {
+      "path": "static/sales-research.js",
+      "sha1": "a3066b3e0da9b188dae2f02e6ca4f43fc35d6666",
+      "sha256": "2281663d5d7d93820ed4bf063ef9930ecf06f8f85b0c2455ad9b9c045c092805"
+    },
+    {
+      "path": "static/sales-workflows.js",
+      "sha1": "dbbbb1516263cac50a83e9033c1603d5f3a8dcfb",
+      "sha256": "d555c7b28580a7f9d45484683e01f838f1180cb17d3397a25dc9c7051b8329a6"
+    },
+    {
+      "path": "static/sales.css",
+      "sha1": "3d4bb1d86a6871378c29f321186a95444684ad4c",
+      "sha256": "18510ba528e93ea9d078f068422b71fbe3fe6a627d275fc2ab9d54df5d16bfd4"
+    },
+    {
+      "path": "static/sales.html",
+      "sha1": "adc231c189e8da2a4bc8426f40dea591a5e85f81",
+      "sha256": "6a5b4807c370781a738056a89ff7d5a7bff929b20cdec3b98cfaee6bd3f8c931"
+    },
+    {
+      "path": "static/sales.js",
+      "sha1": "04061690f95e7d9bd9f16dd597bfd3d4dcdc32aa",
+      "sha256": "09e23fcd3d136fde533f292934cd73dd751b5071cef7aca1bdebfba31a0c8141"
+    },
+    {
+      "path": "static/services.css",
+      "sha1": "64708c50dbaf399f6f4ed475f8dd90774c436d59",
+      "sha256": "8e5ea72b529ef6728c791d43cd47b2726023166cf9a05dc45c16a07d374c1ddb"
+    },
+    {
+      "path": "static/services.html",
+      "sha1": "9ecd43b4ff1f970ff42a5f246fb03815a39b36b8",
+      "sha256": "ab6c9622537693bfe9e9e9142ef4dbc141de00a40dea215909d47b79088f8f83"
+    },
+    {
+      "path": "static/site-config.json",
+      "sha1": "c3f0ea4441ccbc2819633e2de2bcb1e4ea9baf23",
+      "sha256": "aacd58c55029304ea12003eab83c80bff5bae228a54ae8f97b8d6891e9f82c1d"
+    },
+    {
+      "path": "static/site-manifest.json",
+      "sha1": "38144978f45db7d5602df796f2e64e11c5859b2d",
+      "sha256": "04878cbe3a6d9feb9255be032ce91cf3dc2d5755ddcd46da43e8984ded4c36d9"
+    },
+    {
+      "path": "static/sitemap.xml",
+      "sha1": "d4be1801be0111bfbb4af3ac4fefc108a3afe7d3",
+      "sha256": "e709d155943507a8beb6345d202341bd9cc4323a2d0d4f3a0b4a051649b6b5c8"
+    },
+    {
+      "path": "static/styles.css",
+      "sha1": "c78bada4bfda0ec5f5aa9230f6bd7ca29478f93b",
+      "sha256": "811ca8fc8b2fd19b0ae39c54096997e2f433e98c0cadadf2f0e417a6e17e0b23"
+    },
+    {
+      "path": "static/tax-preparation.html",
+      "sha1": "23c928fd494a2d0b40fd748b1d66fe04b0b05d6d",
+      "sha256": "c7f726d52dab98e28093c77565fa664a2fc21e00df6b68b38884ae489551f537"
+    },
+    {
+      "path": "static/terms.html",
+      "sha1": "d6dcb59894477bd8ab58d49262f3b7c783e3e59a",
+      "sha256": "ac1b4f5a2ea33e7110cf144822c12f9b77e357515ce566011ada05e3f5591709"
+    },
+    {
+      "path": "static/territories.css",
+      "sha1": "618fe25f2bd610c4aacd6f1b617f58c27845f1b4",
+      "sha256": "a546306e6ea4210700b9aa31eb6bb041e35bc8b08e283023d01544ea4d5f3480"
+    },
+    {
+      "path": "static/territories.js",
+      "sha1": "b8a5ab33b63512f550ec3e53b1864e4f5f8f809c",
+      "sha256": "75551209e300cac94bbd32f98e27103bbf95b4f3e4fdde0d7c08b1cb04f61ad8"
+    },
+    {
+      "path": "static/tour/README.txt",
+      "sha1": "823cb803b5985520c3ae4ada9a01c6c8fe7fec0f",
+      "sha256": "08e0cb4141f7d9ec4e74d82125bbb7ef337a4b21c056bda4271aa48b68f3d62b"
+    },
+    {
+      "path": "static/tour/brand.svg",
+      "sha1": "ff23d42d3cd289e5827516c4207fc0c89884ebab",
+      "sha256": "1ba813c71aebdcbbc4e21ac4337f6eaeb8744aceecf9c792444fbecad09f7ef2"
+    },
+    {
+      "path": "static/tour/captions.en.vtt",
+      "sha1": "2934afdc97faee28cc14f00e6dad5059c01cb043",
+      "sha256": "8ee3eba40b73ce7e5cf8d1842b7e3c3fbe9c1e1e946821e911c185493e9286d0"
+    },
+    {
+      "path": "static/tour/chapters.json",
+      "sha1": "b0b0d6860a03ba0a6c60399ce51aa353b7d6a372",
+      "sha256": "f64999b94aef508069f63763a9febd7e0462cb415418e9708bed9867afda885b"
+    },
+    {
+      "path": "static/tour/getting-started.mp4",
+      "sha1": "f8b9ba35ab3bdc3124e6e5f19b15a9214c00cde0",
+      "sha256": "bbf9518e89d11f9e603096d7e0ecc336e16a5010c0d78335dadc2306811cc6dc"
+    },
+    {
+      "path": "static/tour/index.html",
+      "sha1": "0f59a6af3cbdc07a69801c9a15d25508998cfc55",
+      "sha256": "371d98d80ef24663a739f27d72fb7240c7fc9ae2b9b8924e887ce77866354e77"
+    },
+    {
+      "path": "static/tour/mobile.css",
+      "sha1": "6392e537b881d63a1fe6e5b43ea62566a504c321",
+      "sha256": "9d1b5026426b22964cb62bce497df0b86e44d79508b93f9ce6603d3aa472f3c1"
+    },
+    {
+      "path": "static/tour/player.css",
+      "sha1": "fa86f2acdeb4e53bbad9b03114a51e354fbf347d",
+      "sha256": "56f6701aebdf153333732df474910e0b3380d5bc63c8dc2fe0cb029fb5c72d7f"
+    },
+    {
+      "path": "static/tour/player.js",
+      "sha1": "fb89398c7f9abb69e55d69ce36c9af5e03f14e3c",
+      "sha256": "b8acc2d67920b84e4a13501750873fab99b135641ec6c28abbb4e1e06838cffa"
+    },
+    {
+      "path": "static/tour/poster.jpg",
+      "sha1": "e4557709d127c2f45d7ac0d8fe957f00bc89b3dc",
+      "sha256": "7ab43973b80ca1fa44512486cabbfcf6dc470238ca7e090a274a4ddc8aa122a9"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/LICENSE",
+      "sha1": "ee80e793452e086761cee32b05a64a4eda66b24e",
+      "sha256": "53e8dc25862014e4324741ca18fbe3611e11d42ef69f59f86ea8c5389647d4cb"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/images/layers-2x.png",
+      "sha1": "152a162333e46d24f9d89f566312fc0c64011dee",
+      "sha256": "066daca850d8ffbef007af00b06eac0015728dee279c51f3cb6c716df7c42edf"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/images/layers.png",
+      "sha1": "c9e7528e491a39232ba24a2706c6c739d6fb0f06",
+      "sha256": "1dbbe9d028e292f36fcba8f8b3a28d5e8932754fc2215b9ac69e4cdecf5107c6"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/images/marker-icon-2x.png",
+      "sha1": "cf3a536596b1f58e0ac805404183c8e6d6bdacb5",
+      "sha256": "00179c4c1ee830d3a108412ae0d294f55776cfeb085c60129a39aa6fc4ae2528"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/images/marker-icon.png",
+      "sha1": "60a90bcbb2b42b7ddb4556db94eb7c1084b0e5da",
+      "sha256": "574c3a5cca85f4114085b6841596d62f00d7c892c7b03f28cbfa301deb1dc437"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/images/marker-shadow.png",
+      "sha1": "7b6a8df63930381e96604e705168d0527d6b82bc",
+      "sha256": "264f5c640339f042dd729062cfc04c17f8ea0f29882b538e3848ed8f10edb4da"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/leaflet.css",
+      "sha1": "ec929f1100c6642ccc5c4272cf4cca12251a9a5d",
+      "sha256": "a7837102824184820dfa198d1ebcd109ff6d0ff9a2672a074b9a1b4d147d04c6"
+    },
+    {
+      "path": "static/vendor/leaflet-1.9.4/leaflet.js",
+      "sha1": "5a640ff863e7902a8cac2ce6ba37c87b30677761",
+      "sha256": "db49d009c841f5ca34a888c96511ae936fd9f5533e90d8b2c4d57596f4e5641a"
+    }
+  ]
+}

@@ -39,7 +39,7 @@ contact-place catalogue and nationwide territory controls remain separate.
 
 The installed portal before this change returned 31 Elizabethtown directory
 candidates and manual Kentucky registry status. A real selected directory office
-matched its official legal name and full principal address through the new
+matched its official legal name and principal-office address through the new
 adapter; two current members and one separate agent were returned. Both name
 lookup and native profile-ID lookup round-tripped. The real Current Officers tab
 removes the general-information panel; its hidden business IDs and visible
@@ -50,11 +50,42 @@ addresses/initial organizers, exact name and business identity, source limits,
 challenge/outage handling, retryable officer failures and safe result caching.
 All 223 sales/MCP checks and full TypeScript pass. A real empty native query also
 returned an available zero-match result, separately from a source outage.
-Deployment and installed acceptance for the new adapter remain pending.
-Work and source receipts: /private/tmp/gigtax-kentucky-20261113.
+Source 915d6f7aa6e097e3d660d186bd13633a925d770f is GitHub-SHA-verified. Ready
+deployment dpl_Drhia69AYchHpEQRCmsLvm7TkyyA serves https://gigtax.pro/sales.
+Prepared release: /private/tmp/gigtax-kentucky-20261113/release.
+The guard verifies the complete 686-file current baseline and prepares 690 files,
+with eight backend replacements and four copies of the new Kentucky module.
+Every existing static file, town-data record, route, header and CSP stays exact.
 
-Intended automatic selected-record coverage: 12 regions, with ten supporting
+The installed MCP selected the actual Elizabethtown directory office, matched its
+name and principal-office address, round-tripped the native profile ID, and
+compared both current members' names/roles with a fresh public-source lookup.
+The separate agent and annual-report date were retained. Principal contact
+research retained its official source and returned one website suggestion.
+Saved offices, agents, contacts, contracts and mailboxes remained unchanged.
+All 690 deployed artifact hashes and 105 static HTTP files match the prepared
+release. All 87 protected public files and their headers remain exact. The
+installed Hartford map still returns 170 candidates / 121 address pins, and its
+official-site contact reader, authentication, pipeline and commission checks pass.
+The final deployment also rechecked both Delaware and D.C.: their 22 / 137 source
+records and selected official IDs still resolve, including D.C.'s owner-source
+name in contact research. D.C.'s sampled automatic website search remains
+unavailable; catalogue and website coverage are still partial.
+
+Evidence: gigtax-kentucky-live-20261113.json,
+gigtax-kentucky-deployed-live-20261113.json,
+gigtax-kentucky-preservation-20261113.json and
+gigtax-delaware-dc-recheck-20261113.json. All owned verifier children closed.
+
+Live automatic selected-record coverage: 12 regions, with ten supporting
 local registry discovery and 39 remaining manual. Town assignments still cover
 all 51 regions independently of source coverage. No office, contact, salesperson,
 message or payment is created by live verification. Mail is unconfigured,
 payments deferred and human visual acceptance remains pending.
+
+Remaining source investigation: 39 regions are manual. Current Rhode Island
+search includes a Turnstile challenge script; Massachusetts returned HTTP 403.
+Hawaii's old page redirects to its new business portal with challenge scripts.
+None was bypassed or promoted to automatic coverage. Continue checking current
+official free selected-record or licensed open-data routes per state; an open
+homepage or official link is not an integration.

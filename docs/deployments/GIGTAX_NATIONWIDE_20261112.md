@@ -4,6 +4,27 @@ Active scope: connect state business research nationwide using **free public
 sources only**, then let the owner drill into every state and assign towns/cities
 to sales agents. Full automatic registry coverage is not complete.
 
+## Kentucky free selected-business lookup — November 13
+
+Kentucky's native public name search and Current Officers view now provide
+automatic lookup for a selected directory office. Principal-office data and
+current officers/members/managers are retained; agents stay separate, initial
+organizers and personal agent address lines are excluded, and ownership remains
+unconfirmed. Kentucky town-wide registry discovery is not connected. The paid
+bulk service is not used.
+
+Automatic selected-record coverage is now 12 regions (AK, CO, CT, DC, DE, IA, KY,
+NM, NY, OR, PA, TX), with ten supporting local registry discovery; 39 remain
+manual. Source 915d6f7 is GitHub verified and Ready deployment
+dpl_Drhia69AYchHpEQRCmsLvm7TkyyA serves the portal. All 223 sales/MCP checks and
+TypeScript pass; all 690 uploaded hashes and 105 static HTTP files match. Installed
+MCP matched an actual Elizabethtown office, verified
+its profile ID, two current members, separate agent and principal source through
+contact research; no saved records changed. Final deployed Delaware/D.C. rechecks
+and existing Hartford map/contact/commission checks pass. Town assignments remain nationwide.
+See [GIGTAX_KENTUCKY_20261113.md](GIGTAX_KENTUCKY_20261113.md) for bounds,
+source behavior and acceptance receipts. The wider connect-all goal is active.
+
 ## Delaware and District of Columbia free sources — November 13
 
 Delaware revenue business licenses and D.C. corporate registrations are now live.

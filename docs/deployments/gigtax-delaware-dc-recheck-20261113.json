@@ -1,0 +1,53 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T08:47:43.508Z",
+  "states": [
+    {
+      "state": "DE",
+      "city": "Dover",
+      "candidates": 94,
+      "registryCandidates": 22,
+      "sourceLimitReached": false,
+      "selectedNonChain": true,
+      "selectedIDRoundTrip": true,
+      "officialSourceRecordVerified": true,
+      "principals": 0,
+      "registeredAgents": 0,
+      "officialPrincipalSourceVerified": false,
+      "sourceUpdatedAt": null,
+      "sourceAttributionPresent": true,
+      "principalResearchEvidenceVerified": false,
+      "addressesChecked": 10,
+      "mapped": 4,
+      "websiteSuggestions": 5,
+      "websiteSearchStatus": "results",
+      "ownerAutomaticallyVerified": false
+    },
+    {
+      "state": "DC",
+      "city": "Washington",
+      "candidates": 502,
+      "registryCandidates": 137,
+      "sourceLimitReached": false,
+      "selectedNonChain": true,
+      "selectedIDRoundTrip": true,
+      "officialSourceRecordVerified": true,
+      "principals": 1,
+      "registeredAgents": 1,
+      "officialPrincipalSourceVerified": true,
+      "sourceUpdatedAt": "2026-11-12",
+      "sourceAttributionPresent": true,
+      "principalResearchEvidenceVerified": true,
+      "addressesChecked": 10,
+      "mapped": 9,
+      "websiteSuggestions": 0,
+      "websiteSearchStatus": "unavailable",
+      "ownerAutomaticallyVerified": false
+    }
+  ],
+  "automaticRecordRegions": 12,
+  "automaticLocalDiscoveryRegions": 10,
+  "savedRecordsUnchanged": true,
+  "messagesSent": 0,
+  "limits": "One locality and selected record per region, not complete business coverage. Delaware revenue licenses supply no owners; D.C. published beneficial-owner names do not establish current ownership or a verified office match. No email deliverability or human visual acceptance established."
+}
