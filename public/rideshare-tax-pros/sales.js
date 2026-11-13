@@ -192,7 +192,7 @@
     $('#sales-copy-login-link')?.addEventListener('click', run(async () => { await navigator.clipboard.writeText(location.origin + '/sales'); status('Agent sign-in link copied. Share the access code privately.'); }));
     localUI = window.GigTaxLocalOffices?.mount({ api, status, onPrepare: result => {
       const form = $('#sales-create-office');
-      for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:'', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
+      for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:result.website || '', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
       form.scrollIntoView?.({ behavior:'smooth', block:'start' }); form.elements.name.focus(); status('Public business details prepared. Review the office location and owner role before saving. Nothing has been saved yet.');
     } });
     contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });

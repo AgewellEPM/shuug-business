@@ -116,6 +116,26 @@ try {
       registryEntityMatched:true,principalsReported:business.matches[0].principals.length,ownerAutomaticallyVerified:false,privateTilePolicyVerified:true,mapTileStatus:response.status,
       sourceIssues:search.issues,coverage:search.coverage };
     result.checks.push('actual installed MCP corrects the Hartford typo, reads all multi-source candidates, geocodes every returned address and cross-references an actual CT entity/principal without saving prospects; private CSP and one real map tile verified');
+    if (receipt.localContactReadChecks) {
+      const candidate = search.results.find(row => /Albany Accounting/i.test(row.name)); assert(candidate?.researchToken);
+      const sources = await call('sdr_read', { resource:'contact_research', candidateToken:candidate.researchToken });
+      assert(sources.evidence.some(item => item.field === 'phone' && item.value === candidate.phone && item.sourceURL));
+      assert(sources.evidence.some(item => item.field === 'contact' && item.value === candidate.contact));
+      const website = 'https://albanyaccountingservices.com/';
+      const contact = await call('sdr_read', { resource:'contact_research', candidateToken:candidate.researchToken, website, websiteReviewed:true });
+      assert(contact.pages.some(page => page.status === 'checked'));
+      assert(contact.evidence.some(item => item.field === 'phone' && item.sourceURL.startsWith(website)));
+      const original = search.results.find(row => row.name === '7082 LLC'); assert(original);
+      const corrected = await call('sdr_read', { resource:'business', candidateToken:original.candidateToken });
+      assert(corrected.matches.every(row => row.match !== 'possible' && !/BRIGHTWOOD PROPERTIES|29 SHERMAN STREET/i.test(row.name)));
+      const after = await call('sdr_read', { resource:'workspace' });
+      assert.deepEqual(after.offices,workspace.offices); assert.deepEqual(after.rolodex,workspace.rolodex);
+      result.contactResearch = { directoryPhone:true, listedPerson:true, sourcedWebsitePhone:true, checkedPages:contact.pages.filter(page=>page.status==='checked').length,
+        searchCandidates:sources.candidates.length, searchIssues:sources.issues, unrelatedPropertyMatchesExcluded:true, savedRecordsUnchanged:true,
+        directoryCoverage:{ records:search.results.length, withPhone:search.results.filter(row=>row.phone).length, withEmail:search.results.filter(row=>row.email).length },
+        ownershipAutomaticallyVerified:false, messagesSent:0 };
+      result.checks.push('installed MCP reads actual directory contact details and public business contact pages, excludes the screenshot’s unrelated property matches, and leaves saved workspace records unchanged');
+    }
   }
   result.checks.push('the installed Shuug MCP launcher reads the actual deployed workspace and Rolodex consistently');
   assert.equal(alias(), deploymentId); result.ok = true;

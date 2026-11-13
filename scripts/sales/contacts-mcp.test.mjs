@@ -17,7 +17,7 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
   const clients = [];
   const localCandidate = { candidateId: 'synthetic-map-candidate', name: 'Synthetic Tax Map Office', address: '42 Fixture Street', city: 'Hartford', state: 'CT', zip: '06103', url: 'https://www.irs.gov/pub/irs-efile/ct.zip' };
   const localTools = { localDiscovery: { discoverer: async () => ({ results: [localCandidate], total: 1, locality: 'Hartford', correction: { from: 'hartord', to: 'Hartford' } }), registry: async () => ({ supported: true, results: [] }),
-    geocoder: async rows => rows.map(row => ({ candidateId: row.candidateId, location: { lat: 41.76, lng: -72.68 } })), lookup: async () => ({ supported: true, matches: [{ legalName: 'Synthetic Tax Map Office LLC', principals: [{ name: 'Synthetic Registry Principal', role: 'Manager' }] }] }) } };
+    search: async () => [{ url:'https://fixture-tax.org',title:'Synthetic official website' }], researcher:async()=>({evidence:[{field:'email',value:'office@fixture-tax.org',sourceURL:'https://fixture-tax.org/contact'}]}), geocoder: async rows => rows.map(row => ({ candidateId: row.candidateId, location: { lat: 41.76, lng: -72.68 } })), lookup: async () => ({ supported: true, matches: [{ legalName: 'Synthetic Tax Map Office LLC', principals: [{ name: 'Synthetic Registry Principal', role: 'Manager' }] }] }) } };
   const server = createServer((req, res) => createHandler(f.env, f.db, localTools)(req, res));
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`; f.env.GIGTAX_SALES_ORIGIN = origin;
@@ -42,6 +42,8 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     const mappedSearch = await call(client, 'sdr_read', { resource: 'local_offices', city: 'hartord', state: 'CT' });
     assert.equal(mappedSearch.correction.to, 'Hartford');
     const candidateToken = mappedSearch.results[0].candidateToken;
+    const researched = await call(client, 'sdr_read', { resource:'contact_research', candidateToken:mappedSearch.results[0].researchToken, website:'https://fixture-tax.org', websiteReviewed:true });
+    assert.equal(researched.evidence[0].value,'office@fixture-tax.org'); assert.equal(researched.evidence[0].scope,'business');
     assert.equal((await call(client, 'sdr_read', { resource: 'business', candidateToken })).matches[0].principals[0].role, 'Manager');
     assert.equal((await call(client, 'sdr_read', { resource: 'map_addresses', candidateTokens: [candidateToken] })).results[0].location.lat, 41.76);
     const read = await call(client, 'sdr_read', { resource: 'office', id: String(office.id) });

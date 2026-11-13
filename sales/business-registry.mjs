@@ -12,6 +12,17 @@ const literal = value => `'${String(value).replaceAll("'", "''")}'`;
 export const normalizedBusiness = value => String(value || '').toUpperCase().replace(/&/g, ' AND ').replace(/\b(?:L\.?L\.?C\.?|INCORPORATED|INC|CORPORATION|CORP|LLP|LP|PC)\b\.?/g, '').replace(/[^A-Z0-9]/g, '');
 const street = value => String(value || '').toUpperCase().replace(/\b(?:STREET|ROAD|AVENUE|BOULEVARD|DRIVE|LANE|COURT|PLACE|SUITE)\b/g, word => ({ STREET:'ST', ROAD:'RD', AVENUE:'AVE', BOULEVARD:'BLVD', DRIVE:'DR', LANE:'LN', COURT:'CT', PLACE:'PL', SUITE:'STE' })[word]).replace(/\b(?:STE|UNIT|APT|FLOOR|FL)\b.*$/, '').replace(/[^A-Z0-9]/g, '');
 const isTaxBusiness = row => /\b(?:tax|taxes|taxation|accounting|accountant|accountants|bookkeeping|bookkeeper)\b/i.test(row.name || '') || /54121[139]/.test(`${row.naics_code || ''} ${row.naics_sub_code || ''}`);
+const nameAnchors = value => String(value || '').toUpperCase().match(/[A-Z0-9]+/g)?.filter(word => word.length > 2 && !['LLC','INC','CORP','AND','THE','TAX','TAXES','ACCOUNTING','SERVICES','SERVICE','SOLUTION','SOLUTIONS','COMPANY'].includes(word)) || [];
+export function registryMatch(candidate, row) {
+  const record = businessRecord(row), name = normalizedBusiness(candidate.name);
+  const sameName = Boolean(name) && normalizedBusiness(record.name) === name;
+  const sameCity = String(record.city).trim().toUpperCase() === String(candidate.city).trim().toUpperCase();
+  const sameAddress = Boolean(street(candidate.address)) && street(record.address) === street(candidate.address) && sameCity;
+  const anchors = nameAnchors(candidate.name), words = new Set(nameAnchors(record.name));
+  const relatedName = sameCity && isTaxBusiness(row) && anchors.length > 0 && anchors.every(word => words.has(word));
+  const match = candidate.registryId === record.registryId ? 'registry_record' : sameName && sameAddress ? 'name_and_address' : sameName ? 'name_only' : relatedName ? 'related_name' : sameAddress && isTaxBusiness(row) ? 'address_only' : null;
+  return match ? { ...record, match, score: ({ registry_record:6, name_and_address:5, name_only:4, related_name:3, address_only:2 })[match] } : null;
+}
 async function query(endpoint, where, select, limit, fetcher) {
   const url = new URL(endpoint); url.searchParams.set('$where', where); url.searchParams.set('$select', select); url.searchParams.set('$limit', String(limit)); url.searchParams.set('$order', endpoint === CT_BUSINESSES ? 'name,id' : 'name__c');
   const cached = cache.get(url.href); if (cached?.expires > Date.now()) return structuredClone(cached.value);
@@ -42,15 +53,12 @@ export async function lookupBusiness(candidate, fetcher = fetch) {
   else {
     const words = String(candidate.name).toUpperCase().replace(/[^A-Z0-9 ]/g, ' ').split(/\s+/).filter(word => word.length > 1 && !['LLC','INC','CORP','AND','THE'].includes(word)).slice(0, 4);
     const nameCondition = words.length ? words.map(word => `upper(name) like ${literal('%' + word + '%')}`).join(' and ') : 'false';
-    const number = /^\s*(\d+[A-Za-z]?)/.exec(candidate.address)?.[1];
-    const addressCondition = number ? `upper(billingcity)=${literal(String(candidate.city).toUpperCase())} and upper(billingstreet) like ${literal(number.toUpperCase() + ' %')}` : 'false';
+    const streetParts = String(candidate.address || '').toUpperCase().match(/^[\s]*(\d+[A-Z]?)\s+([A-Z0-9]+)/);
+    const addressCondition = streetParts ? `upper(billingcity)=${literal(String(candidate.city).toUpperCase())} and upper(billingstreet) like ${literal(streetParts[1] + ' %' + streetParts[2] + '%')}` : 'false';
     const queries = await Promise.all([nameCondition, addressCondition].map(condition => query(CT_BUSINESSES, `upper(billingstate)='CT' and (${condition})`, SELECT, 20, fetcher)));
     rows = [...new Map(queries.flat().map(row => [row.id, row])).values()];
   }
-  const scored = rows.map(row => {
-    const record = businessRecord(row), sameName = normalizedBusiness(record.name) === normalizedBusiness(candidate.name), sameAddress = street(record.address) === street(candidate.address) && String(record.city).toUpperCase() === String(candidate.city).toUpperCase();
-    return { ...record, match: candidate.registryId === record.registryId ? 'registry_record' : sameName && sameAddress ? 'name_and_address' : sameAddress ? 'address_only' : sameName ? 'name_only' : 'possible', score: (sameName ? 2 : 0) + (sameAddress ? 2 : 0) };
-  }).sort((a, b) => b.score - a.score).slice(0, 6);
+  const scored = rows.map(row => registryMatch(candidate, row)).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 6);
   const matches = await Promise.all(scored.map(async record => {
     const source = new URL(CT_PRINCIPALS); source.searchParams.set('$where', `business_id=${literal(record.registryId)}`); source.searchParams.set('$select', 'business_id,name__c,designation,type,create_dt');
     try {

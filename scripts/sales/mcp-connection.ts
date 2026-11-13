@@ -9,7 +9,7 @@ export function createSalesConnection({ origin, codeFile, email, fetcher = fetch
   if (!codeFile.startsWith("/")) throw new Error("Select an absolute private sales access-code file.");
   return async (operation, args = {}) => {
     if (operation === "sdr_catalog") return {
-      version: 3, storage: "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses"],
+      version: 4, storage: "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses", "contact_research"],
       actions: ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"],
       roles: ["unverified", "owner", "partner", "manager", "accountant", "staff", "other"],
       limits: { contactsPerOffice: 50, exactRetryReceiptsPerOffice: 30, totalOfficeMetadataCharacters: 48000 },
@@ -17,12 +17,13 @@ export function createSalesConnection({ origin, codeFile, email, fetcher = fetch
       authority: "Uses the supplied sales identity. Agent assignment, territory and revoked-access rules apply at the backend.",
       evidence: "A named owner/partner remains unconfirmed without an explicit source check. Office ownership, email delivery and paid eligibility are separate.",
       localDiscovery: "local_offices accepts city/state and includes chains, public IRS locations and CT registrations where available. business accepts its actor-bound candidateToken and returns legal records/listed principals, never a confirmed owner. map_addresses accepts up to 10 returned candidateTokens. No prospect is saved by these reads.",
+      contactResearch: "contact_research accepts a candidateToken set to a returned office or principal researchToken. With no website it returns published directory details and possible business websites. Supply a checked official website with websiteReviewed:true to read its public contact pages. Business channels are not automatically a person's direct contact. No saves, account lookups, mail, calls or payment.",
       workflowTools: ["sdr_progress", "sdr_contract", "sdr_sender"],
       externalEffects: "sdr_contract send_email explicitly sends the exact reviewed contract email when a provider is configured. Other contract operations prepare links/previews or record evidence. No campaigns, calls or payments.",
     };
     let action: string;
     if (operation === "sdr_read") {
-      const actions: Record<string, string> = { workspace: "bootstrap", rolodex: "rolodex", office: "office", pipeline: "pipeline", contracts: "contracts", mailboxes: "mailboxes", local_offices: "search-local", business: "lookup-business", map_addresses: "map-geocode" };
+      const actions: Record<string, string> = { workspace: "bootstrap", rolodex: "rolodex", office: "office", pipeline: "pipeline", contracts: "contracts", mailboxes: "mailboxes", local_offices: "search-local", business: "lookup-business", map_addresses: "map-geocode", contact_research: "research-local-contacts" };
       action = actions[String(args.resource)];
       if (!action || (action === "office" && !/^\d+$/.test(String(args.id || "")))) throw new Error("Choose a sales resource and supply an office ID for office reads.");
     } else if (operation === "sdr_command" && ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"].includes(String(args.action))) action = String(args.action);

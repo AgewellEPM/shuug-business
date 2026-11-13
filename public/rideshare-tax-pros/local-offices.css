@@ -35,6 +35,14 @@
 .sales-console-page .local-registry-record li span { display:block; color:var(--text-secondary); font-size:12px; }
 .sales-console-page .local-registry-record a { font-size:12px; }
 .sales-console-page .local-registry-record > .button { display:block; margin-top:14px; }
+.sales-console-page [data-local-contact-research] { margin:24px 0; padding:18px 0; border-block:1px solid var(--glass-border-muted); }
+.sales-console-page [data-local-contact-research] form { margin:18px 0; }
+.sales-console-page .local-contact-source { margin:14px 0; padding:12px; border:1px solid var(--glass-border-muted); border-radius:10px; }
+.sales-console-page .local-contact-source .button { display:block; margin-top:10px; }
+.sales-console-page .local-contact-choice { display:flex; gap:12px; align-items:flex-start; margin:12px 0; padding:12px; border:1px solid var(--glass-border-muted); border-radius:10px; }
+.sales-console-page .local-contact-choice input { flex:0 0 auto; width:18px; height:18px; margin-top:3px; }
+.sales-console-page .local-contact-choice span { display:grid; gap:6px; min-width:0; }
+.sales-console-page .local-contact-choice small { font-size:11px; color:var(--text-secondary); }
 .sales-console-page .local-map-pin { display:grid; place-items:center; border:2px solid #fff; border-radius:50%; background:#0674df; color:#fff; box-shadow:0 2px 7px #0007; font:700 12px system-ui; }
 .sales-console-page .local-map-pin.is-selected { background:#199257; outline:3px solid #19925766; }
 .sales-console-page .local-pin-popup { display:grid; gap:7px; min-width:140px; max-width:260px; max-height:240px; overflow-y:auto; }

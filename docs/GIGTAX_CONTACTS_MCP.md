@@ -70,6 +70,29 @@ deferred; these tools cannot activate membership or move money.
 
 ## Verification and release boundary
 
+Find offices also offers **Find business contacts** for any directory office and
+**Find this person’s business contacts** for a listed registry principal. Existing
+directory contacts retain their public source. Website search returns possible
+sources and manual search links; choosing a website requires reviewing its business
+match. The bounded contact reader visits public contact pages and reports extracted
+email/phone/name evidence with source URLs and timestamps. It does not guess email
+addresses, bypass logins, or treat an office channel as the named person’s direct
+contact. Missing information stays unknown. Search/provider outages are shown.
+
+Choose individual evidence fields, check their sources and prepare the existing
+office form; saving remains a separate action. Research can be downloaded with its
+sources. No contacts are automatically saved and no outreach is sent. Saved office
+suppression also blocks map contact research. Registry matches require a meaningful
+business-name or full tax-business-address match; a shared street number is not a
+match. Nationwide IRS office search is available; automatic registry lookup is CT.
+
+MCP `sdr_read` resource `contact_research` accepts `candidateToken` containing the
+`researchToken` returned for a directory office, matched business or listed principal.
+Without `website`, it returns published details and possible source links. Supply
+`website` and `websiteReviewed: true` to read a checked official business website.
+Tokens are bound to the authenticated actor, territory and one-hour expiration.
+The launcher loads the current source; no global MCP configuration changes are needed.
+
 Focused backend tests cover old records, source checks, compatibility with existing
 forms, concurrent edits, retries, assignment/territory access, suppression, storage
 limits and archive/restore. The shipped DOM flow uses the real API handler. The

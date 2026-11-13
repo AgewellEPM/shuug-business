@@ -37,7 +37,11 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const contacts = contactTools(db, audit, tools.now);
   const progress = progressTools(db, audit, tools.now);
   const delivery = deliveryTools(env, db, tools);
-  const local = localDiscovery(env, tools.localDiscovery);
+  const local = localDiscovery(env, { search:db.search?.bind(db), ...tools.localDiscovery, checkCandidate:async (_user,candidate) => {
+    const identity = officeIdentity(candidate.name,candidate.address,candidate.city,candidate.state);
+    const saved = (await db.list('offices')).find(row => officeIdentity(row.town,metadata(row).address,row.locality,row.state) === identity);
+    if (saved && (['do_not_contact','not_interested'].includes(saved.status) || metadata(saved).primaryContactDoNotContact)) throw new HttpError(409,'Contact research is paused for this office. Review its saved contact preference first.');
+  } });
   async function login(body) {
     const code = text(body.code, 200, true), codeHash = digest(code);
     let user, session;
@@ -51,7 +55,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
   }
   async function dispatch(user, action, b = {}) {
-    if (['search-local', 'map-geocode', 'lookup-business'].includes(action)) return local(user, action, b);
+    if (['search-local', 'map-geocode', 'lookup-business', 'research-local-contacts'].includes(action)) return local(user, action, b);
     if (action === 'bootstrap') {
       const [all, agents, terms, enrollments, events] = await Promise.all([db.list('offices'), db.list('agents'), db.terms(), db.list('enrollments'), db.list('events')]);
       const offices = all.filter(r => visible(user, r)).map(row => {
