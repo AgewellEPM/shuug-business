@@ -1,9 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
-import {mountEnrollment} from '../browser/enrollment-view.mjs';
+import {mountEnrollment,mountPasswordRecovery} from '../browser/enrollment-view.mjs';
 import {buildFormPayload,formType} from '../browser/forms.mjs';
 import {privateClientProfile,privateAccountCode,assertPrivateInvitation} from '../client-enrollment.mjs';
+import {sealPasswordRecoveryChallenge,openPasswordRecoveryChallenge} from '../password-recovery-proof.mjs';
 import {sealActivationChallenge,openActivationChallenge,activationAnswerDigest} from '../activation-proof.mjs';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../firm-recovery.mjs';
 import {generateRecipientKeyPair,publicKeyId} from '../envelope.mjs';
@@ -13,6 +14,9 @@ test('possession proof binds the exact manifest, key, scope, ciphertext and expi
   const expected={accountId:crypto.randomUUID(),clientId:crypto.randomUUID(),minimumEpoch:1},manifest=await signEnrollmentRequest({version:1,workspaceId:created.publicPins.workspaceId,accountId:expected.accountId,clientId:expected.clientId,client:{keyId:await publicKeyId(key.publicKey),publicKey:key.publicKey}},firm,{epoch:1});
   const sealed=await sealActivationChallenge(manifest,{challengeId:crypto.randomUUID(),expiresAt:new Date(Date.now()+300000).toISOString()}),open=value=>openActivationChallenge(value,manifest,expected,created.publicPins,key.privateKey);
   assert.equal(await activationAnswerDigest(await open(sealed.challenge)),sealed.answerDigest);
+  const recovery=await sealPasswordRecoveryChallenge(manifest,{challengeId:crypto.randomUUID(),expiresAt:new Date(Date.now()+300000).toISOString()});
+  assert.equal(await activationAnswerDigest(await openPasswordRecoveryChallenge(recovery.challenge,manifest,expected,created.publicPins,key.privateKey)),recovery.answerDigest);
+  await assert.rejects(open(recovery.challenge));await assert.rejects(openPasswordRecoveryChallenge(sealed.challenge,manifest,expected,created.publicPins,key.privateKey));
   for(const change of [{accountId:crypto.randomUUID()},{manifestEpoch:2},{expiresAt:new Date(Date.now()-1000).toISOString()},{challengeId:crypto.randomUUID()},{ciphertext:'A'.repeat(64)},{extra:'unrecognized'}])await assert.rejects(open({...sealed.challenge,...change}));
   await assert.rejects(openActivationChallenge(sealed.challenge,manifest,expected,created.publicPins,(await generateRecipientKeyPair()).privateKey));
 });
@@ -36,4 +40,14 @@ test('contact profile stays in tax identity and private account inputs reject me
   const values={legalName:'Synthetic private client',email:'client@example.invalid',phone:'',mailingAddress:''},result=buildFormPayload('profile',values);assert.equal(result.domain,'tax-identity');assert.equal(formType(result.payload),'profile');assert.deepEqual(result.payload,privateClientProfile(values));
   assert.throws(()=>privateClientProfile({...values,password:'must not be saved'}));assert.throws(()=>privateAccountCode(values.email));
   const invite={version:1,type:'shuug-private-account-invitation',invitationId:crypto.randomUUID(),workspaceId:'synthetic',accountId:crypto.randomUUID(),clientId:crypto.randomUUID(),token:'a'.repeat(64),expiresAt:new Date(Date.now()+3600000).toISOString()};assertPrivateInvitation(invite,'synthetic');assert.throws(()=>assertPrivateInvitation({...invite,email:values.email},'synthetic'));assert.throws(()=>assertPrivateInvitation(invite,'other-workspace'));
+});
+
+test('ordinary forgotten-password form uses the selected backup key and clears credentials',async()=>{
+ const dom=new JSDOM('<!doctype html><div id="setup"></div>'),document=dom.window.document;let pending,received,recovered;
+ const client={async recoverAccountPassword(value){assert.equal(document.querySelector('#recovery-password').value,'');received=value;return {accountCode:'synthetic-code'};}};
+ const view=mountPasswordRecovery(document,document.querySelector('#setup'),{getClient:()=>client,getKeyId:()=>'existing-key',run:operation=>{pending=operation();},onRecovered:value=>{recovered=value;}});
+ try{assert(document.querySelector('button').disabled);view.setEnabled(true);for(const name of ['invitation','approval'])Object.defineProperty(document.querySelector(`#recovery-${name}`),'files',{value:[{size:10,text:async()=>JSON.stringify({synthetic:name})}]});
+  for(const name of ['password','confirmation'])document.querySelector(`#recovery-${name}`).value='Synthetic recovered account password';assert(view.dirty);document.querySelector('button').click();await pending;
+  assert.equal(received.keyId,'existing-key');assert.equal(received.newPassword,'Synthetic recovered account password');assert.equal(recovered.accountCode,'synthetic-code');assert(!view.dirty);
+ }finally{dom.window.close();}
 });

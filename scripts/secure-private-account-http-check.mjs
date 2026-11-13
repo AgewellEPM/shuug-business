@@ -1,10 +1,10 @@
 /** Real compiled route proof against disposable synthetic data. No installed
  * workspace, public TLS, filing provider or physical offhost custody is tested. */
 import assert from 'node:assert/strict';
-import {spawn} from 'node:child_process';
+import {spawn,execFileSync} from 'node:child_process';
 import {once} from 'node:events';
 import {createServer} from 'node:net';
-import {mkdtempSync,mkdirSync,readFileSync,readdirSync,rmSync} from 'node:fs';
+import {mkdtempSync,mkdirSync,readFileSync,writeFileSync,readdirSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {randomUUID} from 'node:crypto';
@@ -74,6 +74,12 @@ try{
   await resumedOwner.setClientAccess(invitation.accountId,true);await recovered.signInWithCode(invitation.accountId,password);await recovered.verifySignIn(session.recoveryCodes[2]);await recovered.unlock(key.keyId);assert.equal((await recovered.sync()).items,1);checks++;
   await recovered.changeAccountPassword(password,password+' changed');assert.equal(recovered.identity,null);await assert.rejects(recovered.signInWithCode(invitation.accountId,password));await recovered.signInWithCode(invitation.accountId,password+' changed');assert.equal(recovered.pendingMfa.enrollmentRequired,false);await recovered.verifySignIn(session.recoveryCodes[3]);await recovered.unlock(key.keyId);assert.equal((await recovered.sync()).items,1);checks+=4;
   await recovered.revokeAllSessions();assert.equal(recovered.identity,null);checks++;
-  assert(ownerSession.recoveryCodes.length===10);console.log(JSON.stringify({version:1,kind:'synthetic-compiled-private-account-proof',buildId:readFileSync('.next/BUILD_ID','utf8').trim(),checks,httpRequests:calls.length,invitationActivation:true,requiredMfa:true,opaqueAccounts:true,encryptedContactProfile:true,firmProfileReview:true,encryptedKeyBackupRecovery:true,hostBackupRestore:true,singleUseMfaRecovery:true,passwordChangeRevokesSessions:true,ownerSuspensionVerified:true,revokeAllSessionsVerified:true,backupFiles:saved.files,liveInstalledWorkspace:false,physicalOffhostCustody:false,visualAcceptance:false},null,2));
+  const recovery=await resumedOwner.createPasswordRecovery(invitation.accountId),trusted=path.join(root,'trusted');mkdirSync(trusted,{mode:0o700});
+  for(const [name,value]of [['invitation',recovery],['bundle',created.bundle],['pins',created.publicPins]])writeFileSync(path.join(trusted,name+'.json'),JSON.stringify(value),{mode:0o600});
+  execFileSync(process.execPath,['packages/secure-tax-client/offline-cli.mjs','approve-password-recovery','--confirm-off-host','--confirm-identity-and-fingerprint','--passphrase-fd','0','--bundle',path.join(trusted,'bundle.json'),'--public-pins',path.join(trusted,'pins.json'),'--request',path.join(trusted,'invitation.json'),'--out',path.join(trusted,'approval.json')],{input:`Synthetic firm ${password}`,timeout:30000,stdio:['pipe','pipe','pipe']});
+  const approval=JSON.parse(readFileSync(path.join(trusted,'approval.json'),'utf8'));await recovered.recoverAccountPassword({invitation:recovery,approval,keyId:key.keyId,newPassword:password+' recovered'});assert.equal(recovered.identity,null);checks++;
+  const recoveryBody=JSON.parse(calls.find(call=>call.path.endsWith('/password-recovery')&&JSON.parse(call.body).challengeId)?.body);assert.equal((await raw('/password-recovery',recoveryBody)).status,409);checks++;
+  await assert.rejects(recovered.signInWithCode(invitation.accountId,password+' changed'));await recovered.signInWithCode(invitation.accountId,password+' recovered');assert.equal(recovered.pendingMfa.enrollmentRequired,false);await recovered.verifySignIn(session.recoveryCodes[4]);await recovered.unlock(key.keyId);assert.equal((await recovered.sync()).items,1);checks+=3;
+  assert(ownerSession.recoveryCodes.length===10);console.log(JSON.stringify({version:1,kind:'synthetic-compiled-private-account-proof',buildId:readFileSync('.next/BUILD_ID','utf8').trim(),checks,httpRequests:calls.length,invitationActivation:true,requiredMfa:true,opaqueAccounts:true,encryptedContactProfile:true,firmProfileReview:true,encryptedKeyBackupRecovery:true,hostBackupRestore:true,singleUseMfaRecovery:true,passwordChangeRevokesSessions:true,ownerSuspensionVerified:true,revokeAllSessionsVerified:true,separatelyApprovedPasswordRecovery:true,realOfflineRecoveryApprovalCli:true,recoveryPreservesMfaAndCiphertext:true,backupFiles:saved.files,liveInstalledWorkspace:false,physicalOffhostCustody:false,visualAcceptance:false},null,2));
 }catch(error){console.error(error);if(log)console.error(log);process.exitCode=1;}
 finally{await stop(child);rmSync(root,{recursive:true,force:true});}

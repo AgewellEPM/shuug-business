@@ -1,3 +1,5 @@
+import {assertPasswordRecoveryInvitation,verifyPasswordRecovery} from '../password-recovery.mjs';
+import {openPasswordRecoveryChallenge} from '../password-recovery-proof.mjs';
 import {assertPrivateInvitation,privateClientProfile,privateAccountCode} from '../client-enrollment.mjs';
 import {openActivationChallenge} from '../activation-proof.mjs';
 import { DOMAINS, MAX_CIPHERTEXT_BYTES, openEnvelope, sealEnvelope, validateContext, verifyEnrollmentManifest } from '../envelope.mjs';
@@ -129,6 +131,15 @@ export class VaultClient {
     if(result?.activated!==true||result.identity?.accountId!==invitation.accountId||result.identity?.clientId!==invitation.clientId)throw new Error('Activation returned a different account binding. Contact the firm.');
     await this.#storage.putBinding({id:`${this.#config.workspaceId}|${invitation.accountId}`,workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,keyId:entry.keyId,minimumEpoch:manifest.epoch,manifest:clone(manifest)});this.#same(generation);
     return {accountCode:invitation.accountId,keyId:entry.keyId};
+  }
+  async recoverAccountPassword({invitation,approval,keyId,newPassword}){
+    assertPasswordRecoveryInvitation(invitation,this.#config.workspaceId);if(typeof newPassword!=='string'||newPassword.length<14||newPassword.length>200)throw new Error('Choose a new account password of 14–200 characters.');
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;const generation=this.#generation,request=invitation.request,entry=await this.#storage.getKey(keyId);this.#same(generation);
+    if(!entry||entry.keyId!==request.clientKeyId)throw new Error('Recover the existing enrolled client key from its encrypted backup first.');assertPrivateKey(entry.privateKey);
+    const expected={accountId:request.accountId,clientId:request.clientId,minimumEpoch:request.manifestEpoch};await verifyEnrollmentManifest(invitation.manifest,expected,this.#config);await verifyPasswordRecovery(approval,this.#config,request);this.#same(generation);
+    const challenge=await this.#request('/password-recovery/challenge','POST',{token:invitation.token,approval},16384),answer=await openPasswordRecoveryChallenge(challenge,invitation.manifest,expected,this.#config,entry.privateKey);this.#same(generation);
+    const result=await this.#request('/password-recovery','POST',{token:invitation.token,approval,challengeId:challenge.challengeId,answer,newPassword},4096);this.#same(generation);
+    if(result?.passwordChanged!==true||result.sessionsRevoked!==true||result.authenticatorPreserved!==true||result.accountCode!==request.accountId)throw new Error('Recovery was not confirmed. Try signing in with the chosen password before requesting another recovery.');return result;
   }
   async encryptedBackup(keyId){
     const entry=await this.#storage.getKey(keyId);if(!entry?.backup)throw new Error('This browser has no encrypted backup for that key.');

@@ -29,8 +29,13 @@ import {GET as object} from "@/app/api/website/customer/secure/objects/[id]/rout
 import {POST as accountPassword,DELETE as accountSessions} from "@/app/api/website/customer/secure/account/route";
 import {POST as accountAccess} from "@/app/api/website/customer/secure/staff/client-access/route";
 
+import {approvePasswordRecovery} from "../../../packages/secure-tax-client/firm-password-recovery.mjs";
+import {POST as requestRecovery,DELETE as revokeRecovery} from "@/app/api/website/customer/secure/staff/password-recovery/route";
+import {POST as recoveryChallenge} from "@/app/api/website/customer/secure/password-recovery/challenge/route";
+import {POST as recoverPassword} from "@/app/api/website/customer/secure/password-recovery/route";
+
 const origin="https://trusted.example.net",base="https://workspace.example.com",password="Synthetic private account password",prefix="/api/website/customer/secure";
-let directory:string,owner:string,config:any,firm:any,client:any,keys:any,calls:{path:string;body:string}[],alterActivation:((body:any)=>any)|undefined;
+let directory:string,owner:string,config:any,firm:any,client:any,keys:any,calls:{path:string;body:string}[],alterActivation:((body:any)=>any)|undefined,alterRecovery:((body:any)=>any)|undefined;
 const request=(path:string,body?:unknown,token?:string,method="POST",from=origin)=>new Request(base+prefix+path,{method,headers:{Origin:from,...(body===undefined?{}:{"Content-Type":"application/json"}),...(token?{Authorization:`Bearer ${token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
 beforeEach(async()=>{
  directory=mkdtempSync(`${tmpdir()}/shuug-private-activation-`);for(const [key,value]of Object.entries({DEALDESK_DATA_DIR:directory,DATABASE_URL:"",DEMO_DATA:"false",APP_BASE_URL:base,SHUUG_SECURE_TAX_TRUSTED_ORIGIN:origin,SHUUG_REQUIRE_MFA:"false"}))vi.stubEnv(key,value);
@@ -39,11 +44,11 @@ beforeEach(async()=>{
  owner=completeLoginFactor(factor,totp(loginFactorView(factor,"staff").secret!,Math.floor(Date.now()/30000)),"staff").token;
  const created=await createFirmBundle("synthetic-private-enrollment","Synthetic separate firm passphrase");firm=await unlockFirmBundle(created.bundle,"Synthetic separate firm passphrase",created.publicPins);config={version:1,uiOrigin:origin,apiOrigin:base,...created.publicPins};delete config.signerKeyId;delete config.firmRecoveryKeyId;
  vi.stubEnv("SHUUG_SECURE_TAX_WORKSPACE_ID",config.workspaceId);vi.stubEnv("SHUUG_SECURE_TAX_SIGNER_PUBLIC_KEY",config.signerPublicKey);vi.stubEnv("SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY",config.firmRecoveryPublicKey);
- keys={keys:new Map(),bindings:new Map(),async putKey(value:any){this.keys.set(value.keyId,value);},async getKey(id:string){return this.keys.get(id);},async listKeys(){return [...this.keys.values()];},async putBinding(value:any){this.bindings.set(value.id,value);},async getBinding(id:string){return this.bindings.get(id);}};calls=[];alterActivation=undefined;
+ keys={keys:new Map(),bindings:new Map(),async putKey(value:any){this.keys.set(value.keyId,value);},async getKey(id:string){return this.keys.get(id);},async listKeys(){return [...this.keys.values()];},async putBinding(value:any){this.bindings.set(value.id,value);},async getBinding(id:string){return this.bindings.get(id);}};calls=[];alterActivation=undefined;alterRecovery=undefined;
  const pair=await generateRecipientKeyPair();await keys.putKey({...pair,keyId:await publicKeyId(pair.publicKey)});
  client=await VaultClient.create(config,origin,{storage:keys,fetcher:async(url:string,options:any={})=>{
    const path=new URL(url).pathname.slice(prefix.length),req=new Request(url,{...options,headers:{...options.headers,Origin:origin}});calls.push({path,body:options.body??""});
-   if(path==="/activation/challenge")return challenge(req);if(path==="/activation")return activate(alterActivation?request(path,alterActivation(JSON.parse(options.body))):req);if(path==="/session")return options.method==="DELETE"?signOut(req):signIn(req);if(path==="/account")return options.method==="DELETE"?accountSessions(req):accountPassword(req);if(path==="/status")return status(req);if(path==="/objects")return changes(req);if(path.startsWith('/objects/'))return object(req,{params:Promise.resolve({id:path.slice('/objects/'.length)})});throw new Error('Unexpected request '+path);
+   if(path==="/password-recovery/challenge")return recoveryChallenge(req);if(path==="/password-recovery")return recoverPassword(alterRecovery?request(path,alterRecovery(JSON.parse(options.body))):req);if(path==="/activation/challenge")return challenge(req);if(path==="/activation")return activate(alterActivation?request(path,alterActivation(JSON.parse(options.body))):req);if(path==="/session")return options.method==="DELETE"?signOut(req):signIn(req);if(path==="/account")return options.method==="DELETE"?accountSessions(req):accountPassword(req);if(path==="/status")return status(req);if(path==="/objects")return changes(req);if(path.startsWith('/objects/'))return object(req,{params:Promise.resolve({id:path.slice('/objects/'.length)})});throw new Error('Unexpected request '+path);
  }});
 });
 afterEach(()=>{client?.lock();vi.unstubAllEnvs();rmSync(directory,{recursive:true,force:true});});
@@ -103,4 +108,29 @@ it('password changes and owner suspension revoke sessions and pending login with
  await client.signInWithCode(f.invitation.accountId,password+' changed');await client.verifySignIn(session.recoveryCodes[1]);await client.unlock(f.keyId);expect((await client.sync()).items).toBe(1);
  expect(await client.revokeAllSessions()).toMatchObject({sessionsRevoked:true});expect(client.identity).toBeNull();
  expect(workspaceDatabase(db=>db.prepare('SELECT count(*) AS n FROM secure_tax_sessions').get())).toMatchObject({n:0});
+});
+
+async function activeRecovery(){
+ const f=await setup();await client.activateNewAccount({...f,password,profile:{legalName:'Synthetic recovery client',email:'',phone:'',mailingAddress:''}});await client.signInWithCode(f.invitation.accountId,password);const session=await client.verifySignIn(totp(client.pendingMfa.secret,Math.floor(Date.now()/30000)));await client.unlock(f.keyId);
+ const response=await requestRecovery(request('/staff/password-recovery',{accountCode:f.invitation.accountId},owner));expect(response.status).toBe(200);const invitation=await response.json(),approval=await approvePasswordRecovery(invitation.request,invitation.manifest,firm,{identityAndKeyReviewed:true});return {f,session,invitation,approval,keyId:f.keyId};
+}
+it('separately approved forgotten-password recovery preserves authenticator and encrypted profile, consumes its permit and revokes prior sessions',async()=>{
+ const r=await activeRecovery(),next=password+' recovered';expect((await client.recoverAccountPassword({...r,newPassword:next})).authenticatorPreserved).toBe(true);expect(client.identity).toBeNull();
+ const body=JSON.parse(calls.find(call=>call.path==='/password-recovery')!.body);expect((await recoverPassword(request('/password-recovery',body))).status).toBe(409);
+ await expect(client.signInWithCode(r.f.invitation.accountId,password)).rejects.toThrow();await client.signInWithCode(r.f.invitation.accountId,next);expect(client.pendingMfa.enrollmentRequired).toBe(false);await client.verifySignIn(r.session.recoveryCodes[0]);await client.unlock(r.keyId);expect((await client.sync()).items).toBe(1);expect(JSON.parse(new TextDecoder().decode([...client.records.values()][0].plaintext)).legalName).toBe('Synthetic recovery client');
+ expect(workspaceDatabase(db=>db.prepare('SELECT status FROM secure_tax_password_recovery').get())).toMatchObject({status:'used'});
+});
+it('password recovery refuses wrong keys, forged approval, revoked requests and consumed incorrect proofs',async()=>{
+ const r=await activeRecovery(),newPassword=password+' recovered',before=calls.length;
+ await expect(client.recoverAccountPassword({...r,keyId:'wrong-key',newPassword})).rejects.toThrow(/existing enrolled/);expect(calls.length).toBe(before);
+ const forged=structuredClone(r.approval);forged.request.accountId=randomUUID();expect((await recoveryChallenge(request('/password-recovery/challenge',{token:r.invitation.token,approval:forged}))).status).toBe(403);
+ alterRecovery=body=>({...body,answer:'A'.repeat(43)});await expect(client.recoverAccountPassword({...r,newPassword})).rejects.toThrow();const body=JSON.parse(calls.find(call=>call.path==='/password-recovery')!.body);expect((await recoverPassword(request('/password-recovery',body))).status).toBe(409);
+ expect((await revokeRecovery(request('/staff/password-recovery',{requestId:r.invitation.request.requestId},owner,'DELETE'))).status).toBe(200);alterRecovery=undefined;await expect(client.recoverAccountPassword({...r,newPassword})).rejects.toThrow();
+ await client.signInWithCode(r.f.invitation.accountId,password);await client.verifySignIn(r.session.recoveryCodes[0]);await client.unlock(r.keyId);expect((await client.sync()).items).toBe(1);
+});
+it('changing a password or suspending an account invalidates pending firm-approved recovery',async()=>{
+ const r=await activeRecovery();await client.changeAccountPassword(password,password+' changed');await expect(client.recoverAccountPassword({...r,newPassword:password+' recovered'})).rejects.toThrow();
+ const response=await requestRecovery(request('/staff/password-recovery',{accountCode:r.f.invitation.accountId},owner)),invitation=await response.json(),approval=await approvePasswordRecovery(invitation.request,invitation.manifest,firm,{identityAndKeyReviewed:true});
+ for(const enabled of [false,true])expect((await accountAccess(request('/staff/client-access',{accountCode:r.f.invitation.accountId,enabled},owner))).status).toBe(200);
+ expect((await recoveryChallenge(request('/password-recovery/challenge',{token:invitation.token,approval}))).status).toBe(409);
 });

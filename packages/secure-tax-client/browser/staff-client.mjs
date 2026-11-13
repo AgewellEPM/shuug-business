@@ -1,3 +1,4 @@
+import {assertPasswordRecoveryInvitation} from '../password-recovery.mjs';
 import {assertPrivateInvitation,privateAccountCode} from '../client-enrollment.mjs';
 import { verifyStaffGrant, verifyStaffCapsuleSignature, openStaffCapsule } from '../staff-grants.mjs';
 import { BrowserKeyStore, createClientKey, importEncryptedBackup, assertPrivateKey } from './custody.mjs';
@@ -80,6 +81,12 @@ export class StaffVaultClient {
   async signOut(){const pending=this.#token?this.#request('/session','DELETE'):Promise.resolve();this.#forgetSession();try{await pending;}catch{throw new Error('Local staff view cleared. The API could not confirm session revocation.');}}
   async createClientInvitation(){
     if(!this.isOwner)throw new Error('Only the verified owner can invite a new encrypted account.');const generation=this.#generation,result=await this.#request('/client-invitations','POST',{},4096);this.#same(generation);return clone(assertPrivateInvitation(result,this.#config.workspaceId));
+  }
+  async createPasswordRecovery(accountCode){
+    if(!this.isOwner)throw new Error('Use the verified owner account to request recovery.');privateAccountCode(accountCode);const generation=this.#generation,result=await this.#request('/password-recovery','POST',{accountCode},16384);this.#same(generation);return clone(assertPasswordRecoveryInvitation(result,this.#config.workspaceId));
+  }
+  async revokePasswordRecovery(requestId){
+    if(!this.isOwner)throw new Error('Use the verified owner account to revoke recovery.');privateAccountCode(requestId);const generation=this.#generation,result=await this.#request('/password-recovery','DELETE',{requestId},1024);this.#same(generation);if(typeof result?.revoked!=='boolean')throw new Error('Recovery revocation was not confirmed.');return result;
   }
   async setClientAccess(accountCode,enabled){
     if(!this.isOwner||typeof enabled!=='boolean')throw new Error('Use the verified owner account to change client access.');privateAccountCode(accountCode);

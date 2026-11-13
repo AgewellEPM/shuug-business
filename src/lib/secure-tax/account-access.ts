@@ -6,7 +6,8 @@ import {secureStaffIdentity} from "./staff-session";
 import {SecureTaxError} from "./manifest";
 import {accountCode,privateAccountPassword,privateTaxAccount,privateTaxSession,privateAccountTable,privateTokenHash} from "./private-accounts";
 
-function revokeSessions(db:DatabaseSync,id:string){
+/** Internal transaction primitive; callers establish account or owner authority. */
+export function revokeSessions(db:DatabaseSync,id:string){
   db.prepare("DELETE FROM secure_tax_sessions WHERE accountId=?").run(id);
   if(privateAccountTable(db,"mfa_challenges"))db.prepare("DELETE FROM mfa_challenges WHERE kind='secure-customer' AND id=?").run(id);
   if(privateAccountTable(db,"mfa_session_grants"))db.prepare("DELETE FROM mfa_session_grants WHERE kind='secure-customer' AND account_id=?").run(id);
@@ -19,7 +20,9 @@ export function setPrivateAccountAccess(staffToken:string,raw:unknown){
     const account=privateTaxAccount(db,input.accountCode);if(!account)throw new SecureTaxError(404,"Private account unavailable.");
     db.prepare("UPDATE secure_tax_accounts SET status=? WHERE id=?").run(input.enabled?"active":"disabled",account.id);
     // Re-enabling never revives a previously issued session or pending login.
-    revokeSessions(db,account.id);audit(db,account.id,user.id,input.enabled?"secure-tax.account.enabled":"secure-tax.account.disabled");
+    revokeSessions(db,account.id);
+    if(privateAccountTable(db,"secure_tax_password_recovery"))db.prepare("UPDATE secure_tax_password_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
+    audit(db,account.id,user.id,input.enabled?"secure-tax.account.enabled":"secure-tax.account.disabled");
     return {accountCode:account.id,enabled:input.enabled,sessionsRevoked:true};
   },true);
 }

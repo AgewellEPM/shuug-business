@@ -1,10 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,randomBytes} from 'node:crypto';
-import {mkdtempSync,readFileSync,rmSync} from 'node:fs';
+import {mkdtempSync,readFileSync,writeFileSync,rmSync} from 'node:fs';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
+import {verifyPasswordRecovery} from '../../password-recovery.mjs';
 import {createHandler} from './worker.mjs';
 import {cloudFormation} from './template.mjs';
 import {validateTemplate} from './validate.mjs';
@@ -156,4 +157,22 @@ test('cloud case transitions keep commands and selected evidence encrypted while
   await perform('fee.payment',{invoiceId:'cloud-invoice',date:'2025-01-02',amountCents:2345,method:'check',reference:'SYNTHETIC-PAYMENT',document:null,notes:''});
   const financeBytes=await openEnvelope(packet.envelope,packet.envelope.context,recipients,'client',client.privateKey);try{const body=await verifyCasePayload(JSON.parse(text.decode(financeBytes)),{...packet.envelope.context,clientId:request.clientId},pins);assert.equal(officeSnapshot(body,new Map()).fees.totals.outstandingCents,10000);}finally{financeBytes.fill(0);}
 
+});
+
+test('separate cloud approval binds password recovery to the reviewed account and existing client key',async()=>{
+ const f=fixture(),pins=(await f.run('initialize',{})).result.publicPins,key=await generateRecipientKeyPair(),keyId=await publicKeyId(key.publicKey),accountId=crypto.randomUUID(),clientId=crypto.randomUUID();
+ const manifest=(await f.run('enroll',{expectedPins:pins,request:{version:1,workspaceId,accountId,clientId,client:{keyId,publicKey:key.publicKey}},epoch:1},keyId)).result.manifest;
+ const request={version:1,type:'shuug-password-recovery-request',requestId:crypto.randomUUID(),workspaceId,accountId,clientId,manifestId:manifest.manifestId,manifestEpoch:1,clientKeyId:keyId,issuedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString()},input={expectedPins:pins,request,manifest,identityAndKeyReviewed:true};
+ const directory=mkdtempSync(path.join(tmpdir(),'shuug-password-job-'));let approved;
+ try{
+  const invitation={version:1,type:'shuug-private-password-recovery',request,manifest,token:randomBytes(32).toString('hex')};writeFileSync(path.join(directory,'invitation.json'),JSON.stringify(invitation));writeFileSync(path.join(directory,'pins.json'),JSON.stringify(pins));
+  const args=['packages/secure-tax-client/prepare-password-recovery-job.mjs','--invitation',path.join(directory,'invitation.json'),'--public-pins',path.join(directory,'pins.json'),'--review-reference','synthetic-reviewed-recovery','--out',path.join(directory,'job.json')];
+  assert.throws(()=>execFileSync(process.execPath,args,{stdio:'pipe'}));execFileSync(process.execPath,[...args,'--confirm-identity-and-fingerprint'],{stdio:'pipe'});
+  const bytes=readFileSync(path.join(directory,'job.json')),job=JSON.parse(bytes);assert(!bytes.includes(Buffer.from(invitation.token)));assert.deepEqual(job.input,input);f.provider.jobs.set(`${job.jobId}:prepared-version`,bytes);
+  const response=await f.handler({version:1,jobId:job.jobId,jobVersionId:'prepared-version',approvedSha256:sha(bytes)},context);approved={response,result:f.provider.results.get(job.jobId)?.result};
+ }finally{rmSync(directory,{recursive:true,force:true});}
+ assert(approved.response.ok);await verifyPasswordRecovery(approved.result.approvedPasswordRecovery,pins,request);await assert.rejects(verifyPasswordRecovery(approved.result.approvedPasswordRecovery,pins,request,Date.now()+5*3600000));
+ assert.equal((await f.run('approve-password-recovery',{...input,identityAndKeyReviewed:false},keyId)).response.ok,false);assert.equal((await f.run('approve-password-recovery',input,'wrong-fingerprint')).response.ok,false);
+ const forged=structuredClone(approved.result.approvedPasswordRecovery);forged.request.accountId=crypto.randomUUID();await assert.rejects(verifyPasswordRecovery(forged,pins,request));
+ assert(!JSON.stringify(approved.result).includes('passphrase'));assert(!JSON.stringify(approved.result).includes('"d":'));
 });

@@ -54,12 +54,53 @@ key on another browser. An unused MFA recovery code works once with the account
 password and invalidates earlier MFA session grants. These are distinct backups:
 an authenticator recovery code cannot decrypt tax data.
 
-Lost-password recovery, loss of both client key and backup, owner-reviewed
-replacement of customer keys, and authenticator replacement without remaining
-recovery codes are unfinished. The system does not invent an email-reset path or
+Forgotten-password recovery is implemented with separate firm approval and the
+existing client key; see the workflow below. Loss of both client key and backup,
+owner-reviewed replacement of customer keys, and authenticator replacement
+without remaining recovery codes are unfinished. The system does not invent an email-reset path or
 silently replace the enrolled key. If the activation response is lost after
 commit, the saved invitation still contains the account code: try signing in
 with the selected password and original key before requesting a new invitation.
+
+## Forgotten-password workflow
+
+The owner enters the private account code and downloads a private recovery
+invitation. It expires within 24 hours, is bound to the current password and
+signed key enrollment, and supersedes earlier pending requests for that account.
+The owner can revoke it. Suspending or restoring account access also revokes any
+pending recovery. No email address is requested or stored.
+
+The separate firm operator reviews the client identity and existing key
+fingerprint through the firm's agreed process. On the key computer, run
+`offline-cli.mjs approve-password-recovery` with the selected private invitation
+as `--request`, existing encrypted bundle/public pins, passphrase descriptor,
+exclusive output, `--confirm-off-host` and
+`--confirm-identity-and-fingerprint`. This produces an exact signed approval
+valid for at most four hours. The flags are operator attestations; they do not
+perform identity proofing or establish physical separation.
+
+The cloud alternative is `prepare-password-recovery-job.mjs`. It takes the
+invitation, public pins, a review reference and explicit identity/fingerprint
+confirmation, then saves a job containing only the public request and manifest.
+The private invitation token is excluded. The existing immutable-version/hash
+review and separately controlled IAM/MFA worker execute
+`approve-password-recovery`. Neither preparation nor these tests provisions AWS.
+
+The independent client loads its invitation and the signed approval, selects or
+recovers the original client key, and chooses a new password. A distinct
+password-recovery HPKE protocol proves possession of that key. The server checks
+the still-current request, password binding, account status, manifest and signed
+approval, consumes the one-use proof, changes the password and revokes sessions
+and pending logins in one transaction. It preserves the authenticator, one-use
+MFA recovery codes, encryption keys and encrypted records. Incorrect proof
+answers are consumed; changed credentials, revocation, suspension, expiration
+and replay fail closed.
+
+This workflow currently requires a valid, unexpired enrolled manifest and the
+original client key or its encrypted backup. Expired-manifest renewal, complete
+client-key loss and authenticator replacement remain separate unfinished work.
+If the response is lost after completion, try the chosen new password with the
+existing authenticator before asking the firm for another recovery.
 
 ## Legacy boundary
 
@@ -73,7 +114,8 @@ separately verify that public first enrollment is blocked.
 
 ## Evidence
 
-`docs/verification/private-accounts-20261112.json` records compiled HTTP,
+`docs/verification/private-accounts-20261112.json` and
+`docs/verification/password-recovery-20261112.json` record compiled HTTP,
 route-level, cryptographic and packaged-client checks. The HTTP fixture uses
 disposable synthetic records and the actual compiled Next server. It proves
 activation, compulsory MFA, ciphertext profile review, owner suspension,
