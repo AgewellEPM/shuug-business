@@ -65,11 +65,12 @@ export function calculateNYResident(input,value,federalResult){
  let creditsKnown=valid.dependentsKnown&&value.review.credits&&value.review.coverage&&value.unsupportedTreatments.length===0&&dependentKnown;
  if(value.dependents.some(row=>validDate(row.dateOfBirth,year)&&Number(row.dateOfBirth.slice(0,4))>year-18)){creditsKnown=false;diagnostics.push(diagnostic('NY_CHILD_CREDIT_REVIEW','Complete Empire State child and dependent-care credit review/calculations before settling this New York return. Their required forms remain outside this resident pack.'));}
  // 2025 TAX606(c-1)(1-a) defines state qualifying children independently of
- // the federal dependent claim. Reviewed negative relationship/residence facts
+ // the federal dependent claim. Reviewed negative identity/relationship/residence facts
  // can exclude a person; missing facts cannot silently establish a zero credit.
  const potentialUnclaimedChild=year===2025&&(federalDependents?.records??[]).some(row=>{
-  if(row.claim!=='no'||validDate(row.dateOfBirth,year)&&Number(row.dateOfBirth.slice(0,4))<=year-17)return false;
+  if(row.claim!=='no')return false;
   const sourced=Boolean(row.source?.trim()),nonChildRelationship=['parent','grandparent','auntUncle','inLaw','unrelated'].includes(row.relationship);
+  if(sourced&&row.review?.identity&&validDate(row.dateOfBirth,year)&&Number(row.dateOfBirth.slice(0,4))<=year-17)return false;
   if(sourced&&row.review?.relationship&&nonChildRelationship)return false;
   return !(sourced&&row.review?.residency&&['none','temporaryAbsence'].includes(row.residencyException)&&Number.isInteger(row.residencyDays)&&row.residencyDays<=365/2);
  });

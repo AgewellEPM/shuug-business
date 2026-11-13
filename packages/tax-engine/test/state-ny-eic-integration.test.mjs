@@ -23,3 +23,16 @@ test('2025 independent Empire State child scope prevents an unclaimed eligible c
  const {input,state}=nyEicFixture({year:2025,children:1,wages:30000,joint:false,locality:'none'});input.individual.dependents[0].claim='no';state.dependents=[];const result=calculateReturn(input).states[0];assert.equal(result.earnedIncomeCredit.known,true);assert.equal(result.lines['65'],97800);assert.equal(result.lines['63'],null);assert.equal(result.summary.refundCents,null);assert.equal(result.summary.amountOwedCents,null);assert(result.diagnostics.some(row=>row.code==='NY_EMPIRE_UNCLAIMED_CHILD_REVIEW'));
  const nc=nyNoncustodialFixture({year:2025,wages:30000});let out=calculateReturn(nc.input).states[0];assert(!out.diagnostics.some(row=>row.code==='NY_EMPIRE_UNCLAIMED_CHILD_REVIEW'));assert.equal(out.lines['63'],0);nc.input.individual.dependents[0].review.residency=false;out=calculateReturn(nc.input).states[0];assert(out.diagnostics.some(row=>row.code==='NY_EMPIRE_UNCLAIMED_CHILD_REVIEW'));assert.equal(out.summary.amountOwedCents,null);
 });
+
+test('2025 Empire State age exclusion requires reviewed identity while independent reviewed exclusions remain usable',()=>{
+ const make=()=>{const fixture=nyEicFixture({year:2025,children:1,wages:80000,joint:false,locality:'none'});Object.assign(fixture.input.individual.dependents[0],{claim:'no',dateOfBirth:'2008-12-31'});fixture.state.dependents=[];return fixture;};
+ const blocked=[['unreviewed identity',row=>{row.review.identity=false;}],['missing source',row=>{row.source='';}],['missing birth date',row=>{row.dateOfBirth='';}]];
+ for(const [label,change]of blocked){
+  const {input}=make();change(input.individual.dependents[0]);const before=structuredClone(input),result=calculateReturn(input),state=result.states[0];
+  assert.equal(result.summary.earnedIncomeCreditCents,0,label+' preserves the independent federal high-income exclusion');assert.equal(state.lines['63'],null,label);assert.equal(state.summary.paymentsCents,null,label);assert.equal(state.summary.amountOwedCents,null,label);assert(state.diagnostics.some(row=>row.code==='NY_EMPIRE_UNCLAIMED_CHILD_REVIEW'),label);assert.deepEqual(input,before);
+ }
+ const reviewed=calculateReturn(make().input).states[0];assert.equal(reviewed.lines['63'],0);assert.equal(reviewed.summary.amountOwedCents,379600);assert(!reviewed.diagnostics.some(row=>row.code==='NY_EMPIRE_UNCLAIMED_CHILD_REVIEW'));
+ for(const [label,change]of [['nonchild relationship',row=>{row.relationship='parent';}],['insufficient residence',row=>{row.residencyDays=0;row.usResidencyDays=0;}]]){
+  const {input}=make(),row=input.individual.dependents[0];row.review.identity=false;change(row);const state=calculateReturn(input).states[0];assert.equal(state.lines['63'],0,label);assert(!state.diagnostics.some(item=>item.code==='NY_EMPIRE_UNCLAIMED_CHILD_REVIEW'),label);
+ }
+});

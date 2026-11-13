@@ -1,0 +1,83 @@
+{
+  "version": 1,
+  "date": "2026-11-13",
+  "type": "shuug-ny-empire-age-source-guard-verification",
+  "readiness": "prototype",
+  "priorCheckpoint": "5c86b51aeb1588c9d0781b05064bcb65e8565a21",
+  "change": "Require sourced, reviewed identity before using age17+ to exclude a retained unclaimed person from potential2025 Empire State child credit. Independent reviewed relationship/residence exclusions remain usable.",
+  "sourceSha256": {
+    "packages/tax-engine/state-ny.mjs": "e060a13d7aa5a9e54e26246a1fbc300f18f8ea651b3dbecb2f03a69aab5c9d87",
+    "packages/tax-engine/test/state-ny-eic-integration.test.mjs": "f5b13d3bb27e8388e8d32e9441698c14427b3b81d7c8bd97412c013ba53c4b6e",
+    "packages/tax-engine/NEW-YORK-EIC.md": "0765f00139ea18fa533a8deb331da7c61c7d4d8d906d8fe267861b1fef5b405f",
+    "scripts/tax/verify_browser_artifact.mjs": "babdfc04467751baf38692816d68109846f88511fcfe727b443b895087dcec76"
+  },
+  "verification": {
+    "focusedTests": {
+      "passed": 81,
+      "failed": 0,
+      "skipped": 0,
+      "regressionFailedBeforeFix": true
+    },
+    "packagedClient": {
+      "modules": 211,
+      "pdfFetches": 137,
+      "exports": 34,
+      "sourceFilesMatched": 444,
+      "identityCases": [
+        {
+          "year": 2025,
+          "scenario": "unreviewed-identity",
+          "empireChildCreditUnresolved": true,
+          "amountOwedCents": null,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2"
+          ],
+          "bytes": 704091
+        },
+        {
+          "year": 2025,
+          "scenario": "missing-identity-source",
+          "empireChildCreditUnresolved": true,
+          "amountOwedCents": null,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2"
+          ],
+          "bytes": 704036
+        },
+        {
+          "year": 2025,
+          "scenario": "reviewed-adult",
+          "empireChildCreditUnresolved": false,
+          "amountOwedCents": 379600,
+          "forms": [
+            "f1040",
+            "nyit201",
+            "nyit2"
+          ],
+          "bytes": 703985
+        }
+      ],
+      "runtime": "Node V8/JSDOM with actual shipped ESM and annual PDF originals"
+    },
+    "qualification": {
+      "checks": 227,
+      "sourcePins": 105,
+      "engineHashesMatched": 380
+    }
+  },
+  "limits": [
+    "The preceding636-pass suite and819compiled HTTP checks belong to the prior checkpoint; they were not rerun for this narrow calculation guard.",
+    "This guard does not calculate or award IT213. Other NY family credits, complete annual/state coverage and installed rollout remain unfinished.",
+    "2026/2027 intake and partial federal annual materials remain available; no prior-year state forms are substituted."
+  ],
+  "installedServiceChanged": false,
+  "realCustomerDataUsed": false,
+  "agencySubmissionAttempted": false,
+  "offhostCustodyVerified": false,
+  "visualAcceptance": false,
+  "releaseReady": false
+}
