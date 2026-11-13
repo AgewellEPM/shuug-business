@@ -1,3 +1,4 @@
+import {verifyRenewalRequest,verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
 import {assertPasswordRecoveryInvitation,verifyPasswordRecovery} from '../password-recovery.mjs';
 import {openPasswordRecoveryChallenge} from '../password-recovery-proof.mjs';
 import {assertPrivateInvitation,privateClientProfile,privateAccountCode} from '../client-enrollment.mjs';
@@ -140,6 +141,19 @@ export class VaultClient {
     const challenge=await this.#request('/password-recovery/challenge','POST',{token:invitation.token,approval},16384),answer=await openPasswordRecoveryChallenge(challenge,invitation.manifest,expected,this.#config,entry.privateKey);this.#same(generation);
     const result=await this.#request('/password-recovery','POST',{token:invitation.token,approval,challengeId:challenge.challengeId,answer,newPassword},4096);this.#same(generation);
     if(result?.passwordChanged!==true||result.sessionsRevoked!==true||result.authenticatorPreserved!==true||result.accountCode!==request.accountId)throw new Error('Recovery was not confirmed. Try signing in with the chosen password before requesting another recovery.');return result;
+  }
+  async renewalRequest(keyId){
+    if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled account before requesting renewal.');const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
+    if(!entry)throw new Error('Select or recover the existing account key.');const request=await this.#request('/enrollment-renewal');await verifyRenewalRequest(request,this.#config,{...identity,minimumEpoch:binding?.minimumEpoch??1});this.#same(generation);
+    if(request.manifest.client.keyId!==entry.keyId||request.manifest.client.publicKey!==entry.publicKey)throw new Error('Renewal must keep the existing client key.');return clone(request);
+  }
+  async installEnrollmentRenewal(packet,keyId){
+    if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled account before installing renewal.');const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
+    await verifyEnrollmentRenewal(packet,this.#config,identity);this.#same(generation);
+    if(!entry||packet.manifest.client.keyId!==entry.keyId||packet.manifest.client.publicKey!==entry.publicKey||packet.manifest.epoch<(binding?.minimumEpoch??1))throw new Error('Renewal must keep your existing key and respect its observed epoch.');
+    if(binding?.minimumEpoch===packet.manifest.epoch&&binding.manifest&&JSON.stringify(binding.manifest)!==JSON.stringify(packet.manifest))throw new Error('A different signed renewal reused the observed epoch.');
+    const result=await this.#request('/enrollment-renewal','POST',packet,16384);this.#same(generation);if(result?.renewed!==true||result.identity?.accountId!==identity.accountId||result.identity?.clientId!==identity.clientId||JSON.stringify(result.manifest)!==JSON.stringify(packet.manifest))throw new Error('The API did not confirm this exact renewal. Reconnect before retrying.');
+    await this.#storage.putBinding({...binding,id:this.#bindingId(),workspaceId:this.#config.workspaceId,...identity,keyId:entry.keyId,minimumEpoch:packet.manifest.epoch,manifest:clone(packet.manifest)});this.#same(generation);this.#reset();this.status={...this.status,...result};return {renewed:true,staffSharingRefreshRequired:true};
   }
   async encryptedBackup(keyId){
     const entry=await this.#storage.getKey(keyId);if(!entry?.backup)throw new Error('This browser has no encrypted backup for that key.');

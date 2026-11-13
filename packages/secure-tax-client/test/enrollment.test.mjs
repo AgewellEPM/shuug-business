@@ -1,3 +1,6 @@
+import {verifyEnrollmentDocument,verifyEnrollmentManifest} from '../envelope.mjs';
+import {verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
+import {renewFirmEnrollment} from '../firm-enrollment-renewal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
@@ -50,4 +53,13 @@ test('ordinary forgotten-password form uses the selected backup key and clears c
   for(const name of ['password','confirmation'])document.querySelector(`#recovery-${name}`).value='Synthetic recovered account password';assert(view.dirty);document.querySelector('button').click();await pending;
   assert.equal(received.keyId,'existing-key');assert.equal(received.newPassword,'Synthetic recovered account password');assert.equal(recovered.accountCode,'synthetic-code');assert(!view.dirty);
  }finally{dom.window.close();}
+});
+
+test('renewal verifies expired documents without granting old access and rejects changed recipients, forged signatures and missing review',async()=>{
+ const created=await createFirmBundle('synthetic-renewal','Synthetic separate firm passphrase'),firm=await unlockFirmBundle(created.bundle,'Synthetic separate firm passphrase',created.publicPins),key=await generateRecipientKeyPair(),identity={accountId:crypto.randomUUID(),clientId:crypto.randomUUID()};
+ const original=await signEnrollmentRequest({version:1,workspaceId:created.publicPins.workspaceId,...identity,client:{keyId:await publicKeyId(key.publicKey),publicKey:key.publicKey}},firm,{epoch:3,validDays:1,now:Date.now()-2*86400000});
+ await verifyEnrollmentDocument(original,identity,created.publicPins);await assert.rejects(verifyEnrollmentManifest(original,identity,created.publicPins));
+ const request={version:1,type:'shuug-enrollment-renewal-request',manifest:original};await assert.rejects(renewFirmEnrollment(request,firm));const packet=await renewFirmEnrollment(request,firm,{identityAndKeyReviewed:true});await verifyEnrollmentRenewal(packet,created.publicPins,identity);assert.equal(packet.manifest.epoch,4);assert.deepEqual(packet.manifest.client,original.client);assert.deepEqual(packet.manifest.firmRecovery,original.firmRecovery);
+ const other=await generateRecipientKeyPair(),changed=await signEnrollmentRequest({version:1,workspaceId:created.publicPins.workspaceId,...identity,client:{keyId:await publicKeyId(other.publicKey),publicKey:other.publicKey}},firm,{epoch:4});await assert.rejects(verifyEnrollmentRenewal({...packet,manifest:changed},created.publicPins,identity));
+ const forged=structuredClone(packet);forged.previous.accountId=crypto.randomUUID();await assert.rejects(verifyEnrollmentRenewal(forged,created.publicPins,identity));await assert.rejects(verifyEnrollmentRenewal({...packet,manifest:original},created.publicPins,identity));
 });

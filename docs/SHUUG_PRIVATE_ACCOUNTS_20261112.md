@@ -96,11 +96,35 @@ MFA recovery codes, encryption keys and encrypted records. Incorrect proof
 answers are consumed; changed credentials, revocation, suspension, expiration
 and replay fail closed.
 
-This workflow currently requires a valid, unexpired enrolled manifest and the
-original client key or its encrypted backup. Expired-manifest renewal, complete
-client-key loss and authenticator replacement remain separate unfinished work.
+This workflow requires a valid enrolled manifest and the original client key or
+its encrypted backup. The owner can renew an expired manifest first, as described
+below. Complete client-key loss and authenticator replacement remain unfinished.
 If the response is lost after completion, try the chosen new password with the
 existing authenticator before asking the firm for another recovery.
+
+## Expired enrollment renewal
+
+An expired manifest still permits account-code/password/MFA sign-in and public
+renewal metadata. It does not permit encrypted reads or writes. The client selects
+the existing key and downloads a renewal request from **Renew encrypted access**.
+The verified owner can also download it by private account code, including when
+the client has forgotten their password.
+
+The separate firm operator reviews the account and key fingerprint, then invokes
+`offline-cli.mjs renew --request PUBLIC-REQUEST --out NEW-RENEWAL` with the existing
+bundle, public pins, passphrase descriptor, `--confirm-off-host` and
+`--confirm-identity-and-fingerprint`. The cloud alternative is
+`prepare-enrollment-renewal-job.mjs`, followed by the existing immutable-version,
+hash-reviewed IAM/MFA worker operation `renew-enrollment`. No key initialization
+or cloud provisioning occurs during preparation.
+
+The signed packet retains both encryption keys and advances the epoch. Either
+the client or owner publishes it against the exact prior signed manifest. Stale
+packets, changed keys, forged signatures and decreasing epochs are rejected;
+exact repeats are idempotent. Existing ciphertext and revisions are preserved.
+Pending password-recovery invitations are revoked when enrollment changes;
+request a fresh one after renewal. Staff read capsules and outstanding mutation
+approvals must be refreshed for the new manifest. Renewal is not key rotation.
 
 ## Legacy boundary
 
@@ -129,3 +153,8 @@ visual acceptance. The installed service, real taxpayer records, public TLS,
 physical separate-key custody and live filing were not changed or verified.
 All-state/full federal coverage, 2026 calculations, live filing/acknowledgments,
 signature execution, complete migration and installed rollout remain unfinished.
+
+`docs/verification/enrollment-renewal-20261113.json` adds actual compiled HTTP and
+offline CLI renewal, preserved ciphertext and refreshed staff sharing. Production
+builds on constrained storage can use `SHUUG_BUILD_NO_CACHE=true npm run build` to
+disable webpack's persistent build cache while retaining the compiled output.

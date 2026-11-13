@@ -1,3 +1,4 @@
+import {verifyRenewalRequest,verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
 import {assertPasswordRecoveryInvitation} from '../password-recovery.mjs';
 import {assertPrivateInvitation,privateAccountCode} from '../client-enrollment.mjs';
 import { verifyStaffGrant, verifyStaffCapsuleSignature, openStaffCapsule } from '../staff-grants.mjs';
@@ -81,6 +82,13 @@ export class StaffVaultClient {
   async signOut(){const pending=this.#token?this.#request('/session','DELETE'):Promise.resolve();this.#forgetSession();try{await pending;}catch{throw new Error('Local staff view cleared. The API could not confirm session revocation.');}}
   async createClientInvitation(){
     if(!this.isOwner)throw new Error('Only the verified owner can invite a new encrypted account.');const generation=this.#generation,result=await this.#request('/client-invitations','POST',{},4096);this.#same(generation);return clone(assertPrivateInvitation(result,this.#config.workspaceId));
+  }
+  async prepareEnrollmentRenewal(accountCode){
+    if(!this.isOwner)throw new Error('Use the verified owner account to prepare renewal.');privateAccountCode(accountCode);const generation=this.#generation,request=await this.#request('/enrollment-renewal?accountId='+encodeURIComponent(accountCode));await verifyRenewalRequest(request,this.#config,{accountId:accountCode});this.#same(generation);return clone(request);
+  }
+  async installEnrollmentRenewal(packet,accountCode){
+    if(!this.isOwner)throw new Error('Use the verified owner account to publish renewal.');privateAccountCode(accountCode);const generation=this.#generation;await verifyEnrollmentRenewal(packet,this.#config,{accountId:accountCode});this.#same(generation);
+    const result=await this.#request('/enrollment-renewal','POST',packet,16384);this.#same(generation);if(result?.renewed!==true||result.identity?.accountId!==accountCode||JSON.stringify(result.manifest)!==JSON.stringify(packet.manifest))throw new Error('The API did not confirm this exact renewal.');this.#clear();return {renewed:true,staffSharingRefreshRequired:true};
   }
   async createPasswordRecovery(accountCode){
     if(!this.isOwner)throw new Error('Use the verified owner account to request recovery.');privateAccountCode(accountCode);const generation=this.#generation,result=await this.#request('/password-recovery','POST',{accountCode},16384);this.#same(generation);return clone(assertPasswordRecoveryInvitation(result,this.#config.workspaceId));

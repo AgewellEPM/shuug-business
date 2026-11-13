@@ -166,3 +166,10 @@ export async function verifyEnrollmentManifest(manifest,expected,pins,now=Date.n
   if(!await crypto.subtle.verify({name:'ECDSA',hash:'SHA-256'},key,decode64(manifest.signature.value,64),utf8.encode(JSON.stringify(canonical))))fail();
   return {manifestId:manifest.manifestId,epoch:manifest.epoch,recipients:{clientPublicKey:manifest.client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey}};
 }
+
+/** Historical signature verification for renewal UI only. This grants no access. */
+export async function verifyEnrollmentDocument(manifest,expected,pins,now=Date.now()){
+  const expires=Date.parse(manifest?.expiresAt),issued=Date.parse(manifest?.issuedAt);
+  if(!Number.isFinite(now)||!Number.isFinite(expires)||!Number.isFinite(issued)||issued>now+60000)fail();
+  return verifyEnrollmentManifest(manifest,expected,pins,Math.min(now,expires-1));
+}

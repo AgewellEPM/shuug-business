@@ -4,7 +4,7 @@ import { z } from "zod";
 import { workspaceDatabase } from "../workspace/database";
 import { secureAccount } from "./account-scope";
 import { canonicalManifest, secureTaxEnvelope, secureTaxId, type SignedRecipientManifest } from "./envelope";
-import { SecureTaxError, verifyRecipientManifest, validateEnvelopePins } from "./manifest";
+import { SecureTaxError, verifyRecipientManifest, verifyRecipientManifestDocument, validateEnvelopePins } from "./manifest";
 import { trustedPublicPins } from "./manifest";
 import { secureTaxRequired } from "./policy";
 import { legacySecureTaxData } from "./legacy";
@@ -91,8 +91,9 @@ export function secureTaxStatus(token: string | undefined) {
       try { trustedPublicPins(); keyProvisioningEnabled = true; } catch { /* No enrollment or private-key fallback is created. */ }
       return { enrolled: false, identity: { accountId: account.id, clientId: account.clientId }, secureRequired: required, keyProvisioningEnabled, ...legacySecureTaxData(db, account) };
     }
-    const { manifest } = scoped(db, token);
-    return { enrolled: true, identity: { accountId: account.id, clientId: account.clientId }, secureRequired: true, keyProvisioningEnabled: true, manifest, ...legacySecureTaxData(db, account) };
+    const manifest=verifyRecipientManifestDocument(JSON.parse(enrollment.manifest),account);
+    if(manifest.manifestId!==enrollment.manifestId||manifest.epoch!==enrollment.epoch||manifest.workspaceId!==enrollment.workspaceId||manifest.client.keyId!==enrollment.clientRecipientId||manifest.firmRecovery.keyId!==enrollment.firmRecipientId)throw new SecureTaxError(409,"The trusted key enrollment needs review.");
+    return { enrolled: true, renewalRequired:Date.parse(manifest.expiresAt)<=Date.now(), identity: { accountId: account.id, clientId: account.clientId }, secureRequired: true, keyProvisioningEnabled: true, manifest, ...legacySecureTaxData(db, account) };
   });
 }
 export function writeSecureTaxObject(token: string | undefined, rawId: string, raw: unknown) {

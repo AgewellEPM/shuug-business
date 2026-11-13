@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "scope": "Same-key enrollment renewal after expiry, published by client or verified owner",
+  "readiness": "prototype",
+  "compiledHTTP": {
+    "version": 1,
+    "kind": "synthetic-compiled-private-account-proof",
+    "buildId": "nLrNOJCeJLkQHP_U4zW9w",
+    "checks": 58,
+    "httpRequests": 88,
+    "invitationActivation": true,
+    "requiredMfa": true,
+    "opaqueAccounts": true,
+    "encryptedContactProfile": true,
+    "firmProfileReview": true,
+    "encryptedKeyBackupRecovery": true,
+    "hostBackupRestore": true,
+    "singleUseMfaRecovery": true,
+    "passwordChangeRevokesSessions": true,
+    "ownerSuspensionVerified": true,
+    "revokeAllSessionsVerified": true,
+    "separatelyApprovedPasswordRecovery": true,
+    "realOfflineRecoveryApprovalCli": true,
+    "recoveryPreservesMfaAndCiphertext": true,
+    "expiredEnrollmentRenewal": true,
+    "realRenewalCli": true,
+    "ownerAndClientRenewal": true,
+    "renewalPreservesCiphertext": true,
+    "staffCapsuleRefreshAfterRenewal": true,
+    "backupFiles": 4,
+    "liveInstalledWorkspace": false,
+    "physicalOffhostCustody": false,
+    "visualAcceptance": false
+  },
+  "serverTests": {
+    "passed": 64
+  },
+  "nodeTests": {
+    "passed": 60,
+    "skipped": 1,
+    "skip": "Pre-existing absent native Journal helper"
+  },
+  "artifact": {
+    "ok": true,
+    "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+    "modules": 115,
+    "defaultConfigDisabled": true,
+    "noAccountRequest": true,
+    "passwordRecoveryMounted": true,
+    "staffPasswordRecoveryControlsMounted": true,
+    "privateEnrollmentMounted": true,
+    "privateAccountControlsMounted": true,
+    "staffInvitationControlsMounted": true,
+    "staffAccountSuspensionControlsMounted": true,
+    "staffCorrectionEditorMounted": true,
+    "staffNewReturnControlMounted": true,
+    "staffCaseEditorMounted": true,
+    "staffCaseControlsDisabled": true,
+    "staffCaseControlCount": 7,
+    "staffFinanceEditorMounted": true,
+    "staffFinanceControlsDisabled": true,
+    "staffFinanceControlCount": 6,
+    "privateFirmModulesExcluded": true,
+    "publicTemplateFetches": 12,
+    "xfasRemoved": 12,
+    "exported": [
+      {
+        "year": 2023,
+        "kind": "1040",
+        "bytes": 90275
+      },
+      {
+        "year": 2023,
+        "kind": "1065",
+        "bytes": 224096
+      },
+      {
+        "year": 2023,
+        "kind": "1120S",
+        "bytes": 206003
+      },
+      {
+        "year": 2023,
+        "kind": "1120",
+        "bytes": 243190
+      },
+      {
+        "year": 2024,
+        "kind": "1040",
+        "bytes": 91538
+      },
+      {
+        "year": 2024,
+        "kind": "1065",
+        "bytes": 226664
+      },
+      {
+        "year": 2024,
+        "kind": "1120S",
+        "bytes": 208028
+      },
+      {
+        "year": 2024,
+        "kind": "1120",
+        "bytes": 250150
+      },
+      {
+        "year": 2025,
+        "kind": "1040",
+        "bytes": 118506
+      },
+      {
+        "year": 2025,
+        "kind": "1065",
+        "bytes": 238486
+      },
+      {
+        "year": 2025,
+        "kind": "1120S",
+        "bytes": 212338
+      },
+      {
+        "year": 2025,
+        "kind": "1120",
+        "bytes": 254784
+      }
+    ],
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "publicTlsVerified": false
+  },
+  "custodyPackages": {
+    "offlineFiles": 406,
+    "cloudFiles": 393,
+    "inventoriesVerified": true,
+    "sourceBytesVerified": true,
+    "zipCrcVerified": true,
+    "initialized": false,
+    "provisioned": false
+  },
+  "build": "pass",
+  "completeProduct": false,
+  "installedServiceChanged": false,
+  "limits": [
+    "Same client and firm encryption keys required; no key rotation",
+    "Fresh staff sharing capsules and mutation approvals required after renewal",
+    "Client-key loss, authenticator replacement and complete migration still unfinished",
+    "Full tax coverage, live filing and installed rollout unfinished"
+  ]
+}

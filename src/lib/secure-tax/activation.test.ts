@@ -34,6 +34,10 @@ import {POST as requestRecovery,DELETE as revokeRecovery} from "@/app/api/websit
 import {POST as recoveryChallenge} from "@/app/api/website/customer/secure/password-recovery/challenge/route";
 import {POST as recoverPassword} from "@/app/api/website/customer/secure/password-recovery/route";
 
+import {renewFirmEnrollment} from "../../../packages/secure-tax-client/firm-enrollment-renewal.mjs";
+import {GET as clientRenewalRequest,POST as clientRenewal} from "@/app/api/website/customer/secure/enrollment-renewal/route";
+import {GET as ownerRenewalRequest,POST as ownerRenewal} from "@/app/api/website/customer/secure/staff/enrollment-renewal/route";
+
 const origin="https://trusted.example.net",base="https://workspace.example.com",password="Synthetic private account password",prefix="/api/website/customer/secure";
 let directory:string,owner:string,config:any,firm:any,client:any,keys:any,calls:{path:string;body:string}[],alterActivation:((body:any)=>any)|undefined,alterRecovery:((body:any)=>any)|undefined;
 const request=(path:string,body?:unknown,token?:string,method="POST",from=origin)=>new Request(base+prefix+path,{method,headers:{Origin:from,...(body===undefined?{}:{"Content-Type":"application/json"}),...(token?{Authorization:`Bearer ${token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
@@ -48,11 +52,11 @@ beforeEach(async()=>{
  const pair=await generateRecipientKeyPair();await keys.putKey({...pair,keyId:await publicKeyId(pair.publicKey)});
  client=await VaultClient.create(config,origin,{storage:keys,fetcher:async(url:string,options:any={})=>{
    const path=new URL(url).pathname.slice(prefix.length),req=new Request(url,{...options,headers:{...options.headers,Origin:origin}});calls.push({path,body:options.body??""});
-   if(path==="/password-recovery/challenge")return recoveryChallenge(req);if(path==="/password-recovery")return recoverPassword(alterRecovery?request(path,alterRecovery(JSON.parse(options.body))):req);if(path==="/activation/challenge")return challenge(req);if(path==="/activation")return activate(alterActivation?request(path,alterActivation(JSON.parse(options.body))):req);if(path==="/session")return options.method==="DELETE"?signOut(req):signIn(req);if(path==="/account")return options.method==="DELETE"?accountSessions(req):accountPassword(req);if(path==="/status")return status(req);if(path==="/objects")return changes(req);if(path.startsWith('/objects/'))return object(req,{params:Promise.resolve({id:path.slice('/objects/'.length)})});throw new Error('Unexpected request '+path);
+   if(path==="/enrollment-renewal")return options.method==="POST"?clientRenewal(req):clientRenewalRequest(req);if(path==="/password-recovery/challenge")return recoveryChallenge(req);if(path==="/password-recovery")return recoverPassword(alterRecovery?request(path,alterRecovery(JSON.parse(options.body))):req);if(path==="/activation/challenge")return challenge(req);if(path==="/activation")return activate(alterActivation?request(path,alterActivation(JSON.parse(options.body))):req);if(path==="/session")return options.method==="DELETE"?signOut(req):signIn(req);if(path==="/account")return options.method==="DELETE"?accountSessions(req):accountPassword(req);if(path==="/status")return status(req);if(path==="/objects")return changes(req);if(path.startsWith('/objects/'))return object(req,{params:Promise.resolve({id:path.slice('/objects/'.length)})});throw new Error('Unexpected request '+path);
  }});
 });
 afterEach(()=>{client?.lock();vi.unstubAllEnvs();rmSync(directory,{recursive:true,force:true});});
-async function setup(){const response=await invite(request('/staff/client-invitations',{},owner));expect(response.status).toBe(200);const invitation=await response.json(),keyId=[...keys.keys.keys()][0],publicRequest=await client.newEnrollmentRequest(invitation,keyId),manifest=await signEnrollmentRequest(publicRequest,firm,{epoch:1});return {invitation,keyId,manifest};}
+async function setup(options:any={}){const response=await invite(request('/staff/client-invitations',{},owner));expect(response.status).toBe(200);const invitation=await response.json(),keyId=[...keys.keys.keys()][0],publicRequest=await client.newEnrollmentRequest(invitation,keyId),manifest=await signEnrollmentRequest(publicRequest,firm,{epoch:1,...options});return {invitation,keyId,manifest};}
 it('ordinary controller activates a new opaque account, requires MFA, decrypts its private profile and supports firm grants',async()=>{
  const f=await setup(),profile={legalName:'SYNTHETIC PRIVATE CLIENT NAME',email:'private-profile@example.invalid',phone:'555-0109',mailingAddress:'Synthetic private mailing address'};
  const result=await client.activateNewAccount({...f,password,profile});expect(result.accountCode).toBe(f.invitation.accountId);
@@ -133,4 +137,29 @@ it('changing a password or suspending an account invalidates pending firm-approv
  const response=await requestRecovery(request('/staff/password-recovery',{accountCode:r.f.invitation.accountId},owner)),invitation=await response.json(),approval=await approvePasswordRecovery(invitation.request,invitation.manifest,firm,{identityAndKeyReviewed:true});
  for(const enabled of [false,true])expect((await accountAccess(request('/staff/client-access',{accountCode:r.f.invitation.accountId,enabled},owner))).status).toBe(200);
  expect((await recoveryChallenge(request('/password-recovery/challenge',{token:invitation.token,approval}))).status).toBe(409);
+});
+
+it('expired enrollment permits MFA sign-in and public renewal while protected data stays blocked until the same-key renewal is installed',async()=>{
+ const f=await setup({validDays:1,now:Date.now()-86340000});await client.activateNewAccount({...f,password,profile:{legalName:'Synthetic renewal client',email:'',phone:'',mailingAddress:''}});await client.signInWithCode(f.invitation.accountId,password);const session=await client.verifySignIn(totp(client.pendingMfa.secret,Math.floor(Date.now()/30000)));await client.unlock(f.keyId);await client.sync();const original=[...client.records.values()][0],plaintext=new Uint8Array(original.plaintext);await client.signOut();
+ const clock=vi.spyOn(Date,'now').mockReturnValue(Date.now()+120000);
+ try{
+  await client.signInWithCode(f.invitation.accountId,password);await client.verifySignIn(session.recoveryCodes[0]);expect(client.status.renewalRequired).toBe(true);await expect(client.unlock(f.keyId)).rejects.toThrow();await expect(client.sync()).rejects.toThrow();
+  const selected=await client.renewalRequest(f.keyId),packet=await renewFirmEnrollment(selected,firm,{identityAndKeyReviewed:true});expect(packet.manifest.client).toEqual(f.manifest.client);expect(packet.manifest.epoch).toBe(2);
+  expect(await client.installEnrollmentRenewal(packet,f.keyId)).toMatchObject({renewed:true});expect(client.unlocked).toBe(false);await client.unlock(f.keyId);expect((await client.sync()).items).toBe(1);expect([...client.records.values()][0].plaintext).toEqual(plaintext);expect([...client.records.values()][0].revision).toBe(original.revision);expect(client.status.renewalRequired).toBe(false);
+  const replay=await ownerRenewal(request('/staff/enrollment-renewal',packet,owner));expect(replay.status).toBe(200);expect((await replay.json()).duplicate).toBe(true);
+ }finally{clock.mockRestore();}
+});
+it('owner renewal handles an expired account without its password, rejects key changes and stale publication, and reopens forgotten-password recovery',async()=>{
+ const f=await setup({validDays:1,now:Date.now()-86340000});await client.activateNewAccount({...f,password,profile:{legalName:'Synthetic',email:'',phone:'',mailingAddress:''}});
+ const clock=vi.spyOn(Date,'now').mockReturnValue(Date.now()+120000);
+ try{
+  const path='/staff/enrollment-renewal?accountId='+f.invitation.accountId;expect((await ownerRenewalRequest(request(path,undefined,undefined,'GET'))).status).toBe(401);
+  const response=await ownerRenewalRequest(request(path,undefined,owner,'GET'));expect(response.status).toBe(200);const selected=await response.json(),packet=await renewFirmEnrollment(selected,firm,{identityAndKeyReviewed:true});
+  const other=await generateRecipientKeyPair(),changed=await signEnrollmentRequest({version:1,workspaceId:config.workspaceId,accountId:f.invitation.accountId,clientId:f.invitation.clientId,client:{keyId:await publicKeyId(other.publicKey),publicKey:other.publicKey}},firm,{epoch:2});expect((await ownerRenewal(request(path,{...packet,manifest:changed},owner))).status).toBe(409);
+  expect((await ownerRenewal(request(path,packet,owner))).status).toBe(200);
+  expect((await requestRecovery(request('/staff/password-recovery',{accountCode:f.invitation.accountId},owner))).status).toBe(200);
+  const next=await renewFirmEnrollment({version:1,type:'shuug-enrollment-renewal-request',manifest:packet.manifest},firm,{identityAndKeyReviewed:true});expect((await ownerRenewal(request(path,next,owner))).status).toBe(200);expect((await ownerRenewal(request(path,packet,owner))).status).toBe(409);
+  const bad=structuredClone(next);bad.manifest.signature.value='A'.repeat(86);expect((await ownerRenewal(request(path,bad,owner))).status).not.toBe(200);
+  expect(workspaceDatabase(db=>db.prepare('SELECT status FROM secure_tax_password_recovery').get())).toMatchObject({status:'revoked'});
+ }finally{clock.mockRestore();}
 });

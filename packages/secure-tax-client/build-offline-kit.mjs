@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('.',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=['prepare-password-recovery-job.mjs','password-recovery.mjs','firm-password-recovery.mjs','envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
+const files=['prepare-enrollment-renewal-job.mjs','prepare-password-recovery-job.mjs','enrollment-renewal.mjs','firm-enrollment-renewal.mjs','password-recovery.mjs','firm-password-recovery.mjs','envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
 async function walk(directory,prefix=''){
   const result=[];
   for(const name of (await readdir(path.join(directory,prefix))).sort()){const relative=path.posix.join(prefix,name),info=await lstat(path.join(directory,relative));if(info.isSymbolicLink())throw new Error('Offline kit dependencies must be regular reviewed files.');if(info.isDirectory())result.push(...await walk(directory,relative));else if(info.isFile())result.push(relative);else throw new Error('Unsupported offline kit input.');}return result;
@@ -18,7 +18,7 @@ The kit contains public source code and a SHA-256 inventory. It has no firm keys
 passphrases, credentials, client data or automatic initialization. Verify its
 inventory through the firm's trusted software-release channel before use.
 
-Use node offline-cli.mjs for init/sign/recover/approve-password-recovery and node staff-offline-cli.mjs for
+Use node offline-cli.mjs for init/sign/renew/recover/approve-password-recovery and node staff-offline-cli.mjs for
 grant/share/recover-device/revoke. Invoking either without arguments prints its
 required explicit options and exits without key operations. Pass the private
 bundle, public pins and selected inputs explicitly. Passphrases use a selected
@@ -82,6 +82,15 @@ pins, passphrase descriptor, --confirm-off-host and
 key before attesting. The client still needs that key and its authenticator.
 prepare-password-recovery-job.mjs prepares the equivalent reviewed cloud job;
 it excludes the private invitation token and does not create cloud resources.
+
+Expired enrollment can be renewed without changing either encryption key. The
+client or verified owner downloads its public renewal request. Review its account
+and client-key fingerprint, then use offline-cli.mjs renew with --request FILE,
+--out NEW-FILE and the same bundle, public pins, passphrase descriptor and two
+confirmation flags. prepare-enrollment-renewal-job.mjs prepares the equivalent
+public cloud job. The client or owner publishes the signed renewal, then refreshes
+staff sharing capsules. Encrypted reads remain blocked until renewal is published.
+Owner publication also permits forgotten-password recovery after expiry.
 `;
 export async function buildOfflineKit(output){
   if(typeof output!=='string'||!path.isAbsolute(output))throw new Error('Select a new absolute offline kit directory.');

@@ -40,6 +40,7 @@ function refreshControls(){
   $('mfa-setup').textContent=pending?.secret??'';
   $('mfa-instructions').textContent=pending?.enrollmentRequired?'Add a time-based Shuug account in your authenticator using this private setup key. Use six digits and a 30-second interval, then enter its code.':'Enter the current code from your authenticator, or one unused recovery code.';
   for(const id of ['unlock'])$(id).disabled=!client?.identity||!$('key-choice').value||working;
+  for(const id of ['renewal-request','renewal-file','install-renewal'])$(id).disabled=!client?.identity||!client.enrolled||!$('key-choice').value||working;
   $('backup').disabled=!ready||!$('key-choice').value||working;
   for(const id of ['request','manifest','verify-manifest'])$(id).disabled=!unlocked||working;
   for(const id of ['sync','payload','attachment','save','cancel-edit'])$(id).disabled=!writable||working;
@@ -64,7 +65,7 @@ async function run(operation){
 function statusText(){
   $('account').textContent=client.identity?`Connected account ${client.identity.accountId}. ${client.enrolled?'Encrypted enrollment exists.':'Encrypted enrollment is not activated.'}`:'No account connected.';
   const status=client.status;
-  $('migration').textContent=status?`${status.legacyMigrationRequired?'Existing plaintext data requires migration. ':'No known current plaintext rows were reported; this is not proof of complete migration. '}${status.legacyProviderAuthorizationPresent?'Host-held provider authorizations remain and require revocation/removal. ':''}Backups, database history, logs and legacy copies still require separate review. Host-compromise protection is not verified.`:'';
+  $('migration').textContent=status?`${status.renewalRequired?'Signed enrollment expired. Renew encrypted access with the existing key before opening records. ':''}${status.legacyMigrationRequired?'Existing plaintext data requires migration. ':'No known current plaintext rows were reported; this is not proof of complete migration. '}${status.legacyProviderAuthorizationPresent?'Host-held provider authorizations remain and require revocation/removal. ':''}Backups, database history, logs and legacy copies still require separate review. Host-compromise protection is not verified.`:'';
 }
 function payload(item){try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(item.plaintext));}catch{return null;}}
 const button=(text,action,style)=>{const element=document.createElement('button');element.type='button';element.textContent=text;if(style)element.className=style;element.addEventListener('click',()=>run(action));return element;};
@@ -150,6 +151,8 @@ $('import-key').addEventListener('click',()=>run(async()=>{
   finally{$('passphrase').value='';$('passphrase-confirm').value='';$('import-backup').value='';}
 }));
 $('backup').addEventListener('click',()=>run(async()=>{const id=$('key-choice').value;downloadJson(`client-key-${id.slice(0,12)}.encrypted.json`,await client.encryptedBackup(id));message('Encrypted backup downloaded. Its passphrase stays separate; this file contains no plaintext private key.');}));
+$('renewal-request').addEventListener('click',()=>run(async()=>{downloadJson('public-enrollment-renewal-request.json',await client.renewalRequest($('key-choice').value));message('Public renewal request saved. Ask the separate firm signing environment to review the existing account and key.');}));
+$('install-renewal').addEventListener('click',()=>run(async()=>{if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before installing renewal.');const packet=await readJson($('renewal-file'));await client.installEnrollmentRenewal(packet,$('key-choice').value);$('renewal-file').value='';clearOpened();message('Enrollment renewed with the same encryption keys. Use the selected key to reopen records. Staff sharing needs fresh firm-approved capsules.');}));
 $('request').addEventListener('click',()=>run(async()=>{downloadJson('public-enrollment-request.json',client.publicRequest());message('Public request downloaded. Ask the firm to sign it using its separately held signing key.');}));
 $('verify-manifest').addEventListener('click',()=>run(async()=>{
   const result=await client.stageManifest(await readJson($('manifest')));$('manifest').value='';$('manifest-result').textContent=`Signature, independent public pins, account, client key and epoch ${result.epoch} verified. Staged locally only; activation remains unavailable.`;message('Signed manifest verified and staged. No enrollment or data migration was sent to the API.');

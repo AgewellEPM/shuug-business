@@ -1,3 +1,4 @@
+import {verifyEnrollmentRenewal} from '../../enrollment-renewal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash,randomBytes} from 'node:crypto';
@@ -175,4 +176,16 @@ test('separate cloud approval binds password recovery to the reviewed account an
  assert.equal((await f.run('approve-password-recovery',{...input,identityAndKeyReviewed:false},keyId)).response.ok,false);assert.equal((await f.run('approve-password-recovery',input,'wrong-fingerprint')).response.ok,false);
  const forged=structuredClone(approved.result.approvedPasswordRecovery);forged.request.accountId=crypto.randomUUID();await assert.rejects(verifyPasswordRecovery(forged,pins,request));
  assert(!JSON.stringify(approved.result).includes('passphrase'));assert(!JSON.stringify(approved.result).includes('"d":'));
+});
+
+test('prepared immutable cloud renewal retains recipients, advances the signed epoch and requires explicit identity/key review',async()=>{
+ const f=fixture(),pins=(await f.run('initialize',{})).result.publicPins,key=await generateRecipientKeyPair(),keyId=await publicKeyId(key.publicKey),accountId=crypto.randomUUID(),clientId=crypto.randomUUID();
+ const manifest=(await f.run('enroll',{expectedPins:pins,request:{version:1,workspaceId,accountId,clientId,client:{keyId,publicKey:key.publicKey}},epoch:1},keyId)).result.manifest,request={version:1,type:'shuug-enrollment-renewal-request',manifest},input={expectedPins:pins,request,identityAndKeyReviewed:true};
+ const directory=mkdtempSync(path.join(tmpdir(),'shuug-renewal-job-'));
+ try{
+  writeFileSync(path.join(directory,'request.json'),JSON.stringify(request));writeFileSync(path.join(directory,'pins.json'),JSON.stringify(pins));const args=['packages/secure-tax-client/prepare-enrollment-renewal-job.mjs','--request',path.join(directory,'request.json'),'--public-pins',path.join(directory,'pins.json'),'--review-reference','synthetic-renewal-review','--out',path.join(directory,'job.json')];assert.throws(()=>execFileSync(process.execPath,args,{stdio:'pipe'}));execFileSync(process.execPath,[...args,'--confirm-identity-and-fingerprint'],{stdio:'pipe'});
+  const bytes=readFileSync(path.join(directory,'job.json')),job=JSON.parse(bytes);assert.deepEqual(job.input,input);f.provider.jobs.set(`${job.jobId}:prepared-version`,bytes);assert((await f.handler({version:1,jobId:job.jobId,jobVersionId:'prepared-version',approvedSha256:sha(bytes)},context)).ok);
+  const packet=f.provider.results.get(job.jobId).result.renewedEnrollment;await verifyEnrollmentRenewal(packet,pins,{accountId,clientId});assert.equal(packet.manifest.epoch,2);assert.deepEqual(packet.manifest.client,manifest.client);
+ }finally{rmSync(directory,{recursive:true,force:true});}
+ assert.equal((await f.run('renew-enrollment',{...input,identityAndKeyReviewed:false},keyId)).response.ok,false);assert.equal((await f.run('renew-enrollment',input,'wrong-fingerprint')).response.ok,false);
 });
