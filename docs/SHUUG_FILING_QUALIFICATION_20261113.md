@@ -1,7 +1,7 @@
 # Filing qualification work
 
 Shuug has **no IRS or state software approval**. The current release remains a
-prototype with limited 2023–2025 federal/Connecticut resident preparation and
+prototype with limited 2023–2025 federal/Connecticut/New York resident preparation and
 partial 2026 individual calculations. The requested scope
 is 2023–2026, four federal families and all 50 states. The new calculation and
 evidence below advance that scope without changing the draft or filing boundary.
@@ -55,7 +55,10 @@ pinned in `packages/tax-engine/test/irs-household-examples.json` using their URL
 filenames. Include the annual instructions pinned by
 `test/investment-reference.json` and `test/capital-reference.json` under the tax
 engine package, using their original URL filenames; shared sources appear once.
-The combined source check currently verifies 30 distinct files.
+The combined source check also includes the standard-deduction, Schedule 1-A,
+dependent/child-credit, EIC and state references recorded under the engine's
+`test/*reference.json` and `data/*sources.json` files. The current receipt records
+the verified source count; shared URLs are deduplicated.
 Pass `--sources /that/directory`. Any changed source fails the run instead of silently
 updating its expected hash. The default run does not claim those external source
 bytes were checked. No credentials, customer data or network transmission are used.
@@ -92,6 +95,16 @@ Security worksheet. The report checks a supported published Publication 915
 example for each year and labels the separate synthetic benefit-boundary vectors.
 New York IT-201/IT-2 is also installed with scoped resident coverage. These additions
 reduce preparation gaps; the full selected ATS scenarios remain unexecuted.
+
+The [eligibility continuation](verification/federal-eligibility-expansion-20261113.json)
+adds reviewed standard-deduction facts, supported Schedule 1-A deductions,
+ordinary dependent/CTC/ODC/ACTC preparation and Connecticut retirement
+adjustments. The report verifies their pinned source bytes and published
+standard-deduction examples separately from synthetic boundaries. Original
+Schedule 8812 forms cover 2023–2026; the original Schedule 1-A is installed for
+2025. A separate EIC gate runs even without dependents and preserves unknown
+refunds/balances when no reviewed zero proof exists. Full EIC awards, broader
+family/state credits and the complete 2026 annual pack remain unfinished.
 
 ## Actual agency qualification
 

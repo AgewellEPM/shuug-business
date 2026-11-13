@@ -51,7 +51,7 @@ export function qualifiedBusinessDeduction2026({filingStatus,taxableIncomeBefore
 
 export const federal2026Availability=frozen({
   year:2026,reviewedAt:'2026-11-13',annualRulesAvailable:true,finalTaxTableAvailable:false,finalMainReturnAvailable:false,
-  finalForms:frozen(['f1040sc','f1040sse']),finalInstructions:frozen(['i1040sse']),
+  finalForms:frozen(['f1040sc','f1040sse','f1040s8']),finalInstructions:frozen(['i1040sse']),
   missingFinalForms:frozen(['f1040','f1040s1','f1040s2','f1040s3','f8995','f1040sb','f8960','f8959','f1040sh','f1065','f1120s','f1120']),
   filingApproved:false,
 });

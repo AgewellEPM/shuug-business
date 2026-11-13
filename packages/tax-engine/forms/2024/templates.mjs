@@ -179,5 +179,14 @@ export const officialForms2024=Object.freeze([
     "sha256": "447270f7a058c5b8e3f3e31853bf2bf97470ccc0f5f07359fbcd5ec6a23be5c2",
     "pages": 3,
     "fieldCount": 25
+  },
+  {
+    "id": "f1040s8",
+    "taxYear": 2024,
+    "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2024.pdf",
+    "sha256": "8b5143ca127b754b2e65904f6be14712b5be612056989bdf06e096ecc500f977",
+    "bytes": 101825,
+    "pages": 2,
+    "fieldCount": 41
   }
-].map(Object.freeze));
+]);

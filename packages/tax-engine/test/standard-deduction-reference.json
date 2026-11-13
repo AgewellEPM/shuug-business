@@ -1,0 +1,149 @@
+{
+  "kind": "Published IRS Publication 501 standard-deduction examples, with separate synthetic worksheet boundary cases in tests. 2026 source supports statutory calculations only, not final Form 1040 availability.",
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "p501",
+      "url": "https://www.irs.gov/pub/irs-prior/p501--2023.pdf",
+      "bytes": 1490238,
+      "sha256": "1481957f02fbeb0a096b8b4e19fcc57e107ddb9fdc7ef7b850bad72fcc2acc8d"
+    },
+    {
+      "year": 2023,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2023.pdf",
+      "bytes": 4389662,
+      "sha256": "90c8759c7a829d8c74296187cdbdb47bc9025480fffc41ff5e7225889c8fea7e"
+    },
+    {
+      "year": 2024,
+      "id": "p501",
+      "url": "https://www.irs.gov/pub/irs-prior/p501--2024.pdf",
+      "bytes": 1488918,
+      "sha256": "e94ffe4312d220792b11a7dfe092f9daf782b797a6591f90b521b2a9aa9eb352"
+    },
+    {
+      "year": 2024,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2024.pdf",
+      "bytes": 4375877,
+      "sha256": "0ae53ed5020d69e6571d40cd7955b7735f44a28df483626d128628d2810e93d4"
+    },
+    {
+      "year": 2025,
+      "id": "p501",
+      "url": "https://www.irs.gov/pub/irs-prior/p501--2025.pdf",
+      "bytes": 1553735,
+      "sha256": "288b62a4917f3bc3df0bade7a22c23a8ae648ba9eb5086df5b8b50e881148ff6"
+    },
+    {
+      "year": 2025,
+      "id": "i1040gi",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2025.pdf",
+      "bytes": 4434643,
+      "sha256": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a"
+    },
+    {
+      "year": 2026,
+      "id": "p505",
+      "url": "https://www.irs.gov/pub/irs-pdf/p505.pdf",
+      "bytes": 1776844,
+      "sha256": "c69e87caa93cdefa4493f0ec1d8478b1ff9ec1329ee18c7b9d442f2dcb79c621"
+    }
+  ],
+  "publishedExamples": {
+    "2023": {
+      "married": {
+        "ordinary": 27700,
+        "oneBlind": 29200,
+        "bothAge65": 30700
+      },
+      "dependent": [
+        {
+          "wagesDollars": 150,
+          "filingStatus": "single",
+          "deductionDollars": 1250
+        },
+        {
+          "wagesDollars": 3800,
+          "filingStatus": "marriedSeparate",
+          "deductionDollars": 4200
+        },
+        {
+          "wagesDollars": 2900,
+          "filingStatus": "single",
+          "blind": true,
+          "deductionDollars": 5150
+        },
+        {
+          "wagesDollars": 7000,
+          "businessDollars": -3000,
+          "filingStatus": "single",
+          "deductionDollars": 4400
+        }
+      ]
+    },
+    "2024": {
+      "married": {
+        "ordinary": 29200,
+        "oneBlind": 30750,
+        "bothAge65": 32300
+      },
+      "dependent": [
+        {
+          "wagesDollars": 150,
+          "filingStatus": "single",
+          "deductionDollars": 1300
+        },
+        {
+          "wagesDollars": 3800,
+          "filingStatus": "marriedSeparate",
+          "deductionDollars": 4250
+        },
+        {
+          "wagesDollars": 2900,
+          "filingStatus": "single",
+          "blind": true,
+          "deductionDollars": 5300
+        },
+        {
+          "wagesDollars": 7000,
+          "businessDollars": -3000,
+          "filingStatus": "single",
+          "deductionDollars": 4450
+        }
+      ]
+    },
+    "2025": {
+      "married": {
+        "ordinary": 31500,
+        "oneBlind": 33100,
+        "bothAge65": 34700
+      },
+      "dependent": [
+        {
+          "wagesDollars": 150,
+          "filingStatus": "single",
+          "deductionDollars": 1350
+        },
+        {
+          "wagesDollars": 3800,
+          "filingStatus": "marriedSeparate",
+          "deductionDollars": 4250
+        },
+        {
+          "wagesDollars": 2900,
+          "filingStatus": "single",
+          "blind": true,
+          "deductionDollars": 5350
+        },
+        {
+          "wagesDollars": 7000,
+          "businessDollars": -3000,
+          "filingStatus": "single",
+          "deductionDollars": 4450
+        }
+      ]
+    }
+  }
+}

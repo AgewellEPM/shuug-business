@@ -1,3 +1,4 @@
+import {fillEligibility} from './eligibility-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { JSDOM } from 'jsdom';
@@ -28,7 +29,7 @@ test('W-2 box 6 keeps unknown, explicit zero and entered withholding separate th
 test('real return editor supports wages and Schedule C without JSON and saves integer cents',async()=>{
   const view=dom(),document=view.window.document,pending=[],saved=[],editor=mountReturnEditor(document,document.querySelector('main'),{onSave:async value=>saved.push(value),run:operation=>{const task=operation();pending.push(task);return task;}});editor.setEnabled(true);
   fill(document,'name','Synthetic Client');fill(document,'taxId','000123456');click(document,'Add W-2');await pending.at(-1);fill(document,'wagesCents','50000');fill(document,'socialSecurityWagesCents','50000');fill(document,'medicareWagesCents','50000');fill(document,'federalWithholdingCents','5000');
-  assert(editor.dirty);click(document,'Calculate draft');await pending.at(-1);assert.match(document.body.textContent,/3875.00 USD/);assert.match(document.body.textContent,/not transmitted/);
+  fillEligibility(document);assert(editor.dirty);click(document,'Calculate draft');await pending.at(-1);assert.match(document.body.textContent,/3875.00 USD/);assert.match(document.body.textContent,/not transmitted/);
   click(document,'Encrypt and save return');await pending.at(-1);assert.equal(saved.length,1);assert.equal(saved[0].individual.w2s[0].wagesCents,5000000);assert.equal(editor.dirty,false);
   click(document,'Add Schedule C business');await pending.at(-1);fill(document,'receiptsCents','123.456');click(document,'Calculate draft');await assert.rejects(()=>pending.at(-1),/two decimal/);assert.equal(document.querySelector('[data-return-field="receiptsCents"]').value,'123.456');view.window.close();
 });
@@ -78,7 +79,7 @@ test('year selection preserves entered data, drives annual calculations and stay
   const view=dom(),document=view.window.document;let operation,saved;
   const editor=mountReturnEditor(document,document.querySelector('main'),{proposalOnly:true,allowCreation:true,confirm:()=>true,run:task=>{operation=task();return operation;},onSave:async value=>{saved=value;}});editor.setEnabled(true);
   try{for(const [year,tax]of [[2023,'4121.00'],[2024,'4019.00']]){
-    editor.startNew('1040');fill(document,'name','Synthetic annual return');click(document,'Add W-2');await operation;fill(document,'wagesCents','50000');
+    editor.startNew('1040');fillEligibility(document);fill(document,'name','Synthetic annual return');click(document,'Add W-2');await operation;fill(document,'wagesCents','50000');
     const select=document.getElementById('return-year');assert.deepEqual([...select.options].map(option=>option.value),['2023','2024','2025','2026']);select.value=String(year);select.dispatchEvent(new view.window.Event('change'));assert.equal(editor.getInput().party.name,'Synthetic annual return');
     click(document,'Calculate draft');await operation;assert.match(document.body.textContent,new RegExp(tax));click(document,'Save private new-return review kit');await operation;assert.equal(saved.year,year);
     editor.edit(saved,'annual-existing');assert.equal(select.disabled,true);select.value=String(year===2023?2024:2023);select.dispatchEvent(new view.window.Event('change'));assert.equal(editor.getInput().year,year);click(document,'Discard correction');

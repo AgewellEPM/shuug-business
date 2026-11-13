@@ -1,3 +1,8 @@
+export {newEarnedIncomeCredit} from './earned-income-credit.mjs';
+export {newDependent,newChildCredits,newChildCreditWithholding,dependentRelationships,dependentReviews,childCreditReviews} from './dependents-model.mjs';
+export {newTaxpayerIdentifiers,newTaxpayerIdentifier} from './taxpayer-identifiers.mjs';
+export {newSchedule1A,newTipSource,newOvertimeSource,newVehicleLoan,newSeniorDeduction,schedule1AReviews,tipReviews,overtimeReviews,vehicleReviews,tipReportingMethods,overtimeMethods,tippedOccupations} from './schedule-1a.mjs';
+export {newIndividualEligibility} from './standard-deduction.mjs';
 import { commonInput,inputDiagnostics,diagnostic } from './model.mjs';
 import { calculateIndividual } from './individual.mjs';
 import { calculateBusiness } from './business.mjs';
@@ -7,6 +12,7 @@ export {calculationYears,requestedTaxYears,federalSourcesFor} from './federal-ye
 export { newReturn,expenseCategories } from './model.mjs';
 export {newInventory,newInventoryCost,inventoryMethods,inventoryReviews} from './inventory.mjs';
 export {newRetirementIncome,newRetirementDistribution,newSocialSecurityBenefit,newTaxExemptPayer,retirementPlans,retirementTreatments,retirementDistributionReviews,retirementReviews} from './retirement-income.mjs';
+export {newCTRetirement,newCTRetirementDistribution,ctRetirementKinds} from './state-ct-retirement.mjs';
 export {newNYStateReturn,newNYWageRecord,newNYModification,newNYDependent,nyReviews,nyModifications,nyUnsupportedTreatments} from './state-ny-model.mjs';
 export { returnTypes,filingStatuses,scopeNotice,federalSources } from './catalog.mjs';
 export { parseMoney,displayMoney,sumMoney } from './money.mjs';
@@ -19,7 +25,7 @@ export function calculateReturn(raw){
     if(input.year===2026&&input.kind!=='1040')return {version:1,year:input.year,kind:input.kind,status:'unsupported',calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('BUSINESS_ANNUAL_PACK_REQUIRED','The 2026 entity return pack has not been reviewed. The original input is retained; 2025 entity forms were not reused.')]};
     const result=input.kind==='1040'?calculateIndividual(input):calculateBusiness(input),diagnostics=[...inputDiagnostics(input),...result.diagnostics];
     const stateResult=calculateStateReturns(input,result);result.states=stateResult.states;result.forms.push(...stateResult.forms);diagnostics.push(...stateResult.diagnostics);
-    if(input.year===2026){result.pdfUnavailableForms=[...new Set(result.forms.filter(item=>!['f1040sc','f1040sse'].includes(item.form)).map(item=>item.form))];diagnostics.push(diagnostic('ANNUAL_FORMS_INCOMPLETE','2026 calculations are provisional. Only the final Schedule C and Schedule SE templates are installed; missing main forms and schedules are listed in the workpaper and omitted from the PDF. No prior-year form is substituted.'));}
+    if(input.year===2026){result.pdfUnavailableForms=[...new Set(result.forms.filter(item=>!['f1040sc','f1040sse','f1040s8'].includes(item.form)).map(item=>item.form))];diagnostics.push(diagnostic('ANNUAL_FORMS_INCOMPLETE','2026 calculations are provisional. Only the final Schedule C, Schedule SE and Schedule 8812 templates are installed; missing main forms and schedules are listed in the workpaper and omitted from the PDF. No prior-year form is substituted.'));}
     return {...result,version:1,year:input.year,kind:input.kind,status:diagnostics.some(item=>item.severity==='blocking')?'needs-attention':'draft',calculationAvailable:true,filingReady:false,diagnostics};
   }catch(error){return {version:1,year:input?.year??null,kind:input?.kind??null,status:'invalid-input',calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('INPUT_INVALID',error instanceof Error?error.message:'The original return input needs review.')]};}
 }

@@ -1,5 +1,5 @@
 import {strictObject,list,text,amountFields,diagnostic} from './model.mjs';
-import {wholeDollars as R,wholeRatio as P,sumMoney} from './money.mjs';
+import {checkedMoney,wholeDollars as R,wholeRatio as P,sumMoney} from './money.mjs';
 
 export const energyCategories=Object.freeze([
   ['solar','Solar electric'],['solarWater','Solar water heating'],['wind','Small wind'],['geothermal','Geothermal heat pump'],['battery','Battery storage (at least 3 kWh)'],
@@ -24,7 +24,7 @@ export const panelEnabledTypes=Object.freeze([['A','Windows / skylights'],['B','
 
 // One qualifying residence, ordinary liability and no other credit worksheets.
 // Unsupported arrangements retain input and suppress allowed credits/totals.
-export function energyCredits(value,{year,taxBeforeCreditsCents,otherTreatments=false}){
+export function energyCredits(value,{year,taxBeforeCreditsCents,otherTreatments=false,cleanCreditReserveCents=0}){
   const empty={required:false,creditCents:0,cleanCreditCents:0,improvementCreditCents:0,carryforwardCents:0,form:null,diagnostics:[]};
   if(value===undefined)return empty;
   strictObject(value,['home','items','carryforwardCents','panelEnabledTypes','review'],'Residential energy credits');amountFields(value,['carryforwardCents'],'Energy carryforward');
@@ -37,6 +37,7 @@ export function energyCredits(value,{year,taxBeforeCreditsCents,otherTreatments=
   const has=types=>types.some(key=>groups[key].length),clean=has(cleanTypes)||value.carryforwardCents>0,sectionA=has(improvementTypes),equipment=has(equipmentTypes),partII=sectionA||equipment||groups.audit.length>0;
   if(!clean&&!partII)return empty;
   if(year===2026)return {...empty,required:true,creditCents:null,cleanCreditCents:null,improvementCreditCents:null,carryforwardCents:null,diagnostics:[diagnostic('ENERGY_2026_REVIEW_REQUIRED','New home-energy expenditures after 2025 do not use the prior-year credit rules. A reviewed 2026 carryforward/form calculation is not installed; retained costs and carryforwards require separate review.')]};
+  if(cleanCreditReserveCents!==null)checkedMoney(cleanCreditReserveCents,'Child/dependent credit reserved before clean energy');
   const diagnostics=[],need=(test,code,message)=>{if(!test)diagnostics.push(diagnostic(code,message));};
   need(value.review.scope,'ENERGY_SCOPE_REVIEW','Confirm the supported single-home ownership scope. Fuel cells, separate-return joint occupants and fractional condominium/cooperative credits require additional treatment.');
   if(items.some(item=>item.costCents)){
@@ -71,13 +72,13 @@ export function energyCredits(value,{year,taxBeforeCreditsCents,otherTreatments=
     for(const [key,line]of [['solar','1'],['solarWater','2'],['wind','3'],['geothermal','4'],['battery','5b']])lines[line]=total(key);
     lines['6a']=sumMoney(['1','2','3','4','5b'].map(key=>lines[key]));lines['6b']=thirty(lines['6a']);lines['12']=R(value.carryforwardCents);lines['13']=sumMoney([lines['6b'],lines['12']]);cleanAvailable=lines['13'];
     // Part II has priority in the IRS line-14 worksheet; only clean energy carries.
-    lines['14']=unknown?null:Math.max(0,taxBeforeCreditsCents-improvements);cleanCredit=unknown?null:Math.min(lines['13'],lines['14']);lines['15']=cleanCredit;carryforward=unknown?null:lines['13']-cleanCredit;lines['16']=carryforward;
+    lines['14']=unknown||cleanCreditReserveCents===null?null:Math.max(0,taxBeforeCreditsCents-improvements-cleanCreditReserveCents);cleanCredit=lines['14']===null?null:Math.min(lines['13'],lines['14']);lines['15']=cleanCredit;carryforward=cleanCredit===null?null:lines['13']-cleanCredit;if(cleanCreditReserveCents===null)diagnostics.push(diagnostic('ENERGY_CHILD_CREDIT_LIMIT_UNRESOLVED','Resolve the child/other-dependent credit limitation reserved before the residential clean-energy credit. Improvement credits retain their separate priority.'));lines['16']=carryforward;
   }
   if(unknown)for(const key of ['18b','19b','19c','19d','19e','19g','19h','20b','20d','22b','22d','23b','23d','24b','24d','25b','25e','26c','27','28','29e','29h','30','6b']){
     // Only credit/total lines, never source-cost lines, become unavailable.
     const credits=year===2025?['18b','19c','19g','19h','20d','22d','23d','24d','25e','26c','27','28','29h','30','6b']:['18b','19b','19d','19e','20b','22b','23b','24b','25b','26c','27','28','29e','30','6b'];if(credits.includes(key)&&Object.hasOwn(lines,key))lines[key]=null;
   }
   if(unknown&&clean)lines['13']=null;
-  return {required:true,creditCents:unknown?null:sumMoney([cleanCredit,improvements]),cleanCreditCents:clean?cleanCredit:0,improvementCreditCents:partII?improvements:0,carryforwardCents:carryforward,cleanAvailableCents:cleanAvailable,diagnostics,
+  return {required:true,creditCents:unknown||cleanCredit===null||improvements===null?null:sumMoney([cleanCredit,improvements]),cleanCreditCents:clean?cleanCredit:0,improvementCreditCents:partII?improvements:0,carryforwardCents:carryforward,cleanAvailableCents:cleanAvailable,diagnostics,
     form:{form:'f5695',copyId:'residential-energy',lines,energy:{home:value.home,review:value.review,groups,codes,clean,sectionA,equipment,partII,unknown}}};
 }

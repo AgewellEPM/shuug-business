@@ -48,6 +48,19 @@ See the [engine scope](../packages/tax-engine/README.md) and
 The full product remains a prototype with incomplete tax and migration coverage,
 external filing/custody prerequisites and installed rollout still outstanding.
 
+November 13 eligibility continuation adds reviewed standard-deduction age,
+blindness, claimability and deceased-filer facts; supported Schedule 1-A
+deductions; dependent intake and annual Schedule 8812 child/other-dependent
+credits; and source-linked Connecticut retirement adjustments. These facts
+save and reopen through the encrypted client/staff workflow and appear in the
+original annual PDFs. A separate EIC source check runs on every individual
+return: an unproved credit keeps settlement amounts unknown. Full EIC awards
+and broader family/state credits remain unfinished. The final 2026 Schedule
+8812 is installed alongside C/SE; the complete 2026 annual pack remains missing.
+See the [eligibility verification receipt](verification/federal-eligibility-expansion-20261113.json).
+These changes supersede the corresponding source gaps in the dated assessment
+below, without changing its unverified custody, filing and installed boundaries.
+
 ## Already implemented
 
 - Owner/staff/client MFA, encrypted device backups, signed enrollment, per-device

@@ -1,6 +1,7 @@
 import {newCTStateReturn,newCTAdjustment,newCTWithholding,newCTPropertyTax,ctReviews,ctAdjustmentLines,ctUnsupportedTreatments,stateJurisdictions} from '@shuug/tax-engine';
 import {newNYStateReturn} from '@shuug/tax-engine';
 import {nyStateFields} from './ny-state-editor.mjs';
+import {ctRetirementFields} from './ct-retirement-editor.mjs';
 
 export function stateFields({document,parent,individual,year,field,group,button,readers}){
  const section=group(parent,'State income-tax returns');section.id='state-return-editor';
@@ -18,6 +19,7 @@ export function stateFields({document,parent,individual,year,field,group,button,
   if(year===2023)note(state,'The currently published DRS 2023 PDF carries an original draft mark. Shuug preserves that mark and requires a verified final template before filing.');
   field(state,value,'residency','Connecticut residency',{options:[['resident','Full-year resident'],['partYear','Part-year resident — requires CT-1040NR/PY'],['nonresident','Nonresident — requires CT-1040NR/PY']]});
   field(state,value,'town','Connecticut town of residence, if different from mailing city');field(state,value,'townZip','Residence town ZIP, if different from mailing ZIP');
+  ctRetirementFields({document,parent:state,individual,value,field,group,button});
   const adjustments=group(state,'State additions and subtractions');note(adjustments,'Enter the eligible Connecticut adjustment after completing its annual worksheet and limits, not a gross distribution or deduction. Retain the worksheet/source reference and confirm each amount. Retirement, Social Security, depreciation and other special adjustments are not inferred from their labels. The 2023 CHET account disclosure requires an additional form workflow.');
   for(const [position,row]of value.adjustments.entries()){const item=group(adjustments,`Adjustment ${position+1}`);field(item,row,'line','CT-1040 Schedule 1 line',{options:ctAdjustmentLines.map(([line,label,kind])=>[line,`${line}: ${kind==='add'?'Add':'Subtract'} — ${label}`])});field(item,row,'amountCents','Eligible state adjustment (USD)',{money:true});field(item,row,'description','Explanation (required for other adjustments)');field(item,row,'source','Worksheet / source reference');field(item,row,'reviewed','Annual eligibility, limits and amount reviewed',{check:true});button(item,'Remove this state adjustment',()=>value.adjustments.splice(position,1));}
   button(adjustments,'Add Connecticut adjustment',()=>value.adjustments.push(newCTAdjustment()));

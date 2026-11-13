@@ -1,3 +1,7 @@
+import {earnedIncomeCreditWorkpaper} from './earned-income-credit.mjs';
+import {childCreditWorkpaper,dependentContinuationPdf} from './child-credits-pdf.mjs';
+import {schedule1AWorkpaper} from './schedule-1a-pdf.mjs';
+import {eligibilityWorkpaper,eligibilityAnnotations} from './eligibility-pdf.mjs';
 import {investmentWorkpaper} from './investment-pdf.mjs';
 import {capitalWorkpaper} from './capital-pdf.mjs';
 import {inventoryWorkpaper} from './inventory-pdf.mjs';
@@ -53,7 +57,7 @@ function workpaper(pdf,font,input,result){
   const businesses=input.individual?.businesses??[input.entity];
   for(const business of businesses){line(`Deduction workpaper: ${business.name??business.businessName??'Business'}`,12);for(const expense of business.expenses)line(`${expense.category}: ${displayMoney(expense.amountCents)} USD. ${expense.description}`);}
   if(input.notes){line('Preparation notes',12);line(input.notes);}
-  energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);capitalWorkpaper(input,line,result);retirementWorkpaper(input,line,result);inventoryWorkpaper(input,result,line);ctWorkpaper(input,result,line);nyWorkpaper(input,result,line);
+  earnedIncomeCreditWorkpaper(input,result,line);childCreditWorkpaper(input,result,line);schedule1AWorkpaper(input,result,line);eligibilityWorkpaper(input,line,result);energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);capitalWorkpaper(input,line,result);retirementWorkpaper(input,line,result);inventoryWorkpaper(input,result,line);ctWorkpaper(input,result,line);nyWorkpaper(input,result,line);
 }
 
 /** All calculation and rendering happen in the trusted caller. The loader only
@@ -63,7 +67,7 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
   if(!result.calculationAvailable)throw new Error('Correct the return input and install its declared tax-year pack before exporting forms.');
   const {templates,lineMaps,scheduleMaps}=pdfYearPack(original.year);
   const output=await PDFDocument.create(),font=await output.embedFont(StandardFonts.Helvetica),audit=[];
-  workpaper(output,font,original,result);householdContinuationPdf(output,font,original,result);
+  workpaper(output,font,original,result);dependentContinuationPdf(output,font,original,result);householdContinuationPdf(output,font,original,result);
   for(const item of result.forms){
     if(original.year===2026&&result.pdfUnavailableForms?.includes(item.form))continue;
     if(['ct1040','nyit201','nyit2'].includes(item.form)){
@@ -79,7 +83,7 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
     identityFields(original,item,set);
     for(const [line,value]of Object.entries(item.lines)){if(item.form==='f1040sse'&&line==='7')continue;const reference=lineMaps[item.form][line];if(!reference)throw new Error('A calculated form line has no reviewed PDF field.');set(reference,value===null?null:String(value/100),line);}
     for(const [name,lines]of Object.entries(item.schedules??{}))for(const [line,value]of Object.entries(lines)){const reference=scheduleMaps[item.form]?.[name]?.[line];if(!reference)throw new Error('A calculated schedule line has no reviewed PDF field.');set(reference,value===null?null:String(value/100),`${name}:${line}`);}
-    form.updateFieldAppearances(localFont);form.flatten();retirementAnnotations(original,item,{pdf,font:localFont,audit:filled});removeActions(pdf);
+    form.updateFieldAppearances(localFont);form.flatten();eligibilityAnnotations(original,item,{pdf,font:localFont,audit:filled});retirementAnnotations(original,item,{pdf,font:localFont,audit:filled});removeActions(pdf);
     const firstPage=output.getPageCount()+1;for(const page of await output.copyPages(pdf,pdf.getPageIndices()))output.addPage(page);
     audit.push({form:item.form,copyId:item.copyId,firstPage,pageCount:pdf.getPageCount(),filled});bytes.fill(0);
   }

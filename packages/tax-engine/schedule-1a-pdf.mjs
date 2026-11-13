@@ -1,0 +1,20 @@
+import {wholeDollars as R,displayMoney} from './money.mjs';
+const pairs=(page,entries)=>Object.fromEntries(Object.entries(entries).map(([line,field])=>[line,`${page}/${field}`]));
+export const schedule1AMap=Object.freeze({...pairs(1,{'1':3,'2a':4,'2b':5,'2c':6,'2d':7,'2e':8,'3':9,'4a':10,'4b':11,'4c':12,'5':13,'6':14,'7':15,'8':16,'9':17,'10':18,'11':19,'12':20,'13':21,'14a':22,'14b':23,'14c':24,'15':25,'16':26,'17':27,'18':28,'19':29,'20':30,'21':31}),...pairs(2,{'23':7,'24':8,'25':9,'26':10,'27':11,'28':12,'29':13,'30':14,'31':15,'32':16,'33':17,'34':18,'35':19,'36a':20,'36b':21,'37':22,'38':23})});
+export const schedule1ATemplate=Object.freeze({id:'f1040s1a',year:2025,title:'Schedule 1-A — Additional Deductions',url:'https://www.irs.gov/pub/irs-prior/f1040s1a--2025.pdf',sha256:'64f97b38ff4218e2f188fd55a8aab7043556687487c82bbefe0b6dd1a956ecd4',bytes:94224,pages:2,fieldCount:54});
+export function schedule1AIdentity(input,item,set){
+ set('1/1',input.individual.filingStatus==='marriedJoint'?[input.party.name,input.individual.spouseName].filter(Boolean).join(' & '):input.party.name);set('1/2',input.party.taxId.replaceAll('-',''));
+ for(const [index,row]of (item.schedule1A?.details.vehicles??[]).slice(0,2).entries()){set(`2/${index*3+1}`,row.vin);set(`2/${index*3+2}`,String(R(row.deductedElsewhereCents)/100),'22'+(index?'b':'a')+':ii');set(`2/${index*3+3}`,row.qualifiedCents===null?null:String(row.qualifiedCents/100),'22'+(index?'b':'a')+':iii');}
+}
+export function schedule1AWorkpaper(input,result,line){
+ const source=input.individual?.schedule1A,computed=result.schedule1A;if(!source&&!computed?.required)return;
+ line(`Schedule 1-A ${input.year} source and calculation workpaper`,13);line('These deductions reduce taxable income after AGI. Tips and overtime remain subject to applicable payroll/self-employment taxes. A source review does not establish agency filing approval.');
+ if(computed)for(const key of ['tipsDeductionCents','overtimeDeductionCents','vehicleInterestDeductionCents','seniorDeductionCents','deductionCents'])line(`${key}: ${displayMoney(computed[key])} USD.`);
+ for(const row of computed?.details.tips??source?.tips??[])line(`Tips ${row.id}; owner ${row.owner}; ${row.kind} link ${row.incomeId}; occupation ${row.occupationCode}; ${row.reporting}; source tips ${displayMoney(row.tipAmountCents)}; information-return gross ${displayMoney(row.reportedGrossCents)} USD; SSTB decision ${row.sstbStatus}. Source: ${row.source}.`);
+ for(const row of computed?.details.overtime??source?.overtime??[])line(`Overtime ${row.id}; owner ${row.owner}; W-2 ${row.w2Id}; method ${row.method}; statement amount ${displayMoney(row.amountCents)}; regular hourly rate ${displayMoney(row.regularRateCents)}; hours ${row.overtimeHoursHundredths/100}; calculated qualified premium ${displayMoney(row.qualifiedCents)} USD. Source: ${row.source}.`);
+ if((source?.vehicles.length??0)>2)line('Schedule 1-A line 22 continuation — complete VIN and interest columns for every vehicle follow; the line 23 total includes these rows once.',11);
+ for(const row of computed?.details.vehicles??source?.vehicles??[])line(`Vehicle ${row.id}; owner ${row.owner}; VIN ${row.vin}; ${row.description}; ${row.vehicleType}, GVWR ${row.gvwrPounds} pounds; purchase ${row.purchaseDate}, original loan ${row.loanDate}; total interest ${displayMoney(row.interestCents)}; line22(ii) elsewhere ${displayMoney(row.deductedElsewhereCents)}; line22(iii) Schedule1A ${displayMoney(row.qualifiedCents)} USD. Source: ${row.source}.`);
+ for(const row of computed?.details.seniors??source?.seniors??[])line(`Enhanced senior owner ${row.owner}; age65 ${row.age65===null||row.age65===undefined?'unresolved':row.age65}; source ${row.source}; reviewed ${row.reviewed}. Shared federal birth/death and SSN evidence determine eligibility.`);
+ for(const row of computed?.qbiReductionByBusiness??[])line(`Business ${row.businessId}: allowed business-tip deduction reducing QBI ${displayMoney(row.amountCents)} USD.`);
+ if(input.year===2026)line('2026 statutory calculation only: final annual Schedule 1-A unavailable; no 2025 official form substituted.');
+}

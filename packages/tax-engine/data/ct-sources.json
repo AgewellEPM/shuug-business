@@ -15,7 +15,8 @@
         "fieldCount": 0,
         "overlay": true,
         "sourceDraft": true
-      }
+      },
+      "instructionBytes": 1027048
     },
     "2024": {
       "instructions": "https://portal.ct.gov/-/media/drs/forms/2024/income/2024-ct-1040-instructions_1224.pdf",
@@ -31,7 +32,8 @@
         "fieldCount": 0,
         "overlay": true,
         "sourceDraft": false
-      }
+      },
+      "instructionBytes": 1043023
     },
     "2025": {
       "instructions": "https://portal.ct.gov/-/media/drs/forms/2025/income/2025-ct-1040-instructions_1225.pdf",
@@ -47,8 +49,10 @@
         "fieldCount": 0,
         "overlay": true,
         "sourceDraft": false
-      }
+      },
+      "instructionBytes": 998064
     }
   },
-  "method": "Annual CT-1040 Tax Calculation Schedule, Tables A-E, property credit table. Original four-page PDFs have zero AcroForm fields; pinned coordinate overlays preserve all source pages. 2023 DRS-linked source itself contains DRAFT 12-12-2023."
+  "method": "Annual CT-1040 Tax Calculation Schedule, Tables A-E, property credit table. Original four-page PDFs have zero AcroForm fields; pinned coordinate overlays preserve all source pages. 2023 DRS-linked source itself contains DRAFT 12-12-2023.",
+  "retirementMethod": "Annual Social Security Benefit Adjustment Worksheet A-F; 2023 IRA 25% and pension AGI cliff; 2024 IRA 50% and 2025 IRA 75% with annual pension phase-out table; military and Connecticut teachers elections reconciled to linked federal taxable source amounts. Railroad allocations and qualifying-surviving-spouse pension treatment remain unresolved."
 }

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-13",
+  "readiness": "prototype",
+  "baseCommit": "a29df8e979653cc15f5ea6886f7958b2a3e173b5",
+  "scope": [
+    "Reviewed standard-deduction age, blindness, claimability and deceased-filer facts for 2023–2026",
+    "Supported 2025 Schedule 1-A and 2026 statutory deductions with business-tip/QBI reconciliation",
+    "Ordinary dependent eligibility and annual Schedule 8812 CTC, ODC and ACTC",
+    "Independent EIC zero proofs on every individual return; full awards remain unimplemented",
+    "Source-linked Connecticut retirement and Social Security adjustments for 2023–2025",
+    "Federal/state dependency, claimability, birth-source and EIC propagation safeguards",
+    "Encrypted editors, annual original PDFs and source qualification"
+  ],
+  "verification": {
+    "engineAndClient": {
+      "tests": 478,
+      "passed": 477,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Pre-existing optional native Journal executable fixture unavailable"
+    },
+    "compiledHttp": {
+      "checks": 481,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "synthetic": true,
+      "reusedUnchangedServerBuild": true,
+      "encryptedNewReturnsAndCorrections": true,
+      "familyCreditsAndSchedule1AReopenedByClientAndStaff": true,
+      "backupRestoreVerified": true
+    },
+    "independentClientArtifact": {
+      "modules": 185,
+      "publicPdfFetches": 67,
+      "exports": 16,
+      "copiedSourceAndVendorFilesMatched": 402,
+      "execution": "Node V8 and JSDOM with original PDF rendering",
+      "defaultTrustConfigDisabled": true
+    },
+    "primaryReferences": {
+      "qualificationPinnedFiles": 65,
+      "qualificationChecks": 212,
+      "annualFormCounts": {
+        "2023": 24,
+        "2024": 24,
+        "2025": 25,
+        "2026": 3
+      },
+      "standardDeductionPublishedExamples": 21,
+      "schedule1APublishedExamples": 4,
+      "connecticutPublishedExamples": 3,
+      "instructionExamplesAreAgencyApproval": false
+    },
+    "teamReview": "Same-provider engineering reviews found and corrected EIC, credit-order, dependency and state source-propagation defects; no independent-provider or agency review claimed"
+  },
+  "limitations": {
+    "fullEicAwardsImplemented": false,
+    "completeFederalCoverage": false,
+    "completeStateCoverage": false,
+    "complete2026AnnualPack": false,
+    "completeMigrationCoverage": false,
+    "agencySubmissionAttempted": false,
+    "agencyApproval": false,
+    "realKeyCustodyVerified": false,
+    "installedCustomerWorkflowVerified": false,
+    "installedServiceChanged": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "releaseReady": false
+  }
+}

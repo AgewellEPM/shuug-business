@@ -1,4 +1,4 @@
-// Final2026 IRS schedules; full annual return pack remains incomplete.
+// Pinned original IRS 2026 blanks; see manifest.json for provenance.
 export const officialForms2026=Object.freeze([
   {
     "taxYear": 2026,
@@ -17,5 +17,14 @@ export const officialForms2026=Object.freeze([
     "sha256": "a42f5a19c0e84a966a49b5f4ca021d3f49c4fda2e087da0b00bf2003525f8655",
     "pages": 2,
     "fieldCount": 27
+  },
+  {
+    "id": "f1040s8",
+    "taxYear": 2026,
+    "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2026.pdf",
+    "sha256": "05b96bd809b37cfd0c223ac0909d2d82645eb8bfd6244701189f40ab8a4ab45c",
+    "bytes": 96696,
+    "pages": 2,
+    "fieldCount": 41
   }
-].map(Object.freeze));
+]);

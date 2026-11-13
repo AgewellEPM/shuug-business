@@ -50,6 +50,12 @@
       "status": 200,
       "bytes": 77739,
       "sha256": "a42f5a19c0e84a966a49b5f4ca021d3f49c4fda2e087da0b00bf2003525f8655"
+    },
+    {
+      "id": "f1040s8",
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2026.pdf",
+      "bytes": 96696,
+      "sha256": "05b96bd809b37cfd0c223ac0909d2d82645eb8bfd6244701189f40ab8a4ab45c"
     }
   ],
   "unavailableAnnualBoundaries": [
@@ -103,6 +109,6 @@
   "limits": [
     "No data extracted from draft instructions is used for calculation.",
     "Statutory rate schedules apply only at or above100000USD taxable income; below that boundary ordinarytax staysunknown pendingfinal TaxTable.",
-    "FinalScheduleC andSE do not establish a complete annual return pack."
+    "Final Schedules C, SE and 8812 do not establish a complete annual return pack."
   ]
 }

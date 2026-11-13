@@ -41,7 +41,7 @@ test('2026 source pins distinguish final rules/schedules from observed2025mainfo
  const source=JSON.parse(await readFile(new URL('../data/2026-sources.json',import.meta.url),'utf8'));
  assert.equal(source.taxYear,2026);assert(source.sources.every(item=>new URL(item.url).hostname.endsWith('.gov')&&/^[0-9a-f]{64}$/.test(item.sha256)));
  assert(source.unavailableAnnualBoundaries.some(item=>item.id==='i1040tt'&&item.observedTaxYear===2025&&item.requiredTaxYear===2026));assert(source.draftEvidence.every(item=>item.usableForFiling===false));
- assert.deepEqual(officialForms2026.map(form=>form.id),['f1040sc','f1040sse']);assert.equal(Object.hasOwn(lineMaps2026,'f1040'),false);
+ assert.deepEqual(officialForms2026.map(form=>form.id),['f1040sc','f1040sse','f1040s8']);assert.equal(Object.hasOwn(lineMaps2026,'f1040'),false);
  for(const entry of officialForms2026){const bytes=await readFile(new URL(`../forms/2026/${entry.id}.pdf`,import.meta.url));assert.equal(bytes.length,entry.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),entry.sha256);assert(!pdfText(bytes,'-layout').includes('DRAFT—NOT FOR FILING'));assert(pdfText(bytes,'-layout').includes('2026'));}
 });
 test('actual final2026 ScheduleC prints other interest at16c and separate city/state/ZIP identity fields',async()=>{

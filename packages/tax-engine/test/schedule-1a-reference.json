@@ -1,0 +1,163 @@
+{
+  "kind": "Actual IRS sources pinned 2026-11-13. Published examples are identified separately from synthetic source, phaseout and integration vectors. 2026 statutory calculations do not imply final Schedule 1-A availability.",
+  "annualInstructions": [
+    {
+      "id": "f1040s1a",
+      "year": 2025,
+      "file": "f1040s1a--2025.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s1a--2025.pdf",
+      "bytes": 94224,
+      "sha256": "64f97b38ff4218e2f188fd55a8aab7043556687487c82bbefe0b6dd1a956ecd4"
+    },
+    {
+      "id": "i1040gi",
+      "year": 2025,
+      "file": "i1040gi--2025.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2025.pdf",
+      "bytes": 4434643,
+      "sha256": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a"
+    },
+    {
+      "id": "p505",
+      "year": 2026,
+      "file": "p505--2026.pdf",
+      "url": "https://www.irs.gov/pub/irs-pdf/p505.pdf",
+      "bytes": 1776844,
+      "sha256": "c69e87caa93cdefa4493f0ec1d8478b1ff9ec1329ee18c7b9d442f2dcb79c621"
+    },
+    {
+      "id": "n-25-69",
+      "year": 2025,
+      "file": "n-25-69.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/n-25-69.pdf",
+      "bytes": 229593,
+      "sha256": "e405c12d18c8a23524fbc822b61ec32e7885ace7caf01c433d6dbd9a42c8caef"
+    },
+    {
+      "id": "tipped-occupations",
+      "year": 2026,
+      "file": "tipped-occupations.html",
+      "url": "https://www.irs.gov/forms-pubs/occupations-that-customarily-and-regularly-received-tips-on-or-before-dec-31-2024",
+      "bytes": 115958,
+      "sha256": "dd638f33c29807b303a8973f5d2abc7ae9f6f05cfe70f1241afa68bed8847aeb"
+    },
+    {
+      "id": "i8995",
+      "year": 2025,
+      "file": "i8995--2025.html",
+      "url": "https://www.irs.gov/instructions/i8995",
+      "bytes": 158631,
+      "sha256": "c9dcbcb81b24ad8f7f9378ceb4d62f10de7f71636a205e5442f2045c10f1afe9"
+    },
+    {
+      "id": "tips-final",
+      "year": 2026,
+      "file": "tips-final-2026.html",
+      "url": "https://www.irs.gov/irb/2026-18_IRB",
+      "bytes": 648462,
+      "sha256": "001118083a4253c01947627f63cdd549181dc323af98ce7000713d491e256c9d"
+    },
+    {
+      "id": "iw2w3",
+      "year": 2026,
+      "file": "iw2w3--2026.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/iw2w3--2026.pdf",
+      "bytes": 527838,
+      "sha256": "d16b9f506f039f5af24f01fad699b0b60d392ac7920fcff528c7d97740c792b6"
+    },
+    {
+      "id": "usc26-199a",
+      "year": 2026,
+      "file": "usc26-199a.html",
+      "url": "https://uscode.house.gov/us/usc/119-124/t26/s199A/",
+      "bytes": 57474,
+      "sha256": "7292dac7f3c1b4e68cd6e8b9b548ddadbe375d92a347a282ec5f5759ae2144b9"
+    }
+  ],
+  "publishedOvertimeExamples": [
+    {
+      "year": 2025,
+      "example": "2025 Form1040 instructions Schedule1A line14a Example1",
+      "source": "i1040gi--2025.pdf",
+      "amountDollars": 15000,
+      "method": "timeAndHalfTotal",
+      "qualifiedDollars": 5000
+    },
+    {
+      "year": 2025,
+      "example": "2025 Form1040 instructions Schedule1A line14a Example2",
+      "source": "i1040gi--2025.pdf",
+      "amountDollars": 10000,
+      "method": "doubleTimePremium",
+      "qualifiedDollars": 5000
+    },
+    {
+      "year": 2025,
+      "example": "2025 Form1040 instructions Schedule1A line14a Example3",
+      "source": "i1040gi--2025.pdf",
+      "amountDollars": 20000,
+      "method": "doubleTimeTotal",
+      "qualifiedDollars": 5000
+    },
+    {
+      "year": 2025,
+      "example": "2025 Form1040 instructions Schedule1A line14a Example5",
+      "source": "i1040gi--2025.pdf",
+      "amountDollars": 4500,
+      "method": "timeAndHalfTotal",
+      "qualifiedDollars": 1500,
+      "scope": "Source is FLSA compensatory-time pay at time-and-a-half; source review establishes FLSA qualification. This is the published premium arithmetic, not an automated public-agency work-period determination."
+    }
+  ],
+  "publishedSeniorDeathExample": {
+    "year": 2025,
+    "dateOfBirth": "1960-02-14",
+    "qualifyingDeathDate": "2025-02-13",
+    "ineligibleDeathDate": "2025-02-12",
+    "source": "i1040gi--2025.pdf"
+  },
+  "syntheticPhaseoutVectors": [
+    {
+      "part": "tips",
+      "amountDollars": 10000,
+      "agiDollars": 150001,
+      "deductionDollars": 10000
+    },
+    {
+      "part": "tips",
+      "amountDollars": 10000,
+      "agiDollars": 151000,
+      "deductionDollars": 9900
+    },
+    {
+      "part": "overtime",
+      "amountDollars": 5000,
+      "agiDollars": 150999,
+      "deductionDollars": 5000
+    },
+    {
+      "part": "overtime",
+      "amountDollars": 5000,
+      "agiDollars": 151000,
+      "deductionDollars": 4900
+    },
+    {
+      "part": "vehicle",
+      "amountDollars": 5000,
+      "agiDollars": 100001,
+      "deductionDollars": 4800
+    },
+    {
+      "part": "vehicle",
+      "amountDollars": 5000,
+      "agiDollars": 101001,
+      "deductionDollars": 4600
+    },
+    {
+      "part": "senior",
+      "amountDollars": 6000,
+      "agiDollars": 100000,
+      "deductionDollars": 4500
+    }
+  ]
+}

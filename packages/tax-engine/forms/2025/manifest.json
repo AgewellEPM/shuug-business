@@ -181,6 +181,24 @@
       "sha256": "447270f7a058c5b8e3f3e31853bf2bf97470ccc0f5f07359fbcd5ec6a23be5c2",
       "pages": 3,
       "fieldCount": 25
+    },
+    {
+      "id": "f1040s1a",
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s1a--2025.pdf",
+      "sha256": "64f97b38ff4218e2f188fd55a8aab7043556687487c82bbefe0b6dd1a956ecd4",
+      "bytes": 94224,
+      "pages": 2,
+      "fieldCount": 54,
+      "taxYear": 2025
+    },
+    {
+      "id": "f1040s8",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2025.pdf",
+      "sha256": "6936462d67e2309d14a795aa0b88ef613cc6d79617431cfda3a2edf44aea52db",
+      "bytes": 100829,
+      "pages": 2,
+      "fieldCount": 41
     }
   ]
 }

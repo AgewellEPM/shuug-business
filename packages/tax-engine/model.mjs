@@ -1,3 +1,5 @@
+import {newEarnedIncomeCredit} from './earned-income-credit.mjs';
+import {newIndividualEligibility} from './standard-deduction.mjs';
 import { checkedMoney } from './money.mjs';
 import {calculationYears} from './federal-years.mjs';
 
@@ -14,7 +16,7 @@ export function newReturn(kind='1040',year=2025){
   if(!calculationYears.includes(year))throw new Error('Choose an installed tax-year draft pack.');
   return {version:1,type:'tax-return',year,kind,party:{name:'',firstName:'',lastName:'',taxId:'',street:'',city:'',state:'',zip:''},
     review:{identity:false,income:false,deductions:false,credits:false,ownership:false,coverage:false},features:[],notes:'',
-    ...(kind==='1040'?{individual:{filingStatus:'single',spouseName:'',spouseFirstName:'',spouseLastName:'',spouseTaxId:'',w2s:[],taxableInterestCents:0,ordinaryDividendsCents:0,priorQbiLossCents:0,estimatedPaymentsCents:0,priorYearAppliedCents:0,businesses:[]}}:
+    ...(kind==='1040'?{individual:{earnedIncomeCredit:newEarnedIncomeCredit(),eligibility:newIndividualEligibility(),filingStatus:'single',spouseName:'',spouseFirstName:'',spouseLastName:'',spouseTaxId:'',w2s:[],taxableInterestCents:0,ordinaryDividendsCents:0,priorQbiLossCents:0,estimatedPaymentsCents:0,priorYearAppliedCents:0,businesses:[]}}:
       {entity:{businessName:'',businessCode:'',accountingMethod:'cash',receiptsCents:0,returnsCents:0,costOfGoodsCents:0,otherIncomeCents:0,officerCompensationCents:0,guaranteedPaymentsCents:0,estimatedPaymentsCents:0,expenses:[],owners:[]}})};
 }
 export function strictObject(value,keys,label){

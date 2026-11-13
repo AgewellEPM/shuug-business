@@ -3,7 +3,7 @@
 Checked November 13, 2026. Final annual rates and final return forms are separate
 dependencies. The installed sources support 2026 ordinary annual deductions,
 Social Security limits, statutory tax schedules, a limited QBI calculation and
-the final Schedule C/SE blanks. The full 2026 federal return pack remains incomplete.
+the final Schedule C/SE/8812 blanks. The full 2026 federal return pack remains incomplete.
 
 The current IRS final Form 1040, Tax Table and main instructions still identify
 2025. The IRS lists a 2026 Form 1040 draft; no draft is installed as a filing form
@@ -35,9 +35,11 @@ Final Schedule SE and its 2026 instructions are available and retain the ordinar
 still require their own workpapers.
 
 All source byte counts/SHA-256 pins and the observed final/draft availability are
-in `data/2026-sources.json`. Only the two reviewed final schedule PDFs appear in
+in `data/2026-sources.json`. The reviewed final Schedule C, Schedule SE and Schedule 8812 PDFs appear in
 `forms/2026/templates.mjs`. Their identity/amount mappings are in
-`form-maps-2026.mjs`. Full-return PDF export must retain explicit missing-form
+`form-maps-2026.mjs` and `child-credits-pdf.mjs`; 8812 provenance is in
+`data/child-credits-sources.json`. Final 2026 8812 instructions remain unavailable.
+Full-return PDF export must retain explicit missing-form
 diagnostics; it must never replace the unavailable main return with another year.
 
 Authoritative sources:

@@ -1,3 +1,7 @@
+import {earnedIncomeCreditFields} from './earned-income-credit-editor.mjs';
+import {taxpayerIdentifierFields,dependentsFields} from './dependents-editor.mjs';
+import {schedule1AFields} from './schedule-1a-editor.mjs';
+import {eligibilityFields} from './eligibility-editor.mjs';
 import {investmentFields} from './investment-editor.mjs';
 import {capitalFields} from './capital-editor.mjs';
 import {inventoryFields} from './inventory-editor.mjs';
@@ -9,9 +13,9 @@ import {householdFields} from './household-editor.mjs';
 import {energyFields} from './energy-editor.mjs';
 
 const treatments=[
-  ['dependents-credits','Dependents or other credits not completed in the energy section, including EITC'],
-  ['senior-blind-dependent','Age 65+, blindness, or a taxpayer claimed as a dependent'],
-  ['schedule-1a','Tips, overtime, senior or car-loan interest deductions (Schedule 1-A)'],
+  ['dependents-credits','Unresolved dependent treatments or other credits outside the completed sections, including EITC'],
+  ['senior-blind-dependent','Unresolved age, blindness, claimability or other standard-deduction treatment'],
+  ['schedule-1a','Unresolved tips, overtime, senior or car-loan deductions outside the completed Schedule 1-A sources'],
   ['capital-income','Unsupported capital assets, special-rate gains or complex investment sales'],
   ['retirement-benefits','Unsupported retirement basis, annuity, early-distribution or benefit treatments'],
   ['rental-pass-through','Rentals, farm income or received partnership/S corporation K-1s'],
@@ -32,7 +36,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
   const section=node(document,'section');section.id='tax-preparation';
   const heading=node(document,'h2','Prepare a tax return'),notice=node(document,'p',scopeNotice),kind=node(document,'select');kind.id='return-kind';
   const kindLabel=node(document,'label','Return type');kindLabel.htmlFor=kind.id;const year=node(document,'select'),yearLabel=node(document,'label','Tax year');year.id='return-year';yearLabel.htmlFor=year.id;for(const value of calculationYears){const option=node(document,'option',String(value));option.value=String(value);year.append(option);}for(const type of returnTypes){const option=node(document,'option',type.label);option.value=type.id;kind.append(option);}
-  const scope=node(document,'p','The 2023–2025 calculations accept reviewed wages, interest, ordinary/qualified dividends, ordinary securities gains/losses, supported retirement/Social Security income, reviewed inventory and business amounts, supported residential energy credits and household-employment taxes. 2026 has partial annual calculations and final Schedule C/SE templates; its missing main form and Tax Table remain explicit. Other schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
+  const scope=node(document,'p','The 2023–2025 calculations accept reviewed wages, interest, ordinary/qualified dividends, ordinary securities gains/losses, supported retirement/Social Security income, reviewed inventory and business amounts, supported residential energy credits and household-employment taxes. 2026 has partial annual calculations and final Schedule C/SE/8812 templates; its missing main form and Tax Table remain explicit. Other schedules and credits must be selected below; this pack never treats an unknown treatment as zero. Business forms include ordinary-income workpapers; entity disclosures and full K-1 schedules remain incomplete.');
   const body=node(document,'div'),output=node(document,'div'),calculate=node(document,'button','Calculate draft'),save=node(document,'button',proposalOnly?'Save private correction review kit':'Encrypt and save return'),clear=node(document,'button',proposalOnly?'Discard correction':'New return');for(const button of [calculate,save,clear])button.type='button';clear.className='secondary';
   if(proposalOnly)scope.textContent+=' Preparing a return proposal downloads encrypted input and a readable private review in one file. Keep that file on trusted firm devices. The separate key environment must approve its exact content before owner publication creates or changes a client return.';
   section.append(heading,notice,kindLabel,kind,yearLabel,year,scope,body,calculate,save,clear,output);container.append(section);
@@ -71,6 +75,11 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
       if(value.businesses.length<5)button(businesses,'Add Schedule C business',()=>value.businesses.push({id:crypto.randomUUID(),owner:'taxpayer',name:'',ein:'',businessCode:'',receiptsCents:0,returnsCents:0,costOfGoodsCents:0,otherIncomeCents:0,expenses:[],materialParticipation:false,fullyAtRisk:false}));
       investmentFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       capitalFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
+      eligibilityFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
+      dependentsFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
+      earnedIncomeCreditFields({document,parent:body,individual:value,field,group,button});
+      taxpayerIdentifierFields({document,parent:body,individual:value,field,group,button});
+      schedule1AFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       retirementFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       stateFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       householdFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});

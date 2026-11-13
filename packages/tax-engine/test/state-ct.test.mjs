@@ -1,3 +1,4 @@
+import {eligibilityFixture} from './standard-deduction-fixtures.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile,writeFile} from 'node:fs/promises';
@@ -8,7 +9,7 @@ import {calculateCTResident,calculateStateReturns,newCTStateReturn,newCTAdjustme
 import {ctPdfYearPack,renderCTForm} from '../state-ct-pdf.mjs';
 import {pdfText} from './pdf-text.mjs';
 const D=value=>value*100;
-function fixture(year=2025){const input=newReturn('1040',year);Object.assign(input.party,{name:'Synthetic State Example',firstName:'Synthetic',lastName:'State Example',taxId:'000000001',street:'1 Synthetic Street',city:'Hartford',state:'CT',zip:'06103'});const value=newCTStateReturn();for(const key of Object.keys(value.review))value.review[key]=true;value.useTax.reviewed=true;input.individual.stateReturns=[value];return {input,value,federal:{adjustedGrossIncomeKnown:true,summary:{adjustedGrossIncomeCents:D(50000)}}};}
+function fixture(year=2025){const input=newReturn('1040',year);input.individual.eligibility=eligibilityFixture();Object.assign(input.party,{name:'Synthetic State Example',firstName:'Synthetic',lastName:'State Example',taxId:'000000001',street:'1 Synthetic Street',city:'Hartford',state:'CT',zip:'06103'});const value=newCTStateReturn();for(const key of Object.keys(value.review))value.review[key]=true;value.useTax.reviewed=true;input.individual.stateReturns=[value];return {input,value,federal:{adjustedGrossIncomeKnown:true,earnedIncomeCredit:{amountCents:0,reason:'synthetic supported federal zero'},summary:{adjustedGrossIncomeCents:D(50000)}}};}
 const compute=({input,value,federal})=>calculateCTResident(input,value,federal);
 
 test('official annual Table B worked examples: all three bracket scales and changed 2024 rates',()=>{

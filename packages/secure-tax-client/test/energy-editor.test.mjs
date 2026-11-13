@@ -1,3 +1,4 @@
+import {eligibilityFixture} from './eligibility-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
@@ -10,7 +11,7 @@ test('energy editor collects costs, QMID, reviews and carryforward into encrypte
  const click=async label=>{const button=[...document.querySelectorAll('button')].find(b=>b.textContent===label);assert(button,label);button.click();await pending;};
  const fill=(key,value)=>{const input=document.querySelector(`#residential-energy-editor [data-return-field="${key}"]`);assert(input,key);if(input.type==='checkbox')input.checked=value;else input.value=value;input.dispatchEvent(new dom.window.Event('input',{bubbles:true}));};
  try{
-  const input=newReturn();input.individual.w2s=[{id:'wages',owner:'taxpayer',employer:'Synthetic employer',wagesCents:5000000,socialSecurityWagesCents:5000000,medicareWagesCents:5000000,federalWithholdingCents:0}];editor.edit(input,'saved-return');
+  const input=newReturn();input.individual.eligibility=eligibilityFixture();input.individual.w2s=[{id:'wages',owner:'taxpayer',employer:'Synthetic employer',wagesCents:5000000,socialSecurityWagesCents:5000000,medicareWagesCents:5000000,federalWithholdingCents:0}];editor.edit(input,'saved-return');
   await click('Add residential energy credits');await click('Add energy item');fill('street','SYNTHETIC PRIVATE ENERGY HOME');fill('city','Hartford');fill('state','CT');fill('zip','06103');fill('category','heatPump');fill('costCents','8000');fill('carryforwardCents','500');
   for(const key of ['scope','costs','property','carryforward'])fill(key,true);
   assert.equal(calculateReturn(editor.getInput()).summary.totalTaxCents,null);fill('qmid','A1B2');assert.equal(calculateReturn(editor.getInput()).summary.energyImprovementCreditCents,200000);

@@ -1,0 +1,17 @@
+import {newIndividualEligibility} from '@shuug/tax-engine';
+const decisions=[['unknown','Not reviewed'],['yes','Yes'],['no','No']];
+export function eligibilityFields({document,parent,individual,year,field,group,button}){
+ const section=group(parent,'Federal filing and standard-deduction eligibility');section.id='federal-eligibility-editor';const note=document.createElement('p');note.textContent='Birth dates, blindness, death and dependency facts stay inside the encrypted return. A missing answer is unresolved. These facts support the annual standard deduction; enhanced senior and dependent credits require their own eligibility review.';section.append(note);
+ if(!individual.eligibility){button(section,'Add federal eligibility sources',()=>{individual.eligibility=newIndividualEligibility();});return;}
+ const value=individual.eligibility;
+ field(section,value,'residency','Federal residency treatment',{options:[['unknown','Not reviewed'],['fullYearCitizenOrResident','U.S. citizen or resident throughout the calendar year'],['nonresident','Nonresident (additional treatment required)'],['dualStatus','Dual status (additional treatment required)']]});
+ field(section,value,'returnPeriod','Return period',{options:[['unknown','Not reviewed'],['fullYear','Full calendar year'],['deathShortYear','Decedent’s final period ending at death'],['accountingShortYear','Short accounting period (additional treatment required)']]});
+ field(section,value,'deductionChoice','Reviewed deduction choice',{options:[['unknown','Not reviewed'],['standard','Standard deduction'],['itemized','Itemized deductions (Schedule A required)']]});
+ if(individual.filingStatus==='marriedSeparate')field(section,value,'spouseItemizes','Does the spouse itemize on a separate return?',{options:decisions});
+ for(const owner of ['taxpayer',...(['marriedJoint','marriedSeparate'].includes(individual.filingStatus)?['spouse']:[])]){
+  const row=value[owner],item=group(section,owner==='taxpayer'?'Taxpayer source facts':'Spouse source facts');field(item,row,'dateOfBirth','Date of birth (YYYY-MM-DD)');field(item,row,'blind',`Blind under IRS criteria at the end of ${year} / final period`,{options:decisions});field(item,row,'canBeClaimed','Can someone else claim this person as a dependent (even if they do not)?',{options:decisions});field(item,row,'deceased',`Did this person die during ${year}?`,{options:decisions});field(item,row,'dateOfDeath','Date of death, if applicable (YYYY-MM-DD)');
+  if(owner==='spouse'&&individual.filingStatus==='marriedSeparate'){field(item,row,'noGrossIncome','Did the spouse have no gross income for the year?',{options:decisions});field(item,row,'filingReturn','Is the spouse filing their own return?',{options:decisions});}
+  field(item,row,'source','Identity, blindness certification, death and claimability source',{multiline:true});field(item,row,'reviewed','Source facts reconciled; blindness certification retained when required',{check:true});
+ }
+ field(section,value,'source','Filing-status, residency and deduction-choice source',{multiline:true});field(section,value.review,'status','Filing status (including qualifying surviving spouse requirements), residency, return period and deduction choice reviewed',{check:true});field(section,value.review,'earnedIncome','Dependent worksheet: all earned income is represented by wages and Schedule C; losses and SE adjustment reviewed; no unrepresented scholarships, farms, partnerships or other earned sources',{check:true});
+}

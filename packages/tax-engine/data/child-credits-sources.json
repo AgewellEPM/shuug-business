@@ -1,0 +1,112 @@
+{
+  "reviewedOn": "2026-11-13",
+  "forms": [
+    {
+      "id": "f1040s8",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2023.pdf",
+      "sha256": "d469afddb11b4b5c7ae52400d21379ad6cc08c5679e0728cf0d13753d208e106",
+      "bytes": 101796,
+      "pages": 2,
+      "fieldCount": 41
+    },
+    {
+      "id": "f1040s8",
+      "taxYear": 2024,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2024.pdf",
+      "sha256": "8b5143ca127b754b2e65904f6be14712b5be612056989bdf06e096ecc500f977",
+      "bytes": 101825,
+      "pages": 2,
+      "fieldCount": 41
+    },
+    {
+      "id": "f1040s8",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2025.pdf",
+      "sha256": "6936462d67e2309d14a795aa0b88ef613cc6d79617431cfda3a2edf44aea52db",
+      "bytes": 100829,
+      "pages": 2,
+      "fieldCount": 41
+    },
+    {
+      "id": "f1040s8",
+      "taxYear": 2026,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2026.pdf",
+      "sha256": "05b96bd809b37cfd0c223ac0909d2d82645eb8bfd6244701189f40ab8a4ab45c",
+      "bytes": 96696,
+      "pages": 2,
+      "fieldCount": 41
+    }
+  ],
+  "instructions": [
+    {
+      "year": 2023,
+      "id": "i1040s8",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040s8--2023.pdf",
+      "bytes": 324388,
+      "sha256": "a04f9c82df0526d78c464b7a6e0b669eb790cb722e94063c65563d7d00c05e05"
+    },
+    {
+      "year": 2023,
+      "id": "p501",
+      "url": "https://www.irs.gov/pub/irs-prior/p501--2023.pdf",
+      "bytes": 1490238,
+      "sha256": "1481957f02fbeb0a096b8b4e19fcc57e107ddb9fdc7ef7b850bad72fcc2acc8d"
+    },
+    {
+      "year": 2024,
+      "id": "i1040s8",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040s8--2024.pdf",
+      "bytes": 326617,
+      "sha256": "90a5507b485f6e8c5ebb7aaaca0d9f999a0ad709269ac22c48320992d25f8d60"
+    },
+    {
+      "year": 2024,
+      "id": "p501",
+      "url": "https://www.irs.gov/pub/irs-prior/p501--2024.pdf",
+      "bytes": 1488918,
+      "sha256": "e94ffe4312d220792b11a7dfe092f9daf782b797a6591f90b521b2a9aa9eb352"
+    },
+    {
+      "year": 2025,
+      "id": "i1040s8",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040s8--2025.pdf",
+      "bytes": 232376,
+      "sha256": "bb9788cdf068f9d3a666b2fc351b6bd963e1e848f295d0d01df63848628e1794"
+    },
+    {
+      "year": 2025,
+      "id": "p501",
+      "url": "https://www.irs.gov/pub/irs-prior/p501--2025.pdf",
+      "bytes": 1553735,
+      "sha256": "288b62a4917f3bc3df0bade7a22c23a8ae648ba9eb5086df5b8b50e881148ff6"
+    },
+    {
+      "year": 2026,
+      "id": "rp-25-32",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "bytes": 260406,
+      "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    },
+    {
+      "year": 2025,
+      "id": "i1040s8-2025-ssn-correction",
+      "file": "i1040s8-2025-ssn-correction.html",
+      "url": "https://www.irs.gov/forms-pubs/update-to-the-2025-instructions-for-schedule-8812-form-1040",
+      "bytes": 97780,
+      "sha256": "10d61aa20568cd89900f3cf9accf939c4c21c3631696793c5942fdfbe34a4df5"
+    },
+    {
+      "year": 2003,
+      "id": "rr-03-72",
+      "file": "rr-03-72.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/rr-03-72.pdf",
+      "bytes": 36851,
+      "sha256": "883a38de41a653a1ef1595c9b09a6d0bdf6cc8e5ea17117e8bbe398c7bb98011"
+    }
+  ],
+  "notes": [
+    "The final 2026 Schedule 8812 is an original annual form; final 2026 instructions are not yet available. 2026 limits use Revenue Procedure 2025-32 and IRC24; special treatments remain unsupported.",
+    "2025 joint-filer valid SSN correction: https://www.irs.gov/forms-pubs/update-to-the-2025-instructions-for-schedule-8812-form-1040 (January 23, 2026). One joint spouse needs a timely employment-valid SSN; the other needs timely SSN or ITIN."
+  ]
+}

@@ -1,3 +1,6 @@
+import {childCreditIdentity} from './child-credits-pdf.mjs';
+import {schedule1AIdentity} from './schedule-1a-pdf.mjs';
+import {eligibilityIdentity} from './eligibility-pdf.mjs';
 import {investmentIdentity} from './investment-pdf.mjs';
 import {capitalIdentity} from './capital-pdf.mjs';
 import {inventoryIdentity} from './inventory-pdf.mjs';
@@ -7,7 +10,9 @@ import {householdIdentity} from './household-pdf.mjs';
 import {energyIdentity} from './energy-pdf.mjs';
 const digits=value=>value.replaceAll('-','');
 export function identityFields(input,item,set){
-  retirementIdentity(input,item,set);
+  if(childCreditIdentity(input,item,set))return;
+  if(item.form==='f1040s1a'){schedule1AIdentity(input,item,set);return;}
+  retirementIdentity(input,item,set);eligibilityIdentity(input,item,set);
   if(inventoryIdentity(input,item,set))return;
   const p=input.party,person=item.owner==='spouse'?{name:input.individual.spouseName,taxId:input.individual.spouseTaxId}:p;
   if(input.year===2026&&identity2026(input,item,set))return;

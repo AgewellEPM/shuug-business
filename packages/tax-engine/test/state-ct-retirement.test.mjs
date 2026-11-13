@@ -1,0 +1,41 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {newReturn} from '../model.mjs';
+import {calculateIndividual} from '../individual.mjs';
+import {newCTStateReturn,newCTAdjustment,calculateCTResident} from '../state-returns.mjs';
+import {newRetirementIncome,newRetirementDistribution,newSocialSecurityBenefit,socialSecurityBenefits} from '../retirement-income.mjs';
+import {newCTRetirement,newCTRetirementDistribution,ctPensionFactor,ctSocialSecurityAdjustment} from '../state-ct-retirement.mjs';
+import {renderCTForm} from '../state-ct-pdf.mjs';
+import {pdfText} from './pdf-text.mjs';
+const D=value=>value*100;
+function fixture(year=2025){const input=newReturn('1040',year);Object.assign(input.party,{name:'Synthetic Retirement Example',firstName:'Synthetic',lastName:'Retirement Example',taxId:'000000001',street:'1 Synthetic Street',city:'Hartford',state:'CT',zip:'06103'});const state=newCTStateReturn();Object.keys(state.review).forEach(key=>state.review[key]=true);state.useTax.reviewed=true;state.retirement={...newCTRetirement(),source:'Synthetic annual CT worksheet',reviewed:true};input.individual.stateReturns=[state];input.individual.businesses=[];input.individual.retirementIncome=newRetirementIncome();Object.keys(input.individual.retirementIncome.review).forEach(key=>input.individual.retirementIncome.review[key]=true);return {input,state};}
+function add(f,amount,plan='traditionalIRA',kind='ordinary',teacherElection='unknown'){const row={...newRetirementDistribution(),payer:'Synthetic pension payer',plan,grossCents:D(amount),distributionCodes:'7',treatment:'fullyTaxable',source:'Synthetic 1099-R'};Object.keys(row.review).forEach(key=>row.review[key]=true);f.input.individual.retirementIncome.distributions.push(row);if(plan==='qualifiedPlan')f.state.retirement.distributions.push({...newCTRetirementDistribution(row.id),kind,teacherElection,source:'Synthetic plan eligibility',reviewed:true});return row;}
+const compute=f=>calculateCTResident(f.input,f.state,calculateIndividual(f.input));
+test('annual IRA percentages, 2023 cliff and every 2024/25 pension phase-out boundary',()=>{
+ for(const year of [2023,2024,2025]){const f=fixture(year);add(f,20000);assert.equal(compute(f).lines['48b'],D({2023:5000,2024:10000,2025:15000}[year]));}
+ for(const status of ['single','headOfHousehold','marriedSeparate','marriedJoint']){const joint=status==='marriedJoint',boundaries=joint?[100000,105000,110000,115000,120000,125000,130000,140000,150000]:[75000,77500,80000,82500,85000,87500,90000,95000,100000],factors=[8500,7000,5500,4000,2500,1000,500,250,0];for(const year of [2024,2025])for(const [i,boundary]of boundaries.entries()){assert.equal(ctPensionFactor(year,status,D(boundary)),factors[i]);assert.equal(ctPensionFactor(year,status,D(boundary-1)),i===0?10000:factors[i-1]);}assert.equal(ctPensionFactor(2023,status,D(boundaries[0])),0);assert.equal(ctPensionFactor(2023,status,D(boundaries[0]-1)),10000);}
+ assert.equal(ctPensionFactor(2025,'survivingSpouse',D(50000)),null);assert.equal(ctPensionFactor(2026,'single',D(50000)),null);
+});
+test('Social Security low/high AGI formulas and married-separate lived-with-spouse branch use federal worksheet amounts',()=>{
+ const partial=socialSecurityBenefits({year:2025,filingStatus:'single',netBenefitsCents:D(100000),otherIncomeCents:D(42000),taxExemptInterestCents:0,adjustmentsCents:0});assert.equal(partial.taxableCents,D(53800));assert.deepEqual(ctSocialSecurityAdjustment({year:2025,filingStatus:'single',agiCents:D(95800),taxableCents:partial.taxableCents,worksheet:partial.worksheet}),{A:D(100000),B:D(67000),C:D(67000),D:D(16750),E:D(53800),F:D(37050)});
+ for(const year of [2023,2024,2025])for(const filingStatus of ['single','headOfHousehold','marriedJoint','marriedSeparate','survivingSpouse'])for(const livedApartAllYear of ['yes','no']){
+  const federal=socialSecurityBenefits({year,filingStatus,netBenefitsCents:D(20000),otherIncomeCents:D(150000),taxExemptInterestCents:0,adjustmentsCents:0,livedApartAllYear});const high=ctSocialSecurityAdjustment({year,filingStatus,agiCents:D(167000),taxableCents:federal.taxableCents,worksheet:federal.worksheet,livedApartAllYear});assert.equal(high.F,D(12000));assert.equal(high.B,federal.worksheet[filingStatus==='marriedSeparate'&&livedApartAllYear==='no'?'7':'9']);const low=ctSocialSecurityAdjustment({year,filingStatus,agiCents:D(70000),taxableCents:D(17000),worksheet:federal.worksheet,livedApartAllYear});assert.equal(low.F,D(17000));
+ }
+});
+test('DRS Anna teacher-election example: 68000 pension subtraction or separate teacher 50%; no double deduction',()=>{
+ for(const year of [2023,2024,2025]){const f=fixture(year);add(f,30000,'qualifiedPlan','teachers','pension');add(f,38000,'qualifiedPlan');let result=compute(f);assert.equal(result.lines['48b'],D(68000));assert.equal(result.lines['45'],0);assert.equal(result.lines['5'],0);f.state.retirement.distributions[0].teacherElection='teacher50';result=compute(f);assert.equal(result.lines['48b'],D(38000));assert.equal(result.lines['45'],D(15000));assert.equal(result.lines['5'],D(15000));f.state.adjustments.push({...newCTAdjustment(),line:'45',amountCents:D(30000),source:'Synthetic conflicting source',reviewed:true});assert.equal(compute(f).lines['5'],null);}
+});
+test('source links, stale classifications, military eligibility, railroad allocation and manual equality fail closed',()=>{
+ let f=fixture();add(f,30000,'qualifiedPlan','military');assert.equal(compute(f).lines['44'],D(30000));assert.equal(compute(f).lines['48b'],0);f.state.adjustments=[{...newCTAdjustment(),line:'44',amountCents:D(30000),source:'Synthetic matching source',reviewed:true}];assert.equal(compute(f).lines['50'],D(30000));f.state.adjustments[0].amountCents++;assert.equal(compute(f).lines['5'],null);
+ f=fixture();add(f,20000,'qualifiedPlan');f.state.retirement.distributions[0].reviewed=false;assert.equal(compute(f).summary.totalTaxCents,null);f.state.retirement.distributions[0].reviewed=true;f.state.retirement.distributions[0].distributionId='deleted-source';assert.equal(compute(f).lines['48b'],null);
+ f=fixture();add(f,20000);f.input.individual.retirementIncome.benefits.push({...newSocialSecurityBenefit(),form:'RRB-1099',benefitsPaidCents:D(10000),source:'Synthetic railroad benefit'});assert(compute(f).diagnostics.some(row=>row.code==='CT_RAILROAD_ALLOCATION_REQUIRED'));assert.equal(compute(f).lines['5'],null);
+ f=fixture();add(f,20000);f.input.individual.retirementIncome.distributions[0].reportedTaxableCents=D(18000);assert.equal(compute(f).lines['48b'],null);
+});
+test('rounded pension classifications reconcile to printed federal5b before a state deduction',()=>{
+ const f=fixture();add(f,.50,'qualifiedPlan','military');add(f,.50,'qualifiedPlan','ordinary');const result=compute(f);assert.equal(result.lines['1'],100);assert.equal(result.lines['44'],100);assert.equal(result.lines['48b'],0);assert.equal(result.lines['5'],0);
+ f.state.retirement.distributions[1].kind='teachers';f.state.retirement.distributions[1].teacherElection='teacher50';const conflict=compute(f);assert.equal(conflict.lines['5'],null);assert(conflict.diagnostics.some(row=>row.code==='CT_PENSION_ROUNDING_ALLOCATION'));
+});
+test('full federal-to-CT retirement carry and original annual PDFs contain calculated line41/48b values',async()=>{
+ for(const year of [2023,2024,2025]){const f=fixture(year);add(f,50000);f.input.individual.retirementIncome.benefits.push({...newSocialSecurityBenefit(),benefitsPaidCents:D(20000),source:'Synthetic SSA-1099'});const before=structuredClone(f.input),result=compute(f);assert.equal(result.retirement.known,true);assert.equal(result.lines['41'],D(17000));assert.equal(result.lines['48b'],D({2023:12500,2024:25000,2025:37500}[year]));assert.equal(result.lines['5'],D({2023:37500,2024:25000,2025:12500}[year]));assert.deepEqual(f.input,before);const rendered=await renderCTForm(f.input,result.forms[0],{loadTemplate:(id,y)=>readFile(new URL(`../forms/${y}/${id}.pdf`,import.meta.url))});const text=pdfText(rendered.bytes,'-layout');assert.match(text,/17000/);assert.match(text,new RegExp(String(result.lines['48b']/100)));for(const line of ['41','48b'])assert(rendered.audit.fields.some(field=>field.line===line));}
+});

@@ -1,0 +1,38 @@
+{
+  "reviewedOn": "2026-11-13",
+  "scope": "Zero-credit source proofs only; annual parameters are published, boundary vectors are independently derived synthetic cases, not IRS taxpayer examples.",
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "p596",
+      "file": "p596--2023.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2023.pdf",
+      "bytes": 1933698,
+      "sha256": "6e87be5f50d78fdc3e7497b237b7b0e66c128ae7a44de66033e131b97c0ec130"
+    },
+    {
+      "year": 2024,
+      "id": "p596",
+      "file": "p596--2024.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2024.pdf",
+      "bytes": 1998210,
+      "sha256": "e422d1fa90fe8b6eef48b6b2b474dc7081f7d092f932bec0b93e5cfb77ba00e6"
+    },
+    {
+      "year": 2025,
+      "id": "p596",
+      "file": "p596--2025.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2025.pdf",
+      "bytes": 2093863,
+      "sha256": "29e8c6695912318253743210fcd68aaa10ad874c76edcab4aa7dc4b23ff51dbf"
+    },
+    {
+      "year": 2026,
+      "id": "rp-25-32",
+      "file": "rp-25-32.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
+      "bytes": 260406,
+      "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    }
+  ]
+}

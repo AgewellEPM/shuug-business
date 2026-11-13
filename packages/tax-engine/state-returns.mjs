@@ -2,6 +2,7 @@ import {strictObject,list,text,diagnostic} from './model.mjs';
 import {checkedMoney,sumMoney,wholeDollars as R} from './money.mjs';
 import {ctYears,ctTaxCalculation,ctPropertyTaxCredit} from './state-ct-rates.mjs';
 import {calculateNYResident,nyYears} from './state-ny.mjs';
+import {ctRetirementAdjustments} from './state-ct-retirement.mjs';
 
 export const ctReviews=Object.freeze([
  ['residency','Full-year Connecticut residency, matching federal filing status and spouse residency reviewed'],
@@ -30,7 +31,7 @@ const validDate=(date,year)=>/^\d{4}-\d{2}-\d{2}$/.test(date)&&date.slice(0,4)==
 const flags=(value,keys,label)=>{strictObject(value,keys,label);for(const key of keys)if(typeof value[key]!=='boolean')throw new Error(`${label} requires explicit yes/no values.`);};
 function sourceReview(row,label,diagnostics){text(row.source,`${label} source`,500);if(typeof row.reviewed!=='boolean')throw new Error(`${label} review must be explicit.`);const ready=row.reviewed&&row.source.trim().length>0;if(!ready)diagnostics.push(diagnostic('CT_SOURCE_REVIEW',`${label} requires its source reference and eligibility/amount review.`));return ready;}
 function validatedCT(value,year,status,diagnostics){
- strictObject(value,Object.keys(newCTStateReturn()),'Connecticut resident return');
+ strictObject(value,[...Object.keys(newCTStateReturn()),'retirement'],'Connecticut resident return');
  if(!['resident','partYear','nonresident'].includes(value.residency))throw new Error('Choose the Connecticut residency classification.');
  text(value.town,'Connecticut town',70);text(value.townZip,'Connecticut town ZIP',10);if(value.townZip&&!/^\d{5}(?:-\d{4})?$/.test(value.townZip))throw new Error('Connecticut town ZIP must have five or nine digits.');
  flags(value.review,ctReviews.map(([key])=>key),'Connecticut review');for(const [key,label]of ctReviews)if(!value.review[key])diagnostics.push(diagnostic('CT_REVIEW_'+key.toUpperCase(),label+'.',{field:`individual.stateReturns.CT.review.${key}`}));
@@ -70,6 +71,7 @@ export function calculateCTResident(input,value,federalResult){
  if(value.residency!=='resident'){diagnostics.push(diagnostic('CT_RESIDENCY_UNSUPPORTED','Nonresident and part-year returns require CT-1040NR/PY and allocation schedules. This CT-1040 resident pack does not calculate them.'));return result;}
  if(status==='marriedSeparate'&&(!input.individual.spouseName?.trim()||!/^\d{9}$/.test(input.individual.spouseTaxId?.replaceAll('-','')??'')))diagnostics.push(diagnostic('CT_SEPARATE_SPOUSE_IDENTITY','Connecticut married-filing-separately status requires the spouse name and Social Security number on the resident form.'));
  if(year===2023)diagnostics.push(diagnostic('CT_SOURCE_DRAFT_MARK','The 2023 CT-1040 PDF currently linked by DRS carries its original DRAFT 12-12-2023 mark. It is preserved in this review packet; a verified final filing template remains required.'));
+ result.retirement=ctRetirementAdjustments(input,value,federalResult);diagnostics.push(...result.retirement.diagnostics);Object.assign(lines,result.retirement.lines);valid.adjustmentsKnown&&=result.retirement.known;
  const agiKnown=federalResult.adjustedGrossIncomeKnown===true&&Number.isSafeInteger(federalResult.summary?.adjustedGrossIncomeCents),known=agiKnown&&valid.adjustmentsKnown&&value.review.residency;
  if(!agiKnown)diagnostics.push(diagnostic('CT_FEDERAL_AGI_UNRESOLVED','Resolve the federal adjusted gross income before Connecticut AGI and income tax can be calculated.'));
  lines['1']=agiKnown?R(federalResult.summary.adjustedGrossIncomeCents):null;
@@ -78,15 +80,19 @@ export function calculateCTResident(input,value,federalResult){
  lines['2']=lines['38'];lines['3']=lines['1']===null||lines['2']===null?null:sumMoney([lines['1'],lines['2']]);lines['4']=lines['50'];lines['5']=known?sumMoney([lines['3'],-lines['4']]):null;
  if(known)result.calculation=ctTaxCalculation(lines['5'],{year,filingStatus:status});
  lines['6']=result.calculation?.incomeTaxCents??null;
- const ordinary=value.unsupportedTreatments.length===0&&value.review.coverage&&value.review.credits;
+ const dependentSchedule=federalResult.dependents?.required===true;
+ if(dependentSchedule&&!value.unsupportedTreatments.includes('dependents'))diagnostics.push(diagnostic('CT_DEPENDENT_SCHEDULE_REQUIRED','Federal dependent intake requires Connecticut dependent disclosure and related credit review. Schedule CT-Dependent is not populated by this resident pack; completing federal Schedule 8812 does not complete the state requirement.'));
+ const ordinary=!dependentSchedule&&value.unsupportedTreatments.length===0&&value.review.coverage&&value.review.credits;
+ const federalEicZero=federalResult.earnedIncomeCredit?.amountCents===0;if(!federalEicZero)diagnostics.push(diagnostic('CT_FEDERAL_EIC_UNRESOLVED','Federal EIC is unresolved or positive. Complete Schedule CT-EITC and CT-1040 line 20a before Connecticut payments, refund or balance are known. A general state credit review does not establish a zero federal credit.'));
  for(const line of ['7','9','13','20a','20b','20c',...(year>=2024?['20d']:[])])lines[line]=ordinary?0:null;
+ if(!federalEicZero)lines['20a']=null;
  lines['8']=ordinary?lines['6']:null;lines['10']=lines['8'];
  if(known&&ordinary&&valid.propertyKnown)result.propertyCredit=ctPropertyTaxCredit(lines['5'],sumMoney(value.propertyTaxes.map(row=>R(row.amountCents))),lines['10'],{year,filingStatus:status});
  const property=result.propertyCredit;lines['11']=property?.allowedCreditCents??null;lines['12']=lines['10']===null||lines['11']===null?null:Math.max(0,lines['10']-lines['11']);lines['14']=ordinary?lines['12']:null;
  for(const [line,key]of [['69a','onePercentCents'],['69b','generalCents'],['69c','luxuryCents'],['69d','vesselsCents']])lines[line]=valid.useKnown?R(value.useTax[key]):null;
  lines['69']=valid.useKnown?sumMoney(['69a','69b','69c','69d'].map(line=>lines[line])):null;lines['15']=lines['69'];lines['16']=lines['14']===null||lines['15']===null?null:sumMoney([lines['14'],lines['15']]);lines['17']=lines['16'];
  lines['18']=valid.withholdingKnown?sumMoney(value.withholdings.map(row=>R(row.withholdingCents))):null;lines['19']=value.review.payments?R(sumMoney([value.estimatedPaymentsCents,value.priorYearAppliedCents])):null;lines['20']=value.review.payments?R(value.extensionPaymentCents):null;
- lines['21']=ordinary&&lines['18']!==null&&lines['19']!==null&&lines['20']!==null?sumMoney([lines['18'],lines['19'],lines['20']]):null;
+ lines['21']=ordinary&&federalEicZero&&lines['18']!==null&&lines['19']!==null&&lines['20']!==null?sumMoney([lines['18'],lines['19'],lines['20']]):null;
  const settlementKnown=lines['17']!==null&&lines['21']!==null;lines['22']=settlementKnown?Math.max(0,lines['21']-lines['17']):null;lines['23']=R(value.nextYearAppliedCents);lines['24']=0;lines['24a']=0;
  const excessApplication=lines['22']!==null&&lines['23']>lines['22'];if(excessApplication)diagnostics.push(diagnostic('CT_OVERPAYMENT_APPLICATION','The amount applied to next year exceeds the calculated Connecticut overpayment.'));
  lines['25']=lines['22']===null||excessApplication||!value.review.filingCharges?null:lines['22']-lines['23'];lines['26']=settlementKnown?Math.max(0,lines['17']-lines['21']):null;for(const line of ['27','28','29'])lines[line]=ordinary&&value.review.filingCharges?0:null;lines['30']=lines['27']===null?null:lines['26'];
