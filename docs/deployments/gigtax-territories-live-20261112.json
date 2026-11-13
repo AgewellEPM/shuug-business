@@ -1,0 +1,269 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T04:04:56.735Z",
+  "scope": "Installed MCP reads actual deployed catalogs in all 50 states/DC; no real salesperson or office assignment changes.",
+  "results": [
+    {
+      "state": "AK",
+      "localities": 355,
+      "firstPageMatches": true
+    },
+    {
+      "state": "AL",
+      "localities": 594,
+      "firstPageMatches": true
+    },
+    {
+      "state": "AR",
+      "localities": 1201,
+      "firstPageMatches": true
+    },
+    {
+      "state": "AZ",
+      "localities": 464,
+      "firstPageMatches": true
+    },
+    {
+      "state": "CA",
+      "localities": 1598,
+      "firstPageMatches": true
+    },
+    {
+      "state": "CO",
+      "localities": 482,
+      "firstPageMatches": true
+    },
+    {
+      "state": "CT",
+      "localities": 169,
+      "firstPageMatches": true
+    },
+    {
+      "state": "DC",
+      "localities": 1,
+      "firstPageMatches": true
+    },
+    {
+      "state": "DE",
+      "localities": 79,
+      "firstPageMatches": true
+    },
+    {
+      "state": "FL",
+      "localities": 951,
+      "firstPageMatches": true
+    },
+    {
+      "state": "GA",
+      "localities": 674,
+      "firstPageMatches": true
+    },
+    {
+      "state": "HI",
+      "localities": 161,
+      "firstPageMatches": true
+    },
+    {
+      "state": "IA",
+      "localities": 1028,
+      "firstPageMatches": true
+    },
+    {
+      "state": "ID",
+      "localities": 235,
+      "firstPageMatches": true
+    },
+    {
+      "state": "IL",
+      "localities": 2473,
+      "firstPageMatches": true
+    },
+    {
+      "state": "IN",
+      "localities": 1252,
+      "firstPageMatches": true
+    },
+    {
+      "state": "KS",
+      "localities": 1297,
+      "firstPageMatches": true
+    },
+    {
+      "state": "KY",
+      "localities": 551,
+      "firstPageMatches": true
+    },
+    {
+      "state": "LA",
+      "localities": 522,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MA",
+      "localities": 435,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MD",
+      "localities": 801,
+      "firstPageMatches": true
+    },
+    {
+      "state": "ME",
+      "localities": 509,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MI",
+      "localities": 1563,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MN",
+      "localities": 2247,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MO",
+      "localities": 1728,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MS",
+      "localities": 431,
+      "firstPageMatches": true
+    },
+    {
+      "state": "MT",
+      "localities": 496,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NC",
+      "localities": 1459,
+      "firstPageMatches": true
+    },
+    {
+      "state": "ND",
+      "localities": 1499,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NE",
+      "localities": 1349,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NH",
+      "localities": 284,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NJ",
+      "localities": 873,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NM",
+      "localities": 518,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NV",
+      "localities": 138,
+      "firstPageMatches": true
+    },
+    {
+      "state": "NY",
+      "localities": 1849,
+      "firstPageMatches": true
+    },
+    {
+      "state": "OH",
+      "localities": 1675,
+      "firstPageMatches": true
+    },
+    {
+      "state": "OK",
+      "localities": 840,
+      "firstPageMatches": true
+    },
+    {
+      "state": "OR",
+      "localities": 425,
+      "firstPageMatches": true
+    },
+    {
+      "state": "PA",
+      "localities": 2754,
+      "firstPageMatches": true
+    },
+    {
+      "state": "RI",
+      "localities": 63,
+      "firstPageMatches": true
+    },
+    {
+      "state": "SC",
+      "localities": 472,
+      "firstPageMatches": true
+    },
+    {
+      "state": "SD",
+      "localities": 1041,
+      "firstPageMatches": true
+    },
+    {
+      "state": "TN",
+      "localities": 536,
+      "firstPageMatches": true
+    },
+    {
+      "state": "TX",
+      "localities": 1842,
+      "firstPageMatches": true
+    },
+    {
+      "state": "UT",
+      "localities": 333,
+      "firstPageMatches": true
+    },
+    {
+      "state": "VA",
+      "localities": 1043,
+      "firstPageMatches": true
+    },
+    {
+      "state": "VT",
+      "localities": 316,
+      "firstPageMatches": true
+    },
+    {
+      "state": "WA",
+      "localities": 637,
+      "firstPageMatches": true
+    },
+    {
+      "state": "WI",
+      "localities": 1439,
+      "firstPageMatches": true
+    },
+    {
+      "state": "WV",
+      "localities": 570,
+      "firstPageMatches": true
+    },
+    {
+      "state": "WY",
+      "localities": 204,
+      "firstPageMatches": true
+    }
+  ],
+  "savedRecordsUnchanged": true,
+  "connecticut": {
+    "towns": 169,
+    "secondPage": 69,
+    "hartfordSearch": 4
+  },
+  "totalLocalities": 44456
+}

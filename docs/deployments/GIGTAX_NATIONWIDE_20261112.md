@@ -39,8 +39,15 @@ office was created. Prepared release: `~/BuildCache/GigTaxNationwide-20261112/re
 Its guard matches 227 baseline artifacts and prepares 445 files; all 88 protected
 static artifacts and existing routes/headers/CSP remain exact. The prior protected
 count included the private console script that this requested interface changes.
-Town interface deployment and deployed catalog checks remain pending in this
-source checkpoint. Human Safari/phone acceptance remains separate.
+Town source `177fc3f557bc7f145a9de5a22b1ba5d077d2e220` is GitHub-SHA-verified.
+Ready deployment `dpl_HyZvLPudGv6MBqDG891gMxsUxWZK` serves https://gigtax.pro/sales.
+All 445 uploaded artifacts, 104 static HTTP files and 88 protected static artifacts
+match the tested release. Installed MCP checked all 51 deployed town catalogs
+against the source records: 44,456 locality names, CT pagination 100 + 69, and four
+Hartford-name search matches. Real saved offices/agents remained unchanged.
+The existing Hartford map, principal/contact reader, commission card, authentication,
+mail/payment deferral and public site checks still pass. Human Safari/phone
+acceptance remains separate; no prohibited browser runtime was used.
 
 Canonical checkout is `Worktrees/GigTaxProsSalesIntegrated-20261107`, branch
 `feat/gig-tax-pros-sales-integrated`. The existing public GitHub remote is
@@ -91,10 +98,9 @@ inconsistent. No visual acceptance or complete registry coverage claimed.
 
 ## Remaining work and evidence
 
-- Publish and verify the prepared territory interface. Run
-  `scripts/sales/verify-territories-live.mjs` against the deployed portal; it checks
-  every state's actual first-page records against the saved Census catalog,
-  Connecticut pagination/search and unchanged real offices/agents.
+- Luke reviews the live town assignment interface in Safari/phone. No real agents
+  exist yet, so add the intended salesperson in Sales team before assigning their
+  towns in Territories. No actual person's access or assignments were fabricated.
 - Remaining official sources require individual free adapters. Iowa moved its
   public data to `idh-be.iowa.gov/api/v1/datasets/554/rows.json`; the documented
   download ignored `limit=1` and exceeded the bounded probe. Its separate SOS API
@@ -107,7 +113,8 @@ inconsistent. No visual acceptance or complete registry coverage claimed.
 
 Count-only deployed evidence is in `gigtax-nationwide-live-20261112.json` and
 `gigtax-nationwide-preservation-live-20261112.json`. Territory D1 and preservation
-receipts are adjacent. Local source metadata and additional receipts are under
+receipts are adjacent, together with `gigtax-territories-live-20261112.json` and
+`gigtax-territories-deployed-live-20261112.json`. Local source metadata and additional receipts are under
 `~/BuildCache/GigTaxNationwide-20261112`. No real agent, CRM contact, contract,
 message or payment was created. Mail remains unconfigured and payments deferred.
 Preserve the unrelated untracked How It Works HTTP receipt and parallel work.
