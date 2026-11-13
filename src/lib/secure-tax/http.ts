@@ -4,7 +4,7 @@ import { boundedBytes, driverToken, privateHeaders } from "../rideshare-driver/h
 import { DriverError } from "../rideshare-driver/model";
 import { SecureTaxError } from "./manifest";
 import { workspaceDatabase } from "../workspace/database";
-import { driverAccount } from "../rideshare-driver/policy";
+import { secureAccount } from "./account-scope";
 
 function trustedOrigin() {
   const value = process.env.SHUUG_SECURE_TAX_TRUSTED_ORIGIN;
@@ -23,7 +23,7 @@ export function secureRequestToken(request: Request, mutation = false) {
   if (mutation && !bearer && (!permitted || origin !== permitted)) throw new SecureTaxError(403, "Encrypted browser changes require an explicitly configured independent trusted origin.");
   return driverToken(request, true);
 }
-export function authenticateSecureRequest(token: string | undefined) { workspaceDatabase(db => driverAccount(db, token)); }
+export function authenticateSecureRequest(token: string | undefined) { workspaceDatabase(db => secureAccount(db, token)); }
 export async function secureJson(request: Request, maximum: number) {
   if (request.headers.get("content-type")?.split(";")[0].trim().toLowerCase() !== "application/json") throw new SecureTaxError(415, "Use a JSON encrypted envelope.");
   try { return JSON.parse((await boundedBytes(request, maximum)).toString("utf8")); }

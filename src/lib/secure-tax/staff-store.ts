@@ -1,3 +1,4 @@
+import { activeSecureAccount } from "./account-scope";
 import type { DatabaseSync } from "node:sqlite";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -48,11 +49,9 @@ function targetStaff(db: DatabaseSync, id: string): WorkspaceUser {
   return { ...row, role: role === "Owner" ? "Employee" : role, isOwner: false };
 }
 function sourceScope(db: DatabaseSync, grant: StaffGrant): SignedRecipientManifest {
-  must(hasTable(db, "customer_accounts") && hasTable(db, "secure_tax_enrollments"), "The encrypted client enrollment is unavailable.");
-  const account = db.prepare("SELECT id,clientId FROM customer_accounts WHERE id=? AND status='active'").get(grant.accountId) as { id: string; clientId: string } | undefined;
-  must(account && account.clientId === grant.clientId, "The encrypted account's client link changed or is unavailable.");
-  const client = db.prepare("SELECT body FROM records WHERE id=? AND kind='client'").get(grant.clientId) as { body: string } | undefined;
-  must(client && !["archived", "inactive", "cancelled"].includes(JSON.parse(client.body).status), "The linked service client is unavailable.");
+  must(hasTable(db,"secure_tax_enrollments"),"The encrypted client enrollment is unavailable.");
+  const account=activeSecureAccount(db,grant.accountId);
+  must(account&&account.clientId===grant.clientId,"The encrypted account's client link changed or is unavailable.");
   const enrollment = db.prepare("SELECT * FROM secure_tax_enrollments WHERE accountId=? AND status='active'").get(grant.accountId) as { clientId: string; workspaceId: string; epoch: number; manifestId: string; clientRecipientId: string; firmRecipientId: string; manifest: string } | undefined;
   must(enrollment && enrollment.clientId === grant.clientId && enrollment.workspaceId === grant.workspaceId, "The signed grant belongs to another enrollment.");
   const manifest = verifyRecipientManifest(JSON.parse(enrollment.manifest), account);

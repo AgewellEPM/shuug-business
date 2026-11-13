@@ -14,11 +14,15 @@ import { saveDriverRecord } from "../rideshare-driver/store";
 import { addRecord } from "../sdk/records";
 import { moduleById } from "../sdk/registry";
 import { acceptCustomerInvitation, issueCustomerInvitation, signInCustomer, setCustomerEnabled, CUSTOMER_PATH } from "../customer-access/accounts";
-import { enrollSecureTax, secureTaxStatus, writeSecureTaxObject, readSecureTaxObject, deleteSecureTaxObject, listSecureTaxChanges } from "./store";
+import { enrollSecureTaxAccount, secureTaxStatus, writeSecureTaxObject, readSecureTaxObject, deleteSecureTaxObject, listSecureTaxChanges } from "./store";
 import { canonicalManifest, SECURE_TAX_DOMAINS, type SignedRecipientManifest, type SecureTaxEnvelope } from "./envelope";
 import { POST as enroll } from "@/app/api/website/customer/secure/enroll/route";
 import { GET as status } from "@/app/api/website/customer/secure/status/route";
 import { GET, PUT, DELETE, OPTIONS } from "@/app/api/website/customer/secure/objects/[id]/route";
+
+import {secureAccount} from "./account-scope";
+// Restore a historical enrolled fixture directly; new legacy activation is blocked.
+function seedHistoricalEnrollment(token:string,raw:unknown){return workspaceDatabase(db=>enrollSecureTaxAccount(db,secureAccount(db,token),raw),true);}
 
 const base = "https://workspace.example.com", trustedOrigin = "https://trusted.example.net", password = "Synthetic-vault-client-password";
 const keyPair = () => {
@@ -72,6 +76,9 @@ it("requires explicit signed enrollment and configured offhost public pins witho
   expect((await enroll(http("POST", signed))).status).toBe(503);
   expect(secureTaxStatus(alpha.token)).toMatchObject({ enrolled: false, keyProvisioningEnabled: false });
   vi.stubEnv("SHUUG_SECURE_TAX_SIGNER_PUBLIC_KEY", signer.publicKey);
+  expect((await enroll(http("POST", signed))).status).toBe(409);
+  expect(secureTaxStatus(alpha.token).enrolled).toBe(false);
+  seedHistoricalEnrollment(alpha.token,signed);
   const response = await enroll(http("POST", signed)); expect(response.status).toBe(200);
   expect(await response.json()).toMatchObject({ enrolled: true, plaintextMigrationPerformed: false });
   const row = workspaceDatabase(db => db.prepare("SELECT * FROM secure_tax_enrollments WHERE accountId=?").get(alpha.id));
@@ -80,36 +87,36 @@ it("requires explicit signed enrollment and configured offhost public pins witho
 
 it("rejects manifest substitution, forged signatures, wrong clients, expiry and epoch downgrade", () => {
   const attacker = keyPair();
-  expect(() => enrollSecureTax(alpha.token, manifest(alpha, 1, { firmRecovery: { keyId: attacker.keyId, publicKey: attacker.publicKey } }))).toThrow("public pins");
+  expect(() => seedHistoricalEnrollment(alpha.token, manifest(alpha, 1, { firmRecovery: { keyId: attacker.keyId, publicKey: attacker.publicKey } }))).toThrow("public pins");
   const forged = manifest(); forged.signature.value = randomBytes(64).toString("base64url");
-  expect(() => enrollSecureTax(alpha.token, forged)).toThrow("signature");
-  expect(() => enrollSecureTax(alpha.token, manifest(beta))).toThrow("does not belong");
-  expect(() => enrollSecureTax(alpha.token, manifest(alpha, 1, { expiresAt: new Date(Date.now() - 1).toISOString() }))).toThrow("expired");
+  expect(() => seedHistoricalEnrollment(alpha.token, forged)).toThrow("signature");
+  expect(() => seedHistoricalEnrollment(alpha.token, manifest(beta))).toThrow("does not belong");
+  expect(() => seedHistoricalEnrollment(alpha.token, manifest(alpha, 1, { expiresAt: new Date(Date.now() - 1).toISOString() }))).toThrow("expired");
   const first = manifest(), second = manifest(alpha, 2);
-  enrollSecureTax(alpha.token, first); enrollSecureTax(alpha.token, second);
-  expect(() => enrollSecureTax(alpha.token, first)).toThrow("older");
-  expect(() => enrollSecureTax(alpha.token, manifest(alpha, 2, { manifestId: "changed-same-epoch" }))).toThrow("higher epoch");
-  expect(enrollSecureTax(alpha.token, second).enrolled).toBe(true);
+  seedHistoricalEnrollment(alpha.token, first); seedHistoricalEnrollment(alpha.token, second);
+  expect(() => seedHistoricalEnrollment(alpha.token, first)).toThrow("older");
+  expect(() => seedHistoricalEnrollment(alpha.token, manifest(alpha, 2, { manifestId: "changed-same-epoch" }))).toThrow("higher epoch");
+  expect(seedHistoricalEnrollment(alpha.token, second).enrolled).toBe(true);
 });
 
 it("renews existing keys but refuses to orphan live objects by rotating either recipient", () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   writeSecureTaxObject(alpha.token, "opaque-object", { mutationId: "create", expectedRevision: 0, envelope: envelope() });
   const nextClient = { ...alpha, key: keyPair() };
-  expect(() => enrollSecureTax(alpha.token, manifest(nextClient, 2))).toThrow("rewrap or migration");
-  expect(enrollSecureTax(alpha.token, manifest(alpha, 2))).toMatchObject({ enrolled: true, manifest: { epoch: 2 } });
+  expect(() => seedHistoricalEnrollment(alpha.token, manifest(nextClient, 2))).toThrow("rewrap or migration");
+  expect(seedHistoricalEnrollment(alpha.token, manifest(alpha, 2))).toMatchObject({ enrolled: true, manifest: { epoch: 2 } });
   expect(readSecureTaxObject(alpha.token, "opaque-object")).toHaveProperty("envelope");
   const previousRecovery = recovery;
   recovery = keyPair(); vi.stubEnv("SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY", recovery.publicKey);
-  expect(() => enrollSecureTax(alpha.token, manifest(alpha, 3))).toThrow("rewrap or migration");
+  expect(() => seedHistoricalEnrollment(alpha.token, manifest(alpha, 3))).toThrow("rewrap or migration");
   recovery = previousRecovery; vi.stubEnv("SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY", recovery.publicKey);
   expect(secureTaxStatus(alpha.token)).toMatchObject({ manifest: { epoch: 2, client: { keyId: alpha.key.keyId }, firmRecovery: { keyId: recovery.keyId } } });
   deleteSecureTaxObject(alpha.token, "opaque-object", { expectedRevision: 1 });
-  expect(enrollSecureTax(alpha.token, manifest(nextClient, 3))).toMatchObject({ enrolled: true, manifest: { epoch: 3, client: { keyId: nextClient.key.keyId } } });
+  expect(seedHistoricalEnrollment(alpha.token, manifest(nextClient, 3))).toMatchObject({ enrolled: true, manifest: { epoch: 3, client: { keyId: nextClient.key.keyId } } });
 });
 
 it("stores opaque envelopes for every supported feature domain and returns metadata-only sync pages", () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   for (const [index, domain] of SECURE_TAX_DOMAINS.entries()) {
     writeSecureTaxObject(alpha.token, `object-${index}`, { mutationId: `write-${index}`, expectedRevision: 0, envelope: envelope(alpha, `object-${index}`, 1, domain) });
   }
@@ -122,7 +129,7 @@ it("stores opaque envelopes for every supported feature domain and returns metad
 });
 
 it("refuses plaintext aliases, malformed framing, unknown domains and untrusted envelope recipients", async () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   const original = envelope();
   for (const value of [ { ...original, plaintext: { ssn: "000-11-2222" } }, { ...original, filename: "Sensitive taxpayer.pdf" }, { ...original, recipients: [original.recipients[0]] }, { ...original, context: { ...original.context, domain: "plaintext-tax" } }, { ...original, context: { ...original.context, objectId: "opaque-object\n" } }, { ...original, version: 1 }, { ...original, hpkeMode: "base" }, { ...original, author: undefined } ]) {
     const response = await PUT(http("PUT", { mutationId: "bad", expectedRevision: 0, envelope: value }), ctx());
@@ -136,7 +143,7 @@ it("refuses plaintext aliases, malformed framing, unknown domains and untrusted 
 });
 
 it("enforces account ownership, origin policy and authentication before reading encrypted mutation bodies", async () => {
-  enrollSecureTax(alpha.token, manifest()); enrollSecureTax(beta.token, manifest(beta));
+  seedHistoricalEnrollment(alpha.token, manifest()); seedHistoricalEnrollment(beta.token, manifest(beta));
   const input = { mutationId: "create", expectedRevision: 0, envelope: envelope() };
   expect((await PUT(http("PUT", input), ctx())).status).toBe(200);
   expect((await GET(http("GET", undefined, beta.token), ctx())).status).toBe(404);
@@ -154,7 +161,7 @@ it("enforces account ownership, origin policy and authentication before reading 
 });
 
 it("makes retries idempotent and refuses stale revisions or rebinding authenticated context", () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   const input = { mutationId: "create", expectedRevision: 0, envelope: envelope() };
   expect(writeSecureTaxObject(alpha.token, "opaque-object", input)).toMatchObject({ revision: 1, duplicate: false });
   expect(writeSecureTaxObject(alpha.token, "opaque-object", input)).toMatchObject({ revision: 1, duplicate: true });
@@ -167,7 +174,7 @@ it("makes retries idempotent and refuses stale revisions or rebinding authentica
 });
 
 it("purges live ciphertext and every object mutation cache, leaving only a content-free tombstone", async () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   const input = { mutationId: "create", expectedRevision: 0, envelope: envelope() };
   writeSecureTaxObject(alpha.token, "opaque-object", input);
   writeSecureTaxObject(alpha.token, "opaque-object", { mutationId: "update", expectedRevision: 1, envelope: envelope(alpha, "opaque-object", 2) });
@@ -183,16 +190,16 @@ it("purges live ciphertext and every object mutation cache, leaving only a conte
 });
 
 it("rechecks session revocation and missing pins and never falls back to plaintext access", async () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   setCustomerEnabled(alpha.id, false);
   expect((await status(http())).status).toBe(401);
-  enrollSecureTax(beta.token, manifest(beta)); vi.stubEnv("SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY", "");
+  seedHistoricalEnrollment(beta.token, manifest(beta)); vi.stubEnv("SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY", "");
   expect((await GET(http("GET", undefined, beta.token), ctx())).status).toBe(503);
   expect(() => listSecureTaxChanges(beta.token)).toThrow("disabled");
 });
 
 it("rejects a fresh authenticated ciphertext that targets a deleted object's exact current revision", async () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   writeSecureTaxObject(alpha.token, "opaque-object", { mutationId: "create", expectedRevision: 0, envelope: envelope() });
   deleteSecureTaxObject(alpha.token, "opaque-object", { expectedRevision: 1 });
   const before = readSecureTaxObject(alpha.token, "opaque-object");
@@ -203,7 +210,7 @@ it("rejects a fresh authenticated ciphertext that targets a deleted object's exa
 });
 
 it("deletes the final accepted encrypted revision into a bounded tombstone and retries without resurrection", async () => {
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   writeSecureTaxObject(alpha.token, "opaque-object", { mutationId: "create", expectedRevision: 0, envelope: envelope() });
   // Advance a synthetic fixture directly instead of making a billion writes.
   workspaceDatabase(db => db.prepare("UPDATE secure_tax_objects SET revision=?,body=? WHERE accountId=? AND id='opaque-object'")
@@ -229,7 +236,7 @@ it("reports enrollment separately from legacy migration and retained provider au
     db.exec("CREATE TABLE driver_bank_items(id TEXT PRIMARY KEY,accountId TEXT,clientId TEXT,secret TEXT)");
     db.prepare("INSERT INTO driver_bank_items VALUES('synthetic-bank',?,?,?)").run(alpha.id, alpha.clientId, "synthetic-host-held-provider-token");
   }, true);
-  const result = enrollSecureTax(alpha.token, manifest());
+  const result = seedHistoricalEnrollment(alpha.token, manifest());
   expect(result).toMatchObject({ enrolled: true, plaintextMigrationPerformed: false, legacyMigrationRequired: true, legacyProviderAuthorizationPresent: true,
     migrationVerificationRequired: true, hostCompromiseProtectionVerified: false, backupAndHistoryReviewRequired: true,
     legacyCounts: { driverRecords: 1, driverMutationCaches: 1, bankProviderAuthorizations: 1, sdkTaxRecords: 1 } });
@@ -249,7 +256,7 @@ it("reports enrollment separately from legacy migration and retained provider au
   const common = { syntheticOnly: true, context, clientPublicKey: alpha.key.publicKey, firmRecoveryPublicKey: recovery.publicKey };
   const authorPrivateKey = alpha.key.privateKey.export({ format: "jwk" }).d!;
   const { envelope: encrypted } = run("seal", { ...common, plaintext: plaintext.toString("base64url"), authorRole: "client", authorPrivateKey });
-  enrollSecureTax(alpha.token, manifest());
+  seedHistoricalEnrollment(alpha.token, manifest());
   writeSecureTaxObject(alpha.token, context.objectId, { mutationId: "native-write", expectedRevision: 0, envelope: encrypted });
   const stored = readSecureTaxObject(alpha.token, context.objectId) as { envelope: unknown };
   for (const [role, key] of [["client", alpha.key], ["firm-recovery", recovery]] as const) {

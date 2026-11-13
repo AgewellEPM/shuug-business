@@ -1,5 +1,5 @@
-export type MfaKind = "owner" | "employee" | "customer";
-export type MfaAudience = "staff" | "customer";
+export type MfaKind = "owner" | "employee" | "customer" | "secure-customer";
+export type MfaAudience = "staff" | "customer" | "secure-customer";
 export interface MfaSubject { kind: MfaKind; id: string }
 export interface MfaChallenge {
   challengeToken: string;

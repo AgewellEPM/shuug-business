@@ -1,3 +1,4 @@
+import {assertPrivateInvitation,privateAccountCode} from '../client-enrollment.mjs';
 import { verifyStaffGrant, verifyStaffCapsuleSignature, openStaffCapsule } from '../staff-grants.mjs';
 import { BrowserKeyStore, createClientKey, importEncryptedBackup, assertPrivateKey } from './custody.mjs';
 import { validateTrustedConfig } from './config.mjs';
@@ -77,6 +78,16 @@ export class StaffVaultClient {
     catch(error){this.#forgetSession();throw error;}
   }
   async signOut(){const pending=this.#token?this.#request('/session','DELETE'):Promise.resolve();this.#forgetSession();try{await pending;}catch{throw new Error('Local staff view cleared. The API could not confirm session revocation.');}}
+  async createClientInvitation(){
+    if(!this.isOwner)throw new Error('Only the verified owner can invite a new encrypted account.');const generation=this.#generation,result=await this.#request('/client-invitations','POST',{},4096);this.#same(generation);return clone(assertPrivateInvitation(result,this.#config.workspaceId));
+  }
+  async setClientAccess(accountCode,enabled){
+    if(!this.isOwner||typeof enabled!=='boolean')throw new Error('Use the verified owner account to change client access.');privateAccountCode(accountCode);
+    const generation=this.#generation,result=await this.#request('/client-access','POST',{accountCode,enabled},1024);this.#same(generation);if(result?.accountCode!==accountCode||result.enabled!==enabled||result.sessionsRevoked!==true)throw new Error('The API did not confirm this account access change.');if(this.#selection?.accountId===accountCode)this.#clear();return result;
+  }
+  async revokeClientInvitation(invitationId){
+    if(!this.isOwner||typeof invitationId!=='string'||!/^[0-9a-f-]{36}$/.test(invitationId))throw new Error('Choose the invitation to revoke as the verified owner.');const generation=this.#generation,result=await this.#request('/client-invitations','DELETE',{invitationId},1024);this.#same(generation);if(typeof result?.revoked!=='boolean')throw new Error('The API did not confirm invitation revocation.');return result;
+  }
   async keys(){
     const keys=await this.#storage.listKeys(),marked=[];
     for(const key of keys)if((await this.#storage.getBinding(`staff-local-key:${key.keyId}`))?.purpose==='staff-device')marked.push(key);

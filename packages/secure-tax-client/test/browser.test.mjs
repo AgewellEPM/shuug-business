@@ -96,7 +96,7 @@ test('setup stages independently signed manifest without enrollment or plaintext
   f.setStatus({enrolled:false,identity:{...f.identity,unexpectedPrivateAlias:'must not persist'}});await f.vault.connect();await f.vault.unlock(f.keyId);
   assert.deepEqual(f.vault.publicRequest(),{version:1,workspaceId:f.config.workspaceId,...f.identity,client:f.manifest.client});
   assert.deepEqual(await f.vault.stageManifest(f.manifest),{manifestId:f.manifest.manifestId,epoch:1,activationAvailable:false});
-  await assert.rejects(()=>f.vault.save('tax-identity',encodeJson({ssn:'000-12-3456'})),/activation is unavailable/);
+  await assert.rejects(()=>f.vault.save('tax-identity',encodeJson({ssn:'000-12-3456'})),/existing plaintext accounts require reviewed migration/);
   assert.equal(f.calls.some(call=>call.url.endsWith('/enroll')),false);assert.equal(f.calls.some(call=>call.options.body),false);
   const downgraded=await f.sign({...structuredClone(f.manifest),epoch:2});await f.vault.stageManifest(downgraded);await assert.rejects(()=>f.vault.stageManifest(f.manifest));
 });

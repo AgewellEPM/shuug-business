@@ -14,6 +14,7 @@ import {createEmployeeAccount,issueEmployeeInvitation,acceptEmployeeInvitation,s
 import {addMember} from '../src/lib/team/store.ts';
 import {assignRole} from '../src/lib/permissions/store.ts';
 import {saveBusinessRecord} from '../src/lib/workspace/store.ts';
+import {enrollSecureTaxAccount} from '../src/lib/secure-tax/store.ts';
 import {workspaceDatabase} from '../src/lib/workspace/database.ts';
 import {importBusinessTemplate} from '../src/lib/branding/templates.ts';
 import {gigTaxProsTemplate} from '../src/lib/industry/rideshare-tax-pros.ts';
@@ -100,6 +101,9 @@ try{
     return {storage,client:await StaffVaultClient.create(config,uiOrigin,{storage,fetcher})};
   }
   async function login(v,email,code){assert.deepEqual(await v.signIn(email,password),{mfaRequired:true});const pending=v.pendingMfa;const result=await v.verifySignIn(code??totp(pending.secret,Math.floor(Date.now()/30000)));checks++;return result;}
+  // Historical fixture restoration is not a new plaintext-account activation.
+  for(const name of ['SHUUG_SECURE_TAX_WORKSPACE_ID','SHUUG_SECURE_TAX_SIGNER_PUBLIC_KEY','SHUUG_SECURE_TAX_RECOVERY_PUBLIC_KEY'])process.env[name]=env[name];
+  workspaceDatabase(db=>enrollSecureTaxAccount(db,{id:account.id,clientId:client.id},manifest),true);
   await start();
   await json('/staff/status',{token:weakOwnerToken},401);
   await json('/staff/status',{token:env.WORKSPACE_ACCESS_TOKEN},401);

@@ -1,0 +1,19 @@
+const node=(document,tag,text)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;return element;};
+export function mountEnrollment(document,container,{getClient,getKeyId,run,download,onAccountCode=()=>{},onActivated=()=>{}}){
+  const section=node(document,'section');section.id='private-account-setup';section.append(node(document,'h2','Set up a new encrypted account'),node(document,'p','Create or recover your client key below and save its encrypted backup first. Load the firm’s private invitation, save the public enrollment request, and return here with the manifest signed by the firm. Keep the invitation in the agreed private channel.'));
+  const controls={};function field(id,label,type='text',maximum=200){const caption=node(document,'label',label),input=node(document,'input');input.id=`enrollment-${id}`;caption.htmlFor=input.id;input.type=type;input.maxLength=maximum;input.autocomplete='off';if(type==='file')input.accept='application/json,.json';controls[id]=input;section.append(caption,input);return input;}
+  field('invitation','Private account invitation','file');field('manifest','Firm-signed enrollment manifest','file');
+  field('legalName','Legal name (encrypted)');field('email','Contact email (optional, encrypted)','email');field('phone','Phone (optional, encrypted)','text',80);field('mailingAddress','Mailing address (optional, encrypted)','text',1000);
+  field('password','New account password (14–200 characters)','password');field('confirmation','Confirm new account password','password');
+  section.append(node(document,'p','Use a different password from the key-backup passphrase. Account password verification happens on the host; contact details are encrypted here before upload. After activation, sign in with your private account code and set up your authenticator.'));
+  const request=node(document,'button','Save public new-account enrollment request'),activate=node(document,'button','Activate new encrypted account'),status=node(document,'p');request.type=activate.type='button';section.append(request,activate,status);container.append(section);
+  async function json(id){const file=controls[id].files?.[0];if(!file||file.size>16384)throw new Error('Choose the invitation or signed manifest JSON file, at most 16 KiB.');return JSON.parse(await file.text());}
+  request.addEventListener('click',()=>run(async()=>{const invitation=await json('invitation'),value=await getClient().newEnrollmentRequest(invitation,getKeyId());onAccountCode(invitation.accountId);download('public-new-account-enrollment-request.json',JSON.stringify(value,null,2));status.textContent='Public request saved. Obtain the firm-signed manifest before activating.';}));
+  activate.addEventListener('click',()=>run(async()=>{
+    if(!controls.password.value||controls.password.value!==controls.confirmation.value)throw new Error('Enter matching account passwords.');
+    const password=controls.password.value,profile=Object.fromEntries(['legalName','email','phone','mailingAddress'].map(key=>[key,controls[key].value]));controls.password.value=controls.confirmation.value='';
+    const invitation=await json('invitation'),manifest=await json('manifest');onAccountCode(invitation.accountId);
+    const result=await getClient().activateNewAccount({invitation,manifest,keyId:getKeyId(),password,profile});api.clear();status.textContent='Account activated. Sign in above with your account code and password, then complete authenticator setup.';onActivated(result);
+  }));
+  const api={element:section,get dirty(){return Object.values(controls).some(input=>input.value);},setEnabled(enabled){for(const input of Object.values(controls))input.disabled=!enabled;request.disabled=activate.disabled=!enabled||!getKeyId();},clear(){for(const input of Object.values(controls))input.value='';status.textContent='';}};api.setEnabled(false);return api;
+}

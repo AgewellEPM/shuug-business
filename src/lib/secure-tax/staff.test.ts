@@ -17,7 +17,7 @@ import { totp } from "../auth/mfa/crypto";
 import { addMember } from "../team/store";
 import { assignRole, setPermission } from "../permissions/store";
 import { canonicalManifest, type SecureTaxEnvelope, type SignedRecipientManifest } from "./envelope";
-import { enrollSecureTax, writeSecureTaxObject, deleteSecureTaxObject, readSecureTaxObject } from "./store";
+import { enrollSecureTaxAccount, writeSecureTaxObject, deleteSecureTaxObject, readSecureTaxObject } from "./store";
 import { secureStaffStatus, secureStaffSignIn, secureStaffSignOut } from "./staff-session";
 import { publishStaffGrant, publishStaffCapsule, withdrawStaffGrant, listStaffGrants, listStaffChanges, readStaffObject } from "./staff-store";
 import { staffGrantDigest, staffEnvelopeDigest, type StaffGrant, type StaffCapsule } from "./staff-model";
@@ -34,6 +34,10 @@ import type { ReturnCreationApproval } from "./return-creations";
 import { POST as publishCaseRoute } from "@/app/api/website/customer/secure/staff/cases/route";
 import { canonicalCaseApproval } from "../../../packages/secure-tax-client/case-contract.mjs";
 import type { CaseApproval } from "./cases";
+
+import {secureAccount} from "./account-scope";
+// Restore a historical enrolled fixture directly; new legacy activation is blocked.
+function seedHistoricalEnrollment(token:string,raw:unknown){return workspaceDatabase(db=>enrollSecureTaxAccount(db,secureAccount(db,token),raw),true);}
 
 const origin = "https://trusted.example.net", base = "https://workspace.example.com", password = "Synthetic-staff-vault-password";
 const pair = () => {
@@ -130,7 +134,7 @@ beforeEach(async () => {
   const member = addMember({ name: "Synthetic staff", email: "staff@example.invalid", role: "Manager" }); assignRole(member.id, "Manager");
   staff = createEmployeeAccount({ memberId: member.id, name: member.name, email: member.email }); acceptEmployeeInvitation(issueEmployeeInvitation(staff.id), password);
   passwordOnlyStaff = signInEmployee(staff.email, password); const factor = complete(() => signInEmployee(staff.email, password, true)); staffToken = factor.token; staffRecovery = factor.recoveryCodes;
-  manifest = enrollment(); enrollSecureTax(account.token, manifest);
+  manifest = enrollment(); seedHistoricalEnrollment(account.token, manifest);
 });
 afterEach(() => { vi.useRealTimers(); vi.unstubAllEnvs(); rmSync(directory, { recursive: true, force: true }); });
 
@@ -273,7 +277,7 @@ it("rechecks current initial-return grant, enrollment, roles and signed expiry a
   setPermission("Manager", "services", "none"); expect((await publishCreationRoute(request("/return-creations", ownerToken, packet))).status).toBe(403); setPermission("Manager", "services", "view");
   withdrawStaffGrant(ownerToken, { grantId: g.grantId, expectedEpoch: 1 }); expect((await publishCreationRoute(request("/return-creations", ownerToken, packet))).status).toBe(403);
   const renewed = grant({ grantId: g.grantId, epoch: 2, domains: ["tax-document"] }); publishStaffGrant(ownerToken, renewed); expect((await publishCreationRoute(request("/return-creations", ownerToken, packet))).status).toBe(409);
-  const current = approvedCreation(renewed); manifest = enrollment(2); enrollSecureTax(account.token, manifest); expect((await publishCreationRoute(request("/return-creations", ownerToken, current))).status).toBe(409);
+  const current = approvedCreation(renewed); manifest = enrollment(2); seedHistoricalEnrollment(account.token, manifest); expect((await publishCreationRoute(request("/return-creations", ownerToken, current))).status).toBe(409);
   const expired = approvedCreation(renewed); vi.advanceTimersByTime(600001); expect((await publishCreationRoute(request("/return-creations", ownerToken, expired))).status).toBe(409);
   expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM secure_tax_objects").get())).toMatchObject({ n: 0 });
 });
@@ -327,7 +331,7 @@ it("rechecks current case assignment, enrollment, client links, active staff and
   setEmployeeEnabled(staff.id, false); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(403); setEmployeeEnabled(staff.id, true); acceptEmployeeInvitation(issueEmployeeInvitation(staff.id), password);
   withdrawStaffGrant(ownerToken, { grantId: g.grantId, expectedEpoch: 1 }); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(403);
   const renewed = grant({ grantId: g.grantId, epoch: 2, domains: ["tax-document"] }); publishStaffGrant(ownerToken, renewed); expect((await publishCaseRoute(request("/cases", ownerToken, packet))).status).toBe(409);
-  const current = approvedCase(renewed); manifest = enrollment(2); enrollSecureTax(account.token, manifest); expect((await publishCaseRoute(request("/cases", ownerToken, current))).status).toBe(409);
+  const current = approvedCase(renewed); manifest = enrollment(2); seedHistoricalEnrollment(account.token, manifest); expect((await publishCaseRoute(request("/cases", ownerToken, current))).status).toBe(409);
   const expired = approvedCase(renewed); vi.advanceTimersByTime(600001); expect((await publishCaseRoute(request("/cases", ownerToken, expired))).status).toBe(409);
   expect(workspaceDatabase(db => db.prepare("SELECT count(*) AS n FROM secure_tax_objects").get())).toMatchObject({ n: 0 });
 });

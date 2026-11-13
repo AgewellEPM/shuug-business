@@ -5,7 +5,7 @@ import type { DatabaseSync } from "node:sqlite";
 export function legacySecureTaxData(db: DatabaseSync, account: { id: string; clientId: string }) {
   const exists = (name: string) => Boolean(db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(name));
   const count = (table: string, sql: string, ...parameters: string[]) => exists(table) ? Number((db.prepare(sql).get(...parameters) as { n: number }).n) : 0;
-  const accounts = "SELECT id FROM customer_accounts WHERE id=? OR clientId=?";
+  const accounts = exists("customer_accounts") ? "SELECT id FROM customer_accounts WHERE id=? OR clientId=?" : "SELECT ? WHERE ? IS NOT NULL";
   const counts = {
     driverRecords: count("driver_records", "SELECT count(*) AS n FROM driver_records WHERE accountId=? OR clientId=?", account.id, account.clientId),
     driverMutationCaches: count("driver_mutations", `SELECT count(*) AS n FROM driver_mutations WHERE accountId IN (${accounts})`, account.id, account.clientId),

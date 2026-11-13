@@ -40,7 +40,9 @@ export function beginLoginFactor(db: DatabaseSync, subject: MfaSubject, password
 }
 function passwordHashFor(db: DatabaseSync, subject: MfaSubject): string | null {
   if (subject.kind === "owner") return subject.id === "workspace-owner" ? setting("WORKSPACE_OWNER_PASSWORD_HASH") || null : null;
-  const row = subject.kind === "employee"
+  const row = subject.kind === "secure-customer"
+    ? db.prepare("SELECT passwordHash FROM secure_tax_accounts WHERE id=? AND status='active'").get(subject.id)
+    : subject.kind === "employee"
     ? db.prepare("SELECT passwordHash FROM employee_accounts WHERE id=? AND status='active'").get(subject.id)
     : db.prepare("SELECT passwordHash FROM customer_accounts WHERE id=? AND status='active'").get(subject.id);
   return (row as { passwordHash: string | null } | undefined)?.passwordHash ?? null;
@@ -48,7 +50,7 @@ function passwordHashFor(db: DatabaseSync, subject: MfaSubject): string | null {
 function pending(db: DatabaseSync, token: string, audience: MfaAudience): Pending {
   if (!/^[a-f0-9]{64}$/.test(token)) throw new MfaError("Verification expired. Sign in again.", 401);
   const row = db.prepare("SELECT * FROM mfa_challenges WHERE token_hash=? AND expires>?").get(hash(token), Date.now()) as Pending | undefined;
-  if (!row || (row.kind === "customer") !== (audience === "customer")) throw new MfaError("Verification expired. Sign in again.", 401);
+  if (!row || (audience === "staff" ? !["owner", "employee"].includes(row.kind) : row.kind !== audience)) throw new MfaError("Verification expired. Sign in again.", 401);
   const passwordHash = passwordHashFor(db, row);
   if (!passwordHash || hash(passwordHash) !== row.password_binding || (factor(db, row)?.revision ?? 0) !== row.factor_revision) throw new MfaError("Your account changed. Sign in again.", 401);
   return row;
@@ -88,6 +90,11 @@ function issueSession(db: DatabaseSync, subject: MfaSubject, token: string, now:
     db.prepare("UPDATE employee_accounts SET lastLogin=? WHERE id=?").run(new Date(now).toISOString(), subject.id);
     const account = db.prepare("SELECT email FROM employee_accounts WHERE id=?").get(subject.id) as { email: string };
     db.prepare("DELETE FROM employee_attempts WHERE bucket=?").run(hash(account.email));
+  } else if (subject.kind === "secure-customer") {
+    db.prepare("DELETE FROM secure_tax_sessions WHERE accountId=? AND tokenHash NOT IN (SELECT tokenHash FROM secure_tax_sessions WHERE accountId=? ORDER BY expires DESC LIMIT 9)").run(subject.id, subject.id);
+    db.prepare("INSERT INTO secure_tax_sessions VALUES(?,?,?)").run(digest, subject.id, expires);
+    db.prepare("UPDATE secure_tax_accounts SET lastLogin=? WHERE id=?").run(new Date(now).toISOString(), subject.id);
+    db.prepare("DELETE FROM secure_tax_login_attempts WHERE bucket=?").run(`login:${hash(subject.id)}`);
   } else {
     db.prepare("DELETE FROM customer_sessions WHERE accountId=? AND tokenHash NOT IN (SELECT tokenHash FROM customer_sessions WHERE accountId=? ORDER BY expires DESC LIMIT 9)").run(subject.id, subject.id);
     db.prepare("INSERT INTO customer_sessions VALUES(?,?,?)").run(digest, subject.id, expires);

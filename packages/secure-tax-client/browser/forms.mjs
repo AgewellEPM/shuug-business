@@ -1,6 +1,7 @@
+import {privateClientProfile} from '../client-enrollment.mjs';
 import { encode64 } from '../envelope.mjs';
 
-export const FORM_TYPES=Object.freeze({document:'Tax document',note:'Business information / note',identity:'Tax identity',intake:'Tax-prep details',income:'Income',expense:'Expense',trip:'Trip / completed work',goals:'Goals',reserves:'Planning reserves','work-settings':'Delivery & shopping settings'});
+export const FORM_TYPES=Object.freeze({document:'Tax document',profile:'Client contact profile',note:'Business information / note',identity:'Tax identity',intake:'Tax-prep details',income:'Income',expense:'Expense',trip:'Trip / completed work',goals:'Goals',reserves:'Planning reserves','work-settings':'Delivery & shopping settings'});
 const classifications=['unclassified','business','personal'];
 const rideRoles=['ride','delivery','shopping','reposition','other'];
 const businessTypes=['unsure','sole-proprietor','single-member-llc','partnership','corporation'];
@@ -10,6 +11,7 @@ const amount=value=>Number.isFinite(value)?String(value/100):'';
 const label=value=>String(value).replaceAll('_',' ').replace(/([a-z])([A-Z])/g,'$1 $2').replace(/^./,char=>char.toUpperCase());
 export function formType(data){
   if(data?.version!==1)return null;
+  if(data.type==='client-profile')return 'profile';
   if(data.type==='tax-identity')return 'identity';
   if(data.type==='business-note')return 'note';
   if(data.type==='coach-intake')return 'intake';if(data.type==='universal-gig-settings')return 'work-settings';
@@ -39,6 +41,7 @@ export function validatedWorkURL(input){
 }
 export function buildFormPayload(kind,values,original=null){
   const base=original?structuredClone(original):{version:1},body={...(original?.record?.body??{})};
+  if(kind==='profile')return {domain:'tax-identity',payload:privateClientProfile(values)};
   if(kind==='note'){
     const title=text(values.title,'Business information title',200);if(!title)throw new Error('Enter a title for this business information.');
     return {domain:'driver-state',payload:{...base,type:'business-note',title,date:date(values.date),notes:text(values.notes,'Business information',10000)}};
@@ -118,7 +121,9 @@ export function mountForms(document,container,{onSave,onDelete,run,captureScope=
   function draw(){
     fields.clear();body.replaceChildren();const kind=choice.value,record=original?.record?.body??{};notice.textContent='Saved as a separate encrypted object. Native Journal snapshots stay read-only; automatic merge/reconciliation is not implemented.';
     if(kind==='document'){const input=field('file','Private tax document','','file');input.accept='application/pdf,image/jpeg,image/png';notice.textContent='The whole file, filename and type are encrypted before upload. This saves a private document; it does not complete a staff request or filing.';}
-    if(kind==='note'){field('title','Business information title',original?.title);field('date','Recorded date',original?.date??today(),'date');field('notes','Details for your business records',original?.notes,'textarea');notice.textContent+=' A saved note does not mark a staff request reviewed or authorize a filing.';}
+    if(kind==='profile')return {domain:'tax-identity',payload:privateClientProfile(values)};
+  if(kind==='note'){field('title','Business information title',original?.title);field('date','Recorded date',original?.date??today(),'date');field('notes','Details for your business records',original?.notes,'textarea');notice.textContent+=' A saved note does not mark a staff request reviewed or authorize a filing.';}
+    if(kind==='profile'){for(const [key,title]of [['legalName','Legal name'],['email','Contact email'],['phone','Phone'],['mailingAddress','Mailing address']])field(key,title,original?.[key]);notice.textContent='Contact details are encrypted before upload. They do not change your private account code or sign-in credentials.';}
     if(kind==='identity'){
       field('legalName','Legal name',original?.legalName);field('taxYear','Tax year (optional)',original?.taxYear,'number');
       const input=field('ssn','SSN (leave blank to keep the saved value)','','password');input.maxLength=11;

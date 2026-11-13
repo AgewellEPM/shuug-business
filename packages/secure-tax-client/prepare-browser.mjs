@@ -5,7 +5,7 @@ import path from 'node:path';
 import { validateTrustedConfig } from './browser/config.mjs';
 
 const source=fileURLToPath(new URL('.',import.meta.url));
-const browserFiles=['app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','staff-updates.mjs','client-portal.mjs','client-portal-view.mjs','return-editor.mjs','return-view.mjs','return-save.mjs','opened-record.mjs','case-view.mjs','case-editor.mjs','case-authorization-editor.mjs','case-books-editor.mjs','case-books-view.mjs','office-view.mjs','office-editor.mjs'];
+const browserFiles=['enrollment-view.mjs','app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','staff-updates.mjs','client-portal.mjs','client-portal-view.mjs','return-editor.mjs','return-view.mjs','return-save.mjs','opened-record.mjs','case-view.mjs','case-editor.mjs','case-authorization-editor.mjs','case-books-editor.mjs','case-books-view.mjs','office-view.mjs','office-editor.mjs'];
 const engineFiles=['index.mjs','model.mjs','catalog.mjs','money.mjs','individual.mjs','business.mjs','schedule-c.mjs','ordinary-tax.mjs','federal-years.mjs','form-maps.mjs','form-maps-prior.mjs','form-years.mjs','pdf-identity.mjs','pdf.mjs',...[2023,2024,2025].flatMap(year=>[`data/${year}-tax-table.mjs`,`forms/${year}/templates.mjs`,`forms/${year}/manifest.json`])];
 export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
   if(config)await validateTrustedConfig(config,config.uiOrigin);
@@ -25,7 +25,7 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   await mkdir(path.join(output,'browser'),{recursive:true});
   for(const file of browserFiles)await cp(path.join(source,'browser',file),path.join(output,'browser',file));
   await cp(path.join(source,'envelope.mjs'),path.join(output,'envelope.mjs'));
-  for(const file of ['staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','return-edit-approval.mjs','return-create-contract.mjs','return-creations.mjs','return-create-approval.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-contract.mjs','case-proposals.mjs','case-approval.mjs'])await cp(path.join(source,file),path.join(output,file));
+  for(const file of ['client-enrollment.mjs','activation-proof.mjs','staff-contract.mjs','staff-grants.mjs','return-edit-contract.mjs','return-proposals.mjs','return-edit-approval.mjs','return-create-contract.mjs','return-creations.mjs','return-create-approval.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-contract.mjs','case-proposals.mjs','case-approval.mjs'])await cp(path.join(source,file),path.join(output,file));
   for(const [name] of vendor){
     await mkdir(path.join(output,'vendor',name),{recursive:true});
     await cp(path.join(source,'node_modules',name,'esm'),path.join(output,'vendor',name,'esm'),{recursive:true});
@@ -45,8 +45,8 @@ export async function prepareBrowser({output=path.join(source,'dist-browser'),co
   await writeFile(path.join(output,'staff.html'),staff.replace('<!-- BUILD_CSP -->',`<meta http-equiv="Content-Security-Policy" content="${csp}">`).replace('<!-- BUILD_IMPORTMAP -->',`<script type="importmap">${importmap}</script>`).replace('href="./style.css"','href="./browser/style.css"').replace('src="./staff-app.mjs"','src="./browser/staff-app.mjs"'));
   await writeFile(path.join(output,'_headers'),`/*\n  Content-Security-Policy: ${csp}; frame-ancestors 'none'\n  X-Content-Type-Options: nosniff\n  Referrer-Policy: no-referrer\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n  Cross-Origin-Opener-Policy: same-origin\n  Cache-Control: no-store\n`);
   await writeFile(path.join(output,'vercel.json'),JSON.stringify({headers:[{source:'/(.*)',headers:[{key:'Content-Security-Policy',value:`${csp}; frame-ancestors 'none'`},{key:'X-Content-Type-Options',value:'nosniff'},{key:'Referrer-Policy',value:'no-referrer'},{key:'Permissions-Policy',value:'camera=(), microphone=(), geolocation=()'},{key:'Cross-Origin-Opener-Policy',value:'same-origin'},{key:'Cache-Control',value:'no-store'}]}]},null,2));
-  await writeFile(path.join(output,'build-public.json'),JSON.stringify({version:1,configured:!!config,dependencies:{...Object.fromEntries(vendor),'pdf-lib':'1.17.1'},taxPreparation:{defaultYear:2025,years:[2023,2024,2025],caseIntakeYears:[2023,2024,2025,2026],returnTypes:['1040','1065','1120S','1120'],draftOnly:true},activationAvailable:false},null,2));
-  return {output,configured:!!config,activationAvailable:false};
+  await writeFile(path.join(output,'build-public.json'),JSON.stringify({version:1,configured:!!config,dependencies:{...Object.fromEntries(vendor),'pdf-lib':'1.17.1'},taxPreparation:{defaultYear:2025,years:[2023,2024,2025],caseIntakeYears:[2023,2024,2025,2026],returnTypes:['1040','1065','1120S','1120'],draftOnly:true},activationAvailable:!!config,newPrivateAccountSetupSupported:true,legacyMigrationActivationAvailable:false},null,2));
+  return {output,configured:!!config,activationAvailable:!!config,newPrivateAccountSetupSupported:true,legacyMigrationActivationAvailable:false};
 }
 if(process.argv[1] && import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   const args=process.argv.slice(2);let config=null,output;

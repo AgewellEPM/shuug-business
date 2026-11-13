@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import type { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
 import { workspaceDatabase } from "../workspace/database";
-import { driverAccount } from "../rideshare-driver/policy";
+import { secureAccount } from "./account-scope";
 import { canonicalManifest, secureTaxEnvelope, secureTaxId, type SignedRecipientManifest } from "./envelope";
 import { SecureTaxError, verifyRecipientManifest, validateEnvelopePins } from "./manifest";
 import { trustedPublicPins } from "./manifest";
@@ -40,7 +40,7 @@ export function secureTaxEnrollment(db: DatabaseSync, accountId: string) {
   return db.prepare("SELECT * FROM secure_tax_enrollments WHERE accountId=? AND status='active'").get(accountId) as Enrollment | undefined ?? null;
 }
 function scoped(db: DatabaseSync, token: string | undefined) {
-  const account = driverAccount(db, token); init(db);
+  const account = secureAccount(db, token); init(db);
   const enrollment = secureTaxEnrollment(db, account.id);
   if (!enrollment || enrollment.clientId !== account.clientId) throw new SecureTaxError(409, "Enroll this client account with a trusted signed key manifest before using encrypted storage.");
   const manifest = verifyRecipientManifest(JSON.parse(enrollment.manifest), account);
@@ -54,9 +54,9 @@ function nextSequence(db: DatabaseSync, accountId: string) {
 }
 const receipt = (row: Pick<ObjectRow, "id" | "revision" | "sequence" | "deleted">) => ({ objectId: row.id, revision: row.revision, sequence: row.sequence, deleted: row.deleted === 1 });
 
-export function enrollSecureTax(token: string | undefined, raw: unknown) {
-  return workspaceDatabase(db => {
-    const account = driverAccount(db, token), manifest = verifyRecipientManifest(raw, account); init(db);
+/** Transaction primitive used only after authenticated or invitation authority. */
+export function enrollSecureTaxAccount(db:DatabaseSync,account:{id:string;clientId:string},raw:unknown){
+    const manifest=verifyRecipientManifest(raw,account);init(db);
     const previous = secureTaxEnrollment(db, account.id);
     if (previous && previous.clientId !== account.clientId) throw new SecureTaxError(409, "The secure client's business link changed. Ask the firm to review key enrollment.");
     if (previous && previous.workspaceId !== manifest.workspaceId) throw new SecureTaxError(409, "This account already belongs to another encrypted workspace. A trusted migration is required.");
@@ -73,11 +73,17 @@ export function enrollSecureTax(token: string | undefined, raw: unknown) {
         .run(account.id, account.clientId, manifest.workspaceId, manifest.manifestId, manifest.epoch, manifest.client.keyId, manifest.firmRecovery.keyId, JSON.stringify(manifest), new Date().toISOString());
     }
     return { enrolled: true, identity: { accountId: account.id, clientId: account.clientId }, manifest, ...legacySecureTaxData(db, account) };
-  }, true);
+}
+export function enrollSecureTax(token:string|undefined,raw:unknown){
+  return workspaceDatabase(db=>{
+    const account=secureAccount(db,token),manifest=verifyRecipientManifest(raw,account);
+    if(!secureTaxEnrollment(db,account.id)&&legacySecureTaxData(db,account).legacyMigrationRequired)throw new SecureTaxError(409,"Existing plaintext accounts require verified migration before first encrypted enrollment.");
+    return enrollSecureTaxAccount(db,account,manifest);
+  },true);
 }
 export function secureTaxStatus(token: string | undefined) {
   return workspaceDatabase(db => {
-    const account = driverAccount(db, token); init(db);
+    const account = secureAccount(db, token); init(db);
     const required = secureTaxRequired({ accountId: account.id, clientId: account.clientId }, db);
     const enrollment = secureTaxEnrollment(db, account.id);
     if (!enrollment) {

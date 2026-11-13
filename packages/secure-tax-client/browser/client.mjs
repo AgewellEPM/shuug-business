@@ -1,3 +1,5 @@
+import {assertPrivateInvitation,privateClientProfile,privateAccountCode} from '../client-enrollment.mjs';
+import {openActivationChallenge} from '../activation-proof.mjs';
 import { DOMAINS, MAX_CIPHERTEXT_BYTES, openEnvelope, sealEnvelope, validateContext, verifyEnrollmentManifest } from '../envelope.mjs';
 import { BrowserKeyStore, assertPrivateKey, createClientKey, importEncryptedBackup } from './custody.mjs';
 import { validateTrustedConfig } from './config.mjs';
@@ -27,7 +29,7 @@ async function responseJson(response,maximum,allowChallenge=false) {
 // Public routing/revision metadata, encrypted upload retries and nonextractable key handles persist.
 // Decrypted records exist in this controller's memory until lock/account change.
 export class VaultClient {
-  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;
+  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;#privateLogin=false;
   status=null; identity=null; records=new Map();
   static async create(config,origin,options={}) {
     return new VaultClient(await validateTrustedConfig(config,origin),options);
@@ -52,21 +54,25 @@ export class VaultClient {
     if((response.status===401||response.status===403)&&generation===this.#generation&&!allowChallenge){this.#token=null;this.#reset();this.identity=null;this.status=null;}
     return responseJson(response,maximum,allowChallenge);
   }
-  async signIn(email,password){
+  async signInWithCode(accountCode,password){return this.#signIn({accountCode:privateAccountCode(accountCode)},password,true);}
+  async signIn(email,password){return this.#signIn({email},password,false);}
+  async #signIn(identifier,password,privateLogin){
+
     this.#token=null;this.#expiresAt=null;this.#reset();this.status=null;this.identity=null;const generation=this.#generation;
-    if(typeof email!=='string'||email.length>160||typeof password!=='string'||password.length>200)throw new Error('Enter the invited account email and password.');
-    const session=await this.#request('/session','POST',{email,password},8192,true);this.#same(generation);
+    if((!privateLogin&&(typeof identifier.email!=='string'||identifier.email.length>160))||typeof password!=='string'||password.length>200)throw new Error(privateLogin?'Enter your private account code and password.':'Enter the invited account email and password.');
+    const session=await this.#request('/session','POST',{...identifier,password},8192,true);this.#same(generation);
     if(session?.mfaRequired===true){
       if(session.apiVersion!==1||typeof session.challengeToken!=='string'||!/^[a-f0-9]{64}$/.test(session.challengeToken)||typeof session.enrollmentRequired!=='boolean'||!Number.isFinite(Date.parse(session.expiresAt))||Date.parse(session.expiresAt)<=Date.now()||Date.parse(session.expiresAt)>Date.now()+6*60000||session.enrollmentRequired&&!/^[A-Z2-7]{32}$/.test(session.secret))throw new Error('The API did not return valid sign-in verification.');
-      this.#mfa={challengeToken:session.challengeToken,enrollmentRequired:session.enrollmentRequired,expiresAt:session.expiresAt,secret:session.enrollmentRequired?session.secret:null};
+      this.#privateLogin=privateLogin;this.#mfa={challengeToken:session.challengeToken,enrollmentRequired:session.enrollmentRequired,expiresAt:session.expiresAt,secret:session.enrollmentRequired?session.secret:null};
       return {mfaRequired:true};
     }
+    if(privateLogin)throw new Error('Private account sign-in requires authenticator verification.');
     return this.#acceptSession(session,generation);
   }
   async verifySignIn(code){
     if(!this.#mfa||Date.parse(this.#mfa.expiresAt)<=Date.now()){this.#mfa=null;throw new Error('Verification expired. Sign in with your password again.');}
     if(typeof code!=='string'||!code.trim()||code.length>40)throw new Error('Enter your authenticator or unused recovery code.');
-    const generation=this.#generation,session=await this.#request('/session','POST',{challengeToken:this.#mfa.challengeToken,code:code.trim()},8192,true);this.#same(generation);
+    const generation=this.#generation,session=await this.#request('/session','POST',{challengeToken:this.#mfa.challengeToken,code:code.trim(),...(this.#privateLogin?{privateAccount:true}:{})},8192,true);this.#same(generation);
     return this.#acceptSession(session,generation);
   }
   async #acceptSession(session,generation){
@@ -80,6 +86,15 @@ export class VaultClient {
   async signOut(){
     const pending=this.#request('/session','DELETE');this.#token=null;this.#expiresAt=null;this.#reset();this.status=null;this.identity=null;
     try{await pending;}catch{throw new Error('Local session cleared. The API could not confirm revocation; use the account portal to revoke remaining sessions.');}
+  }
+  async changeAccountPassword(currentPassword,newPassword){
+    privateAccountCode(this.identity?.accountId);if(typeof currentPassword!=='string'||!currentPassword||currentPassword.length>200||typeof newPassword!=='string'||newPassword.length<14||newPassword.length>200||currentPassword===newPassword)throw new Error('Enter your current password and a different new password of 14–200 characters.');
+    const result=await this.#request('/account','POST',{currentPassword,newPassword},1024);if(result.passwordChanged!==true||result.sessionsRevoked!==true)throw new Error('The API did not confirm the password change. Sign in again to check your account.');
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;return result;
+  }
+  async revokeAllSessions(){
+    privateAccountCode(this.identity?.accountId);const result=await this.#request('/account','DELETE',undefined,1024);if(result.sessionsRevoked!==true)throw new Error('The API did not confirm session revocation.');
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;return result;
   }
   async connect(){
     this.#reset();this.status=null;this.identity=null;const generation=this.#generation;
@@ -96,6 +111,24 @@ export class VaultClient {
   async importKey(bundle,passphrase){
     const entry=await importEncryptedBackup(bundle,passphrase);await this.#storage.putKey(entry);
     return {keyId:entry.keyId,publicKey:entry.publicKey};
+  }
+  async newEnrollmentRequest(invitation,keyId){
+    assertPrivateInvitation(invitation,this.#config.workspaceId);const entry=await this.#storage.getKey(keyId);if(!entry)throw new Error('Create or recover the selected client key first.');assertPrivateKey(entry.privateKey);
+    return {version:1,workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,client:{keyId:entry.keyId,publicKey:entry.publicKey}};
+  }
+  async activateNewAccount({invitation,keyId,manifest,password,profile}){
+    assertPrivateInvitation(invitation,this.#config.workspaceId);if(typeof password!=='string'||password.length<14||password.length>200)throw new Error('Use an account password of 14–200 characters, separate from the key-backup passphrase.');
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;const generation=this.#generation;
+    const entry=await this.#storage.getKey(keyId);this.#same(generation);if(!entry)throw new Error('The selected client key is unavailable.');assertPrivateKey(entry.privateKey);
+    const expected={accountId:invitation.accountId,clientId:invitation.clientId,minimumEpoch:1},verified=await verifyEnrollmentManifest(manifest,expected,this.#config);this.#same(generation);
+    if(manifest.client.keyId!==entry.keyId||manifest.client.publicKey!==entry.publicKey)throw new Error('The signed manifest is for another client key.');
+    const body=privateClientProfile(profile),bytes=encoder.encode(JSON.stringify(body)),context={workspaceId:this.#config.workspaceId,accountId:invitation.accountId,objectId:crypto.randomUUID(),revision:1,domain:'tax-identity'};let envelope;
+    try{envelope=await sealEnvelope(bytes,context,verified.recipients,'client',entry.privateKey);}finally{bytes.fill(0);}this.#same(generation);
+    const challenge=await this.#request('/activation/challenge','POST',{token:invitation.token,manifest},16384),answer=await openActivationChallenge(challenge,manifest,expected,this.#config,entry.privateKey);this.#same(generation);
+    const result=await this.#request('/activation','POST',{token:invitation.token,manifest,challengeId:challenge.challengeId,answer,password,profile:{mutationId:crypto.randomUUID(),expectedRevision:0,envelope}},4096);this.#same(generation);
+    if(result?.activated!==true||result.identity?.accountId!==invitation.accountId||result.identity?.clientId!==invitation.clientId)throw new Error('Activation returned a different account binding. Contact the firm.');
+    await this.#storage.putBinding({id:`${this.#config.workspaceId}|${invitation.accountId}`,workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,keyId:entry.keyId,minimumEpoch:manifest.epoch,manifest:clone(manifest)});this.#same(generation);
+    return {accountCode:invitation.accountId,keyId:entry.keyId};
   }
   async encryptedBackup(keyId){
     const entry=await this.#storage.getKey(keyId);if(!entry?.backup)throw new Error('This browser has no encrypted backup for that key.');
@@ -133,7 +166,7 @@ export class VaultClient {
     return {manifestId:verified.manifestId,epoch:verified.epoch,activationAvailable:false};
   }
   #guard(){
-    if(!this.canWrite)throw new Error('Encrypted sync is available only for a previously enrolled account with its verified client key. New activation is unavailable until the migration workflow is ready.');
+    if(!this.canWrite)throw new Error('Encrypted sync requires an enrolled account and its verified client key. New private accounts use the invitation setup; existing plaintext accounts require reviewed migration.');
     if(Date.parse(this.status.manifest.expiresAt)<=Date.now())throw new Error('The signed manifest expired. Obtain a renewed manifest before continuing.');
     return this.#generation;
   }
