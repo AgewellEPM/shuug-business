@@ -1,4 +1,4 @@
-// Pinned original IRS 2024 blanks; see manifest.json for provenance.
+// Pinned original public IRS forms; see manifest.json for provenance.
 export const officialForms2024=Object.freeze([
   {
     "id": "f1040",
@@ -98,5 +98,14 @@ export const officialForms2024=Object.freeze([
     "bytes": 72931,
     "pages": 1,
     "fieldCount": 33
+  },
+  {
+    "id": "f8959",
+    "taxYear": 2024,
+    "url": "https://www.irs.gov/pub/irs-prior/f8959--2024.pdf",
+    "sha256": "b8375fc44add4ea928d7d5b14e840ef66420cda1f6a41e37d58cc13284c8f00d",
+    "bytes": 71675,
+    "pages": 1,
+    "fieldCount": 26
   }
 ].map(Object.freeze));

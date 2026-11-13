@@ -6,7 +6,7 @@ import { validateTrustedConfig } from './browser/config.mjs';
 
 const source=fileURLToPath(new URL('.',import.meta.url));
 const browserFiles=['authenticator-recovery-view.mjs','enrollment-view.mjs','app.mjs','client.mjs','config.mjs','custody.mjs','journal-view.mjs','forms.mjs','style.css','staff-app.mjs','staff-client.mjs','staff-view.mjs','staff-updates.mjs','client-portal.mjs','client-portal-view.mjs','return-editor.mjs','return-view.mjs','return-save.mjs','opened-record.mjs','case-view.mjs','case-editor.mjs','case-authorization-editor.mjs','case-books-editor.mjs','case-books-view.mjs','office-view.mjs','office-editor.mjs'];
-const engineFiles=['index.mjs','model.mjs','catalog.mjs','money.mjs','individual.mjs','business.mjs','schedule-c.mjs','ordinary-tax.mjs','federal-years.mjs','form-maps.mjs','form-maps-prior.mjs','form-years.mjs','pdf-identity.mjs','pdf.mjs',...[2023,2024,2025].flatMap(year=>[`data/${year}-tax-table.mjs`,`forms/${year}/templates.mjs`,`forms/${year}/manifest.json`])];
+const engineFiles=['index.mjs','model.mjs','catalog.mjs','money.mjs','individual.mjs','additional-medicare.mjs','business.mjs','schedule-c.mjs','ordinary-tax.mjs','federal-years.mjs','form-maps.mjs','form-maps-prior.mjs','form-years.mjs','pdf-identity.mjs','pdf.mjs',...[2023,2024,2025].flatMap(year=>[`data/${year}-tax-table.mjs`,`forms/${year}/templates.mjs`,`forms/${year}/manifest.json`])];
 export async function prepareBrowser({output=path.join(source,'dist-browser'),config=null}={}){
   if(config)await validateTrustedConfig(config,config.uiOrigin);
   const existing=await readdir(output).catch(error=>{if(error.code==='ENOENT')return [];throw error;});

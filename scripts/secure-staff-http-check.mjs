@@ -226,7 +226,7 @@ try{
   const taxReturns=[];
   for(const year of [2025,2023,2024])for(const kind of ['1040','1065','1120S','1120']){
     const input=newReturn(kind,year);Object.assign(input.party,{name:'Synthetic Return',taxId:'000123456',street:'1 Example St',city:'Hartford',state:'CT',zip:'06103'});input.notes=marker;for(const key of Object.keys(input.review))input.review[key]=true;
-    if(input.individual)input.individual.w2s=[{id:randomUUID(),owner:'taxpayer',employer:'Synthetic employer',wagesCents:5000000,socialSecurityWagesCents:5000000,medicareWagesCents:5000000,federalWithholdingCents:500000}];
+    if(input.individual)input.individual.w2s=[{id:randomUUID(),owner:'taxpayer',employer:'Synthetic employer',wagesCents:22000000,socialSecurityWagesCents:22000000,medicareWagesCents:22000000,federalWithholdingCents:500000,medicareTaxWithheldCents:337000}];
     else{Object.assign(input.entity,{businessName:'Synthetic business',businessCode:'541219',receiptsCents:10000000});if(kind!=='1120')input.entity.owners=[{id:'owner-a',name:'Synthetic Owner A',taxId:'000111111',shareBps:5000},{id:'owner-b',name:'Synthetic Owner B',taxId:'000222222',shareBps:5000}];}
     const creationKit=await afterRestore.client.prepareNewReturn(input);assert.equal(creationKit.privateReview.before,null);assert.equal(await privateReturnCreationReviewCommitment(creationKit.privateReview),creationKit.proposal.reviewCommitment);checks++;
     const creationPacket=await approveReturnCreation({proposal:creationKit.proposal,manifest:creationKit.manifest,grant:creationKit.grant,expected:creationKit.expected,reviewedCommitment:creationKit.proposal.reviewCommitment,reviewReference:'synthetic-reviewed-initial-return',unlocked:firm});
@@ -234,6 +234,7 @@ try{
     await json('/staff/return-creations',{token:tokens.get('after-restore'),method:'POST',body:creationPacket},403);
     const receipt=await owner.client.installApprovedReturnCreation(creationPacket);assert.equal(receipt.duplicate,false);assert.equal((await owner.client.installApprovedReturnCreation(creationPacket)).duplicate,true);checks++;
     await portal.sync();const opened=JSON.parse(new TextDecoder().decode(portal.records.get(receipt.objectId).plaintext));assert.deepEqual(opened,input);checks++;
+    if(kind==='1040'){const result=calculateReturn(opened);assert.equal(result.summary.additionalMedicareTaxCents,18000);assert.equal(result.summary.additionalMedicareWithholdingCents,18000);assert.equal(result.summary.paymentsCents,518000);assert(result.forms.some(form=>form.form==='f8959'));checks++;}
     const object=await json(`/objects/${receipt.objectId}`,{token:tokens.get('portal-remote')});assert.equal(object.envelope.author.role,'firm-recovery');assert.equal(object.envelope.context.revision,1);
     taxReturns.push({year,kind,objectId:receipt.objectId,input});
   }

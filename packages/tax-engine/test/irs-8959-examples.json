@@ -1,0 +1,91 @@
+{
+  "source": {
+    "url": "https://www.irs.gov/pub/irs-prior/i8959--2025.pdf",
+    "sha256": "1d223be73b4bac959a00e9b55784297bafa73a986567987c083671abf687b68f",
+    "bytes": 146897,
+    "reviewedOn": "2026-11-13",
+    "description": "Published IRS examples; income and subject amounts transcribed from pages 2 and 4. Tax is the subject amount times the published 0.9% rate."
+  },
+  "scope": "Ordinary Medicare wages and self-employment income; RRTA examples 6 and 7 are outside this implemented scope. These are instruction examples, not ATS acceptance.",
+  "examples": [
+    {
+      "id": "example-1",
+      "filingStatus": "single",
+      "medicareWagesDollars": [],
+      "selfEmploymentIncomeDollars": [
+        130000
+      ],
+      "expectedWageSubjectDollars": 0,
+      "expectedSelfEmploymentSubjectDollars": 0,
+      "expectedAdditionalTaxDollars": 0,
+      "required": false
+    },
+    {
+      "id": "example-2",
+      "filingStatus": "single",
+      "medicareWagesDollars": [],
+      "selfEmploymentIncomeDollars": [
+        220000
+      ],
+      "expectedWageSubjectDollars": 0,
+      "expectedSelfEmploymentSubjectDollars": 20000,
+      "expectedAdditionalTaxDollars": 180,
+      "required": true
+    },
+    {
+      "id": "example-3",
+      "filingStatus": "single",
+      "medicareWagesDollars": [
+        130000
+      ],
+      "selfEmploymentIncomeDollars": [
+        145000
+      ],
+      "expectedWageSubjectDollars": 0,
+      "expectedSelfEmploymentSubjectDollars": 75000,
+      "expectedAdditionalTaxDollars": 675,
+      "required": true
+    },
+    {
+      "id": "example-4",
+      "filingStatus": "marriedSeparate",
+      "medicareWagesDollars": [
+        200000
+      ],
+      "selfEmploymentIncomeDollars": [
+        150000
+      ],
+      "expectedWageSubjectDollars": 75000,
+      "expectedSelfEmploymentSubjectDollars": 150000,
+      "expectedAdditionalTaxDollars": 2025,
+      "required": true
+    },
+    {
+      "id": "example-5",
+      "filingStatus": "marriedJoint",
+      "medicareWagesDollars": [
+        150000,
+        175000
+      ],
+      "selfEmploymentIncomeDollars": [],
+      "expectedWageSubjectDollars": 75000,
+      "expectedSelfEmploymentSubjectDollars": 0,
+      "expectedAdditionalTaxDollars": 675,
+      "required": true
+    },
+    {
+      "id": "part-II-example",
+      "filingStatus": "marriedJoint",
+      "medicareWagesDollars": [
+        130000
+      ],
+      "selfEmploymentIncomeDollars": [
+        140000
+      ],
+      "expectedWageSubjectDollars": 0,
+      "expectedSelfEmploymentSubjectDollars": 20000,
+      "expectedAdditionalTaxDollars": 180,
+      "required": true
+    }
+  ]
+}

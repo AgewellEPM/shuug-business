@@ -10,6 +10,21 @@ const dom=()=>new JSDOM('<!doctype html><body><main></main></body>',{pretendToBe
 function click(document,text){const button=[...document.querySelectorAll('button')].find(button=>button.textContent===text);assert(button,`Button ${text} exists`);button.click();}
 function fill(document,key,value){const input=document.querySelector(`[data-return-field="${key}"]`);assert(input,key);if(input.type==='checkbox')input.checked=value;else input.value=value;input.dispatchEvent(new document.defaultView.Event('input',{bubbles:true}));}
 
+test('W-2 box 6 keeps unknown, explicit zero and entered withholding separate through editing and save',async()=>{
+  const view=dom(),document=view.window.document;let operation,saved;
+  const editor=mountReturnEditor(document,document.querySelector('main'),{run:task=>{operation=task();return operation;},onSave:async value=>{saved=value;}});editor.setEnabled(true);
+  try{
+    click(document,'Add W-2');await operation;
+    for(const field of ['wagesCents','medicareWagesCents','socialSecurityWagesCents'])fill(document,field,'220000');
+    const value=()=>editor.getInput();assert.equal(value().individual.w2s[0].medicareTaxWithheldCents,undefined);assert.equal(calculateReturn(value()).summary.paymentsCents,null);
+    fill(document,'medicareTaxWithheldCents','0');assert.equal(value().individual.w2s[0].medicareTaxWithheldCents,0);assert.equal(calculateReturn(value()).summary.paymentsCents,0);
+    const year=document.getElementById('return-year');year.value='2024';year.dispatchEvent(new view.window.Event('change'));assert.equal(document.querySelector('[data-return-field="medicareTaxWithheldCents"]').value,'0.00');assert.equal(value().individual.w2s[0].medicareTaxWithheldCents,0);
+    fill(document,'medicareTaxWithheldCents','3370');assert.equal(calculateReturn(value()).summary.additionalMedicareWithholdingCents,18000);
+    fill(document,'medicareTaxWithheldCents','');assert.equal(Object.hasOwn(value().individual.w2s[0],'medicareTaxWithheldCents'),false);assert.equal(calculateReturn(value()).summary.amountOwedCents,null);
+    fill(document,'medicareTaxWithheldCents','3370');click(document,'Encrypt and save return');await operation;assert.equal(saved.individual.w2s[0].medicareTaxWithheldCents,337000);
+  }finally{view.window.close();}
+});
+
 test('real return editor supports wages and Schedule C without JSON and saves integer cents',async()=>{
   const view=dom(),document=view.window.document,pending=[],saved=[],editor=mountReturnEditor(document,document.querySelector('main'),{onSave:async value=>saved.push(value),run:operation=>{const task=operation();pending.push(task);return task;}});editor.setEnabled(true);
   fill(document,'name','Synthetic Client');fill(document,'taxId','000123456');click(document,'Add W-2');await pending.at(-1);fill(document,'wagesCents','50000');fill(document,'socialSecurityWagesCents','50000');fill(document,'medicareWagesCents','50000');fill(document,'federalWithholdingCents','5000');

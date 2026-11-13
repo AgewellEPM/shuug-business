@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-13",
+  "scope": "Selected official ATS scenarios for gap discovery; not an exhaustive IRS test plan or acceptance receipt.",
+  "selectedScenarios": [
+    {
+      "id": "1040-2025-1",
+      "url": "https://www.irs.gov/pub/irs-efile/ty25-1040-mef-ats-scenario-1-12012025.pdf",
+      "bytes": 856940,
+      "sha256": "fb6054bf4417094f0c102bd47b7d021596143929d6789f1971912994e3738cd3",
+      "taxYear": 2025,
+      "sourceFile": "1040-2025-1.pdf",
+      "requiredForms": [
+        "f1040",
+        "w2",
+        "f1040s2",
+        "f1040s3",
+        "f1040sh",
+        "f5695"
+      ],
+      "sourcePage": 1,
+      "coverage": "Cover-page form inventory only; full scenario input, attachments, XML and expected outputs are not implemented or tested."
+    },
+    {
+      "id": "1065-2025-1",
+      "url": "https://www.irs.gov/pub/irs-wi/ty25-f1065-ats-scenario01.pdf",
+      "bytes": 493812,
+      "sha256": "48688f90a89a6b40bf60d5736adb177a16e72d321123efd31707c567bfd96ea7",
+      "taxYear": 2025,
+      "sourceFile": "1065-2025-1.pdf",
+      "requiredForms": [
+        "f1065",
+        "f1065sb2",
+        "f1065sc",
+        "f1065sk1",
+        "f1065sm3",
+        "f4562",
+        "f4797",
+        "f8825",
+        "f8882",
+        "f8453pe"
+      ],
+      "sourcePage": 1,
+      "coverage": "Cover-page form inventory only; full scenario input, attachments, XML and expected outputs are not implemented or tested."
+    },
+    {
+      "id": "1120-2025-1",
+      "url": "https://www.irs.gov/pub/irs-efile/form-1120-ty2025-test-scenario-1.pdf",
+      "bytes": 821120,
+      "sha256": "c079a18352d6138d08590e96d71071091d02435dd63506dd1c2672df9ffdd707",
+      "taxYear": 2025,
+      "sourceFile": "1120-2025-1.pdf",
+      "requiredForms": [
+        "f1120",
+        "f1120sb",
+        "f1120sd",
+        "f1120sg",
+        "f1120sm3",
+        "f1120so",
+        "f1125a",
+        "f1125e",
+        "f3800",
+        "f4562",
+        "f5884",
+        "f8594",
+        "f8822b",
+        "f8881",
+        "f8882",
+        "f8916a",
+        "f8932",
+        "f8453corp",
+        "f8949"
+      ],
+      "sourcePage": 1,
+      "coverage": "Cover-page form inventory only; full scenario input, attachments, XML and expected outputs are not implemented or tested."
+    },
+    {
+      "id": "1120S-2025-5",
+      "url": "https://www.irs.gov/pub/irs-efile/ty25-f1120s-ats-scenario05-08012025.pdf",
+      "bytes": 1133002,
+      "sha256": "6fa096ab4b2b2833d49187128de5f313d7214dde955eca1c8387a024a85f8f50",
+      "taxYear": 2025,
+      "sourceFile": "1120S-2025-5.pdf",
+      "requiredForms": [
+        "f1120s",
+        "f1120ssk",
+        "f1125a",
+        "f1125e",
+        "f4562",
+        "f4797",
+        "f8453corp",
+        "f8822b",
+        "f8825"
+      ],
+      "sourcePage": 1,
+      "coverage": "Cover-page form inventory only; full scenario input, attachments, XML and expected outputs are not implemented or tested."
+    }
+  ],
+  "requiredExternalSteps": [
+    "Approved IRS software-developer application and authorized e-services access",
+    "Current SOR schemas, business rules and software/transmitter identifiers for each family/year",
+    "Confirmed required ATS test plan, valid XML and approved transport",
+    "Actual IRS ATS transmission, acknowledgments, issue resolution and approval",
+    "Separate state-year-form requirements, testing and approval",
+    "Independent tax/security review, real custody activation and verified installed rollout"
+  ],
+  "references": {
+    "approval": "https://www.irs.gov/e-file-providers/how-tax-preparation-software-is-approved-for-electronic-filing",
+    "ats": "https://www.irs.gov/e-file-providers/modernized-e-file-mef-assurance-testing-system-ats",
+    "provider": "https://www.irs.gov/tax-professionals/e-file-provider-services",
+    "transport": "https://www.irs.gov/e-file-providers/modernized-e-file-mef-status",
+    "stateDirectory": "https://taxadmin.org/electronic-filing-information/"
+  }
+}

@@ -6,9 +6,10 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 const {PDFDocument}=createRequire(new URL('../../packages/tax-engine/package.json',import.meta.url))('pdf-lib');
 const [yearText,manifestFile,directory]=process.argv.slice(2),year=Number(yearText);
-if(![2023,2024].includes(year)||!manifestFile||!directory)throw new Error('Use YEAR DOWNLOADED_MANIFEST_JSON FORMS_DIRECTORY for a reviewed prior-year source.');
+if(![2023,2024,2025].includes(year)||!manifestFile||!directory)throw new Error('Use YEAR DOWNLOADED_MANIFEST_JSON FORMS_DIRECTORY for a reviewed annual source.');
 const inputs=JSON.parse(await readFile(manifestFile,'utf8')),forms=[];
-if(!Array.isArray(inputs)||inputs.length!==11||new Set(inputs.map(value=>value.id)).size!==11)throw new Error('Expected the complete declared source pack.');
+const required=['f1040','f1040s1','f1040s2','f1040sc','f1040sse','f1065','f1065sk1','f1120','f1120s','f1120ssk','f8959','f8995'];
+if(!Array.isArray(inputs)||inputs.length!==required.length||inputs.map(value=>value.id).sort().join('|')!==required.sort().join('|'))throw new Error('Expected the complete declared source pack.');
 for(const input of inputs){
   if(!/^f[0-9a-z]+$/.test(input.id)||input.taxYear!==year||input.url!==`https://www.irs.gov/pub/irs-prior/${input.id}--${year}.pdf`)throw new Error('Unexpected IRS source binding.');
   const bytes=await readFile(path.join(directory,input.id+'.pdf'));

@@ -1,19 +1,20 @@
 # Shuug tax preparation engine
 
-This package supplies the first **2025 federal draft preparation pack** for both
+This package supplies limited **2023–2025 federal draft preparation packs** for both
 individual/self-employed and business returns. It is integrated with the
 independently trusted encrypted client and its existing client/staff authorization
 boundary. It is not a completed filing product.
 
 Inputs are versioned structured records containing integer cents. Calculations
 use exact integer arithmetic, explicit whole-dollar rounding, the complete
-2,062-row official IRS 2025 Tax Table below $100,000, and that year's Tax
+2,062-row official IRS Tax Table for each year below $100,000, and that year's Tax
 Computation Worksheet above it. Different years never inherit these rates.
 
 | Return | Current calculation / draft form coverage |
 | --- | --- |
 | Individual 1040 | Ordinary W-2 wages, taxable interest, nonqualified ordinary dividends, standard deduction, entered withholding/estimates |
 | Self-employed | Schedule C eligible expenses/profit, per-person Schedule SE wage cap and Medicare tax, deductible half of SE tax, limited simplified 8995 QBI, Schedules 1 and 2 |
+| Additional Medicare Tax | Form 8959 ordinary Medicare wages/SE income and W-2 box 6 withholding reconciliation; RRTA/unreported wages and uncollected box-12 tax excluded |
 | Partnership 1065 | Ordinary business income/deductions, exact ordinary-income owner allocations, partial K-1 workpapers |
 | S corporation 1120-S | Ordinary business income/deductions, exact ordinary-income shareholder allocations, partial K-1 workpapers |
 | C corporation 1120 | Ordinary taxable business income, regular corporate tax, estimates/balance, Schedule J |
@@ -31,7 +32,7 @@ a preparer's declaration, not independent verification. Every result has
 
 ## Forms and sources
 
-`forms/2025` contains eleven original public IRS PDF templates. `manifest.json`
+Each of `forms/2023`, `forms/2024` and `forms/2025` contains twelve original public IRS PDF templates. `manifest.json`
 and `templates.mjs` pin the original URL, SHA-256, byte count, pages and fields.
 The generator checks these before filling mapped fields, flattens the form,
 removes interactive actions/annotations, and adds calculation/diagnostic pages.
@@ -81,6 +82,12 @@ private review kit and separate firm approval of the initial encrypted revision.
 This does not complete office document review, books or filing authorization.
 
 ## Work still required for the full product
+
+The [qualification workflow](../../docs/SHUUG_FILING_QUALIFICATION_20261113.md)
+and `node scripts/tax/qualification-report.mjs` reproduce the local reference
+checks and identify gaps in selected official ATS scenarios. Neither constitutes
+agency test execution or certification. Missing required W-2 box 6 values remain
+unknown; they never silently become zero. Form 8960 cases retain incomplete totals.
 
 Complete dependent/credit/age eligibility, Schedule 1-A, qualified-dividend and
 capital-gain treatment, retirement/rental/pass-through income, inventory/assets,

@@ -98,5 +98,14 @@ export const officialForms2025=Object.freeze([
     "bytes": 72273,
     "pages": 1,
     "fieldCount": 33
+  },
+  {
+    "id": "f8959",
+    "taxYear": 2025,
+    "url": "https://www.irs.gov/pub/irs-prior/f8959--2025.pdf",
+    "sha256": "13e64004948331d2b708c80b1b664bf69675028edd0b84f2de6e3ca9afaa996d",
+    "bytes": 71969,
+    "pages": 1,
+    "fieldCount": 26
   }
 ].map(Object.freeze));

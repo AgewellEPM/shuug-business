@@ -24,6 +24,16 @@ all four federal return families and **all 50 states**. The target is not curren
 support. No approved filing account/provider or separate custody environment is
 available yet; live activation depends on those external prerequisites.
 
+November 13 qualification continuation: the limited annual packs now cover
+2023–2025, including ordinary Form 8959 tax and withholding reconciliation.
+Private account-code/password/authenticator enrollment, password and authenticator
+recovery and expired-enrollment renewal are implemented through separate firm
+approval. Names/email remain encrypted. These supersede the corresponding dated
+source gaps below; migration, real custody activation and installed rollout remain
+unfinished. The [qualification workflow](SHUUG_FILING_QUALIFICATION_20261113.md)
+records selected official ATS gaps and the actual approval path. No IRS/state
+approval, live transport or complete federal/state coverage is claimed.
+
 ## Already implemented
 
 - Owner/staff/client MFA, encrypted device backups, signed enrollment, per-device

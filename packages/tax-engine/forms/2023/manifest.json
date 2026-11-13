@@ -102,6 +102,15 @@
       "bytes": 72858,
       "pages": 1,
       "fieldCount": 33
+    },
+    {
+      "id": "f8959",
+      "taxYear": 2023,
+      "url": "https://www.irs.gov/pub/irs-prior/f8959--2023.pdf",
+      "sha256": "44c77b7b237e1b520a23a3aa6c3d869ca2a315656f0c8fada015eb28380b28c5",
+      "bytes": 71637,
+      "pages": 1,
+      "fieldCount": 26
     }
   ]
 }

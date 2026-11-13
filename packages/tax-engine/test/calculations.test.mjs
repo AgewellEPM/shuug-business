@@ -41,8 +41,8 @@ test('each spouse retains a separate Social Security wage cap',()=>{
   const input=reviewed();Object.assign(input.individual,{filingStatus:'marriedJoint',spouseName:'Synthetic Spouse',spouseTaxId:'000654321',w2s:[wage('taxpayer',176100)],businesses:[business('taxpayer',10000),business('spouse',10000)]});
   const result=calculateReturn(input),se=result.forms.filter(item=>item.form==='f1040sse');assert.equal(se[0].lines['10'],0);assert.equal(se[1].lines['10'],114500);assert.equal(result.summary.selfEmploymentTaxCents,168100);assert.equal(result.forms.find(item=>item.form==='f1040').lines['10'],84100);
 });
-test('unimplemented extra taxes, multiple-business QBI and limited losses do not produce a complete total',()=>{
-  const input=reviewed();input.individual.w2s=[wage('taxpayer',200001)];let result=calculateReturn(input);assert.equal(result.summary.totalTaxCents,null);assert(result.diagnostics.some(item=>item.code==='ADDITIONAL_MEDICARE_REQUIRED'));
+test('unknown Medicare withholding, multiple-business QBI and limited losses do not produce a complete balance',()=>{
+  const input=reviewed();input.individual.w2s=[wage('taxpayer',200001)];let result=calculateReturn(input);assert.equal(result.summary.paymentsCents,null);assert.equal(result.summary.amountOwedCents,null);assert(result.diagnostics.some(item=>item.code==='MEDICARE_WITHHOLDING_REQUIRED'));
   input.individual.w2s=[];input.individual.businesses=[business(),{...business(),id:'another'}];result=calculateReturn(input);assert.equal(result.summary.totalTaxCents,null);assert(result.diagnostics.some(item=>item.code==='QBI_MULTIPLE_BUSINESS_ALLOCATION'));
   input.individual.businesses=[{...business(),receiptsCents:0,expenses:[{category:'other',amountCents:10000,description:'Synthetic loss'}],fullyAtRisk:false}];assert.equal(calculateReturn(input).summary.totalTaxCents,null);
 });

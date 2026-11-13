@@ -1,0 +1,642 @@
+{
+  "version": 1,
+  "scope": "Ordinary Form 8959 for 2023\u20132025 and reproducible qualification gap evidence",
+  "readiness": "prototype",
+  "nodeTests": {
+    "passed": 73,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Tax calculations/PDFs, editor, encrypted creation/correction including actual Swift envelope opening, cloud custody"
+  },
+  "compiledHTTP": {
+    "checks": 472,
+    "buildId": "-jDtZTra5VISYa4HBTUDw",
+    "serverRebuilt": false,
+    "reason": "Changes execute in the independent client/tax engine; existing compiled host carries opaque encrypted input.",
+    "syntheticWorkspace": true,
+    "returnProof": {
+      "years": [
+        2023,
+        2024,
+        2025
+      ],
+      "kinds": [
+        "1040",
+        "1065",
+        "1120S",
+        "1120",
+        "1040",
+        "1065",
+        "1120S",
+        "1120",
+        "1040",
+        "1065",
+        "1120S",
+        "1120"
+      ],
+      "staffOriginatedKinds": [
+        "1040",
+        "1065",
+        "1120S",
+        "1120",
+        "1040",
+        "1065",
+        "1120S",
+        "1120",
+        "1040",
+        "1065",
+        "1120S",
+        "1120"
+      ],
+      "initialReturnRequiresFirmApproval": true,
+      "initialPrivateReviewRefusedBeforeUpload": true,
+      "initialRevisionSharedAtomically": true,
+      "encryptedSaveClientReopenStaffRead": true,
+      "exported": [
+        {
+          "year": 2025,
+          "kind": "1040",
+          "formCopies": 3,
+          "bytes": 203981
+        },
+        {
+          "year": 2025,
+          "kind": "1065",
+          "formCopies": 3,
+          "bytes": 375406
+        },
+        {
+          "year": 2025,
+          "kind": "1120S",
+          "formCopies": 3,
+          "bytes": 350453
+        },
+        {
+          "year": 2025,
+          "kind": "1120",
+          "formCopies": 1,
+          "bytes": 254592
+        },
+        {
+          "year": 2023,
+          "kind": "1040",
+          "formCopies": 3,
+          "bytes": 166898
+        },
+        {
+          "year": 2023,
+          "kind": "1065",
+          "formCopies": 3,
+          "bytes": 375112
+        },
+        {
+          "year": 2023,
+          "kind": "1120S",
+          "formCopies": 3,
+          "bytes": 340218
+        },
+        {
+          "year": 2023,
+          "kind": "1120",
+          "formCopies": 1,
+          "bytes": 242981
+        },
+        {
+          "year": 2024,
+          "kind": "1040",
+          "formCopies": 3,
+          "bytes": 175450
+        },
+        {
+          "year": 2024,
+          "kind": "1065",
+          "formCopies": 3,
+          "bytes": 363602
+        },
+        {
+          "year": 2024,
+          "kind": "1120S",
+          "formCopies": 3,
+          "bytes": 345948
+        },
+        {
+          "year": 2024,
+          "kind": "1120",
+          "formCopies": 1,
+          "bytes": 249936
+        }
+      ],
+      "unsharedRevisionClearsStaffView": true,
+      "correctedClientInputVisibleAfterSharing": true,
+      "staffReturnCorrectionProposalVerified": true,
+      "privateReviewRefusedBeforeUpload": true,
+      "ownerMfaAndFirmApprovalPublicationVerified": true,
+      "clientSeesApprovedStaffCorrection": true,
+      "approvedRevisionSharedAtomically": true,
+      "staffDirectWritesEnabled": false,
+      "productionFilingPerformed": false,
+      "terminalDeletionVerified": true,
+      "annualCaseBindings": [
+        {
+          "year": 2023,
+          "kind": "1040"
+        },
+        {
+          "year": 2023,
+          "kind": "1120"
+        },
+        {
+          "year": 2024,
+          "kind": "1040"
+        },
+        {
+          "year": 2024,
+          "kind": "1120"
+        }
+      ]
+    },
+    "form8959TaxAndWithholdingReopenedForEachYear": true,
+    "restoredDataAndRevocationVerified": true,
+    "copiedHostPlaintextMarkerAbsent": true,
+    "liveInstalledService": false
+  },
+  "artifact": {
+    "ok": true,
+    "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+    "modules": 119,
+    "defaultConfigDisabled": true,
+    "noAccountRequest": true,
+    "authenticatorRecoveryMounted": true,
+    "staffAuthenticatorRecoveryControlsMounted": true,
+    "passwordRecoveryMounted": true,
+    "staffPasswordRecoveryControlsMounted": true,
+    "privateEnrollmentMounted": true,
+    "privateAccountControlsMounted": true,
+    "staffInvitationControlsMounted": true,
+    "staffAccountSuspensionControlsMounted": true,
+    "staffCorrectionEditorMounted": true,
+    "staffNewReturnControlMounted": true,
+    "staffCaseEditorMounted": true,
+    "staffCaseControlsDisabled": true,
+    "staffCaseControlCount": 7,
+    "staffFinanceEditorMounted": true,
+    "staffFinanceControlsDisabled": true,
+    "staffFinanceControlCount": 6,
+    "privateFirmModulesExcluded": true,
+    "publicTemplateFetches": 18,
+    "xfasRemoved": 18,
+    "exported": [
+      {
+        "year": 2023,
+        "kind": "1040",
+        "bytes": 167017
+      },
+      {
+        "year": 2023,
+        "kind": "1065",
+        "bytes": 224096
+      },
+      {
+        "year": 2023,
+        "kind": "1120S",
+        "bytes": 206003
+      },
+      {
+        "year": 2023,
+        "kind": "1120",
+        "bytes": 243190
+      },
+      {
+        "year": 2024,
+        "kind": "1040",
+        "bytes": 175555
+      },
+      {
+        "year": 2024,
+        "kind": "1065",
+        "bytes": 226664
+      },
+      {
+        "year": 2024,
+        "kind": "1120S",
+        "bytes": 208028
+      },
+      {
+        "year": 2024,
+        "kind": "1120",
+        "bytes": 250150
+      },
+      {
+        "year": 2025,
+        "kind": "1040",
+        "bytes": 204083
+      },
+      {
+        "year": 2025,
+        "kind": "1065",
+        "bytes": 238486
+      },
+      {
+        "year": 2025,
+        "kind": "1120S",
+        "bytes": 212338
+      },
+      {
+        "year": 2025,
+        "kind": "1120",
+        "bytes": 254784
+      }
+    ],
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "publicTlsVerified": false
+  },
+  "sourceInspection": {
+    "annualOriginalPdfs": 36,
+    "newForm8959PdfCount": 3,
+    "fieldGeometryVerified": true,
+    "actualOutputRows": [
+      "8959 line 18",
+      "8959 line 24",
+      "Schedule 2 line 11",
+      "1040 line 25c"
+    ]
+  },
+  "qualification": {
+    "instructionExamples": [
+      {
+        "id": "example-1",
+        "pass": true,
+        "actual": {
+          "required": false,
+          "taxCents": 0,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 0
+        },
+        "expected": {
+          "required": false,
+          "taxCents": 0,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 0
+        }
+      },
+      {
+        "id": "example-2",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        }
+      },
+      {
+        "id": "example-3",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 7500000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 7500000
+        }
+      },
+      {
+        "id": "example-4",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 202500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 15000000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 202500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 15000000
+        }
+      },
+      {
+        "id": "example-5",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 0
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 67500,
+          "wageSubjectCents": 7500000,
+          "selfEmploymentSubjectCents": 0
+        }
+      },
+      {
+        "id": "part-II-example",
+        "pass": true,
+        "actual": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        },
+        "expected": {
+          "required": true,
+          "taxCents": 18000,
+          "wageSubjectCents": 0,
+          "selfEmploymentSubjectCents": 2000000
+        }
+      }
+    ],
+    "pinnedExternalSourcesVerified": [
+      {
+        "id": "1040-2025-1",
+        "sha256": "fb6054bf4417094f0c102bd47b7d021596143929d6789f1971912994e3738cd3",
+        "bytes": 856940
+      },
+      {
+        "id": "1065-2025-1",
+        "sha256": "48688f90a89a6b40bf60d5736adb177a16e72d321123efd31707c567bfd96ea7",
+        "bytes": 493812
+      },
+      {
+        "id": "1120-2025-1",
+        "sha256": "c079a18352d6138d08590e96d71071091d02435dd63506dd1c2672df9ffdd707",
+        "bytes": 821120
+      },
+      {
+        "id": "1120S-2025-5",
+        "sha256": "6fa096ab4b2b2833d49187128de5f313d7214dde955eca1c8387a024a85f8f50",
+        "bytes": 1133002
+      },
+      {
+        "id": "8959-instructions",
+        "sha256": "1d223be73b4bac959a00e9b55784297bafa73a986567987c083671abf687b68f",
+        "bytes": 146897
+      }
+    ],
+    "sourceInventorySha256": "3d7b188432ae08aacec9b4cfb309680c0fe0215f1dd4bdda88de4407277fce5c",
+    "selectedAtsScenarios": [
+      {
+        "id": "1040-2025-1",
+        "source": "https://www.irs.gov/pub/irs-efile/ty25-1040-mef-ats-scenario-1-12012025.pdf",
+        "sourceSha256": "fb6054bf4417094f0c102bd47b7d021596143929d6789f1971912994e3738cd3",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1040",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "w2",
+            "status": "partial-source-input-no-mef-xml"
+          },
+          {
+            "id": "f1040s2",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1040s3",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1040sh",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f5695",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      },
+      {
+        "id": "1065-2025-1",
+        "source": "https://www.irs.gov/pub/irs-wi/ty25-f1065-ats-scenario01.pdf",
+        "sourceSha256": "48688f90a89a6b40bf60d5736adb177a16e72d321123efd31707c567bfd96ea7",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1065",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1065sb2",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1065sc",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1065sk1",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1065sm3",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4562",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4797",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8825",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8882",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8453pe",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      },
+      {
+        "id": "1120-2025-1",
+        "source": "https://www.irs.gov/pub/irs-efile/form-1120-ty2025-test-scenario-1.pdf",
+        "sourceSha256": "c079a18352d6138d08590e96d71071091d02435dd63506dd1c2672df9ffdd707",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1120",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1120sb",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120sd",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120sg",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120sm3",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1120so",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1125a",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1125e",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f3800",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4562",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f5884",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8594",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8822b",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8881",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8882",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8916a",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8932",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8453corp",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8949",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      },
+      {
+        "id": "1120S-2025-5",
+        "source": "https://www.irs.gov/pub/irs-efile/ty25-f1120s-ats-scenario05-08012025.pdf",
+        "sourceSha256": "6fa096ab4b2b2833d49187128de5f313d7214dde955eca1c8387a024a85f8f50",
+        "sourceBytesVerified": true,
+        "status": "blocked",
+        "fullScenarioExecuted": false,
+        "requirements": [
+          {
+            "id": "f1120s",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1120ssk",
+            "status": "partial-calculation-and-draft-pdf"
+          },
+          {
+            "id": "f1125a",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f1125e",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4562",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f4797",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8453corp",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8822b",
+            "status": "not-implemented"
+          },
+          {
+            "id": "f8825",
+            "status": "not-implemented"
+          }
+        ],
+        "missingBoundary": "Complete required forms/disclosures/attachments, scenario import and expected-output checks, official XML validation, transport and agency acceptance."
+      }
+    ],
+    "existingReportOverwriteRejected": true,
+    "agencySubmissionAttempted": false,
+    "agencyApproval": false,
+    "releaseReady": false
+  },
+  "custodyPackages": {
+    "reusedUnchangedSourceArtifacts": true,
+    "initialized": false,
+    "provisioned": false,
+    "offline": {
+      "files": 409,
+      "sourceFilesCompared": 407
+    },
+    "cloud": {
+      "files": 395,
+      "sourceFilesCompared": 394,
+      "zipCrcVerified": true
+    }
+  },
+  "completeProduct": false,
+  "installedServiceChanged": false,
+  "limits": [
+    "RRTA, unreported wages/tips and uncollected box-12 taxes excluded",
+    "Form 8960 cases suppress final totals; full federal/year/state coverage remains unfinished",
+    "Selected ATS cover-page inventories are not full scenario execution or an IRS-required test plan",
+    "No approved provider/account or real key environment is configured",
+    "No independent tax/security review, physical custody, Safari/visual acceptance or installed rollout verified"
+  ]
+}

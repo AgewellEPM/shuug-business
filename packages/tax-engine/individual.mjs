@@ -1,3 +1,4 @@
+import {additionalMedicare} from './additional-medicare.mjs';
 import { strictObject, list, text, amountFields, diagnostic } from './model.mjs';
 import { sumMoney, wholeDollars as R, wholeRatio as P } from './money.mjs';
 import {federalYearRules} from './federal-years.mjs';
@@ -14,7 +15,7 @@ export function calculateIndividual(input){
   const joint=individual.filingStatus==='marriedJoint',diagnostics=[],w2s=list(individual.w2s,'W-2 records',100);
   const ids=new Set();
   for(const wage of w2s){
-    strictObject(wage,['id','owner','employer','wagesCents','socialSecurityWagesCents','medicareWagesCents','federalWithholdingCents'],'W-2');
+    strictObject(wage,['id','owner','employer','wagesCents','socialSecurityWagesCents','medicareWagesCents','federalWithholdingCents','medicareTaxWithheldCents'],'W-2');
     text(wage.id,'W-2 identifier',100);text(wage.employer,'Employer');if(!wage.id||ids.has(wage.id))throw new Error('Each W-2 needs its own stable identifier.');ids.add(wage.id);
     if(!['taxpayer','spouse'].includes(wage.owner)||wage.owner==='spouse'&&!joint)throw new Error('Spouse wages require a joint individual return.');
     amountFields(wage,['wagesCents','socialSecurityWagesCents','medicareWagesCents','federalWithholdingCents'],'W-2');
@@ -43,20 +44,21 @@ export function calculateIndividual(input){
       qbiUnknown=true;diagnostics.push(diagnostic('QBI_MULTIPLE_BUSINESS_ALLOCATION','Multiple businesses for one taxpayer require reviewed allocation of self-employment adjustments and QBI losses. No unreviewed business-row allocation was substituted.'));
     }else{qbi=qbiLines['15'];forms.push({form:'f8995',copyId:'qbi',lines:qbiLines,businesses:businesses.map(business=>({copyId:business.copyId,name:business.businessName,taxId:business.owner==='spouse'?individual.spouseTaxId:input.party.taxId,qbiCents:sumMoney([business.profitCents,-(seByOwner.find(owner=>owner.owner===business.owner)?.halfTaxCents??0)])})),qualifiedBusinessIncomeCents:qualified});}
   }
-  const medicareWages=R(sumMoney(w2s.map(wage=>wage.medicareWagesCents))),netEarnings=sumMoney(seByOwner.filter(owner=>owner.netEarningsCents>=40000).map(owner=>owner.netEarningsCents)),medicareThreshold=joint?25000000:individual.filingStatus==='marriedSeparate'?12500000:20000000;
-  const additionalMedicare=medicareWages+netEarnings>medicareThreshold;
-  if(additionalMedicare)diagnostics.push(diagnostic('ADDITIONAL_MEDICARE_REQUIRED','Combined Medicare wages and self-employment earnings require Form 8959. Complete that calculation before a total-tax or balance figure is used.'));
+  const medicare=additionalMedicare({filingStatus:individual.filingStatus,w2s,selfEmploymentEarnings:seByOwner.map(owner=>owner.netEarningsCents)});diagnostics.push(...medicare.diagnostics);if(medicare.form)forms.push(medicare.form);
+  const investmentThreshold=['marriedJoint','survivingSpouse'].includes(individual.filingStatus)?25000000:individual.filingStatus==='marriedSeparate'?12500000:20000000;
+  const investmentTaxUnknown=lines['11b']>investmentThreshold&&(lines['2b']>0||lines['3b']>0);
+  if(investmentTaxUnknown)diagnostics.push(diagnostic('NET_INVESTMENT_TAX_REQUIRED','Income exceeds the Form 8960 threshold and reported interest/dividends may require Net Investment Income Tax. Complete its income/expense and MAGI review before using total tax or balance figures.'));
   if(lines['2b']>150000||lines['3b']>150000)diagnostics.push(diagnostic('SCHEDULE_B_REQUIRED','Interest/dividends require Schedule B and its account/foreign reporting questions.'));
   if(joint&&(!individual.spouseName.trim()||!/^\d{9}$/.test(individual.spouseTaxId.replaceAll('-',''))))diagnostics.push(diagnostic('SPOUSE_IDENTITY_REQUIRED','Complete the spouse name and taxpayer ID for a joint return.'));
   if(joint&&(!individual.spouseFirstName?.trim()||!individual.spouseLastName?.trim()))diagnostics.push(diagnostic('SPOUSE_NAME_PARTS_REQUIRED','Confirm the spouse first/middle and last-name fields before completing Form 1040.'));
   if(individual.filingStatus==='headOfHousehold'||individual.filingStatus==='survivingSpouse')diagnostics.push(diagnostic('QUALIFYING_PERSON_REVIEW','Confirm the qualifying-person/dependent information and household/surviving-spouse conditions. Their schedules are not inferred from filing status.'));
   lines['13a']=qbiUnknown?null:qbi;lines['13b']=0;lines['14']=qbiUnknown?null:sumMoney([lines['12e'],qbi]);lines['15']=qbiUnknown?null:Math.max(0,lines['11b']-lines['14']);
-  const tax=lines['15']===null?null:ordinaryTax(lines['15'],individual.filingStatus,input.year);lines['16']=tax?.taxCents??null;lines['17']=0;lines['18']=lines['16'];lines['19']=0;lines['20']=0;lines['21']=0;lines['22']=lines['16'];lines['23']=seTax;
-  const limited=qbiUnknown||additionalMedicare||input.features.length>0||diagnostics.some(item=>item.code==='LOSS_LIMITATION_REVIEW');lines['24']=limited?null:sumMoney([lines['22'],lines['23']]);lines['25a']=R(sumMoney(w2s.map(wage=>wage.federalWithholdingCents)));lines['25d']=lines['25a'];lines['26']=R(sumMoney([individual.estimatedPaymentsCents,individual.priorYearAppliedCents]));lines['33']=sumMoney([lines['25d'],lines['26']]);lines['34']=lines['24']===null?null:Math.max(0,lines['33']-lines['24']);lines['35a']=lines['34'];lines['37']=lines['24']===null?null:Math.max(0,lines['24']-lines['33']);
+  const tax=lines['15']===null?null:ordinaryTax(lines['15'],individual.filingStatus,input.year);lines['16']=tax?.taxCents??null;lines['17']=0;lines['18']=lines['16'];lines['19']=0;lines['20']=0;lines['21']=0;lines['22']=lines['16'];lines['23']=sumMoney([seTax,medicare.taxCents]);
+  const limited=qbiUnknown||investmentTaxUnknown||input.features.length>0||diagnostics.some(item=>item.code==='LOSS_LIMITATION_REVIEW');lines['24']=limited?null:sumMoney([lines['22'],lines['23']]);lines['25a']=R(sumMoney(w2s.map(wage=>wage.federalWithholdingCents)));if(medicare.required)lines['25c']=medicare.withholdingCents;lines['25d']=medicare.withholdingCents===null?null:sumMoney([lines['25a'],medicare.withholdingCents]);lines['26']=R(sumMoney([individual.estimatedPaymentsCents,individual.priorYearAppliedCents]));lines['33']=lines['25d']===null?null:sumMoney([lines['25d'],lines['26']]);lines['34']=lines['24']===null||lines['33']===null?null:Math.max(0,lines['33']-lines['24']);lines['35a']=lines['34'];lines['37']=lines['24']===null||lines['33']===null?null:Math.max(0,lines['24']-lines['33']);
   if(businesses.length)forms.push({form:'f1040s1',copyId:'adjustments',lines:{'3':profit,'10':profit,'15':halfTax,'26':halfTax}});
-  if(seTax)forms.push({form:'f1040s2',copyId:'other-taxes',lines:{'4':seTax,'21':seTax}});
+  if(seTax||medicare.taxCents)forms.push({form:'f1040s2',copyId:'other-taxes',lines:{...(seTax?{'4':seTax}:{}),...(medicare.taxCents?{'11':medicare.taxCents}:{}),'21':lines['23']}});
   forms.unshift({form:'f1040',copyId:'main',lines});
-  const summary={adjustedGrossIncomeCents:lines['11b'],taxableIncomeCents:lines['15'],ordinaryTaxCents:lines['16'],selfEmploymentTaxCents:seTax,totalTaxCents:lines['24'],paymentsCents:lines['33'],refundCents:lines['34'],amountOwedCents:lines['37']};
+  const summary={adjustedGrossIncomeCents:lines['11b'],taxableIncomeCents:lines['15'],ordinaryTaxCents:lines['16'],selfEmploymentTaxCents:seTax,additionalMedicareTaxCents:medicare.taxCents,additionalMedicareWithholdingCents:medicare.withholdingCents,totalTaxCents:lines['24'],paymentsCents:lines['33'],refundCents:lines['34'],amountOwedCents:lines['37']};
   if(input.year<2025){lines['11']=lines['11a'];lines['12']=lines['12e'];lines['13']=lines['13a'];for(const key of ['11a','11b','12e','13a','13b'])delete lines[key];}
   return {forms,diagnostics,summary,taxMethod:tax};
 }
