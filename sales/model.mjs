@@ -1,4 +1,5 @@
 import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'node:crypto';
+import {localityAllowed} from './territory-access.mjs';
 
 export const STATES = 'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
 export const STAGES = ['new', 'researching', 'contacted', 'replied', 'waiting', 'meeting', 'interested', 'invited', 'contract_sent', 'contract_signed', 'active', 'not_interested', 'do_not_contact'];
@@ -31,7 +32,7 @@ export function unseal(token, key) {
     return value.exp > Date.now() ? value : null;
   } catch { return null; }
 }
-export function visible(user, lead) { return user.role === 'owner' || ((!user.states.length || user.states.includes(lead.state)) && String(lead.assigned_to) === String(user.id)); }
+export function visible(user, lead) { return user.role === 'owner' || (localityAllowed(user,lead.state,lead.locality) && String(lead.assigned_to) === String(user.id)); }
 export function metadata(row) { try { return JSON.parse(row.notes || '{}'); } catch { throw new HttpError(502, 'A saved record needs repair. No changes were made.'); } }
 export function officeInput(b) {
   const postalCode = text(b.postalCode || b.zip || '', 10);

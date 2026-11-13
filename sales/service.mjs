@@ -11,6 +11,8 @@ import { contractSummary, contractLink, signedContractReceipt } from './contract
 import { DELIVERY_ACTIONS, deliveryTools, deliveryReceipts, safeSalesEvent } from './contract-delivery.mjs';
 import { revenueSummary } from './revenue.mjs';
 import { localDiscovery } from './local-discovery.mjs';
+import {agentTerritory, territoryTools} from './territories.mjs';
+import {localityAllowed} from './territory-access.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -18,8 +20,8 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const owner = { id: 'owner', name: 'Workspace owner', role: 'owner', states: [] };
   const prospects = prospectTools(env, db, tools);
   const reconcile = tools.billingReconciler || reconcileEnrollment;
-  const publicUser = u => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, states: u.states });
-  const rosterUser = r => ({ id: String(r.id), name: r.contact_name, email: r.contact_email, role: 'agent', states: metadata(r).states || [] });
+  const publicUser = u => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, states: u.states,territory:u.territory || null });
+  const rosterUser = r => ({ id: String(r.id), name: r.contact_name, email: r.contact_email, role: 'agent', states: metadata(r).states || [],...agentTerritory(r) });
   async function identity(token) {
     const session = unseal(token || '', key);
     if (!session) throw new HttpError(401, 'Sign in with your sales access code.');
@@ -35,6 +37,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   }
   const audit = (user, leadId, action, detail) => db.create('events', { town: `${action} ${secret().slice(0, 12)}`, contact_name: user.name, assigned_to: String(leadId), status: 'recorded', notes: JSON.stringify({ actorId: user.id, action, detail, at: new Date().toISOString() }) });
   const contacts = contactTools(db, audit, tools.now);
+  const territories = territoryTools(db,audit);
   const progress = progressTools(db, audit, tools.now);
   const delivery = deliveryTools(env, db, tools);
   const local = localDiscovery(env, { search:db.search?.bind(db), ...tools.localDiscovery, checkCandidate:async (_user,candidate) => {
@@ -55,6 +58,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
   }
   async function dispatch(user, action, b = {}) {
+    if(['territory-localities','set-agent-territory'].includes(action))return territories(user,action,b);
     if (['search-local', 'map-geocode', 'lookup-business', 'research-local-contacts', 'state-coverage'].includes(action)) return local(user, action, b);
     if (action === 'bootstrap') {
       const [all, agents, terms, enrollments, events] = await Promise.all([db.list('offices'), db.list('agents'), db.terms(), db.list('enrollments'), db.list('events')]);
@@ -64,7 +68,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         return { ...row, ...(current ? { membership: enrollmentEligibility(current) } : {}), pipeline: progressProjection(row, events, enrollments) };
       });
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
-      return { user: publicUser(user), offices, contracts, revenue: revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [] })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
+      return { user: publicUser(user), offices, contracts, revenue: revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [],...agentTerritory(r) })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
     }
     if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
     if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);
@@ -81,22 +85,23 @@ export function service(env, db, payment = payments(env), tools = {}) {
     }
     if (action === 'search') {
       const region = state(b.state), city = text(b.city, 100, true);
-      if (user.states.length && !user.states.includes(region)) throw new HttpError(403, 'This state is outside your territory.');
+      if (!localityAllowed(user,region,city)) throw new HttpError(403, 'Choose a town or city in your assigned territory.');
       const offset = b.offset === undefined ? 0 : Number(b.offset);
       if (!Number.isInteger(offset) || offset < 0 || offset > 100000) throw new HttpError(400, 'Choose a valid search page.');
-      return db.discover(region, city, { offset, limit: 50 });
+      const found=await db.discover(region, city, { offset, limit: 50 });
+      return {...found,results:found.results.filter(row=>localityAllowed(user,row.state,row.city))};
     }
     if (PROSPECT_ACTIONS.has(action)) return prospects(user, await leadFor(user, b.id), action, b);
     if (action === 'create-office') {
       const input = officeInput(b);
-      if (user.states.length && !user.states.includes(input.state)) throw new HttpError(403, 'This state is outside your territory.');
+      if (!localityAllowed(user,input.state,input.city)) throw new HttpError(403, 'Choose a town or city in your assigned territory.');
       const identity = officeIdentity(input.name, input.address, input.city, input.state);
       const duplicate = (await db.list('offices')).find(r => officeIdentity(r.town, metadata(r).address, r.locality, r.state) === identity);
       if (duplicate) { if (!visible(user, duplicate)) throw new HttpError(409, 'This office is already in the team pipeline. Ask the owner about its assignment.'); return { office: duplicate, duplicate: true }; }
       let assigned = user.id;
       if (user.role === 'owner' && b.assignedTo && b.assignedTo !== 'owner') {
         const agent = await db.get('agents', b.assignedTo);
-        if (!agent || agent.status !== 'active' || (metadata(agent).states.length && !metadata(agent).states.includes(input.state))) throw new HttpError(400, 'Choose an active agent covering this state.');
+        if (!agent || agent.status !== 'active' || !localityAllowed(rosterUser(agent),input.state,input.city)) throw new HttpError(400, 'Choose an active agent covering this town or city.');
         assigned = String(agent.id);
       }
       const row = await db.create('offices', { town: input.name, state: input.state, contact_name: input.contact, contact_email: input.email, contact_phone: input.phone, locality: input.city, assigned_to: assigned, category: 'local_business', status: 'new', notes: JSON.stringify({ address: input.address, postalCode: input.postalCode, website: input.website, source: input.source, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, sourceCheckedAt: new Date().toISOString() }) });
@@ -136,7 +141,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       if (info) patch.notes = JSON.stringify(info);
       if (b.assignedTo !== undefined) {
         if (user.role !== 'owner') throw new HttpError(403, 'Only the owner can reassign offices.');
-        if (b.assignedTo !== 'owner') { const a = await db.get('agents', b.assignedTo); if (!a || a.status !== 'active' || (metadata(a).states.length && !metadata(a).states.includes(before.state))) throw new HttpError(400, 'Choose an active agent covering this state.'); }
+        if (b.assignedTo !== 'owner') { const a = await db.get('agents', b.assignedTo); if (!a || a.status !== 'active' || !localityAllowed(rosterUser(a),before.state,before.locality)) throw new HttpError(400, 'Choose an active agent covering this town or city.'); }
         patch.assigned_to = b.assignedTo;
       }
       const office = await patchReviewed(db, 'offices', before, patch);

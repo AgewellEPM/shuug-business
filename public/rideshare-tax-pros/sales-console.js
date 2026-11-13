@@ -33,14 +33,14 @@
   const verifiedOwnership = office => { const info = metadata(office); return info.independence === 'independent' && info.independenceVerification?.reviewed === true && info.independenceVerification.finding === 'independent'; };
   let previousMount;
 
-  function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onSearch = () => {} } = {}) {
+  function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onSearch = () => {}, onTerritory } = {}) {
     previousMount?.();
     let data = { offices: [], agents: [], user: {}, stages: STAGES }, selectedState = '', currentView = 'dashboard', pipelineView = 'board';
     const cleanups = [], boundPaths = new WeakSet();
     const listen = (element, event, handler) => { if (!element) return; element.addEventListener(event, handler); cleanups.push(() => element.removeEventListener(event, handler)); };
     const act = work => { try { Promise.resolve(work()).catch(error => status(error.message || 'The view could not be opened.', true)); } catch (error) { status(error.message || 'The view could not be opened.', true); } };
     const button = (text, className, action) => { const element = node('button', className, text); element.type = 'button'; element.addEventListener('click', () => act(action)); return element; };
-    const userStates = () => data.user.role === 'owner' || !data.user.states?.length ? [...STATE_NAMES.keys()] : data.user.states.filter(state => STATE_NAMES.has(state));
+    const userStates = () => data.user.role === 'owner' ? [...STATE_NAMES.keys()] : data.user.territory?.version===1 ? data.user.territory.areas.map(area=>area.state) : !data.user.states?.length ? [...STATE_NAMES.keys()] : data.user.states.filter(state => STATE_NAMES.has(state));
     const permitted = state => userStates().includes(state);
     const offices = () => (data.offices || []).filter(office => permitted(office.state) && (data.user.role !== 'agent' || String(office.assigned_to) === String(data.user.id)));
     const navigate = name => {
@@ -119,7 +119,7 @@
         control.append(node('span','sdr-office-avatar',(item.office.town || 'O').slice(0,1).toUpperCase()),copy,node('span','sdr-work-arrow','↗')); list.append(control);
       }
       next.append(list);
-      const territory = node('section','sdr-card sdr-territory-summary'), scope = data.user.role === 'owner' || !data.user.states?.length ? 'Nationwide research access' : `${data.user.states.length} assigned state${data.user.states.length === 1 ? '' : 's'}`;
+      const territory = node('section','sdr-card sdr-territory-summary'), scope = data.user.role==='owner' ? 'Nationwide research access' : data.user.territory?.version===1 ? data.user.territory.areas.length ? 'Assigned towns and states' : 'No territory assigned' : !data.user.states?.length ? 'Nationwide research access' : `${data.user.states.length} assigned state${data.user.states.length === 1 ? '' : 's'}`;
       territory.append(cardHead('Your territory',scope),node('p','',`${new Set(rows.map(o => o.state)).size} states and ${new Set(rows.filter(o => o.locality?.trim()).map(o => `${o.state}|${o.locality.trim().toLowerCase()}`)).size} cities represented in your saved pipeline.`),button('Open territory map','sdr-action',() => openView('territories')));
       const lower = node('div','sdr-dashboard-grid'); lower.append(next,territory);
       const progress = node('div','sdr-contact-summary sdr-progress-summary');
@@ -177,6 +177,7 @@
       if (!permitted(state)) return;
       selectedState = state; renderTerritories();
       const form = $('#sales-discover'), select = form?.elements.namedItem('state'); if (select) select.value = state;
+      if(onTerritory){openView('territories');return onTerritory(state);}
       return openView('discover');
     }
     function searchCity(state, city) {
@@ -228,7 +229,7 @@
           const cities = new Set(rows.filter(o => o.state === state && o.locality).map(o => o.locality.toLowerCase())); control.append(node('small','',`${cities.size} saved ${cities.size === 1 ? 'city' : 'cities'}`)); return control;
         }));
       }
-      const citiesHost = $('#sales-territory-cities');
+      const citiesHost = onTerritory ? null : $('#sales-territory-cities');
       if (citiesHost) {
         citiesHost.classList.add('sdr-city-list');
         const groups = new Map();

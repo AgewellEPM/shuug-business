@@ -1,0 +1,271 @@
+{
+  "version": "2026",
+  "sources": [
+    {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_Gaz_cousubs_national.zip",
+      "sha256": "9d528b39b70a27075c863b1572f27eadaf24484d5435fac17fc3b4cdd36434c2"
+    },
+    {
+      "url": "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/2026_Gazetteer/2026_Gaz_place_national.zip",
+      "sha256": "af678e2d990827c89ee39b98c82de6e90b693c7361ff0e559ae3076670dd2863"
+    }
+  ],
+  "assignmentBasis": "Recorded office city/town name within its state. Identically named localities in one state share an assignment; this catalog is not an address-boundary geofence.",
+  "states": [
+    {
+      "state": "AL",
+      "localities": 594,
+      "sha256": "c77ba346b6792109ccc3362feba810a7f52574145a8a14b3cc9dee99d05d93d8"
+    },
+    {
+      "state": "AK",
+      "localities": 355,
+      "sha256": "8c81860ac7aff1e6acd7449f42e6e5e0f610b1a016fa3c2df0652d04cc873dfd"
+    },
+    {
+      "state": "AZ",
+      "localities": 464,
+      "sha256": "f029043a8726ff05635fcf5b47e6902a9f035e1483dcea2c0821ef75da158985"
+    },
+    {
+      "state": "AR",
+      "localities": 1201,
+      "sha256": "fa5cb784eabd4a1606bd6412893d47c90e8686bd799965aba9cb71fd0f8e6d7a"
+    },
+    {
+      "state": "CA",
+      "localities": 1598,
+      "sha256": "000d3791b8fce0e774f5fcf5a8180021061a030b0b539b88bb863456884a6c5a"
+    },
+    {
+      "state": "CO",
+      "localities": 482,
+      "sha256": "de211fb6751d7875db72e5662f1e9928f099c1dae67ab2c0f97ac68e02e5ecb5"
+    },
+    {
+      "state": "CT",
+      "localities": 169,
+      "sha256": "8bc14c7650bf33adba8fb77d058a650150c36f8bbd3f4f64d8fd5596fb4b8ee8"
+    },
+    {
+      "state": "DE",
+      "localities": 79,
+      "sha256": "12210bb360e9fa1afee18b0e51842963e0e17e0a914c391cd56466efeaab7711"
+    },
+    {
+      "state": "DC",
+      "localities": 1,
+      "sha256": "4ac52c0f5e3790df995fcc9453c7028da271163b21550592e33d6e298d679231"
+    },
+    {
+      "state": "FL",
+      "localities": 951,
+      "sha256": "7fb369ea01694651280cbd3efb26e672c793f8e38b4013b121f040569f25a282"
+    },
+    {
+      "state": "GA",
+      "localities": 674,
+      "sha256": "3a4566719486052b82839d366ddf3bcda9c7d92846b9006b88c0952eb54665f2"
+    },
+    {
+      "state": "HI",
+      "localities": 161,
+      "sha256": "9a040c864ce8a1f6c758b66b5abe7c5d18fffbd04f2d66c6843010d0a440a4a3"
+    },
+    {
+      "state": "ID",
+      "localities": 235,
+      "sha256": "83d91d7d04eb03e38abc7f8894a24ea6ca410df7f955388c54114fcfc62f6f9a"
+    },
+    {
+      "state": "IL",
+      "localities": 2473,
+      "sha256": "f8bacb2794eb909da4f5deb531c33a86485b097f14fd7f9966c180ddbdbb69b2"
+    },
+    {
+      "state": "IN",
+      "localities": 1252,
+      "sha256": "c2de0e2375d58702d007708bfb0d1c629fd0697017a0dd0a2f0ddebc2eec1add"
+    },
+    {
+      "state": "IA",
+      "localities": 1028,
+      "sha256": "d657b57b03cfc90b85ae679ee7da41fe9dc38f2004180d120003bb659baa397c"
+    },
+    {
+      "state": "KS",
+      "localities": 1297,
+      "sha256": "a16932ae1cdbfd88893995ba9908cb8a6717e31777916010001039ed95f11e96"
+    },
+    {
+      "state": "KY",
+      "localities": 551,
+      "sha256": "1936089dcd8d0188f3dbc15fb3e7f989be6761069e2f792924c089737ff22fe2"
+    },
+    {
+      "state": "LA",
+      "localities": 522,
+      "sha256": "94f2822b4898475d8ad3d0f9d488f6d3a0b84c4935b66fdfa16b526950e55e16"
+    },
+    {
+      "state": "ME",
+      "localities": 509,
+      "sha256": "2fed4184f370e4bbde3a229c47947522007ec542bd0e939975e2f137dd6c5a04"
+    },
+    {
+      "state": "MD",
+      "localities": 801,
+      "sha256": "b3c79525686dba632071b3ba70e1f2a3c20045f9072e3a8ed83a410600596bbe"
+    },
+    {
+      "state": "MA",
+      "localities": 435,
+      "sha256": "3d9acc7fa53339820ed58270b4389728dd21506aaa951d2b8ae0bcec822d7b21"
+    },
+    {
+      "state": "MI",
+      "localities": 1563,
+      "sha256": "e4dbda65d443968a1530e2dfb027d3556d01739b06d017b2f270a6768379a674"
+    },
+    {
+      "state": "MN",
+      "localities": 2247,
+      "sha256": "58b49295a422925063605f4a831f2858481919e79ce4bc88e4dddeb97d7526a1"
+    },
+    {
+      "state": "MS",
+      "localities": 431,
+      "sha256": "38ba4bfe9ad265ff9cecfedccbf824818f4776bd4b495e4117664498049d87b0"
+    },
+    {
+      "state": "MO",
+      "localities": 1728,
+      "sha256": "2769b025f54636e395174ff6afc2d72e6e71c914a5cb2f768821fbf7c9ec775c"
+    },
+    {
+      "state": "MT",
+      "localities": 496,
+      "sha256": "104546c62ce074023794c54a2f332eb9bf979ac9c102215cd86d28ed4e15f336"
+    },
+    {
+      "state": "NE",
+      "localities": 1349,
+      "sha256": "fd3637a1263f6f2a89774d03c0b6c7af025be3d8c551e43b0e568f26c72df29e"
+    },
+    {
+      "state": "NV",
+      "localities": 138,
+      "sha256": "a0547a5eba7734a618d8277b58b2350945726aae085364318c5575f665181de4"
+    },
+    {
+      "state": "NH",
+      "localities": 284,
+      "sha256": "dc15f926ba5021f7ab7e0c1fc35579d4c071076383bc68e7a34340a83eba59a6"
+    },
+    {
+      "state": "NJ",
+      "localities": 873,
+      "sha256": "6acf2c583d19914bcebd88e51390f3e07b7d2cd33e532d84b85b23eca8d84832"
+    },
+    {
+      "state": "NM",
+      "localities": 518,
+      "sha256": "5016eba531cc2feeca3fc53aa45cb0ade852efd5537815648eb6da26ada36af8"
+    },
+    {
+      "state": "NY",
+      "localities": 1849,
+      "sha256": "cdaecf6d9375c6e6dc61aef33786375a5c17a8e95e93e7b7626ac4515961e769"
+    },
+    {
+      "state": "NC",
+      "localities": 1459,
+      "sha256": "36edbf8863cd8709b26a3779399a476e25e69888ff6aa82d27d7952573a9d276"
+    },
+    {
+      "state": "ND",
+      "localities": 1499,
+      "sha256": "70b754142ad03818783b717a847b292bfa9458edeb9998ac6ddba704f41bb0d1"
+    },
+    {
+      "state": "OH",
+      "localities": 1675,
+      "sha256": "5b3979d2593224143cb5bde25c1409120fe158fbcc36801034daa2b39a06d991"
+    },
+    {
+      "state": "OK",
+      "localities": 840,
+      "sha256": "8ce2c0affa9437b3b5f52806c255f7ce5e0e79bed2ac379d56ea26bb842c3c2d"
+    },
+    {
+      "state": "OR",
+      "localities": 425,
+      "sha256": "5e498e2b150c7bcb78bfef48ebc6ecc0708188965d79af874929705d15181deb"
+    },
+    {
+      "state": "PA",
+      "localities": 2754,
+      "sha256": "1cff554118109ddd0b8afdbcd7fa0919b67973c44a9b6706bc4c45746d2e86d8"
+    },
+    {
+      "state": "RI",
+      "localities": 63,
+      "sha256": "0aa97ea4339ebc8c226c3e4857b2d0ebeaf846524209f6402551173146bde778"
+    },
+    {
+      "state": "SC",
+      "localities": 472,
+      "sha256": "a5de66bafaad76bb10c1cfcb1714bfaf11dbb92afe9fb0000cebbdb8c8394b28"
+    },
+    {
+      "state": "SD",
+      "localities": 1041,
+      "sha256": "545537cf37ccbf19b8079758c7ce7f488fe3c894c78d006d9eea2bffc7101184"
+    },
+    {
+      "state": "TN",
+      "localities": 536,
+      "sha256": "a584a2eeca161c00f35ee2bbb8ae85457094171e7f0d2cc338a7188c68099b95"
+    },
+    {
+      "state": "TX",
+      "localities": 1842,
+      "sha256": "64d182779b6e237ae69049d6de8fd4e4710c0070104fa16e768d8e3abdcd2137"
+    },
+    {
+      "state": "UT",
+      "localities": 333,
+      "sha256": "9d8cf7171efe392c109f645b1500194d090386549879a42efe98c1a23d8c77ff"
+    },
+    {
+      "state": "VT",
+      "localities": 316,
+      "sha256": "ae7d90398253b804fcb747ae8161686a62a4ca8d462136f748e58f94b03bde7f"
+    },
+    {
+      "state": "VA",
+      "localities": 1043,
+      "sha256": "8b3e2a8a655a555cc93d099e96acecb59ebff2e9c161dd5b62312471b3490de5"
+    },
+    {
+      "state": "WA",
+      "localities": 637,
+      "sha256": "ed60c4119795a2d59c5023bba7e42e7d412cf4f4b020c228ca56c231d18b48e9"
+    },
+    {
+      "state": "WV",
+      "localities": 570,
+      "sha256": "72b8db2f9b4afa413e2f40b9a37ecb38db444ee6e48ff3e244fea6a4152cc1d9"
+    },
+    {
+      "state": "WI",
+      "localities": 1439,
+      "sha256": "8fb2546ecc270534788f63bfc0f972c521082a4acb88fa647b2abec715176613"
+    },
+    {
+      "state": "WY",
+      "localities": 204,
+      "sha256": "c2c770fddc8b21eefc32ab65727233410a914564fedff9b7aa0e22165b0e5e49"
+    }
+  ]
+}

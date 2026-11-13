@@ -1,0 +1,17 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T03:59:30.169Z",
+  "scope": "Exact prepared backend with actual isolated D1 boards. Synthetic agent/town writes only; no real pipeline, messages, payments or provider changes.",
+  "checks": [
+    "town assignment persists and fresh identity/adapter reads the same restricted towns while retaining another state",
+    "stale concurrent changes, non-owner edits, outside-town searches and ZIP bypasses are rejected",
+    "eligible office creation persists with the salesperson; outside-town reassignment is rejected",
+    "clearing all coverage remains restricted and existing signed-in sessions immediately lose outside-scope access"
+  ],
+  "diagnosticBoardsArchived": [
+    "b_0qfav58svj",
+    "b_a5esr6p9ex",
+    "b_1ci5vgmz1q",
+    "b_ds5pl4ipuu"
+  ]
+}

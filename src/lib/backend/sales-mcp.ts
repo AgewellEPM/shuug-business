@@ -20,7 +20,8 @@ export function registerSalesMcp(server: McpServer, invoke: SalesInvoke) {
   };
   register("sdr_catalog", "Read GigTax contact, pipeline, contract and sender contracts and provider limits. These tools share the private sales UI records. Contract email sending is an explicit external action; payments remain separate.", {}, true);
   register("sdr_read", "Read the authenticated sales workspace, assigned-office Rolodex or one office including its current contact revision. Source-checked names/roles do not establish email deliverability or independent office ownership. Archived contacts remain in history.", {
-    resource: z.enum(["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses", "contact_research", "state_coverage"]), id: z.string().regex(/^\d+$/).optional(),
+    resource: z.enum(["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses", "contact_research", "state_coverage", "territory_localities"]), id: z.string().regex(/^\d+$/).optional(),
+    query:z.string().max(100).optional(),offset:z.number().int().min(0).optional(),
     city: z.string().min(1).max(100).optional(), state: z.string().regex(/^[A-Z]{2}$/).optional(), candidateToken: z.string().max(12000).optional(), candidateTokens: z.array(z.string().max(12000)).min(1).max(10).optional(),
     website: z.string().max(700).optional(), websiteReviewed: z.boolean().optional(),
   }, true);

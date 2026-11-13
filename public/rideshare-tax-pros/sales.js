@@ -27,7 +27,7 @@
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected, consoleUI, contactsUI, contractsUI, localUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
     const tab = name => {
       if (name === 'team' && data?.user.role !== 'owner') name = 'home';
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
@@ -76,16 +76,17 @@
       $('#sales-login').hidden = true; $('#sales-workspace').hidden = false; $('#sales-identity').hidden = false; $('#sales-name').textContent = data.user.name;
       if ($('#sales-gate')) $('#sales-gate').hidden = true;
       $$('[data-owner-only]').forEach(el => { el.hidden = data.user.role !== 'owner'; });
-      $$('[data-states]').forEach(s => { const previous = s.value; const states = data.user.states.length ? data.user.states : data.states; s.innerHTML = states.map(v => `<option>${e(v)}</option>`).join(''); if (states.includes(previous)) s.value = previous; });
+      $$('[data-states]').forEach(s => { const previous = s.value; const states = data.user.territory?.version===1 ? data.user.territory.areas.map(area=>area.state) : data.user.states.length ? data.user.states : data.states; s.innerHTML = states.map(v => `<option>${e(v)}</option>`).join(''); if (states.includes(previous)) s.value = previous; });
       $$('[data-agents]').forEach(s => { s.innerHTML = '<option value="owner">Workspace owner</option>' + data.agents.map(a => `<option value="${e(a.id)}">${e(a.name)}</option>`).join(''); });
       const priorStage = $('#sales-stage-filter').value; $('#sales-stage-filter').innerHTML = '<option value="">All stages</option>' + data.stages.map(s => `<option value="${s}">${e(title(s))}</option>`).join(''); $('#sales-stage-filter').value = priorStage;
       const clock = new Date(), today = `${clock.getFullYear()}-${String(clock.getMonth()+1).padStart(2,'0')}-${String(clock.getDate()).padStart(2,'0')}`, stats = [ ['Offices', data.offices.length], ['Follow-ups due', data.offices.filter(o => o.meeting_date && o.meeting_date <= today && !['active','not_interested','do_not_contact'].includes(o.status)).length], ['Invited',data.offices.filter(o => o.status === 'invited').length], ['Active',data.offices.filter(o => o.status === 'active' && o.membership?.eligible === true).length] ];
       $('#sales-stats').innerHTML = stats.map(([label,count]) => `<div class="sales-stat"><strong>${count}</strong><span>${label}</span></div>`).join('');
-      $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>${e(a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
+      $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>${e(a.territory?.version===1 ? a.territory.areas.map(area=>`${area.state}: ${area.cities===null?'whole state':area.cities.length+' towns / cities'}`).join(' · ') || 'No territory assigned' : a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
       $$('[data-revoke]').forEach(b => b.onclick = run(async () => { if (!window.confirm('Revoke this agent’s sales access? Existing sessions will stop working.')) return; await api('revoke-agent',{id:b.dataset.revoke}); await refresh(); status('Agent access revoked. Their office assignments are retained for reassignment.'); }));
       $('#sales-payment-status').textContent = data.paymentsConfigured ? 'Stripe credentials are saved. Live checkout and billing still need verification.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
       $('#sales-terms-status').textContent = data.terms ? `${data.terms.title} · ${data.terms.version}` : 'Agreement prepared for owner approval. Invitations will become available when the final terms are published.';
       renderList();
+      territoryUI?.render(data);
       window.GigTaxWorkflows?.queue({ offices: data.offices, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
       tab($('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
       if (selected) await showOffice(selected);
@@ -197,7 +198,8 @@
     } });
     contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
-    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onSearch: async input => {
+    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
+    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onTerritory:territoryUI?state=>territoryUI.selectState(state):undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
       tab('discover');
       return findOffices(Object.fromEntries(new FormData(discovery)), 0);
