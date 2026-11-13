@@ -1,13 +1,14 @@
 import {strictObject,list,text,amountFields,diagnostic} from './model.mjs';
 import {checkedMoney,sumMoney,wholeDollars as R,wholeRatio as P} from './money.mjs';
 import {federalYearRules} from './federal-years.mjs';
+import {householdFuta,householdCreditReductionRates,householdStates as states} from './household-futa.mjs';
 
 // Reviewed annual Schedule H instructions, including Worksheet 2. These are
 // federal FUTA credit-reduction restrictions, not state return support.
 export const householdYearRules=Object.freeze({
-  2023:Object.freeze({wageThresholdCents:260000,creditReductionStates:['CA','NY','VI']}),
-  2024:Object.freeze({wageThresholdCents:270000,creditReductionStates:['CA','NY','VI']}),
-  2025:Object.freeze({wageThresholdCents:280000,creditReductionStates:['CA','VI']}),
+  2023:Object.freeze({wageThresholdCents:260000,creditReductionStates:Object.keys(householdCreditReductionRates[2023])}),
+  2024:Object.freeze({wageThresholdCents:270000,creditReductionStates:Object.keys(householdCreditReductionRates[2024])}),
+  2025:Object.freeze({wageThresholdCents:280000,creditReductionStates:Object.keys(householdCreditReductionRates[2025])}),
 });
 export const householdReviews=Object.freeze([
   ['classification','Household employee status and each worker’s full-year FICA/FUTA treatment reviewed, including family and under-age exceptions'],
@@ -16,7 +17,6 @@ export const householdReviews=Object.freeze([
 ].map(Object.freeze));
 export const newHouseholdEmployer=(owner='taxpayer')=>({owner,ein:'',employees:[],priorYearFutaQuartersCents:[null,null,null,null],unemployment:{state:'',zeroRate:false,onlyOneState:false,paidOnTime:false,allFutaWagesStateTaxable:false},review:Object.fromEntries(householdReviews.map(([key])=>[key,false]))});
 export const newHouseholdEmployee=id=>({id,name:'',quartersCents:[0,0,0,0],federalWithholdingCents:0,ficaTreatment:'unknown',futaTreatment:'unknown',source:''});
-const states=new Set('AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR VI'.split(' '));
 function quarters(values,label,{unknown=false}={}){
   list(values,label,4);if(values.length!==4)throw new Error(`${label} must contain all four calendar quarters.`);
   for(const value of values)if(!(unknown&&value===null))checkedMoney(value,label);
@@ -33,7 +33,7 @@ export function householdEmployment(values,{year,filingStatus}){
     text(value.ein,'Household employer EIN',11);const ein=value.ein.replaceAll('-','');if(ein&&eins.has(ein))throw new Error('Combine payroll under the same employer EIN; do not duplicate its wage limits.');if(ein)eins.add(ein);
     quarters(value.priorYearFutaQuartersCents,'Prior-year FUTA quarters',{unknown:true});
     strictObject(value.review,householdReviews.map(([key])=>key),'Household review');for(const [key]of householdReviews)if(typeof value.review[key]!=='boolean')throw new Error('Household reviews must be explicit yes/no decisions.');
-    const state=strictObject(value.unemployment,['state','contributionsCents','zeroRate','onlyOneState','paidOnTime','allFutaWagesStateTaxable'],'State unemployment record');text(state.state,'State unemployment jurisdiction',2);
+    const state=strictObject(value.unemployment,['state','contributionsCents','zeroRate','onlyOneState','paidOnTime','allFutaWagesStateTaxable','sectionB'],'State unemployment record');text(state.state,'State unemployment jurisdiction',2);
     if(state.contributionsCents!==undefined)checkedMoney(state.contributionsCents,'State unemployment contributions');
     for(const key of ['zeroRate','onlyOneState','paidOnTime','allFutaWagesStateTaxable'])if(typeof state[key]!=='boolean')throw new Error('State unemployment reviews must be explicit yes/no decisions.');
     const employees=list(value.employees,'Household workers',100),ids=new Set(),local=[];
@@ -48,6 +48,7 @@ export function householdEmployment(values,{year,filingStatus}){
     }
     for(const [key,label]of householdReviews)need(value.review[key],'HOUSEHOLD_'+key.toUpperCase()+'_REVIEW',label+'.');
     const payrollUnknown=local.length>0,workerWages=employees.map(employee=>({...employee,wages:sumMoney(employee.quartersCents)}));
+    const futaDetails=state.sectionB===undefined?null:householdFuta(state,workerWages,year);
     const fica=workerWages.filter(employee=>employee.ficaTreatment==='ordinary'&&employee.wages>=annual.wageThresholdCents);
     const futa=workerWages.filter(employee=>employee.futaTreatment==='ordinary');
     const currentQuarters=[0,1,2,3].map(q=>sumMoney(futa.map(employee=>employee.quartersCents[q])));
@@ -65,8 +66,16 @@ export function householdEmployment(values,{year,filingStatus}){
       for(const [line,wages,rate]of [['2','1',1240],['4','3',290],['6','5',90]])lines[line]=payrollUnknown?null:P(lines[wages],rate);
       if(year===2023){Object.assign(lines,{'1a':lines['1'],'2a':lines['2'],'2c':lines['2'],'8a':lines['8'],'8d':lines['8']});for(const key of ['1','2','8'])delete lines[key];}
     }
-    let futaTax=0,sectionA=false;
+    let futaTax=0,sectionA=false,renderState=state;
     if(threshold===true){
+      if(futaDetails){
+        local.push(...futaDetails.diagnostics);
+        sectionA=futaDetails.sectionAEligible&&!futaDetails.diagnostics.length&&!payrollUnknown;
+        if(sectionA){
+          renderState={...state,state:futaDetails.jurisdictions[0],zeroRate:futaDetails.rows.every(row=>row.rateStatus==='assigned'&&row.rate===0)};
+          if(!renderState.zeroRate)lines['14']=R(sumMoney(futaDetails.rows.map(row=>row.paidOnTimeCents)));lines['15']=futaDetails.lines['20'];lines['16']=P(lines['15'],60);futaTax=lines['16'];
+        }else{Object.assign(lines,futaDetails.lines);futaTax=payrollUnknown?null:lines['24'];}
+      }else{
       const before=local.length;
       need(states.has(state.state),'HOUSEHOLD_STATE_REQUIRED','Select the state unemployment jurisdiction.');
       need(state.onlyOneState&&state.paidOnTime&&state.allFutaWagesStateTaxable,'HOUSEHOLD_FUTA_SECTION_B_REQUIRED','Multiple states, late contributions or FUTA wages not covered by state unemployment require Schedule H Section B and its credit worksheets.');
@@ -76,12 +85,13 @@ export function householdEmployment(values,{year,filingStatus}){
       const wages=payrollUnknown?null:R(sumMoney(futa.map(employee=>Math.min(employee.wages,700000))));
       futaTax=sectionA?P(wages,60):null;
       if(sectionA){if(!state.zeroRate)lines['14']=R(state.contributionsCents);lines['15']=wages;lines['16']=futaTax;}
+      }
       lines['25']=partI;lines['26']=partI===null||futaTax===null?null:sumMoney([partI,futaTax]);
     }else if(threshold===null)futaTax=null;
     const tax=local.length||partI===null||futaTax===null?null:sumMoney([partI,futaTax]);
     // An incomplete employer identity/review must not expose a completed total.
     if(tax===null&&Object.hasOwn(lines,'26'))lines['26']=null;
-    forms.push({form:'f1040sh',copyId:'household-'+value.owner,owner:value.owner,lines,household:{ein,a,b,threshold,sectionA,state,partI,workerWages}});
+    forms.push({form:'f1040sh',copyId:'household-'+value.owner,owner:value.owner,lines,household:{ein,a,b,threshold,sectionA,state:renderState,partI,workerWages,futaDetails}});
     diagnostics.push(...local);if(tax===null)unknown=true;else total=sumMoney([total,tax]);
   }
   return {required,taxCents:unknown?null:total,forms,diagnostics};

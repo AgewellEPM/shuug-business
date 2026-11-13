@@ -1,0 +1,25 @@
+# Schedule B and limited Form 8960
+
+The 2023–2025 annual packs prepare ordinary taxable-interest and nonqualified-dividend payer rows, Schedule B foreign-account/trust disclosures and a limited Form 8960. This remains draft preparation; no tax authority certification, filing or acknowledgment is established.
+
+`investment-income.mjs` accepts optional `individual.investmentIncome`. Its interest/dividend payer records become authoritative, with original cents retained. Nonzero legacy aggregate amounts must agree with the payer totals or calculation totals remain unavailable. Returns without the optional record keep their aggregate inputs and existing Schedule B / potential NIIT completion gates. Adding the editor section preserves aggregate money in unnamed payer rows requiring payer identification; removing it returns money to the aggregate fields.
+
+Supported Form 8960 income is ordinary taxable interest and nonqualified dividends. The preparer must explicitly review full-year US citizen/resident status, the absence of other investment income or modifications, MAGI equal to AGI, and zero eligible investment deductions. This is deliberately a zero-deduction scope, not an investment-expense calculator. The module does not accept arbitrary AGI or NIIT overrides. Wages and the supported active Schedule C/SE income affect AGI but are not added to investment income. Other tax treatments or unreviewed investment scope keep NIIT and final tax/balance totals unavailable. A possible MAGI modification remains unresolved even when unmodified AGI is below the threshold.
+
+Foreign-account, FBAR and foreign-trust questions preserve explicit unknown/yes/no answers. A foreign account keeps separate Form 8938 review outstanding; FBAR-required answers keep separate filing outstanding. Foreign trusts require additional income and reporting work and suppress final tax totals. Schedule B does not prepare or file FinCEN Form 114, Form 8938 or Forms 3520/3520-A.
+
+Qualified dividends, capital gains/losses, rentals, royalties, pass-through income, annuities, financial traders, passive businesses, CFCs/PFICs, section 911 exclusions, nominee allocations, seller-financed home mortgages, interest adjustments, Form 8814, savings-bond exclusions, itemized investment deductions and foreign-trust computations remain outside this implementation. Their absence is an explicit review, not an inference from an empty amount field. Tax year 2026 is not substituted with another year's forms.
+
+Annual sources reviewed:
+
+| Year | Schedule B and instructions | Form 8960 and instructions |
+| --- | --- | --- |
+| 2023 | [Form](https://www.irs.gov/pub/irs-prior/f1040sb--2023.pdf), [instructions](https://www.irs.gov/pub/irs-prior/i1040sb--2023.pdf) | [Form](https://www.irs.gov/pub/irs-prior/f8960--2023.pdf), [instructions](https://www.irs.gov/pub/irs-prior/i8960--2023.pdf) |
+| 2024 | [Form](https://www.irs.gov/pub/irs-prior/f1040sb--2024.pdf), [instructions](https://www.irs.gov/pub/irs-prior/i1040sb--2024.pdf) | [Form](https://www.irs.gov/pub/irs-prior/f8960--2024.pdf), [instructions](https://www.irs.gov/pub/irs-prior/i8960--2024.pdf) |
+| 2025 | [Form](https://www.irs.gov/pub/irs-prior/f1040sb--2025.pdf), [instructions](https://www.irs.gov/pub/irs-prior/i1040sb--2025.pdf) | [Form](https://www.irs.gov/pub/irs-prior/f8960--2025.pdf), [instructions](https://www.irs.gov/pub/irs-prior/i8960--2025.pdf) |
+
+The annual instructions specify the Schedule B triggers and foreign questions, and Form 8960's 3.8% tax on the smaller of net investment income or MAGI above $200,000 (single/head of household), $250,000 (joint/qualifying surviving spouse), or $125,000 (separate). Form 8960 line 17 flows to Schedule 2 line 12. The annual line 13 instructions determine when MAGI equals AGI; Parts I and II describe the unsupported adjustments and deductions.
+
+`test/investment-reference.json` contains synthetic boundary vectors independently derived from those annual instructions. These are not IRS-provided taxpayer examples or an independent tax-professional certification. The [IRS NIIT FAQ](https://www.irs.gov/newsroom/questions-and-answers-on-the-net-investment-income-tax) supplies additional context; its capital-gain and passive-partnership examples are not claimed as supported input treatments.
+
+PDF maps are checked against the original annual row labels and field geometry. The 2025 Schedule B account checkbox has a different parent path from 2023/2024. Payer overflow is retained in the supporting statement with a subtotal on the last available official row. Source totals round their original sum once. If individually rounded rows would not reconcile, Schedule B refers to the complete payer statement and reports one rounded total; the statement retains every payer's original cents. Unknown answers and calculated amounts remain blank, never a default No or zero. The rendering tests extract actual flattened PDF rows through `test/pdf-text.mjs`, with temporary files and guaranteed cleanup.

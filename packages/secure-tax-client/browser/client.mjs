@@ -1,4 +1,6 @@
 import {verifyRenewalRequest,verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
+import {verifyClientKeyRecoveryRequest,verifyClientKeyRecoveryApproval} from '../key-recovery.mjs';
+import {openClientKeyRecoveryChallenge} from '../client-key-recovery-proof.mjs';
 import {assertAuthenticatorRecoveryInvitation,verifyAuthenticatorRecovery} from '../authenticator-recovery.mjs';
 import {openAuthenticatorRecoveryChallenge} from '../authenticator-recovery-proof.mjs';
 import {assertPasswordRecoveryInvitation,verifyPasswordRecovery} from '../password-recovery.mjs';
@@ -18,6 +20,7 @@ const stale=()=>{throw new Error('The connection changed. Unlock the current acc
 const clone=value=>structuredClone(value);
 const ownVersion=(versions,id)=>Object.hasOwn(versions,id)?versions[id]:undefined;
 const validReceipt=value=>value && validId(value.objectId) && integer(value.revision,1,1e9+1) && integer(value.sequence) && typeof value.deleted==='boolean';
+const checkRecoveryCheckpoint=(manifest,binding)=>{if(manifest.epoch<(binding?.minimumEpoch??1)||binding?.minimumEpoch===manifest.epoch&&binding.manifest&&JSON.stringify(binding.manifest)!==JSON.stringify(manifest))throw new Error('Recovery cannot replace a newer enrollment or a different previously observed manifest at the same epoch.');};
 async function responseJson(response,maximum,allowChallenge=false) {
   if(!response.ok&&!(allowChallenge&&response.status===428)) throw new Error(response.status===401||response.status===403?'Sign-in verification failed. Check your code or sign in again.':'The ciphertext API rejected this request. Refresh before retrying.');
   if(!response.headers.get('content-type')?.toLowerCase().startsWith('application/json')) throw new Error('The ciphertext API did not return JSON.');
@@ -165,6 +168,32 @@ export class VaultClient {
     if(!entry)throw new Error('Select or recover the existing account key.');const request=await this.#request('/enrollment-renewal');await verifyRenewalRequest(request,this.#config,{...identity,minimumEpoch:binding?.minimumEpoch??1});this.#same(generation);
     if(request.manifest.client.keyId!==entry.keyId||request.manifest.client.publicKey!==entry.publicKey)throw new Error('Renewal must keep the existing client key.');return clone(request);
   }
+  async requestClientKeyRecovery(keyId){
+    if(!this.identity||!this.enrolled)throw new Error('Sign in with your account code, password and authenticator before replacing a lost encryption key.');
+    const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
+    if(!entry||entry.keyId===this.status.manifest.client.keyId)throw new Error('Create and back up a different client key, then select it for recovery.');assertPrivateKey(entry.privateKey);
+    await verifyEnrollmentManifest(this.status.manifest,{...identity,minimumEpoch:binding?.minimumEpoch??1},this.#config);this.#same(generation);checkRecoveryCheckpoint(this.status.manifest,binding);
+    const request=await this.#request('/client-key-recovery','POST',{client:{keyId:entry.keyId,publicKey:entry.publicKey}},8*1024*1024);await verifyClientKeyRecoveryRequest(request,this.#config,{...identity,minimumEpoch:binding?.minimumEpoch??1});this.#same(generation);
+    checkRecoveryCheckpoint(request.previous,binding);
+    if(request.client.keyId!==entry.keyId||request.client.publicKey!==entry.publicKey||JSON.stringify(request.previous)!==JSON.stringify(this.status.manifest))throw new Error('The recovery request changed the account or replacement key.');return clone(request);
+  }
+  async completeClientKeyRecovery(raw,keyId){
+    if(!this.identity||!this.enrolled)throw new Error('Sign in to the private account before completing encryption-key recovery.');
+    const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
+    if(typeof this.#storage.updateBinding!=='function')throw new Error('Atomic client trust storage is required for encryption-key recovery.');
+    const approval=await verifyClientKeyRecoveryApproval(raw,this.#config,identity);this.#same(generation);
+    const checkObserved=current=>{if((current?.minimumEpoch??1)>approval.manifest.epoch||current?.minimumEpoch===approval.manifest.epoch&&current.manifest&&JSON.stringify(current.manifest)!==JSON.stringify(approval.manifest))throw new Error('A newer enrollment or a different manifest at the same epoch was already observed.');};checkObserved(binding);
+    if(!entry||entry.keyId!==approval.manifest.client.keyId||entry.publicKey!==approval.manifest.client.publicKey||approval.manifest.epoch<(binding?.minimumEpoch??1))throw new Error('Select the approved replacement key and respect the locally observed enrollment epoch.');assertPrivateKey(entry.privateKey);
+    const current=JSON.stringify(this.status.manifest),installed=current===JSON.stringify(approval.manifest);if(!installed){checkRecoveryCheckpoint(approval.request.previous,binding);if(current!==JSON.stringify(approval.request.previous))throw new Error('Enrollment changed. Obtain a new recovery snapshot.');}
+    let result={recovered:true,accountCode:identity.accountId,manifest:approval.manifest,sessionsRevoked:true,staffSharingRefreshRequired:true,dependencyReviewRequired:true};
+    if(!installed){const challenge=await this.#request('/client-key-recovery/challenge','POST',{approval},16384),answer=await openClientKeyRecoveryChallenge(challenge,approval.manifest,identity,this.#config,entry.privateKey);this.#same(generation);
+      result=await this.#request('/client-key-recovery','PUT',{approval,challengeId:challenge.challengeId,answer},16384);this.#same(generation);
+      if(result.recovered!==true||result.accountCode!==identity.accountId||JSON.stringify(result.manifest)!==JSON.stringify(approval.manifest)||result.sessionsRevoked!==true||result.dependencyReviewRequired!==true)throw new Error('Recovery was not confirmed. Sign in again and retry the same signed approval before preparing another request.');
+    }
+    if(installed){await this.#request('/session','DELETE');this.#same(generation);}
+    const bindingId=this.#bindingId();await this.#storage.updateBinding(bindingId,current=>{this.#same(generation);checkObserved(current);if(current?.minimumEpoch!==approval.manifest.epoch)checkRecoveryCheckpoint(approval.request.previous,current);return {...current,id:bindingId,workspaceId:this.#config.workspaceId,...identity,keyId:entry.keyId,minimumEpoch:approval.manifest.epoch,manifest:clone(approval.manifest),versions:current?.versions??binding?.versions??{}};});this.#same(generation);
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;return result;
+  }
   async installEnrollmentRenewal(packet,keyId){
     if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled account before installing renewal.');const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
     await verifyEnrollmentRenewal(packet,this.#config,identity);this.#same(generation);
@@ -212,6 +241,11 @@ export class VaultClient {
     if(!this.canWrite)throw new Error('Encrypted sync requires an enrolled account and its verified client key. New private accounts use the invitation setup; existing plaintext accounts require reviewed migration.');
     if(Date.parse(this.status.manifest.expiresAt)<=Date.now())throw new Error('The signed manifest expired. Obtain a renewed manifest before continuing.');
     return this.#generation;
+  }
+  async openLegacyExport(envelope,manifest){
+    const generation=this.#guard(),verified=await verifyEnrollmentManifest(manifest,{...this.identity,minimumEpoch:this.#binding.minimumEpoch},this.#config);this.#same(generation);
+    const context=envelope?.context;if(manifest.client.keyId!==this.#key.keyId||manifest.client.publicKey!==this.#key.publicKey||verified.manifestId!==this.#verified.manifestId||envelope?.author?.role!=='firm-recovery'||!context||context.workspaceId!==this.#config.workspaceId||context.accountId!==this.identity.accountId||context.revision!==1||!['driver-record','driver-receipt','tax-document'].includes(context.domain))throw new Error('Select a firm-encrypted export for this exact current account and enrollment.');
+    const bytes=await openEnvelope(envelope,context,verified.recipients,'client',this.#key.privateKey);try{this.#same(generation);return bytes;}catch(error){bytes.fill(0);throw error;}
   }
   async #exclusive(operation){
     if(this.#busy)throw new Error('Wait for the current ciphertext operation to finish.');this.#busy=true;

@@ -1,10 +1,11 @@
 // Node-only, offline preparation. Never import into the website/API bundle.
-import {createHash,createDecipheriv,randomUUID} from 'node:crypto';
+import {createHash,createDecipheriv} from 'node:crypto';
 import {constants,openSync,closeSync,fstatSync,readSync,lstatSync,readdirSync,writeFileSync,copyFileSync,chmodSync,mkdirSync,mkdtempSync,rmSync,realpathSync,existsSync} from 'node:fs';
 import {DatabaseSync} from 'node:sqlite';
 import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {sealEnvelope,openEnvelope,verifyEnrollmentManifest,encode64,MAX_CIPHERTEXT_BYTES} from './envelope.mjs';
+import {signLegacyImportReport} from './legacy-import.mjs';
 
 const MAX_FILES=100000,MAX_BACKUP_BYTES=8*1024**3,MAX_FILE_BYTES=2*1024**3,MAX_ENTRIES=10000,MAX_EXPORT_PLAINTEXT=384*1024**2;
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
@@ -134,16 +135,19 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
   }
   db=new DatabaseSync(path.join(scratch,'workspace.sqlite'),{readOnly:true});
   if(!existsTable(db,'customer_accounts'))fail('The legacy account table is missing.');
-  const account=db.prepare('SELECT id,clientId FROM customer_accounts WHERE id=?').get(expected.accountId);
-  if(!account||account.clientId!==expected.clientId)fail('The copied backup does not match the independently reviewed client link.');
+  const sourceAccountId=expected.sourceAccountId??expected.accountId,sourceClientId=expected.sourceClientId??expected.clientId;
+  if(!uuid.test(sourceAccountId)||!uuid.test(sourceClientId)||Boolean(expected.sourceAccountId)!==Boolean(expected.sourceClientId))fail('Review both source identifiers when migrating to a new account.');
+  const account=db.prepare('SELECT id,clientId FROM customer_accounts WHERE id=?').get(sourceAccountId);
+  if(!account||account.clientId!==sourceClientId)fail('The copied backup does not match the independently reviewed client link.');
+  const objectIdFor=(domain,legacyId)=>{const digest=sha(Buffer.from(JSON.stringify(['shuug/legacy-import/v1',backupManifestSha256,expected.accountId,expected.clientId,domain,legacyId])));return `${digest.slice(0,8)}-${digest.slice(8,12)}-5${digest.slice(13,16)}-a${digest.slice(17,20)}-${digest.slice(20,32)}`;};
   const plans=[],receiptIds=new Map(),receiptUsers=new Map(),usedFiles=new Set(['workspace.sqlite']);
   const recordCount=count(db,'driver_records','SELECT count(*) AS n FROM driver_records WHERE accountId=? AND clientId=?',account.id,account.clientId);
   if(recordCount>MAX_ENTRIES)fail('This account exceeds the preparation object limit.');
   const records=recordCount?db.prepare('SELECT * FROM driver_records WHERE accountId=? AND clientId=? ORDER BY sequence').all(account.id,account.clientId):[];
   for(const row of records){
    const record=JSON.parse(row.body);if(!uuid.test(row.id)||record.id!==row.id||!['trip','expense','income'].includes(record.kind)||!record.body||typeof record.body!=='object'||Array.isArray(record.body)||typeof record.deleted!=='boolean'||!Number.isSafeInteger(record.revision)||record.revision<1||record.revision!==row.revision)fail('A selected legacy driver record is malformed.');
-   const objectId=randomUUID();
-   if(record.kind==='expense'&&record.body.receiptId){if(!uuid.test(record.body.receiptId))fail('Invalid legacy receipt routing identifier.');if(!receiptIds.has(record.body.receiptId))receiptIds.set(record.body.receiptId,randomUUID());receiptUsers.set(record.body.receiptId,[...(receiptUsers.get(record.body.receiptId)??[]),objectId]);}
+   const objectId=objectIdFor('driver-record',row.id);
+   if(record.kind==='expense'&&record.body.receiptId){if(!uuid.test(record.body.receiptId))fail('Invalid legacy receipt routing identifier.');if(!receiptIds.has(record.body.receiptId))receiptIds.set(record.body.receiptId,objectIdFor('driver-receipt',record.body.receiptId));receiptUsers.set(record.body.receiptId,[...(receiptUsers.get(record.body.receiptId)??[]),objectId]);}
    plans.push({domain:'driver-record',objectId,payload:{version:1,kind:'legacy-driver-record',record,legacy:{recordId:row.id,accountId:row.accountId,clientId:row.clientId,sequence:row.sequence,updatedAt:row.updatedAt}}});
   }
   const receiptCount=count(db,'driver_receipts','SELECT count(*) AS n FROM driver_receipts WHERE accountId=?',account.id);
@@ -151,7 +155,7 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
    if(!existsTable(db,'driver_receipts'))fail('A referenced legacy receipt is missing.');
    const row=db.prepare('SELECT * FROM driver_receipts WHERE accountId=? AND id=?').get(account.id,legacyId);if(!row)fail('A referenced legacy receipt is missing.');
    const file=`driver-receipts/${account.id}/${legacyId}`;usedFiles.add(file);
-   plans.push({domain:'driver-receipt',objectId,load:()=>{const bytes=verifiedBytes(boundedFile(path.join(scratch,file),5*1024**2),row,5*1024**2);return {version:1,kind:'legacy-driver-receipt',file:{mime:row.mime,size:row.size,sha256:row.digest,bytesBase64url:encode64(bytes)},links:{driverRecordObjectIds:receiptUsers.get(legacyId)},legacy:{receiptId:legacyId,accountId:account.id,createdAt:row.createdAt}};}});
+   plans.push({domain:'driver-receipt',objectId,load:()=>{const bytes=verifiedBytes(boundedFile(path.join(scratch,file),5*1024**2),row,5*1024**2);try{return {version:1,kind:'legacy-driver-receipt',file:{mime:row.mime,size:row.size,sha256:row.digest,bytesBase64url:encode64(bytes)},links:{driverRecordObjectIds:receiptUsers.get(legacyId)},legacy:{receiptId:legacyId,accountId:account.id,createdAt:row.createdAt}};}finally{bytes.fill(0);}}});
   }
   for(const plan of plans.filter(plan=>plan.domain==='driver-record')){
    const record=plan.payload.record;record.id=plan.objectId;
@@ -161,7 +165,7 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
   if(plans.length+documentCount>MAX_ENTRIES)fail('This account exceeds the preparation object limit.');
   if(documentCount){key=canonicalBase64(boundedFile(path.join(scratch,'vault.key'),1024).toString('utf8').trim(),32);usedFiles.add('vault.key');}
   const documents=documentCount?db.prepare('SELECT * FROM tax_client_documents WHERE accountId=? AND clientId=? ORDER BY createdAt,id').all(account.id,account.clientId):[];
-  for(const row of documents){usedFiles.add(`tax-documents/${row.id}`);plans.push({domain:'tax-document',objectId:randomUUID(),load:()=>{const bytes=legacyDocument(scratch,row,key);try{return {version:1,kind:'legacy-tax-document',file:{name:row.name,mime:row.mime,size:row.size,sha256:row.digest,bytesBase64url:encode64(bytes)},status:row.status,legacy:{documentId:row.id,accountId:row.accountId,clientId:row.clientId,requestId:row.requestId,engagementId:row.engagementId,createdAt:row.createdAt,reviewedAt:row.reviewedAt}};}finally{bytes.fill(0);}}});}
+  for(const row of documents){usedFiles.add(`tax-documents/${row.id}`);plans.push({domain:'tax-document',objectId:objectIdFor('tax-document',row.id),load:()=>{const bytes=legacyDocument(scratch,row,key);try{return {version:1,kind:'legacy-tax-document',file:{name:row.name,mime:row.mime,size:row.size,sha256:row.digest,bytesBase64url:encode64(bytes)},status:row.status,legacy:{documentId:row.id,accountId:row.accountId,clientId:row.clientId,requestId:row.requestId,engagementId:row.engagementId,createdAt:row.createdAt,reviewedAt:row.reviewedAt}};}finally{bytes.fill(0);}}});}
   if(plans.length>MAX_ENTRIES)fail('This account exceeds the preparation object limit.');
   const unsupported=inventory(db,account.id,account.clientId,receiptCount,receiptIds.size,backupInfo.files,usedFiles);
   mkdirSync(output,{mode:0o700});outputOwned=true;mkdirSync(path.join(output,'objects'),{mode:0o700});
@@ -170,7 +174,7 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
    const payload=plan.payload??plan.load(),plain=Buffer.from(JSON.stringify(payload));plaintextBytes+=plain.length;
    try{
     if(plain.length>MAX_CIPHERTEXT_BYTES-16||plaintextBytes>MAX_EXPORT_PLAINTEXT)fail('The selected encrypted export exceeds preparation bounds.');
-    const context={workspaceId:manifest.workspaceId,accountId:account.id,objectId:plan.objectId,revision:1,domain:plan.domain};
+    const context={workspaceId:manifest.workspaceId,accountId:expected.accountId,objectId:plan.objectId,revision:1,domain:plan.domain};
     const envelope=await sealEnvelope(new Uint8Array(plain),context,verified.recipients,'firm-recovery',unlocked.recovery);
     // Verify each fresh export with the actual offhost recovery recipient before
     // writing it; client-key recovery remains a separate acceptance requirement.
@@ -185,7 +189,9 @@ export async function prepareLegacyMigration({backupDirectory,backupManifestSha2
    sourceBackupVerified:true,disposableSqliteRestoreVerified:true,firmRecoveryVerified:entries.length>0,clientRecoveryVerified:false,
    migrationComplete:false,uploaded:false,sourcePurged:false,legacyExposureRemains:true,physicalErasureVerified:false,
    nextRequiredSteps:['Open every exported object with the client recipient on a separately trusted client','Review supported/unsupported coverage and encrypted legacy link mappings','Perform an explicitly authorized encrypted import with duplicate reconciliation','Verify encrypted backup recovery before any separately consented legacy removal']};
-  writeFileSync(path.join(output,'export-manifest.json'),JSON.stringify(report,null,2)+'\n',{mode:0o600,flag:'wx'});
+  const reportBytes=Buffer.from(JSON.stringify(report,null,2)+'\n');
+  writeFileSync(path.join(output,'export-manifest.json'),reportBytes,{mode:0o600,flag:'wx'});
+  writeFileSync(path.join(output,'import-signature.json'),JSON.stringify(await signLegacyImportReport(reportBytes,unlocked))+'\n',{mode:0o600,flag:'wx'});
   return report;
  }catch{if(outputOwned)rmSync(output,{recursive:true,force:true});throw new Error('Offline migration preparation failed. Check the reviewed backup, client manifest, bounds and legacy file integrity; no source data was purged.');}
  finally{key?.fill(0);try{db?.close();}finally{rmSync(scratch,{recursive:true,force:true});}}

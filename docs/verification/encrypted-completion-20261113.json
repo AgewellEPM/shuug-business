@@ -1,0 +1,152 @@
+{
+  "version": 1,
+  "createdAt": "2026-11-13T05:08:35.367972+00:00",
+  "scope": [
+    "2023-2025 Schedule H Section B and continuation tables",
+    "2023-2025 Schedule B and limited Form 8960",
+    "Reviewed supported legacy encrypted imports",
+    "Lost client-key recovery with existing account authentication"
+  ],
+  "readiness": "prototype",
+  "nodeFocusedChecks": {
+    "passed": 189,
+    "failed": 0,
+    "skipped": 0
+  },
+  "recoveryServerChecks": {
+    "passed": 7,
+    "failed": 0
+  },
+  "compiledBuild": "BdOJJzSvDymbx_33wapcp",
+  "compiledSyntheticOfficeChecks": 475,
+  "compiledSyntheticRecovery": {
+    "ok": true,
+    "checks": 9,
+    "requests": 49,
+    "buildId": "BdOJJzSvDymbx_33wapcp",
+    "syntheticOnly": true,
+    "originalKeyAbsentFromClient": true,
+    "ownerMfa": true,
+    "customerPasswordAndMfa": true,
+    "completeSnapshotCas": true,
+    "replacementKeyProof": true,
+    "byteExactRecovery": true,
+    "originalRevisionsPreserved": true,
+    "backupRestoreVerified": true,
+    "oldKeyAndSessionsRejected": true,
+    "realSeparateCustodyVerified": false,
+    "realClientDataUsed": false
+  },
+  "migration": {
+    "signedPreparationVerified": true,
+    "clientImportedAndReopened": true,
+    "firmRecoveryVerified": true,
+    "retryKeptRevisionOne": true,
+    "sourcePurged": false,
+    "completeMigration": false
+  },
+  "packagedClient": {
+    "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+    "modules": 137,
+    "defaultConfigDisabled": true,
+    "clientKeyRecoveryMounted": true,
+    "ownerKeyRecoveryControlsMounted": true,
+    "reviewedLegacyImportMounted": true,
+    "publicTemplateFetches": 33,
+    "exported": [
+      {
+        "year": 2023,
+        "kind": "1040",
+        "bytes": 435962
+      },
+      {
+        "year": 2023,
+        "kind": "1065",
+        "bytes": 224095
+      },
+      {
+        "year": 2023,
+        "kind": "1120S",
+        "bytes": 206003
+      },
+      {
+        "year": 2023,
+        "kind": "1120",
+        "bytes": 243190
+      },
+      {
+        "year": 2024,
+        "kind": "1040",
+        "bytes": 435594
+      },
+      {
+        "year": 2024,
+        "kind": "1065",
+        "bytes": 226664
+      },
+      {
+        "year": 2024,
+        "kind": "1120S",
+        "bytes": 208028
+      },
+      {
+        "year": 2024,
+        "kind": "1120",
+        "bytes": 250150
+      },
+      {
+        "year": 2025,
+        "kind": "1040",
+        "bytes": 498275
+      },
+      {
+        "year": 2025,
+        "kind": "1065",
+        "bytes": 238486
+      },
+      {
+        "year": 2025,
+        "kind": "1120S",
+        "bytes": 212338
+      },
+      {
+        "year": 2025,
+        "kind": "1120",
+        "bytes": 254784
+      }
+    ],
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "publicTlsVerified": false
+  },
+  "keyKits": {
+    "offlineFiles": 415,
+    "cloudFiles": 397,
+    "sourceBytesMatch": true,
+    "cloudSha256": "488be62f63c2ab22f985f9cbc9d4c40f4034e459c20b7f0288211d3ad0b533a9",
+    "initialized": false,
+    "provisioned": false
+  },
+  "taxQualification": {
+    "sourceInventorySha256": "6675b122911f8050a6e6fad988375eba3171ae379ec3c97aac36af11baf92e9a",
+    "verifiedSources": 18,
+    "publishedInstructionChecks": 18,
+    "derivedFutaChecks": 13,
+    "derivedInvestmentChecks": 24,
+    "agencyApproval": false,
+    "fullAtsScenarioExecuted": false
+  },
+  "installedServicesChanged": false,
+  "liveFilingPerformed": false,
+  "realCustodyEstablished": false,
+  "independentProviderReview": false,
+  "remaining": [
+    "Remaining federal schedules, disclosures and complex treatments",
+    "2026 calculation/form packs",
+    "All-state income/franchise packs",
+    "Agency software/transmitter access, XML transport and authentic acknowledgments",
+    "Full legacy accounting/billing/identity reconciliation and retained-copy decisions",
+    "Simultaneous loss of key and all account authentication",
+    "Real custody, independent review and authorized installed rollout"
+  ]
+}

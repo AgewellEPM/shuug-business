@@ -16,7 +16,8 @@ Computation Worksheet above it. Different years never inherit these rates.
 | Self-employed | Schedule C eligible expenses/profit, per-person Schedule SE wage cap and Medicare tax, deductible half of SE tax, limited simplified 8995 QBI, Schedules 1 and 2 |
 | Additional Medicare Tax | Form 8959 ordinary Medicare wages/SE income and W-2 box 6 withholding reconciliation; RRTA/unreported wages and uncollected box-12 tax excluded |
 | Residential energy credits | Form 5695 / Schedule 3, reviewed eligible costs at one home, annual caps and tax limits, clean-energy carryforward; 2025 manufacturer identifiers |
-| Household employment | Schedule H annual worker limits, Medicare/withholding and FUTA Section A; separate taxpayer/spouse employers, missing-input and Section B restrictions |
+| Household employment | Schedule H annual worker limits, Medicare/withholding, FUTA Sections A/B, late contributions and annual credit reduction; separate taxpayer/spouse employers |
+| Investment income | Schedule B payer records/foreign disclosures and limited Form 8960 ordinary interest/dividends, reviewed MAGI and deduction scope |
 | Partnership 1065 | Ordinary business income/deductions, exact ordinary-income owner allocations, partial K-1 workpapers |
 | S corporation 1120-S | Ordinary business income/deductions, exact ordinary-income shareholder allocations, partial K-1 workpapers |
 | C corporation 1120 | Ordinary taxable business income, regular corporate tax, estimates/balance, Schedule J |
@@ -34,7 +35,7 @@ a preparer's declaration, not independent verification. Every result has
 
 ## Forms and sources
 
-Each of `forms/2023`, `forms/2024` and `forms/2025` contains fifteen original public IRS PDF templates. `manifest.json`
+Each of `forms/2023`, `forms/2024` and `forms/2025` contains seventeen original public IRS PDF templates. `manifest.json`
 and `templates.mjs` pin the original URL, SHA-256, byte count, pages and fields.
 The generator checks these before filling mapped fields, flattens the form,
 removes interactive actions/annotations, and adds calculation/diagnostic pages.
@@ -89,7 +90,7 @@ The [qualification workflow](../../docs/SHUUG_FILING_QUALIFICATION_20261113.md)
 and `node scripts/tax/qualification-report.mjs` reproduce the local reference
 checks and identify gaps in selected official ATS scenarios. Neither constitutes
 agency test execution or certification. Missing required W-2 box 6 values remain
-unknown; they never silently become zero. Form 8960 cases retain incomplete totals.
+unknown; they never silently become zero. [Schedule B and Form 8960](INVESTMENT-INCOME.md) require explicit income/MAGI/deduction reviews; unsupported investment treatments retain incomplete totals.
 
 The [energy workflow](../../docs/SHUUG_ENERGY_CREDITS_20261113.md) requires explicit
 eligibility review. Improvement credits consume ordinary tax before clean-energy
@@ -99,8 +100,7 @@ required manufacturer IDs or unsupported credit-limit treatments withhold totals
 [Household payroll](../../docs/SHUUG_HOUSEHOLD_EMPLOYMENT_20261113.md) is entered
 per worker and quarter. Prior-year FUTA quarters preserve unknown versus zero.
 Employer payroll liabilities reach Schedule 2, never the employer's withholding
-credits. Late payments, multiple states, credit reduction and other Section B
-cases remain incomplete. State payroll returns and employer W-2/W-3 are separate.
+credits. [Section B](HOUSEHOLD-FUTA.md) now uses reviewed state rate periods, contribution timing and per-worker state wage allocations, including annual credit reductions and printed continuation tables. State payroll returns and employer W-2/W-3 are separate.
 
 Complete dependent/credit/age eligibility, Schedule 1-A, qualified-dividend and
 capital-gain treatment, retirement/rental/pass-through income, inventory/assets,

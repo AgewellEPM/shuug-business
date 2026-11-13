@@ -1,3 +1,4 @@
+import {mountOwnerKeyRecovery} from './key-recovery-view.mjs';
 import trustedConfig from './trusted-config.mjs';
 import { StaffVaultClient } from './staff-client.mjs';
 import { mountStaffUpdates } from './staff-updates.mjs';
@@ -9,12 +10,12 @@ import { verifyCaseApproval } from '../case-approval.mjs';
 import { mountOfficeEditor } from './office-editor.mjs';
 
 const $=id=>document.getElementById(id);
-let client,updates,corrections,cases,office,working=false,viewGeneration=0;
+let client,updates,corrections,cases,office,keyRecovery,working=false,viewGeneration=0;
 const unsaved=()=>!!corrections?.dirty||!!cases?.dirty||!!office?.dirty;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);};
 const downloadJson=(name,value)=>download(name,JSON.stringify(value,null,2));
-function clear(){viewGeneration++;updates?.clear();corrections?.clear();cases?.clear();office?.clear();$('staff-records').replaceChildren();$('staff-scope').textContent='';$('staff-mfa-code').value='';$('staff-mfa-secret').textContent='';$('staff-recovery-values').textContent='';$('staff-recovery-codes').hidden=true;$('staff-return-approval-file').value='';}
+function clear(){viewGeneration++;keyRecovery?.clear();updates?.clear();corrections?.clear();cases?.clear();office?.clear();$('staff-records').replaceChildren();$('staff-scope').textContent='';$('staff-mfa-code').value='';$('staff-mfa-secret').textContent='';$('staff-recovery-values').textContent='';$('staff-recovery-codes').hidden=true;$('staff-return-approval-file').value='';}
 function refresh(){
   const ready=!!client,pending=client?.pendingMfa,unlocked=client?.unlocked,signed=!!client?.identity;
   for(const name of ['staff-email','staff-password','staff-signin','staff-create','staff-import-key','staff-key-backup'])$(name).disabled=!ready||working;
@@ -33,13 +34,14 @@ function refresh(){
   corrections?.setEnabled(!!client?.selectedGrant&&!!unlocked&&!working);
   cases?.setEnabled(!!client?.selectedGrant?.domains.includes('tax-document')&&!!unlocked&&!working);
   office?.setEnabled(!!client?.selectedGrant?.domains.includes('tax-document')&&!!unlocked&&!working);
-  updates?.activate();
+  keyRecovery?.refresh();updates?.activate();
 }
 async function run(operation){if(working)return;working=true;refresh();try{await operation();}catch(error){message(error instanceof Error?error.message:'The staff operation failed.',true);}finally{working=false;if(!client?.unlocked&&($('staff-records').childElementCount||corrections?.active||cases?.active||office?.active))clear();refresh();}}
 async function keys(selected){const values=await client.keys();$('staff-key').replaceChildren();for(const key of values){const option=document.createElement('option');option.value=key.keyId;option.textContent=`Staff device ${key.keyId.slice(0,16)}…`;$('staff-key').append(option);}if(!values.length){const option=document.createElement('option');option.value='';option.textContent='No staff device key';$('staff-key').append(option);}if(selected)$('staff-key').value=selected;refresh();}
 async function jsonFile(file,maximum=65536){if(!file||file.size>maximum)throw new Error('Choose a bounded public or encrypted JSON file.');try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}}
 async function grantChoices(){const grants=await client.refreshGrants();$('staff-grant').replaceChildren();const blank=document.createElement('option');blank.value='';blank.textContent='Choose a verified client scope';$('staff-grant').append(blank);for(const grant of grants){const option=document.createElement('option');option.value=grant.grantId;option.textContent=`Client ${grant.clientId} · ${grant.domains.join(', ')} · epoch ${grant.epoch}`;$('staff-grant').append(option);}if(!grants.length)message('No active signed grants for this device. Ask the firm to review your public request.');}
 function signedIn(result){if(result.mfaRequired){message('Complete authenticator verification to access staff grants.');return;}if(result.recoveryCodes?.length){$('staff-recovery-values').textContent=result.recoveryCodes.join('\n');$('staff-recovery-codes').hidden=false;}message('Staff sign-in verified. Unlock your device key to check signed client access.');}
+keyRecovery=mountOwnerKeyRecovery(document,$('staff-owner'),{getClient:()=>client,run,download,isWorking:()=>working});
 updates=mountStaffUpdates(document,$('staff-records'),{getClient:()=>client,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls:refresh,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onLocked:clear,onMessage:message,download,run,canRefresh:()=>!unsaved(),onReturnEdit:(data,id)=>corrections.edit(data,id),onRecords:()=>{cases?.refresh();office?.refresh();}});
 corrections=mountReturnEditor(document,$('staff-return-editor'),{proposalOnly:true,allowCreation:true,run,download,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration&&!!client?.selectedGrant,onDirty:()=>refresh(),onSave:async(value,id)=>{const generation=viewGeneration,creating=corrections.proposalMode==='creation',kit=creating?await client.prepareNewReturn(value):await client.prepareReturnCorrection(id,value);if(generation!==viewGeneration||!client.unlocked)return;downloadJson(`private-return-${creating?'creation':'correction'}-${kit.proposal.proposalId}.json`,kit);message(creating?'Private new-return review kit saved locally. It includes readable taxpayer data; keep it on trusted firm devices. Obtain separate firm approval before owner publication creates the encrypted client return.':'Private correction review kit saved locally. It includes readable before/after taxpayer data; keep it on trusted firm devices. Obtain separate firm approval before publishing its encrypted replacement.');}});
 cases=mountCaseEditor(document,$('staff-case-editor'),{getClient:()=>client,run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration&&!!client?.selectedGrant,onDirty:refresh,onSave:async(id,command,evidenceId)=>{const generation=viewGeneration,kit=await client.prepareCaseAction(id,command,evidenceId);if(generation!==viewGeneration||!client.unlocked)return;downloadJson(`private-case-review-${kit.proposal.proposalId}.json`,kit);message('Private case review kit saved locally. It contains readable case notes and selected evidence; keep it on trusted firm devices. Separate firm approval and owner publication are still required.');}});

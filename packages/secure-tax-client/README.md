@@ -233,4 +233,4 @@ client and both separate firm custody paths. See
 [`SHUUG_PRIVATE_ACCOUNTS_20261112.md`](../../docs/SHUUG_PRIVATE_ACCOUNTS_20261112.md)
 for the exact ordinary workflows and current limitations. The original client
 encryption key or its encrypted backup remains required for account recovery;
-complete client-key loss and legacy migration are still unfinished.
+[Lost-client-key recovery](../../docs/SECURE-TAX-CLIENT-KEY-RECOVERY.md) now has a separate firm-reviewed replacement path when account password and authenticator access remain available. Supported legacy import is described in [`SHUUG_REVIEWED_LEGACY_IMPORT.md`](../../docs/SHUUG_REVIEWED_LEGACY_IMPORT.md). Complete identity/data migration, combined loss of all recovery factors, real custody and installed activation remain unfinished.

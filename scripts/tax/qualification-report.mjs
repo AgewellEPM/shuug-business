@@ -7,6 +7,8 @@ import {fileURLToPath,pathToFileURL} from 'node:url';
 import {additionalMedicare} from '../../packages/tax-engine/additional-medicare.mjs';
 import {energyCredits,newEnergyCredits} from '../../packages/tax-engine/energy-credits.mjs';
 import {householdEmployment,newHouseholdEmployer,newHouseholdEmployee} from '../../packages/tax-engine/household-employment.mjs';
+import {newHouseholdFuta,newHouseholdFutaRow} from '../../packages/tax-engine/household-futa.mjs';
+import {newInvestmentIncome,investmentIncome,netInvestmentTax} from '../../packages/tax-engine/investment-income.mjs';
 import {calculationYears,requestedTaxYears} from '../../packages/tax-engine/index.mjs';
 import {pdfYearPack} from '../../packages/tax-engine/form-years.mjs';
 
@@ -22,13 +24,17 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const examples=JSON.parse(await readFile(path.join(engine,'test/irs-8959-examples.json'),'utf8'));
   const energyExamples=JSON.parse(await readFile(path.join(engine,'test/irs-energy-examples.json'),'utf8'));
   const householdExamples=JSON.parse(await readFile(path.join(engine,'test/irs-household-examples.json'),'utf8'));
+  const householdFutaExamples=JSON.parse(await readFile(path.join(engine,'test/irs-household-futa-examples.json'),'utf8'));
+  const investmentExamples=JSON.parse(await readFile(path.join(engine,'test/investment-reference.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
     for(const scenario of catalog.selectedScenarios)sourceEvidence.push({id:scenario.id,...await checkedSource(path.join(sourcesDirectory,scenario.sourceFile),scenario)});
     sourceEvidence.push({id:'8959-instructions',...await checkedSource(path.join(sourcesDirectory,'i8959--2025.pdf'),examples.source)});
     sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
-    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions]){
-      const filename=new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});
+    const checked=new Map();
+    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions]){
+      if(checked.has(source.url)){const previous=checked.get(source.url);if(previous.bytes!==source.bytes||previous.sha256!==source.sha256)throw new Error('Instruction fixtures disagree about a reviewed source pin.');continue;}
+      const filename=new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});checked.set(source.url,source);
     }
   }
   const instructionChecks=examples.examples.map(example=>{
@@ -49,6 +55,32 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     const actual={socialSecurityTaxCents:lines[example.year===2023?'2c':'2'],medicareTaxCents:lines['4'],partITaxCents:result.taxCents},expected={socialSecurityTaxCents:example.expectedSocialSecurityTaxCents,medicareTaxCents:example.expectedMedicareTaxCents,partITaxCents:example.expectedPartITaxCents};
     return {year:example.year,pass:JSON.stringify(actual)===JSON.stringify(expected)&&result.diagnostics.length===0,actual,expected};
   });
+  const householdFutaInput=(year,state)=>{
+    const value=newHouseholdEmployer();value.ein='00-0123456';value.priorYearFutaQuartersCents=[0,0,0,0];for(const key of Object.keys(value.review))value.review[key]=true;
+    value.employees=[{...newHouseholdEmployee('synthetic-worker'),name:'Synthetic Worker',quartersCents:[1000000,0,0,0],ficaTreatment:'ordinary',futaTreatment:'ordinary'}];
+    Object.assign(value.unemployment,{state,onlyOneState:true,paidOnTime:true,allFutaWagesStateTaxable:true,sectionB:{...newHouseholdFuta(),reviewed:true,allocationReviewed:true,rows:[{...newHouseholdFutaRow(),state,taxableWagesCents:1000000,rateStatus:'assigned',experienceRate:'2.7',periodStart:`${year}-01-01`,periodEnd:`${year}-12-31`,paidOnTimeCents:27000,paidLateCents:0}],allocations:[{employeeId:'synthetic-worker',state,wagesCents:700000}]}});
+    return value;
+  };
+  const householdFutaDerivedChecks=householdFutaExamples.rates.flatMap(rates=>['CA','NY','VI','CT'].map(state=>{
+    const result=householdEmployment([householdFutaInput(rates.year,state)],{year:rates.year,filingStatus:'single'}),form=result.forms[0];
+    const actual={taxCents:result.taxCents,reductionCents:form.household.futaDetails.worksheet2?.['4']??0},expected={taxCents:157200+70*rates[state],reductionCents:70*rates[state]};
+    return {year:rates.year,id:'futa-credit-reduction-'+state,kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!result.diagnostics.length,actual,expected};
+  }));
+  const late=householdFutaExamples.lateExample,lateInput=householdFutaInput(late.year,late.state);lateInput.unemployment.paidOnTime=false;
+  Object.assign(lateInput.unemployment.sectionB.rows[0],{taxableWagesCents:late.stateWagesCents,experienceRate:late.experienceRate,paidOnTimeCents:late.paidOnTimeCents,paidLateCents:late.paidLateCents});
+  const lateResult=householdEmployment([lateInput],{year:late.year,filingStatus:'single'}),lateDetails=lateResult.forms[0].household.futaDetails;
+  const lateActual={taxCents:lateResult.taxCents,worksheet1:lateDetails.worksheet1,worksheet2:Object.fromEntries(Object.keys(late.worksheet2).map(key=>[key,lateDetails.worksheet2?.[key]??null]))},lateExpected={taxCents:late.householdTaxCents,worksheet1:late.worksheet1,worksheet2:late.worksheet2};
+  householdFutaDerivedChecks.push({year:late.year,id:'futa-late-contributions-then-reduction',kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(lateActual)===JSON.stringify(lateExpected)&&!lateResult.diagnostics.length,actual:lateActual,expected:lateExpected});
+  const investmentDerivedChecks=calculationYears.flatMap(year=>investmentExamples.cases.map((example,index)=>{
+    const value=newInvestmentIncome();value.foreignAccount='no';value.foreignTrust='no';for(const key of Object.keys(value.review))value.review[key]=true;
+    if(example.interestDollars)value.interestPayers=[{id:'synthetic-interest',payer:'Synthetic Bank',amountCents:example.interestDollars*100,source:'Synthetic ordinary-income vector'}];
+    if(example.dividendsDollars)value.dividendPayers=[{id:'synthetic-dividends',payer:'Synthetic Fund',amountCents:example.dividendsDollars*100,source:'Synthetic nonqualified-income vector'}];
+    const income=investmentIncome(value,{year,filingStatus:example.status,taxableInterestCents:0,ordinaryDividendsCents:0});
+    const niit=netInvestmentTax(value,{year,filingStatus:example.status,adjustedGrossIncomeCents:example.agiDollars*100,taxableInterestCents:income.taxableInterestCents,ordinaryDividendsCents:income.ordinaryDividendsCents});
+    const actual={scheduleB:income.forms[0].lines,niitCents:niit.taxCents,thresholdCents:niit.form?.lines['14']??null};
+    const expected={scheduleB:{'2':example.interestDollars*100,'3':0,'4':example.interestDollars*100,'6':example.dividendsDollars*100},niitCents:example.taxDollars*100,thresholdCents:example.agiDollars>example.thresholdDollars?example.thresholdDollars*100:null};
+    return {year,id:'ordinary-investment-'+index,kind:'derived-synthetic-instruction-vector',pass:JSON.stringify(actual)===JSON.stringify(expected)&&!income.diagnostics.length&&!niit.diagnostics.length,actual,expected};
+  }));
   const installedPacks=[];
   for(const year of calculationYears){
     const pack=pdfYearPack(year),forms=[];
@@ -76,10 +108,10 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   }
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
-    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,sourceEvidence,installedPacks,scenarios,
+    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,sourceEvidence,installedPacks,scenarios,
     requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),stateCalculationPacks:[],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
-    limits:['Instruction examples are not ATS scenario execution.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
+    limits:['Instruction examples are not ATS scenario execution.','FUTA and investment vectors are synthetic cases derived from instructions; they are not published IRS taxpayer examples.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   try{

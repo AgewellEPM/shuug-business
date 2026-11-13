@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createHash} from 'node:crypto';
+import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
+import {execFileSync} from 'node:child_process';
+import {tmpdir} from 'node:os';
+import {createHandler} from './worker.mjs';
+import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../../firm-recovery.mjs';
+import {generateRecipientKeyPair,publicKeyId,sealEnvelope,openEnvelope,decode64} from '../../envelope.mjs';
+import {recoveryEnvelopeDigest,verifyClientKeyRecoveryApproval} from '../../key-recovery.mjs';
+test('reviewed immutable cloud job rewraps a lost client key, checks replacement fingerprint and returns ciphertext only',async()=>{
+ const workspaceId='synthetic-cloud-lost-key',passphrase='Synthetic separate custody passphrase',created=await createFirmBundle(workspaceId,passphrase),firm=await unlockFirmBundle(created.bundle,passphrase,created.publicPins),old=await generateRecipientKeyPair(),replacement=await generateRecipientKeyPair(),accountId=crypto.randomUUID(),clientId=crypto.randomUUID(),manifest=await signEnrollmentRequest({version:1,workspaceId,accountId,clientId,client:{keyId:await publicKeyId(old.publicKey),publicKey:old.publicKey}},firm,{epoch:1});
+ const original=new TextEncoder().encode('SYNTHETIC PRIVATE CLOUD REWRAP'),context={workspaceId,accountId,objectId:crypto.randomUUID(),revision:3,domain:'tax-document'},envelope=await sealEnvelope(original,context,{clientPublicKey:old.publicKey,firmRecoveryPublicKey:created.publicPins.firmRecoveryPublicKey},'client',old.privateKey),now=Date.now(),request={version:1,type:'shuug-client-key-recovery-request',requestId:crypto.randomUUID(),previous:manifest,client:{keyId:await publicKeyId(replacement.publicKey),publicKey:replacement.publicKey},sequence:3,entries:[{objectId:context.objectId,revision:3,domain:context.domain,envelopeDigest:await recoveryEnvelopeDigest(envelope),ciphertextBytes:decode64(envelope.ciphertext,16,16*1024*1024).length}],issuedAt:new Date(now).toISOString(),expiresAt:new Date(now+3600000).toISOString()},snapshot={request,envelopes:[envelope]},directory=await mkdtemp(tmpdir()+'/shuug-cloud-key-recovery-');
+ try{
+  await writeFile(directory+'/snapshot.json',JSON.stringify(snapshot));await writeFile(directory+'/pins.json',JSON.stringify(created.publicPins));
+  execFileSync(process.execPath,['packages/secure-tax-client/prepare-client-key-recovery-job.mjs','--snapshot',directory+'/snapshot.json','--public-pins',directory+'/pins.json','--review-reference','synthetic-owner-reviewed','--out',directory+'/job.json','--confirm-identity-and-fingerprint'],{timeout:15000});
+  let jobBytes=new Uint8Array(await readFile(directory+'/job.json'));const job=JSON.parse(new TextDecoder().decode(jobBytes)),results=new Map();let decrypts=0;
+  const provider={async readJob(){return jobBytes;},async readResult(id){return results.get(id);},async readCustody(){return {version:1,workspaceId,ciphertext:Buffer.from('synthetic encrypted custody marker').toString('base64')};},async decryptBundle(){decrypts++;return new TextEncoder().encode(JSON.stringify({bundle:created.bundle,passphrase}));},async writeResult(id,result){results.set(id,{...result,versionId:'synthetic-result'});return 'synthetic-result';}};
+  const handler=createHandler(provider,{workspaceId,keyAccountId:'111111111111',dataHostAccountId:'222222222222'}),functionContext={invokedFunctionArn:'arn:aws:lambda:us-east-1:111111111111:function:synthetic-worker'},event=()=>({version:1,jobId:job.jobId,jobVersionId:'immutable-synthetic-version',approvedSha256:createHash('sha256').update(jobBytes).digest('hex')});
+  const bad=structuredClone(job);bad.approval.recipientKeyId=manifest.client.keyId;jobBytes=new TextEncoder().encode(JSON.stringify(bad));assert.equal((await handler(event(),functionContext)).ok,false);assert.equal(decrypts,0);
+  jobBytes=new Uint8Array(await readFile(directory+'/job.json'));assert.equal((await handler(event(),functionContext)).ok,true);const packet=results.get(job.jobId).result.recoveredClientKey;await verifyClientKeyRecoveryApproval(packet.approval,created.publicPins);const bytes=await openEnvelope(packet.envelopes[0],context,{clientPublicKey:replacement.publicKey,firmRecoveryPublicKey:created.publicPins.firmRecoveryPublicKey},'client',replacement.privateKey);assert.deepEqual(bytes,original);assert(!JSON.stringify(results.get(job.jobId)).includes('SYNTHETIC PRIVATE CLOUD REWRAP'));assert(!JSON.stringify(results.get(job.jobId)).includes('passphrase'));assert.equal((await handler(event(),functionContext)).duplicate,true);assert.equal(decrypts,1);
+ }finally{await rm(directory,{recursive:true,force:true});}
+});

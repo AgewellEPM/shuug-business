@@ -123,6 +123,7 @@ export function portalSnapshot(records){
       const kind=value.purpose==='bank-statement'?'statements':value.purpose==='receipt'||item.domain==='driver-receipt'?'receipts':value.purpose==='invoice'?'invoices':'documents';counts[kind]++;
       files.push({objectId:item.objectId,revision:item.revision,name:value.filename,purpose:UPLOAD_PURPOSES[value.purpose]??'Document',category:UPLOAD_CATEGORIES[value.category]??'General business',byteLength:value.byteLength,savedAt:value.savedAt,notes:value.notes??''});
     }else if(value?.type==='driver-record'&&['income','expense','trip'].includes(value.record?.kind)){
+      if(value.record.deleted===true)continue;
       const kind=value.record.kind,body=value.record.body??{};counts[kind==='expense'?'expenses':kind==='trip'?'trips':'income']++;
       entries.push({objectId:item.objectId,kind,date:body.date??body.localDate??'',description:body.description??body.merchant??body.purpose??'',amountCents:body.amountCents,currency:typeof body.currency==='string'?body.currency.slice(0,12):null});
       if(kind!=='trip'&&Number.isSafeInteger(body.amountCents)&&typeof body.currency==='string'&&/^[A-Z]{3}$/.test(body.currency)){

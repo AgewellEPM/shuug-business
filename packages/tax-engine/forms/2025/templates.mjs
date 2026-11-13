@@ -133,5 +133,23 @@ export const officialForms2025=Object.freeze([
     "sha256": "d04de932bd7d960ba09b3a913cde9bf35c1deec34c5c9b51cdff8c0b1bfdf83a",
     "pages": 2,
     "fieldCount": 72
+  },
+  {
+    "id": "f1040sb",
+    "url": "https://www.irs.gov/pub/irs-prior/f1040sb--2025.pdf",
+    "sha256": "dd1ec3719954532bd219343d81385a2ada3c8e9573fc755a3893f1fbbecc63e2",
+    "bytes": 76411,
+    "pages": 1,
+    "fieldCount": 72,
+    "taxYear": 2025
+  },
+  {
+    "id": "f8960",
+    "url": "https://www.irs.gov/pub/irs-prior/f8960--2025.pdf",
+    "sha256": "9b323b7166b5845a776f781b8c82eef94ccd998354e88fc33a1051c3b3789731",
+    "bytes": 76922,
+    "pages": 1,
+    "fieldCount": 38,
+    "taxYear": 2025
   }
 ].map(Object.freeze));

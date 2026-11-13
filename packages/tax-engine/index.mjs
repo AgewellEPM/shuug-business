@@ -5,7 +5,7 @@ import {calculationYears} from './federal-years.mjs';
 export {calculationYears,requestedTaxYears,federalSourcesFor} from './federal-years.mjs';
 export { newReturn,expenseCategories } from './model.mjs';
 export { returnTypes,filingStatuses,scopeNotice,federalSources } from './catalog.mjs';
-export { parseMoney,displayMoney } from './money.mjs';
+export { parseMoney,displayMoney,sumMoney } from './money.mjs';
 export {newHouseholdEmployer,newHouseholdEmployee,householdReviews} from './household-employment.mjs';
 export {newEnergyCredits,energyCategories,energyReviews,panelEnabledTypes} from './energy-credits.mjs';
 
@@ -16,3 +16,6 @@ export function calculateReturn(raw){
     return {...result,version:1,year:input.year,kind:input.kind,status:diagnostics.some(item=>item.severity==='blocking')?'needs-attention':'draft',calculationAvailable:true,filingReady:false,diagnostics};
   }catch(error){return {version:1,year:input?.year??null,kind:input?.kind??null,status:'invalid-input',calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('INPUT_INVALID',error instanceof Error?error.message:'The original return input needs review.')]};}
 }
+
+export {newHouseholdFuta,newHouseholdFutaRow} from './household-futa.mjs';
+export {newInvestmentIncome,newInvestmentPayer,investmentReviews} from './investment-income.mjs';

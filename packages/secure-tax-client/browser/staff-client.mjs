@@ -1,4 +1,5 @@
 import {verifyRenewalRequest,verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
+import {verifyClientKeyRecoveryRequest,verifyClientKeyRecoveryApproval,recoveryEnvelopeDigest,verifyRecoveredEnvelope} from '../key-recovery.mjs';
 import {assertAuthenticatorRecoveryInvitation} from '../authenticator-recovery.mjs';
 import {assertPasswordRecoveryInvitation} from '../password-recovery.mjs';
 import {assertPrivateInvitation,privateAccountCode} from '../client-enrollment.mjs';
@@ -83,6 +84,25 @@ export class StaffVaultClient {
   async signOut(){const pending=this.#token?this.#request('/session','DELETE'):Promise.resolve();this.#forgetSession();try{await pending;}catch{throw new Error('Local staff view cleared. The API could not confirm session revocation.');}}
   async createClientInvitation(){
     if(!this.isOwner)throw new Error('Only the verified owner can invite a new encrypted account.');const generation=this.#generation,result=await this.#request('/client-invitations','POST',{},4096);this.#same(generation);return clone(assertPrivateInvitation(result,this.#config.workspaceId));
+  }
+  async prepareClientKeyRecovery(requestId){
+    if(!this.isOwner)throw new Error('Use the verified owner account to export the recovery snapshot.');privateAccountCode(requestId);const generation=this.#generation;
+    const query='/client-key-recovery?requestId='+encodeURIComponent(requestId),request=await this.#request(query,'GET',undefined,8*1024*1024);await verifyClientKeyRecoveryRequest(request,this.#config);this.#same(generation);if(request.requestId!==requestId)throw new Error('The recovery request changed.');
+    const envelopes=[];for(const entry of request.entries){const result=await this.#request(query+'&objectId='+encodeURIComponent(entry.objectId),'GET',undefined,24*1024*1024);this.#same(generation);if(await recoveryEnvelopeDigest(result.envelope)!==entry.envelopeDigest)throw new Error('Recovery ciphertext changed while preparing the snapshot.');this.#same(generation);envelopes.push(result.envelope);}
+    const current=await this.#request(query,'GET',undefined,8*1024*1024);this.#same(generation);if(JSON.stringify(current)!==JSON.stringify(request))throw new Error('The recovery snapshot changed while downloading.');return {request,envelopes};
+  }
+  async stageClientKeyRecovery(packet){
+    if(!this.isOwner)throw new Error('Use the verified owner account to stage approved client-key recovery.');const generation=this.#generation;
+    if(!packet||Object.keys(packet).sort().join('|')!=='approval|envelopes'||!Array.isArray(packet.envelopes))throw new Error('Choose the complete firm-approved recovery packet.');
+    const approval=await verifyClientKeyRecoveryApproval(packet.approval,this.#config);this.#same(generation);if(packet.envelopes.length!==approval.entries.length)throw new Error('Every approved replacement ciphertext is required.');
+    // Check the complete packet before the first upload; partial network retries remain safe.
+    for(let i=0;i<packet.envelopes.length;i++){await verifyRecoveredEnvelope(packet.envelopes[i],approval,i);this.#same(generation);}
+    const start=await this.#request('/client-key-recovery','POST',approval,4096);this.#same(generation);if(start.staged!==true||start.requestId!==approval.request.requestId||start.objectsRequired!==approval.entries.length)throw new Error('The recovery approval was not staged.');
+    for(const envelope of packet.envelopes){const result=await this.#request('/client-key-recovery','PUT',{requestId:approval.request.requestId,envelope},4096);this.#same(generation);if(result.staged!==true||result.objectId!==envelope.context.objectId)throw new Error('A recovery ciphertext was not staged.');}
+    return {staged:true,approval:clone(approval),objects:packet.envelopes.length};
+  }
+  async revokeClientKeyRecovery(requestId){
+    if(!this.isOwner)throw new Error('Use the verified owner account to revoke client-key recovery.');privateAccountCode(requestId);const generation=this.#generation,result=await this.#request('/client-key-recovery','DELETE',{requestId},1024);this.#same(generation);if(typeof result.revoked!=='boolean')throw new Error('Recovery revocation was not confirmed.');return result;
   }
   async prepareEnrollmentRenewal(accountCode){
     if(!this.isOwner)throw new Error('Use the verified owner account to prepare renewal.');privateAccountCode(accountCode);const generation=this.#generation,request=await this.#request('/enrollment-renewal?accountId='+encodeURIComponent(accountCode));await verifyRenewalRequest(request,this.#config,{accountId:accountCode});this.#same(generation);return clone(request);

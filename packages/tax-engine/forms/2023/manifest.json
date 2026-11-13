@@ -137,6 +137,24 @@
       "sha256": "4659bd413f9f90a40a3d864ef5e49c753cf2e50de05ec1f9e910dfda7d151379",
       "pages": 2,
       "fieldCount": 86
+    },
+    {
+      "id": "f1040sb",
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sb--2023.pdf",
+      "sha256": "3079c35cc14c4392efd436132e62c4c2fec21196a1988f38674da9c29df2f54f",
+      "bytes": 76290,
+      "pages": 1,
+      "fieldCount": 72,
+      "taxYear": 2023
+    },
+    {
+      "id": "f8960",
+      "url": "https://www.irs.gov/pub/irs-prior/f8960--2023.pdf",
+      "sha256": "6664676afef1b6391e8b350c30f47ac71163909d158f6e5e57f7ccaf36c77eec",
+      "bytes": 77355,
+      "pages": 1,
+      "fieldCount": 38,
+      "taxYear": 2023
     }
   ]
 }

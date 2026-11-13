@@ -1,10 +1,11 @@
+import {investmentWorkpaper} from './investment-pdf.mjs';
 import { PDFDocument, StandardFonts, rgb, degrees, PDFName } from 'pdf-lib';
 import { calculateReturn, scopeNotice } from './index.mjs';
 import { displayMoney } from './money.mjs';
 import { referencedField } from './form-maps.mjs';
 import { pdfYearPack } from './form-years.mjs';
 import { identityFields } from './pdf-identity.mjs';
-import {householdWorkpaper} from './household-pdf.mjs';
+import {householdWorkpaper,householdContinuationPdf} from './household-pdf.mjs';
 import {energyWorkpaper} from './energy-pdf.mjs';
 
 export const defaultTemplateLoader=async (id,year=2025)=>{
@@ -45,7 +46,7 @@ function workpaper(pdf,font,input,result){
   const businesses=input.individual?.businesses??[input.entity];
   for(const business of businesses){line(`Deduction workpaper: ${business.name??business.businessName??'Business'}`,12);for(const expense of business.expenses)line(`${expense.category}: ${displayMoney(expense.amountCents)} USD. ${expense.description}`);}
   if(input.notes){line('Preparation notes',12);line(input.notes);}
-  energyWorkpaper(input,line);householdWorkpaper(input,line);
+  energyWorkpaper(input,line);householdWorkpaper(input,line);investmentWorkpaper(input,line);
 }
 
 /** All calculation and rendering happen in the trusted caller. The loader only
@@ -55,7 +56,7 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
   if(!result.calculationAvailable)throw new Error('Correct the return input and install its declared tax-year pack before exporting forms.');
   const {templates,lineMaps,scheduleMaps}=pdfYearPack(original.year);
   const output=await PDFDocument.create(),font=await output.embedFont(StandardFonts.Helvetica),audit=[];
-  workpaper(output,font,original,result);
+  workpaper(output,font,original,result);householdContinuationPdf(output,font,original,result);
   for(const item of result.forms){
     const approved=templates.find(form=>form.id===item.form);if(!approved||!lineMaps[item.form])throw new Error('An official form has no reviewed annual template/map.');
     const bytes=new Uint8Array(await loadTemplate(item.form,original.year));

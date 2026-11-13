@@ -1,0 +1,118 @@
+{
+  "kind": "Synthetic arithmetic vectors independently derived from the annual IRS Form 8960 lines 12-17, not IRS-provided taxpayer examples",
+  "sources": [
+    "https://www.irs.gov/pub/irs-prior/i8960--2023.pdf",
+    "https://www.irs.gov/pub/irs-prior/i8960--2024.pdf",
+    "https://www.irs.gov/pub/irs-prior/i8960--2025.pdf"
+  ],
+  "cases": [
+    {
+      "status": "single",
+      "agiDollars": 195000,
+      "interestDollars": 5000,
+      "dividendsDollars": 10000,
+      "thresholdDollars": 200000,
+      "taxDollars": 0
+    },
+    {
+      "status": "single",
+      "agiDollars": 270000,
+      "interestDollars": 90000,
+      "dividendsDollars": 0,
+      "thresholdDollars": 200000,
+      "taxDollars": 2660
+    },
+    {
+      "status": "single",
+      "agiDollars": 225000,
+      "interestDollars": 10000,
+      "dividendsDollars": 0,
+      "thresholdDollars": 200000,
+      "taxDollars": 380
+    },
+    {
+      "status": "marriedJoint",
+      "agiDollars": 300000,
+      "interestDollars": 75000,
+      "dividendsDollars": 150000,
+      "thresholdDollars": 250000,
+      "taxDollars": 1900
+    },
+    {
+      "status": "survivingSpouse",
+      "agiDollars": 250000,
+      "interestDollars": 7000,
+      "dividendsDollars": 3000,
+      "thresholdDollars": 250000,
+      "taxDollars": 0
+    },
+    {
+      "status": "survivingSpouse",
+      "agiDollars": 260000,
+      "interestDollars": 7000,
+      "dividendsDollars": 3000,
+      "thresholdDollars": 250000,
+      "taxDollars": 380
+    },
+    {
+      "status": "marriedSeparate",
+      "agiDollars": 135000,
+      "interestDollars": 7000,
+      "dividendsDollars": 3000,
+      "thresholdDollars": 125000,
+      "taxDollars": 380
+    },
+    {
+      "status": "headOfHousehold",
+      "agiDollars": 220000,
+      "interestDollars": 10000,
+      "dividendsDollars": 5000,
+      "thresholdDollars": 200000,
+      "taxDollars": 570
+    }
+  ],
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "i1040sb",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sb--2023.pdf",
+      "bytes": 211484,
+      "sha256": "0adbb92dc4778098769e052f9cf753198526744cd8d4d7c956666fad11a68ec6"
+    },
+    {
+      "year": 2023,
+      "id": "i8960",
+      "url": "https://www.irs.gov/pub/irs-prior/i8960--2023.pdf",
+      "bytes": 355329,
+      "sha256": "7b85d4b76b348a2ac6bf2c60189e6060a3d2ef7f77a69e6acf074f1c2ffb0763"
+    },
+    {
+      "year": 2024,
+      "id": "i1040sb",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sb--2024.pdf",
+      "bytes": 147883,
+      "sha256": "9b4311e121738a53daf1bf511b70d49787e0e976220bc1ff909082d0125e7693"
+    },
+    {
+      "year": 2024,
+      "id": "i8960",
+      "url": "https://www.irs.gov/pub/irs-prior/i8960--2024.pdf",
+      "bytes": 364641,
+      "sha256": "b2befeae2ec440ab3475e8ebad50df87a308a26512c989c8f9301938a14cb9a9"
+    },
+    {
+      "year": 2025,
+      "id": "i1040sb",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sb--2025.pdf",
+      "bytes": 153064,
+      "sha256": "b92f31ece57a82ea576ac96507fe5df637dbda7489a80eb28aaab88e7c87b287"
+    },
+    {
+      "year": 2025,
+      "id": "i8960",
+      "url": "https://www.irs.gov/pub/irs-prior/i8960--2025.pdf",
+      "bytes": 377700,
+      "sha256": "b10fbb23ff4a053db197285497a00914c558e3ae0cdf5c956b7c0c7867376428"
+    }
+  ]
+}

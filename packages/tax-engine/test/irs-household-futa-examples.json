@@ -1,0 +1,21 @@
+{
+  "description": "Derived regression cases from the annual IRS Schedule H line 17 and Worksheet 1/2 instructions. These are synthetic arithmetic fixtures, not published IRS full-return examples or agency approval.",
+  "annualInstructions": [
+    {"year":2023,"url":"https://www.irs.gov/pub/irs-prior/i1040sh--2023.pdf","bytes":425255,"sha256":"15697f69b011ed3b53b1f1d52d446a2273310c8e4c6b7058a90a72638216fdc2","pages":"10–12"},
+    {"year":2024,"url":"https://www.irs.gov/pub/irs-prior/i1040sh--2024.pdf","bytes":352259,"sha256":"d35bb51088257973c483020342f41b89c95be32a7aae997be43d318bef21d8c0","pages":"6–9"},
+    {"year":2025,"url":"https://www.irs.gov/pub/irs-prior/i1040sh--2025.pdf","bytes":254570,"sha256":"3e4b07dd0867386395ea6bd162e5c2cbc172cbd350dcee66d1eaf1ea05e67f7a","pages":"6–9"}
+  ],
+  "rates": [
+    {"year":2023,"CA":60,"NY":60,"VI":390,"CT":0},
+    {"year":2024,"CA":90,"NY":90,"VI":420,"CT":0},
+    {"year":2025,"CA":120,"NY":0,"VI":450,"CT":0}
+  ],
+  "basisPointsNote":"Each rate is the numerator over10,000. The wage base is the worker’s first$7,000 of federally eligible wages that are also subject to the selected state’s unemployment tax.",
+  "lateExample":{
+    "year":2025,"state":"CA","federalWagesCents":700000,"stateWagesCents":1000000,"experienceRate":"2.7","paidOnTimeCents":0,"paidLateCents":27000,
+    "line17":{"e":54000,"f":27000,"g":27000,"h":0},
+    "worksheet1":{"1":37800,"2":27000,"3":10800,"4":27000,"5":10800,"6":9700,"7":36700,"8":36700},
+    "worksheet2":{"1":36700,"2":700000,"4":8400,"5":28300},
+    "futaTaxCents":13700,"householdTaxCents":166700
+  }
+}

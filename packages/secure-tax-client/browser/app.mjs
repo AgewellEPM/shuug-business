@@ -1,3 +1,5 @@
+import {mountClientKeyRecovery} from './key-recovery-view.mjs';
+import {mountLegacyImport} from './legacy-import-view.mjs';
 import {mountAuthenticatorRecovery} from './authenticator-recovery-view.mjs';
 import {mountEnrollment,mountPasswordRecovery} from './enrollment-view.mjs';
 import trustedConfig from './trusted-config.mjs';
@@ -17,7 +19,7 @@ const $=id=>document.getElementById(id), labels={
   'driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'
 };
 let client, normalEditor, taxEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
-let portal,enrollment,passwordRecovery,authenticatorRecovery;
+let portal,enrollment,passwordRecovery,authenticatorRecovery,keyRecovery,legacyImport;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
   const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');
@@ -30,7 +32,7 @@ async function readJson(input){
   try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}
 }
 function resetEditor(){editing=null;advancedDirty=false;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
-function clearOpened(){viewGeneration++;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';enrollment?.clear();passwordRecovery?.clear();authenticatorRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
+function clearOpened(){viewGeneration++;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';keyRecovery?.clear();legacyImport?.clear();enrollment?.clear();passwordRecovery?.clear();authenticatorRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
   for(const id of ['connect','key-choice','create-key','import-backup','import-key','signin-password','email','password'])$(id).disabled=!ready||working;
@@ -45,10 +47,10 @@ function refreshControls(){
   $('backup').disabled=!ready||!$('key-choice').value||working;
   for(const id of ['request','manifest','verify-manifest'])$(id).disabled=!unlocked||working;
   for(const id of ['sync','payload','attachment','save','cancel-edit'])$(id).disabled=!writable||working;
-  $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending&&!authenticatorRecovery?.dirty;
+  $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending&&!authenticatorRecovery?.dirty&&!legacyImport?.active;
   normalEditor?.setEnabled(!!writable&&!working);
   taxEditor?.setEnabled(!!writable&&!working);
-  portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working);authenticatorRecovery?.setEnabled(ready&&!working);
+  keyRecovery?.setEnabled(ready&&!working);legacyImport?.refresh();portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working);authenticatorRecovery?.setEnabled(ready&&!working);
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
 }
@@ -61,7 +63,7 @@ async function refreshKeys(select){
 async function run(operation){
   if(working)return;working=true;refreshControls();
   try{await operation();}catch(error){message(error instanceof Error?error.message:'This operation could not complete.',true);}
-  finally{working=false;if(!client?.unlocked&&($('groups').childElementCount||portal?.active||taxEditor?.active))clearOpened();statusText();refreshControls();}
+  finally{working=false;if(!client?.unlocked&&($('groups').childElementCount||portal?.active||taxEditor?.active||legacyImport?.active))clearOpened();statusText();refreshControls();}
 }
 function statusText(){
   $('account').textContent=client.identity?`Connected account ${client.identity.accountId}. ${client.enrolled?'Encrypted enrollment exists.':'Encrypted enrollment is not activated.'}`:'No account connected.';
@@ -121,6 +123,7 @@ function renderGroups(){
 }
 const canRefresh=()=>!normalEditor?.dirty&&!taxEditor?.dirty&&!editing&&!advancedDirty;
 portal=mountClientPortal(document,$('groups').parentElement,{getClient:()=>client,run,onSaved:renderGroups,onLocked:()=>{clearOpened();statusText();if(!client.identity)message('Sign-in expired or access was revoked. Opened information was cleared; sign in again.',true);},onMessage:message,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,canRefresh,confirm:text=>confirm(text)});
+legacyImport=mountLegacyImport(document,$('groups'),{getClient:()=>client,run,onSaved:renderGroups,onMessage:message,isWorking:()=>working,download});
 for(const id of ['payload','attachment','domain'])$(id).addEventListener('input',()=>{advancedDirty=true;portal.pending();});
 for(const domain of DOMAINS){const option=document.createElement('option');option.value=domain;option.textContent=labels[domain];$('domain').append(option);}
 normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onDirty:()=>portal.pending(),onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
@@ -130,6 +133,7 @@ function signedIn(result){
   if(result.recoveryCodes?.length){$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;}
   message('Signed in. Select the account client key to verify enrollment or prepare signed setup.');
 }
+keyRecovery=mountClientKeyRecovery(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,download,onRecovered:result=>{clearOpened();$('email').value=result.accountCode;message('Encryption key recovered; old sessions revoked. Sign in with your unchanged password and authenticator, then select the replacement key. The firm must refresh staff sharing and review case dependencies against the replacement ciphertext.');}});
 enrollment=mountEnrollment(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,download,onAccountCode:value=>{$('email').value=value;},onActivated:result=>{clearOpened();$('email').value=result.accountCode;message('New encrypted account activated. Sign in with your private account code and account password, then set up the required authenticator.');}});
 passwordRecovery=mountPasswordRecovery(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,onRecovered:result=>{clearOpened();$('email').value=result.accountCode;message('Account password recovered and old sessions revoked. Sign in with the new password and your existing authenticator or unused recovery code.');}});
 authenticatorRecovery=mountAuthenticatorRecovery(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,onStarting:()=>{if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before authenticator recovery.');clearOpened();},onRecovered:result=>{clearOpened();$('email').value=result.accountCode;$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;message('Authenticator replaced; old sessions and recovery codes revoked. Save these new recovery codes. Sign in with your unchanged password once the replacement authenticator shows a fresh code, or use one new recovery code.');}});

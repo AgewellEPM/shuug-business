@@ -21,8 +21,7 @@ by state unemployment and no annual credit reduction. An entered zero requires
 a reviewed assigned 0% experience rate. California/New York/Virgin Islands in
 2023–2024 and California/Virgin Islands in 2025 require Section B; so do late
 payments, multiple states and wages not covered by state unemployment. These
-cases preserve sources and withhold complete tax/balance totals. This is not a
-state tax engine. Third-party disability/sick pay, qualified leave credits,
+cases now use the reviewed [Section B workflow](../packages/tax-engine/HOUSEHOLD-FUTA.md): state rate-period rows, contribution timing, per-worker federal wage-cap allocation and the annual credit-reduction worksheets. Missing inputs/reviews keep totals unavailable. Extra rate periods print in a continuation table. This remains federal Schedule H preparation; state payroll filings are separate. Third-party disability/sick pay, qualified leave credits,
 part-year exemption changes and wages reported on another employment return
 also remain outside the supported scope.
 

@@ -1,8 +1,10 @@
+import {investmentIdentity} from './investment-pdf.mjs';
 import {householdIdentity} from './household-pdf.mjs';
 import {energyIdentity} from './energy-pdf.mjs';
 const digits=value=>value.replaceAll('-','');
 export function identityFields(input,item,set){
   const p=input.party,person=item.owner==='spouse'?{name:input.individual.spouseName,taxId:input.individual.spouseTaxId}:p;
+  if(['f1040sb','f8960'].includes(item.form)){investmentIdentity(input,item,set);return;}
   if(item.form==='f1040sh'){householdIdentity(input,item,set);return;}
   if(item.form==='f5695'){energyIdentity(input,item,set);return;}
   if(item.form==='f1040s3'){set('1/1',input.individual.filingStatus==='marriedJoint'?[p.name,input.individual.spouseName].filter(Boolean).join(' & '):p.name);set('1/2',digits(p.taxId));return;}

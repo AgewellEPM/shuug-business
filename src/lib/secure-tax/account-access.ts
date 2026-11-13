@@ -23,6 +23,10 @@ export function setPrivateAccountAccess(staffToken:string,raw:unknown){
     revokeSessions(db,account.id);
     if(privateAccountTable(db,"secure_tax_password_recovery"))db.prepare("UPDATE secure_tax_password_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
     if(privateAccountTable(db,"secure_tax_authenticator_recovery"))db.prepare("UPDATE secure_tax_authenticator_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
+    if(privateAccountTable(db,"secure_tax_key_recovery")){
+      db.prepare("UPDATE secure_tax_key_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
+      for(const table of ["secure_tax_key_recovery_objects","secure_tax_key_recovery_proofs"])if(privateAccountTable(db,table))db.prepare(`DELETE FROM ${table} WHERE requestId IN (SELECT id FROM secure_tax_key_recovery WHERE accountId=?)`).run(account.id);
+    }
     audit(db,account.id,user.id,input.enabled?"secure-tax.account.enabled":"secure-tax.account.disabled");
     return {accountCode:account.id,enabled:input.enabled,sessionsRevoked:true};
   },true);

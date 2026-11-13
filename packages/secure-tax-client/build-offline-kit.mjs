@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('.',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=['prepare-authenticator-recovery-job.mjs','prepare-enrollment-renewal-job.mjs','prepare-password-recovery-job.mjs','enrollment-renewal.mjs','firm-enrollment-renewal.mjs','authenticator-recovery.mjs','firm-authenticator-recovery.mjs','password-recovery.mjs','firm-password-recovery.mjs','envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
+const files=['legacy-import.mjs','migrate-legacy.mjs','migrate-legacy-cli.mjs','key-recovery.mjs','firm-client-key-recovery.mjs','prepare-client-key-recovery-job.mjs','prepare-authenticator-recovery-job.mjs','prepare-enrollment-renewal-job.mjs','prepare-password-recovery-job.mjs','enrollment-renewal.mjs','firm-enrollment-renewal.mjs','authenticator-recovery.mjs','firm-authenticator-recovery.mjs','password-recovery.mjs','firm-password-recovery.mjs','envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
 async function walk(directory,prefix=''){
   const result=[];
   for(const name of (await readdir(path.join(directory,prefix))).sort()){const relative=path.posix.join(prefix,name),info=await lstat(path.join(directory,relative));if(info.isSymbolicLink())throw new Error('Offline kit dependencies must be regular reviewed files.');if(info.isDirectory())result.push(...await walk(directory,relative));else if(info.isFile())result.push(relative);else throw new Error('Unsupported offline kit input.');}return result;
@@ -18,12 +18,16 @@ The kit contains public source code and a SHA-256 inventory. It has no firm keys
 passphrases, credentials, client data or automatic initialization. Verify its
 inventory through the firm's trusted software-release channel before use.
 
-Use node offline-cli.mjs for init/sign/renew/recover/approve-password-recovery and node staff-offline-cli.mjs for
+Use node offline-cli.mjs for init/sign/renew/recover/approve-password-recovery/approve-authenticator-recovery/recover-client-key and node staff-offline-cli.mjs for
 grant/share/recover-device/revoke. Invoking either without arguments prints its
 required explicit options and exits without key operations. Pass the private
 bundle, public pins and selected inputs explicitly. Passphrases use a selected
 file descriptor, never a command argument. Every operation requires the existing
 --confirm-off-host acknowledgment; this flag does not verify physical separation.
+
+Lost client-key recovery requires the full encrypted snapshot and explicit identity/new-key review. The firm preserves exact content and revisions; the owner stages replacements and the customer proves the new key before activation. Staff sharing and changed dependencies require fresh review.
+
+Copied-backup preparation is available through migrate-legacy-cli.mjs with its explicit offhost/copied-backup confirmations, reviewed manifest hash and destination binding. It signs an encrypted import preparation, never uploads or purges. The customer reviews and imports its supported records in the independent client.
 
 Keep the encrypted firm bundle, its separate unlock passphrase and recoverable
 backups away from the app/data host. Distribute only the public pins, signed

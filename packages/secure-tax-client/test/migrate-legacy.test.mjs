@@ -145,3 +145,111 @@ test('offline CLI requires explicit copied-backup/offhost inputs and never uploa
   assert(!result.stdout.includes('000-12-3456'));assert.equal(existsSync(path.join(value.backup,'vault.key')),true);assert.equal(run(args).status,1);
  }finally{rmSync(value.directory,{recursive:true,force:true});}
 });
+
+// Uses actual firm/client envelope crypto while injecting network interruption.
+import {LegacyImport} from '../browser/legacy-import.mjs';
+import {sealEnvelope} from '../envelope.mjs';
+import {verifyLegacyImportReport,signLegacyImportReport} from '../legacy-import.mjs';
+function selectedFiles(directory){return filesIn(directory).map(name=>{const bytes=readFileSync(path.join(directory,name));return {name:path.basename(name),size:bytes.length,arrayBuffer:async()=>bytes};});}
+function importClient(value){
+ const scope={workspaceId:value.publicPins.workspaceId,accountId:value.manifest.accountId,clientId:value.manifest.clientId,keyId:value.manifest.client.keyId},trusted={clientPublicKey:value.client.publicKey,firmRecoveryPublicKey:value.publicPins.firmRecoveryPublicKey},pending=[],remote=new Map();let writes=0,interrupt=false;
+ const client={scope,config:value.publicPins,canWrite:true,records:new Map(),remote,get writes(){return writes;},set interrupt(v){interrupt=v;},
+  async openLegacyExport(envelope,manifest){assert.equal(manifest.manifestId,value.manifest.manifestId);assert.equal(envelope.author.role,'firm-recovery');return openEnvelope(envelope,{...envelope.context,workspaceId:scope.workspaceId,accountId:scope.accountId},trusted,'client',value.client.privateKey);},
+  async sync(){client.records=new Map([...remote].map(([id,item])=>[id,{...item,plaintext:item.plaintext.slice()}]));},
+  async prepareSave(domain,bytes,objectId){return {objectId,domain,expectedRevision:remote.has(objectId)?1:0,mutationId:randomUUID(),envelope:await sealEnvelope(bytes,{workspaceId:scope.workspaceId,accountId:scope.accountId,objectId,revision:1,domain},trusted,'client',value.client.privateKey)};},
+  async pendingUploads(){return structuredClone(pending);},async keepPendingUpload(item){if(!pending.some(p=>p.mutationId===item.mutationId))pending.push(structuredClone(item));},async forgetPendingUpload(id){const index=pending.findIndex(p=>p.mutationId===id);if(index>=0)pending.splice(index,1);},
+  async previewPrepared(item){return openEnvelope(item.envelope,item.envelope.context,trusted,'client',value.client.privateKey);},
+  async savePrepared(item){assert.equal(item.expectedRevision,0);assert(!remote.has(item.objectId));const plaintext=await client.previewPrepared(item),firm=await openEnvelope(item.envelope,item.envelope.context,trusted,'firm-recovery',value.unlocked.recovery);assert.deepEqual(plaintext,firm);firm.fill(0);remote.set(item.objectId,{objectId:item.objectId,domain:item.domain,revision:1,plaintext});writes++;if(interrupt){interrupt=false;throw new Error('Synthetic dropped acknowledgement');}await client.sync();return {objectId:item.objectId,revision:1};}
+ };return client;
+}
+test('signed migration selection imports usable bytes and reconciles a dropped acknowledgement without duplicates',async()=>{
+ const value=await fixture();try{
+  const report=await prepareLegacyMigration(value.options),client=importClient(value),importer=new LegacyImport(client),files=selectedFiles(value.options.outputDirectory);
+  await importer.select(files);assert.equal(client.writes,0);assert.equal(importer.rows.length,5);await assert.rejects(()=>importer.import(),/Review/);
+  client.interrupt=true;await assert.rejects(()=>importer.import({reviewed:true}),/dropped acknowledgement/);assert.equal(client.writes,1);assert.equal((await client.pendingUploads()).length,1);
+  importer.clear();await importer.select(files);const receipt=await importer.import({reviewed:true});assert.equal(receipt.clientReopenedAll,true);assert.equal(receipt.sourcePurged,false);assert.equal(receipt.completeProductMigration,false);assert.equal(client.writes,5);assert.equal((await client.pendingUploads()).length,0);
+  const values=[...client.records.values()].map(item=>JSON.parse(Buffer.from(item.plaintext))),document=values.find(item=>item.type==='private-file'&&item.purpose==='tax-document');assert.deepEqual(Buffer.from(document.data,'base64url'),value.pdf);assert.equal(document.legacy.documentId,value.documentId);
+  await importer.import({reviewed:true});assert.equal(client.writes,5);
+  const second={...value.options,outputDirectory:path.join(value.directory,'second-export')};const again=await prepareLegacyMigration(second);assert.deepEqual(again.entries.map(item=>item.objectId),report.entries.map(item=>item.objectId));await importer.select(selectedFiles(second.outputDirectory));await importer.import({reviewed:true});assert.equal(client.writes,5);
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+test('migration selection rejects tampering, missing files, wrong destination, conflicts and changed-backup duplicates before writes',async()=>{
+ const value=await fixture();try{
+  await prepareLegacyMigration(value.options);const client=importClient(value),importer=new LegacyImport(client),files=selectedFiles(value.options.outputDirectory);
+  await assert.rejects(()=>importer.select(files.slice(1)));assert.equal(client.writes,0);
+  const tampered=files.map(file=>file.name==='export-manifest.json'?{...file,arrayBuffer:async()=>Buffer.alloc(file.size,32)}:file);await assert.rejects(()=>importer.select(tampered));
+  client.scope.accountId=randomUUID();await assert.rejects(()=>importer.select(files));client.scope.accountId=value.manifest.accountId;
+  await importer.select(files);await importer.import({reviewed:true});const changed=[...client.remote.values()][0];changed.plaintext=Buffer.from('{"changed":true}');await assert.rejects(()=>importer.select(files),/different content/);assert.equal(client.writes,5);client.remote.clear();
+  await importer.select(files);await importer.import({reviewed:true});const reportFile=path.join(value.options.outputDirectory,'export-manifest.json'),report=JSON.parse(readFileSync(reportFile));report.backupManifestSha256='1'.repeat(64);const old=report.entries[0].objectId,newId=randomUUID(),env=JSON.parse(readFileSync(path.join(value.options.outputDirectory,'objects',old+'.json'))),opened=await client.openLegacyExport(env,value.manifest),payload=JSON.parse(Buffer.from(opened));payload.record.id=newId;opened.fill(0);
+  const replacement=await sealEnvelope(Buffer.from(JSON.stringify(payload)),{...env.context,objectId:newId},{clientPublicKey:value.client.publicKey,firmRecoveryPublicKey:value.publicPins.firmRecoveryPublicKey},'firm-recovery',value.unlocked.recovery),raw=Buffer.from(JSON.stringify(replacement)+'\n');rmSync(path.join(value.options.outputDirectory,'objects',old+'.json'));writeFileSync(path.join(value.options.outputDirectory,'objects',newId+'.json'),raw);Object.assign(report.entries[0],{objectId:newId,envelopeBytes:raw.length,sha256:hash(raw)});const rb=Buffer.from(JSON.stringify(report));writeFileSync(reportFile,rb);writeFileSync(path.join(value.options.outputDirectory,'import-signature.json'),JSON.stringify(await signLegacyImportReport(rb,value.unlocked)));await assert.rejects(()=>importer.select(selectedFiles(value.options.outputDirectory)),/another backup/);assert.equal(client.writes,10);
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+test('explicit reviewed source mapping migrates into a different private account without exposing legacy identifiers',async()=>{
+ const value=await fixture();try{
+  const old={accountId:value.expected.accountId,clientId:value.expected.clientId},accountId=randomUUID(),clientId=randomUUID(),manifest=await signEnrollmentRequest({version:1,workspaceId:value.publicPins.workspaceId,accountId,clientId,client:value.manifest.client},value.unlocked,{epoch:1});
+  const expected={accountId,clientId,manifestId:manifest.manifestId,minimumEpoch:1,sourceAccountId:old.accountId,sourceClientId:old.clientId};const report=await prepareLegacyMigration({...value.options,manifest,expected});
+  const bytes=readFileSync(path.join(value.options.outputDirectory,'export-manifest.json')),signature=JSON.parse(readFileSync(path.join(value.options.outputDirectory,'import-signature.json')));await verifyLegacyImportReport(bytes,signature,value.publicPins,{workspaceId:value.publicPins.workspaceId,accountId,clientId,keyId:manifest.client.keyId});
+  const disk=filesIn(value.options.outputDirectory).map(file=>readFileSync(path.join(value.options.outputDirectory,file),'utf8')).join('\n');assert(!disk.includes(old.accountId));assert(!disk.includes(old.clientId));for(const row of report.entries){const env=JSON.parse(readFileSync(path.join(value.options.outputDirectory,'objects',row.objectId+'.json')));assert.equal(env.context.accountId,accountId);}
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+
+import {JSDOM} from 'jsdom';
+import {mountLegacyImport} from '../browser/legacy-import-view.mjs';
+test('migration UI requires a reviewed preview, downloads reconciliation, and clears decrypted labels',async()=>{
+ const value=await fixture(),dom=new JSDOM('<main><div id="before"></div></main>');try{
+  await prepareLegacyMigration(value.options);const client=importClient(value),downloads=[];let operation;
+  const view=mountLegacyImport(dom.window.document,dom.window.document.querySelector('#before'),{getClient:()=>client,run:fn=>{operation=fn();},onSaved:()=>{},onMessage:()=>{},isWorking:()=>false,download:(name,bytes,type)=>downloads.push({name,bytes,type})});
+  const files=view.element.querySelector('input[type=file]'),buttons=view.element.querySelectorAll('button'),review=view.element.querySelector('input[type=checkbox]'),selection=selectedFiles(value.options.outputDirectory);
+  Object.defineProperty(files,'files',{value:selection.filter(file=>['export-manifest.json','import-signature.json'].includes(file.name)),configurable:true});files.dispatchEvent(new dom.window.Event('change'));assert.match(view.element.textContent,/2 encrypted export files selected/);
+  Object.defineProperty(files,'files',{value:selection.filter(file=>!['export-manifest.json','import-signature.json'].includes(file.name)),configurable:true});files.dispatchEvent(new dom.window.Event('change'));assert.match(view.element.textContent,/7 encrypted export files selected/);
+  assert.equal(buttons[1].disabled,true);buttons[0].click();await operation;assert.match(view.element.textContent,/Synthetic tax statement/);assert.equal(buttons[1].disabled,true);review.checked=true;review.dispatchEvent(new dom.window.Event('change'));assert.equal(buttons[1].disabled,false);buttons[1].click();await operation;
+  assert.equal(downloads[0].name,'shuug-migration-reconciliation.json');assert.equal(JSON.parse(Buffer.from(downloads[0].bytes)).clientReopenedAll,true);assert.equal(client.writes,5);view.clear();assert(!view.element.textContent.includes('Synthetic tax statement'));assert.equal(buttons[1].disabled,true);
+ }finally{dom.window.close();rmSync(value.directory,{recursive:true,force:true});}
+});
+test('locking while an export opens zeroes the late plaintext and sends no mutation',async()=>{
+ const value=await fixture();try{await prepareLegacyMigration(value.options);const client=importClient(value),importer=new LegacyImport(client),original=client.openLegacyExport;let leaked;client.openLegacyExport=async(...args)=>{leaked=await original(...args);importer.clear();return leaked;};await assert.rejects(()=>importer.select(selectedFiles(value.options.outputDirectory)),/changed/);assert(leaked.every(byte=>byte===0));assert.equal(client.writes,0);assert.equal(importer.ready,false);}finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+
+test('an unsent encrypted retry from an older backup prevents a second destination for the same legacy source',async()=>{
+ const value=await fixture();try{
+  await prepareLegacyMigration(value.options);const client=importClient(value),importer=new LegacyImport(client),first=selectedFiles(value.options.outputDirectory),save=client.savePrepared;
+  await importer.select(first);client.savePrepared=async()=>{throw new Error('Synthetic interruption before send');};await assert.rejects(()=>importer.import({reviewed:true}),/before send/);assert.equal(client.writes,0);assert.equal((await client.pendingUploads()).length,1);importer.clear();
+  writeFileSync(path.join(value.backup,'new-backup-note'),'Synthetic backup change');const next={...value.options,backupManifestSha256:sealBackup(value.backup),outputDirectory:path.join(value.directory,'new-backup-export')};await prepareLegacyMigration(next);
+  await assert.rejects(()=>importer.select(selectedFiles(next.outputDirectory)),/another backup/);assert.equal(client.writes,0);assert.equal((await client.pendingUploads()).length,1);
+  client.savePrepared=save;await importer.select(first);await importer.import({reviewed:true});assert.equal(client.writes,5);assert.equal((await client.pendingUploads()).length,0);
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+
+test('a conflicting pending write for a later selected row fails before any earlier row is sent',async()=>{
+ const value=await fixture();try{
+  await prepareLegacyMigration(value.options);const client=importClient(value),importer=new LegacyImport(client);await importer.select(selectedFiles(value.options.outputDirectory));const last=importer.rows.at(-1),pending=await client.prepareSave(last.domain,new TextEncoder().encode('{"separate":"review"}'),last.objectId);await client.keepPendingUpload(pending);
+  await assert.rejects(()=>importer.import({reviewed:true}),/different pending write/);assert.equal(client.writes,0);assert.equal((await client.pendingUploads()).length,1);
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+
+test('selection serializes asynchronous preview work and a cleared selection cannot restore itself',async()=>{
+ const value=await fixture();try{
+  await prepareLegacyMigration(value.options);const client=importClient(value),importer=new LegacyImport(client),open=client.openLegacyExport;let release,entered,late;const gate=new Promise(resolve=>{release=resolve;}),started=new Promise(resolve=>{entered=resolve;});
+  client.openLegacyExport=async(...args)=>{late=await open(...args);entered();await gate;return late;};const pending=importer.select(selectedFiles(value.options.outputDirectory));await started;assert.equal(importer.running,true);
+  await assert.rejects(()=>importer.select(selectedFiles(value.options.outputDirectory)),/Wait/);await assert.rejects(()=>importer.import({reviewed:true}),/Review/);importer.clear();release();await assert.rejects(()=>pending,/changed/);assert(late.every(byte=>byte===0));assert.equal(importer.ready,false);assert.equal(importer.running,false);assert.equal(client.writes,0);
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
+
+test('locking during attachment digest creates no late normalized plaintext buffer',async()=>{
+ const value=await fixture(),digest=crypto.subtle.digest,encode=TextEncoder.prototype.encode;let locked=false,lateEncodings=0,openedFile;
+ try{
+  await prepareLegacyMigration(value.options);const client=importClient(value),importer=new LegacyImport(client);
+  crypto.subtle.digest=async function(algorithm,bytes){if(Buffer.from(bytes).equals(value.receipt)){openedFile=bytes;locked=true;importer.clear();}return digest.call(this,algorithm,bytes);};
+  TextEncoder.prototype.encode=function(text){if(locked&&text?.includes('"type":"private-file"')&&text.includes('"migration"'))lateEncodings++;return encode.call(this,text);};
+  await assert.rejects(()=>importer.select(selectedFiles(value.options.outputDirectory)),/changed/);assert.equal(locked,true);assert.equal(lateEncodings,0);assert(openedFile.every(byte=>byte===0));assert.equal(importer.ready,false);assert.equal(client.writes,0);
+ }finally{crypto.subtle.digest=digest;TextEncoder.prototype.encode=encode;rmSync(value.directory,{recursive:true,force:true});}
+});
+
+test('duplicate legacy provenance inside one signed selection is rejected before writes',async()=>{
+ const value=await fixture();try{
+  const report=await prepareLegacyMigration(value.options),client=importClient(value),first=report.entries.find(entry=>entry.domain==='driver-record'),envelope=JSON.parse(readFileSync(path.join(value.options.outputDirectory,'objects',first.objectId+'.json'))),opened=await client.openLegacyExport(envelope,value.manifest),payload=JSON.parse(Buffer.from(opened));opened.fill(0);const objectId=randomUUID();payload.record.id=objectId;
+  const duplicate=await sealEnvelope(Buffer.from(JSON.stringify(payload)),{...envelope.context,objectId},{clientPublicKey:value.client.publicKey,firmRecoveryPublicKey:value.publicPins.firmRecoveryPublicKey},'firm-recovery',value.unlocked.recovery),raw=Buffer.from(JSON.stringify(duplicate)+'\n');writeFileSync(path.join(value.options.outputDirectory,'objects',objectId+'.json'),raw);report.entries.push({...first,objectId,envelopeBytes:raw.length,sha256:hash(raw)});report.supportedCounts.driverRecords++;
+  const bytes=Buffer.from(JSON.stringify(report));writeFileSync(path.join(value.options.outputDirectory,'export-manifest.json'),bytes);writeFileSync(path.join(value.options.outputDirectory,'import-signature.json'),JSON.stringify(await signLegacyImportReport(bytes,value.unlocked)));
+  await assert.rejects(()=>new LegacyImport(client).select(selectedFiles(value.options.outputDirectory)),/same legacy source more than once/);assert.equal(client.writes,0);
+ }finally{rmSync(value.directory,{recursive:true,force:true});}
+});
