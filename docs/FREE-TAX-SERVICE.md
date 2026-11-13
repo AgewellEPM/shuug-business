@@ -82,6 +82,9 @@ days/months, child links and combat totals. State EIC schedules, special federal
 treatments and 2026–2027 annual award materials remain unfinished. See the
 [EIC scope](../packages/tax-engine/EARNED-INCOME-CREDIT.md) and
 [verification receipt](verification/eic-awards-20261113.json).
+The [Connecticut zero-table safeguard](verification/ct-eic-zero-table-guard-20261113.json)
+also leaves an unresolved 2025 child-supplement case unknown instead of assuming
+that zero federal EIC necessarily means zero Connecticut credit.
 
 ## Already implemented
 

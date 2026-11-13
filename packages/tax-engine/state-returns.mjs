@@ -83,7 +83,10 @@ export function calculateCTResident(input,value,federalResult){
  const dependentSchedule=federalResult.dependents?.required===true;
  if(dependentSchedule&&!value.unsupportedTreatments.includes('dependents'))diagnostics.push(diagnostic('CT_DEPENDENT_SCHEDULE_REQUIRED','Federal dependent intake requires Connecticut dependent disclosure and related credit review. Schedule CT-Dependent is not populated by this resident pack; completing federal Schedule 8812 does not complete the state requirement.'));
  const ordinary=!dependentSchedule&&value.unsupportedTreatments.length===0&&value.review.coverage&&value.review.credits;
- const federalEicZero=federalResult.earnedIncomeCredit?.amountCents===0;if(!federalEicZero)diagnostics.push(diagnostic('CT_FEDERAL_EIC_UNRESOLVED','Federal EIC is unresolved or positive. Complete Schedule CT-EITC and CT-1040 line 20a before Connecticut payments, refund or balance are known. A general state credit review does not establish a zero federal credit.'));
+ const eic=federalResult.earnedIncomeCredit,zeroTableChildSupplement=year===2025&&eic?.amountCents===0&&eic.eligibility?.known===true&&eic.eligibility.eligible===true&&eic.eligibility.creditChildren.length>0&&eic.worksheet?.earnedIncomeCents>0&&eic.worksheet.earnedIncomeCents<eic.worksheet.earnedLookup.cutoffCents;
+ const federalEicZero=eic?.amountCents===0&&!zeroTableChildSupplement;
+ if(zeroTableChildSupplement)diagnostics.push(diagnostic('CT_EIC_ZERO_CHILD_SUPPLEMENT_REVIEW','The federal EIC table gives zero within the qualifying-child income range. Review eligibility for the 2025 Schedule CT-EITC line 15a child supplement before treating the Connecticut credit as zero. Neither the $250 supplement nor zero is assumed.'));
+ else if(!federalEicZero)diagnostics.push(diagnostic('CT_FEDERAL_EIC_UNRESOLVED','Federal EIC is unresolved or positive. Complete Schedule CT-EITC and CT-1040 line 20a before Connecticut payments, refund or balance are known. A general state credit review does not establish a zero federal credit.'));
  for(const line of ['7','9','13','20a','20b','20c',...(year>=2024?['20d']:[])])lines[line]=ordinary?0:null;
  if(!federalEicZero)lines['20a']=null;
  lines['8']=ordinary?lines['6']:null;lines['10']=lines['8'];

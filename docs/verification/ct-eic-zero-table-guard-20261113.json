@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-13",
+  "readiness": "prototype",
+  "baseCommit": "ac0dc373b226a1668abdbde0eb538403736f70d6",
+  "problem": "A 2025 joint return with one qualifying child and $57,550 of earned income can have a zero federal EIC table amount while remaining inside its income range. If the child is not claimed as a dependent, the existing Connecticut dependent-schedule gate does not block a definite zero state credit.",
+  "behavior": "A zero federal worksheet result with known eligible valid-SSN children and positive earned income below the applicable cutoff now leaves Connecticut line 20a, payments and settlement unknown pending child-supplement eligibility review. A proven income disqualification remains distinct. No $250 credit or legal eligibility conclusion is invented.",
+  "sourceBoundary": "2025 Schedule CT-EITC line 15a provides a separate child supplement. The reviewed sources do not explicitly resolve the federal-table-rounded-zero example's claimed-and-allowed requirement, so the application requires review.",
+  "references": [
+    "https://portal.ct.gov/-/media/drs/forms/2025/income/2025-ct-1040-instructions_1225.pdf",
+    "https://www.cga.ct.gov/current/pub/chap_229.htm#sec_12-704e"
+  ],
+  "verification": {
+    "focusedFederalAndStateTests": 59,
+    "passed": 59,
+    "failed": 0,
+    "actualConnecticutPdfLeavesLine20aBlank": true,
+    "packagedModules": 195,
+    "packagedPdfFetches": 78,
+    "packagedExports": 21,
+    "copiedSourceFilesMatched": 416,
+    "qualificationChecks": 215,
+    "qualificationSourcePins": 81,
+    "fullEncryptedHttpRerunForThisGuard": false,
+    "precedingEncryptedHttpReceipt": "eic-awards-20261113.json",
+    "execution": "Actual annual PDFs and packaged ESM executed in Node V8/JSDOM; no Safari or visual acceptance"
+  },
+  "agencyApproval": false,
+  "installedServiceChanged": false,
+  "releaseReady": false
+}
