@@ -1,11 +1,13 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {registryMatch} from './business-registry.mjs';
-import {researchLocalContacts} from './local-contacts.mjs';
+import {researchLocalContacts as researchContacts} from './local-contacts.mjs';
 import {localDiscovery} from './local-discovery.mjs';
 import {service} from './service.mjs';
 import {contactFixture} from '../scripts/sales/contact-fixture.mjs';
 
+const emptyCatalogue=()=>({status:'no_match',candidates:[],evidence:[],matches:[]});
+const researchLocalContacts=(candidate,body,options={})=>researchContacts(candidate,body,{placeLookup:emptyCatalogue,...options});
 const office={candidateId:'fixture-office',name:'7082 LLC',address:'29 Victoria Rd',city:'Hartford',state:'CT',zip:'06114',contact:'Synthetic Directory Contact',phone:'860-555-0199',url:'https://www.irs.gov/pub/irs-efile/ct.zip'};
 test('registry candidates need a meaningful name or full tax-business address match, never just a street number',()=>{
   const row=(name,billingstreet,extra={})=>({id:name,name,billingstreet,billingcity:'Hartford',billingstate:'CT',...extra});
@@ -57,4 +59,13 @@ test('map contact research honors saved do-not-contact records without modifying
   const matched=await app.dispatch(f.owner,'lookup-business',{candidateToken:found.results[0].candidateToken});
   await assert.rejects(app.dispatch(f.owner,'research-local-contacts',{candidateToken:matched.matches[0].principals[0].researchToken}),/paused/);
   assert.equal(searches,0);assert.equal(JSON.stringify(f.rows),before);
+});
+test('catalogue websites skip unreliable web search and preserve source dates through official-site review',async()=>{
+  const place={status:'matches',release:'2026-10-21.0',matches:[],candidates:[{url:'https://fixture-business.org/',title:'Synthetic Tax',sourceRelease:'2026-10-21.0'}],
+    evidence:[{id:'place-phone',field:'phone',value:'+18602469999',sourceURL:'https://explore.overturemaps.org/',sourceRelease:'2026-10-21.0',sourceObservedDates:['2026-09-01'],scope:'business'}]};
+  const options={placeLookup:()=>place,search:()=>{throw Error('Should not search');},researcher:async()=>({evidence:[{field:'email',value:'office@fixture-business.org',sourceURL:'https://fixture-business.org/contact'}]})};
+  const found=await researchLocalContacts(office,{},options);assert.equal(found.issues.length,0);assert.equal(found.candidates.length,1);
+  const read=await researchLocalContacts(office,{website:'https://fixture-business.org',websiteReviewed:true},options);
+  assert.deepEqual(read.evidence.find(row=>row.id==='place-phone').sourceObservedDates,['2026-09-01']);
+  assert.equal(read.catalogue.release,'2026-10-21.0');assert(read.evidence.some(row=>row.field==='email'));
 });

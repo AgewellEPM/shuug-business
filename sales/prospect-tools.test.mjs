@@ -25,13 +25,25 @@ function fixture(options = {}) {
     create: async (kind, value) => { assert.equal(kind, 'events'); const event = { id: `event-${events.length + 1}`, ...structuredClone(value) }; events.push(event); return structuredClone(event); },
     search: async query => { searches.push(query); return options.searchResults || []; },
   };
-  const run = prospectTools(env, db, { now: () => clock, researcher: async lead => { researchCalls.push(structuredClone(lead)); return structuredClone(options.report || report()); } });
+  const run = prospectTools(env, db, { placeLookup:options.placeLookup || (()=>({status:'no_match',candidates:[],evidence:[],matches:[]})), now: () => clock, researcher: async lead => { researchCalls.push(structuredClone(lead)); return structuredClone(options.report || report()); } });
   return { writes, events, researchCalls, searches, row: () => structuredClone(row), set: patch => { row = { ...row, ...patch }; },
     advance: milliseconds => { clock += milliseconds; }, run: (action, body = {}, actor = user, target = row) => run(actor, structuredClone(target), action, body),
     research: async () => (await run(user, structuredClone(row), 'research-office', {})).research };
 }
 const apply = (research, selected, extra = {}) => ({ token: research.token, reportId: research.reportId, reviewed: true, selected, ...extra });
 const rejected = (promise, status, pattern) => assert.rejects(promise, error => error.status === status && (!pattern || pattern.test(error.message)));
+
+test('saved offices without websites can review and explicitly save catalogue contacts with immutable source dates',async()=>{
+  const placeLookup=()=>({status:'matches',release:'2026-10-21.0',candidates:[],evidence:[{field:'phone',value:'+18602469999',sourceURL:'https://explore.overturemaps.org/',sourceName:'Published place fixture',sourceRelease:'2026-10-21.0',sourceRecordId:'fixture-id',sourceObservedDates:['2026-09-01']}]});
+  const f=fixture({row:{notes:JSON.stringify({address:'42 Main Street',independence:'unverified'})},placeLookup});
+  const payload=await f.run('research-office'),r=payload.research;
+  assert(payload.needsWebsiteSelection);assert.equal(f.writes.length,0);assert.equal(f.researchCalls.length,0);
+  assert.equal(r.evidence.length,1);assert.deepEqual(r.evidence[0].sourceObservedDates,['2026-09-01']);
+  await rejected(f.run('apply-research',apply(r,['proposal-1'],{reviewed:false})),400);
+  const saved=await f.run('apply-research',apply(r,['proposal-1']));
+  assert.equal(saved.office.contact_phone,'+18602469999');assert.equal(metadata(saved.office).contactVerified,false);
+  assert.deepEqual(metadata(saved.office).researchSources.phone.sourceObservedDates,['2026-09-01']);
+});
 
 test('research returns sealed review-only proposals with no database writes or automatic ownership changes', async () => {
   const f = fixture(), before = f.row(), r = await f.research();
@@ -93,7 +105,7 @@ test('do-not-contact and not-interested stages gate research, application, verif
 
 test('website discovery returns choices without claiming affiliation or saving a website', async () => {
   const f = fixture({ row: { notes: JSON.stringify({ address: '42 Main Street', independence: 'unverified' }) }, searchResults: [{ title: 'Possible office', url: website, snippet: 'Check identity.' }, { title: 'Unsafe', url: 'javascript:alert(1)' }, { title: 'Legacy public website', url: 'http://hartford-tax.com' }] });
-  const result = await f.run('research-office'); assert.equal(result.needsWebsiteSelection, true); assert.match(result.message, /do not establish affiliation/);
+  const result = await f.run('research-office'); assert.equal(result.needsWebsiteSelection, true); assert.match(result.message, /do not establish an affiliation/);
   assert.deepEqual(result.candidates.map(c => c.url), [`${website}/`, 'http://hartford-tax.com/']); assert(f.searches[0].includes('Hartford Tax')); assert.equal(f.researchCalls.length, 0); assert.equal(f.writes.length, 0);
 });
 

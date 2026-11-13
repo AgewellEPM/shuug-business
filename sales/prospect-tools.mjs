@@ -1,6 +1,7 @@
 import { CONTACT_ROLES, HttpError, digest, email, https, metadata, seal, secret, text, unseal } from './model.mjs';
 import { researchOffice } from './research.mjs';
 import { patchReviewed } from './atomic.mjs';
+import {researchLocalContacts} from './local-contacts.mjs';
 
 export const PROSPECT_ACTIONS = new Set(['research-office', 'apply-research', 'verify-office', 'save-outreach-draft']);
 const blocked = row => ['do_not_contact', 'not_interested'].includes(row.status) || metadata(row).primaryContactDoNotContact === true;
@@ -48,7 +49,7 @@ export function verificationUpdate(body, before, user, now = Date.now()) {
   return changed ? info : null;
 }
 
-export function prospectTools(env, db, { researcher = researchOffice, now = Date.now } = {}) {
+export function prospectTools(env, db, { researcher = researchOffice, placeLookup, now = Date.now } = {}) {
   const stamp = () => new Date(now()).toISOString();
   async function audit(user, lead, action, detail) {
     return db.create('events', { town: `${action} ${secret().slice(0, 12)}`, contact_name: user.name, assigned_to: String(lead.id), status: action === 'outreach_draft' ? 'draft' : 'recorded', notes: JSON.stringify({ actorId: user.id, action, detail, at: stamp() }) });
@@ -57,15 +58,11 @@ export function prospectTools(env, db, { researcher = researchOffice, now = Date
     if (blocked(lead)) throw new HttpError(409, 'This office is marked not interested or do not contact. Review its status before research or outreach.');
     if (action === 'research-office') {
       const website = body.website ? source(body.website) : metadata(lead).website;
-      if (!website) {
-        const query = [lead.town, metadata(lead).address, lead.locality, lead.state, 'official tax office website'].filter(Boolean).join(' ');
-        const found = typeof db.search === 'function' ? await db.search(query) : [];
-        const candidates = found.flatMap(item => {
-          try { const url = source(item.url); return [{ title: text(String(item.title || url).slice(0, 240), 240), url, snippet: String(item.snippet || '').slice(0, 400) }]; } catch { return []; }
-        }).slice(0, 8);
-        return { needsWebsiteSelection: true, candidates, message: 'Choose the office’s official website after checking its name and address. Search results do not establish affiliation.' };
-      }
-      const report = await researcher({ ...lead, notes: JSON.stringify({ ...metadata(lead), website }) });
+      const candidate={name:lead.town,address:metadata(lead).address,city:lead.locality,state:lead.state,phone:lead.contact_phone};
+      const report=await researchLocalContacts(candidate,website?{website,websiteReviewed:true}:{}, {
+        search:db.search?.bind(db),placeLookup,now,
+        researcher:()=>researcher({...lead,notes:JSON.stringify({...metadata(lead),website})}),
+      });
       const allowed = new Set(['email', 'phone', 'contact']);
       const evidence = (report.evidence || []).flatMap(item => {
         if (!allowed.has(item.field)) return [];
@@ -74,12 +71,13 @@ export function prospectTools(env, db, { researcher = researchOffice, now = Date
           if (item.field === 'phone' && (!/^\+?[\d ().-]+$/.test(value) || !/^\d{7,15}$/.test(value.replace(/\D/g, '')))) return [];
           const sourceURL = source(item.sourceURL || item.sourceUrl);
           if (sourceURL.length > 700) return [];
-          return [{ field: item.field, value, sourceURL, checkedAt: report.checkedAt || stamp(), excerpt: String(item.excerpt || '').slice(0, 220), confidence: ['high', 'medium', 'low'].includes(item.confidence) ? item.confidence : 'published' }];
+          return [{ field: item.field, value, sourceURL, checkedAt: report.checkedAt || stamp(), excerpt: String(item.excerpt || '').slice(0, 220), confidence: ['high', 'medium', 'low'].includes(item.confidence) ? item.confidence : 'published',
+            ...(item.sourceRelease?{sourceName:String(item.sourceName || '').slice(0,100),sourceRelease:String(item.sourceRelease).slice(0,40),sourceRecordId:String(item.sourceRecordId || '').slice(0,80),sourceObservedDates:(item.sourceObservedDates || []).filter(value=>/^\d{4}-\d{2}-\d{2}$/.test(value)).slice(0,40)}:{}) }];
         } catch { return []; }
       }).slice(0, 8).map((item, index) => ({ ...item, id: `proposal-${index + 1}` }));
       const reportId = secret();
       const token = seal({ reportId, officeId: String(lead.id), userId: String(user.id), fingerprint: fingerprint(lead), evidence, website, exp: now() + 30 * 60000 }, env.GIGTAX_SALES_SESSION_KEY);
-      return { research: { ...report, evidence, proposals: evidence, reportId, token, requiresReview: true } };
+      return { ...(report.needsWebsiteSelection?report:{}), research: { ...report, evidence, proposals: evidence, reportId, token, requiresReview: true } };
     }
     if (action === 'apply-research') {
       if (body.reviewed !== true) throw new HttpError(400, 'Review the source evidence and confirm it belongs to this office.');

@@ -1,0 +1,563 @@
+{
+  "schemaVersion": 1,
+  "release": "2026-10-21.0",
+  "checkedAt": "2026-11-13T07:59:10.957297+00:00",
+  "sourceURL": "https://docs.overturemaps.org/guides/places/",
+  "sourceInventory": {
+    "url": "https://overturemaps-us-west-2.s3.us-west-2.amazonaws.com/?list-type=2&prefix=release%2F2026-10-21.0%2Ftheme%3Dplaces%2Ftype%3Dplace%2F",
+    "sha256": "aac828fd221bd620d1a95b13d891c39d45d07f6c75d30cccefb6977d304d472d",
+    "files": [
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00000-a0a9949b-7e8e-59fe-803b-6cc55b17f790-c000.zstd.parquet",
+        "etag": "\"4875d0ea87ee1003e2dd155858941baa-11\"",
+        "bytes": 729511821
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00001-95b3bb67-399f-571e-9503-61421d57661c-c000.zstd.parquet",
+        "etag": "\"47bb338922630e7aea96a47bd57c2e90-13\"",
+        "bytes": 810722286
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00002-6f03d044-7fc3-539e-842b-7b15c796e629-c000.zstd.parquet",
+        "etag": "\"66e8287a6251de068513fce76f2e98b9-13\"",
+        "bytes": 814700009
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00003-755a53ba-2d37-54c8-b30e-8c14897bc3f3-c000.zstd.parquet",
+        "etag": "\"a755b221cf913d4a385342fe52a03d49-13\"",
+        "bytes": 826418126
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00004-14b83d8c-d850-51f9-85b2-8f8a0b4634af-c000.zstd.parquet",
+        "etag": "\"cd9c9c2fd09e39782e7cc6b2063f719b-11\"",
+        "bytes": 712441815
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00005-c3667754-428e-500c-bf3b-a0b5921b7cc0-c000.zstd.parquet",
+        "etag": "\"673abe364c042bf4710d4417c1605e0d-11\"",
+        "bytes": 720677975
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00006-55d446f6-129a-556e-b79e-e1cfd5735068-c000.zstd.parquet",
+        "etag": "\"b458120a0ecd82ac2748bf4e06eb8add-12\"",
+        "bytes": 755632071
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00007-a2c7689b-daa2-5233-9780-d37ccfc3ea74-c000.zstd.parquet",
+        "etag": "\"e92948dbce4b18503f5633f019a52b20-11\"",
+        "bytes": 725017426
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00008-8b09f6c1-f726-581a-9b39-f891088cc2ad-c000.zstd.parquet",
+        "etag": "\"cb566d51c33a8717be151741f011468c-11\"",
+        "bytes": 721833497
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00009-fe90ff49-733f-5fa3-9755-c6cd4438305c-c000.zstd.parquet",
+        "etag": "\"ef4fbf2137ac3bbe9c56f6bf2fabf5ce-11\"",
+        "bytes": 713205738
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00010-c680fdf1-f03b-5be1-93f1-56c835a00765-c000.zstd.parquet",
+        "etag": "\"d2be0995fe0d8266579a2f780d3e6344-11\"",
+        "bytes": 723633922
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00011-472205f3-e3ff-5474-98a4-b9b3361f7306-c000.zstd.parquet",
+        "etag": "\"a77c4beb9d0e1f4873c8657c0f251b9e-11\"",
+        "bytes": 714390669
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00012-8cf9bdfe-d946-56f8-84c0-19493d0fbb9c-c000.zstd.parquet",
+        "etag": "\"c1fa07385d7fa2c56f413e8e322d59cd-11\"",
+        "bytes": 730097847
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00013-6c366648-1364-543e-894b-d6e65d03c056-c000.zstd.parquet",
+        "etag": "\"fe3a6ceb7ac3d8c9a2862a46ccd4b24b-11\"",
+        "bytes": 719333214
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00014-dcceff87-235e-5a0e-a4b4-5f25ccb873e7-c000.zstd.parquet",
+        "etag": "\"4ff3b0b5c984c13fb472965d6e91e953-12\"",
+        "bytes": 744601106
+      },
+      {
+        "key": "release/2026-10-21.0/theme=places/type=place/part-00015-eb1c1331-f519-5db6-8fef-74a77e5776ff-c000.zstd.parquet",
+        "etag": "\"a6c4747c58c0a8a44c937a4f2ff3cdea-11\"",
+        "bytes": 733499664
+      }
+    ]
+  },
+  "builderSha256": "7c8dc86478124ecbbc07e981ada510dfae5c941762b4b5018e0574ce17b39316",
+  "categories": [
+    "accountant",
+    "bookkeeper",
+    "tax_service"
+  ],
+  "selectedSourceBytes": 2455453463,
+  "outputBytes": 12463735,
+  "records": 102768,
+  "states": [
+    {
+      "state": "AL",
+      "records": 1331,
+      "withWebsite": 932,
+      "withPhone": 1268,
+      "withEmail": 285,
+      "sha256": "08b50019e2a2000e7dfc0e953b58baacb0f23b42fdef5a30e10d74aa264fb7c0",
+      "bytes": 165168
+    },
+    {
+      "state": "AK",
+      "records": 213,
+      "withWebsite": 174,
+      "withPhone": 183,
+      "withEmail": 50,
+      "sha256": "a1f99a85d2eb04d953867cdd03ab68f736ad568364865b7e855d6684cceb18b1",
+      "bytes": 26882
+    },
+    {
+      "state": "AZ",
+      "records": 2250,
+      "withWebsite": 1646,
+      "withPhone": 2069,
+      "withEmail": 343,
+      "sha256": "1c923821d9cc585932e40de891836bbd8eed156374db4edf8e09f5b582e2562b",
+      "bytes": 269778
+    },
+    {
+      "state": "AR",
+      "records": 699,
+      "withWebsite": 500,
+      "withPhone": 662,
+      "withEmail": 171,
+      "sha256": "b8dd9ef427f4b85a2a682c991ee96ac2b8f15f55443385a5d636479a4b39ade4",
+      "bytes": 88424
+    },
+    {
+      "state": "CA",
+      "records": 13754,
+      "withWebsite": 9829,
+      "withPhone": 12598,
+      "withEmail": 1926,
+      "sha256": "43233f41b4293a574bc15e60acba5e167a36ef877b60959b8484172aad468e91",
+      "bytes": 1599317
+    },
+    {
+      "state": "CO",
+      "records": 2293,
+      "withWebsite": 1687,
+      "withPhone": 2105,
+      "withEmail": 347,
+      "sha256": "62bef742d5b22c4c2c41a500c45b084202203cf1a1e28c29909ed43322a1a487",
+      "bytes": 271332
+    },
+    {
+      "state": "CT",
+      "records": 1106,
+      "withWebsite": 810,
+      "withPhone": 1045,
+      "withEmail": 211,
+      "sha256": "b4815fbe37bfba98196241c5655b847164725012d1a8563c5166642e854fb41c",
+      "bytes": 133587
+    },
+    {
+      "state": "DE",
+      "records": 302,
+      "withWebsite": 227,
+      "withPhone": 278,
+      "withEmail": 54,
+      "sha256": "dd088fda3aab29ceeed0caf28131141d3f626b1660ef086e20837c0455489438",
+      "bytes": 37257
+    },
+    {
+      "state": "DC",
+      "records": 211,
+      "withWebsite": 157,
+      "withPhone": 188,
+      "withEmail": 13,
+      "sha256": "4d66adc8d0d6a40ed797d1353837822be5baf3eed1c2087e45aaa2b5bc7799b6",
+      "bytes": 25572
+    },
+    {
+      "state": "FL",
+      "records": 9661,
+      "withWebsite": 6983,
+      "withPhone": 8929,
+      "withEmail": 1763,
+      "sha256": "870f5c27c26b427bdcf4d9a54e19daa3e0ec3a520db86a015229d25644dade97",
+      "bytes": 1157965
+    },
+    {
+      "state": "GA",
+      "records": 4079,
+      "withWebsite": 2960,
+      "withPhone": 3791,
+      "withEmail": 669,
+      "sha256": "e5ac12384d0032454f47a3b5ad2b53d4017e3c019496a7059fcd423df3c4a8c9",
+      "bytes": 491712
+    },
+    {
+      "state": "HI",
+      "records": 410,
+      "withWebsite": 265,
+      "withPhone": 383,
+      "withEmail": 57,
+      "sha256": "f24c5db5f84c5440dc90f80dc7a19eab1c76508a1328c2b9fc154afa3fd3b516",
+      "bytes": 48966
+    },
+    {
+      "state": "ID",
+      "records": 604,
+      "withWebsite": 446,
+      "withPhone": 560,
+      "withEmail": 129,
+      "sha256": "3bf64d8ae48dda09115c95d5defcc0b8aa5dfe6aa1d6d55b12c914b4f77ef0b7",
+      "bytes": 74862
+    },
+    {
+      "state": "IL",
+      "records": 4194,
+      "withWebsite": 3100,
+      "withPhone": 3903,
+      "withEmail": 691,
+      "sha256": "5b70d3d6936fa2ef164aedc5e93d94137240f81cdd822b4c3ccec73b8dab826f",
+      "bytes": 510657
+    },
+    {
+      "state": "IN",
+      "records": 1591,
+      "withWebsite": 1180,
+      "withPhone": 1503,
+      "withEmail": 325,
+      "sha256": "f4ef68a69e85497fbb4d9abda5884dc6d8d4177e284679cb4cce746f5bc18928",
+      "bytes": 198453
+    },
+    {
+      "state": "IA",
+      "records": 757,
+      "withWebsite": 554,
+      "withPhone": 716,
+      "withEmail": 163,
+      "sha256": "5a568dac0a9155ca48c8adbe900406db2ed25a9c4e3c99d4d3a582b533e91d4c",
+      "bytes": 95128
+    },
+    {
+      "state": "KS",
+      "records": 865,
+      "withWebsite": 619,
+      "withPhone": 803,
+      "withEmail": 168,
+      "sha256": "1eb7b01748d38367dddfb27f249f1e9806b7af791ada79316fe3824335366547",
+      "bytes": 105454
+    },
+    {
+      "state": "KY",
+      "records": 1083,
+      "withWebsite": 795,
+      "withPhone": 1008,
+      "withEmail": 231,
+      "sha256": "8e476cf8172db725213c691c31a434b4bf7ee96e338f895514b2715b2d7379b1",
+      "bytes": 136518
+    },
+    {
+      "state": "LA",
+      "records": 1340,
+      "withWebsite": 950,
+      "withPhone": 1264,
+      "withEmail": 257,
+      "sha256": "71a44826b82379c381df83aaecdff5bdf6263870c65cf039939b20d015568649",
+      "bytes": 166340
+    },
+    {
+      "state": "ME",
+      "records": 337,
+      "withWebsite": 257,
+      "withPhone": 318,
+      "withEmail": 82,
+      "sha256": "d559fc542ba0833128329cd94a1c386dd3f53e5290c22c52c647f50e097a769d",
+      "bytes": 42802
+    },
+    {
+      "state": "MD",
+      "records": 2077,
+      "withWebsite": 1509,
+      "withPhone": 1936,
+      "withEmail": 339,
+      "sha256": "847233816d7a538cb6cebb2877f2015c0d698a83ca80b0b952524132480719a6",
+      "bytes": 248299
+    },
+    {
+      "state": "MA",
+      "records": 2164,
+      "withWebsite": 1634,
+      "withPhone": 2020,
+      "withEmail": 379,
+      "sha256": "3322f7d4fa5de348cb88fa0cb16cc99d888cf68aa1ecba147fdff823903187d8",
+      "bytes": 258554
+    },
+    {
+      "state": "MI",
+      "records": 2806,
+      "withWebsite": 2047,
+      "withPhone": 2629,
+      "withEmail": 543,
+      "sha256": "752222116220f6d931f2b019504b80c3ed7a1562e4ec43898ea5b3120ee7d0d6",
+      "bytes": 342385
+    },
+    {
+      "state": "MN",
+      "records": 1533,
+      "withWebsite": 1127,
+      "withPhone": 1423,
+      "withEmail": 255,
+      "sha256": "7bcd78e23a642ae36dfc89e09678eec7e67a6afbce68459f77f725cf792ed075",
+      "bytes": 190709
+    },
+    {
+      "state": "MS",
+      "records": 702,
+      "withWebsite": 488,
+      "withPhone": 672,
+      "withEmail": 143,
+      "sha256": "33e89ca4734fef6f09a6dbbd7b985ec7e1b6ec7d36d0d01f6c7e2b9d309ffa7f",
+      "bytes": 88085
+    },
+    {
+      "state": "MO",
+      "records": 1693,
+      "withWebsite": 1256,
+      "withPhone": 1585,
+      "withEmail": 377,
+      "sha256": "fd2be14a728aa875b64a358f78ba1dd99e37697af366c6c5483ac5ca0a74c6e3",
+      "bytes": 212782
+    },
+    {
+      "state": "MT",
+      "records": 406,
+      "withWebsite": 284,
+      "withPhone": 389,
+      "withEmail": 91,
+      "sha256": "f028afff52dcc7af62d93cf47719575709de25454a75a1e3c7540bca27e44fa6",
+      "bytes": 50292
+    },
+    {
+      "state": "NE",
+      "records": 462,
+      "withWebsite": 354,
+      "withPhone": 432,
+      "withEmail": 98,
+      "sha256": "7ac62c1ee68c610c6369da1bd8fb23db890cac2cec93b1bf50b922bb807eb580",
+      "bytes": 57705
+    },
+    {
+      "state": "NV",
+      "records": 1066,
+      "withWebsite": 762,
+      "withPhone": 993,
+      "withEmail": 134,
+      "sha256": "bed54a7c4078bf5b69595f6d939528904e5210f03d42a2218585c1c282c46d37",
+      "bytes": 127943
+    },
+    {
+      "state": "NH",
+      "records": 376,
+      "withWebsite": 283,
+      "withPhone": 355,
+      "withEmail": 74,
+      "sha256": "3d7ff6145f3aa580d6cbf645a27fb3c385190e6181dfe478d8a2108279f30637",
+      "bytes": 47154
+    },
+    {
+      "state": "NJ",
+      "records": 2940,
+      "withWebsite": 2222,
+      "withPhone": 2718,
+      "withEmail": 613,
+      "sha256": "e9795324319589de76d1c54d59af7a013a063d93800b0e8e92c68068ca56d645",
+      "bytes": 361220
+    },
+    {
+      "state": "NM",
+      "records": 626,
+      "withWebsite": 412,
+      "withPhone": 581,
+      "withEmail": 103,
+      "sha256": "e9a9db944508f6928840bd5d9f7d688f49709f3577a2b1bb7a4a2f9c3eb5d8d8",
+      "bytes": 76410
+    },
+    {
+      "state": "NY",
+      "records": 6479,
+      "withWebsite": 4665,
+      "withPhone": 5979,
+      "withEmail": 1023,
+      "sha256": "01ae537f5dc5a8b5c06f7e878f18a297930256843468137724291df74e77933c",
+      "bytes": 769825
+    },
+    {
+      "state": "NC",
+      "records": 3186,
+      "withWebsite": 2362,
+      "withPhone": 2919,
+      "withEmail": 582,
+      "sha256": "89b669a7037a3f99f0a2626b17536eff5ec444b9c3a47d340b55330106f2f643",
+      "bytes": 392170
+    },
+    {
+      "state": "ND",
+      "records": 203,
+      "withWebsite": 146,
+      "withPhone": 190,
+      "withEmail": 48,
+      "sha256": "3e045323c2014ac3e8b76bc3cb9747c15ef4f004c24831a8a799768cb7bfd364",
+      "bytes": 25113
+    },
+    {
+      "state": "OH",
+      "records": 3032,
+      "withWebsite": 2217,
+      "withPhone": 2802,
+      "withEmail": 532,
+      "sha256": "ccbf693f731a7ed6cab1579b2824fb6b333f55eb92e391f18ff19c7706f42b17",
+      "bytes": 371041
+    },
+    {
+      "state": "OK",
+      "records": 1071,
+      "withWebsite": 756,
+      "withPhone": 1007,
+      "withEmail": 222,
+      "sha256": "6c4e8bcc8c2bb89784dd123ea37ace4e422ca79024f9d51872296e1f3908fbfc",
+      "bytes": 131865
+    },
+    {
+      "state": "OR",
+      "records": 1275,
+      "withWebsite": 974,
+      "withPhone": 1156,
+      "withEmail": 222,
+      "sha256": "e842bde849831aa2a51f28701dd3cab86de5d831b8c329a855df63294cdfd058",
+      "bytes": 156022
+    },
+    {
+      "state": "PA",
+      "records": 3208,
+      "withWebsite": 2385,
+      "withPhone": 3029,
+      "withEmail": 674,
+      "sha256": "318e384c52d70069c9af3494a774e6762a019f1818030dec00f369633cc5f654",
+      "bytes": 403213
+    },
+    {
+      "state": "RI",
+      "records": 347,
+      "withWebsite": 244,
+      "withPhone": 331,
+      "withEmail": 63,
+      "sha256": "bacf6067f3b9e1be24555fd017f51c9217e05fe8eac95b1c998bd42a4afe2ed4",
+      "bytes": 42080
+    },
+    {
+      "state": "SC",
+      "records": 1360,
+      "withWebsite": 973,
+      "withPhone": 1293,
+      "withEmail": 229,
+      "sha256": "d58fe6e1bbc21c12961cc3e5fa315eb0621f9d1f02a417012f0af1ffcb5aa82b",
+      "bytes": 168071
+    },
+    {
+      "state": "SD",
+      "records": 240,
+      "withWebsite": 190,
+      "withPhone": 224,
+      "withEmail": 54,
+      "sha256": "49ef0879fdf3bcaf90ed7b7fc727e49e79e8e4b2e1e6274f9be89da627adb882",
+      "bytes": 29915
+    },
+    {
+      "state": "TN",
+      "records": 1616,
+      "withWebsite": 1179,
+      "withPhone": 1505,
+      "withEmail": 314,
+      "sha256": "ca306880f562a0dc40d10c0baf09aab48c8c1b2835ebdee1d91061d94cd3b7a1",
+      "bytes": 202388
+    },
+    {
+      "state": "TX",
+      "records": 8886,
+      "withWebsite": 6614,
+      "withPhone": 8178,
+      "withEmail": 1469,
+      "sha256": "00878dab2abb5981917ce0ecc884a5b57e2f00adbfc7cc7f4f5985e4eafb5741",
+      "bytes": 1087567
+    },
+    {
+      "state": "UT",
+      "records": 963,
+      "withWebsite": 703,
+      "withPhone": 896,
+      "withEmail": 179,
+      "sha256": "de5099af9cb709f314bdf3dbc3b735fbd5efbb2b56f9d0bf73983132e8f55ea4",
+      "bytes": 117405
+    },
+    {
+      "state": "VT",
+      "records": 147,
+      "withWebsite": 107,
+      "withPhone": 138,
+      "withEmail": 28,
+      "sha256": "c1ef155bb6484b00ae39dc238712f2dca10d5f8ef8029fda13b65eab1b9b27fd",
+      "bytes": 18559
+    },
+    {
+      "state": "VA",
+      "records": 2637,
+      "withWebsite": 2005,
+      "withPhone": 2438,
+      "withEmail": 438,
+      "sha256": "55acb4734bc77ba803416261c81ae9fbc40b36e96d200fb4b369eccf3d02322e",
+      "bytes": 322844
+    },
+    {
+      "state": "WA",
+      "records": 2057,
+      "withWebsite": 1563,
+      "withPhone": 1884,
+      "withEmail": 367,
+      "sha256": "2b78aa926d71e43fb7aae99a9528a9d5b761d18338144bd2e76973af417c6c6f",
+      "bytes": 252208
+    },
+    {
+      "state": "WV",
+      "records": 398,
+      "withWebsite": 295,
+      "withPhone": 387,
+      "withEmail": 91,
+      "sha256": "99a0c914906f9f7308ffa48e4121abe022c87da255ce2da368316e923734feea",
+      "bytes": 49972
+    },
+    {
+      "state": "WI",
+      "records": 1520,
+      "withWebsite": 1143,
+      "withPhone": 1428,
+      "withEmail": 275,
+      "sha256": "46b2b78dd241eabd4dcaba2eeda89b5f04c8e7b65638c726a7bc49a47e1fb836",
+      "bytes": 189335
+    },
+    {
+      "state": "WY",
+      "records": 212,
+      "withWebsite": 153,
+      "withPhone": 199,
+      "withEmail": 51,
+      "sha256": "96097adc601feaf9dbc80f06979abcfb1d0df4b3f998ecffd0a99e81316ec3f0",
+      "bytes": 26430
+    }
+  ],
+  "limits": "Published business channels, not owner identities. Source dates/addresses may be outdated. Missing fields and unmatched offices remain unknown; source/business review is required."
+}

@@ -5,8 +5,9 @@ import { allRegistryCoverage, registryCoverage } from './registry-catalog.mjs';
 import { geocodeCandidates } from './geocoding.mjs';
 import { researchLocalContacts } from './local-contacts.mjs';
 import {localityAllowed,stateAllowed} from './territory-access.mjs';
+import {businessPlaceCoverage} from './business-places.mjs';
 
-export function localDiscovery(env, { fetcher = fetch, discoverer = discoverOffices, registry = stateTaxBusinesses, lookup = lookupStateBusiness, geocoder = geocodeCandidates, search, researcher, checkCandidate = async () => {}, now = Date.now } = {}) {
+export function localDiscovery(env, { fetcher = fetch, discoverer = discoverOffices, registry = stateTaxBusinesses, lookup = lookupStateBusiness, geocoder = geocodeCandidates, search, researcher, placeLookup, checkCandidate = async () => {}, now = Date.now } = {}) {
   const permitted = (user, region,city) => { if (!stateAllowed(user,region)||city!==undefined&&!localityAllowed(user,region,city)) throw new HttpError(403, 'Choose a town or city in your assigned territory.'); };
   const tokenFor = (user, candidate, detailed = false) => {
     const { candidateId, name, address, city, state, zip, registryId, registryState, contact, phone, email, sourceURL, url, contactRole, contactSourceURL } = candidate;
@@ -14,14 +15,14 @@ export function localDiscovery(env, { fetcher = fetch, discoverer = discoverOffi
   };
   const read = (user, token) => { const value = unseal(token || '', env.GIGTAX_SALES_SESSION_KEY); if (!value || value.purpose !== 'local-business-candidate' || value.actorId !== String(user.id) || value.exp <= now()) throw new HttpError(409, 'This search result expired or belongs to another agent. Search again.'); permitted(user, value.candidate.state,value.candidate.city); return value.candidate; };
   return async (user, action, body) => {
-    if(action==='state-coverage')return {states:allRegistryCoverage().filter(row=>stateAllowed(user,row.state))};
+    if(action==='state-coverage')return {states:allRegistryCoverage().filter(row=>stateAllowed(user,row.state)).map(row=>({...row,businessContacts:businessPlaceCoverage(row.state)}))};
     if (action === 'map-geocode') {
       if (!Array.isArray(body.candidateTokens) || body.candidateTokens.length < 1 || body.candidateTokens.length > 25) throw new HttpError(400, 'Choose up to 25 search results to map.');
       return { results: await geocoder(body.candidateTokens.map(token => read(user, token)), fetcher) };
     }
     if (action === 'research-local-contacts') {
       const candidate = read(user, body.candidateToken); await checkCandidate(user,candidate);
-      return researchLocalContacts(candidate, body, { search, researcher, now });
+      return researchLocalContacts(candidate, body, { search, researcher, placeLookup, now });
     }
     if (action === 'lookup-business') {
       const candidate=read(user, body.candidateToken), report = await lookup(candidate, fetcher);

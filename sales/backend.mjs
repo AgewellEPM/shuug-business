@@ -38,7 +38,10 @@ export function backend(env, fetcher = fetch) {
       // Reuses TinkySDR's existing research endpoint. Results are source links,
       // never represented as verified offices, owners, or contact details.
       const data = await request('/api/native-browser/research', 'POST', { query });
-      return (data.results || []).slice(0, 10).map(r => ({ title: r.title, url: r.url, snippet: r.snippet || '' }));
+      // The legacy service collapses provider/parse failures to []. An empty
+      // response cannot honestly establish that this business has no website.
+      const results=(Array.isArray(data.results)?data.results:[]).slice(0,10).map(r=>({title:r.title,url:r.url,snippet:r.snippet || ''}));
+      return {results,status:results.length?'results':'unconfirmed'};
     },
   };
 }

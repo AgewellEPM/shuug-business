@@ -16,6 +16,8 @@
     const safe = website(url);
     return safe ? `<a href="${escape(safe)}" target="_blank" rel="noopener noreferrer">${escape(title)} ↗</a>` : '<span>Source unavailable</span>';
   };
+  const provenance = item => item.sourceRelease ? '<small>'+escape(item.sourceName)+' · snapshot '+escape(item.sourceRelease)+'. Source observation dates: '+escape((item.sourceObservedDates || []).join(', ') || 'not supplied')+'. Lookup time is not a fresh verification.</small>' : '';
+  const attribution = report => report.catalogue ? '<p>'+escape(report.catalogue.attribution)+' '+sourceLink(report.catalogue.attributionURL,'Data sources and licenses')+'</p><p>'+escape(report.catalogue.limits)+'</p>' : '';
   function section() {
     let host = document.querySelector('#sales-research');
     if (!host) {
@@ -44,12 +46,13 @@
       const busy = value => { host.querySelectorAll('button').forEach(button => { if (value) { button.dataset.researchPriorDisabled = String(button.disabled); button.disabled = true; } else { button.disabled = button.dataset.researchPriorDisabled === 'true'; delete button.dataset.researchPriorDisabled; } }); host.setAttribute('aria-busy', String(value)); };
 
       function renderCandidates(payload) {
-        report = null;
         const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
-        results.innerHTML = '<h4>Choose the office’s official website</h4><p>Search results are possible matches. Check the business name, location and source before choosing one.</p>' +
-          candidates.map((candidate, index) => `<article class="sales-research-candidate"><h5>${escape(candidate.title || candidate.url || 'Possible website')}</h5><p>${escape(candidate.snippet || '')}</p>${sourceLink(candidate.url, candidate.url || 'Open possible website')}${website(candidate.url) ? `<button type="button" class="button secondary" data-research-website="${index}">Use this website</button>` : ''}</article>`).join('') +
+        const candidatePanel=document.createElement('div');
+        candidatePanel.innerHTML = '<h4>Choose the office’s official website</h4><p>Search results are possible matches. Check the business name, location and source before choosing one.</p>' +
+          candidates.map((candidate, index) => `<article class="sales-research-candidate"><h5>${escape(candidate.title || candidate.url || 'Possible website')}</h5><p>${escape(candidate.snippet || '')}</p>${sourceLink(candidate.url, candidate.url || 'Open possible website')}${candidate.sourceURL?sourceLink(candidate.sourceURL,'Published place record'):''}${provenance(candidate)}${website(candidate.url) ? `<button type="button" class="button secondary" data-research-website="${index}">Use this website</button>` : ''}</article>`).join('') +
           (candidates.length ? '' : '<p>No candidate websites were returned. Enter a confirmed office website above and try again.</p>');
-        results.querySelectorAll('[data-research-website]').forEach(button => button.addEventListener('click', () => {
+        results.prepend(candidatePanel);
+        candidatePanel.querySelectorAll('[data-research-website]').forEach(button => button.addEventListener('click', () => {
           form.elements.website.value = website(candidates[Number(button.dataset.researchWebsite)].url);
           form.elements.website.focus();
           announce('Website selected. Confirm the address above, then run public contact research.');
@@ -65,7 +68,7 @@
         const ownershipEvidence = Array.isArray(ownership.evidence) ? ownership.evidence : [];
         const finding = { independent: 'Possible independent-ownership statement', chain: 'Possible chain or franchise connection', unverified: 'Independent ownership is unverified' }[ownership.suggestedFinding] || 'Independent ownership is unverified';
         results.innerHTML = `<div class="sales-research-summary"><h4>Public-source findings</h4><p>Checked ${escape(date(report.checkedAt))}. Choose at most one value per field. Existing details are kept unless you select a reviewed replacement.</p></div>` +
-          (choices.length ? `<form class="sales-form sales-research-review"><div class="sales-research-options">${choices.map(item => `<label class="sales-research-option"><input type="checkbox" name="selected" value="${escape(item.id)}" data-research-field="${escape(item.field)}"><span><strong>${escape(labels[item.field])}: ${escape(item.value)}</strong><small>Currently saved: ${escape(currentValue(office, item.field) || 'Not supplied')}</small>${item.role ? `<small>Published role: ${escape(item.role)}</small>` : ''}<span class="sales-research-source">${sourceLink(item.sourceURL || item.sourceUrl)}</span><span class="sales-research-excerpt">${escape(item.excerpt || 'No excerpt returned.')}</span><small>Evidence confidence: ${escape(item.confidence || 'Not supplied')} · ${escape(date(item.checkedAt || report.checkedAt))}</small></span></label>`).join('')}</div><label class="sales-check"><input type="checkbox" name="reviewed" required>I checked the selected details against their sources and want to save these contact changes.</label><button class="button primary" type="submit" ${!report.reportId || !report.token ? 'disabled data-research-prior-disabled="true"' : ''}>Save reviewed contact details</button></form>` : '<p>No saveable public email, phone or contact-name evidence was found. This does not establish that the office has none.</p>') +
+          attribution(report) + (choices.length ? `<form class="sales-form sales-research-review"><div class="sales-research-options">${choices.map(item => `<label class="sales-research-option"><input type="checkbox" name="selected" value="${escape(item.id)}" data-research-field="${escape(item.field)}"><span><strong>${escape(labels[item.field])}: ${escape(item.value)}</strong><small>Currently saved: ${escape(currentValue(office, item.field) || 'Not supplied')}</small>${item.role ? `<small>Published role: ${escape(item.role)}</small>` : ''}<span class="sales-research-source">${sourceLink(item.sourceURL || item.sourceUrl)}</span><span class="sales-research-excerpt">${escape(item.excerpt || 'No excerpt returned.')}</span>${provenance(item)}<small>Evidence confidence: ${escape(item.confidence || 'Not supplied')} · ${escape(date(item.checkedAt || report.checkedAt))}</small></span></label>`).join('')}</div><label class="sales-check"><input type="checkbox" name="reviewed" required>I checked the selected details against their sources and want to save these contact changes.</label><button class="button primary" type="submit" ${!report.reportId || !report.token ? 'disabled data-research-prior-disabled="true"' : ''}>Save reviewed contact details</button></form>` : '<p>No saveable public email, phone or contact-name evidence was found. This does not establish that the office has none.</p>') +
           `<section class="sales-ownership-evidence"><h4>${escape(finding)}</h4><p>Research does not change the saved ownership finding. Confirm the office and person’s role using the sources, then record your finding in the office form.</p>${ownershipEvidence.map(item => `<article><p>${escape(item.excerpt || item.value || '')}</p>${sourceLink(item.sourceURL || item.sourceUrl)}</article>`).join('')}</section>` +
           (issues.length ? `<details class="sales-research-issues" open><summary>Research limits and unread pages (${issues.length})</summary><ul>${issues.map(issue => `<li>${escape(issue.message || issue.code || 'Page was not read.')}${issue.url ? ` ${sourceLink(issue.url)}` : ''}</li>`).join('')}</ul></details>` : '') +
           `<details><summary>Pages checked (${pages.length})</summary><ul>${pages.map(page => `<li>${sourceLink(page.url, page.title || page.url || 'Page')} <span>${escape(page.status || '')}</span></li>`).join('')}</ul></details>`;
@@ -100,7 +103,7 @@
         try {
           const payload = await api('research-office', { id: office.id, ...(supplied ? { website: supplied } : {}) });
           if (!host.isConnected) return;
-          if (payload.needsWebsiteSelection) { renderCandidates(payload); announce(payload.message || 'Choose and confirm the office’s official website.'); }
+          if (payload.needsWebsiteSelection) { renderReport(payload); renderCandidates(payload); announce(payload.message || 'Choose and confirm the office’s official website.'); }
           else { renderReport(payload); announce('Research returned. Review each source before saving changes.'); }
         } catch (error) { announce(error.message || 'The public-source research did not finish.', true); }
         finally { if (host.isConnected) busy(false); }
