@@ -31,9 +31,25 @@ DOM paths (records with and without business addresses) research a principal and
 prepare/save only a reviewed synthetic office. Tests cover current town access,
 saved do-not-contact enforcement, source schema failures, bounded queries and
 excluding personal addresses. Direct free-source checks matched the real NM
-Accounting Concepts record and its director without a business address. Runtime
-deployment verification is recorded below when complete. Test log:
+Accounting Concepts record and its director without a business address. The exact
+prepared module also round-tripped its internal registry ID. Test log:
 `~/BuildCache/GigTaxNationwide-20261112/new-mexico-tests.log`.
+
+Source `8b85cc95961145d373266c768b702d55c8dd2790` is GitHub-SHA-verified.
+Prepared release: `~/BuildCache/GigTaxNationwide-20261112/release-new-mexico`.
+Deployment `dpl_ApZduyiPvq2NcSYtpojGW9PVrroL` is Ready at https://gigtax.pro/sales.
+All 449 uploaded artifacts and 104 static HTTP files match; all 88 protected
+static files and existing routes/headers/CSP remain exact. Installed MCP verified
+the existing Hartford search/map/principal path, published business contact reader,
+commission plan and authentication. Saved offices/contacts/agents remain unchanged,
+mail remains unconfigured and payments deferred. The separate installed New Mexico
+check passed: 489 Albuquerque directory candidates; one selected legal record,
+one published director and one separately labelled agent. Principal research kept
+the selected office address and official name source. Website search returned zero
+suggestions (`no_results`), so comprehensive website discovery is still unproven.
+Evidence: `gigtax-new-mexico-live-20261112.json`; preservation/deployed receipts
+are adjacent. Human Safari/phone acceptance remains
+unverified; no prohibited browser runtime was used.
 
 ## Town assignment milestone
 

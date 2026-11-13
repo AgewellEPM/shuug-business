@@ -1,0 +1,25 @@
+{
+  "ok": true,
+  "checkedAt": "2026-11-13T04:41:31.857Z",
+  "state": "NM",
+  "city": "Albuquerque",
+  "checks": [
+    "coverage distinguishes automatic selected-business lookup from town-wide registry discovery",
+    "a real directory office matches its official legal record and officer/director names without substituting an agent address",
+    "principal research keeps the selected directory office context and official name provenance"
+  ],
+  "automaticRecordRegions": 7,
+  "automaticLocalDiscoveryRegions": 6,
+  "directoryCandidates": 489,
+  "registryMatches": 1,
+  "principals": 1,
+  "registeredAgents": 1,
+  "registrySource": "https://enterprise.sos.nm.gov/api/FilingDetail/business/120804",
+  "businessAddressSupplied": false,
+  "ownerAutomaticallyVerified": false,
+  "websiteSuggestions": 0,
+  "websiteSearchStatus": "no_results",
+  "savedRecordsUnchanged": true,
+  "messagesSent": 0,
+  "limits": "Selected-name lookup only. The registry response omits business addresses; owners, operating status, website search completeness and human visual acceptance remain unverified."
+}

@@ -1,0 +1,36 @@
+{
+  "ok": true,
+  "preparedAt": "2026-11-13T04:34:49.762Z",
+  "baselineDeployment": "dpl_HyZvLPudGv6MBqDG891gMxsUxWZK",
+  "preparedOutput": "/Users/lukekist/BuildCache/GigTaxNationwide-20261112/release-new-mexico/.vercel/output",
+  "baselineVerifiedArtifacts": 445,
+  "existingRoutesHeadersCspPreserved": true,
+  "changed": [
+    "functions/api/offices.func/local-discovery.mjs",
+    "functions/api/offices.func/registry-catalog.mjs",
+    "functions/api/offices.func/state-registry.mjs",
+    "functions/api/sales-mail-webhook.func/local-discovery.mjs",
+    "functions/api/sales-mail-webhook.func/registry-catalog.mjs",
+    "functions/api/sales-mail-webhook.func/state-registry.mjs",
+    "functions/api/sales-webhook.func/local-discovery.mjs",
+    "functions/api/sales-webhook.func/registry-catalog.mjs",
+    "functions/api/sales-webhook.func/state-registry.mjs",
+    "functions/api/sales.func/local-discovery.mjs",
+    "functions/api/sales.func/registry-catalog.mjs",
+    "functions/api/sales.func/state-registry.mjs",
+    "static/local-contacts.js",
+    "static/local-offices.js"
+  ],
+  "added": [
+    "functions/api/offices.func/registry-new-mexico.mjs",
+    "functions/api/sales-mail-webhook.func/registry-new-mexico.mjs",
+    "functions/api/sales-webhook.func/registry-new-mexico.mjs",
+    "functions/api/sales.func/registry-new-mexico.mjs"
+  ],
+  "removed": [],
+  "artifacts": 449,
+  "protectedPublic": 88,
+  "focusedTests": 195,
+  "typeScript": "passed",
+  "preparedSourceLookup": "passed name and ID round-trip"
+}
