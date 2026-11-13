@@ -1,0 +1,161 @@
+{
+  "version": 1,
+  "scope": "Firm-approved replacement of a lost authenticator with original client key, current password and verified new factor",
+  "readiness": "prototype",
+  "compiledHTTP": {
+    "version": 1,
+    "kind": "synthetic-compiled-private-account-proof",
+    "buildId": "-jDtZTra5VISYa4HBTUDw",
+    "checks": 68,
+    "httpRequests": 105,
+    "invitationActivation": true,
+    "requiredMfa": true,
+    "opaqueAccounts": true,
+    "encryptedContactProfile": true,
+    "firmProfileReview": true,
+    "encryptedKeyBackupRecovery": true,
+    "hostBackupRestore": true,
+    "singleUseMfaRecovery": true,
+    "passwordChangeRevokesSessions": true,
+    "ownerSuspensionVerified": true,
+    "revokeAllSessionsVerified": true,
+    "separatelyApprovedPasswordRecovery": true,
+    "realOfflineRecoveryApprovalCli": true,
+    "recoveryPreservesMfaAndCiphertext": true,
+    "expiredEnrollmentRenewal": true,
+    "realRenewalCli": true,
+    "ownerAndClientRenewal": true,
+    "renewalPreservesCiphertext": true,
+    "staffCapsuleRefreshAfterRenewal": true,
+    "separatelyApprovedAuthenticatorRecovery": true,
+    "realOfflineAuthenticatorApprovalCli": true,
+    "newAuthenticatorCodeVerified": true,
+    "oldAuthenticatorSessionsAndCodesRevoked": true,
+    "authenticatorRecoveryPreservesCiphertext": true,
+    "authenticatorBackupRestore": true,
+    "authenticatorBackupFiles": 4,
+    "backupFiles": 4,
+    "liveInstalledWorkspace": false,
+    "physicalOffhostCustody": false,
+    "visualAcceptance": false
+  },
+  "serverTests": {
+    "passed": 67,
+    "finalActivationTestsPassed": 14,
+    "uniqueTotal": 68
+  },
+  "nodeTests": {
+    "passed": 62,
+    "skipped": 1,
+    "skip": "Pre-existing absent native Journal helper"
+  },
+  "artifact": {
+    "ok": true,
+    "verification": "Shipped ESM and PDF bundle in Node V8/DOM model",
+    "modules": 118,
+    "defaultConfigDisabled": true,
+    "noAccountRequest": true,
+    "authenticatorRecoveryMounted": true,
+    "staffAuthenticatorRecoveryControlsMounted": true,
+    "passwordRecoveryMounted": true,
+    "staffPasswordRecoveryControlsMounted": true,
+    "privateEnrollmentMounted": true,
+    "privateAccountControlsMounted": true,
+    "staffInvitationControlsMounted": true,
+    "staffAccountSuspensionControlsMounted": true,
+    "staffCorrectionEditorMounted": true,
+    "staffNewReturnControlMounted": true,
+    "staffCaseEditorMounted": true,
+    "staffCaseControlsDisabled": true,
+    "staffCaseControlCount": 7,
+    "staffFinanceEditorMounted": true,
+    "staffFinanceControlsDisabled": true,
+    "staffFinanceControlCount": 6,
+    "privateFirmModulesExcluded": true,
+    "publicTemplateFetches": 12,
+    "xfasRemoved": 12,
+    "exported": [
+      {
+        "year": 2023,
+        "kind": "1040",
+        "bytes": 90275
+      },
+      {
+        "year": 2023,
+        "kind": "1065",
+        "bytes": 224095
+      },
+      {
+        "year": 2023,
+        "kind": "1120S",
+        "bytes": 206003
+      },
+      {
+        "year": 2023,
+        "kind": "1120",
+        "bytes": 243190
+      },
+      {
+        "year": 2024,
+        "kind": "1040",
+        "bytes": 91538
+      },
+      {
+        "year": 2024,
+        "kind": "1065",
+        "bytes": 226664
+      },
+      {
+        "year": 2024,
+        "kind": "1120S",
+        "bytes": 208028
+      },
+      {
+        "year": 2024,
+        "kind": "1120",
+        "bytes": 250150
+      },
+      {
+        "year": 2025,
+        "kind": "1040",
+        "bytes": 118506
+      },
+      {
+        "year": 2025,
+        "kind": "1065",
+        "bytes": 238486
+      },
+      {
+        "year": 2025,
+        "kind": "1120S",
+        "bytes": 212338
+      },
+      {
+        "year": 2025,
+        "kind": "1120",
+        "bytes": 254784
+      }
+    ],
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "publicTlsVerified": false
+  },
+  "custodyPackages": {
+    "offlineFiles": 409,
+    "cloudFiles": 395,
+    "inventoriesVerified": true,
+    "sourceBytesVerified": true,
+    "zipCrcVerified": true,
+    "initialized": false,
+    "provisioned": false
+  },
+  "build": "pass",
+  "completeProduct": false,
+  "installedServiceChanged": false,
+  "limits": [
+    "Current password and original client key or encrypted backup required; recover forgotten password first",
+    "Separate firm custody and real identity review not activated",
+    "Complete client-key-loss recovery and legacy migration unfinished",
+    "Full tax coverage, real filing/acknowledgments and installed rollout unfinished"
+  ]
+}

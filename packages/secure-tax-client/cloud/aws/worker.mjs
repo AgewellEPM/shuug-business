@@ -1,6 +1,7 @@
 import {renewFirmEnrollment} from '../../firm-enrollment-renewal.mjs';
 // IAM-only service in the separately trusted key-custody account.
 import {approvePasswordRecovery} from '../../firm-password-recovery.mjs';
+import {approveAuthenticatorRecovery} from '../../firm-authenticator-recovery.mjs';
 import {createHash} from 'node:crypto';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest} from '../../firm-recovery.mjs';
 import {signStaffGrant,createStaffCapsule,revokeStaffGrant} from '../../firm-staff.mjs';
@@ -17,8 +18,8 @@ function approved(job){
   exact(job,['version','jobId','workspaceId','operation','approval','input']);
   exact(job.approval,['reviewed','reviewReference','recipientKeyId']);
   if(job.version!==1||!id(job.jobId)||!id(job.workspaceId)||job.approval.reviewed!==true||!id(job.approval.reviewReference))fail();
-  if(!['initialize','enroll','grant','share','recover-device','revoke','approve-return-edit','approve-return-create','approve-case-transition','approve-password-recovery','renew-enrollment'].includes(job.operation))fail();
-  const key=job.operation==='initialize'?null:job.operation==='renew-enrollment'?job.input.request?.manifest?.client?.keyId:job.operation==='approve-password-recovery'?job.input.request?.clientKeyId:job.operation==='enroll'?job.input.request?.client?.keyId:['grant','recover-device'].includes(job.operation)?job.input.request?.staff?.keyId:job.input.grant?.staff?.keyId;
+  if(!['initialize','enroll','grant','share','recover-device','revoke','approve-return-edit','approve-return-create','approve-case-transition','approve-password-recovery','approve-authenticator-recovery','renew-enrollment'].includes(job.operation))fail();
+  const key=job.operation==='initialize'?null:job.operation==='renew-enrollment'?job.input.request?.manifest?.client?.keyId:['approve-password-recovery','approve-authenticator-recovery'].includes(job.operation)?job.input.request?.clientKeyId:job.operation==='enroll'?job.input.request?.client?.keyId:['grant','recover-device'].includes(job.operation)?job.input.request?.staff?.keyId:job.input.grant?.staff?.keyId;
   if(job.approval.recipientKeyId!==key)fail();
 }
 function publicPins(pins){exact(pins,['workspaceId','signerPublicKey','firmRecoveryPublicKey']);return {workspaceId:pins.workspaceId,signerPublicKey:pins.signerPublicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey};}
@@ -30,6 +31,9 @@ async function perform(job,unlocked){
   }
   if(job.operation==='approve-password-recovery'){
     exact(input,['expectedPins','request','manifest','identityAndKeyReviewed']);return {approvedPasswordRecovery:await approvePasswordRecovery(input.request,input.manifest,unlocked,{identityAndKeyReviewed:input.identityAndKeyReviewed})};
+  }
+  if(job.operation==='approve-authenticator-recovery'){
+    exact(input,['expectedPins','request','manifest','identityAndKeyReviewed']);return {approvedAuthenticatorRecovery:await approveAuthenticatorRecovery(input.request,input.manifest,unlocked,{identityAndKeyReviewed:input.identityAndKeyReviewed})};
   }
   if(job.operation==='enroll'){
     exact(input,['expectedPins','request','epoch']);return {manifest:await signEnrollmentRequest(input.request,unlocked,{epoch:input.epoch})};

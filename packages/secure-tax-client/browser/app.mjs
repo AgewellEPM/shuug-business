@@ -1,3 +1,4 @@
+import {mountAuthenticatorRecovery} from './authenticator-recovery-view.mjs';
 import {mountEnrollment,mountPasswordRecovery} from './enrollment-view.mjs';
 import trustedConfig from './trusted-config.mjs';
 import { VaultClient, encodeJson } from './client.mjs';
@@ -16,7 +17,7 @@ const $=id=>document.getElementById(id), labels={
   'driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'
 };
 let client, normalEditor, taxEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
-let portal,enrollment,passwordRecovery;
+let portal,enrollment,passwordRecovery,authenticatorRecovery;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
   const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');
@@ -29,7 +30,7 @@ async function readJson(input){
   try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}
 }
 function resetEditor(){editing=null;advancedDirty=false;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
-function clearOpened(){viewGeneration++;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';enrollment?.clear();passwordRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
+function clearOpened(){viewGeneration++;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';enrollment?.clear();passwordRecovery?.clear();authenticatorRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
   for(const id of ['connect','key-choice','create-key','import-backup','import-key','signin-password','email','password'])$(id).disabled=!ready||working;
@@ -44,10 +45,10 @@ function refreshControls(){
   $('backup').disabled=!ready||!$('key-choice').value||working;
   for(const id of ['request','manifest','verify-manifest'])$(id).disabled=!unlocked||working;
   for(const id of ['sync','payload','attachment','save','cancel-edit'])$(id).disabled=!writable||working;
-  $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending;
+  $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending&&!authenticatorRecovery?.dirty;
   normalEditor?.setEnabled(!!writable&&!working);
   taxEditor?.setEnabled(!!writable&&!working);
-  portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working);
+  portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working);authenticatorRecovery?.setEnabled(ready&&!working);
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
 }
@@ -131,6 +132,7 @@ function signedIn(result){
 }
 enrollment=mountEnrollment(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,download,onAccountCode:value=>{$('email').value=value;},onActivated:result=>{clearOpened();$('email').value=result.accountCode;message('New encrypted account activated. Sign in with your private account code and account password, then set up the required authenticator.');}});
 passwordRecovery=mountPasswordRecovery(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,onRecovered:result=>{clearOpened();$('email').value=result.accountCode;message('Account password recovered and old sessions revoked. Sign in with the new password and your existing authenticator or unused recovery code.');}});
+authenticatorRecovery=mountAuthenticatorRecovery(document,$('enrollment-container'),{getClient:()=>client,getKeyId:()=>$('key-choice').value,run,onStarting:()=>{if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before authenticator recovery.');clearOpened();},onRecovered:result=>{clearOpened();$('email').value=result.accountCode;$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;message('Authenticator replaced; old sessions and recovery codes revoked. Save these new recovery codes. Sign in with your unchanged password once the replacement authenticator shows a fresh code, or use one new recovery code.');}});
 $('signin-password').addEventListener('click',()=>run(async()=>{clearOpened();const password=$('password').value;$('password').value='';signedIn(await client.signInWithCode($('email').value.trim(),password));}));
 $('change-password').addEventListener('click',()=>run(async()=>{if($('new-password').value!==$('new-password-confirm').value)throw new Error('Enter matching new passwords.');if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before changing account access.');const current=$('current-password').value,next=$('new-password').value;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';await client.changeAccountPassword(current,next);clearOpened();message('Password changed and all account sessions revoked. Sign in with the new password and your authenticator.');}));
 $('revoke-sessions').addEventListener('click',()=>run(async()=>{if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before signing out all sessions.');await client.revokeAllSessions();clearOpened();message('All account sessions revoked. Your authenticator and encrypted key backup remain usable.');}));
@@ -169,9 +171,9 @@ $('save').addEventListener('click',()=>run(async()=>{
   }else{let data;try{data=JSON.parse($('payload').value);}catch{throw new Error('Enter valid JSON details before encrypting.');}bytes=encodeJson(data);}
   try{if(generation!==viewGeneration)throw new Error('The view was locked. Select the account key again.');await client.save($('domain').value,bytes,editing??undefined);if(generation!==viewGeneration)return;resetEditor();renderGroups();message('Item encrypted on this device and saved as ciphertext.');}finally{bytes?.fill(0);}
 }));
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&client?.unlocked){client.lock();clearOpened();refreshControls();message('View locked after leaving this tab. Select the account key again.');}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&(client?.unlocked||client?.pendingMfa||authenticatorRecovery?.dirty||!$('recovery-codes').hidden)){client.lock();clearOpened();refreshControls();message('View locked after leaving this tab. Select the account key again.');}});
 window.addEventListener('pagehide',()=>{client?.lock();clearOpened();});
-window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared||taxEditor?.dirty||enrollment?.dirty||passwordRecovery?.dirty){event.preventDefault();event.returnValue='';}});
+window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared||taxEditor?.dirty||enrollment?.dirty||passwordRecovery?.dirty||authenticatorRecovery?.dirty){event.preventDefault();event.returnValue='';}});
 try{
   client=await VaultClient.create(trustedConfig,location.origin);$('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
   $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();message('Independent trust configuration loaded. Sign in with your private account code, or set up a new account using a firm invitation.');

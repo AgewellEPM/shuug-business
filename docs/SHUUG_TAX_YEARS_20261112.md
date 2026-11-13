@@ -60,3 +60,15 @@ or outside the app host; plaintext authentication metadata is not an exception.
 Real activation also needs a separately controlled key environment. A real
 approved transmitter or filing-provider account is absent. No production service,
 customer account, payment, signature or return was activated or transmitted.
+
+## November 13 source check (UTC)
+
+The IRS's [current final Form 1040](https://www.irs.gov/pub/irs-pdf/f1040.pdf)
+and [current tax-table publication](https://www.irs.gov/pub/irs-pdf/i1040tt.pdf)
+still identify tax year 2025. The available
+[2026 Form 1040 draft](https://www.irs.gov/pub/irs-dft/f1040--dft.pdf) explicitly
+prohibits filing. These mutable URLs must be checked again before importing a
+2026 annual pack; a draft is not a final form or approved filing schema.
+Published [2026 inflation adjustments](https://www.irs.gov/irb/2025-45_IRB) and
+[Social Security wage base](https://www.ssa.gov/OACT/cola/cbbdet.html) can support
+future planning calculations, but they do not by themselves complete a return.

@@ -3,7 +3,7 @@ import {createHash} from 'node:crypto';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import path from 'node:path';
 const source=fileURLToPath(new URL('.',import.meta.url)),sha=bytes=>createHash('sha256').update(bytes).digest('hex');
-const files=['prepare-enrollment-renewal-job.mjs','prepare-password-recovery-job.mjs','enrollment-renewal.mjs','firm-enrollment-renewal.mjs','password-recovery.mjs','firm-password-recovery.mjs','envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
+const files=['prepare-authenticator-recovery-job.mjs','prepare-enrollment-renewal-job.mjs','prepare-password-recovery-job.mjs','enrollment-renewal.mjs','firm-enrollment-renewal.mjs','authenticator-recovery.mjs','firm-authenticator-recovery.mjs','password-recovery.mjs','firm-password-recovery.mjs','envelope.mjs','firm-recovery.mjs','firm-staff.mjs','staff-contract.mjs','staff-grants.mjs','offline-cli.mjs','staff-offline-cli.mjs','return-edit-contract.mjs','return-proposals.mjs','firm-return-edits.mjs','return-edit-review.mjs','return-edit-offline-cli.mjs','prepare-return-edit-job.mjs','return-create-contract.mjs','return-creations.mjs','firm-return-creations.mjs','return-create-review.mjs','return-create-offline-cli.mjs','prepare-return-create-job.mjs','case-contract.mjs','case-model.mjs','case-json.mjs','case-authorization.mjs','case-books.mjs','office-validation.mjs','office-billing.mjs','office-model.mjs','case-certificate.mjs','case-proposals.mjs','firm-cases.mjs','case-review.mjs','case-offline-cli.mjs','prepare-case-job.mjs','inspect-case-review.mjs'];
 async function walk(directory,prefix=''){
   const result=[];
   for(const name of (await readdir(path.join(directory,prefix))).sort()){const relative=path.posix.join(prefix,name),info=await lstat(path.join(directory,relative));if(info.isSymbolicLink())throw new Error('Offline kit dependencies must be regular reviewed files.');if(info.isDirectory())result.push(...await walk(directory,relative));else if(info.isFile())result.push(relative);else throw new Error('Unsupported offline kit input.');}return result;
@@ -91,6 +91,15 @@ confirmation flags. prepare-enrollment-renewal-job.mjs prepares the equivalent
 public cloud job. The client or owner publishes the signed renewal, then refreshes
 staff sharing capsules. Encrypted reads remain blocked until renewal is published.
 Owner publication also permits forgotten-password recovery after expiry.
+
+Lost authenticators use offline-cli.mjs approve-authenticator-recovery with the
+private invitation as --request, an exclusive --out, the existing bundle/pins,
+passphrase descriptor and both confirmation flags. Review replacement explicitly;
+a password-recovery approval cannot replace MFA. The client proves the current
+password, original encryption key and a new authenticator code before the factor
+changes. Old sessions and recovery codes are revoked; encrypted data is unchanged.
+prepare-authenticator-recovery-job.mjs prepares the equivalent public cloud job
+without its private invitation token. It does not provision or invoke AWS.
 `;
 export async function buildOfflineKit(output){
   if(typeof output!=='string'||!path.isAbsolute(output))throw new Error('Select a new absolute offline kit directory.');

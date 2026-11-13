@@ -226,3 +226,11 @@ its separately controlled channel after independently verifying fingerprints.
   deletion and backup retention must be explicit in the product.
 
 No real master recovery key has been created or uploaded by this work.
+
+Private account enrollment, forgotten-password recovery, expired enrollment
+renewal and lost-authenticator replacement are connected to the independent
+client and both separate firm custody paths. See
+[`SHUUG_PRIVATE_ACCOUNTS_20261112.md`](../../docs/SHUUG_PRIVATE_ACCOUNTS_20261112.md)
+for the exact ordinary workflows and current limitations. The original client
+encryption key or its encrypted backup remains required for account recovery;
+complete client-key loss and legacy migration are still unfinished.

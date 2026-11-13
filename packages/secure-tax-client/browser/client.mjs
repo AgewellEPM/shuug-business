@@ -1,4 +1,6 @@
 import {verifyRenewalRequest,verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
+import {assertAuthenticatorRecoveryInvitation,verifyAuthenticatorRecovery} from '../authenticator-recovery.mjs';
+import {openAuthenticatorRecoveryChallenge} from '../authenticator-recovery-proof.mjs';
 import {assertPasswordRecoveryInvitation,verifyPasswordRecovery} from '../password-recovery.mjs';
 import {openPasswordRecoveryChallenge} from '../password-recovery-proof.mjs';
 import {assertPrivateInvitation,privateClientProfile,privateAccountCode} from '../client-enrollment.mjs';
@@ -32,7 +34,7 @@ async function responseJson(response,maximum,allowChallenge=false) {
 // Public routing/revision metadata, encrypted upload retries and nonextractable key handles persist.
 // Decrypted records exist in this controller's memory until lock/account change.
 export class VaultClient {
-  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;#privateLogin=false;
+  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;#privateLogin=false;#authenticatorRecovery=null;
   status=null; identity=null; records=new Map();
   static async create(config,origin,options={}) {
     return new VaultClient(await validateTrustedConfig(config,origin),options);
@@ -48,7 +50,7 @@ export class VaultClient {
   get pendingMfa(){return this.#mfa?clone(this.#mfa):null;}
   #same(generation){if(generation!==this.#generation)stale();}
   #bindingId(){return `${this.#config.workspaceId}|${this.identity.accountId}`;}
-  #reset(){this.#generation++;this.#mfa=null;this.#key=null;this.#verified=null;this.#binding=null;this.#cursor=0;for(const item of this.records.values())item.plaintext.fill(0);this.records.clear();}
+  #reset(){this.#generation++;this.#mfa=null;this.#authenticatorRecovery=null;this.#key=null;this.#verified=null;this.#binding=null;this.#cursor=0;for(const item of this.records.values())item.plaintext.fill(0);this.records.clear();}
   lock(){this.#reset();}
   async #request(path,method='GET',body,maximum=64*1024,allowChallenge=false){
     const generation=this.#generation;
@@ -141,6 +143,22 @@ export class VaultClient {
     const challenge=await this.#request('/password-recovery/challenge','POST',{token:invitation.token,approval},16384),answer=await openPasswordRecoveryChallenge(challenge,invitation.manifest,expected,this.#config,entry.privateKey);this.#same(generation);
     const result=await this.#request('/password-recovery','POST',{token:invitation.token,approval,challengeId:challenge.challengeId,answer,newPassword},4096);this.#same(generation);
     if(result?.passwordChanged!==true||result.sessionsRevoked!==true||result.authenticatorPreserved!==true||result.accountCode!==request.accountId)throw new Error('Recovery was not confirmed. Try signing in with the chosen password before requesting another recovery.');return result;
+  }
+  async beginAuthenticatorRecovery({invitation,approval,keyId,password}){
+    assertAuthenticatorRecoveryInvitation(invitation,this.#config.workspaceId);if(typeof password!=='string'||!password||password.length>200)throw new Error('Enter the current account password. Recover a forgotten password first.');
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;const generation=this.#generation,request=invitation.request,entry=await this.#storage.getKey(keyId);this.#same(generation);
+    if(!entry||entry.keyId!==request.clientKeyId||entry.publicKey!==invitation.manifest.client.publicKey)throw new Error('Select or recover the original account encryption key.');assertPrivateKey(entry.privateKey);
+    const expected={accountId:request.accountId,clientId:request.clientId,minimumEpoch:request.manifestEpoch};await verifyEnrollmentManifest(invitation.manifest,expected,this.#config);await verifyAuthenticatorRecovery(approval,this.#config,request);this.#same(generation);
+    const result=await this.#request('/authenticator-recovery/challenge','POST',{token:invitation.token,approval,password},16384),answer=await openAuthenticatorRecoveryChallenge(result.challenge,invitation.manifest,expected,this.#config,entry.privateKey);this.#same(generation);
+    if(!/^[A-Z2-7]{32}$/.test(result.secret))throw new Error('Invalid replacement authenticator setup.');
+    this.#authenticatorRecovery={token:invitation.token,approval:clone(approval),challengeId:result.challenge.challengeId,answer,accountCode:request.accountId,expiresAt:result.challenge.expiresAt};
+    return {secret:result.secret,accountCode:request.accountId,expiresAt:result.challenge.expiresAt};
+  }
+  async finishAuthenticatorRecovery(code){
+    const pending=this.#authenticatorRecovery;if(!pending||Date.parse(pending.expiresAt)<=Date.now())throw new Error('Authenticator setup expired or was cleared. Begin recovery again.');if(typeof code!=='string'||!/^\d{6}$/.test(code))throw new Error('Enter the six-digit code from the replacement authenticator.');
+    const generation=this.#generation,{accountCode,expiresAt,...body}=pending,result=await this.#request('/authenticator-recovery','POST',{...body,code},4096);this.#same(generation);
+    this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;
+    if(result.authenticatorReplaced!==true||result.sessionsRevoked!==true||result.oldRecoveryCodesRevoked!==true||result.accountCode!==accountCode||!Array.isArray(result.recoveryCodes)||result.recoveryCodes.length!==10||result.recoveryCodes.some(value=>typeof value!=='string'||!/^[A-F0-9]{6}(?:-[A-F0-9]{6}){3}$/.test(value)))throw new Error('Replacement was not confirmed. Try the new authenticator before requesting another recovery.');return result;
   }
   async renewalRequest(keyId){
     if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled account before requesting renewal.');const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);

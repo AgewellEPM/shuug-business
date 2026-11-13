@@ -22,6 +22,7 @@ export function setPrivateAccountAccess(staffToken:string,raw:unknown){
     // Re-enabling never revives a previously issued session or pending login.
     revokeSessions(db,account.id);
     if(privateAccountTable(db,"secure_tax_password_recovery"))db.prepare("UPDATE secure_tax_password_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
+    if(privateAccountTable(db,"secure_tax_authenticator_recovery"))db.prepare("UPDATE secure_tax_authenticator_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
     audit(db,account.id,user.id,input.enabled?"secure-tax.account.enabled":"secure-tax.account.disabled");
     return {accountCode:account.id,enabled:input.enabled,sessionsRevoked:true};
   },true);

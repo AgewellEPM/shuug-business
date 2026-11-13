@@ -1,4 +1,5 @@
 import {verifyRenewalRequest,verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
+import {assertAuthenticatorRecoveryInvitation} from '../authenticator-recovery.mjs';
 import {assertPasswordRecoveryInvitation} from '../password-recovery.mjs';
 import {assertPrivateInvitation,privateAccountCode} from '../client-enrollment.mjs';
 import { verifyStaffGrant, verifyStaffCapsuleSignature, openStaffCapsule } from '../staff-grants.mjs';
@@ -89,6 +90,12 @@ export class StaffVaultClient {
   async installEnrollmentRenewal(packet,accountCode){
     if(!this.isOwner)throw new Error('Use the verified owner account to publish renewal.');privateAccountCode(accountCode);const generation=this.#generation;await verifyEnrollmentRenewal(packet,this.#config,{accountId:accountCode});this.#same(generation);
     const result=await this.#request('/enrollment-renewal','POST',packet,16384);this.#same(generation);if(result?.renewed!==true||result.identity?.accountId!==accountCode||JSON.stringify(result.manifest)!==JSON.stringify(packet.manifest))throw new Error('The API did not confirm this exact renewal.');this.#clear();return {renewed:true,staffSharingRefreshRequired:true};
+  }
+  async createAuthenticatorRecovery(accountCode){
+    if(!this.isOwner)throw new Error('Use the verified owner account to request authenticator replacement.');privateAccountCode(accountCode);const generation=this.#generation,result=await this.#request('/authenticator-recovery','POST',{accountCode},16384);this.#same(generation);return clone(assertAuthenticatorRecoveryInvitation(result,this.#config.workspaceId));
+  }
+  async revokeAuthenticatorRecovery(requestId){
+    if(!this.isOwner)throw new Error('Use the verified owner account to revoke authenticator replacement.');privateAccountCode(requestId);const generation=this.#generation,result=await this.#request('/authenticator-recovery','DELETE',{requestId},1024);this.#same(generation);if(typeof result?.revoked!=='boolean')throw new Error('Recovery revocation was not confirmed.');return result;
   }
   async createPasswordRecovery(accountCode){
     if(!this.isOwner)throw new Error('Use the verified owner account to request recovery.');privateAccountCode(accountCode);const generation=this.#generation,result=await this.#request('/password-recovery','POST',{accountCode},16384);this.#same(generation);return clone(assertPasswordRecoveryInvitation(result,this.#config.workspaceId));

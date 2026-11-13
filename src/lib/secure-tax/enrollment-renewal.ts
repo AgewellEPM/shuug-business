@@ -23,6 +23,7 @@ function renew(db:DatabaseSync,account:{id:string;clientId:string},actor:string,
  const result=enrollSecureTaxAccount(db,account,manifest);
  if(!duplicate){
   if(privateAccountTable(db,"secure_tax_password_recovery"))db.prepare("UPDATE secure_tax_password_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
+  if(privateAccountTable(db,"secure_tax_authenticator_recovery"))db.prepare("UPDATE secure_tax_authenticator_recovery SET status='revoked' WHERE accountId=? AND status='pending'").run(account.id);
   db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(account.id,actor,"secure-tax.enrollment.renewed",new Date().toISOString(),JSON.stringify({previousEpoch:previous.epoch,epoch:manifest.epoch}));
  }
  return {...result,renewed:true,duplicate,renewalRequired:false,staffSharingRefreshRequired:true};

@@ -55,9 +55,10 @@ password and invalidates earlier MFA session grants. These are distinct backups:
 an authenticator recovery code cannot decrypt tax data.
 
 Forgotten-password recovery is implemented with separate firm approval and the
-existing client key; see the workflow below. Loss of both client key and backup,
-owner-reviewed replacement of customer keys, and authenticator replacement
-without remaining recovery codes are unfinished. The system does not invent an email-reset path or
+existing client key; see the workflow below. Authenticator replacement without
+remaining MFA recovery codes is also implemented with separate firm approval.
+Loss of both client key and backup and reviewed replacement of customer encryption
+keys are unfinished. The system does not invent an email-reset path or
 silently replace the enrolled key. If the activation response is lost after
 commit, the saved invitation still contains the account code: try signing in
 with the selected password and original key before requesting a new invitation.
@@ -98,7 +99,7 @@ and replay fail closed.
 
 This workflow requires a valid enrolled manifest and the original client key or
 its encrypted backup. The owner can renew an expired manifest first, as described
-below. Complete client-key loss and authenticator replacement remain unfinished.
+below. Complete client-key loss remains unfinished.
 If the response is lost after completion, try the chosen new password with the
 existing authenticator before asking the firm for another recovery.
 
@@ -125,6 +126,43 @@ exact repeats are idempotent. Existing ciphertext and revisions are preserved.
 Pending password-recovery invitations are revoked when enrollment changes;
 request a fresh one after renewal. Staff read capsules and outstanding mutation
 approvals must be refreshed for the new manifest. Renewal is not key rotation.
+
+## Lost authenticator
+
+The owner saves an authenticator-recovery invitation using the private account
+code. It binds the current password, MFA factor revision and signed encryption
+enrollment, expires within 24 hours and supersedes earlier pending invitations.
+The owner can revoke it. Suspension/restoration, enrollment renewal, password
+change or another completed factor replacement invalidates the pending recovery.
+
+The separate firm operator must explicitly review replacement of the factor,
+the client identity and the original encryption-key fingerprint. Use
+`offline-cli.mjs approve-authenticator-recovery` with `--request PRIVATE-INVITATION`,
+`--out NEW-APPROVAL`, the existing bundle/public pins/passphrase descriptor and
+both confirmation flags. The public-only cloud alternative is
+`prepare-authenticator-recovery-job.mjs`; its token-free job uses the existing
+immutable-version/hash approval and `approve-authenticator-recovery` worker.
+The approval is valid for at most four hours and cannot authorize password reset.
+
+In **Replace a lost authenticator**, the client loads both files, selects the
+original encryption key and enters the current password. If the password is also
+lost, complete password recovery first, then obtain a fresh authenticator request.
+The client proves the original key through a separate HPKE challenge and receives
+a replacement setup key. The old authenticator remains enrolled during setup.
+
+Only a valid code from the new authenticator commits replacement. That transaction
+advances the factor revision, revokes all old sessions, login challenges and
+recovery codes, creates ten new one-use recovery codes and consumes the request.
+The password, encrypted documents, encryption keys and staff sharing remain
+unchanged. Wrong key answers consume their challenge; five wrong new codes require
+a fresh setup. Password attempts are rate limited. Setup expires after five
+minutes and is cleared by locking or leaving the tab.
+
+Save the new recovery codes. Sign in once the replacement authenticator displays
+a fresh code, or use one new recovery code; the code that completed setup cannot
+be reused. If the completion response is lost, retain the replacement authenticator
+and try its next code before requesting another recovery. Neither the host nor
+the client silently removes MFA or falls back to email.
 
 ## Legacy boundary
 
@@ -158,3 +196,8 @@ signature execution, complete migration and installed rollout remain unfinished.
 offline CLI renewal, preserved ciphertext and refreshed staff sharing. Production
 builds on constrained storage can use `SHUUG_BUILD_NO_CACHE=true npm run build` to
 disable webpack's persistent build cache while retaining the compiled output.
+
+`docs/verification/authenticator-recovery-20261113.json` records the new-factor
+proof, cross-purpose rejection, old-code/session revocation, unchanged ciphertext,
+actual offline approval CLI and a second stopped-server backup/restore. Physical
+key custody, real customer migration and installed service acceptance remain open.

@@ -1,3 +1,4 @@
+import {verifyAuthenticatorRecovery} from '../../authenticator-recovery.mjs';
 import {verifyEnrollmentRenewal} from '../../enrollment-renewal.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -188,4 +189,24 @@ test('prepared immutable cloud renewal retains recipients, advances the signed e
   const packet=f.provider.results.get(job.jobId).result.renewedEnrollment;await verifyEnrollmentRenewal(packet,pins,{accountId,clientId});assert.equal(packet.manifest.epoch,2);assert.deepEqual(packet.manifest.client,manifest.client);
  }finally{rmSync(directory,{recursive:true,force:true});}
  assert.equal((await f.run('renew-enrollment',{...input,identityAndKeyReviewed:false},keyId)).response.ok,false);assert.equal((await f.run('renew-enrollment',input,'wrong-fingerprint')).response.ok,false);
+});
+
+test('separate cloud approval binds authenticator replacement to the reviewed account and existing client key',async()=>{
+ const f=fixture(),pins=(await f.run('initialize',{})).result.publicPins,key=await generateRecipientKeyPair(),keyId=await publicKeyId(key.publicKey),accountId=crypto.randomUUID(),clientId=crypto.randomUUID();
+ const manifest=(await f.run('enroll',{expectedPins:pins,request:{version:1,workspaceId,accountId,clientId,client:{keyId,publicKey:key.publicKey}},epoch:1},keyId)).result.manifest;
+ const request={version:1,type:'shuug-authenticator-recovery-request',requestId:crypto.randomUUID(),workspaceId,accountId,clientId,manifestId:manifest.manifestId,manifestEpoch:1,clientKeyId:keyId,factorRevision:7,issuedAt:new Date().toISOString(),expiresAt:new Date(Date.now()+3600000).toISOString()},input={expectedPins:pins,request,manifest,identityAndKeyReviewed:true};
+ const directory=mkdtempSync(path.join(tmpdir(),'shuug-authenticator-job-'));let approved;
+ try{
+  const invitation={version:1,type:'shuug-private-authenticator-recovery',request,manifest,token:randomBytes(32).toString('hex')};writeFileSync(path.join(directory,'invitation.json'),JSON.stringify(invitation));writeFileSync(path.join(directory,'pins.json'),JSON.stringify(pins));
+  const args=['packages/secure-tax-client/prepare-authenticator-recovery-job.mjs','--invitation',path.join(directory,'invitation.json'),'--public-pins',path.join(directory,'pins.json'),'--review-reference','synthetic-reviewed-recovery','--out',path.join(directory,'job.json')];
+  assert.throws(()=>execFileSync(process.execPath,args,{stdio:'pipe'}));execFileSync(process.execPath,[...args,'--confirm-identity-and-fingerprint'],{stdio:'pipe'});
+  const bytes=readFileSync(path.join(directory,'job.json')),job=JSON.parse(bytes);assert(!bytes.includes(Buffer.from(invitation.token)));assert.deepEqual(job.input,input);f.provider.jobs.set(`${job.jobId}:prepared-version`,bytes);
+  const response=await f.handler({version:1,jobId:job.jobId,jobVersionId:'prepared-version',approvedSha256:sha(bytes)},context);approved={response,result:f.provider.results.get(job.jobId)?.result};
+ }finally{rmSync(directory,{recursive:true,force:true});}
+ assert(approved.response.ok);await verifyAuthenticatorRecovery(approved.result.approvedAuthenticatorRecovery,pins,request);await assert.rejects(verifyAuthenticatorRecovery(approved.result.approvedAuthenticatorRecovery,pins,request,Date.now()+5*3600000));
+ assert.equal((await f.run('approve-authenticator-recovery',{...input,identityAndKeyReviewed:false},keyId)).response.ok,false);assert.equal((await f.run('approve-authenticator-recovery',input,'wrong-fingerprint')).response.ok,false);
+ await assert.rejects(verifyPasswordRecovery(approved.result.approvedAuthenticatorRecovery,pins));
+ const revision=structuredClone(approved.result.approvedAuthenticatorRecovery);revision.request.factorRevision++;await assert.rejects(verifyAuthenticatorRecovery(revision,pins));
+ const forged=structuredClone(approved.result.approvedAuthenticatorRecovery);forged.request.accountId=crypto.randomUUID();await assert.rejects(verifyAuthenticatorRecovery(forged,pins,request));
+ assert(!JSON.stringify(approved.result).includes('passphrase'));assert(!JSON.stringify(approved.result).includes('"d":'));
 });

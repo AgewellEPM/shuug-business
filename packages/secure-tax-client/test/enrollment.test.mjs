@@ -1,3 +1,5 @@
+import {mountAuthenticatorRecovery} from '../browser/authenticator-recovery-view.mjs';
+import {sealAuthenticatorRecoveryChallenge,openAuthenticatorRecoveryChallenge} from '../authenticator-recovery-proof.mjs';
 import {verifyEnrollmentDocument,verifyEnrollmentManifest} from '../envelope.mjs';
 import {verifyEnrollmentRenewal} from '../enrollment-renewal.mjs';
 import {renewFirmEnrollment} from '../firm-enrollment-renewal.mjs';
@@ -19,6 +21,8 @@ test('possession proof binds the exact manifest, key, scope, ciphertext and expi
   assert.equal(await activationAnswerDigest(await open(sealed.challenge)),sealed.answerDigest);
   const recovery=await sealPasswordRecoveryChallenge(manifest,{challengeId:crypto.randomUUID(),expiresAt:new Date(Date.now()+300000).toISOString()});
   assert.equal(await activationAnswerDigest(await openPasswordRecoveryChallenge(recovery.challenge,manifest,expected,created.publicPins,key.privateKey)),recovery.answerDigest);
+  const replacement=await sealAuthenticatorRecoveryChallenge(manifest,{challengeId:crypto.randomUUID(),expiresAt:new Date(Date.now()+300000).toISOString()});assert.equal(await activationAnswerDigest(await openAuthenticatorRecoveryChallenge(replacement.challenge,manifest,expected,created.publicPins,key.privateKey)),replacement.answerDigest);
+  await assert.rejects(openAuthenticatorRecoveryChallenge(recovery.challenge,manifest,expected,created.publicPins,key.privateKey));await assert.rejects(openPasswordRecoveryChallenge(replacement.challenge,manifest,expected,created.publicPins,key.privateKey));
   await assert.rejects(open(recovery.challenge));await assert.rejects(openPasswordRecoveryChallenge(sealed.challenge,manifest,expected,created.publicPins,key.privateKey));
   for(const change of [{accountId:crypto.randomUUID()},{manifestEpoch:2},{expiresAt:new Date(Date.now()-1000).toISOString()},{challengeId:crypto.randomUUID()},{ciphertext:'A'.repeat(64)},{extra:'unrecognized'}])await assert.rejects(open({...sealed.challenge,...change}));
   await assert.rejects(openActivationChallenge(sealed.challenge,manifest,expected,created.publicPins,(await generateRecipientKeyPair()).privateKey));
@@ -43,6 +47,17 @@ test('contact profile stays in tax identity and private account inputs reject me
   const values={legalName:'Synthetic private client',email:'client@example.invalid',phone:'',mailingAddress:''},result=buildFormPayload('profile',values);assert.equal(result.domain,'tax-identity');assert.equal(formType(result.payload),'profile');assert.deepEqual(result.payload,privateClientProfile(values));
   assert.throws(()=>privateClientProfile({...values,password:'must not be saved'}));assert.throws(()=>privateAccountCode(values.email));
   const invite={version:1,type:'shuug-private-account-invitation',invitationId:crypto.randomUUID(),workspaceId:'synthetic',accountId:crypto.randomUUID(),clientId:crypto.randomUUID(),token:'a'.repeat(64),expiresAt:new Date(Date.now()+3600000).toISOString()};assertPrivateInvitation(invite,'synthetic');assert.throws(()=>assertPrivateInvitation({...invite,email:values.email},'synthetic'));assert.throws(()=>assertPrivateInvitation(invite,'other-workspace'));
+});
+
+test('replacement authenticator view keeps setup private, verifies the new code, and discards late setup after clearing',async()=>{
+ const dom=new JSDOM('<!doctype html><div id="setup"></div>'),document=dom.window.document;let pending,received,completed,resolveSetup,delay=false;
+ const client={async beginAuthenticatorRecovery(value){received=value;assert.equal(document.querySelector('#authenticator-recovery-password').value,'');if(delay)return new Promise(resolve=>{resolveSetup=resolve;});return {secret:'SYNTHETIC PRIVATE SETUP',expiresAt:new Date(Date.now()+300000).toISOString()};},async finishAuthenticatorRecovery(code){assert.equal(code,'123456');return {accountCode:'synthetic',recoveryCodes:['synthetic-code']};}};
+ const view=mountAuthenticatorRecovery(document,document.querySelector('#setup'),{getClient:()=>client,getKeyId:()=>'synthetic-key',run:operation=>{pending=operation();},onStarting:()=>view.clear(),onRecovered:result=>{completed=result;}});
+ const field=name=>document.querySelector(`#authenticator-recovery-${name}`),buttons=[...document.querySelectorAll('button')];
+ const load=()=>{for(const name of ['invitation','approval'])Object.defineProperty(field(name),'files',{configurable:true,value:[{size:100,text:async()=>JSON.stringify({synthetic:name})}]});field('password').value='Synthetic password';};
+ try{assert([...document.querySelectorAll('input,button')].every(node=>node.disabled));view.setEnabled(true);load();buttons[0].click();await pending;assert.equal(received.password,'Synthetic password');assert.equal(received.keyId,'synthetic-key');assert.match(document.querySelector('#authenticator-recovery-secret').textContent,/PRIVATE SETUP/);assert(view.dirty);field('code').value='123456';buttons[1].click();await pending;assert.equal(completed.accountCode,'synthetic');assert.equal(document.querySelector('#authenticator-recovery-secret').textContent,'');assert(!view.dirty);
+  delay=true;load();buttons[0].click();while(!resolveSetup)await new Promise(resolve=>setTimeout(resolve,0));view.clear();resolveSetup({secret:'LATE PRIVATE SETUP',expiresAt:new Date().toISOString()});await pending;assert(!document.body.textContent.includes('LATE PRIVATE SETUP'));assert(!view.dirty);
+ }finally{dom.window.close();}
 });
 
 test('ordinary forgotten-password form uses the selected backup key and clears credentials',async()=>{

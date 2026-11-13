@@ -408,3 +408,21 @@ does **not** make Shuug, the tax service or its operating processes SOC 2 certif
 No AWS service-side template validation, deployed runtime attestation, access-denial
 probe or live key recovery has passed yet. Authorized AWS sign-in is the next
 external prerequisite.
+
+## Private account recovery operations
+
+The worker also supports `renew-enrollment`, `approve-password-recovery` and
+`approve-authenticator-recovery`. Prepare their public jobs with
+`prepare-enrollment-renewal-job.mjs`, `prepare-password-recovery-job.mjs` or
+`prepare-authenticator-recovery-job.mjs`. Recovery jobs exclude the private
+invitation token. Each requires explicit identity/fingerprint review, the same
+independent public pins, exact immutable job version and approved SHA-256.
+
+Renewal preserves both encryption keys and advances the manifest epoch. Password
+recovery preserves MFA. Authenticator recovery requires the client to prove the
+current password, original encryption key and a new authenticator code before
+replacing the factor and revoking prior sessions/codes. These are distinct signed
+purposes. See [private account workflows](SHUUG_PRIVATE_ACCOUNTS_20261112.md) for
+client/owner publication, expiration, renewal of staff capsules and recovery limits.
+The injected-provider tests and local CLI checks do not establish deployed AWS
+custody, real identity proofing or a complete customer-key-loss migration.

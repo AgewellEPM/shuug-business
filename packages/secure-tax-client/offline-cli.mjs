@@ -3,10 +3,12 @@
 // discovery; all inputs and outputs must be explicitly selected by the operator.
 import {renewFirmEnrollment} from './firm-enrollment-renewal.mjs';
 import {readFileSync,readSync,writeFileSync,openSync,closeSync,unlinkSync,fstatSync,constants} from 'node:fs';
+import {approveAuthenticatorRecovery} from './firm-authenticator-recovery.mjs';
+import {assertAuthenticatorRecoveryInvitation} from './authenticator-recovery.mjs';
 import {approvePasswordRecovery} from './firm-password-recovery.mjs';
 import {assertPasswordRecoveryInvitation} from './password-recovery.mjs';
 import {createFirmBundle,unlockFirmBundle,signEnrollmentRequest,recoverFirmObject} from './firm-recovery.mjs';
-const usage='Commands: init | sign | renew | recover | approve-password-recovery. All require --confirm-off-host, --passphrase-fd N, --bundle PATH and --public-pins PATH. sign adds --request PATH --epoch N --out PATH. renew adds --request PUBLIC-RENEWAL-REQUEST --out PATH --confirm-identity-and-fingerprint. recover adds --manifest PATH --envelope PATH --expected PATH --out PATH. approve-password-recovery adds --request PRIVATE-INVITATION --out PATH --confirm-identity-and-fingerprint.';
+const usage='Commands: init | sign | renew | recover | approve-password-recovery | approve-authenticator-recovery. All require --confirm-off-host, --passphrase-fd N, --bundle PATH and --public-pins PATH. sign adds --request PATH --epoch N --out PATH. renew adds --request PUBLIC-RENEWAL-REQUEST --out PATH --confirm-identity-and-fingerprint. recover adds --manifest PATH --envelope PATH --expected PATH --out PATH. approve-password-recovery and approve-authenticator-recovery add --request PRIVATE-INVITATION --out PATH --confirm-identity-and-fingerprint.';
 const options=new Map();const command=process.argv[2];
 try{
  for(let i=3;i<process.argv.length;i++){
@@ -14,8 +16,8 @@ try{
   if(['--confirm-off-host','--confirm-identity-and-fingerprint'].includes(name))options.set(name,true);
   else {const value=process.argv[++i];if(!value||value.startsWith('--'))throw new Error('Missing argument.');options.set(name,value);}
  }
- const allowed=['--confirm-off-host','--passphrase-fd','--bundle','--public-pins',...(command==='init'?['--workspace-id']:command==='sign'?['--request','--epoch','--out']:command==='recover'?['--manifest','--envelope','--expected','--out']:['approve-password-recovery','renew'].includes(command)?['--request','--out','--confirm-identity-and-fingerprint']:[])];
- if(!['init','sign','renew','recover','approve-password-recovery'].includes(command)||!options.get('--confirm-off-host')||[...options.keys()].some(k=>!allowed.includes(k)))throw new Error(usage);
+ const allowed=['--confirm-off-host','--passphrase-fd','--bundle','--public-pins',...(command==='init'?['--workspace-id']:command==='sign'?['--request','--epoch','--out']:command==='recover'?['--manifest','--envelope','--expected','--out']:['approve-password-recovery','approve-authenticator-recovery','renew'].includes(command)?['--request','--out','--confirm-identity-and-fingerprint']:[])];
+ if(!['init','sign','renew','recover','approve-password-recovery','approve-authenticator-recovery'].includes(command)||!options.get('--confirm-off-host')||[...options.keys()].some(k=>!allowed.includes(k)))throw new Error(usage);
  const required=n=>{const v=options.get(n);if(typeof v!=='string')throw new Error(`Missing ${n}.`);return v;};
  const readJson=(name,max=24*1024*1024)=>{
   const fd=openSync(required(name),constants.O_RDONLY|constants.O_NOFOLLOW);
@@ -45,6 +47,10 @@ try{
    if(command==='renew'){
     const packet=await renewFirmEnrollment(readJson('--request',16384),unlocked,{identityAndKeyReviewed:options.get('--confirm-identity-and-fingerprint')===true});
     write('--out',JSON.stringify(packet,null,2)+'\n');console.log('Signed enrollment renewal with the same client and firm recovery keys. Publish it through the independent client or verified owner, then refresh staff sharing.');
+   }else if(command==='approve-authenticator-recovery'){
+    const invitation=assertAuthenticatorRecoveryInvitation(readJson('--request',16384),unlocked.publicPins.workspaceId);
+    const approval=await approveAuthenticatorRecovery(invitation.request,invitation.manifest,unlocked,{identityAndKeyReviewed:options.get('--confirm-identity-and-fingerprint')===true});
+    write('--out',JSON.stringify(approval,null,2)+'\n');console.log('Signed short-lived authenticator replacement approval. The client must prove the existing password, encryption key and new authenticator code.');
    }else if(command==='approve-password-recovery'){
     const invitation=assertPasswordRecoveryInvitation(readJson('--request',16384),unlocked.publicPins.workspaceId);
     const approval=await approvePasswordRecovery(invitation.request,invitation.manifest,unlocked,{identityAndKeyReviewed:options.get('--confirm-identity-and-fingerprint')===true});
