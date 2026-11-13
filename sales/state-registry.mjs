@@ -6,6 +6,7 @@ import { iowaTaxBusinesses, lookupIowaBusiness } from './registry-iowa.mjs';
 import { alaskaTaxBusinesses, lookupAlaskaBusiness } from './registry-alaska.mjs';
 import { delawareTaxBusinesses, lookupDelawareBusiness } from './registry-delaware.mjs';
 import { dcTaxBusinesses, lookupDcBusiness } from './registry-dc.mjs';
+import { lookupKentuckyBusiness } from './registry-kentucky.mjs';
 
 export async function stateTaxBusinesses(region,locality,fetcher=fetch) {
   if(region==='CT')return taxBusinesses(region,locality,fetcher);
@@ -21,7 +22,7 @@ export async function lookupStateBusiness(candidate,fetcher=fetch) {
   if(!coverage.automaticRecords)return {supported:false,available:true,matches:[],coverage,links,
     message:`Open the ${coverage.name} official registry to check this business. Automatic record retrieval is not connected here yet; no owner or principal can be inferred from an empty result.`};
   try {
-    const lookups={CT:lookupBusiness,NM:lookupNewMexicoBusiness,IA:lookupIowaBusiness,AK:lookupAlaskaBusiness,DE:lookupDelawareBusiness,DC:lookupDcBusiness};
+    const lookups={CT:lookupBusiness,NM:lookupNewMexicoBusiness,IA:lookupIowaBusiness,AK:lookupAlaskaBusiness,DE:lookupDelawareBusiness,DC:lookupDcBusiness,KY:lookupKentuckyBusiness};
     const report=await (lookups[region] || lookupSocrataBusiness)(candidate,fetcher);
     return {...report,available:true,coverage,links};
   }catch(error){return {supported:true,available:false,matches:[],coverage,links,issues:[{code:'registry_unavailable',message:error.message}],
