@@ -133,10 +133,16 @@ owner MFA publication refuses an existing or deleted ID and exact retries
 preserve later client changes. The browser never uploads the private kit.
 The cloud operation is `approve-return-create`; both custody packages include it.
 
+Encrypted source intake, creation and correction review kits accept tax years
+2023–2027 for all four return families. This is a private-record contract, separate
+from annual calculation and PDF availability. Corrections preserve the original
+year and family; changing either requires a separate return. Firm approval binds
+the exact source records and does not establish tax coverage or filing approval.
+
 ## Private case workflow and operator review
 
 Encrypted cases now support `case.create`, `request.add`, `document.review` and
-`draft.link` for the declared 2025 individual/self-employed and business return
+`draft.link` for the declared 2023–2027 individual/self-employed and business return
 families. Request titles, dates, notes, decisions, exact evidence references and
 retained command history stay inside the encrypted case. A preparer proposes a
 transition; separate firm approval and owner MFA publish its exact new ciphertext

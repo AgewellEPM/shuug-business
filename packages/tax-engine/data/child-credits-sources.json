@@ -103,10 +103,19 @@
       "url": "https://www.irs.gov/pub/irs-drop/rr-03-72.pdf",
       "bytes": 36851,
       "sha256": "883a38de41a653a1ef1595c9b09a6d0bdf6cc8e5ea17117e8bbe398c7bb98011"
+    },
+    {
+      "year": 2027,
+      "id": "rp-26-35",
+      "file": "rp-26-35.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-26-35.pdf",
+      "bytes": 216025,
+      "sha256": "87b383c6ce6e616fd006a61f5eed46fe67099b9c23fb1e1c42ff5359474513b8"
     }
   ],
   "notes": [
     "The final 2026 Schedule 8812 is an original annual form; final 2026 instructions are not yet available. 2026 limits use Revenue Procedure 2025-32 and IRC24; special treatments remain unsupported.",
-    "2025 joint-filer valid SSN correction: https://www.irs.gov/forms-pubs/update-to-the-2025-instructions-for-schedule-8812-form-1040 (January 23, 2026). One joint spouse needs a timely employment-valid SSN; the other needs timely SSN or ITIN."
+    "2025 joint-filer valid SSN correction: https://www.irs.gov/forms-pubs/update-to-the-2025-instructions-for-schedule-8812-form-1040 (January 23, 2026). One joint spouse needs a timely employment-valid SSN; the other needs timely SSN or ITIN.",
+    "Released Revenue Procedure 2026-35 supplies 2027 statutory amounts. Its Section1 retains literal [Release Date, 2026] placeholders; IRS November5 release and guidewire establish publication. No final 2027 annual forms or award tables are inferred."
   ]
 }

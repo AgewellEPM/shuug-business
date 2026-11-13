@@ -7,7 +7,7 @@ import {qualificationReport} from '../../../scripts/tax/qualification-report.mjs
 
 test('passing published examples and pinned local blanks never become agency or full-scenario approval',async()=>{
   const report=await qualificationReport();assert.equal(report.internalChecksPassed,true);
-  assert.equal(report.agencyApproval,false);assert.equal(report.releaseReady,false);assert.equal(report.agencySubmissionAttempted,false);
+  assert.deepEqual(report.requestedYears,[2023,2024,2025,2026,2027]);assert.deepEqual(report.partialCalculationYears,[2026,2027]);assert.deepEqual(report.installedPacks.find(pack=>pack.year===2027).forms,[]);assert.equal(report.federal2027Availability.annualRulesAvailable,true);assert.equal(report.agencyApproval,false);assert.equal(report.releaseReady,false);assert.equal(report.agencySubmissionAttempted,false);
   assert(report.scenarios.every(scenario=>scenario.fullScenarioExecuted===false&&scenario.sourceBytesVerified===false&&scenario.status==='blocked'));
   assert(report.installedPacks.every(pack=>pack.forms.every(form=>form.filingApproved===false)));
   assert.equal(report.householdFutaDerivedChecks.length,13);assert.equal(report.investmentDerivedChecks.length,24);

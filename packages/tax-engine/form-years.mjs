@@ -16,5 +16,6 @@ const packs=Object.freeze({
   2024:Object.freeze({templates:officialForms2024,lineMaps:lineMaps2024,scheduleMaps:scheduleMaps2024}),
   2025:Object.freeze({templates:officialForms2025,lineMaps,scheduleMaps}),
   2026:Object.freeze({templates:officialForms2026,lineMaps:lineMaps2026,scheduleMaps:scheduleMaps2026}),
+  2027:Object.freeze({templates:[],lineMaps:{},scheduleMaps:{}}),
 });
 export function pdfYearPack(year){if(!Number.isInteger(year)||!Object.hasOwn(packs,year))throw new Error('No reviewed PDF pack is installed for this tax year.');const federal=packs[year],state=ctPdfYearPack(year),ny=nyPdfYearPack(year);return {templates:[...federal.templates,...state.templates,...ny.templates],lineMaps:{...federal.lineMaps,...childCreditMaps[year],...state.lineMaps,...ny.lineMaps,...(year===2025?{f1040s1a:schedule1AMap}:{}),f1040:{...federal.lineMaps.f1040,...retirementMaps[year],...childCreditMaps[year]?.f1040},f1040sc:{...federal.lineMaps.f1040sc,...inventoryScheduleCMap},...(year<2026?{f1125a:inventory1125AMap}:{})},scheduleMaps:federal.scheduleMaps};}

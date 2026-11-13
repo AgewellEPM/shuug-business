@@ -234,7 +234,7 @@ export class StaffVaultClient {
   async prepareNewReturn(after){
     if(this.#busy)throw new Error('Wait for the current staff operation.');
     if(!this.#selection||!this.#key||!this.identity||!this.#selection.domains.includes('tax-document'))throw new Error('Select a current signed tax-document grant before preparing a new client return.');
-    if(!calculateReturn(after).calculationAvailable)throw new Error('Correct the draft input before preparing a private review kit.');
+    const result=calculateReturn(after);if(!result.calculationAvailable&&!result.intakeAvailable)throw new Error('Correct the draft input before preparing a private review kit.');
     const draft=clone(after),generation=this.#generation,selected=clone(this.#selection);this.#busy=true;
     try{
       await this.refreshGrants();this.#same(generation);
@@ -254,7 +254,7 @@ export class StaffVaultClient {
   async prepareReturnCorrection(objectId,after){
     if(this.#busy)throw new Error('Wait for the current staff operation.');
     const original=this.records.get(objectId);if(!this.#selection||!this.#key||!this.identity||!original||original.domain!=='tax-document')throw new Error('Open the current shared tax return before proposing a correction.');
-    if(!calculateReturn(after).calculationAvailable)throw new Error('Correct the draft input before preparing a private review kit.');
+    const result=calculateReturn(after);if(!result.calculationAvailable&&!result.intakeAvailable)throw new Error('Correct the draft input before preparing a private review kit.');
     this.#busy=true;const generation=this.#generation,selected=clone(this.#selection);
     try{
       await this.refreshGrants();this.#same(generation);

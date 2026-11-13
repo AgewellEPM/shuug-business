@@ -32,5 +32,5 @@ test('corporate Schedule J is filled on page 3 of its original template, once',a
 });
 test('form export refuses corrupted templates, wrong years and source truncation',async()=>{
   const input=reviewed();input.individual.w2s=[wage('taxpayer',50000)];await assert.rejects(()=>generateDraftPdf(input,{loadTemplate:async id=>{const data=new Uint8Array(await loadTemplate(id));data[100]^=1;return data;}}),/integrity/);
-  input.year=2027;await assert.rejects(()=>generateDraftPdf(input,{loadTemplate}),/tax-year/);input.year=2025;input.party.firstName='W'.repeat(200);await assert.rejects(()=>generateDraftPdf(input,{loadTemplate}),/truncated/);
+  input.year=2028;await assert.rejects(()=>generateDraftPdf(input,{loadTemplate}),/tax-year/);input.year=2025;input.party.firstName='W'.repeat(200);await assert.rejects(()=>generateDraftPdf(input,{loadTemplate}),/truncated/);
 });

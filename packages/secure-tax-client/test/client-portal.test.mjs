@@ -202,5 +202,19 @@ test('return saves survive a lost acknowledgment and reopen from identical encry
   const puts=f.calls.filter(call=>call.options.method==='PUT');assert.equal(puts[0].options.body,puts[1].options.body);await reopened.sync();const restored=JSON.parse(new TextDecoder().decode(reopened.records.get(id).plaintext));assert.deepEqual(restored,input);assert.equal(calculateReturn(restored).summary.totalTaxCents,2100000);
 });
 test('return storage failure or unsupported year sends no taxpayer write',async()=>{
-  const f=await fixture(),input=newReturn();f.storage.failPending=true;await assert.rejects(()=>saveReturn(f.vault,input),/storage unavailable/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);f.storage.failPending=false;input.year=2027;await assert.rejects(()=>saveReturn(f.vault,input),/Correct the return/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);
+  const f=await fixture(),input=newReturn();f.storage.failPending=true;await assert.rejects(()=>saveReturn(f.vault,input),/storage unavailable/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);f.storage.failPending=false;input.year=2028;await assert.rejects(()=>saveReturn(f.vault,input),/Correct the return/);assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,0);
+});
+test('validated 2026/2027 entity source intake encrypts and reopens while calculations remain unavailable',async()=>{
+  const f=await fixture(),saved=[];let reopened;
+  try{
+    for(const year of [2026,2027])for(const kind of ['1065','1120S','1120']){
+      const input=newReturn(kind,year);input.party.name='SYNTHETIC PRIVATE ANNUAL INTAKE';input.party.taxId='000123456';input.entity.receiptsCents=1234500;
+      const result=calculateReturn(input);assert.equal(result.intakeAvailable,true);assert.equal(result.calculationAvailable,false);assert.equal(result.filingReady,false);
+      const invalid=structuredClone(input);invalid.entity.receiptsCents=-1;const calls=f.calls.length;await assert.rejects(()=>saveReturn(f.vault,invalid),/Correct the return/);assert.equal(f.calls.length,calls);
+      const receipt=await saveReturn(f.vault,input);saved.push({objectId:receipt.objectId,input});
+    }
+    assert.equal((await f.vault.pendingUploads()).length,0);f.vault.lock();reopened=await f.make();await reopened.sync();
+    for(const {objectId,input}of saved){const value=JSON.parse(new TextDecoder().decode(reopened.records.get(objectId).plaintext));assert.deepEqual(value,input);assert.equal(calculateReturn(value).intakeAvailable,true);assert.equal(calculateReturn(value).calculationAvailable,false);}
+    for(const call of f.calls){const wire=call.options.body??'';assert(!wire.includes('SYNTHETIC PRIVATE ANNUAL INTAKE'));assert(!wire.includes('000123456'));}
+  }finally{f.vault.lock();reopened?.lock();}
 });

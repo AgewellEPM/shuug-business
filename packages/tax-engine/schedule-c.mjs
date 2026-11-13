@@ -15,7 +15,7 @@ export function scheduleC(input,index=0,year=2025){
   if(year<2025){lines['27a']=lines['27b'];delete lines['27b'];}
   // The final 2026 Schedule C separates vehicle-loan interest (16b) from
   // other business interest (16c). Never route the old category to 16b.
-  if(year===2026){lines['16c']=lines['16b'];delete lines['16b'];}
+  if(year>=2026){lines['16c']=lines['16b'];delete lines['16b'];}
   const diagnostics=[...inventory.diagnostics];
   if(!input.name.trim())diagnostics.push(diagnostic('BUSINESS_NAME_REQUIRED','Name each Schedule C business.',{field:`individual.businesses.${index}.name`}));
   if(lines['31']<0)diagnostics.push(diagnostic('LOSS_LIMITATION_REVIEW','A business loss needs its applicable passive-activity, at-risk, excess-business-loss and carryover workpapers before a complete return total can be used.'));

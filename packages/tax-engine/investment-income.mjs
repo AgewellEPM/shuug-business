@@ -16,7 +16,7 @@ const decisions=['unknown','yes','no'];
 const threshold=status=>({single:20000000,headOfHousehold:20000000,marriedJoint:25000000,survivingSpouse:25000000,marriedSeparate:12500000})[status];
 
 function validate(value,year,filingStatus){
-  if(![2023,2024,2025,2026].includes(year)||threshold(filingStatus)===undefined)throw new Error('Investment income requires an installed individual tax year and filing status.');
+  if(![2023,2024,2025,2026,2027].includes(year)||threshold(filingStatus)===undefined)throw new Error('Investment income requires an installed individual tax year and filing status.');
   strictObject(value,['interestPayers','dividendPayers','foreignAccount','fbarRequired','foreignTrust','foreignCountries','review'],'Investment income');
   const ids=new Set();
   for(const key of ['interestPayers','dividendPayers'])for(const payer of list(value[key],key,100)){
@@ -42,7 +42,7 @@ export function investmentIncome(value,{year,filingStatus,taxableInterestCents,o
   validate(value,year,filingStatus);
   const rawInterest=sumMoney(value.interestPayers.map(item=>item.amountCents)),rawDividends=sumMoney(value.dividendPayers.map(item=>item.amountCents)),interest=R(rawInterest),dividends=R(rawDividends);
   const qualifiedDividendsCents=R(sumMoney(value.dividendPayers.map(item=>item.qualifiedDividendsCents??0))),diagnostics=[],need=(ok,code,message)=>{if(!ok)diagnostics.push(diagnostic(code,message));};
-  if(year===2026)return {required:true,taxableInterestCents:interest,ordinaryDividendsCents:dividends,qualifiedDividendsCents,incomeUnknown:true,forms:[],diagnostics:[diagnostic('INVESTMENT_YEAR_UNSUPPORTED','No reviewed Schedule B / qualified-dividend form pack is installed for 2026. Source amounts are preserved and final tax totals remain unavailable.')]};
+  if(year>=2026)return {required:true,taxableInterestCents:interest,ordinaryDividendsCents:dividends,qualifiedDividendsCents,incomeUnknown:true,forms:[],diagnostics:[diagnostic('INVESTMENT_YEAR_UNSUPPORTED',`No reviewed Schedule B / qualified-dividend form pack is installed for ${year}. Source amounts are preserved and final tax totals remain unavailable.`)]};
   if(qualifiedDividendsCents)need(value.review.qualifiedDividends===true,'QUALIFIED_DIVIDENDS_REVIEW',investmentReviews.at(-1)[1]+'.');
   const hasIncome=interest>0||dividends>0;
   const unnamed=[...value.interestPayers,...value.dividendPayers].some(item=>item.amountCents>0&&!item.payer.trim());

@@ -1,6 +1,7 @@
 // Pure private office state. This module neither stores data nor grants access.
 import {decode64} from './envelope.mjs';
-import {checkedReturnDraft} from './return-proposals.mjs';
+import {checkedReturnDraft,returnIntakeYears} from './return-proposals.mjs';
+export {returnIntakeYears} from './return-proposals.mjs';
 import {BOOK_ACTIONS,assertBookInput,replayCaseBooks,caseBookReport} from './case-books.mjs';
 import {OFFICE_ACTIONS,isOfficeBody,assertOfficeBody,assertOfficeCommand,applyOfficeTransition,officeLedgers,officeSnapshot} from './office-model.mjs';
 import {isLegacyBooks,assertLegacyBookSource} from './legacy-books.mjs';
@@ -34,7 +35,7 @@ function review(value,history){
 }
 export function assertCaseBody(body){
   if(isOfficeBody(body))return assertOfficeBody(body);
-  exactCaseObject(body,['title','year','kind','requests','draft','history']);text(body.title,160,true);if(![2023,2024,2025,2026].includes(body.year)||!kinds.includes(body.kind))fail();
+  exactCaseObject(body,['title','year','kind','requests','draft','history']);text(body.title,160,true);if(!returnIntakeYears.includes(body.year)||!kinds.includes(body.kind))fail();
   if(!Array.isArray(body.requests)||body.requests.length>100||!Array.isArray(body.history)||!body.history.length||body.history.length>256)fail();
   const actionIds=new Set();let previous=-Infinity;
   for(const [index,event]of body.history.entries()){
@@ -70,7 +71,7 @@ export function assertCaseBody(body){
 export function assertCaseCommand(command){
   if(OFFICE_ACTIONS.includes(command?.type))return assertOfficeCommand(command);
   exactCaseObject(command,['actionId','type','input']);identifier(command.actionId);if(!actions.includes(command.type))fail();const input=command.input;
-  if(command.type==='case.create'){exactCaseObject(input,['title','year','kind']);text(input.title,160,true);if(![2023,2024,2025,2026].includes(input.year)||!kinds.includes(input.kind))fail();}
+  if(command.type==='case.create'){exactCaseObject(input,['title','year','kind']);text(input.title,160,true);if(!returnIntakeYears.includes(input.year)||!kinds.includes(input.kind))fail();}
   if(command.type==='request.add'){exactCaseObject(input,['requestId','title','due','notes']);identifier(input.requestId);text(input.title,160,true);due(input.due);text(input.notes,2000);}
   if(command.type==='document.review'){exactCaseObject(input,['requestId','document','decision','notes']);identifier(input.requestId);assertCaseReference(input.document);if(!['reviewed','replacement_requested'].includes(input.decision))fail();text(input.notes,2000);}
   if(command.type==='draft.link'){exactCaseObject(input,['document','notes',...Object.hasOwn(input??{},'booksVersion')?['booksVersion']:[]]);assertCaseReference(input.document,{draft:true});text(input.notes,2000);if(input.booksVersion!==undefined&&input.booksVersion!==null)identifier(input.booksVersion);}

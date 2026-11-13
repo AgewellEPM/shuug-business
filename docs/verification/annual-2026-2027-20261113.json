@@ -1,0 +1,85 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-13",
+  "readiness": "prototype",
+  "baseCommit": "edeeb4c7f0d37a6f6e9f1f80eb41d6e9740a824a",
+  "requestedTaxYears": [2023, 2024, 2025, 2026, 2027],
+  "scope": [
+    "Published 2027 standard deductions, ordinary statutory rates, Social Security base and limited QBI calculation",
+    "2027 dependent standard deduction, age/blindness, qualifying-relative and CTC/ACTC limits, and independent EIC zero-proof limits",
+    "Reviewed statutory Schedule 1-A treatment through 2027; unavailable final forms and unreviewed transition relief remain explicit",
+    "Encrypted 2026/2027 creation, correction, save/reopen and matching case review across 1040, 1065, 1120-S and 1120",
+    "Strict source validation and intake-only persistence for 2026/2027 entity returns",
+    "2027 workpaper-only PDF export without loading or relabeling prior-year templates"
+  ],
+  "verification": {
+    "engineAndClient": {
+      "tests": 497,
+      "passed": 496,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Pre-existing optional native Journal executable fixture unavailable"
+    },
+    "compiledHttp": {
+      "checks": 676,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "synthetic": true,
+      "reusedUnchangedServerBuild": true,
+      "returns": 20,
+      "partialYearReturns": 8,
+      "exports": 14,
+      "workpaperOnlyExports": 2,
+      "annualCaseBindings": 12,
+      "clientAndStaffCorrectionsReopened": true,
+      "changedTaxYearRejected": true,
+      "backupRestoreVerified": true,
+      "hostPlaintextMarkerAbsent": true
+    },
+    "independentClientArtifact": {
+      "modules": 186,
+      "publicPdfFetches": 67,
+      "exports": 17,
+      "copiedSourceAndVendorFilesMatched": 404,
+      "execution": "Node V8 and JSDOM with original PDF rendering",
+      "defaultTrustConfigDisabled": true
+    },
+    "custodyPackages": {
+      "offlineFiles": 417,
+      "cloudArchiveFiles": 400,
+      "copiedSourceBytesAndLockVersionsVerified": true,
+      "dependencyClosureAndSafeImportsVerified": true,
+      "cloudTemplateResourcesChecked": 13,
+      "providerManagedSdkRuntimeAttested": false,
+      "keysInitialized": false,
+      "cloudProvisioned": false
+    },
+    "primaryReferences": {
+      "qualificationPinnedFiles": 81,
+      "qualificationChecks": 212,
+      "annual2027SourcePins": 14,
+      "annual2027PublishedAmountOccurrences": 94,
+      "annualFormCounts": {"2023": 24, "2024": 24, "2025": 25, "2026": 3, "2027": 0},
+      "releaseDatePlaceholderAnomalyRetained": true,
+      "instructionExamplesAreAgencyApproval": false
+    },
+    "teamReview": "Same-provider engineering review; no independent-provider or agency review claimed"
+  },
+  "limitations": {
+    "complete2026AnnualPack": false,
+    "complete2027AnnualPack": false,
+    "final2026TaxTableInstalled": false,
+    "final2027TaxTableInstalled": false,
+    "entity2026And2027CalculationsAvailable": false,
+    "fullEicAwardsImplemented": false,
+    "completeFederalCoverage": false,
+    "completeStateCoverage": false,
+    "agencySubmissionAttempted": false,
+    "agencyApproval": false,
+    "realKeyCustodyVerified": false,
+    "installedCustomerWorkflowVerified": false,
+    "installedServiceChanged": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "releaseReady": false
+  }
+}

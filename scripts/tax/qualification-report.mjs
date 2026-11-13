@@ -12,6 +12,7 @@ import {newInvestmentIncome,investmentIncome,netInvestmentTax} from '../../packa
 import {calculationYears,requestedTaxYears} from '../../packages/tax-engine/index.mjs';
 import {pdfYearPack} from '../../packages/tax-engine/form-years.mjs';
 import {federal2026Availability} from '../../packages/tax-engine/annual-2026.mjs';
+import {federal2027Availability} from '../../packages/tax-engine/annual-2027.mjs';
 import {capitalIncome,capitalLossCarryforward,newCapitalIncome} from '../../packages/tax-engine/capital-income.mjs';
 import {qualifiedCapitalTax} from '../../packages/tax-engine/capital-tax.mjs';
 import {retirementIncome,socialSecurityBenefits,newRetirementIncome,newRetirementDistribution,newSocialSecurityBenefit} from '../../packages/tax-engine/retirement-income.mjs';
@@ -41,6 +42,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const schedule1AExamples=JSON.parse(await readFile(path.join(engine,'test/schedule-1a-reference.json'),'utf8'));
   const childSources=JSON.parse(await readFile(path.join(engine,'data/child-credits-sources.json'),'utf8'));
   const eicSources=JSON.parse(await readFile(path.join(engine,'data/earned-income-credit-sources.json'),'utf8'));
+  const annual2027=JSON.parse(await readFile(path.join(engine,'data/2027-sources.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
     for(const scenario of catalog.selectedScenarios)sourceEvidence.push({id:scenario.id,...await checkedSource(path.join(sourcesDirectory,scenario.sourceFile),scenario)});
@@ -48,7 +50,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
     const checked=new Map();
     const ctInstructions=Object.entries(ctSources.sources).map(([year,source])=>({year:Number(year),url:source.instructions,sha256:source.instructionSha256,bytes:source.instructionBytes}));
-    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions,...retirementExamples.annualInstructions,...standardExamples.annualInstructions,...ctInstructions,...schedule1AExamples.annualInstructions,...childSources.instructions,...eicSources.annualInstructions]){
+    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions,...retirementExamples.annualInstructions,...standardExamples.annualInstructions,...ctInstructions,...schedule1AExamples.annualInstructions,...childSources.instructions,...eicSources.annualInstructions,...annual2027.sources]){
       if(checked.has(source.url)){const previous=checked.get(source.url);if(previous.bytes!==source.bytes||previous.sha256!==source.sha256)throw new Error('Instruction fixtures disagree about a reviewed source pin.');continue;}
       const filename=source.file??new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});checked.set(source.url,source);
     }
@@ -186,9 +188,9 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
     internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks,...capitalPublishedChecks,...capitalDerivedChecks,...retirementPublishedChecks,...retirementDerivedChecks,...standardPublishedChecks,...standardDerivedChecks,...ctPublishedChecks,...ctDerivedChecks,...schedule1APublishedChecks,...schedule1ADerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,capitalPublishedChecks,capitalDerivedChecks,retirementPublishedChecks,retirementDerivedChecks,standardPublishedChecks,standardDerivedChecks,ctPublishedChecks,ctDerivedChecks,schedule1APublishedChecks,schedule1ADerivedChecks,sourceEvidence,installedPacks,scenarios,
-    requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),partialCalculationYears:[2026],federal2026Availability,stateCalculationPacks:[{state:'NY',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[],filingApproved:false},{state:'CT',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[2023],filingApproved:false}],
+    requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),partialCalculationYears:[2026,2027],federal2026Availability,federal2027Availability,stateCalculationPacks:[{state:'NY',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[],filingApproved:false},{state:'CT',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[2023],filingApproved:false}],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
-    limits:['Instruction examples are not ATS scenario execution.','FUTA, NIIT, capital, retirement, standard-deduction and Connecticut derived vectors are synthetic cases. Published capital/benefit/standard-deduction and CT Anna examples are labeled separately, including the generic capital arithmetic example with a synthetic adjustment interpretation.','2026 standard deduction uses final statutory guidance, not a final Form 1040 or Tax Table.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
+    limits:['Instruction examples are not ATS scenario execution.','FUTA, NIIT, capital, retirement, standard-deduction and Connecticut derived vectors are synthetic cases. Published capital/benefit/standard-deduction and CT Anna examples are labeled separately, including the generic capital arithmetic example with a synthetic adjustment interpretation.','2026–2027 calculations use published annual/statutory guidance, not final annual Forms 1040 or Tax Tables.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(path.resolve(process.argv[1])).href){
   try{

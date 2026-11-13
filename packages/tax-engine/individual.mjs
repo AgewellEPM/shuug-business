@@ -8,6 +8,7 @@ import {capitalIncome,capitalLossCarryforward} from './capital-income.mjs';
 import {qualifiedCapitalTax} from './capital-tax.mjs';
 import {retirementIncome} from './retirement-income.mjs';
 import {qualifiedBusinessDeduction2026} from './annual-2026.mjs';
+import {qualifiedBusinessDeduction2027} from './annual-2027.mjs';
 import {additionalMedicare} from './additional-medicare.mjs';
 import {householdEmployment} from './household-employment.mjs';
 import {energyCredits} from './energy-credits.mjs';
@@ -76,7 +77,7 @@ export function calculateIndividual(input){
   const standard=standardDeduction(individual.eligibility,{year:input.year,filingStatus:individual.filingStatus,wagesCents:lines['1z'],businessProfitCents:profit,seAdjustmentCents:halfTax,incomeKnown:!sourceIncomeUnknown&&!input.features.length,stateReturns:individual.stateReturns??[]});diagnostics.push(...standard.diagnostics);const deductionUnknown=!standard.known;lines['12e']=standard.deductionCents;
   const additionalDeductions=schedule1A(individual.schedule1A,{year:input.year,filingStatus:individual.filingStatus,adjustedGrossIncomeCents:lines['11b'],incomeUnknown:sourceIncomeUnknown,otherTreatments:input.features.length>0||diagnostics.some(item=>item.code==='LOSS_LIMITATION_REVIEW'),w2s,businesses,selfEmploymentAdjustments:seByOwner,eligibility:individual.eligibility,eligibilityConflict:standard.diagnostics.some(row=>row.code==='STANDARD_STATE_BIRTH_CONFLICT'),identifiers:individual.taxpayerIdentifiers,taxIds:{taxpayer:input.party.taxId,spouse:individual.spouseTaxId}});diagnostics.push(...additionalDeductions.diagnostics);forms.push(...additionalDeductions.forms);
   const tipReduction=business=>additionalDeductions.qbiReductionByBusiness.find(row=>row.businessId===business.copyId)?.amountCents??0,allTipReductions=sumMoney(businesses.map(tipReduction));
-  const beforeQbi=Math.max(0,lines['11b']-(lines['12e']??0)-(additionalDeductions.deductionCents??0)),qbiThreshold=joint?rules.qbiJointThresholdCents:rules.qbiSingleThresholdCents;
+  const beforeQbi=Math.max(0,lines['11b']-(lines['12e']??0)-(additionalDeductions.deductionCents??0)),qbiThreshold=rules.qbiThresholds?.[individual.filingStatus]??(joint?rules.qbiJointThresholdCents:rules.qbiSingleThresholdCents);
   let qbi=0,qbiUnknown=deductionUnknown||additionalDeductions.deductionCents===null||additionalDeductions.qbiUnknown;
   if(businesses.length||individual.priorQbiLossCents){
     const qualified=sumMoney([profit,-halfTax,-allTipReductions]),netQualified=sumMoney([qualified,-R(individual.priorQbiLossCents)]);
@@ -85,12 +86,12 @@ export function calculateIndividual(input){
     if(additionalDeductions.deductionCents===null||additionalDeductions.qbiUnknown){qbiUnknown=true;diagnostics.push(diagnostic('QBI_SCHEDULE1A_UNRESOLVED','Resolve Schedule 1-A deductions and business-tip allocation before the QBI deduction.'));}
     else if(deductionUnknown){qbiUnknown=true;diagnostics.push(diagnostic('QBI_STANDARD_DEDUCTION_UNRESOLVED','Resolve federal dependent/aged standard-deduction eligibility before the QBI taxable-income limitation.'));}
     else if(sourceIncomeUnknown){qbiUnknown=true;diagnostics.push(diagnostic('QBI_SOURCE_INCOME_UNRESOLVED','Resolve business, investment and retirement income before applying the QBI deduction and taxable-income limitation.'));}
-    else if(input.year!==2026&&beforeQbi>qbiThreshold){qbiUnknown=true;diagnostics.push(diagnostic('QBI_COMPLEX_LIMITS','Taxable income exceeds the simplified Form 8995 threshold. Form 8995-A wage/property and trade limitations must be completed; no zero deduction was substituted.'));}
+    else if(input.year<2026&&beforeQbi>qbiThreshold){qbiUnknown=true;diagnostics.push(diagnostic('QBI_COMPLEX_LIMITS','Taxable income exceeds the simplified Form 8995 threshold. Form 8995-A wage/property and trade limitations must be completed; no zero deduction was substituted.'));}
     else if(['taxpayer','spouse'].some(owner=>businesses.filter(business=>business.owner===owner).length>1)){
       qbiUnknown=true;diagnostics.push(diagnostic('QBI_MULTIPLE_BUSINESS_ALLOCATION','Multiple businesses for one taxpayer require reviewed allocation of self-employment adjustments and QBI losses. No unreviewed business-row allocation was substituted.'));
-    }else if(input.year===2026){
+    }else if(input.year>=2026){
       const active=sumMoney(businesses.filter(business=>individual.businesses.find(value=>value.id===business.copyId).materialParticipation).map(business=>sumMoney([business.profitCents,-(seByOwner.find(owner=>owner.owner===business.owner)?.halfTaxCents??0),-tipReduction(business)])));
-      const annual=qualifiedBusinessDeduction2026({filingStatus:individual.filingStatus,taxableIncomeBeforeDeductionCents:beforeQbi,qualifiedIncomeCents:qualified,activeQualifiedIncomeCents:active,priorLossCents:individual.priorQbiLossCents,netCapitalGainCents:capitalPreference});diagnostics.push(...annual.diagnostics);qbiUnknown=annual.deductionCents===null;qbi=annual.deductionCents??0;
+      const annual=(input.year===2027?qualifiedBusinessDeduction2027:qualifiedBusinessDeduction2026)({filingStatus:individual.filingStatus,taxableIncomeBeforeDeductionCents:beforeQbi,qualifiedIncomeCents:qualified,activeQualifiedIncomeCents:active,priorLossCents:individual.priorQbiLossCents,netCapitalGainCents:capitalPreference});diagnostics.push(...annual.diagnostics);qbiUnknown=annual.deductionCents===null;qbi=annual.deductionCents??0;
       forms.push({form:'f8995',copyId:'qbi',lines:{...qbiLines,'15':annual.deductionCents},annual,qualifiedBusinessIncomeCents:qualified});
     }else{qbi=qbiLines['15'];forms.push({form:'f8995',copyId:'qbi',lines:qbiLines,businesses:businesses.map(business=>({copyId:business.copyId,name:business.businessName,taxId:business.owner==='spouse'?individual.spouseTaxId:input.party.taxId,qbiCents:sumMoney([business.profitCents,-(seByOwner.find(owner=>owner.owner===business.owner)?.halfTaxCents??0),-tipReduction(business)])})),qualifiedBusinessIncomeCents:qualified});}
   }

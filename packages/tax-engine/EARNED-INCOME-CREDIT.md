@@ -12,6 +12,7 @@ The optional `individual.earnedIncomeCredit` record supports `qualifyingChildren
 | 2024 | $18,591 / $25,511 | $59,899 / $66,819 |
 | 2025 | $19,104 / $26,214 | $61,555 / $68,675 |
 | 2026 | $19,540 / $26,820 | $62,974 / $70,244 |
+| 2027 | $20,164 / $27,684 | $65,002 / $72,512 |
 
 AGI at or above the applicable limit can prove zero when federal income treatment is resolved. Complete earned-source review permits wages plus Schedule C net profit minus the deductible half of self-employment tax to be tested against that limit. Losses are preserved. The review excludes unrepresented farm/partnership income, optional SE methods, community-property allocations, Medicaid-waiver elections and EIC-excluded wage amounts; those treatments remain unresolved.
 
@@ -19,6 +20,6 @@ Combat pay is elective for EIC. High-income proof excludes it; no-positive-earne
 
 `earnedIncomeCreditWorkpaper(input, result, line)` retains the private source review, combat amount, applied cutoff, reason and unresolved diagnostics in the draft packet, even without dependent forms. The browser editor keeps these facts in the encrypted return workflow.
 
-Rules and annual limits are pinned to [2023 Publication 596](https://www.irs.gov/pub/irs-prior/p596--2023.pdf), [2024 Publication 596](https://www.irs.gov/pub/irs-prior/p596--2024.pdf), [2025 Publication 596](https://www.irs.gov/pub/irs-prior/p596--2025.pdf), and [Rev. Proc. 2025-32, section 4.06](https://www.irs.gov/pub/irs-drop/rp-25-32.pdf). `data/earned-income-credit-sources.json` records exact bytes/hashes; the qualification report verifies those supplied source bytes. The 2026 revenue procedure supports income exclusions only; final annual award tables and new supporting requirements are not claimed implemented.
+Rules and annual limits are pinned to [2023 Publication 596](https://www.irs.gov/pub/irs-prior/p596--2023.pdf), [2024 Publication 596](https://www.irs.gov/pub/irs-prior/p596--2024.pdf), [2025 Publication 596](https://www.irs.gov/pub/irs-prior/p596--2025.pdf), and [Rev. Proc. 2025-32, section 4.06](https://www.irs.gov/pub/irs-drop/rp-25-32.pdf). `data/earned-income-credit-sources.json` records exact bytes/hashes; the qualification report verifies those supplied source bytes. [Revenue Procedure 2026-35, section 3.06](https://www.irs.gov/pub/irs-drop/rp-26-35.pdf) supplies the 2027 cutoffs, with the released-source date-placeholder anomaly retained in the metadata. The 2026–2027 revenue procedures support income exclusions only; final annual award tables and new supporting requirements are not claimed implemented.
 
 Tests exercise published cutoff parameters at below/equal/above endpoints for every filing-status class, missing-section behavior, child conflicts, earned-source completeness, business losses, combat elections/reconciliation, identifiers and unknown propagation. These are synthetic boundary vectors derived from official rules, not IRS-published taxpayer examples. The editor test saves/reopens source facts and clears private content. No agency submission or approval is implied.

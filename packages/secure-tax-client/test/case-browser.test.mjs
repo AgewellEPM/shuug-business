@@ -56,6 +56,23 @@ async function fixture(){
   return {staff,client,config,binding,manifest,grant,firm,clientKey,staffKey,staffStore,clientStore,objects,calls,put,apply,store,respond,setHook:value=>{hook=value;},setGrants:value=>{grants=value;},remove:id=>{const old=objects.get(id);objects.set(id,{objectId:id,revision:old.revision+1,sequence:++sequence,deleted:true});}};
 }
 async function privateFile(){const bytes=new TextEncoder().encode('%PDF-1.7\nSYNTHETIC PRIVATE CASE SOURCE\n%%EOF');return (await portalFilePayload({name:'synthetic-case-source.pdf',type:'application/pdf',size:bytes.length,arrayBuffer:async()=>bytes.buffer},{purpose:'tax-document',category:'tax',notes:'SYNTHETIC PRIVATE CASE NOTES'})).payload;}
+test('2026 and 2027 case form creation and encrypted draft linkage preserve annual source identity for client and staff',async()=>{
+  const f=await fixture();
+  try{for(const year of [2026,2027])for(const kind of ['1040','1120']){
+    const dom=new JSDOM('<!doctype html><body><main></main></body>'),document=dom.window.document;let pending,created;
+    const editor=mountCaseEditor(document,document.querySelector('main'),{getClient:()=>f.staff,run:action=>{pending=action();return pending;},confirm:()=>true,onSave:async(id,action,evidence)=>{created=await f.apply(id,action,evidence);}});editor.setEnabled(true);
+    try{
+      const yearSelect=document.getElementById('case-year');assert([...yearSelect.options].some(option=>option.value===String(year)));assert.match(editor.element.textContent,/coverage is incomplete/);assert(!editor.element.textContent.includes('case intake and books only'));
+      document.getElementById('case-title').value=`SYNTHETIC PRIVATE ${year} ${kind} CASE`;document.getElementById('case-kind').value=kind;yearSelect.value=String(year);[...document.querySelectorAll('button')].find(button=>button.textContent==='Save private case review kit').click();await pending;
+      assert.equal(f.client.records.get(created.id).verifiedCase.year,year);assert.equal(f.staff.records.get(created.id).verifiedCase.kind,kind);assert.equal(Object.hasOwn(created.packet,'year'),false);
+      const source={...newReturn(kind),year},sourceId=`annual-${year}-${kind}`;source.notes='SYNTHETIC PRIVATE ANNUAL SOURCE';await f.put(source,sourceId);await f.staff.sync();await f.client.sync();
+      const linked=await f.apply(created.id,command('draft.link',{document:ref(f.staff.records.get(sourceId)),notes:'Exact annual source reviewed; coverage remains incomplete'}),sourceId);
+      for(const client of [f.staff,f.client]){const body=client.records.get(created.id).verifiedCase;assert.equal(body.year,year);assert.equal(body.kind,kind);assert.equal(body.draft.objectId,sourceId);assert.equal(caseSnapshot(body,client.records).filingReady,false);assert.equal(JSON.parse(new TextDecoder().decode(client.records.get(sourceId).plaintext)).year,year);}
+      const wrongId=sourceId+'-wrong-year';await f.put({...source,year:year===2026?2027:2026},wrongId);await f.staff.sync();await assert.rejects(()=>f.staff.prepareCaseAction(created.id,command('draft.link',{document:ref(f.staff.records.get(wrongId)),notes:''}),wrongId));await f.staff.unlock(f.staffKey.keyId);await f.staff.selectGrant(f.grant.grantId);await f.staff.sync();
+      const wire=JSON.stringify({proposal:linked.kit.proposal,packet:linked.packet});assert(!wire.includes('SYNTHETIC PRIVATE ANNUAL SOURCE'));assert(!wire.includes('SYNTHETIC PRIVATE '+year));
+    }finally{editor.clear();dom.window.close();}
+  }}finally{f.staff.lock();f.client.lock();}
+});
 test('certified cases connect requests, reviewed files and drafts for both families, while changed sources remain visibly stale',async()=>{
   for(const kind of ['1040','1120']){
     const f=await fixture(),created=await f.apply(null,command('case.create',{title:'SYNTHETIC PRIVATE TAX CASE',year:2025,kind})),id=created.id;assert(isCaseObjectId(id));assert(id.startsWith(CASE_OBJECT_PREFIX));assert.equal(f.staff.records.get(id).verifiedCase.title,'SYNTHETIC PRIVATE TAX CASE');assert(Object.isFrozen(f.client.records.get(id).verifiedCase));

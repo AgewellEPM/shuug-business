@@ -51,5 +51,5 @@ for(const year of [2023,2024]){
   });
 }
 test('unsupported years cannot silently use installed rules or create a return',()=>{
-  assert.deepEqual(calculationYears,[2023,2024,2025,2026]);for(const year of [2022,2027,'2023',null]){assert.throws(()=>newReturn('1040',year));assert.throws(()=>ordinaryTax(5000000,'single',year));const input=reviewed();input.year=year;assert.equal(calculateReturn(input).calculationAvailable,false);}
+  assert.deepEqual(calculationYears,[2023,2024,2025,2026,2027]);for(const year of [2022,2028,'2023',null]){assert.throws(()=>newReturn('1040',year));assert.throws(()=>ordinaryTax(5000000,'single',year));const input=reviewed();input.year=year;assert.equal(calculateReturn(input).calculationAvailable,false);}
 });

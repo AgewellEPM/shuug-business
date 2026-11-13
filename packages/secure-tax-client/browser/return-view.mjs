@@ -11,7 +11,7 @@ export function renderReturn(document,data,{download=null,run=operation=>operati
   const diagnostics=node(document,'ul');for(const item of result.diagnostics){const row=node(document,'li',item.message);row.className=item.severity==='blocking'?'tax-blocker':'';diagnostics.append(row);}section.append(diagnostics);
   const details=node(document,'details');details.append(node(document,'summary','Calculation workpapers'));
   for(const item of result.forms){details.append(node(document,'h4',`${item.form.replace(/^f/,'Form ')} · ${item.copyId}`));const lines=node(document,'dl');lines.className='tax-return-totals';for(const [line,value]of Object.entries(item.lines))lines.append(node(document,'dt',`Line ${line}`),node(document,'dd',displayMoney(value)));details.append(lines);}section.append(details);
-  if(download&&result.calculationAvailable){const button=node(document,'button','Download draft forms PDF');button.type='button';button.className='secondary';button.addEventListener('click',()=>run(async()=>{
+  if(download&&result.calculationAvailable){const button=node(document,'button',result.annualAvailability?.finalForms.length===0?'Download draft workpapers PDF':'Download draft forms PDF');button.type='button';button.className='secondary';button.addEventListener('click',()=>run(async()=>{
     const captured=structuredClone(data),{generateDraftPdf}=await import('@shuug/tax-engine/pdf');
     if(!isCurrent())throw new Error('The private return view changed. Reopen the current return before exporting.');
     const packet=await generateDraftPdf(captured);

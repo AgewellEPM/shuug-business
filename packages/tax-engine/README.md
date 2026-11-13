@@ -3,7 +3,7 @@
 This package supplies limited **2023–2025 federal draft preparation packs** for both
 individual/self-employed and business returns. It is integrated with the
 independently trusted encrypted client and its existing client/staff authorization
-boundary. Partial 2026 individual calculations and final Schedule C/SE/8812 templates
+boundary. Partial 2026–2027 individual calculations and final 2026 Schedule C/SE/8812 templates
 are also installed, plus limited Connecticut and New York resident packs for 2023–2025.
 It is not a completed filing product.
 
@@ -30,6 +30,8 @@ Different years never inherit these rates.
 | New York resident | 2023–2025 IT-201 / IT-2, annual NYS/NYC/Yonkers rates, benefit recapture, household/school credits, reviewed MCTMT and mandatory linked W-2 supplements |
 | Connecticut resident | 2023–2025 CT-1040 resident calculation, annual rates/credits, reviewed adjustments, source-linked Social Security/IRA/pension subtractions, military/teachers elections, property/use tax and payments; other jurisdictions/supplements remain explicit gaps |
 | 2026 individual | Published annual standard deduction, SS base and QBI minimum; final C/SE/8812 templates. Main 1040 and several schedules remain unavailable |
+| 2027 individual | Released annual rates, standard/dependent amounts, SS base and indexed QBI minimum. Workpapers only; final Tax Table and annual forms unavailable |
+| 2026–2027 entities | Validated encrypted source intake, case links and firm-approved creation/correction. Annual calculations and forms remain unavailable |
 | Partnership 1065 | Ordinary business income/deductions, exact ordinary-income owner allocations, partial K-1 workpapers |
 | S corporation 1120-S | Ordinary business income/deductions, exact ordinary-income shareholder allocations, partial K-1 workpapers |
 | C corporation 1120 | Ordinary taxable business income, regular corporate tax, estimates/balance, Schedule J |
@@ -139,7 +141,7 @@ rejection/amendment workflows remain real product requirements. Draft generation
 synthetic tests and a configured MCP workspace do not supply them. Payment
 activation remains deferred under the current project instruction.
 
-Detailed scope: [Schedule 1-A](SCHEDULE-1A.md), [standard deduction](STANDARD-DEDUCTION.md),
+Detailed scope: [2027 annual foundation](ANNUAL-2027.md), [Schedule 1-A](SCHEDULE-1A.md), [standard deduction](STANDARD-DEDUCTION.md),
 [dependents and child credits](DEPENDENTS-CHILD-CREDITS.md), [EIC source requirements](EARNED-INCOME-CREDIT.md),
 [Connecticut retirement](CONNECTICUT-RETIREMENT.md), [inventory](INVENTORY.md), [retirement](RETIREMENT-INCOME.md),
 [New York](NEW-YORK.md) and [legacy posting conversion](../secure-tax-client/LEGACY-BOOK-CONVERSION.md).

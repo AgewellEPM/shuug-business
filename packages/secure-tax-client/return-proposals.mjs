@@ -6,8 +6,11 @@ const hpke=new CipherSuite({kem:new DhkemP256HkdfSha256(),kdf:new HkdfSha256(),a
 const fail=()=>{throw new Error('The encrypted return proposal, source revision or private review does not match.');};
 const digest=async value=>encode64(new Uint8Array(await crypto.subtle.digest('SHA-256',utf8.encode(value))));
 export const returnProposalDigest=value=>digest(canonicalReturnProposal(value));
+// Encrypted source intake is independent of installed annual calculations/forms.
+// Keep this contract local so off-host review kits do not import the tax engine.
+export const returnIntakeYears=Object.freeze([2023,2024,2025,2026,2027]);
 export function checkedReturnDraft(value){
-  if(!value||value.version!==1||value.type!=='tax-return'||![2023,2024,2025].includes(value.year)||!['1040','1065','1120S','1120'].includes(value.kind))fail();
+  if(!value||value.version!==1||value.type!=='tax-return'||!returnIntakeYears.includes(value.year)||!['1040','1065','1120S','1120'].includes(value.kind))fail();
   const text=canonicalPrivateReview(value);if(utf8.encode(text).length>250000)fail();return value;
 }
 export async function privateReturnReviewCommitment(review){

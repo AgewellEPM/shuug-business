@@ -33,6 +33,17 @@
       "url": "https://www.irs.gov/pub/irs-drop/rp-25-32.pdf",
       "bytes": 260406,
       "sha256": "e9ada115fb43a4af5ea326ca91edd40ab0bf29b9be01d2c13d7b8fa96214635b"
+    },
+    {
+      "year": 2027,
+      "id": "rp-26-35",
+      "file": "rp-26-35.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-26-35.pdf",
+      "bytes": 216025,
+      "sha256": "87b383c6ce6e616fd006a61f5eed46fe67099b9c23fb1e1c42ff5359474513b8"
     }
+  ],
+  "notes": [
+    "Released Revenue Procedure 2026-35 supplies 2027 statutory amounts. Its Section1 retains literal [Release Date, 2026] placeholders; IRS November5 release and guidewire establish publication. No final 2027 annual forms or award tables are inferred."
   ]
 }

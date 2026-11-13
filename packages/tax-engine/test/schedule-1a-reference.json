@@ -72,6 +72,22 @@
       "url": "https://uscode.house.gov/us/usc/119-124/t26/s199A/",
       "bytes": 57474,
       "sha256": "7292dac7f3c1b4e68cd6e8b9b548ddadbe375d92a347a282ec5f5759ae2144b9"
+    },
+    {
+      "year": 2027,
+      "id": "irs-worker-deductions",
+      "file": "irs-worker-deductions.html",
+      "url": "https://www.irs.gov/newsroom/working-families-tax-cuts-individuals-and-workers",
+      "bytes": 121473,
+      "sha256": "fa5fe79c096b2af113a393afc852649a9ba737724eb5172fbca36714f304c9e8"
+    },
+    {
+      "year": 2027,
+      "id": "irs-tip-reporting",
+      "file": "irs-tip-reporting.html",
+      "url": "https://www.irs.gov/businesses/small-businesses-self-employed/tip-recordkeeping-and-reporting",
+      "bytes": 131315,
+      "sha256": "2cacb3df58c4da86cc592e7f7db7b49d6134158154c9b69ae52b83c24f997f8f"
     }
   ],
   "publishedOvertimeExamples": [

@@ -48,7 +48,7 @@ function workpaper(pdf,font,input,result){
     const draw=()=>{if(!page||y<45){page=pdf.addPage([612,792]);y=750;}page.drawText(row,{x:36,y,size,font});y-=size+6;};
     for(const word of words){const next=row?`${row} ${word}`:word;if(font.widthOfTextAtSize(next,size)>540&&row){draw();row=word;}else row=next;}draw();
   };
-  line('SHUUG DRAFT - DO NOT FILE',18);line(`${input.year} federal Form ${input.kind} preparation`);line(scopeNotice);line('This packet contains partially populated official forms and calculation workpapers. Blank questions, signatures and unimplemented schedules still require completion. No return has been filed.');
+  line('SHUUG DRAFT - DO NOT FILE',18);line(`${input.year} federal Form ${input.kind} preparation`);line(scopeNotice);line(result.annualAvailability?.finalForms.length===0?'This packet contains calculation workpapers only. No final annual return templates are installed; line references do not establish the final form layout. No return has been filed.':'This packet contains partially populated official forms and calculation workpapers. Blank questions, signatures and unimplemented schedules still require completion. No return has been filed.');
   line(`Name in the source workpaper: ${input.party.name}`);line(`Filing status: ${input.individual?.filingStatus??'Business entity'}`);line(`Calculated from the encrypted return input; status: ${result.status}.`);
   for(const [key,value]of Object.entries(result.summary))line(`${key.replace(/Cents$/,'').replace(/([A-Z])/g,' $1')}: ${displayMoney(value)} USD`);
   line('Preparation diagnostics',14);for(const item of result.diagnostics)line(`${item.severity.toUpperCase()}: ${item.message}`);
@@ -69,7 +69,7 @@ export async function generateDraftPdf(input,{loadTemplate=defaultTemplateLoader
   const output=await PDFDocument.create(),font=await output.embedFont(StandardFonts.Helvetica),audit=[];
   workpaper(output,font,original,result);dependentContinuationPdf(output,font,original,result);householdContinuationPdf(output,font,original,result);
   for(const item of result.forms){
-    if(original.year===2026&&result.pdfUnavailableForms?.includes(item.form))continue;
+    if(result.pdfUnavailableForms?.includes(item.form))continue;
     if(['ct1040','nyit201','nyit2'].includes(item.form)){
       const rendered=await (item.form==='ct1040'?renderCTForm:renderNYForm)(original,item,{loadTemplate});
       try{const pdf=await PDFDocument.load(rendered.bytes),firstPage=output.getPageCount()+1;removeActions(pdf);for(const page of await output.copyPages(pdf,pdf.getPageIndices()))output.addPage(page);audit.push({...rendered.audit,firstPage,pageCount:pdf.getPageCount()});}finally{rendered.bytes.fill(0);}continue;

@@ -50,7 +50,7 @@ test('private evidence validation checks real file bytes and refuses type, size,
   const body=request(create()),command={actionId:'review-other-source',type:'document.review',input:{requestId:'synthetic-request',document:{...reference,objectId:'another-file'},decision:'reviewed',notes:''}};
   assert.throws(()=>applyCaseTransition(body,command,{actor,at,evidence:{reference,payload:file()}}));
   assert.throws(()=>applyCaseTransition(body,{...command,input:{...command.input,document:reference}},{actor,at,evidence:{reference,payload:newReturn()}}));
-  assert.throws(()=>validateCaseEvidence({reference,payload:{...newReturn(),year:2026}}));
+  assert.throws(()=>validateCaseEvidence({reference,payload:{...newReturn(),year:2028}}));
 });
 test('commands, calendar dates, history actors and creation boundaries fail closed',()=>{
   const first=create(),body=request(first);

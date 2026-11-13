@@ -1,0 +1,272 @@
+{
+  "taxYear": 2027,
+  "reviewedAt": "2026-11-13T07:55:51.974616+00:00",
+  "classification": "Officially released annual statutory amounts and limited calculation evidence; no verified final TY2027 return forms or Tax Table installed.",
+  "releasedOn": "2026-11-05",
+  "scheduledBulletin": "2026-48",
+  "scheduledBulletinDate": "2026-11-23",
+  "sources": [
+    {
+      "id": "rp-26-35",
+      "file": "rp-26-35.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-26-35.pdf",
+      "bytes": 216025,
+      "sha256": "87b383c6ce6e616fd006a61f5eed46fe67099b9c23fb1e1c42ff5359474513b8"
+    },
+    {
+      "id": "ssa2027",
+      "file": "fr-2026-21796.pdf",
+      "url": "https://www.govinfo.gov/content/pkg/FR-2026-10-26/pdf/2026-21796.pdf",
+      "bytes": 237918,
+      "sha256": "700ede41c38274b5a270fa3ef05d64ae93a60c9f5b7a0e20a04f2c444e40a20c"
+    },
+    {
+      "id": "irs2027Newswire",
+      "file": "irs-2027-announcement.html",
+      "url": "https://content.govdelivery.com/accounts/USIRS/bulletins/431cc7e",
+      "bytes": 32700,
+      "sha256": "f3153d328fe1d442d208f4d33a31bbcc2c7eb6ff9e0068ae855d616cf9b892b8"
+    },
+    {
+      "id": "irs2027Release",
+      "file": "irs-2027-newsroom.html",
+      "url": "https://www.irs.gov/newsroom/irs-releases-tax-inflation-adjustments-for-tax-year-2027-taxpayers-continue-to-benefit-from-the-working-families-tax-cuts",
+      "bytes": 108494,
+      "sha256": "ad2102c840d9c78231a725646418f0a8839645bd7f6aee9761e9a26b674db0e1"
+    },
+    {
+      "id": "irs2027BulletinSchedule",
+      "file": "irs-2027-guidewire.html",
+      "url": "https://content.govdelivery.com/accounts/USIRS/bulletins/431cc8f",
+      "bytes": 18212,
+      "sha256": "40f2ed3f1fbe3c0bfef1ac304babfef3fbf059b4277c0896ee84c809678389b6"
+    },
+    {
+      "id": "usc26-3",
+      "file": "usc26-3.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s3/",
+      "bytes": 22579,
+      "sha256": "9ede80ebccdf543e3aa3f72769e82c2f82526b6e5b74f2473d6dd9bbb77ed239"
+    },
+    {
+      "id": "usc26-11",
+      "file": "usc26-11.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s11/",
+      "bytes": 34467,
+      "sha256": "332eacf658a6758eb8d5f7731fe26089e7b2756ca8d2da9e21162e90ef891495"
+    },
+    {
+      "id": "usc26-1401",
+      "file": "usc26-1401.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s1401/",
+      "bytes": 89782,
+      "sha256": "fddcb0a6705545cd3f1d0ad9633f28c48a16a1d4bfc716e5729f6b493db8108c"
+    },
+    {
+      "id": "usc26-1402",
+      "file": "usc26-1402.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s1402/",
+      "bytes": 141971,
+      "sha256": "0b0c3a792737c8231a60d33bd74fad5f7a2e4c4ebe5d06a1441e9b802fc78d77"
+    },
+    {
+      "id": "usc26-164",
+      "file": "usc26-164.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s164/",
+      "bytes": 54207,
+      "sha256": "2c99b407b09ac39ad60d90830839af4240fb75e5479e4eb8ae60bd23d2d7d30c"
+    },
+    {
+      "id": "usc26-199A",
+      "file": "usc26-199A--2027-source.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s199A/",
+      "bytes": 57474,
+      "sha256": "8127ee3e4ce74c3d1032741f240ce6ca76ef59d6aeaa29f3c8537a40ff3a6169"
+    },
+    {
+      "id": "usc26-63",
+      "file": "usc26-63.html",
+      "url": "https://uscode.house.gov/us/usc/119-134/t26/s63/",
+      "bytes": 53194,
+      "sha256": "9062a3ffa216d315f6183cdf1f3110946e306355d6b70594aa7cbc59b39cd1cc"
+    },
+    {
+      "id": "atsAnnualYearBoundary",
+      "file": "irs-ats-index.html",
+      "url": "https://www.irs.gov/e-file-providers/modernized-e-file-mef-assurance-testing-system-ats",
+      "bytes": 144378,
+      "sha256": "fdbe7f922e879dbc2de3e14299ffc55061ab27250f287be3ef85e58183f21886"
+    },
+    {
+      "id": "partnershipTy2026Release",
+      "file": "irs-1065-ty2026-release.html",
+      "url": "https://www.irs.gov/tax-professionals/1065-ty2026v5-point-0-release-memo",
+      "bytes": 99587,
+      "sha256": "04348eff2e2a89822eaef18d3bbc1850cd38b5694121afb9fe3797c6e72cdcba"
+    }
+  ],
+  "sourceAnomalies": [
+    "Rev. Proc.2026-35 section1 retains literal [Release Date, 2026] placeholders. Official IRS IR-2026-133 and GuideWire dated2026-11-05 expressly release/link this exact document; its scheduled IRB publication is2026-11-23. Original bytes are preserved, not silently repaired."
+  ],
+  "availableFinalForms": [],
+  "unavailableAnnualBoundaries": [
+    {
+      "id": "f1040",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1040gi",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1040tt",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040tt--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1040sc",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sc--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1040sse",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sse--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1040sse",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040sse--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1040s8",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040s8--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1040s8",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1040s8--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f8995",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f8995--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i8995",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i8995--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1040sei",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sei--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "p596",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1065",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1065--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1065",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1065--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1120s",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120s--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1120s",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1120s--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "f1120",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/f1120--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    },
+    {
+      "id": "i1120",
+      "requiredTaxYear": 2027,
+      "url": "https://www.irs.gov/pub/irs-prior/i1120--2027.pdf",
+      "status": 404,
+      "usableForFiling": false
+    }
+  ],
+  "unverifiedRawSourceRequests": [
+    {
+      "file": "ssa-2027-facts.html",
+      "url": "https://www.ssa.gov/cola/factsheets/2027.html",
+      "status": 403
+    },
+    {
+      "file": "ssa-2027-cbb.html",
+      "url": "https://www.ssa.gov/oact/COLA/cbb.html",
+      "status": 403
+    }
+  ],
+  "processingYear2027IsTaxYear2027": false,
+  "atsYearBoundary": {
+    "annualFamilies": [
+      "1040",
+      "1065",
+      "1120s",
+      "1120"
+    ],
+    "processingYear": 2027,
+    "taxYear": 2026,
+    "source": "https://www.irs.gov/e-file-providers/modernized-e-file-mef-assurance-testing-system-ats",
+    "caveat": "Some94x/excise entries list tax period2027; that does not establish TY2027 annual1040/1065/1120-family forms or acceptance."
+  },
+  "limits": [
+    "No prior-year form is substituted for a missing2027 form.",
+    "Statutory rate schedules do not replace the required annual Tax Table; ordinary taxable income below the rounded100000USD boundary stays unknown.",
+    "Statutory EIC thresholds are not annual award lookup tables.",
+    "QBI above-threshold wage/property/SSTB work and prior-loss allocation remain unresolved.",
+    "Final annual forms, schemas, ATS tests, all-state implementation, transmitter access and agency approval are separate requirements."
+  ]
+}

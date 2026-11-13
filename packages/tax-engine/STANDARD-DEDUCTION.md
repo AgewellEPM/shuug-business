@@ -6,7 +6,7 @@ references; return residency/period, standard-versus-itemized choice, spouse
 itemization and filing-status review. Missing decisions are `unknown`. The source
 factory does not infer that a person is under 65, not blind or not claimable.
 
-`standardDeduction(value, context)` calculates 2023–2026 standard deductions from
+`standardDeduction(value, context)` calculates 2023–2027 standard deductions from
 the annual filing-status amount, applicable age/blindness additions and the
 dependent worksheet. `eligibilityAge(person, year)` supplies shared birth/death
 facts to other deduction and credit modules without duplicating identity inputs.
@@ -59,3 +59,5 @@ source cache. Published examples are distinguished from synthetic endpoint tests
 2026 guidance supplies statutory amounts, **not** a final Form 1040 or Tax Table.
 The separate enhanced-senior deduction belongs to Schedule 1-A and requires its
 own SSN, filing-status and MAGI review. No filing/certification status changes.
+
+The released [Revenue Procedure 2026-35, section 3.15](https://www.irs.gov/pub/irs-drop/rp-26-35.pdf) supplies the 2027 ordinary deduction ($16,600 single/MFS, $33,200 joint/surviving spouse, $24,925 head of household), dependent floor $1,400 and earned-income addition $500. The age/blindness amount is $1,700 per qualifying married/surviving-spouse box or $2,100 for single/head of household. These are statutory workpaper calculations; final 2027 annual forms are not installed. The released PDF retains literal release-date placeholders, documented in its pinned source metadata.

@@ -3,6 +3,7 @@ import {taxTable2023,taxComputation2023} from './data/2023-tax-table.mjs';
 import {taxTable2024,taxComputation2024} from './data/2024-tax-table.mjs';
 import { checkedMoney, wholeDollars, ratio } from './money.mjs';
 import {ordinaryTax2026} from './annual-2026.mjs';
+import {ordinaryTax2027} from './annual-2027.mjs';
 
 // Exact 2025 line-16 Tax Computation Worksheet multiplication/subtraction rows.
 // The official table, rather than a bracket approximation, applies below 100,000.
@@ -15,6 +16,7 @@ const worksheets=Object.freeze({
 const tables=Object.freeze({2023:taxTable2023,2024:taxTable2024,2025:taxTable2025}),annualWorksheets=Object.freeze({2023:taxComputation2023,2024:taxComputation2024,2025:worksheets});
 export const ordinaryTax2025=(taxableCents,status)=>ordinaryTax(taxableCents,status,2025);
 export function ordinaryTax(taxableCents,status,year=2025){
+  if(year===2027)return ordinaryTax2027(taxableCents,status);
   if(year===2026)return ordinaryTax2026(taxableCents,status);
   if(!Number.isInteger(year)||!Object.hasOwn(tables,year))throw new Error('No official tax table is installed for this tax year.');
   const table=tables[year],worksheet=annualWorksheets[year];

@@ -10,6 +10,7 @@ export const standardDeductionAnnual=Object.freeze(Object.fromEntries(Object.ent
  2024:{dependentFloorCents:130000,earnedAdditionCents:45000,marriedAdditionCents:155000,unmarriedAdditionCents:195000},
  2025:{dependentFloorCents:135000,earnedAdditionCents:45000,marriedAdditionCents:160000,unmarriedAdditionCents:200000},
  2026:{dependentFloorCents:135000,earnedAdditionCents:45000,marriedAdditionCents:165000,unmarriedAdditionCents:205000},
+ 2027:{dependentFloorCents:140000,earnedAdditionCents:50000,marriedAdditionCents:170000,unmarriedAdditionCents:210000},
 }).map(([year,value])=>[year,Object.freeze(value)])));
 const date=value=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number(value.slice(0,4))>=1800&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value;
 const need=(diagnostics,condition,code,message)=>{if(!condition)diagnostics.push(diagnostic(code,message));return condition;};

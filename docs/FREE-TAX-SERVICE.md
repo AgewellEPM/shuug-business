@@ -20,7 +20,8 @@ real office use. The largest gap is connecting those foundations into one
 protected office journey. Choosing a cloud account alone will not finish it.
 
 The requested coverage target, clarified November 12, is tax years **2023–2026**,
-all four federal return families and **all 50 states**. The target is not current
+all four federal return families and **all 50 states**. November 13 steering also
+adds **tax year 2027**, making the requested range **2023–2027**. The target is not current
 support. No approved filing account/provider or separate custody environment is
 available yet; live activation depends on those external prerequisites.
 
@@ -60,6 +61,17 @@ and broader family/state credits remain unfinished. The final 2026 Schedule
 See the [eligibility verification receipt](verification/federal-eligibility-expansion-20261113.json).
 These changes supersede the corresponding source gaps in the dated assessment
 below, without changing its unverified custody, filing and installed boundaries.
+
+November 13 annual continuation connects **tax years 2026 and 2027** to encrypted
+return creation, correction, save/reopen and matching case review for all four
+families. Individual calculations use the respective published annual amounts;
+entity returns accept validated source intake while their annual calculation
+packs remain unavailable. The 2027 PDF contains workpapers only, without loading
+or relabeling an earlier-year form. Final 2026 forms remain limited to C/SE/8812.
+See the [2027 annual boundary](../packages/tax-engine/ANNUAL-2027.md) and
+[annual verification receipt](verification/annual-2026-2027-20261113.json).
+The requested 2023–2027 range is now represented in the client; complete annual
+tax coverage, all-state support, qualification and installed rollout remain open.
 
 ## Already implemented
 

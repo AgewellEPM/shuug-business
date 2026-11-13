@@ -3,7 +3,7 @@ import {checkedMoney} from './money.mjs';
 import {normalizedTaxId,taxpayerIdentifierStatus,validateTaxpayerIdentifier} from './taxpayer-identifiers.mjs';
 import {newDependent,dependentRelationships,dependentReviews} from './dependents-model.mjs';
 export * from './dependents-model.mjs';
-const decisions=['unknown','yes','no'],citizens=['usCitizen','usNational','usResident'],relativeLimits={2023:470000,2024:505000,2025:520000,2026:530000};
+const decisions=['unknown','yes','no'],citizens=['usCitizen','usNational','usResident'],relativeLimits={2023:470000,2024:505000,2025:520000,2026:530000,2027:550000};
 const childRelations=['child','adoptedChild','stepchild','fosterChild','grandchild','sibling','nieceNephew'];
 export const validDependentDate=(value,year)=>typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&Number.isFinite(Date.parse(value+'T00:00:00Z'))&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value&&value<=`${year}-12-31`;
 // Rev. Rul. 2003-72: dependency/child-credit age is attained on the actual

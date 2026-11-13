@@ -3,7 +3,7 @@
 Shuug has **no IRS or state software approval**. The current release remains a
 prototype with limited 2023–2025 federal/Connecticut/New York resident preparation and
 partial 2026 individual calculations. The requested scope
-is 2023–2026, four federal families and all 50 states. The new calculation and
+is 2023–2027, four federal families and all 50 states. The new calculation and
 evidence below advance that scope without changing the draft or filing boundary.
 
 ## Implemented: ordinary Form 8959
@@ -105,6 +105,15 @@ Schedule 8812 forms cover 2023–2026; the original Schedule 1-A is installed fo
 2025. A separate EIC gate runs even without dependents and preserves unknown
 refunds/balances when no reviewed zero proof exists. Full EIC awards, broader
 family/state credits and the complete 2026 annual pack remain unfinished.
+
+The [2026–2027 continuation](verification/annual-2026-2027-20261113.json)
+connects encrypted intake and case review across both years and all four families.
+Published 2027 rates, deductions and credit limits extend the individual
+calculation path. Entity annual calculations remain unavailable; their source
+records can be entered and reviewed. No final 2027 annual form is installed, and
+its PDF is workpapers only. Processing-year 2027 ATS for tax-period 2026 does not
+establish a tax-year 2027 pack or approval. The source-verification report keeps
+published annual amounts separate from final-form availability and agency tests.
 
 ## Actual agency qualification
 

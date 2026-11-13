@@ -6,7 +6,7 @@ import {ctRetirementFields} from './ct-retirement-editor.mjs';
 export function stateFields({document,parent,individual,year,field,group,button,readers}){
  const section=group(parent,'State income-tax returns');section.id='state-return-editor';
  const note=(parent,text)=>{const p=document.createElement('p');p.textContent=text;parent.append(p);};
- note(section,'Connecticut and New York full-year resident calculations and draft forms are available for 2023–2025. Federal AGI flows into each state calculation. Other states, part-year/nonresident returns and 2026 state forms need an additional pack; selecting a state does not establish filing coverage.');
+ note(section,'Connecticut and New York full-year resident calculations and draft forms are available for 2023–2025. Federal AGI flows into each state calculation. Other states, part-year/nonresident returns and 2026–2027 state forms need an additional pack; selecting a state does not establish filing coverage.');
  const values=individual.stateReturns??[];
  for(const [index,value]of values.entries()){
   const state=group(section,`${value.state} state return`);

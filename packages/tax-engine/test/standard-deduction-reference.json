@@ -1,5 +1,5 @@
 {
-  "kind": "Published IRS Publication 501 standard-deduction examples, with separate synthetic worksheet boundary cases in tests. 2026 source supports statutory calculations only, not final Form 1040 availability.",
+  "kind": "Published IRS Publication 501 standard-deduction examples, with separate synthetic worksheet boundary cases in tests. 2026\u20132027 sources support statutory calculations only, not final Form 1040 availability.",
   "annualInstructions": [
     {
       "year": 2023,
@@ -49,6 +49,14 @@
       "url": "https://www.irs.gov/pub/irs-pdf/p505.pdf",
       "bytes": 1776844,
       "sha256": "c69e87caa93cdefa4493f0ec1d8478b1ff9ec1329ee18c7b9d442f2dcb79c621"
+    },
+    {
+      "year": 2027,
+      "id": "rp-26-35",
+      "file": "rp-26-35.pdf",
+      "url": "https://www.irs.gov/pub/irs-drop/rp-26-35.pdf",
+      "bytes": 216025,
+      "sha256": "87b383c6ce6e616fd006a61f5eed46fe67099b9c23fb1e1c42ff5359474513b8"
     }
   ],
   "publishedExamples": {
@@ -145,5 +153,8 @@
         }
       ]
     }
-  }
+  },
+  "notes": [
+    "Released Revenue Procedure 2026-35 supplies 2027 statutory amounts. Its Section1 retains literal [Release Date, 2026] placeholders; IRS November5 release and guidewire establish publication. No final 2027 annual forms or award tables are inferred."
+  ]
 }

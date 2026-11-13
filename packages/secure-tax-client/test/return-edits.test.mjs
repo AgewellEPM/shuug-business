@@ -21,10 +21,10 @@ import {verifyReturnEditApproval} from '../return-edit-approval.mjs';
 const utf8=new TextEncoder();
 const nativeProof='/private/tmp/native-secure-tax-envelope-proof';
 async function nativeClient(){const value=JSON.parse(execFileSync(nativeProof,['fixture'],{encoding:'utf8',maxBuffer:1024*1024}));assert.equal(value.syntheticOnly,true);const pub=decode64(value.clientPublicKey,65),privateKey=await crypto.subtle.importKey('jwk',{kty:'EC',crv:'P-256',x:encode64(pub.slice(1,33)),y:encode64(pub.slice(33)),d:value.clientPrivateKey},{name:'ECDH',namedCurve:'P-256'},false,['deriveBits']);return {publicKey:value.clientPublicKey,privateKey,syntheticPrivate:value.clientPrivateKey};}
-async function fixture({native=false,epoch=1}={}){
+async function fixture({native=false,epoch=1,year=2025}={}){
   const passphrase='Synthetic return correction custody passphrase.',{bundle,publicPins:pins}=await createFirmBundle('synthetic-return-edits',passphrase),unlocked=await unlockFirmBundle(bundle,passphrase,pins),client=await(native?nativeClient():generateRecipientKeyPair()),staff=await generateRecipientKeyPair(),now=Date.now();
   const clientId=await publicKeyId(client.publicKey),staffKeyId=await publicKeyId(staff.publicKey),manifest=await signEnrollmentRequest({version:1,workspaceId:pins.workspaceId,accountId:'synthetic-account',clientId:'synthetic-client',client:{keyId:clientId,publicKey:client.publicKey}},unlocked,{epoch,now:now-1000});
-  const grant=await signStaffGrant({version:1,workspaceId:pins.workspaceId,accountId:manifest.accountId,clientId:manifest.clientId,staffAccountId:'synthetic-preparer',staff:{keyId:staffKeyId,publicKey:staff.publicKey}},unlocked,{epoch,domains:['tax-document'],now:now-1000}),before=newReturn('1120');before.party.name='SYNTHETIC PRIVATE RETURN CORRECTION';before.party.taxId='000123456';before.entity.receiptsCents=10000000;
+  const grant=await signStaffGrant({version:1,workspaceId:pins.workspaceId,accountId:manifest.accountId,clientId:manifest.clientId,staffAccountId:'synthetic-preparer',staff:{keyId:staffKeyId,publicKey:staff.publicKey}},unlocked,{epoch,domains:['tax-document'],now:now-1000}),before={...newReturn('1120'),year};before.party.name='SYNTHETIC PRIVATE RETURN CORRECTION';before.party.taxId='000123456';before.entity.receiptsCents=10000000;
   const context={workspaceId:pins.workspaceId,accountId:manifest.accountId,objectId:'synthetic-return',revision:1,domain:'tax-document'},recipients={clientPublicKey:client.publicKey,firmRecoveryPublicKey:pins.firmRecoveryPublicKey},envelope=await sealEnvelope(utf8.encode(JSON.stringify(before)),context,recipients,'client',client.privateKey),expected={accountId:manifest.accountId,clientId:manifest.clientId,staffAccountId:grant.staffAccountId,staffKeyId,objectId:context.objectId,revision:context.revision,domain:context.domain,minimumGrantEpoch:1,minimumManifestEpoch:1},capsule=await createStaffCapsule(envelope,manifest,grant,unlocked,expected,{now});
   const after=structuredClone(before);after.entity.receiptsCents=20000000;
   const input={envelope,manifest,grant,capsule,expected,pins,staffPrivateKey:staff.privateKey,after,now},prepared=await prepareReturnProposal(input);
@@ -60,8 +60,16 @@ test('private review commitments are salted and cannot silently change the retur
   const f=await fixture(),second=await prepareReturnProposal(f.input);assert.notEqual(second.proposal.reviewCommitment,f.prepared.proposal.reviewCommitment);
   await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,kind:'1065'}}));await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,year:2026}}));await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,year:2023}}));
 });
+test('2026 and 2027 encrypted source corrections preserve the exact year without claiming calculation coverage',async()=>{
+  for(const year of [2026,2027]){
+    const f=await fixture({year}),packet=await f.approve();await verifyReturnEditApproval(packet,f.pins,f.now);
+    for(const [role,key]of [['client',f.client.privateKey],['firm-recovery',f.unlocked.recovery]]){const bytes=await openEnvelope(packet.envelope,{...f.context,revision:2},f.recipients,role,key);try{const value=JSON.parse(new TextDecoder().decode(bytes));assert.deepEqual(value,f.after);assert.equal(value.year,year);}finally{bytes.fill(0);}}
+    await assert.rejects(()=>prepareReturnProposal({...f.input,after:{...f.after,year:year===2026?2027:2026}}));
+    assert.equal(Object.hasOwn(packet.approval,'filingReady'),false);
+  }
+});
 test('standalone firm kit approves reviewed input locally and prepares cloud jobs without readable review data',async()=>{
-  const f=await fixture(),directory=await mkdtemp(path.join(tmpdir(),'shuug-return-operator-')),kitPath=path.join(directory,'tools');
+  const f=await fixture({year:2027}),directory=await mkdtemp(path.join(tmpdir(),'shuug-return-operator-')),kitPath=path.join(directory,'tools');
   try{
     await buildOfflineKit(kitPath);const kit={version:1,type:'shuug-private-return-correction-kit',proposal:f.prepared.proposal,sourceEnvelope:f.envelope,manifest:f.manifest,grant:f.grant,expected:f.expected,privateReview:f.prepared.privateReview},kitFile=path.join(directory,'private-review.json'),bundle=path.join(directory,'firm.json'),pins=path.join(directory,'pins.json'),out=path.join(directory,'approved.json'),jobOut=path.join(directory,'job.json'),bytes=Buffer.from(JSON.stringify(kit)),sha=createHash('sha256').update(bytes).digest('hex');await writeFile(kitFile,bytes);await writeFile(bundle,JSON.stringify(f.bundle));await writeFile(pins,JSON.stringify(f.pins));
     const run=async(script,args,passphrase)=>{const child=spawn(process.execPath,[path.join(kitPath,script),...args],{cwd:directory,env:{PATH:process.env.PATH},stdio:['ignore','pipe','pipe','pipe']});let error='';child.stderr.on('data',data=>{error+=data;});child.stdio[3].end(passphrase??'');const timer=setTimeout(()=>child.kill('SIGKILL'),10000);try{const [code]=await once(child,'exit');return {code,error};}finally{clearTimeout(timer);}};

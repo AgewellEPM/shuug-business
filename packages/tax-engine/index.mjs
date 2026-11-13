@@ -5,7 +5,9 @@ export {newSchedule1A,newTipSource,newOvertimeSource,newVehicleLoan,newSeniorDed
 export {newIndividualEligibility} from './standard-deduction.mjs';
 import { commonInput,inputDiagnostics,diagnostic } from './model.mjs';
 import { calculateIndividual } from './individual.mjs';
-import { calculateBusiness } from './business.mjs';
+import { calculateBusiness,validateBusinessSource } from './business.mjs';
+import {federal2026Availability} from './annual-2026.mjs';
+import {federal2027Availability} from './annual-2027.mjs';
 import {calculationYears} from './federal-years.mjs';
 import {calculateStateReturns} from './state-returns.mjs';
 export {calculationYears,requestedTaxYears,federalSourcesFor} from './federal-years.mjs';
@@ -22,10 +24,10 @@ export {newEnergyCredits,energyCategories,energyReviews,panelEnabledTypes} from 
 export function calculateReturn(raw){
   let input;
   try{input=commonInput(structuredClone(raw));if(!calculationYears.includes(input.year))return {version:1,year:input.year,kind:input.kind,status:'unsupported',calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('TAX_YEAR_NOT_SUPPORTED','No reviewed calculation/form pack is installed for this tax year. Another year’s rates were not substituted.')]};
-    if(input.year===2026&&input.kind!=='1040')return {version:1,year:input.year,kind:input.kind,status:'unsupported',calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('BUSINESS_ANNUAL_PACK_REQUIRED','The 2026 entity return pack has not been reviewed. The original input is retained; 2025 entity forms were not reused.')]};
+    if(input.year>=2026&&input.kind!=='1040'){validateBusinessSource(input);return {version:1,year:input.year,kind:input.kind,status:'unsupported',intakeAvailable:true,calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('BUSINESS_ANNUAL_PACK_REQUIRED',`The ${input.year} entity calculation/form pack has not been reviewed. Validated source intake can be encrypted, reviewed and corrected; no prior-year calculation or form is substituted.`),...inputDiagnostics(input)]};}
     const result=input.kind==='1040'?calculateIndividual(input):calculateBusiness(input),diagnostics=[...inputDiagnostics(input),...result.diagnostics];
     const stateResult=calculateStateReturns(input,result);result.states=stateResult.states;result.forms.push(...stateResult.forms);diagnostics.push(...stateResult.diagnostics);
-    if(input.year===2026){result.pdfUnavailableForms=[...new Set(result.forms.filter(item=>!['f1040sc','f1040sse','f1040s8'].includes(item.form)).map(item=>item.form))];diagnostics.push(diagnostic('ANNUAL_FORMS_INCOMPLETE','2026 calculations are provisional. Only the final Schedule C, Schedule SE and Schedule 8812 templates are installed; missing main forms and schedules are listed in the workpaper and omitted from the PDF. No prior-year form is substituted.'));}
+    if(input.year>=2026){const availability=input.year===2027?federal2027Availability:federal2026Availability;result.annualAvailability=availability;result.pdfUnavailableForms=[...new Set(result.forms.filter(item=>!availability.finalForms.includes(item.form)).map(item=>item.form))];diagnostics.push(diagnostic('ANNUAL_FORMS_INCOMPLETE',`${input.year} calculations are provisional. ${input.year===2026?'Only the final Schedule C, Schedule SE and Schedule 8812 templates are installed.':'No final annual return templates are installed; this export contains calculation workpapers only.'} Missing main forms and schedules are listed in the workpaper and omitted from the PDF. Workpaper line references do not establish final annual form layout. No prior-year form is substituted.`));}
     return {...result,version:1,year:input.year,kind:input.kind,status:diagnostics.some(item=>item.severity==='blocking')?'needs-attention':'draft',calculationAvailable:true,filingReady:false,diagnostics};
   }catch(error){return {version:1,year:input?.year??null,kind:input?.kind??null,status:'invalid-input',calculationAvailable:false,filingReady:false,forms:[],summary:{},diagnostics:[diagnostic('INPUT_INVALID',error instanceof Error?error.message:'The original return input needs review.')]};}
 }

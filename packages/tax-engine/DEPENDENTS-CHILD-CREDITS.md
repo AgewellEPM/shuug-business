@@ -4,7 +4,7 @@ The encrypted individual return now accepts federal dependent source records and
 
 ## Evidence and annual rules
 
-`data/child-credits-sources.json` pins original annual forms, 2023–2025 Schedule 8812 instructions and Publication 501, Revenue Procedure 2025-32, Revenue Ruling 2003-72, and the IRS's January 23, 2026 correction of the 2025 joint-filer SSN requirement. Each downloaded source records its URL, SHA-256 and byte count. Field inventories were extracted from each original annual form; an older blank is never substituted.
+`data/child-credits-sources.json` pins original annual forms, 2023–2025 Schedule 8812 instructions and Publication 501, Revenue Procedures 2025-32 and 2026-35, Revenue Ruling 2003-72, and the IRS's January 23, 2026 correction of the 2025 joint-filer SSN requirement. Each downloaded source records its URL, SHA-256 and byte count. Field inventories were extracted from each original annual form; an older blank is never substituted.
 
 | Tax year | CTC per qualifying child | ACTC maximum per qualifying child | ODC | Qualifying-relative gross-income ceiling |
 |---|---:|---:|---:|---:|
@@ -12,6 +12,7 @@ The encrypted individual return now accepts federal dependent source records and
 | 2024 | $2,000 | $1,700 | $500 | Less than $5,050 |
 | 2025 | $2,200 | $1,700 | $500 | Less than $5,200 |
 | 2026 | $2,200 | $1,700 | $500 | Less than $5,300 |
+| 2027 | $2,300 | $1,800 | $500 | Less than $5,500 |
 
 MAGI phaseout starts at $400,000 for married filing jointly and $200,000 for other filing statuses. Excess MAGI rounds up to the next $1,000; five percent reduces the combined credit. ACTC uses fifteen percent of earned income above $2,500, subject to remaining credit and the annual per-child cap. The three-or-more qualifying-child alternative uses actual supported Social Security/Medicare withholding, Additional Medicare adjustments, deductible half SE tax, EIC and excess Social Security credit. If a missing alternative input could change the result, ACTC remains unknown. A proven bound may establish that the ordinary earned-income branch dominates without inventing the missing EIC value.
 
@@ -20,6 +21,8 @@ For 2025 onward, one joint filer must have a timely employment-valid SSN and the
 Child dependency/CTC age is attained on the actual birthday under Revenue Ruling 2003-72. This differs from the filer's age-65 standard-deduction rule. A child born January 1, 2009 is still 16 on December 31, 2025.
 
 The final 2026 Schedule 8812 was published by the IRS and is pinned. Final 2026 Schedule 8812 instructions were unavailable at review on November 13, 2026. The ordinary statutory calculation uses published annual limits, with that limitation disclosed in diagnostics. Missing 2026 Form 1040 and other annual templates retain the broader annual-pack gate.
+
+The released [Revenue Procedure 2026-35, sections 3.05 and 3.25](https://www.irs.gov/pub/irs-drop/rp-26-35.pdf) supplies 2027 credit and relative-income amounts. Current statutory source tests and supported calculations extend to 2027, with a distinct annual-availability diagnostic. Final 2027 Schedule 8812, instructions and main returns are not installed, and a 2026 blank is never relabeled as 2027. The released procedure retains literal release-date placeholders; IRS release evidence and this anomaly remain recorded.
 
 ## Source model and workflow
 

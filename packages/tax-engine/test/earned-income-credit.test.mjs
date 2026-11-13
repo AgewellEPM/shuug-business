@@ -15,7 +15,7 @@ test('no dependent/child-credit section never silently establishes EIC zero',()=
  review(value);assert.equal(calc(value,{adjustedGrossIncomeCents:5000000,wageIncomeCents:5000000}).amountCents,0);assert.equal(calc(value).amountCents,null);
 });
 test('published annual childless and all-family cutoffs: below, equal, above, joint and other statuses',()=>{
- const expected={2023:[[17640,24210],[56838,63398]],2024:[[18591,25511],[59899,66819]],2025:[[19104,26214],[61555,68675]],2026:[[19540,26820],[62974,70244]]};
+ const expected={2023:[[17640,24210],[56838,63398]],2024:[[18591,25511],[59899,66819]],2025:[[19104,26214],[61555,68675]],2026:[[19540,26820],[62974,70244]],2027:[[20164,27684],[65002,72512]]};
  for(const [year,pairs]of Object.entries(expected))for(const status of ['single','marriedSeparate','headOfHousehold','survivingSpouse','marriedJoint'])for(const [offset,kind]of ['none','maximum'].entries()){
   const value=input({year:Number(year)});value.individual.filingStatus=status;if(kind==='none')review(value);const cutoff=pairs[offset][status==='marriedJoint'?1:0]*100;
   assert.equal(earnedIncomeCreditAnnual[year][kind][status==='marriedJoint'?1:0],cutoff);
@@ -57,7 +57,7 @@ test('combat facts reconcile child-credit and existing NY W-2 evidence; independ
  assert.equal(calc(value,{adjustedGrossIncomeCents:8000000}).amountCents,0);delete value.individual.childCredits;value.individual.stateReturns=[{state:'NY',wageRecords:[{box12:[{code:'Q',amountCents:100000}]}]}];assert.equal(calc(value,{adjustedGrossIncomeCents:0,wageIncomeCents:0}).amountCents,null);
 });
 test('required filer employment SSN known false proves zero; missing or unresolved identifiers do not',()=>{
- for(const year of [2023,2024,2025,2026]){const value=input({year,joint:true});delete value.individual.taxpayerIdentifiers;assert.equal(calc(value).amountCents,null);
+ for(const year of [2023,2024,2025,2026,2027]){const value=input({year,joint:true});delete value.individual.taxpayerIdentifiers;assert.equal(calc(value).amountCents,null);
   value.individual.taxpayerIdentifiers={taxpayer:identifierFixture(),spouse:{...identifierFixture(),type:'itin',validForEmployment:'no'}};assert.equal(calc(value).amountCents,0);
   value.individual.taxpayerIdentifiers.spouse.reviewed=false;assert.equal(calc(value).amountCents,null);value.individual.taxpayerIdentifiers.spouse=identifierFixture();value.individual.taxpayerIdentifiers.taxpayer.issuedByDueDate='no';assert.equal(calc(value).amountCents,0);
  }

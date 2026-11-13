@@ -4,7 +4,7 @@ import { encodeJson } from './client.mjs';
 /** Reuse the existing encrypted retry cache and exact mutation receipt. A lost
  * response must not create a second return or overwrite a newer revision. */
 export async function saveReturn(client,input,objectId,{onPrepared=()=>{}}={}){
-  if(!calculateReturn(input).calculationAvailable)throw new Error('Correct the return input before saving.');
+  const result=calculateReturn(input);if(!result.calculationAvailable&&!result.intakeAvailable)throw new Error('Correct the return input before saving.');
   const bytes=encodeJson(input);let prepared=null;
   try{
     for(const entry of await client.pendingUploads()){

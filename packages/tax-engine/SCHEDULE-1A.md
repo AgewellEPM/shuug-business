@@ -1,10 +1,10 @@
 # Schedule 1-A deductions
 
 The client collects source records in `individual.schedule1A`. The calculation
-supports the four 2025 additional deductions and reviewed 2026 statutory amounts.
+supports the four 2025 additional deductions and reviewed 2026–2027 statutory amounts.
 The actual, pinned 2025 IRS Schedule 1-A prints calculated amounts and vehicle
 VINs. Additional vehicles have a line 22 continuation in the private workpaper.
-The final 2026 Schedule 1-A is unavailable: calculations retain a blocking annual
+The final 2026 and 2027 Schedules 1-A are unavailable: calculations retain a blocking annual
 form diagnostic, and no prior-year form is substituted. Selected 2023–2024
 sources remain preserved with an unsupported-year diagnostic.
 
@@ -21,11 +21,13 @@ fresh review. These are engineering source checks, not agency approval.
 - Tips: reviewed voluntary cash/charged tips from lawful services in one of the
   final 71 listed occupations. Employee amounts link to the existing W-2; 2025
   accepts box 7, Forms 4070 or a corroborating employer statement. 2026 requires
-  separately reported code TP and occupation information. Business amounts must
+  separately reported code TP and occupation information, as does 2027. Business amounts must
   be included in the specified 1099-NEC/MISC/K reporting, reconcile to represented
   Schedule C receipts and be supported by tip records. Review includes the
-  applicable separate-reporting rules for 2026. An SSTB determination or explicit
-  annual Notice 2025-69 transition-relief review is required. There is one annual
+  applicable separate-reporting rules for 2026–2027. An SSTB determination or explicit
+  annual Notice 2025-69 transition-relief review is required for 2025–2026.
+  The 2027 calculation requires a reviewed non-SSTB determination; it does not
+  assume that the earlier transition relief extends to that year. There is one annual
   employee-tip total per W-2. Multiple employers print zero on lines 4a and 4b
   and their combined qualified amount on 4c, as the official form directs.
 - Business tips are limited to represented net profit less allocable deductions,
@@ -41,7 +43,7 @@ fresh review. These are engineering source checks, not agency approval.
   stated double-time premium, or documented eligible hours times regular rate
   times one-half. Source reviews must resolve bonuses and special work periods.
   State-only, contractual, holiday/weekend, deferred, Form 8919 and nonemployee
-  amounts are outside this calculation. 2026 requires separately reported code
+  amounts are outside this calculation. 2026–2027 require separately reported code
   TT. One reviewed annual overtime record per W-2 prevents overlapping summaries.
 - Vehicle interest: source-backed original purchase first-lien loans after 2024
   for new, U.S.-assembled qualifying road vehicles below 14,000 pounds GVWR,
@@ -54,6 +56,8 @@ fresh review. These are engineering source checks, not agency approval.
   from other interest on 16c. The current business expense intake does not yet
   populate the new vehicle-specific line; mixed business/personal loans with
   interest deducted there stay unresolved until that routing is implemented.
+  The 2027 workpaper follows the reviewed statutory treatment without claiming
+  a final annual Schedule C layout.
 - Seniors: shared birth/death evidence determines age 65, including January 1
   birthdays and age attained at death. The applicable claimant also needs a
   timely employment-valid SSN. Conflicting federal/state birth evidence keeps

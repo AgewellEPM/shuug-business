@@ -13,7 +13,7 @@ import { renderStaffRecords } from '../browser/staff-view.mjs';
 import { mountStaffUpdates } from '../browser/staff-updates.mjs';
 import { renderPortalDashboard } from '../browser/client-portal-view.mjs';
 import { prepareBrowser } from '../prepare-browser.mjs';
-import {newReturn} from '../../tax-engine/index.mjs';
+import {newReturn,calculateReturn} from '../../tax-engine/index.mjs';
 import {approveReturnEdit} from '../firm-return-edits.mjs';
 import {approveReturnCreation} from '../firm-return-creations.mjs';
 
@@ -136,6 +136,24 @@ test('new return preparation refuses ungranted domains, bad enrollment and chang
   await assert.rejects(()=>f.vault.prepareNewReturn(input));assert.equal(f.vault.records.size,0);assert.equal(f.vault.unlocked,false);
   f.setHook(null);await f.vault.unlock(f.staffKey.keyId);await f.vault.selectGrant(f.grant.grantId);f.setHook(url=>{if(new URL(url).pathname.endsWith('/scope'))f.setGrants([]);});
   await assert.rejects(()=>f.vault.prepareNewReturn(input),/changed|unavailable|revoked/);assert.equal(f.vault.unlocked,false);assert(f.calls.filter(call=>!call.url.endsWith('/session')).every(call=>call.options.method==='GET'));
+});
+test('staff create, publish, reopen and correct validated 2026/2027 entity intake without annual calculations',async()=>{
+  for(const year of [2026,2027])for(const kind of ['1065','1120S','1120']){
+    const input=newReturn(kind,year);input.party.name='SYNTHETIC PRIVATE ANNUAL ENTITY';input.party.taxId='000123456';input.entity.receiptsCents=1234500;
+    const result=calculateReturn(input);assert.equal(result.intakeAvailable,true);assert.equal(result.calculationAvailable,false);assert.equal(result.filingReady,false);assert.deepEqual(result.forms,[]);
+    const f=await fixture({staffAccountId:'workspace-owner',domain:'tax-document'});
+    try{
+      const invalid=structuredClone(input);invalid.entity.receiptsCents=-1;const initialCalls=f.calls.length;await assert.rejects(()=>f.vault.prepareNewReturn(invalid),/Correct the draft input/);assert.equal(f.calls.length,initialCalls);
+      const creation=await f.vault.prepareNewReturn(input),created=await approveReturnCreation({proposal:creation.proposal,manifest:creation.manifest,grant:creation.grant,expected:creation.expected,reviewedCommitment:creation.proposal.reviewCommitment,reviewReference:'synthetic-annual-create-review',unlocked:f.unlocked});
+      f.setHook((url,options)=>url.endsWith('/return-creations')&&options.method==='POST'?f.respond({objectId:creation.proposal.objectId,revision:1,sequence:1,deleted:false,duplicate:false}):null);await f.vault.installApprovedReturnCreation(created);f.setObject({objectId:creation.proposal.objectId,revision:1,sequence:1,deleted:false,envelope:created.envelope,capsule:created.capsule,manifest:f.manifest,grant:f.grant});await f.vault.sync();
+      assert.deepEqual(JSON.parse(new TextDecoder().decode(f.vault.records.get(creation.proposal.objectId).plaintext)),input);
+      const after=structuredClone(input);after.entity.receiptsCents=2345600;const correction=await f.vault.prepareReturnCorrection(creation.proposal.objectId,after),corrected=await approveReturnEdit({proposal:correction.proposal,envelope:correction.sourceEnvelope,manifest:correction.manifest,grant:correction.grant,expected:correction.expected,reviewedCommitment:correction.proposal.reviewCommitment,reviewReference:'synthetic-annual-correction-review',unlocked:f.unlocked});
+      f.setHook((url,options)=>url.endsWith('/return-edits')&&options.method==='POST'?f.respond({objectId:creation.proposal.objectId,revision:2,sequence:2,deleted:false,duplicate:false}):null);await f.vault.installApprovedReturnEdit(corrected);f.setObject({objectId:creation.proposal.objectId,revision:2,sequence:2,deleted:false,envelope:corrected.envelope,capsule:corrected.capsule,manifest:f.manifest,grant:f.grant});await f.vault.sync();
+      const reopened=JSON.parse(new TextDecoder().decode(f.vault.records.get(creation.proposal.objectId).plaintext));assert.deepEqual(reopened,after);assert.equal(calculateReturn(reopened).intakeAvailable,true);assert.equal(calculateReturn(reopened).calculationAvailable,false);
+      for(const call of f.calls){const wire=call.options.body??'';assert(!wire.includes('SYNTHETIC PRIVATE ANNUAL ENTITY'));assert(!wire.includes('000123456'));}
+      await assert.rejects(()=>f.vault.prepareReturnCorrection(creation.proposal.objectId,{...after,year:year===2026?2027:2026}));
+    }finally{f.vault.lock();}
+  }
 });
 test('lock discards in-flight new return preparation without returning or uploading a private kit',async()=>{
   const f=await fixture({domain:'tax-document'});let entered,release;const waiting=new Promise(resolve=>{entered=resolve;});

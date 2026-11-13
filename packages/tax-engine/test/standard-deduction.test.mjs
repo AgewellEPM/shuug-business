@@ -11,14 +11,14 @@ for(const year of [2023,2024,2025])test(`${year} published IRS Pub501 married an
  for(const row of examples.dependent){const value=eligibilityFixture();value.taxpayer.dateOfBirth=`${year-18}-01-15`;value.taxpayer.canBeClaimed='yes';value.taxpayer.blind=row.blind?'yes':'no';const result=calc(value,{year,filingStatus:row.filingStatus,wagesCents:row.wagesDollars*100,businessProfitCents:(row.businessDollars??0)*100});assert.equal(result.deductionCents,row.deductionDollars*100,JSON.stringify(row));}
 });
 test('all annual status/age/blindness combinations and dependent floor/cap endpoints',()=>{
- for(const year of [2023,2024,2025,2026])for(const status of ['single','marriedJoint','marriedSeparate','headOfHousehold','survivingSpouse']){
+ for(const year of [2023,2024,2025,2026,2027])for(const status of ['single','marriedJoint','marriedSeparate','headOfHousehold','survivingSpouse']){
   const value=eligibilityFixture(),base=calc(value,{year,filingStatus:status}).deductionCents,annual=standardDeductionAnnual[year],unit=['single','headOfHousehold'].includes(status)?annual.unmarriedAdditionCents:annual.marriedAdditionCents;
   value.taxpayer.dateOfBirth=`${year-64}-01-01`;value.taxpayer.blind='yes';let result=calc(value,{year,filingStatus:status});assert.equal(result.deductionCents,base+2*unit);assert.equal(result.worksheet.boxCount,2);value.taxpayer.canBeClaimed='yes';
   for(const earned of [0,annual.dependentFloorCents-annual.earnedAdditionCents-100,annual.dependentFloorCents-annual.earnedAdditionCents,annual.dependentFloorCents-annual.earnedAdditionCents+100,base-annual.earnedAdditionCents,base*2]){result=calc(value,{year,filingStatus:status,wagesCents:earned});assert.equal(result.deductionCents,Math.min(base,Math.max(annual.dependentFloorCents,earned+annual.earnedAdditionCents))+2*unit);}
  }
 });
 test('January1 birthdays and deceased-person day-before-birthday rule use the actual year',()=>{
- for(const year of [2023,2024,2025,2026]){const value=eligibilityFixture();value.taxpayer.dateOfBirth=`${year-64}-01-01`;assert.equal(eligibilityAge(value.taxpayer,year).age65,true);value.taxpayer.dateOfBirth=`${year-64}-01-02`;assert.equal(eligibilityAge(value.taxpayer,year).age65,false);
+ for(const year of [2023,2024,2025,2026,2027]){const value=eligibilityFixture();value.taxpayer.dateOfBirth=`${year-64}-01-01`;assert.equal(eligibilityAge(value.taxpayer,year).age65,true);value.taxpayer.dateOfBirth=`${year-64}-01-02`;assert.equal(eligibilityAge(value.taxpayer,year).age65,false);
   value.taxpayer.dateOfBirth=`${year-65}-02-14`;value.taxpayer.deceased='yes';value.taxpayer.dateOfDeath=`${year}-02-13`;assert.equal(eligibilityAge(value.taxpayer,year).age65,true);value.taxpayer.dateOfDeath=`${year}-02-12`;assert.equal(eligibilityAge(value.taxpayer,year).age65,false);value.returnPeriod='deathShortYear';assert.equal(calc(value,{year}).known,true);value.taxpayer.dateOfDeath=`${year-1}-02-12`;assert.equal(calc(value,{year}).known,false);
  }
 });

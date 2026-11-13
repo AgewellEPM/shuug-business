@@ -3,13 +3,15 @@ import {checkedMoney,sumMoney,wholeDollars as R,displayMoney} from './money.mjs'
 import {calculateDependents,dependentAge} from './dependents.mjs';
 import {taxpayerIdentifierStatus,normalizedTaxId} from './taxpayer-identifiers.mjs';
 
-// Publication 596, Rules 1/15 (2023–2025); Rev. Proc. 2025-32 §4.06 (2026).
+// Publication 596, Rules 1/15 (2023–2025); Rev. Proc. 2025-32 §4.06 (2026),
+// and released Rev. Proc. 2026-35 §3.06 (2027). These are zero-credit bounds.
 // Pairs are [all other filing statuses, married filing jointly], in cents.
 export const earnedIncomeCreditAnnual=Object.freeze({
  2023:{none:[1764000,2421000],maximum:[5683800,6339800]},
  2024:{none:[1859100,2551100],maximum:[5989900,6681900]},
  2025:{none:[1910400,2621400],maximum:[6155500,6867500]},
  2026:{none:[1954000,2682000],maximum:[6297400,7024400]},
+ 2027:{none:[2016400,2768400],maximum:[6500200,7251200]},
 });
 export const newEarnedIncomeCredit=()=>({qualifyingChildren:'unknown',nontaxableCombatPayCents:0,source:'',reviewed:false,earnedSourcesReviewed:false});
 function source(value){
