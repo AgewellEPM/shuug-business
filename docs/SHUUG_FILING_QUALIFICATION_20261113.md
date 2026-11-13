@@ -115,6 +115,14 @@ its PDF is workpapers only. Processing-year 2027 ATS for tax-period 2026 does no
 establish a tax-year 2027 pack or approval. The source-verification report keeps
 published annual amounts separate from final-form availability and agency tests.
 
+The [EIC award continuation](verification/eic-awards-20261113.json) adds ordinary
+2023–2025 eligibility, exact published tables, Worksheets A/B and annual Schedule
+EIC output. The three published Grey-family worksheet examples are distinct from
+synthetic eligibility and source-conflict tests. Neither the computed award nor
+the original PDF establishes Form 8867 due diligence, resolution of a required
+Form 8862, complete ATS execution or agency approval. State EIC schedules and
+2026–2027 annual award materials remain separate unfinished work.
+
 ## Actual agency qualification
 
 The [IRS approval process](https://www.irs.gov/e-file-providers/how-tax-preparation-software-is-approved-for-electronic-filing)

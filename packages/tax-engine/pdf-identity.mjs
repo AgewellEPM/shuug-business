@@ -1,4 +1,5 @@
 import {childCreditIdentity} from './child-credits-pdf.mjs';
+import {eicIdentity} from './eic-pdf.mjs';
 import {schedule1AIdentity} from './schedule-1a-pdf.mjs';
 import {eligibilityIdentity} from './eligibility-pdf.mjs';
 import {investmentIdentity} from './investment-pdf.mjs';
@@ -10,6 +11,7 @@ import {householdIdentity} from './household-pdf.mjs';
 import {energyIdentity} from './energy-pdf.mjs';
 const digits=value=>value.replaceAll('-','');
 export function identityFields(input,item,set){
+  if(eicIdentity(input,item,set))return;
   if(childCreditIdentity(input,item,set))return;
   if(item.form==='f1040s1a'){schedule1AIdentity(input,item,set);return;}
   retirementIdentity(input,item,set);eligibilityIdentity(input,item,set);

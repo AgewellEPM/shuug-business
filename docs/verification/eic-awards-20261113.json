@@ -1,0 +1,91 @@
+{
+  "version": 1,
+  "reviewedOn": "2026-11-13",
+  "readiness": "prototype",
+  "baseCommit": "7d505232ae00f347b811480202e3223299ffd25b",
+  "scope": [
+    "Ordinary reviewed 2023–2025 EIC eligibility, exact published tables and Worksheets A/B",
+    "Qualifying children derived separately from dependency/support and valid-SSN amount children",
+    "Actual married-child status and supported ordinary dependency eligibility",
+    "Owner-specific linked combat-pay sources, visible candidate worksheets and explicit saved elections",
+    "EIC integration with ACTC, federal payments, refund and balance",
+    "Original annual Schedule EIC and year-specific Form 1040 amount and instructed indicator fields",
+    "Encrypted source editor, firm-reviewed creation/correction, customer/staff reopening and backup restoration",
+    "Retained 2026–2027 intake, partial annual calculations and independent EIC zero proofs; no earlier-year award substitution"
+  ],
+  "verification": {
+    "engineAndClient": {
+      "tests": 560,
+      "passed": 559,
+      "failed": 0,
+      "skipped": 1,
+      "skipReason": "Pre-existing optional native Journal executable fixture unavailable"
+    },
+    "compiledHttp": {
+      "checks": 719,
+      "buildId": "hvrXIh6UKHh1zCBQ6Ugid",
+      "synthetic": true,
+      "reusedUnchangedServerBuild": true,
+      "returns": 23,
+      "positiveEicReturns": 3,
+      "partial2026And2027Returns": 8,
+      "exports": 17,
+      "workpaperOnlyExports": 2,
+      "annualCaseBindings": 12,
+      "publishedInitialEicDollars": [5455, 6131, 6498],
+      "correctedEicDollars": [5150, 5826, 6193],
+      "clientAndStaffCorrectionsReopened": true,
+      "backupRestoreVerified": true,
+      "hostPlaintextMarkerAbsent": true
+    },
+    "independentClientArtifact": {
+      "modules": 195,
+      "publicPdfFetches": 76,
+      "exports": 20,
+      "copiedSourceAndVendorFilesMatched": 416,
+      "execution": "Node V8 and JSDOM with original PDF rendering",
+      "defaultTrustConfigDisabled": true
+    },
+    "primaryReferences": {
+      "qualificationPinnedFiles": 81,
+      "qualificationChecks": 215,
+      "annualFormCounts": {"2023": 25, "2024": 25, "2025": 26, "2026": 3, "2027": 0},
+      "eicSourcePdfs": 6,
+      "exactAnnualTableRows": 3979,
+      "terminalFootnotes": 24,
+      "tableCellsComparedAcrossBothPublications": 63664,
+      "terminalFootnoteConfirmationsAcrossBothPublications": 48,
+      "publishedGreyWorksheetExamples": 3,
+      "eligibilityScaffoldingIsSynthetic": true,
+      "instructionExamplesAreAgencyApproval": false
+    },
+    "custodyPackages": {
+      "existingOfflineFiles": 417,
+      "existingCloudArchiveFiles": 400,
+      "exactCurrentSourceBytesVerified": true,
+      "dependencyClosureAndSafeImportsVerified": true,
+      "rebuilt": false,
+      "keysInitialized": false,
+      "cloudProvisioned": false
+    },
+    "teamReview": "Same-provider engineering review corrected source-conflict and ordered form-indicator defects; no independent-provider or agency review claimed"
+  },
+  "limitations": {
+    "completeEicCoverage": false,
+    "stateEicSchedulesImplemented": false,
+    "eic2026And2027AwardsAvailable": false,
+    "form8862And8867CompletionVerified": false,
+    "completeFederalCoverage": false,
+    "completeStateCoverage": false,
+    "complete2026AnnualPack": false,
+    "complete2027AnnualPack": false,
+    "agencySubmissionAttempted": false,
+    "agencyApproval": false,
+    "realKeyCustodyVerified": false,
+    "installedCustomerWorkflowVerified": false,
+    "installedServiceChanged": false,
+    "safariVerified": false,
+    "visualAcceptance": false,
+    "releaseReady": false
+  }
+}

@@ -1,0 +1,72 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {PDFDocument,StandardFonts} from 'pdf-lib';
+import {eicIdentity,eicAnnotations,eicMaps,eicWorkpaper} from '../eic-pdf.mjs';
+import {referencedField} from '../form-maps.mjs';
+import {pdfText} from './pdf-text.mjs';
+import {eicFixture} from './eic-fixtures.mjs';
+import {generateDraftPdf} from '../pdf.mjs';
+
+const original=(year,id)=>readFile(new URL(`../forms/${year}/${id}.pdf`,import.meta.url));
+const words=(xml,page)=>[...[...xml.matchAll(/<page\b[^>]*>([\s\S]*?)<\/page>/g)][page-1][1].matchAll(/<word\b([^>]*)>([^<]*)<\/word>/g)].map(([,attrs,text])=>({text:text.replaceAll('&amp;','&'),x:Number(attrs.match(/xMin="([^"]+)"/)[1]),y:(Number(attrs.match(/yMin="([^"]+)"/)[1])+Number(attrs.match(/yMax="([^"]+)"/)[1]))/2}));
+const at=(page,text,rect)=>page.some(word=>word.text===String(text)&&word.x>=rect.x-1&&word.x<=rect.x+rect.width&&Math.abs(word.y-(792-rect.y-rect.height/2))<5);
+function fixture(year){
+ const children=Array.from({length:3},(_,index)=>({id:'geometry-child-'+index,firstName:'Child'+index,lastName:'Example',taxId:'00012346'+index,relationship:'child',source:'Synthetic reviewed PDF geometry source',dateOfBirth:`${year-[10,20,30][index]}-06-15`,age:[10,20,30][index],younger:true,studentYounger:index===1,disabled:index===2,usHomeMonths:[7,11,12][index],ssnEligible:true})),input={year,party:{name:'Synthetic Taxpayer',taxId:'000123456'},individual:{filingStatus:'marriedJoint',spouseName:'Synthetic Spouse',dependents:children}};
+ return {input,eic:{amountCents:600000,noCreditIndicator:false,eligibility:{known:true,eligible:true,allQualifyingChildren:children,creditChildren:children,attachmentChildren:children,filerFacts:{joint:true,mainHomeUS:true,separatedSpouse:false}}}};
+}
+async function render(input,item,{annotation=false}={}){
+ const pdf=await PDFDocument.load(await original(input.year,item.form)),form=pdf.getForm(),font=await pdf.embedFont(StandardFonts.Helvetica),filled=[],checks=[],audit=[];
+ const set=(name,value,line)=>{if(value===null||value===undefined||value==='')return;const field=referencedField(form,name);field.setText(String(value));field.setFontSize(9);filled.push({name,value:String(value),line,rect:field.acroField.getWidgets()[0].getRectangle(),page:Number(name.split('/')[0])});};
+ set.checkbox=name=>{const field=form.getCheckBox(name);field.check();checks.push({name,rect:field.acroField.getWidgets()[0].getRectangle(),page:name.includes('Page1')?1:2});};
+ const handled=eicIdentity(input,item,set);for(const [line,value]of Object.entries(item.lines??{}))if(value!==null)set(eicMaps[input.year][item.form][line],value/100,line);
+ form.updateFieldAppearances(font);form.flatten();if(annotation)eicAnnotations(input,item,{pdf,font,audit});const bytes=await pdf.save(),xml=pdfText(bytes);return {bytes,xml,handled,filled,checks,audit};
+}
+
+for(const year of [2023,2024,2025]){
+ test(`${year} pinned Schedule EIC original and actual child identity/month/age branch geometry`,async()=>{
+  const manifest=JSON.parse(await readFile(new URL(`../forms/${year}/manifest.json`,import.meta.url))),pin=manifest.forms.find(row=>row.id==='f1040sei'),bytes=await original(year,'f1040sei');assert(pin);assert.equal(bytes.length,pin.bytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),pin.sha256);const inventory=JSON.parse(await readFile(new URL(`../forms/${year}/f1040sei.fields.json`,import.meta.url)));assert.equal(inventory.length,year===2025?38:39);
+  const {input,eic}=fixture(year);eic.eligibility.filerFacts.separatedSpouse=true;const rendered=await render(input,{form:'f1040sei',lines:{},earnedIncomeCredit:eic}),page=words(rendered.xml,1);assert.equal(rendered.handled,true);
+  for(const field of rendered.filled){for(const part of field.value.split(/\s+/))assert(at(page,part,field.rect),`${year} ${field.line??field.name}: ${part} occupies original field`);}
+  for(const check of rendered.checks)assert(at(page,'✔',check.rect),`${year} ${check.name} printed checkbox`);
+  assert.equal(rendered.checks.length,year<2025?4:3);assert(!rendered.checks.some(row=>row.name.includes('Child1')),'under-19 younger child skips both 4a and4b');assert(rendered.checks.some(row=>row.name.includes('Line4a_Child2')&&row.name.includes('Yes_ReadOrder')));assert(rendered.checks.some(row=>row.name.includes('Line4b_Child3_Yes')));assert.equal((await PDFDocument.load(rendered.bytes)).getForm().getFields().length,0);
+ });
+ test(`${year} Form1040 uses exact EIC/combat amount fields and year-specific home/separation markers`,async()=>{
+  const {input,eic}=fixture(year);eic.eligibility.filerFacts.separatedSpouse=true;const line=year===2025?'27a':'27',rendered=await render(input,{form:'f1040',lines:{'1i':567800,[line]:649800},earnedIncomeCredit:eic});assert.equal(rendered.handled,false);
+  for(const field of rendered.filled)assert(at(words(rendered.xml,field.page),field.value,field.rect));assert.equal(rendered.checks.length,year===2025?2:0);for(const check of rendered.checks)assert(at(words(rendered.xml,check.page),'✔',check.rect));
+  assert(rendered.filled.some(row=>row.name===({2023:'1/39',2024:'1/40',2025:'1/56'})[year]&&row.value==='5678'));assert(rendered.filled.some(row=>row.name===(year===2025?'2/23':'2/16')&&row.value==='6498'));
+ });
+ test(`${year} only instructed zero-credit branches receive No or27c; unknown/highAGI leave marker blank`,async()=>{
+  const {input,eic}=fixture(year);eic.amountCents=0;eic.noCreditIndicator=true;eic.eligibility.filerFacts={mainHomeUS:null,separatedSpouse:null};const item={form:'f1040',lines:{},earnedIncomeCredit:eic},rendered=await render(input,item,{annotation:true});
+  if(year===2025){assert.equal(rendered.checks.length,1);assert.match(rendered.checks[0].name,/c2_13\[0\]$/);assert(at(words(rendered.xml,2),'✔',rendered.checks[0].rect));assert.equal(rendered.audit.length,0);}else{assert.equal(rendered.audit.length,1);const word=words(rendered.xml,2).find(row=>row.text==='No'&&row.x===350);assert(word&&Math.abs(word.y-223)<5);}
+  eic.eligibility.filerFacts.noCreditIndicator=true;
+  for(const amount of [0,null]){eic.amountCents=amount;eic.noCreditIndicator=false;const blank=await render(input,item,{annotation:true});assert.equal(blank.checks.length,0);assert.equal(blank.audit.length,0);}
+  eic.amountCents=0;eic.noCreditIndicator=null;const unknown=await render(input,item,{annotation:true});assert.equal(unknown.checks.length,0);assert.equal(unknown.audit.length,0);delete eic.noCreditIndicator;const fallback=await render(input,item,{annotation:true});assert.equal(fallback.checks.length+fallback.audit.length,1);
+ });
+}
+test('Schedule EIC self-only child retains absent/nonvalid identifiers and never fabricates months from days',async()=>{
+ const {input,eic}=fixture(2025),child={...eic.eligibility.attachmentChildren[0],age:10,younger:true,studentYounger:false,disabled:false,ssnEligible:false,usHomeMonths:7,taxId:''};eic.eligibility.allQualifyingChildren=[child];eic.eligibility.creditChildren=[];eic.eligibility.attachmentChildren=[child];const item={form:'f1040sei',lines:{},earnedIncomeCredit:eic};let output=await render(input,item);assert(!output.filled.some(row=>row.line==='child1:identifier'));assert(output.filled.some(row=>row.line==='child1:months'&&row.value==='7'));
+ child.taxId='900-70-0001';output=await render(input,item);assert(output.filled.some(row=>row.line==='child1:identifier'&&row.value==='900700001'));child.usHomeMonths=undefined;await assert.rejects(()=>render(input,item),/calendar months/);child.usHomeMonths=6;await assert.rejects(()=>render(input,item),/calendar months/);
+});
+test('a disabled young child older than filer uses disability branch; zero/unknown cannot render a child schedule',async()=>{
+ const {input,eic}=fixture(2025);eic.eligibility.attachmentChildren=[{...eic.eligibility.attachmentChildren[0],younger:false,disabled:true}];let result=await render(input,{form:'f1040sei',lines:{},earnedIncomeCredit:eic});assert.equal(result.checks.length,2);assert(result.checks.some(row=>row.name.includes('Line4b_Child1')&&row.name.includes('Yes_ReadOrder')));
+ Object.assign(eic.eligibility.attachmentChildren[0],{younger:null,studentYounger:null});result=await render(input,{form:'f1040sei',lines:{},earnedIncomeCredit:eic});assert.equal(result.checks.length,1);assert(result.checks[0].name.includes('Line4b_Child1'));assert(!result.checks.some(row=>row.name.includes('Line4a')));
+ for(const amount of [0,null]){eic.amountCents=amount;await assert.rejects(()=>render(input,{form:'f1040sei',lines:{},earnedIncomeCredit:eic}),/positive award/);}for(const year of [2026,2027]){input.year=year;assert.equal(eicIdentity(input,{form:'f1040sei',earnedIncomeCredit:eic},()=>assert.fail('No prior-year map fallback')),false);assert.equal(eicMaps[year],undefined);}
+});
+test('EIC workpaper retains child facts, selected combat and exact worksheet/table evidence',()=>{
+ const {input,eic}=fixture(2025);eic.selectedElection={elections:{taxpayer:'include',spouse:'exclude'},combatPayCents:120000};eic.electionCandidates=[{...eic.selectedElection,amountCents:649800}];eic.worksheet={kind:'A',lines:{'1':3303000,'2':649800},earnedLookup:{incomeCents:3303000,interval:[3300000,3305000],creditCents:649800,column:'joint2',terminalFootnote:null},agiComparison:'same-as-earned',comparisonThresholdCents:3047000,stop:null};const output=[];eicWorkpaper(input,{earnedIncomeCredit:eic},line=>output.push(line));assert(output.some(line=>line.includes('Annual EIC worksheet A')));assert(output.some(line=>line.includes('EIC worksheet 1: 33030.00 USD')));assert(output.some(line=>line.includes('reviewed U.S. home months 7')));assert(output.some(line=>line.includes('column joint2')));assert(output.some(line=>line.includes('selected combat 1200.00 USD')));
+});
+for(const year of [2023,2024,2025])test(`${year} actual return packet prints published Grey EIC and material source correction`,async()=>{
+ const input=eicFixture({year});input.individual.taxableInterestCents=52500;
+ const loadTemplate=(id,y)=>original(y,id),packet=await generateDraftPdf(input,{loadTemplate}),expected=({2023:545500,2024:613100,2025:649800})[year];assert.equal(packet.result.summary.earnedIncomeCreditCents,expected);assert.equal(packet.result.summary.refundCents,expected+({2023:320000,2024:340000,2025:340000})[year]);assert.equal(packet.result.filingReady,false);
+ const first=packet.audit.find(row=>row.form==='f1040sei');assert(first);assert.equal(first.pageCount,2);assert.equal(first.filled.filter(row=>row.line?.endsWith(':months')).length,2);assert.equal(packet.audit.filter(row=>row.form==='f1040sei').length,1);assert.match(pdfText(packet.bytes,'-raw'),/Annual EIC worksheet A/);
+ const corrected=structuredClone(input),eic=corrected.individual.earnedIncomeCredit;eic.nontaxableCombatPayCents=200000;Object.assign(corrected.individual.childCredits,{nontaxableCombatPayCents:200000,combatPaySource:'Synthetic reviewed original W-2 code Q correction'});eic.award.combatSources=[{w2Id:corrected.individual.w2s[0].id,owner:'taxpayer',amountCents:200000,source:'Synthetic reviewed original W-2 code Q correction',reviewed:true}];eic.award.combatElections.taxpayer='include';eic.award.children[0].usHomeMonths=7;Object.assign(corrected.individual.dependents[0],{residencyDays:200,usResidencyDays:200});
+ const revised=await generateDraftPdf(corrected,{loadTemplate}),credit=({2023:515000,2024:582600,2025:619300})[year],main=revised.audit.find(row=>row.form==='f1040'),schedule=revised.audit.find(row=>row.form==='f1040sei'),xml=pdfText(revised.bytes);assert.equal(revised.result.summary.earnedIncomeCreditCents,credit);assert.equal(revised.result.summary.adjustedGrossIncomeCents,3355500);assert.equal(revised.result.summary.totalTaxCents,0);assert.equal(revised.result.summary.refundCents,credit+({2023:320000,2024:340000,2025:340000})[year]);assert.equal(revised.result.earnedIncomeCredit.selectedCombatPayCents,200000);
+ const form=await PDFDocument.load(await original(year,'f1040')),scheduleForm=await PDFDocument.load(await original(year,'f1040sei')),mainLine=year===2025?'27a':'27';for(const [line,value,page]of [['1i',2000,main.firstPage],[mainLine,credit/100,main.firstPage+1]]){const rect=referencedField(form.getForm(),eicMaps[year].f1040[line]).acroField.getWidgets()[0].getRectangle();assert(at(words(xml,page),value,rect),`actual ${year} main ${line}`);}for(const [reference,value]of [['1/24',7],['1/25',12]]){const rect=referencedField(scheduleForm.getForm(),reference).acroField.getWidgets()[0].getRectangle();assert(at(words(xml,schedule.firstPage),value,rect));}assert(main.filled.some(row=>row.line==='1i'));assert.equal((await PDFDocument.load(revised.bytes)).getForm().getFields().length,0);
+});
+test('actual self-only award retains its unclaimed qualifying child attachment; unresolved month evidence omits the schedule',async()=>{
+ const input=eicFixture({year:2025,children:1,wages:10000,joint:false});input.individual.eligibility.taxpayer.dateOfBirth='2005-01-02';const child=input.individual.dependents[0];Object.assign(child,{claim:'no',taxId:'900700001',ownSupportCents:800000,taxpayerSupportCents:400000});Object.assign(child.identifier,{type:'itin',validForEmployment:'no',source:'Synthetic timely ITIN source'});
+ const loadTemplate=(id,y)=>original(y,id),packet=await generateDraftPdf(input,{loadTemplate});assert.equal(packet.result.summary.earnedIncomeCreditCents,64900);assert.equal(packet.result.earnedIncomeCredit.eligibility.creditChildren.length,0);assert.equal(packet.result.earnedIncomeCredit.eligibility.allQualifyingChildren.length,1);const attachment=packet.audit.find(row=>row.form==='f1040sei');assert(attachment);assert.equal(attachment.filled.filter(row=>row.line?.endsWith(':name')).length,1);assert(attachment.filled.some(row=>row.line==='child1:identifier'));assert(!packet.audit.find(row=>row.form==='f1040').filled.some(row=>row.reference==='1/31'));assert.match(pdfText(packet.bytes,'-raw'),/900700001/);
+ input.individual.earnedIncomeCredit.award.children[0].usHomeMonths=0;const unresolved=await generateDraftPdf(input,{loadTemplate});assert.equal(unresolved.result.summary.earnedIncomeCreditCents,null);assert.equal(unresolved.result.summary.paymentsCents,null);assert(!unresolved.audit.some(row=>row.form==='f1040sei'));assert(!unresolved.audit.find(row=>row.form==='f1040').filled.some(row=>row.line==='27a'));
+});

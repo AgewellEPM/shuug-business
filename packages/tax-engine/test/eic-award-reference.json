@@ -1,0 +1,317 @@
+{
+  "classification": "Published IRS table cells and Grey-family worksheet arithmetic. Synthetic eligibility scaffolding is separately identified; these are not agency qualification tests.",
+  "annualInstructions": [
+    {
+      "year": 2023,
+      "id": "p596",
+      "file": "p596--2023.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2023.pdf",
+      "bytes": 1933698,
+      "sha256": "6e87be5f50d78fdc3e7497b237b7b0e66c128ae7a44de66033e131b97c0ec130",
+      "status": 200,
+      "origin": "verified existing cache"
+    },
+    {
+      "year": 2023,
+      "id": "i1040gi",
+      "file": "i1040gi--2023.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2023.pdf",
+      "bytes": 4389662,
+      "sha256": "90c8759c7a829d8c74296187cdbdb47bc9025480fffc41ff5e7225889c8fea7e",
+      "status": 200,
+      "origin": "verified existing cache"
+    },
+    {
+      "year": 2024,
+      "id": "p596",
+      "file": "p596--2024.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2024.pdf",
+      "bytes": 1998210,
+      "sha256": "e422d1fa90fe8b6eef48b6b2b474dc7081f7d092f932bec0b93e5cfb77ba00e6",
+      "status": 200,
+      "origin": "verified existing cache"
+    },
+    {
+      "year": 2024,
+      "id": "i1040gi",
+      "file": "i1040gi--2024.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2024.pdf",
+      "bytes": 4375877,
+      "sha256": "0ae53ed5020d69e6571d40cd7955b7735f44a28df483626d128628d2810e93d4",
+      "status": 200,
+      "origin": "verified existing cache"
+    },
+    {
+      "year": 2025,
+      "id": "p596",
+      "file": "p596--2025.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/p596--2025.pdf",
+      "bytes": 2093863,
+      "sha256": "29e8c6695912318253743210fcd68aaa10ad874c76edcab4aa7dc4b23ff51dbf",
+      "status": 200,
+      "origin": "verified existing cache"
+    },
+    {
+      "year": 2025,
+      "id": "i1040gi",
+      "file": "i1040gi--2025.pdf",
+      "url": "https://www.irs.gov/pub/irs-prior/i1040gi--2025.pdf",
+      "bytes": 4434643,
+      "sha256": "482e9c487c608f1bbeaceef35bc3c0933e8b35443cfff447e4279d590468364a",
+      "status": 200,
+      "origin": "verified existing cache"
+    }
+  ],
+  "annualParameters": {
+    "2023": {
+      "agiComparisonThresholdsDollars": [
+        9800,
+        16370,
+        21560,
+        28120
+      ],
+      "investmentLimitDollars": 11000
+    },
+    "2024": {
+      "agiComparisonThresholdsDollars": [
+        10330,
+        17250,
+        22720,
+        29640
+      ],
+      "investmentLimitDollars": 11600
+    },
+    "2025": {
+      "agiComparisonThresholdsDollars": [
+        10620,
+        17730,
+        23350,
+        30470
+      ],
+      "investmentLimitDollars": 11950
+    }
+  },
+  "tableReferences": {
+    "2023": {
+      "rowCount": 1268,
+      "normalizedRowsSha256": "cea69f6dc61939ee449b23607b04bfaded00520fc3753634cda3b9487518dbe1",
+      "terminalFootnotes": [
+        {
+          "column": "nonjoint0",
+          "lowerDollars": 17600,
+          "upperExclusiveDollars": 17640,
+          "creditDollars": 2
+        },
+        {
+          "column": "joint0",
+          "lowerDollars": 24200,
+          "upperExclusiveDollars": 24210,
+          "creditDollars": 0
+        },
+        {
+          "column": "nonjoint1",
+          "lowerDollars": 46550,
+          "upperExclusiveDollars": 46560,
+          "creditDollars": 1
+        },
+        {
+          "column": "nonjoint2",
+          "lowerDollars": 52900,
+          "upperExclusiveDollars": 52918,
+          "creditDollars": 2
+        },
+        {
+          "column": "joint1",
+          "lowerDollars": 53100,
+          "upperExclusiveDollars": 53120,
+          "creditDollars": 2
+        },
+        {
+          "column": "nonjoint3plus",
+          "lowerDollars": 56800,
+          "upperExclusiveDollars": 56838,
+          "creditDollars": 4
+        },
+        {
+          "column": "joint2",
+          "lowerDollars": 59450,
+          "upperExclusiveDollars": 59478,
+          "creditDollars": 3
+        },
+        {
+          "column": "joint3plus",
+          "lowerDollars": 63350,
+          "upperExclusiveDollars": 63398,
+          "creditDollars": 5
+        }
+      ],
+      "crossSourceMatch": true,
+      "verificationScope": "One extraction parser across two official annual publications; not independent-provider verification."
+    },
+    "2024": {
+      "rowCount": 1337,
+      "normalizedRowsSha256": "9f6fd64d66378b199032fc76f2e750fdec2abe2f7a5f4fa9bb69b854502712a4",
+      "terminalFootnotes": [
+        {
+          "column": "nonjoint0",
+          "lowerDollars": 18550,
+          "upperExclusiveDollars": 18591,
+          "creditDollars": 2
+        },
+        {
+          "column": "joint0",
+          "lowerDollars": 25500,
+          "upperExclusiveDollars": 25511,
+          "creditDollars": 0
+        },
+        {
+          "column": "nonjoint1",
+          "lowerDollars": 49050,
+          "upperExclusiveDollars": 49084,
+          "creditDollars": 3
+        },
+        {
+          "column": "nonjoint2",
+          "lowerDollars": 55750,
+          "upperExclusiveDollars": 55768,
+          "creditDollars": 2
+        },
+        {
+          "column": "joint1",
+          "lowerDollars": 56000,
+          "upperExclusiveDollars": 56004,
+          "creditDollars": 0
+        },
+        {
+          "column": "nonjoint3plus",
+          "lowerDollars": 59850,
+          "upperExclusiveDollars": 59899,
+          "creditDollars": 5
+        },
+        {
+          "column": "joint2",
+          "lowerDollars": 62650,
+          "upperExclusiveDollars": 62688,
+          "creditDollars": 4
+        },
+        {
+          "column": "joint3plus",
+          "lowerDollars": 66800,
+          "upperExclusiveDollars": 66819,
+          "creditDollars": 2
+        }
+      ],
+      "crossSourceMatch": true,
+      "verificationScope": "One extraction parser across two official annual publications; not independent-provider verification."
+    },
+    "2025": {
+      "rowCount": 1374,
+      "normalizedRowsSha256": "5a4667a07c708affe661a038b70334b92a597bfff65685e695bbec90daf2098a",
+      "terminalFootnotes": [
+        {
+          "column": "nonjoint0",
+          "lowerDollars": 19100,
+          "upperExclusiveDollars": 19104,
+          "creditDollars": 0
+        },
+        {
+          "column": "joint0",
+          "lowerDollars": 26200,
+          "upperExclusiveDollars": 26214,
+          "creditDollars": 1
+        },
+        {
+          "column": "nonjoint1",
+          "lowerDollars": 50400,
+          "upperExclusiveDollars": 50434,
+          "creditDollars": 3
+        },
+        {
+          "column": "nonjoint2",
+          "lowerDollars": 57300,
+          "upperExclusiveDollars": 57310,
+          "creditDollars": 1
+        },
+        {
+          "column": "joint1",
+          "lowerDollars": 57550,
+          "upperExclusiveDollars": 57554,
+          "creditDollars": 0
+        },
+        {
+          "column": "nonjoint3plus",
+          "lowerDollars": 61550,
+          "upperExclusiveDollars": 61555,
+          "creditDollars": 1
+        },
+        {
+          "column": "joint2",
+          "lowerDollars": 64400,
+          "upperExclusiveDollars": 64430,
+          "creditDollars": 3
+        },
+        {
+          "column": "joint3plus",
+          "lowerDollars": 68650,
+          "upperExclusiveDollars": 68675,
+          "creditDollars": 3
+        }
+      ],
+      "crossSourceMatch": true,
+      "verificationScope": "One extraction parser across two official annual publications; not independent-provider verification."
+    }
+  },
+  "publishedGreyExamples": [
+    {
+      "year": 2023,
+      "id": "published-grey-family-2023",
+      "source": "p596--2023.pdf",
+      "sourceSection": "Chapter 6, Example 2",
+      "filingStatus": "marriedJoint",
+      "qualifyingChildren": 2,
+      "validSsnChildren": 2,
+      "taxpayerWagesDollars": 15000,
+      "spouseWagesDollars": 18030,
+      "taxableInterestDollars": 525,
+      "earnedIncomeDollars": 33030,
+      "agiDollars": 33555,
+      "earnedTableCreditDollars": 5571,
+      "agiTableCreditDollars": 5455,
+      "eicDollars": 5455
+    },
+    {
+      "year": 2024,
+      "id": "published-grey-family-2024",
+      "source": "p596--2024.pdf",
+      "sourceSection": "Chapter 6, Example 2",
+      "filingStatus": "marriedJoint",
+      "qualifyingChildren": 2,
+      "validSsnChildren": 2,
+      "taxpayerWagesDollars": 15000,
+      "spouseWagesDollars": 18030,
+      "taxableInterestDollars": 525,
+      "earnedIncomeDollars": 33030,
+      "agiDollars": 33555,
+      "earnedTableCreditDollars": 6247,
+      "agiTableCreditDollars": 6131,
+      "eicDollars": 6131
+    },
+    {
+      "year": 2025,
+      "id": "published-grey-family-2025",
+      "source": "p596--2025.pdf",
+      "sourceSection": "Chapter 6, Example 2",
+      "filingStatus": "marriedJoint",
+      "qualifyingChildren": 2,
+      "validSsnChildren": 2,
+      "taxpayerWagesDollars": 15000,
+      "spouseWagesDollars": 18030,
+      "taxableInterestDollars": 525,
+      "earnedIncomeDollars": 33030,
+      "agiDollars": 33555,
+      "earnedTableCreditDollars": 6614,
+      "agiTableCreditDollars": 6498,
+      "eicDollars": 6498
+    }
+  ]
+}

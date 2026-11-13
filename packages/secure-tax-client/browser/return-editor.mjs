@@ -77,7 +77,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
       capitalFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       eligibilityFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       dependentsFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
-      earnedIncomeCreditFields({document,parent:body,individual:value,field,group,button});
+      earnedIncomeCreditFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       taxpayerIdentifierFields({document,parent:body,individual:value,field,group,button});
       schedule1AFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});
       retirementFields({document,parent:body,individual:value,year:draft.year,field,group,button,readers});

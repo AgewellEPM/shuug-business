@@ -1,4 +1,5 @@
 import {childCreditMaps} from './child-credits-pdf.mjs';
+import {eicMaps} from './eic-pdf.mjs';
 import {schedule1AMap} from './schedule-1a-pdf.mjs';
 import {lineMaps,scheduleMaps} from './form-maps.mjs';
 import {lineMaps2023,scheduleMaps2023,lineMaps2024,scheduleMaps2024} from './form-maps-prior.mjs';
@@ -18,4 +19,4 @@ const packs=Object.freeze({
   2026:Object.freeze({templates:officialForms2026,lineMaps:lineMaps2026,scheduleMaps:scheduleMaps2026}),
   2027:Object.freeze({templates:[],lineMaps:{},scheduleMaps:{}}),
 });
-export function pdfYearPack(year){if(!Number.isInteger(year)||!Object.hasOwn(packs,year))throw new Error('No reviewed PDF pack is installed for this tax year.');const federal=packs[year],state=ctPdfYearPack(year),ny=nyPdfYearPack(year);return {templates:[...federal.templates,...state.templates,...ny.templates],lineMaps:{...federal.lineMaps,...childCreditMaps[year],...state.lineMaps,...ny.lineMaps,...(year===2025?{f1040s1a:schedule1AMap}:{}),f1040:{...federal.lineMaps.f1040,...retirementMaps[year],...childCreditMaps[year]?.f1040},f1040sc:{...federal.lineMaps.f1040sc,...inventoryScheduleCMap},...(year<2026?{f1125a:inventory1125AMap}:{})},scheduleMaps:federal.scheduleMaps};}
+export function pdfYearPack(year){if(!Number.isInteger(year)||!Object.hasOwn(packs,year))throw new Error('No reviewed PDF pack is installed for this tax year.');const federal=packs[year],state=ctPdfYearPack(year),ny=nyPdfYearPack(year);return {templates:[...federal.templates,...state.templates,...ny.templates],lineMaps:{...federal.lineMaps,...childCreditMaps[year],...eicMaps[year],...state.lineMaps,...ny.lineMaps,...(year===2025?{f1040s1a:schedule1AMap}:{}),f1040:{...federal.lineMaps.f1040,...retirementMaps[year],...childCreditMaps[year]?.f1040,...eicMaps[year]?.f1040},f1040sc:{...federal.lineMaps.f1040sc,...inventoryScheduleCMap},...(year<2026?{f1125a:inventory1125AMap}:{})},scheduleMaps:federal.scheduleMaps};}

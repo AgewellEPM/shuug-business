@@ -188,5 +188,14 @@ export const officialForms2023=Object.freeze([
     "bytes": 101796,
     "pages": 2,
     "fieldCount": 41
+  },
+  {
+    "id": "f1040sei",
+    "taxYear": 2023,
+    "url": "https://www.irs.gov/pub/irs-prior/f1040sei--2023.pdf",
+    "sha256": "6ddb734160101c0b9e720e0a0c1830dcd47ce30e65ee5a66ab69bdda92106a35",
+    "bytes": 114572,
+    "pages": 2,
+    "fieldCount": 39
   }
 ]);

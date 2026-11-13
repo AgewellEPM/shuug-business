@@ -10,15 +10,16 @@ It is not a completed filing product.
 Inputs are versioned structured records containing integer cents. Calculations
 use exact integer arithmetic, explicit whole-dollar rounding, the complete
 2,062-row official IRS Tax Table for 2023–2025 below $100,000, and that year's Tax
-Computation Worksheet above it. The final 2026 Tax Table is missing, so tax below
-$100,000 remains unknown; higher amounts use the published 2026 statutory rates.
+Computation Worksheet above it. The final 2026–2027 Tax Tables are missing, so tax below
+$100,000 remains unknown; higher amounts use the respective published statutory rates.
 Different years never inherit these rates.
 
 | Return | Current calculation / draft form coverage |
 | --- | --- |
 | Individual 1040 | Ordinary W-2 wages, taxable interest, ordinary/qualified dividends, source-reviewed standard deduction including age/blindness and dependent limits, entered withholding/estimates |
-| Additional deductions | 2025 Schedule 1-A and supported 2026 statutory tips/overtime/vehicle-interest/senior deductions, with MAGI, SSN and source reviews; business-tip QBI reconciliation |
+| Additional deductions | 2025 Schedule 1-A and supported 2026–2027 statutory tips/overtime/vehicle-interest/senior deductions, with MAGI, SSN and source reviews; business-tip QBI reconciliation |
 | Dependent credits | Supported ordinary dependency facts and annual Schedule 8812 CTC/ODC/ACTC with source-linked payroll and energy-credit ordering; unresolved EIC keeps settlement unknown |
+| Earned Income Credit | Ordinary reviewed 2023–2025 eligibility, exact published tables, Worksheets A/B, separate combat-pay elections and original Schedule EIC; independent zero proofs through 2027 |
 | Self-employed | Schedule C eligible expenses/profit, per-person Schedule SE wage cap and Medicare tax, deductible half of SE tax, limited simplified 8995 QBI, Schedules 1 and 2 |
 | Additional Medicare Tax | Form 8959 ordinary Medicare wages/SE income and W-2 box 6 withholding reconciliation; RRTA/unreported wages and uncollected box-12 tax excluded |
 | Residential energy credits | Form 5695 / Schedule 3, reviewed eligible costs at one home, annual caps and tax limits, clean-energy carryforward; 2025 manufacturer identifiers |

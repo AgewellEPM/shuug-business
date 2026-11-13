@@ -73,6 +73,16 @@ See the [2027 annual boundary](../packages/tax-engine/ANNUAL-2027.md) and
 The requested 2023–2027 range is now represented in the client; complete annual
 tax coverage, all-state support, qualification and installed rollout remain open.
 
+November 13 EIC continuation adds ordinary **2023–2025 Earned Income Credit
+awards**, using separate eligibility sources, the exact annual tables,
+Worksheets A/B, explicit per-filer combat-pay elections and original Schedule EIC
+PDFs. The amount flows into ACTC, payments and federal settlement. Source
+conflicts remain unresolved, including contradictory birth dates, residence
+days/months, child links and combat totals. State EIC schedules, special federal
+treatments and 2026–2027 annual award materials remain unfinished. See the
+[EIC scope](../packages/tax-engine/EARNED-INCOME-CREDIT.md) and
+[verification receipt](verification/eic-awards-20261113.json).
+
 ## Already implemented
 
 - Owner/staff/client MFA, encrypted device backups, signed enrollment, per-device

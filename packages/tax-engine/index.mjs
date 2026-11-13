@@ -1,4 +1,5 @@
 export {newEarnedIncomeCredit} from './earned-income-credit.mjs';
+export {newEicAward,newEicChild,newEicCombatSource,eicScopeReviews} from './eic-model.mjs';
 export {newDependent,newChildCredits,newChildCreditWithholding,dependentRelationships,dependentReviews,childCreditReviews} from './dependents-model.mjs';
 export {newTaxpayerIdentifiers,newTaxpayerIdentifier} from './taxpayer-identifiers.mjs';
 export {newSchedule1A,newTipSource,newOvertimeSource,newVehicleLoan,newSeniorDeduction,schedule1AReviews,tipReviews,overtimeReviews,vehicleReviews,tipReportingMethods,overtimeMethods,tippedOccupations} from './schedule-1a.mjs';

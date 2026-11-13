@@ -199,6 +199,15 @@
       "bytes": 100829,
       "pages": 2,
       "fieldCount": 41
+    },
+    {
+      "id": "f1040sei",
+      "taxYear": 2025,
+      "url": "https://www.irs.gov/pub/irs-prior/f1040sei--2025.pdf",
+      "sha256": "b6dab52511ece16e710899542d952db578bf6c872d2580ee6760fb88ed77c4ba",
+      "bytes": 112439,
+      "pages": 2,
+      "fieldCount": 38
     }
   ]
 }

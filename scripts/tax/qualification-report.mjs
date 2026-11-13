@@ -19,6 +19,7 @@ import {retirementIncome,socialSecurityBenefits,newRetirementIncome,newRetiremen
 import {standardDeduction,newIndividualEligibility} from '../../packages/tax-engine/standard-deduction.mjs';
 import {ctRetirementAdjustments,ctPensionFactor,ctSocialSecurityAdjustment,newCTRetirement,newCTRetirementDistribution} from '../../packages/tax-engine/state-ct-retirement.mjs';
 import {schedule1A} from '../../packages/tax-engine/schedule-1a.mjs';
+import {eicAward} from '../../packages/tax-engine/eic-award.mjs';
 import {schedule1AFixture,schedule1AContext,overtime,tip,vehicle,senior} from '../../packages/tax-engine/test/schedule-1a-fixtures.mjs';
 
 const engine=fileURLToPath(new URL('../../packages/tax-engine/',import.meta.url));
@@ -42,6 +43,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   const schedule1AExamples=JSON.parse(await readFile(path.join(engine,'test/schedule-1a-reference.json'),'utf8'));
   const childSources=JSON.parse(await readFile(path.join(engine,'data/child-credits-sources.json'),'utf8'));
   const eicSources=JSON.parse(await readFile(path.join(engine,'data/earned-income-credit-sources.json'),'utf8'));
+  const eicExamples=JSON.parse(await readFile(path.join(engine,'test/eic-award-reference.json'),'utf8'));
   const annual2027=JSON.parse(await readFile(path.join(engine,'data/2027-sources.json'),'utf8'));
   const sourceEvidence=[];
   if(sourcesDirectory){
@@ -50,7 +52,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     sourceEvidence.push({id:'energy-faq-examples',...await checkedSource(path.join(sourcesDirectory,'irs-energy-examples.html'),energyExamples.source)});
     const checked=new Map();
     const ctInstructions=Object.entries(ctSources.sources).map(([year,source])=>({year:Number(year),url:source.instructions,sha256:source.instructionSha256,bytes:source.instructionBytes}));
-    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions,...retirementExamples.annualInstructions,...standardExamples.annualInstructions,...ctInstructions,...schedule1AExamples.annualInstructions,...childSources.instructions,...eicSources.annualInstructions,...annual2027.sources]){
+    for(const source of [...householdExamples.sources,...householdExamples.annualInstructions,...householdFutaExamples.annualInstructions,...investmentExamples.annualInstructions,...capitalExamples.annualInstructions,...retirementExamples.annualInstructions,...standardExamples.annualInstructions,...ctInstructions,...schedule1AExamples.annualInstructions,...childSources.instructions,...eicSources.annualInstructions,...eicExamples.annualInstructions,...annual2027.sources]){
       if(checked.has(source.url)){const previous=checked.get(source.url);if(previous.bytes!==source.bytes||previous.sha256!==source.sha256)throw new Error('Instruction fixtures disagree about a reviewed source pin.');continue;}
       const filename=source.file??new URL(source.url).pathname.split('/').pop();sourceEvidence.push({id:filename,...await checkedSource(path.join(sourcesDirectory,filename),source)});checked.set(source.url,source);
     }
@@ -160,6 +162,15 @@ export async function qualificationReport({sourcesDirectory=null}={}){
     const result=schedule1A(value,context),actual=result[{tips:'tipsDeductionCents',overtime:'overtimeDeductionCents',vehicle:'vehicleInterestDeductionCents',senior:'seniorDeductionCents'}[row.part]],expected=row.deductionDollars*100;
     return {year:2025,id:'schedule1a-phaseout-'+index,kind:'derived-synthetic-instruction-vector',pass:actual===expected&&!result.diagnostics.length,actualDeductionCents:actual,expectedDeductionCents:expected};
   });
+  const eicPublishedChecks=eicExamples.publishedGreyExamples.map(example=>{
+    // Published worksheet arithmetic; eligibility below is synthetic scaffolding,
+    // not an IRS certification of this application's source-decision model.
+    const input={year:example.year,individual:{filingStatus:example.filingStatus,w2s:[{owner:'taxpayer',wagesCents:example.taxpayerWagesDollars*100},{owner:'spouse',wagesCents:example.spouseWagesDollars*100}],businesses:[],earnedIncomeCredit:{award:{combatElections:{taxpayer:'exclude',spouse:'exclude'}}}}};
+    const children=Array.from({length:example.validSsnChildren},(_,index)=>({id:`published-child-${index}`})),eligibility={known:true,eligible:true,allQualifyingChildren:children,creditChildren:children,diagnostics:[],filerFacts:{earnedSourcesKnown:true,investmentSourcesKnown:true,combatKnown:true,combatByOwner:{taxpayer:0,spouse:0}}};
+    const result=eicAward(input,{eligibility,adjustedGrossIncomeCents:example.agiDollars*100,wageIncomeCents:example.earnedIncomeDollars*100,scheduleCProfitCents:0,halfSeTaxCents:0,investmentIncomeCents:example.taxableInterestDollars*100,investmentKnown:true,otherTreatments:false,businesses:[],seByOwner:[]});
+    const actual=result.amountCents,expected=example.eicDollars*100;
+    return {year:example.year,id:example.id,kind:'published-IRS-worksheet-arithmetic-with-synthetic-eligibility-scaffolding',pass:actual===expected&&result.diagnostics.length===0,actualCreditCents:actual,expectedCreditCents:expected};
+  });
   const installedPacks=[];
   for(const year of calculationYears){
     const pack=pdfYearPack(year),forms=[];
@@ -187,7 +198,7 @@ export async function qualificationReport({sourcesDirectory=null}={}){
   }
   await inventory();sourceFiles.sort((a,b)=>a.path.localeCompare(b.path,'en'));
   return {version:1,type:'shuug-local-qualification-evidence',createdAt:new Date().toISOString(),readiness:'prototype',sourceInventorySha256:hash(JSON.stringify(sourceFiles)),sourceFiles,
-    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks,...capitalPublishedChecks,...capitalDerivedChecks,...retirementPublishedChecks,...retirementDerivedChecks,...standardPublishedChecks,...standardDerivedChecks,...ctPublishedChecks,...ctDerivedChecks,...schedule1APublishedChecks,...schedule1ADerivedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,capitalPublishedChecks,capitalDerivedChecks,retirementPublishedChecks,retirementDerivedChecks,standardPublishedChecks,standardDerivedChecks,ctPublishedChecks,ctDerivedChecks,schedule1APublishedChecks,schedule1ADerivedChecks,sourceEvidence,installedPacks,scenarios,
+    internalChecksPassed:[...instructionChecks,...energyInstructionChecks,...householdInstructionChecks,...householdFutaDerivedChecks,...investmentDerivedChecks,...capitalPublishedChecks,...capitalDerivedChecks,...retirementPublishedChecks,...retirementDerivedChecks,...standardPublishedChecks,...standardDerivedChecks,...ctPublishedChecks,...ctDerivedChecks,...schedule1APublishedChecks,...schedule1ADerivedChecks,...eicPublishedChecks].every(item=>item.pass),instructionChecks,energyInstructionChecks,householdInstructionChecks,householdFutaDerivedChecks,investmentDerivedChecks,capitalPublishedChecks,capitalDerivedChecks,retirementPublishedChecks,retirementDerivedChecks,standardPublishedChecks,standardDerivedChecks,ctPublishedChecks,ctDerivedChecks,schedule1APublishedChecks,schedule1ADerivedChecks,eicPublishedChecks,sourceEvidence,installedPacks,scenarios,
     requestedYears:requestedTaxYears,unimplementedCalculationYears:requestedTaxYears.filter(year=>!calculationYears.includes(year)),partialCalculationYears:[2026,2027],federal2026Availability,federal2027Availability,stateCalculationPacks:[{state:'NY',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[],filingApproved:false},{state:'CT',years:[2023,2024,2025],residency:'resident',coverage:'partial',sourceDraftYears:[2023],filingApproved:false}],
     agencySubmissionAttempted:false,agencyApproval:false,releaseReady:false,externalSteps:catalog.requiredExternalSteps,references:catalog.references,
     limits:['Instruction examples are not ATS scenario execution.','FUTA, NIIT, capital, retirement, standard-deduction and Connecticut derived vectors are synthetic cases. Published capital/benefit/standard-deduction and CT Anna examples are labeled separately, including the generic capital arithmetic example with a synthetic adjustment interpretation.','2026–2027 calculations use published annual/statutory guidance, not final annual Forms 1040 or Tax Tables.','Pinned blank forms and mapped rows do not establish complete form coverage.','Selected scenarios do not determine the full required IRS test plan.','No real customer, physical custody, installed service or independent review is exercised.']};

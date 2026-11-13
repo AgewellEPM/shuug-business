@@ -188,5 +188,14 @@ export const officialForms2024=Object.freeze([
     "bytes": 101825,
     "pages": 2,
     "fieldCount": 41
+  },
+  {
+    "id": "f1040sei",
+    "taxYear": 2024,
+    "url": "https://www.irs.gov/pub/irs-prior/f1040sei--2024.pdf",
+    "sha256": "1b63022e3f43cd0f230e597a58a345713ebb432a9bd302b5b21827a152fee8bf",
+    "bytes": 114829,
+    "pages": 2,
+    "fieldCount": 39
   }
 ]);
