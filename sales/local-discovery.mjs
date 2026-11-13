@@ -24,10 +24,17 @@ export function localDiscovery(env, { fetcher = fetch, discoverer = discoverOffi
       return researchLocalContacts(candidate, body, { search, researcher, now });
     }
     if (action === 'lookup-business') {
-      const report = await lookup(read(user, body.candidateToken), fetcher);
-      return { ...report, matches:(report.matches || []).map(record => ({ ...record,
-        researchToken:tokenFor(user,record,true), principals:(record.principals || []).map(person => ({ ...person,
-          researchToken:tokenFor(user,{ ...record, contact:person.name, contactRole:person.role, contactSourceURL:person.sourceURL },true) })) })) };
+      const candidate=read(user, body.candidateToken), report = await lookup(candidate, fetcher);
+      return { ...report, matches:(report.matches || []).map(record => {
+        // Addressless name matches retain the selected directory office as the
+        // research context. Its territory and suppression checks still apply;
+        // the registry record itself never acquires a guessed address or pin.
+        const addressless=record.match==='name_only' && !record.address && !record.city && record.registryState===candidate.state;
+        const context=addressless?{...candidate,sourceURL:record.sourceURL}:record;
+        return { ...record, ...(addressless?{researchCandidate:context,researchContextNote:'Contact research uses the selected directory office location. The registry match is by legal name only; check the business/person connection.'}:{}),
+          researchToken:tokenFor(user,context,true), principals:(record.principals || []).map(person => ({ ...person,
+            researchToken:tokenFor(user,{ ...context, contact:person.name, contactRole:person.role, contactSourceURL:person.sourceURL },true) })) };
+      }) };
     }
     if (action !== 'search-local') throw new HttpError(404, 'Unknown local search action.');
     const region = state(body.state), query = text(body.city, 100, true); permitted(user, region,query);
@@ -37,7 +44,7 @@ export function localDiscovery(env, { fetcher = fetch, discoverer = discoverOffi
       const page = await discoverer(region, first.locality || query, fetcher, { includeChains: true, exactCity: true, offset, limit: 50 }); candidates.push(...page.results.map(row => ({ ...row, sourceKind: 'irs', sourceURL: row.url })));
     }
     const issues = [];
-    let registration = { supported: registryCoverage(region).automaticRecords, results: [], truncated: false }, registryAvailable=true;
+    let registration = { supported: registryCoverage(region).automaticLocalDiscovery, results: [], truncated: false }, registryAvailable=true;
     try { registration = await registry(region, first.locality || query, fetcher); }
     catch { registryAvailable=false; issues.push('The state registry search is temporarily unavailable. IRS results are shown; retry to include registered businesses.'); }
     const merged = new Map(candidates.map(row => [officeIdentity(row.name, row.address, row.city, row.state), row]));

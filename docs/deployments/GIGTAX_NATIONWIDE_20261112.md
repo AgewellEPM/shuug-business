@@ -4,6 +4,37 @@ Active scope: connect state business research nationwide using **free public
 sources only**, then let the owner drill into every state and assign towns/cities
 to sales agents. Full automatic registry coverage is not complete.
 
+## New Mexico selected-business lookup milestone
+
+The free public Secretary of State search and filing-detail routes now provide
+automatic legal-name lookup for a selected directory office in New Mexico.
+`sales/registry-new-mexico.mjs` makes at most two bounded name queries and reads
+up to six matching records. It returns published officers/directors and keeps
+registered agents separate. Filing organizers are not owner findings. Only
+selected business/name fields are cached; agent addresses are excluded.
+
+The public response omits business addresses. The registry record remains
+addressless, while contact research explicitly retains the selected directory
+office as its context. Current town permissions and the saved office's contact
+suppression therefore still apply. The interface labels a legal-name match as
+address unconfirmed and explains the directory context before contact research.
+Source review and saving remain explicit; no outreach is sent.
+
+Coverage now distinguishes `automaticRecords` (seven states) from
+`automaticLocalDiscovery` (six states). NM has selected-business lookup only;
+town-wide registry discovery remains unavailable there. The other 44 regions
+still need automatic connectors. Town assignment works across all 51 regions
+independently of registry coverage.
+
+All 195 focused sales/MCP checks and full TypeScript pass. Both actual shipped
+DOM paths (records with and without business addresses) research a principal and
+prepare/save only a reviewed synthetic office. Tests cover current town access,
+saved do-not-contact enforcement, source schema failures, bounded queries and
+excluding personal addresses. Direct free-source checks matched the real NM
+Accounting Concepts record and its director without a business address. Runtime
+deployment verification is recorded below when complete. Test log:
+`~/BuildCache/GigTaxNationwide-20261112/new-mexico-tests.log`.
+
 ## Town assignment milestone
 
 The existing Territories map now opens a complete selectable locality catalog for
@@ -106,8 +137,10 @@ inconsistent. No visual acceptance or complete registry coverage claimed.
   download ignored `limit=1` and exceeded the bounded probe. Its separate SOS API
   advertises paid subscriptions; none was purchased. Florida/California automated
   search probes were blocked; no challenge bypass was attempted. New Mexico's
-  public frontend exposes a business search endpoint and a bounded anonymous TAX
-  query returned a `template`/`rows` response; it is not integrated yet.
+  selected-name connector is described above. Similar public route probes for
+  Idaho/North Dakota returned 404 and Montana returned 403 even outside the
+  sandbox; those sources were not promoted to automatic coverage. Inspect each
+  state's own current frontend/configuration before assuming the NM route works.
 - Continue website-source discovery verification. Empty provider results are not
   proof that a business has no website or contact information.
 

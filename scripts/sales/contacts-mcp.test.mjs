@@ -40,7 +40,7 @@ test('real Shuug stdio MCP reads and changes the same contacts through HTTP, wit
     assert.deepEqual((await client.listTools()).tools.map(t => t.name), ['sdr_catalog', 'sdr_read', 'sdr_command', 'sdr_progress', 'sdr_contract', 'sdr_sender']);
     assert.equal((await call(client, 'sdr_catalog')).storage, 'Existing GigTax private sales records');
     const coverage = await call(client, 'sdr_read', { resource:'state_coverage' });
-    assert.equal(coverage.states.length,51);assert.equal(coverage.states.filter(row=>row.automaticRecords).length,6);
+    assert.equal(coverage.states.length,51);assert.equal(coverage.states.filter(row=>row.automaticRecords).length,7);
     const towns=await call(client,'sdr_read',{resource:'territory_localities',state:'CT'});
     assert.equal(towns.stateTotal,169);assert.equal(towns.results.length,100);
     const mappedSearch = await call(client, 'sdr_read', { resource: 'local_offices', city: 'hartord', state: 'CT' });

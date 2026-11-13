@@ -58,14 +58,16 @@ export const REGISTRIES = Object.freeze({
   WY: { name:"Wyoming", url:"https://wyobiz.wyo.gov/Business/FilingSearch.aspx" },
 });
 
-const automatic = new Set(['CT','CO','NY','OR','PA','TX']);
-const people = {CT:'Listed principals',NY:'Chairman / CEO when published',OR:'Authorized representatives when published',CO:'Registered agent only; not an owner',PA:'No principal fields in this data feed',TX:'No principal fields in this data feed'};
+const automatic = new Set(['CT','CO','NM','NY','OR','PA','TX']);
+const localDiscovery = new Set(['CT','CO','NY','OR','PA','TX']);
+const people = {CT:'Listed principals',NY:'Chairman / CEO when published',OR:'Authorized representatives when published',CO:'Registered agent only; not an owner',NM:'Officers and directors when published; organizers and registered agents are not owner findings',PA:'No principal fields in this data feed',TX:'No principal fields in this data feed'};
 export function registryCoverage(region) {
   state(region); const entry=REGISTRIES[region];
   return {state:region,name:entry.name,officialURL:entry.url,directorySource:REGISTRY_DIRECTORY_SOURCE,searchDirectorySource:REGISTRY_SEARCH_DIRECTORY_SOURCE,
     mode:automatic.has(region)?'automatic_records':'official_search', automaticRecords:automatic.has(region),
+    automaticLocalDiscovery:localDiscovery.has(region),
     principalCoverage:people[region] || 'Review the official state record; automatic principal retrieval is not connected.',
-    note:automatic.has(region)?'Public business records are checked automatically; roles and business matches require review.':'Official state search is available. Automated records are not connected for this state yet.'};
+    note:region==='NM'?'Select a directory office for automatic legal-name and officer/director lookup. This source omits business addresses, so town-wide registry discovery is not connected.':automatic.has(region)?'Public business records are checked automatically; roles and business matches require review.':'Official state search is available. Automated records are not connected for this state yet.'};
 }
 export const allRegistryCoverage = () => STATES.map(registryCoverage);
 export function registryLinks(candidate) {

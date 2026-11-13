@@ -3,7 +3,7 @@
   const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
   const address = row => [row.address, row.city, row.state, row.zip].filter(Boolean).join(', ');
   const link = (url, label) => `<a href="${e(url)}" target="_blank" rel="noopener noreferrer">${e(label)} ↗</a>`;
-  const matchNames = { registry_record:'Selected registry record', name_and_address:'Name and address match', name_only:'Name matches · address differs', related_name:'Related business name · confirm address and relationship', address_only:'Address matches · name differs', possible:'Possible match · review carefully' };
+  const matchNames = { registry_record:'Selected registry record', name_and_address:'Name and address match', name_only:'Name matches · address not confirmed', related_name:'Related business name · confirm address and relationship', address_only:'Address matches · name differs', possible:'Possible match · review carefully' };
   window.GigTaxLocalOffices = {
     mount({ api, status, onPrepare }) {
       const form = document.querySelector('#sales-discover'); if (!form) return;
@@ -54,7 +54,7 @@
         const panel = $('[data-local-business]');
         panel.innerHTML = `<h4>${e(candidate.name)}</h4><p>${e(address(candidate))}</p><p>${candidate.sourceKind !== 'irs' ? 'Registered business address; storefront status needs checking.' : 'IRS directory location; current operating status needs checking.'}</p><p>${candidate.phone ? `Business phone: ${e(candidate.phone)}<br>` : ''}${candidate.contact ? `Directory contact: ${e(candidate.contact)} · role unverified` : ''}</p><div class="sales-actions"><button type="button" class="button secondary" data-local-prepare>Prepare office record</button>${link('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(candidate.name+' '+address(candidate)), 'Open location')}${link(candidate.sourceURL || candidate.url, 'Public source')}</div><div data-local-contact-research></div><div data-business-results><p>Cross-referencing the business registry…</p></div>`;
         panel.querySelector('[data-local-prepare]').onclick = () => onPrepare(candidate);
-        const research = row => window.GigTaxLocalContacts?.mount({host:panel.querySelector('[data-local-contact-research]'),candidate:row,api,status,onPrepare});
+        const research = row => window.GigTaxLocalContacts?.mount({host:panel.querySelector('[data-local-contact-research]'),candidate:row.researchCandidate?{...row.researchCandidate,contact:row.contact || '',contactRole:row.contactRole || 'unverified',researchToken:row.researchToken,researchContextNote:row.researchContextNote}:row,api,status,onPrepare});
         research(candidate);
         try {
           const report = await api('lookup-business', { candidateToken:candidate.candidateToken });

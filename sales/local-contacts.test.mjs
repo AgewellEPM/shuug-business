@@ -51,8 +51,10 @@ test('map contact research honors saved do-not-contact records without modifying
   const f=contactFixture(),saved=await f.createOffice();let searches=0;
   const candidate={...office,name:saved.town,address:JSON.parse(saved.notes).address,city:saved.locality,state:saved.state};
   f.rows.offices[0].status='do_not_contact';
-  const app=service(f.env,f.db,undefined,{localDiscovery:{discoverer:async()=>({results:[candidate],total:1}),registry:async()=>({results:[]}),search:async()=>{searches++;return[];}}});
+  const app=service(f.env,f.db,undefined,{localDiscovery:{discoverer:async()=>({results:[candidate],total:1}),registry:async()=>({results:[]}),search:async()=>{searches++;return[];},lookup:async()=>({matches:[{name:candidate.name,state:candidate.state,registryState:candidate.state,address:'',city:'',match:'name_only',sourceURL:'https://example.test/registry',principals:[{name:'Synthetic Principal',role:'Director',sourceURL:'https://example.test/registry'}]}]})}});
   const before=JSON.stringify(f.rows),found=await app.dispatch(f.owner,'search-local',{city:candidate.city,state:candidate.state});
   await assert.rejects(app.dispatch(f.owner,'research-local-contacts',{candidateToken:found.results[0].researchToken}),/paused/);
+  const matched=await app.dispatch(f.owner,'lookup-business',{candidateToken:found.results[0].candidateToken});
+  await assert.rejects(app.dispatch(f.owner,'research-local-contacts',{candidateToken:matched.matches[0].principals[0].researchToken}),/paused/);
   assert.equal(searches,0);assert.equal(JSON.stringify(f.rows),before);
 });

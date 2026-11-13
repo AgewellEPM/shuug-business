@@ -38,7 +38,7 @@
       }
       host.querySelector('[data-local-contact-search]').onclick=()=>run();
       form.onsubmit=event=>{event.preventDefault();if(!form.elements.reviewed.checked)return announce('Confirm the official business website first.',true);return run({website:form.elements.website.value,websiteReviewed:true});};
-      host.querySelector('[data-local-contact-context]').textContent=[candidate.contact,candidate.name,candidate.city,candidate.state].filter(Boolean).join(' · ');
+      host.querySelector('[data-local-contact-context]').textContent=[candidate.contact,candidate.name,candidate.city,candidate.state].filter(Boolean).join(' · ')+(candidate.researchContextNote?'. '+candidate.researchContextNote:'');
     },
   };
 })();
