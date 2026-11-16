@@ -1,0 +1,15 @@
+FROM node:24-bookworm-slim
+WORKDIR /app
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN apt-get update && apt-get install -y --no-install-recommends openssl util-linux && rm -rf /var/lib/apt/lists/*
+COPY package.json package-lock.json ./
+RUN npm ci --ignore-scripts
+COPY . .
+RUN npm ci --ignore-scripts --prefix packages/secure-tax-client
+RUN npm run db:generate && npm run build
+RUN mkdir -p /data && chown node:node /data && chown -R node:node /app/.next
+ENV NODE_ENV=production DEALDESK_DATA_DIR=/data/workspace NEXT_TELEMETRY_DISABLED=1
+EXPOSE 3000
+# The mounted volume may be owned by root on first boot. Drop privileges before
+# initializing or launching any application code; do not expose a setup endpoint.
+CMD ["sh", "-c", "chown node:node /data && exec runuser -u node -- node --import tsx scripts/start-gig-tax-cloud.ts"]

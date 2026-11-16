@@ -15,3 +15,7 @@ build
 **/.cloudflare
 **/host.env
 **/.wrangler
+native
+**/__pycache__
+*.p8
+**/node_modules
