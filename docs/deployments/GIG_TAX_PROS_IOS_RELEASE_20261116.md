@@ -55,3 +55,29 @@ was removed or group identifier changed. Three incomplete app-specific profiles
 were backed up before refreshing; unrelated signing assets were preserved. The
 release project is open for the remaining account-side group selection. No
 signed archive, export, App Store record or TestFlight upload is claimed.
+
+## Signed archive and App Store IPA verified
+
+The saved project now selects the verified Apple developer team in both Debug
+and Release, and includes the main entitlements file in the project navigator.
+Fresh Apple profiles include the correct shared group for all three targets.
+Version1.0.0/build2026111602 signed archive succeeded; its four executables,
+App Groups and provisioning were verified. App Store export also succeeded.
+
+The exported27,306,519-byte IPA passed strict signature checks for the app and
+all extensions. All four use App Store distribution profiles with debugging
+disabled, and the app/share/broadcast signatures and profiles include the same
+shared App Group. The exported IPA SHA256 is
+cb7f4b9378f03b0c09e246cd8be8b14c0a601a9031eb44b48d5873232738e973.
+
+The actual upload reached Apple's authenticated App Store Connect lookup,
+which returned HTTP200 and zero apps for com.ridesharetaxpros.driver. The
+fetch-app-record step stopped before upload. A later account-side recheck had
+the same result. This is a missing catalog record, not a signing failure.
+Create the iOS app record named Gig Tax Pros, primary language English(U.S.),
+with that exact bundle ID and SKU gig-tax-pros-ios. The upload command lets
+Apple resolve the real record instead of requiring an unused numeric-ID flag.
+
+No successful transfer, processed TestFlight build, tester invitation or public
+review submission is claimed. Previous unsigned/signing-blocker sections above
+are historical; use this checkpoint and the current JSON receipt.

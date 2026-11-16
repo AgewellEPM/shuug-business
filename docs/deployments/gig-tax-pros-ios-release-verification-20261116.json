@@ -1,50 +1,82 @@
 {
-  "verifiedAt": "2026-11-16T19:30:59.070319+00:00",
+  "verifiedAt": "2026-11-16T19:59:23.624503+00:00",
   "version": "1.0.0",
   "build": "2026111602",
   "artifactCheck": "passed",
-  "archiveSigningVerified": false,
+  "archiveSigningVerified": true,
   "uploaded": false,
   "physicalDeviceVerified": false,
   "bundles": [
     {
       "bundleId": "com.ridesharetaxpros.driver",
       "architecture": "arm64",
-      "signed": false,
-      "executableSHA256": "67b533a856f34ade5621400bf80f7328304c188d2e17fdab25f7bbba058c3794"
+      "signed": true,
+      "executableSHA256": "c35e8079a36ca9c7dcb0f4f2c434cf4ce59e1ac48121a1c866b46c2c609d5ab3"
     },
     {
       "bundleId": "com.ridesharetaxpros.driver.notificationcontent",
       "architecture": "arm64",
-      "signed": false,
-      "executableSHA256": "696cb4e48843bef2d9774664dcd2735ccdc3ba9fbb65bb202726229e31a67e1e"
+      "signed": true,
+      "executableSHA256": "44dbba8a4175e102713e60df4cda31044f036a80d5f01cd9ff9fb46199f2ca8d"
     },
     {
       "bundleId": "com.ridesharetaxpros.driver.offerbroadcast",
       "architecture": "arm64",
-      "signed": false,
-      "executableSHA256": "d61e40dcddbcf45b3db5df6962358577dad6d58a22c766b6b06d6a0ecdcbe894"
+      "signed": true,
+      "executableSHA256": "6b553f681cd07fbce046ffdc42b552635badeb6ebc32fbb72448d57fe6fffa64"
     },
     {
       "bundleId": "com.ridesharetaxpros.driver.offershare",
       "architecture": "arm64",
-      "signed": false,
-      "executableSHA256": "02bafa5c357513f50a06e35bf3ef80b2d9ed562acab2c42e93ae23b0fb1d24b9"
+      "signed": true,
+      "executableSHA256": "d23f1c251566a2f3a3e15a259c602992dbacb9c23c6348a047902f668d04fc60"
     }
   ],
-  "sourceCommit": "d737b846e660221b8077fad9823523144094ddcf",
-  "coreVerification": {
-    "testsPassed": 93,
-    "scope": "DriverCore Swift package; not physical-device acceptance"
-  },
-  "signingBlocker": "Fresh Apple profiles have empty App Group entitlement arrays for app/share/broadcast",
-  "storeSubmissionVerified": false,
+  "sourceCommit": "9e557b4",
   "agreementResolved": true,
-  "appleDevelopmentIdentityCreated": true,
-  "appGroupCapabilityTargets": [
-    "GigOfferBroadcast",
-    "GigOfferShare",
-    "RideshareTaxPros"
-  ],
-  "latestSigningProbeAt": "2026-11-16T19:54:09.940904+00:00"
+  "appGroupProvisioningVerified": true,
+  "signingBlocker": null,
+  "export": {
+    "version": "1.0.0",
+    "build": "2026111602",
+    "ipaBytes": 27306519,
+    "ipaSHA256": "cb7f4b9378f03b0c09e246cd8be8b14c0a601a9031eb44b48d5873232738e973",
+    "uploaded": false,
+    "physicalDeviceVerified": false,
+    "bundles": [
+      {
+        "bundleId": "com.ridesharetaxpros.driver",
+        "signatureVerified": true,
+        "debuggingAllowed": false,
+        "appStoreProfile": true
+      },
+      {
+        "bundleId": "com.ridesharetaxpros.driver.notificationcontent",
+        "signatureVerified": true,
+        "debuggingAllowed": false,
+        "appStoreProfile": true
+      },
+      {
+        "bundleId": "com.ridesharetaxpros.driver.offerbroadcast",
+        "signatureVerified": true,
+        "debuggingAllowed": false,
+        "appStoreProfile": true
+      },
+      {
+        "bundleId": "com.ridesharetaxpros.driver.offershare",
+        "signatureVerified": true,
+        "debuggingAllowed": false,
+        "appStoreProfile": true
+      }
+    ],
+    "distributionArtifactCheck": "passed"
+  },
+  "appRecordLookup": {
+    "httpStatus": 200,
+    "matchingApps": 0,
+    "bundleId": "com.ridesharetaxpros.driver",
+    "latestLookupAt": "2026-11-16T20:03:25Z"
+  },
+  "uploadBlocker": "Create the App Store Connect app record for the verified bundle ID",
+  "storeSubmissionVerified": false
 }
