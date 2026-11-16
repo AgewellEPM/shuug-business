@@ -1,4 +1,4 @@
-Gig Tax Pros provides a local journal without sign-in. Firm account features are optional and use an invitation from the participating firm. There is no native self-registration form. Hosted review access remains a release prerequisite; do not use real client records for review.
+Gig Tax Pros opens to local tools without sign-in. No username or password is needed to review the local journal, receipt entry, offer screenshots, sample shift and getting-started guide. Dismiss the introductory guide to reach Home. Firm account features require an invitation and a configured workspace; the hosted workspace is currently unavailable and no working review account is provided. Bank and provider account connections cannot be reviewed in this state. There is no native self-registration form.
 
 LOCAL JOURNAL
 Open Home. Use Trips > Add manual trip to record mileage, or Expense to enter a cost and choose/scan a receipt. Review recognized merchant and amount before saving. The app also supports income entries, classification and journal export.

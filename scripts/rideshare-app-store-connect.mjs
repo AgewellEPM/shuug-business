@@ -31,6 +31,7 @@ const listing = JSON.parse(await readFile(resolve(root, 'deployments/rideshare-t
 assert.equal(listing.appStoreConnectId, '6835595554');
 assert.equal(listing.bundleId, 'com.ridesharetaxpros.driver');
 assert.equal(listing.version, '1.0.0');
+assert(['MANUAL', 'AFTER_APPROVAL'].includes(listing.releaseType), 'Unsupported release option');
 const digest = (kind, data) => createHash(kind).update(data).digest('hex');
 const encode = value => Buffer.from(JSON.stringify(value)).toString('base64url');
 const pause = ms => new Promise(done => setTimeout(done, ms));
@@ -149,7 +150,7 @@ if (command === 'inspect') {
     secondaryCategory: link('appCategories', listing.secondaryCategory),
   }));
   await api(`/v1/appStoreVersions/${version.id}`, 'PATCH', record('appStoreVersions', version.id,
-    { copyright: listing.copyright, releaseType: 'MANUAL' }));
+    { copyright: listing.copyright, releaseType: listing.releaseType }));
   const build = builds.find(b => b.attributes.processingState === 'VALID' && !b.attributes.expired);
   if (build) {
     const prerelease = (await api(`/v1/builds/${build.id}/preReleaseVersion`)).data;
@@ -167,7 +168,7 @@ if (command === 'inspect') {
   for (const [k, v] of Object.entries(appFields)) assert.equal(savedInfo[k], v, `App info readback mismatch: ${k}`);
   const savedVersion = (await api(`/v1/appStoreVersions/${version.id}?include=build`)).data;
   assert.equal(savedVersion.attributes.copyright, listing.copyright);
-  assert.equal(savedVersion.attributes.releaseType, 'MANUAL');
+  assert.equal(savedVersion.attributes.releaseType, listing.releaseType);
   if (build) assert.equal(savedVersion.relationships.build.data.id, build.id, 'Selected build readback mismatch');
   receipt.listingVerified = true;
   receipt.listingFields = Object.keys(fields);

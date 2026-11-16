@@ -91,7 +91,8 @@ and absence of alpha before copying the images. It preserves the original pixels
 `screenshots` and `review` commands. It verifies this exact app record, preserves existing
 unrecognized screenshots, saves private before/after receipts, verifies text
 readback, waits for screenshot processing and checks Apple's checksum/order.
-It can attach the matching processed build to the draft. It never submits,
+It can attach the matching processed build to the draft and applies the explicit
+`releaseType` in en-US.json (MANUAL or AFTER_APPROVAL). It never submits,
 publishes, sends invitations or edits account users or agreements.
 
 ```sh
