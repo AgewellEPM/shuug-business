@@ -1,0 +1,64 @@
+{
+  "verifiedAt": "2026-11-16T21:50:07.544Z",
+  "deploymentId": "dpl_H5LwrgRPj1sS6EJLXJLjc8AuxGof",
+  "artifactMatches": 692,
+  "existingArtifactsPreserved": 691,
+  "existingRoutesAndHeadersPreserved": true,
+  "checks": [
+    {
+      "path": "/index.html",
+      "status": 200,
+      "bytesMatch": true
+    },
+    {
+      "path": "/app-support.html",
+      "status": 200,
+      "bytesMatch": true
+    },
+    {
+      "path": "/app-privacy.html",
+      "status": 200,
+      "bytesMatch": true
+    },
+    {
+      "path": "/site-config.json",
+      "status": 200,
+      "bytesMatch": true
+    },
+    {
+      "path": "/styles.css",
+      "status": 200,
+      "bytesMatch": true
+    },
+    {
+      "path": "/sales.html",
+      "status": 200,
+      "bytesMatch": true
+    },
+    {
+      "path": "/app-support",
+      "status": 200,
+      "bytesMatch": true,
+      "supportAddress": true
+    },
+    {
+      "path": "/app-privacy",
+      "status": 200,
+      "bytesMatch": true,
+      "supportAddress": true
+    },
+    {
+      "path": "/api/sales",
+      "status": 401,
+      "authorizationPreserved": true
+    },
+    {
+      "path": "/api/sales",
+      "status": 403,
+      "authorizationPreserved": true
+    }
+  ],
+  "mailboxDeliveryTested": false,
+  "humanVisualAcceptance": false,
+  "ok": true
+}
