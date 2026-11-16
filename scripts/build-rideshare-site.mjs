@@ -37,13 +37,13 @@ for (const page of pages) {
   if (!/^[a-z0-9/-]+$/.test(page.slug) || page.slug.includes('..')) throw new Error('Invalid public page slug.');
   const file = path.join(staticPath, page.file); mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, page.html);
 }
-for (const [slug, label] of [['privacy', 'Privacy notice'], ['terms', 'Website terms'], ['accessibility', 'Accessibility']]) {
+for (const [slug, label] of [['privacy', 'Privacy notice'], ['terms', 'Website terms'], ['accessibility', 'Accessibility'], ['app-support', 'App support'], ['app-privacy', 'App privacy policy']]) {
   const original = readFileSync(path.join(source, `${slug}.html`), 'utf8');
   const body = original.match(/<main[^>]*>([\s\S]*?)<\/main>/)?.[1];
   if (!body) throw new Error(`Missing policy content: ${slug}`);
   writeFileSync(path.join(staticPath, `${slug}.html`), renderPage({ slug, label, description: `${label} for the Gig Tax Pros website.`, main: `<div class="legal-content">${body}</div>` }));
 }
-const aliases = [...pages.map(page => page.slug), 'privacy', 'terms', 'accessibility'];
+const aliases = [...pages.map(page => page.slug), 'privacy', 'terms', 'accessibility', 'app-support', 'app-privacy'];
 const redirects = canonicalRedirects(aliases, origin);
 const seoHashes = new Set();
 // Enrich the final files, including copied tour/return/error pages. Page bodies
