@@ -219,6 +219,7 @@
 		5432CA878E7461D7934B4337 /* SecureTaxTransportPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxTransportPolicy.swift; sourceTree = "<group>"; };
 		5E3A70EAA4A320F7ECF384A2 /* ExpenseEditor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExpenseEditor.swift; sourceTree = "<group>"; };
 		5E868C7975E7DB0DC484E4DB /* ReferralView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReferralView.swift; sourceTree = "<group>"; };
+		60BB85464C4E44ED713DF1E6 /* RideshareTaxPros.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = RideshareTaxPros.entitlements; sourceTree = "<group>"; };
 		60E0027CB494B51E959BB0EE /* OfferScreenshotGuide.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferScreenshotGuide.swift; sourceTree = "<group>"; };
 		646D6E2B394704F10BE60710 /* OfferCaptureStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfferCaptureStore.swift; sourceTree = "<group>"; };
 		674AAC450486D726F72CB64E /* TaxCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxCoachView.swift; sourceTree = "<group>"; };
@@ -357,6 +358,7 @@
 		52DBD63EBA30BCA4D6FBEFFB = {
 			isa = PBXGroup;
 			children = (
+				60BB85464C4E44ED713DF1E6 /* RideshareTaxPros.entitlements */,
 				716B5728CE99BA75EAACF592 /* App */,
 				5CDAC013DBD4B501D197D031 /* BroadcastUpload */,
 				FA9E2DF0E88AB4B485B563CF /* ExtensionPrivacy */,
@@ -675,13 +677,16 @@
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
 					20661ECFB13B8DB93557AB7E = {
+						DevelopmentTeam = VN5845CUT7;
 						ProvisioningStyle = Automatic;
 					};
 					3E9D63A0302BB915F027D416 = {
+						DevelopmentTeam = VN5845CUT7;
 						ProvisioningStyle = Automatic;
 						TestTargetID = F3FD7DA7C221AA039279ACF0;
 					};
 					7DCA3E67E3E6BC46DBE7304D = {
+						DevelopmentTeam = VN5845CUT7;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -690,6 +695,7 @@
 						};
 					};
 					F3FD7DA7C221AA039279ACF0 = {
+						DevelopmentTeam = VN5845CUT7;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -698,6 +704,7 @@
 						};
 					};
 					FE22EFBFC0DA5805E8E95DF3 = {
+						DevelopmentTeam = VN5845CUT7;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.ApplicationGroups.iOS = {
@@ -1030,6 +1037,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = VN5845CUT7;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
@@ -1150,6 +1158,7 @@
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = VN5845CUT7;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;

@@ -14,13 +14,13 @@ export GIGTAX_BUILD_NUMBER=2026111602
 export GIGTAX_RELEASE_DIR="$HOME/Library/Developer/Xcode/GigTaxProsRelease-20261116-signed"
 bash scripts/release-rideshare-ios.sh archive
 bash scripts/release-rideshare-ios.sh export
-# Set this to the verified numeric ID of the app record, never a guessed ID.
-export GIGTAX_APP_STORE_APP_ID=ACTUAL_NUMERIC_APP_ID
 bash scripts/release-rideshare-ios.sh upload
 ```
 
 App Store Connect must contain the app record with the correct bundle ID before
-upload. If signing fails, keep the log and use a new output directory for the
+upload. Apple resolves the record from the signed bundle ID and authenticated
+account; do not supply a guessed numeric ID. Export also requests Apple's
+App Store information file. If signing fails, keep the log and use a new output directory for the
 next attempt. Do not delete a good archive to retry. API keys are optional when
 using Xcode's account session; never store a private signing key in source.
 Export/upload uses App Store Connect distribution, automatic signing and symbols.

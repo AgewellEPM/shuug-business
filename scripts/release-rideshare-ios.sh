@@ -45,8 +45,7 @@ python3 "$root/scripts/verify-rideshare-ios-release.py" "$archive" \
 destination=export
 if [[ "$mode" == upload ]]; then
   # TestFlight is how physical testers obtain the app; it precedes public release.
-  : "${GIGTAX_APP_STORE_APP_ID:?Create or verify the App Store Connect app record first}"
-  [[ "$GIGTAX_APP_STORE_APP_ID" =~ ^[0-9]+$ ]] || { echo 'App Store app ID must be numeric.' >&2; exit 1; }
+  # Apple resolves the real app record from this signed bundle ID and account.
   destination=upload
 fi
 python3 - "$output/ExportOptions.plist" "$GIGTAX_APPLE_TEAM" "$destination" <<'PY'
@@ -54,7 +53,7 @@ import plistlib,sys
 with open(sys.argv[1], 'wb') as file:
     plistlib.dump({'method':'app-store-connect','destination':sys.argv[3],
       'teamID':sys.argv[2],'signingStyle':'automatic','manageAppVersionAndBuildNumber':False,
-      'uploadSymbols':True}, file)
+      'generateAppStoreInformation':True,'uploadSymbols':True}, file)
 PY
 xcodebuild -exportArchive -archivePath "$archive" -exportOptionsPlist "$output/ExportOptions.plist" \
   -exportPath "$output/Export" -allowProvisioningUpdates 2>&1 | tee "$output/$mode.log"
