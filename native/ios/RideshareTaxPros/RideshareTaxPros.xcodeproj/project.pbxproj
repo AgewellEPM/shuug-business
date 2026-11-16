@@ -97,6 +97,7 @@
 		B663857379DD2464561F6A25 /* OfferCaptureParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 682BAB65B5FDA16246D5EC90 /* OfferCaptureParser.swift */; };
 		BB8D284F12128D3B5AD130BD /* MoneyViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94B40DB9CDBDED20E82E17AE /* MoneyViews.swift */; };
 		BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */; };
+		BCFAF4D2EC8E97F625BBFEF6 /* AppStoreScreenshotFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = F93BC866EC9C9D6849B7E57F /* AppStoreScreenshotFlows.swift */; };
 		BE522AC9C8616E658E5FDBED /* BankReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */; };
 		BF51D3512A227FB145094CEF /* TourRecordingFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B4948C9AF3A5A22DE1074 /* TourRecordingFlows.swift */; };
 		C04B611E43A5476B9E71239D /* GigNotificationContent.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 383B6B44B3F072FCBEAA4661 /* GigNotificationContent.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -291,6 +292,7 @@
 		F1287CFC1284974FBDA49DA6 /* SecureTaxJournalSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxJournalSnapshot.swift; sourceTree = "<group>"; };
 		F775980FE08AC5338DF6598A /* ConnectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConnectionView.swift; sourceTree = "<group>"; };
 		F880BEDA123EC1DCBD7E8E6A /* GigWorkActions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GigWorkActions.swift; sourceTree = "<group>"; };
+		F93BC866EC9C9D6849B7E57F /* AppStoreScreenshotFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppStoreScreenshotFlows.swift; sourceTree = "<group>"; };
 		F98F0F0AE06B31B0E7191979 /* SecureTaxObjectClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxObjectClient.swift; sourceTree = "<group>"; };
 		F99900949DD2DD0AF4B977F0 /* SecureTaxEnvelope.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxEnvelope.swift; sourceTree = "<group>"; };
 		FA27F2ABF9C92460E308A070 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -480,6 +482,7 @@
 		79481E0073D429B5F220BB56 /* UITests */ = {
 			isa = PBXGroup;
 			children = (
+				F93BC866EC9C9D6849B7E57F /* AppStoreScreenshotFlows.swift */,
 				DEBE7E7EFDF49B9EB3C05D59 /* DriverFlows.swift */,
 				1E2FE4F8E87A95871C562500 /* GettingStartedFlows.swift */,
 				DAD2884EABCA3A81C125B978 /* ScreenCatalogAccountFlows.swift */,
@@ -788,6 +791,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BCFAF4D2EC8E97F625BBFEF6 /* AppStoreScreenshotFlows.swift in Sources */,
 				0E6784E588C4CA5CB05DE102 /* DriverFlows.swift in Sources */,
 				8C29AB17FA7EBAB5F0DBE50A /* GettingStartedFlows.swift in Sources */,
 				61A5109877159281981BF36A /* ScreenCatalogAccountFlows.swift in Sources */,

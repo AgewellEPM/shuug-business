@@ -68,12 +68,48 @@ existing Gig Tax Pros copyright label. `REVIEW-NOTES.md` documents guest, sign-i
 Verify the support mailbox and published app-specific policy before public
 submission. Do not use the website-only privacy notice as the app policy.
 
-Historic full-resolution screenshots are available in the private Desktop
-screen collection. Use `scripts/package-rideshare-store-screens.py SOURCE OUTPUT`
-to copy selected byte-verified candidates and record capture provenance. Those
-are November 7 captures, not evidence of the current build's display. Refresh
-them from the installed candidate and include 13-inch iPad screenshots before
-submission; don't resize an iPhone capture and claim it came from an iPad.
+The November 16 release capture has six original screenshots for each of iPhone
+17 Pro Max (1320×2868) and 13-inch iPad Pro M4 (2064×2752). The Desktop package's
+`App Store Screenshots` folder contains both sets and a hash/provenance manifest.
+These are actual Release Simulator screens; the sample earnings screen retains
+its visible sample-data label. No screenshot was resized into another device.
+The separate `Screenshot Candidates` folder remains a historic November 7 set.
+
+`AppStoreScreenshotFlows` in the native UI test target captures the six screens.
+Use a signed Simulator build (`CODE_SIGNING_ALLOWED=YES CODE_SIGN_IDENTITY=-`),
+Release configuration and the intended build number. An unsigned Simulator build
+cannot exercise the app's normal Keychain path. Run one temporary Simulator at a
+time, copy the test runner's `Documents/ScreenCatalog` output, then shut down and
+remove only that owned device. The capture flow supports iPadOS's floating tabs.
+`scripts/package-rideshare-current-screens.py CAPTURE_ROOT NEW_OUTPUT` checks the
+successful run receipts, current runtime source, bundle version, original sizes
+and absence of alpha before copying the images. It preserves the original pixels.
+
+## Save the draft listing and screenshot assets
+
+`scripts/rideshare-app-store-connect.mjs` supports `inspect`, `listing` and
+`screenshots` commands. It verifies this exact app record, preserves existing
+unrecognized screenshots, saves private before/after receipts, verifies text
+readback, waits for screenshot processing and checks Apple's checksum/order.
+It can attach the matching processed build to the draft. It never submits,
+publishes, sends invitations or edits account users or agreements.
+
+```sh
+node scripts/rideshare-app-store-connect.mjs inspect \
+  --key "$HOME/.appstoreconnect/private_keys/AuthKey_KEYID.p8" \
+  --issuer YOUR_ISSUER_ID --receipt /private/tmp/gigtax-inspect-UNIQUE.json
+# Use listing with a fresh receipt path to save the prepared en-US fields.
+# Use screenshots --manifest PATH/manifest.json with another fresh receipt.
+```
+
+Store downloaded API keys outside the repository with owner-only permissions.
+The helper never prints private keys, JWTs or asset-upload URLs. Keep account
+receipts outside Git. A team key needs its Issuer ID; individual keys use the
+original `ApiKey_...p8` filename without an issuer. API screenshot processing is
+separate from physical-device testing and public review.
+
+References: [Apple API keys](https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api),
+[asset upload](https://developer.apple.com/documentation/appstoreconnectapi/uploading-assets-to-app-store-connect).
 
 ## Physical-device and hosted acceptance
 
