@@ -142,8 +142,7 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.broadcast-services-upload
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
-          NSExtensionAttributes:
-            RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer
+          RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.ridesharetaxpros.driver.offerbroadcast

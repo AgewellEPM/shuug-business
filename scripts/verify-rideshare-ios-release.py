@@ -39,6 +39,12 @@ def verify(archive, allow_unsigned=False):
         found.add(identity)
         assert info['CFBundleShortVersionString'] == main['CFBundleShortVersionString'], 'Version mismatch'
         assert info['CFBundleVersion'] == main['CFBundleVersion'], 'Build number mismatch'
+        if identity == BUNDLE + '.offerbroadcast':
+            extension = info.get('NSExtension', {})
+            assert extension.get('NSExtensionPointIdentifier') == 'com.apple.broadcast-services-upload', \
+                'ReplayKit broadcast extension point missing'
+            assert extension.get('RPBroadcastProcessMode') == 'RPBroadcastProcessModeSampleBuffer', \
+                'ReplayKit process mode must be directly under NSExtension (not NSExtensionAttributes)'
         executable = bundle / info['CFBundleExecutable']
         assert executable.is_file(), 'Missing executable: ' + identity
         architecture = subprocess.check_output(['xcrun', 'lipo', '-archs', str(executable)], text=True).strip()
