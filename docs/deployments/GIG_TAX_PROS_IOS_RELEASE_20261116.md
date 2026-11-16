@@ -1,83 +1,77 @@
-# Gig Tax Pros iOS release candidate — November 16, 2026
+# Gig Tax Pros iOS upload — November 16, 2026
 
-Version 1.0.0, build 2026111602 compiles as a Release device archive. The app,
-share, broadcast and notification-content extensions contain arm64 device code
-and matching version/build values. This artifact is UNSIGNED and cannot be
-distributed. It has not been uploaded to TestFlight or submitted for review.
+Apple accepted version **1.0.0, build 2026111603** at **20:25:35 UTC**. The
+authenticated upload reported “Uploaded package is processing,” then “Upload
+succeeded,” and xcodebuild exited successfully. App Store Connect record
+**6835595554** matches `com.ridesharetaxpros.driver`.
+
+This verifies delivery to Apple. TestFlight availability after processing,
+physical-device behavior, reviewer access and public submission remain
+unverified. No testers were invited and no public review was submitted.
+
+## Verified artifact and packaging repair
+
+The signed Release device archive contains matching version/build values and
+arm64 code for the app, share, broadcast and notification-content extensions.
+Strict signatures and App Store distribution profiles passed on the exported
+IPA; debugging is disabled. The main/share/broadcast signatures and profiles
+contain `group.com.ridesharetaxpros.driver`. The Apple agreement, saved account
+session, App Group provisioning and missing app-record blockers are resolved.
+
+Apple rejected build 2026111602 because `RPBroadcastProcessMode` was nested in
+`NSExtensionAttributes`. Build 2026111603 puts it directly under `NSExtension`,
+matching Xcode's Broadcast Upload Extension template. The archive verifier
+rejects the previous artifact and accepts the corrected one. Apple's validation
+accepted the correction and the full upload succeeded.
+
+The exported IPA is 27,306,485 bytes. SHA256:
+`8d483148e5eb7e1d98ef547409f33f9c2bd98fbcdc05c129594a0ce2f829dea3`.
+Packaging source commit: `65711035458174daf485842d261b40e633e41233`.
+The current machine-readable receipt is
+`gig-tax-pros-ios-release-verification-20261116.json` beside this document.
+Raw account/service logs are kept privately, outside Git.
+
+Apple reported a nonblocking missing-dSYM warning for vendor `LinkKit.framework`
+(UUID `0393C285-3096-3563-B8A6-B6F515FFED5C`). The pinned LinkKit 7.3.1 artifact
+contains no dSYM bundle. Upload succeeded; symbolication within that SDK remains
+limited. No substitute symbols were generated.
+
+## Preserved application and store materials
 
 The release branch retains the current app/tour/office screens and integrates
 the existing authenticator challenge/completion implementation from 5e0bbe0.
-Account-version display now reads the built bundle version. The app links the
-actual https://gigtax.pro/app-support and /app-privacy pages and supplied
-support@gigtax.pro address. App-specific privacy copy includes local offer
-recognition, explicit screen sharing, retained observations and account content.
+Account-version display reads the built bundle version. App-specific policies
+and support are live at `https://gigtax.pro/app-privacy` and
+`https://gigtax.pro/app-support`, using `support@gigtax.pro`.
 
-Privacy manifests now cover required file metadata in the app and shared
-extensions and the broadcast frame timer. The Plaid SDK's manifest remains
-bundled. More complete collected-data declarations cover account name/ID and
-shared notes/feedback alongside email, finances and chosen receipts. Final App
-Privacy answers still require checking every enabled provider's data handling.
+Privacy manifests cover required file metadata and the broadcast timer, retain
+the Plaid manifest and declare the account/financial/chosen-content data paths.
+93 existing Swift core checks passed earlier in this release effort. This
+packaging-only repair was verified against the rejected and corrected archives,
+the exported IPA and Apple's actual upload service. No physical device or
+current Simulator acceptance is claimed.
 
-93 existing Swift core tests passed. The actual Release archive verifier checked
-all four executables, permissions, extension versions and bundled privacy files.
-Its strict distribution mode correctly refused that same unsigned archive. No
-physical device, Simulator install or human visual acceptance is claimed.
+Listing draft, privacy worksheet, reviewer notes and release commands remain
+under `deployments/rideshare-tax-pros/app-store`. The Desktop release package
+contains the corrected IPA and receipts. Its screenshot candidates are labeled
+historic November 7 Simulator captures; they are not current-build or iPad proof.
 
-The saved Xcode account session was refreshed successfully, then Apple's signed
-archive request returned PLA Update available. The account holder must review
-and accept the latest Developer Program License Agreement in the developer
-account before provisioning/signing can continue. No signing override, legal
-agreement acceptance, app catalog record or upload is claimed.
+## Remaining release gates
 
-Store listing draft, privacy worksheet, reviewer notes and executable release
-instructions are in deployments/rideshare-tax-pros/app-store. Screenshot
-packaging preserves the original hashes and labels historic captures honestly;
-current iPhone and iPad release screenshots remain needed.
+1. Confirm processing completes in App Store Connect → Gig Tax Pros → TestFlight.
+   Upload acceptance alone does not establish tester availability.
+2. Perform the documented physical-device checks, particularly background GPS,
+   denied permissions, real screenshot imports and explicit ReplayKit sharing.
+3. Refresh actual iPhone/iPad screenshots, finish App Privacy/listing fields,
+   confirm the support mailbox and supply real reviewer/beta contact details.
+4. Complete hosted account sync/recovery and reviewer access for signed-in
+   features. Verify the complete invitation/account-creation/deletion flow.
+   Unavailable providers must remain honestly described and unavailable.
 
-Next gates: owner's agreement, verified App Store Connect record, signed archive/
-export and processed TestFlight upload; then physical testing, working support
-mailbox, reviewer access, complete account-creation/deletion assessment and
-protected hosted sync/recovery. Do not submit unfinished signed-in services or
-claim that a cloud image build establishes a connected public workspace.
+The separately provisioned cloud backend has not passed startup/health or sync
+acceptance. The website's public workspace discovery remains disconnected.
+Do not describe that backend as live or submit unfinished connected features.
 
-## Agreement cleared; App Group assignment remains pending
-
-The account holder accepted the updated agreement. A fresh signing attempt
-successfully obtained an Apple Development identity and new app/extension
-profiles; the agreement error is resolved. The profiles contain an empty
-com.apple.security.application-groups array for the main app, share extension
-and broadcast extension. Fresh downloads after account-side confirmation still
-returned those empty arrays and archive failed at the same entitlement boundary.
-
-The XcodeGen spec now explicitly retains App Groups capability attributes for
-those three targets; generated project attributes were verified. No entitlement
-was removed or group identifier changed. Three incomplete app-specific profiles
-were backed up before refreshing; unrelated signing assets were preserved. The
-release project is open for the remaining account-side group selection. No
-signed archive, export, App Store record or TestFlight upload is claimed.
-
-## Signed archive and App Store IPA verified
-
-The saved project now selects the verified Apple developer team in both Debug
-and Release, and includes the main entitlements file in the project navigator.
-Fresh Apple profiles include the correct shared group for all three targets.
-Version1.0.0/build2026111602 signed archive succeeded; its four executables,
-App Groups and provisioning were verified. App Store export also succeeded.
-
-The exported27,306,519-byte IPA passed strict signature checks for the app and
-all extensions. All four use App Store distribution profiles with debugging
-disabled, and the app/share/broadcast signatures and profiles include the same
-shared App Group. The exported IPA SHA256 is
-cb7f4b9378f03b0c09e246cd8be8b14c0a601a9031eb44b48d5873232738e973.
-
-The actual upload reached Apple's authenticated App Store Connect lookup,
-which returned HTTP200 and zero apps for com.ridesharetaxpros.driver. The
-fetch-app-record step stopped before upload. A later account-side recheck had
-the same result. This is a missing catalog record, not a signing failure.
-Create the iOS app record named Gig Tax Pros, primary language English(U.S.),
-with that exact bundle ID and SKU gig-tax-pros-ios. The upload command lets
-Apple resolve the real record instead of requiring an unused numeric-ID flag.
-
-No successful transfer, processed TestFlight build, tester invitation or public
-review submission is claimed. Previous unsigned/signing-blocker sections above
-are historical; use this checkpoint and the current JSON receipt.
+The account-side message that app creation succeeded but user access could not
+be saved concerns existing App Store Connect team access. The app record was
+subsequently found by Apple's upload service; that message did not block upload.

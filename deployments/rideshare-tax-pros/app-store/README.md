@@ -4,13 +4,14 @@ Release source is isolated from the ongoing Android changes. Scheme:
 `native/ios/RideshareTaxPros/RideshareTaxPros.xcodeproj`, `RideshareTaxPros`.
 The app and its three extensions use version 1.0.0 and one shared build number.
 Bundle ID: `com.ridesharetaxpros.driver`. Keep iPhone and iPad support.
+Verified App Store Connect record: `6835595554`.
 
 ## Build and distribution
 
 ```sh
 # Xcode's authenticated team must be authorized for the current agreement.
 export GIGTAX_APPLE_TEAM=YOUR_VERIFIED_TEAM_ID
-export GIGTAX_BUILD_NUMBER=2026111602
+export GIGTAX_BUILD_NUMBER=2026111603
 export GIGTAX_RELEASE_DIR="$HOME/Library/Developer/Xcode/GigTaxProsRelease-20261116-signed"
 bash scripts/release-rideshare-ios.sh archive
 bash scripts/release-rideshare-ios.sh export
@@ -30,6 +31,11 @@ Uploading for TestFlight does not submit for public review.
 Use `unsigned` with a separate GIGTAX_RELEASE_DIR for device-code compilation
 without signing. The verification receipt explicitly distinguishes that artifact
 from a signed distributable. It never installs or starts a Simulator or device.
+
+The broadcast extension's `RPBroadcastProcessModeSampleBuffer` value belongs at
+`NSExtension.RPBroadcastProcessMode`, as in Xcode's Broadcast Upload Extension
+template. Placing it inside `NSExtensionAttributes` compiles locally but fails
+Apple's upload validation. The archive verifier checks the actual built plist.
 
 ## App Group provisioning
 

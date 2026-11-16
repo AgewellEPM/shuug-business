@@ -1,47 +1,48 @@
 {
-  "verifiedAt": "2026-11-16T19:59:23.624503+00:00",
+  "verifiedAt": "2026-11-16T20:24:31.875801+00:00",
   "version": "1.0.0",
-  "build": "2026111602",
+  "build": "2026111603",
   "artifactCheck": "passed",
   "archiveSigningVerified": true,
-  "uploaded": false,
+  "uploaded": true,
   "physicalDeviceVerified": false,
   "bundles": [
     {
       "bundleId": "com.ridesharetaxpros.driver",
       "architecture": "arm64",
       "signed": true,
-      "executableSHA256": "c35e8079a36ca9c7dcb0f4f2c434cf4ce59e1ac48121a1c866b46c2c609d5ab3"
+      "executableSHA256": "1eb7431667c58bb49016d5090468998946a0f87861d0b3e7b1fbcdd060a76052"
     },
     {
       "bundleId": "com.ridesharetaxpros.driver.notificationcontent",
       "architecture": "arm64",
       "signed": true,
-      "executableSHA256": "44dbba8a4175e102713e60df4cda31044f036a80d5f01cd9ff9fb46199f2ca8d"
+      "executableSHA256": "55cb70f7230b60356329ee9236f0423059597004d924481cc5b9e0b76468dbbb"
     },
     {
       "bundleId": "com.ridesharetaxpros.driver.offerbroadcast",
       "architecture": "arm64",
       "signed": true,
-      "executableSHA256": "6b553f681cd07fbce046ffdc42b552635badeb6ebc32fbb72448d57fe6fffa64"
+      "executableSHA256": "6c0f8f1e12c5789d34552fd29c97cc7fff35d92cbf1f60c3a5b56959a2a6b92f"
     },
     {
       "bundleId": "com.ridesharetaxpros.driver.offershare",
       "architecture": "arm64",
       "signed": true,
-      "executableSHA256": "d23f1c251566a2f3a3e15a259c602992dbacb9c23c6348a047902f668d04fc60"
+      "executableSHA256": "e4ee056af5dd26d91024fd3ed1e8d66e3d5092af7318581d9b854d03961b853c"
     }
   ],
-  "sourceCommit": "9e557b4",
+  "sourceCommit": "65711035458174daf485842d261b40e633e41233",
   "agreementResolved": true,
   "appGroupProvisioningVerified": true,
+  "replayKitProcessModeVerified": true,
   "signingBlocker": null,
   "export": {
+    "verifiedAt": "2026-11-16T20:24:31.601252+00:00",
     "version": "1.0.0",
-    "build": "2026111602",
-    "ipaBytes": 27306519,
-    "ipaSHA256": "cb7f4b9378f03b0c09e246cd8be8b14c0a601a9031eb44b48d5873232738e973",
-    "uploaded": false,
+    "build": "2026111603",
+    "ipaBytes": 27306485,
+    "ipaSHA256": "8d483148e5eb7e1d98ef547409f33f9c2bd98fbcdc05c129594a0ce2f829dea3",
     "physicalDeviceVerified": false,
     "bundles": [
       {
@@ -69,14 +70,30 @@
         "appStoreProfile": true
       }
     ],
+    "replayKitProcessModeVerified": true,
     "distributionArtifactCheck": "passed"
   },
   "appRecordLookup": {
     "httpStatus": 200,
-    "matchingApps": 0,
+    "matchingApps": 1,
     "bundleId": "com.ridesharetaxpros.driver",
-    "latestLookupAt": "2026-11-16T20:03:25Z"
+    "appStoreConnectId": "6835595554"
   },
-  "uploadBlocker": "Create the App Store Connect app record for the verified bundle ID",
+  "upload": {
+    "appStoreConnectId": "6835595554",
+    "bundleId": "com.ridesharetaxpros.driver",
+    "version": "1.0.0",
+    "build": "2026111603",
+    "acceptedAt": "2026-11-16T20:25:35Z",
+    "uploadAccepted": true,
+    "processingState": "processing",
+    "testFlightAvailabilityVerified": false,
+    "storeSubmissionVerified": false,
+    "physicalDeviceVerified": false,
+    "sourceCommit": "65711035458174daf485842d261b40e633e41233",
+    "warning": "Vendor LinkKit.framework dSYM absent; upload succeeded. SDK artifact contains no dSYM bundle."
+  },
+  "uploadBlocker": null,
+  "testFlightAvailabilityVerified": false,
   "storeSubmissionVerified": false
 }
