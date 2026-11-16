@@ -17,7 +17,7 @@ settings:
     CODE_SIGN_STYLE: Automatic
     GENERATE_INFOPLIST_FILE: NO
     CURRENT_PROJECT_VERSION: '1'
-    MARKETING_VERSION: '0.1.0'
+    MARKETING_VERSION: '1.0.0'
 targets:
   RideshareTaxPros:
     type: application
@@ -28,8 +28,8 @@ targets:
       properties:
         CFBundleDisplayName: Gig Tax Pros
         CFBundleName: Gig Tax Pros
-        CFBundleShortVersionString: '0.1.0'
-        CFBundleVersion: '1'
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         UIUserInterfaceStyle: Dark
         UIFileSharingEnabled: true
@@ -71,8 +71,8 @@ targets:
       path: NotificationContent/Info.plist
       properties:
         CFBundleDisplayName: Gig Tax Pros
-        CFBundleShortVersionString: '0.1.0'
-        CFBundleVersion: '1'
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.usernotifications.content-extension
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).BrandedNotificationController
@@ -92,13 +92,13 @@ targets:
   GigOfferShare:
     type: app-extension
     platform: iOS
-    sources: [ShareOffer, Shared]
+    sources: [ShareOffer, Shared, ExtensionPrivacy/Share/PrivacyInfo.xcprivacy]
     info:
       path: ShareOffer/Info.plist
       properties:
         CFBundleDisplayName: Gig Tax Pros
-        CFBundleShortVersionString: '0.1.0'
-        CFBundleVersion: '1'
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.share-services
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
@@ -117,13 +117,13 @@ targets:
   GigOfferBroadcast:
     type: app-extension
     platform: iOS
-    sources: [BroadcastUpload, Shared]
+    sources: [BroadcastUpload, Shared, ExtensionPrivacy/Broadcast/PrivacyInfo.xcprivacy]
     info:
       path: BroadcastUpload/Info.plist
       properties:
         CFBundleDisplayName: Gig Tax Pros Offer Reader
-        CFBundleShortVersionString: '0.1.0'
-        CFBundleVersion: '1'
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         NSExtension:
           NSExtensionPointIdentifier: com.apple.broadcast-services-upload
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler

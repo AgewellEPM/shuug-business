@@ -117,11 +117,12 @@ struct ConnectionView: View {
       }.font(.footnote)
       Section {
         Link("Gig Tax Pros website", destination: WorkspaceClient.websiteURL)
+        Link("App support", destination: WorkspaceClient.websiteURL.appendingPathComponent("app-support"))
         NavigationLink("App privacy & data") { DriverPrivacyView() }
         Button("Open iPhone app settings") {
           if let url = URL(string: UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
         }
-        Text("Driver app · Version 0.1.0").font(.caption).foregroundStyle(.secondary)
+        Text("Driver app · Version \(Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "—")").font(.caption).foregroundStyle(.secondary)
       }
     }.driverScreen().navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
       .task {

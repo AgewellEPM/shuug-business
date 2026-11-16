@@ -41,6 +41,7 @@
 		48B2CAD4FCFA6B9330D6B5AD /* DriverScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E297540A733C7C95CC3B7F46 /* DriverScreen.swift */; };
 		4E528B045A700BA058B8AD57 /* ShareViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = C3D63407C2CADA02A6D862C8 /* ShareViewController.swift */; };
 		55A9B282A3A248A7A3B7AA76 /* GigAppLauncher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00EF0712A5B7830443ED4373 /* GigAppLauncher.swift */; };
+		5699B8D62C30E991C56D191A /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 31C9F84115B1F381B3EC3FA8 /* PrivacyInfo.xcprivacy */; };
 		56D498BB7423905FE8A79253 /* ReserveAndHistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E234FDBEE3EA159DD45E0C16 /* ReserveAndHistoryView.swift */; };
 		5FDA77B4EFC4131F5F87E030 /* BankImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99DB6310D01A30734F776EC /* BankImportView.swift */; };
 		61A5109877159281981BF36A /* ScreenCatalogAccountFlows.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAD2884EABCA3A81C125B978 /* ScreenCatalogAccountFlows.swift */; };
@@ -81,6 +82,7 @@
 		9569AC01F3234B9850361D73 /* SampleHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7A6E5E3D526067D4F7777505 /* SampleHandler.swift */; };
 		9C393CC11D7EC66589FC00AC /* SecureTaxDeviceKeys.swift in Sources */ = {isa = PBXBuildFile; fileRef = D175B8E1585C9B2129C1400E /* SecureTaxDeviceKeys.swift */; };
 		9D4341571DF02C1875A0A859 /* GigOfferEditor.swift in Sources */ = {isa = PBXBuildFile; fileRef = C1C29EBC18A4B8CE3A1D8910 /* GigOfferEditor.swift */; };
+		A26F2A6DA1998925F9259569 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A6B16C81CBB0B9A17FA92E6F /* PrivacyInfo.xcprivacy */; };
 		A3918B8396A9380C72424824 /* TripViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = 806A24C2D320EB0630D00C88 /* TripViews.swift */; };
 		A3DFB2D82B0B01245650992C /* GettingStartedTour.json in Resources */ = {isa = PBXBuildFile; fileRef = E1881843D4BE7BAD4E2FBBAD /* GettingStartedTour.json */; };
 		A4C8D82AD98883F48FD456B5 /* OfferScreenshotGuide.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E0027CB494B51E959BB0EE /* OfferScreenshotGuide.swift */; };
@@ -196,6 +198,7 @@
 		282961514CC8F1169E8346AA /* InsightsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsView.swift; sourceTree = "<group>"; };
 		28E868CFBF325B2839BE9B55 /* BrandedDialog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BrandedDialog.swift; sourceTree = "<group>"; };
 		2A3BFB7ECC5D45F69372141E /* BankReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BankReviewView.swift; sourceTree = "<group>"; };
+		31C9F84115B1F381B3EC3FA8 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		31EB2F5C6C2F4E5247F7EF77 /* TaxWorkspaceView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaxWorkspaceView.swift; sourceTree = "<group>"; };
 		32BA8CEDDA4629DD9E726AF8 /* RideshareTaxProsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RideshareTaxProsApp.swift; sourceTree = "<group>"; };
 		33F55693B7B0C79DF69484F5 /* ScreenCatalogMainFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogMainFlows.swift; sourceTree = "<group>"; };
@@ -246,6 +249,7 @@
 		9EF51D24FE829A29174CE144 /* DriverPrivacyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DriverPrivacyView.swift; sourceTree = "<group>"; };
 		A13888EC0FAE80FE4B9AD9F0 /* SecureTaxJournalSnapshotService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecureTaxJournalSnapshotService.swift; sourceTree = "<group>"; };
 		A2C42C28B72798E43383B418 /* ScreenCatalogOffersFlows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenCatalogOffersFlows.swift; sourceTree = "<group>"; };
+		A6B16C81CBB0B9A17FA92E6F /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		AA3C72F5891EF14B5B50478C /* ReputationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReputationView.swift; sourceTree = "<group>"; };
 		AA590996236818D712C09A21 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AB62B3A50F636C82218CF62B /* SessionKeychain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionKeychain.swift; sourceTree = "<group>"; };
@@ -342,11 +346,20 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		0352215A02CE566F5126A6CE /* Share */ = {
+			isa = PBXGroup;
+			children = (
+				31C9F84115B1F381B3EC3FA8 /* PrivacyInfo.xcprivacy */,
+			);
+			path = Share;
+			sourceTree = "<group>";
+		};
 		52DBD63EBA30BCA4D6FBEFFB = {
 			isa = PBXGroup;
 			children = (
 				716B5728CE99BA75EAACF592 /* App */,
 				5CDAC013DBD4B501D197D031 /* BroadcastUpload */,
+				FA9E2DF0E88AB4B485B563CF /* ExtensionPrivacy */,
 				EF669D08A41AFEC0C3F9F7E1 /* NotificationContent */,
 				CDC3128E557FDCC7CF64C62C /* Packages */,
 				856DA67112F659ED797445A6 /* Resources */,
@@ -494,6 +507,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		9F76B030D8E46D7360F46313 /* Broadcast */ = {
+			isa = PBXGroup;
+			children = (
+				A6B16C81CBB0B9A17FA92E6F /* PrivacyInfo.xcprivacy */,
+			);
+			path = Broadcast;
+			sourceTree = "<group>";
+		};
 		CDC3128E557FDCC7CF64C62C /* Packages */ = {
 			isa = PBXGroup;
 			children = (
@@ -528,6 +549,15 @@
 				AA590996236818D712C09A21 /* Info.plist */,
 			);
 			path = NotificationContent;
+			sourceTree = "<group>";
+		};
+		FA9E2DF0E88AB4B485B563CF /* ExtensionPrivacy */ = {
+			isa = PBXGroup;
+			children = (
+				9F76B030D8E46D7360F46313 /* Broadcast */,
+				0352215A02CE566F5126A6CE /* Share */,
+			);
+			path = ExtensionPrivacy;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -575,6 +605,7 @@
 			buildConfigurationList = 88E75BD1EC7147786EDBE0BA /* Build configuration list for PBXNativeTarget "GigOfferShare" */;
 			buildPhases = (
 				DCBBDF8C20DAC8AFD2901A9A /* Sources */,
+				4AA8A51A9B05B22EBD09E6E2 /* Resources */,
 				CF921A1DBCDA0C00B923DB42 /* Frameworks */,
 			);
 			buildRules = (
@@ -619,6 +650,7 @@
 			buildConfigurationList = 31EFDFBE57DB0D2E5080D5D3 /* Build configuration list for PBXNativeTarget "GigOfferBroadcast" */;
 			buildPhases = (
 				D2260D4E807647182291C6BA /* Sources */,
+				7DFA04057F7A63D1BDAF145F /* Resources */,
 				9DA3626875F8BFA01FFAFC8A /* Frameworks */,
 			);
 			buildRules = (
@@ -696,6 +728,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		4AA8A51A9B05B22EBD09E6E2 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5699B8D62C30E991C56D191A /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		629CE2674973A99F662212B3 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -708,6 +748,14 @@
 				A3DFB2D82B0B01245650992C /* GettingStartedTour.json in Resources */,
 				BBDC1747F1F5A7316F81EE7F /* PrivacyInfo.xcprivacy in Resources */,
 				78C091EE81FF035829DBFF5F /* SharedBrand.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7DFA04057F7A63D1BDAF145F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A26F2A6DA1998925F9259569 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -985,7 +1033,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1099,7 +1147,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

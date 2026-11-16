@@ -3,6 +3,11 @@ import SwiftUI
 struct DriverPrivacyView: View {
   var body: some View {
     List {
+      Section("Privacy policy & support") {
+        Link("Read the app privacy policy", destination: WorkspaceClient.websiteURL.appendingPathComponent("app-privacy"))
+        Link("Email support@gigtax.pro", destination: URL(string: "mailto:support@gigtax.pro")!)
+        Text("For support and privacy requests, describe the issue without emailing passwords, taxpayer IDs, bank information or full tax documents.").font(.footnote)
+      }
       Section("Drives you control") {
         Text(
           "The app records drives you start, and can detect drives and expense stops when you enable those options in Account. Background detection uses location and motion permission; stop reminders use notification permission. Turn both assistance options off to stop detection, and end any active drive to stop its recording. Force-quitting, permission changes and poor GPS can leave missing mileage."
@@ -15,6 +20,10 @@ struct DriverPrivacyView: View {
         Text(
           "You choose the expenses, income entries, photos and scans to save. Receipt text recognition runs on the iPhone. Suggested merchants and amounts need your review; they are not automatically posted."
         )
+      }
+      Section("Offer screenshots & screen sharing") {
+        Text("Choose an offer screenshot or explicitly start Apple’s screen-sharing control. Text recognition runs on this device. Full images, video and screen transcripts are not stored or uploaded by Gig Tax Pros; extracted offer fields stay in protected local storage for your review. A screenshot in your Photos library remains there until you delete it yourself.")
+        Text("Screen sharing is optional and shows Apple’s recording indicator. Stop it in Apple’s recording control when finished. Reader permission expires after four hours or when you stop reading or change accounts. The app cannot access Uber or Lyft’s private notification inbox, and does not accept or decline jobs for you.")
       }
       Section("Office help & appointments") {
         Text("The app refreshes public office addresses, hours and contact options from GigTax.pro. Finding nearby offices uses your location only when requested; distance sorting happens on your phone. Apple Maps receives map areas, ZIP searches and directions you request. Your search location is not added to your journal or sent to the tax workspace.")
@@ -41,6 +50,9 @@ struct DriverPrivacyView: View {
         Text(
           "CSV export shares your current journal through the system file exporter. Reinstalling or removing the app can erase phone-only records, so export or sync important records first."
         )
+      }
+      Section("Ratings, feedback & chat") {
+        Text("Ratings you enter, written feedback and chat stay on this phone until you connect an account and sync them. Copying guest chat or ratings to an account requires your separate choice at sign-in. Your display name, client email and account identifier accompany account access. Avoid putting passwords or unnecessary taxpayer identifiers in free-text fields.")
       }
       Section("Included services") {
         Text(
