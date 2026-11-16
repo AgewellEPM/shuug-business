@@ -10,7 +10,7 @@ Bundle ID: `com.ridesharetaxpros.driver`. Keep iPhone and iPad support.
 ```sh
 # Xcode's authenticated team must be authorized for the current agreement.
 export GIGTAX_APPLE_TEAM=YOUR_VERIFIED_TEAM_ID
-export GIGTAX_BUILD_NUMBER=2026111601
+export GIGTAX_BUILD_NUMBER=2026111602
 export GIGTAX_RELEASE_DIR="$HOME/Library/Developer/Xcode/GigTaxProsRelease-20261116-signed"
 bash scripts/release-rideshare-ios.sh archive
 bash scripts/release-rideshare-ios.sh export

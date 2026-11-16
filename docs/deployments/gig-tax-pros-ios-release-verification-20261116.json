@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-11-16T19:30:59.070319+00:00",
+  "version": "1.0.0",
+  "build": "2026111602",
+  "artifactCheck": "passed",
+  "archiveSigningVerified": false,
+  "uploaded": false,
+  "physicalDeviceVerified": false,
+  "bundles": [
+    {
+      "bundleId": "com.ridesharetaxpros.driver",
+      "architecture": "arm64",
+      "signed": false,
+      "executableSHA256": "67b533a856f34ade5621400bf80f7328304c188d2e17fdab25f7bbba058c3794"
+    },
+    {
+      "bundleId": "com.ridesharetaxpros.driver.notificationcontent",
+      "architecture": "arm64",
+      "signed": false,
+      "executableSHA256": "696cb4e48843bef2d9774664dcd2735ccdc3ba9fbb65bb202726229e31a67e1e"
+    },
+    {
+      "bundleId": "com.ridesharetaxpros.driver.offerbroadcast",
+      "architecture": "arm64",
+      "signed": false,
+      "executableSHA256": "d61e40dcddbcf45b3db5df6962358577dad6d58a22c766b6b06d6a0ecdcbe894"
+    },
+    {
+      "bundleId": "com.ridesharetaxpros.driver.offershare",
+      "architecture": "arm64",
+      "signed": false,
+      "executableSHA256": "02bafa5c357513f50a06e35bf3ef80b2d9ed562acab2c42e93ae23b0fb1d24b9"
+    }
+  ],
+  "sourceCommit": "d737b846e660221b8077fad9823523144094ddcf",
+  "coreVerification": {
+    "testsPassed": 93,
+    "scope": "DriverCore Swift package; not physical-device acceptance"
+  },
+  "signingBlocker": "Apple Developer Program License Agreement must be accepted by the account holder",
+  "storeSubmissionVerified": false
+}
