@@ -1,3 +1,13 @@
+# Current release status — November 16, 2026, 21:51 UTC
+
+Gig Tax Pros 1.0 (binary1.0.0/build2026111603) is **WAITING_FOR_REVIEW**.
+Apple submission time:2026-11-16T21:51:28.256Z. App Privacy is published; Content
+Rights, free USD pricing, age rating and USA-only availability are configured.
+Release is **AFTER_APPROVAL**. The revised listing and notes were read back;
+12 current screenshots remain COMPLETE. Approval/public availability are pending.
+See GIG_TAX_PROS_STORE_TEXT_AUDIT_20261116.md and the submission JSON receipt.
+The historical upload/account events below remain evidence, not current blockers.
+
 # Gig Tax Pros iOS upload — November 16, 2026
 
 Apple accepted version **1.0.0, build 2026111603** at **20:25:35 UTC**. The
@@ -8,8 +18,8 @@ succeeded,” and xcodebuild exited successfully. App Store Connect record
 Apple's authenticated API subsequently confirmed **VALID** processing state for
 build2026111603. That build is selected on the iOS1.0 draft (equivalent to the
 binary's1.0.0 version). The listing text and all **12 current screenshots** are
-saved and verified. The version remains **PREPARE_FOR_SUBMISSION** with **MANUAL**
-release. No testers were invited and no public review was submitted.
+saved and verified. At that earlier checkpoint the version was PREPARE_FOR_SUBMISSION with MANUAL
+release. The current submitted state and release choice are recorded above.
 
 Physical-device behavior and hosted reviewer access remain unverified. Processing
 completion does not establish a completed device test or tester invitation.
@@ -78,12 +88,12 @@ privacy URLs, categories, manual release and the selected processed build.
 See `gig-tax-pros-store-listing-verification-20261116.json` for the sanitized
 receipt. The API key and account receipts remain private and outside Git.
 
-## Remaining release gates
+## Functional qualification still outstanding
 
 1. Perform the documented physical-device checks, particularly background GPS,
    denied permissions, real screenshot imports and explicit ReplayKit sharing.
-2. Complete App Privacy and other required review forms, confirm the support
-   mailbox and finish any remaining beta review information. The account holder
+2. App Privacy and required submission forms are now completed. Confirm the
+   support mailbox and complete any later reviewer requests. The account holder
    supplied the actual reviewer contact phone; contact name/email/phone and the
    guest, permission and provider-flow notes were saved and read back through
    Apple's API. Private contact data remains outside the source repository.
@@ -93,7 +103,8 @@ receipt. The API key and account receipts remain private and outside Git.
 
 The separately provisioned cloud backend has not passed startup/health or sync
 acceptance. The website's public workspace discovery remains disconnected.
-Do not describe that backend as live or submit unfinished connected features.
+Do not describe that backend as live. Submitted reviewer notes explicitly
+disclose the unavailable connected features.
 
 The account-side message that app creation succeeded but user access could not
 be saved concerns existing App Store Connect team access. The app record was

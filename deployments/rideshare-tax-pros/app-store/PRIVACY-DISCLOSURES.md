@@ -1,7 +1,8 @@
 # App privacy disclosure worksheet
 
-Source audit for version 1.0.0, November 16, 2026. This is not a published policy
-or a completed App Store Connect declaration. The website's existing /privacy
+Source audit for version 1.0.0, November 16, 2026. The ten-type App Store Connect
+declaration was published and accepted for submission at 21:51 UTC. This worksheet
+is supporting evidence, not the public privacy policy. The website's existing /privacy
 notice describes the website only and must not substitute for the app policy.
 
 | Data | Purpose and handling |
@@ -36,13 +37,15 @@ Sources: [Apple required-reason APIs](https://developer.apple.com/documentation/
 
 ## App Store questionnaire audit, November 16 follow-up
 
-The owner is entering the web-only questionnaire. Do not mark it published
-until the final Publish action and Apple submission validation succeed.
+The web-only questionnaire was completed using Safari native accessibility,
+with all ten types and their purpose/linking/tracking answers read back. Publish
+succeeded and Apple accepted the app into WAITING_FOR_REVIEW.
 Declare collection for optional account features; local-only operation does not
 make the whole app a no-collection app.
 
 The source-backed types are Name, Email Address, User ID, Other Financial Info,
-Photos or Videos, Other User Content, Emails or Text Messages, and Purchases.
+Photos or Videos, Other User Content, Emails or Text Messages, Purchases, Precise
+Location and Coarse Location.
 All use App Functionality, are linked to the user, and are not used for tracking.
 The last two labels refine the original broad manifest categories: TaxCoachView
 and TaxCoachModel support account-scoped client/firm messages; Expenses and
@@ -52,9 +55,13 @@ screen-sharing video is implemented. A chosen receipt differs from discarded
 on-device offer frames. Support email is voluntary and infrequent; it is not a
 required in-app support-data collection flow.
 
-Raw location and motion remain on-device. Apple's own MapKit processing is not
-third-party collection that the developer must label under Apple's framework
-FAQ. The bundled Plaid privacy manifest declares User ID for functionality;
+Recorded route files and raw motion remain on-device. Additional source review
+found that manually entered trip workArea/neighborhood is synced, and
+SecureTaxJournalSnapshot captures Journal.tracker, mission and placePrompts.
+The optional encrypted archive can therefore include precise location-bearing
+state for approved device/firm recovery recipients. Both location categories
+are disclosed for functionality, linked to the user, without tracking. Apple's
+own MapKit processing is separate under Apple's framework FAQ. The bundled Plaid privacy manifest declares User ID for functionality;
 provider/account features are currently unconfigured. Re-audit the enabled
 Plaid products and data flows before activating hosted bank services.
 

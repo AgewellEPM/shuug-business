@@ -1,0 +1,42 @@
+{
+  "verifiedAt": "2026-11-16T21:51:33.594Z",
+  "appId": "6835595554",
+  "bundleId": "com.ridesharetaxpros.driver",
+  "storeVersion": "1.0",
+  "binaryVersion": "1.0.0",
+  "build": "2026111603",
+  "buildProcessingState": "VALID",
+  "appStoreState": "WAITING_FOR_REVIEW",
+  "reviewState": "WAITING_FOR_REVIEW",
+  "submittedAt": "2026-11-16T21:51:28.256Z",
+  "releaseType": "AFTER_APPROVAL",
+  "availableTerritories": [
+    "USA"
+  ],
+  "downloadPriceUSD": "0.00",
+  "ageRating": "FOUR_PLUS",
+  "contentRightsDeclaration": "USES_THIRD_PARTY_CONTENT",
+  "privacyPublished": true,
+  "privacyDataTypes": [
+    "Name",
+    "Email Address",
+    "Other Financial Info",
+    "Precise Location",
+    "Coarse Location",
+    "Emails or Text Messages",
+    "Photos or Videos",
+    "Other User Content",
+    "User ID",
+    "Purchase History"
+  ],
+  "privacyPurposes": [
+    "APP_FUNCTIONALITY"
+  ],
+  "privacyLinkedToUser": true,
+  "privacyUsedForTracking": false,
+  "screenshotsComplete": 12,
+  "approved": false,
+  "liveOnAppStore": false,
+  "physicalDeviceVerified": false,
+  "hostedWorkspaceVerified": false
+}

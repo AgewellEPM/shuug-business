@@ -101,6 +101,9 @@ await writeFile(receiptPath + '.before.json', JSON.stringify({ observedAt: recei
 }, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
 await save();
 if (command === 'inspect') {
+  const submissions = await all(`/v1/apps/${appId}/reviewSubmissions?limit=50`);
+  receipt.reviewSubmissions = submissions.map(s => ({ id: s.id, ...s.attributes }));
+  receipt.publicReviewSubmitted = submissions.some(s => Boolean(s.attributes.submittedDate));
   receipt.localizations = locales.map(l => ({ id: l.id, ...l.attributes }));
   receipt.appInfoLocalizations = infoLocales.map(l => ({ id: l.id, ...l.attributes }));
   receipt.screenshotSets = [];

@@ -65,3 +65,30 @@ support folder. No key, issuer, private contact or session cookie belongs here.
 Checks: JavaScript syntax; Apple text field readback; age-answer readback;
 price-point readback; complete territory enumeration; actual add-for-review
 validation. Existing signed runtime verification remains separate.
+
+## Final submission result — 21:51:28 UTC
+
+App Privacy is published. Native Safari accessibility exposed the actual form
+without changing Safari settings or extracting browser credentials. All ten data
+types were checked: Name, Email Address, Other Financial Info, Precise Location,
+Coarse Location, Emails or Text Messages, Photos or Videos, Other User Content,
+User ID and Purchase History. Every type uses App Functionality, is linked to the
+user and is not used for tracking. Final native summary showed all ten completed;
+Apple's next add-version request passed with HTTP201.
+
+Additional source inspection identified manually entered trip workArea plus
+location-bearing tracker/mission/placePrompt state in optional encrypted Journal
+snapshots. Both location types remain disclosed. The linked privacy policy now
+explains those archives and distinguishes them from ordinary route-file sync.
+That policy-only deployment changed one of692verified artifacts, preserved all
+691others and existing routing/authorization, and passed live byte/HTTP checks.
+
+The existing draft was independently checked to contain exactly this iOS version,
+then submitted once. Apple PATCH returned WAITING_FOR_REVIEW with submittedDate
+2026-11-16T21:51:28.256Z; separate GETs confirmed both review and version states.
+AFTER_APPROVAL remains selected, with free USA-only availability. No approval or
+public download availability is claimed. See gigtax-review-submitted-20261116.json.
+
+Reviewer notes disclose unavailable hosted account/provider access. No native
+runtime code changed; the original physical-device and hosted qualification
+limitations remain. App Store submission is not a claim of full live functionality.
