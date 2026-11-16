@@ -31,6 +31,29 @@ Use `unsigned` with a separate GIGTAX_RELEASE_DIR for device-code compilation
 without signing. The verification receipt explicitly distinguishes that artifact
 from a signed distributable. It never installs or starts a Simulator or device.
 
+## App Group provisioning
+
+Register `group.com.ridesharetaxpros.driver` in the same Apple developer team,
+then assign it to all three bundle IDs:
+
+- `com.ridesharetaxpros.driver` (RideshareTaxPros)
+- `com.ridesharetaxpros.driver.offershare` (GigOfferShare)
+- `com.ridesharetaxpros.driver.offerbroadcast` (GigOfferBroadcast)
+
+The XcodeGen spec preserves App Groups in each target's Signing & Capabilities
+configuration. These source attributes do not create an account-side group
+assignment. Use Xcode's App Groups list or the developer portal to register and
+select the actual group, then let automatic signing refresh the profiles. The
+notification-content extension does not need the shared group.
+
+If a freshly downloaded provisioning profile has an empty
+`com.apple.security.application-groups` array, signing cannot proceed. Preserve
+incomplete profiles before refreshing only this app's profiles; do not delete
+other projects' signing assets. Never remove the entitlement to bypass the error:
+the screenshot/share/broadcast handoff depends on the real shared container.
+
+See [Apple's group configuration](https://developer.apple.com/documentation/xcode/configuring-app-groups).
+
 ## Store materials
 
 `en-US.json` contains the listing draft, app support/privacy URLs and the

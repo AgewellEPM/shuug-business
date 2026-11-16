@@ -39,3 +39,19 @@ export and processed TestFlight upload; then physical testing, working support
 mailbox, reviewer access, complete account-creation/deletion assessment and
 protected hosted sync/recovery. Do not submit unfinished signed-in services or
 claim that a cloud image build establishes a connected public workspace.
+
+## Agreement cleared; App Group assignment remains pending
+
+The account holder accepted the updated agreement. A fresh signing attempt
+successfully obtained an Apple Development identity and new app/extension
+profiles; the agreement error is resolved. The profiles contain an empty
+com.apple.security.application-groups array for the main app, share extension
+and broadcast extension. Fresh downloads after account-side confirmation still
+returned those empty arrays and archive failed at the same entitlement boundary.
+
+The XcodeGen spec now explicitly retains App Groups capability attributes for
+those three targets; generated project attributes were verified. No entitlement
+was removed or group identifier changed. Three incomplete app-specific profiles
+were backed up before refreshing; unrelated signing assets were preserved. The
+release project is open for the remaining account-side group selection. No
+signed archive, export, App Store record or TestFlight upload is claimed.
