@@ -11,11 +11,11 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const { values, positionals } = parseArgs({ allowPositionals: true, options: {
   key: { type: 'string' }, issuer: { type: 'string' }, manifest: { type: 'string' },
-  receipt: { type: 'string' },
+  receipt: { type: 'string' }, contact: { type: 'string' },
 } });
 const command = positionals[0];
-assert(['inspect', 'listing', 'screenshots'].includes(command),
-  'Usage: rideshare-app-store-connect.mjs inspect|listing|screenshots --key PATH [--issuer ID] [--manifest PATH] --receipt PRIVATE_PATH');
+assert(['inspect', 'listing', 'screenshots', 'review'].includes(command),
+  'Usage: rideshare-app-store-connect.mjs inspect|listing|screenshots|review --key PATH [--issuer ID] [--manifest PATH] [--contact PRIVATE_JSON] --receipt PRIVATE_PATH');
 assert(values.key && values.receipt, 'A local API key path and private receipt path are required');
 const keyPath = resolve(values.key), receiptPath = resolve(values.receipt);
 for (const path of [keyPath, receiptPath]) {
@@ -102,6 +102,27 @@ await save();
 if (command === 'inspect') {
   receipt.localizations = locales.map(l => ({ id: l.id, ...l.attributes }));
   receipt.appInfoLocalizations = infoLocales.map(l => ({ id: l.id, ...l.attributes }));
+  receipt.screenshotSets = [];
+  for (const locale of locales) {
+    const sets = await all(`/v1/appStoreVersionLocalizations/${locale.id}/appScreenshotSets?limit=50`);
+    for (const set of sets) {
+      const assets = await all(`/v1/appScreenshotSets/${set.id}/appScreenshots?limit=50`);
+      receipt.screenshotSets.push({ locale: locale.attributes.locale, displayType: set.attributes.screenshotDisplayType,
+        screenshots: assets.map(a => ({ id: a.id, fileName: a.attributes.fileName,
+          md5: a.attributes.sourceFileChecksum, state: a.attributes.assetDeliveryState.state })) });
+    }
+  }
+  const expanded = await api(`/v1/appStoreVersions/${version.id}?include=appStoreReviewDetail,build`);
+  const review = expanded.included?.find(r => r.type === 'appStoreReviewDetails')?.attributes ?? {};
+  receipt.reviewContactComplete = ['contactFirstName', 'contactLastName', 'contactEmail', 'contactPhone']
+    .every(field => Boolean(review[field]));
+  receipt.reviewNotesPresent = Boolean(review.notes);
+  receipt.selectedBuildId = expanded.data.relationships.build.data?.id ?? null;
+  receipt.releaseType = expanded.data.attributes.releaseType;
+  if (info) {
+    const categories = (await api(`/v1/appInfos/${info.id}?include=primaryCategory,secondaryCategory`)).data.relationships;
+    receipt.categories = { primary: categories.primaryCategory.data?.id, secondary: categories.secondaryCategory.data?.id };
+  }
   await save();
   console.log(JSON.stringify(receipt, null, 2));
 } else if (command === 'listing') {
@@ -154,6 +175,29 @@ if (command === 'inspect') {
   receipt.listingSHA256 = digest('sha256', JSON.stringify(fields));
   await save();
   console.log('Listing text, support/privacy links and app information saved; field readback passed.');
+} else if (command === 'review') {
+  assert(values.contact, 'Supply the actual reviewer contact in a private JSON file');
+  assert(relative(root, resolve(values.contact)).startsWith('..'), 'Review contact must stay outside Git');
+  const contact = JSON.parse(await readFile(values.contact));
+  const fields = {};
+  for (const field of ['contactFirstName', 'contactLastName', 'contactEmail', 'contactPhone']) {
+    assert(typeof contact[field] === 'string' && contact[field].trim(), `Missing reviewer ${field}`);
+    fields[field] = contact[field];
+  }
+  fields.notes = await readFile(resolve(root, 'deployments/rideshare-tax-pros/app-store/reviewer-notes.txt'), 'utf8');
+  assert(fields.notes.length <= 4000);
+  const expanded = await api(`/v1/appStoreVersions/${version.id}?include=appStoreReviewDetail`);
+  let review = expanded.included?.find(r => r.type === 'appStoreReviewDetails');
+  if (review) review = (await api(`/v1/appStoreReviewDetails/${review.id}`, 'PATCH', record('appStoreReviewDetails', review.id, fields))).data;
+  else review = (await api('/v1/appStoreReviewDetails', 'POST', record('appStoreReviewDetails', null, fields,
+    { appStoreVersion: link('appStoreVersions', version.id) }))).data;
+  const saved = (await api(`/v1/appStoreReviewDetails/${review.id}`)).data.attributes;
+  for (const [field, value] of Object.entries(fields)) assert.equal(saved[field], value, `Review detail readback mismatch: ${field}`);
+  receipt.reviewContactComplete = true;
+  receipt.reviewNotesPresent = true;
+  receipt.reviewAccessVerified = false;
+  await save();
+  console.log('Actual review contact and guest/permission notes saved and read back; hosted review access remains unverified.');
 } else {
   assert(values.manifest, 'A genuine current screenshot manifest is required');
   const manifestPath = resolve(values.manifest);

@@ -1,0 +1,132 @@
+{
+  "verifiedAt": "2026-11-16T21:00:19.547Z",
+  "appStoreConnectId": "6835595554",
+  "bundleId": "com.ridesharetaxpros.driver",
+  "version": "1.0.0",
+  "storeVersion": "1.0",
+  "build": "2026111603",
+  "versionState": "PREPARE_FOR_SUBMISSION",
+  "releaseType": "MANUAL",
+  "buildProcessingState": "VALID",
+  "matchingBuildSelected": true,
+  "listingReadbackVerified": true,
+  "listingFields": [
+    "description",
+    "keywords",
+    "promotionalText",
+    "supportUrl",
+    "marketingUrl"
+  ],
+  "appInfoFields": [
+    "name",
+    "subtitle",
+    "privacyPolicyUrl"
+  ],
+  "categories": {
+    "primary": "FINANCE",
+    "secondary": "PRODUCTIVITY"
+  },
+  "screenshotUploadVerified": true,
+  "screenshotCount": 12,
+  "screenshots": [
+    {
+      "file": "iPhone/01-home.png",
+      "screenshotDisplayType": "APP_IPHONE_67",
+      "sha256": "0982ca8112c202bac423946e391620c67fe6fa3efb8366e6da463d15e8633510",
+      "appleMD5": "367fd9aaf47562f54e992ef4537b3ed7",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPhone/02-mileage-records.png",
+      "screenshotDisplayType": "APP_IPHONE_67",
+      "sha256": "dacabac8649eb9b2b08470be54b1892ead469dd126657c8eeb42a8b26d7b66fb",
+      "appleMD5": "c60676081f91a8e2285ea07132ab4b9e",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPhone/03-expenses-and-receipts.png",
+      "screenshotDisplayType": "APP_IPHONE_67",
+      "sha256": "d52402ceb4e595c4b481567577c59e158c8fff92e3be897422f16f08f78be6ea",
+      "appleMD5": "d2f96f20b98cbc644c7522d1a7a201ad",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPhone/04-import-an-offer-screenshot.png",
+      "screenshotDisplayType": "APP_IPHONE_67",
+      "sha256": "26b6cb545012926a341c579736baec8f5665456471b00f33d43a5e13fd73a1b3",
+      "appleMD5": "7315e457b9060f92100a9f78406553b7",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPhone/05-explore-sample-earnings.png",
+      "screenshotDisplayType": "APP_IPHONE_67",
+      "sha256": "3e9cc7de21916d840cbe70e5f223b01e8c03d1cb3cafc9da8870675fa7503661",
+      "appleMD5": "b6ecd347bb461fe7ea97481b08ed6725",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPhone/06-getting-started.png",
+      "screenshotDisplayType": "APP_IPHONE_67",
+      "sha256": "128b640392ef7cb980721e904159863859fd11788b10684f0cba733877e06fd3",
+      "appleMD5": "463d812bc8110b055589eb87654618b5",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPad/01-home.png",
+      "screenshotDisplayType": "APP_IPAD_PRO_3GEN_129",
+      "sha256": "a0cbd4d29be43b766c0a6992f4e352c1ed62c4598a75a2a7323a1eb3693e4148",
+      "appleMD5": "5452407cb725c2e5238951be4c6f1302",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPad/02-mileage-records.png",
+      "screenshotDisplayType": "APP_IPAD_PRO_3GEN_129",
+      "sha256": "c7c17a665f501ebd76dd799077a15ae6d6e1ab07bd71eb274b87a46b830c49b4",
+      "appleMD5": "4e036a23ba3ace42cfb4214792b82327",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPad/03-expenses-and-receipts.png",
+      "screenshotDisplayType": "APP_IPAD_PRO_3GEN_129",
+      "sha256": "7c049f0bdaf6d300d72c5893c972185ffe1e90cae484994e28c190d66b8cb106",
+      "appleMD5": "97af5f9c3a1ab84c1be2eb7946f2eb47",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPad/04-import-an-offer-screenshot.png",
+      "screenshotDisplayType": "APP_IPAD_PRO_3GEN_129",
+      "sha256": "2c1dada65fc3d73abb7ddc1ab49ee464826c58e3b71a3f071e57053f04b1e243",
+      "appleMD5": "c5a7df883e4e24b046b345f9d5cd326d",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPad/05-explore-sample-earnings.png",
+      "screenshotDisplayType": "APP_IPAD_PRO_3GEN_129",
+      "sha256": "b96eae42ddfdd9a5a5e04a4e8b6173d8a9f662975a212364fe2875a3a7ae2f88",
+      "appleMD5": "bcd4da0cb1d3611487a6d24977634b6a",
+      "state": "COMPLETE"
+    },
+    {
+      "file": "iPad/06-getting-started.png",
+      "screenshotDisplayType": "APP_IPAD_PRO_3GEN_129",
+      "sha256": "ebc9890c887c3e568505da2924a6b4980eaa7077f5809203bd6db25af5297391",
+      "appleMD5": "ef405ec2f7046a5d2353cdf9e1b05565",
+      "state": "COMPLETE"
+    }
+  ],
+  "captureConfiguration": "Release Simulator",
+  "captureRuntimeSourceCommit": "65711035458174daf485842d261b40e633e41233",
+  "captureRunPasses": {
+    "iPhone17ProMax": true,
+    "iPadPro13M4": true
+  },
+  "manifestSHA256": "2691cf8212304d4db263837eb8e3b38d1c13dbaefadb94e0fbe0e4e16d7597a9",
+  "reviewContactComplete": true,
+  "reviewNotesPresent": true,
+  "publicReviewSubmitted": false,
+  "testersInvited": false,
+  "physicalDeviceVerified": false,
+  "hostedBackendVerified": false,
+  "reviewDetailsVerifiedAt": "2026-11-16T21:02:33.142Z",
+  "reviewAccessVerified": false
+}

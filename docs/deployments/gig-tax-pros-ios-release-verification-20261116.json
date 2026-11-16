@@ -86,14 +86,21 @@
     "build": "2026111603",
     "acceptedAt": "2026-11-16T20:25:35Z",
     "uploadAccepted": true,
-    "processingState": "processing",
+    "processingState": "VALID",
     "testFlightAvailabilityVerified": false,
     "storeSubmissionVerified": false,
     "physicalDeviceVerified": false,
     "sourceCommit": "65711035458174daf485842d261b40e633e41233",
-    "warning": "Vendor LinkKit.framework dSYM absent; upload succeeded. SDK artifact contains no dSYM bundle."
+    "warning": "Vendor LinkKit.framework dSYM absent; upload succeeded. SDK artifact contains no dSYM bundle.",
+    "processingVerifiedAt": "2026-11-16T21:00:19.547Z"
   },
   "uploadBlocker": null,
   "testFlightAvailabilityVerified": false,
-  "storeSubmissionVerified": false
+  "storeSubmissionVerified": false,
+  "buildProcessingVerified": true,
+  "buildProcessingState": "VALID",
+  "listingUploaded": true,
+  "screenshotUploadVerified": true,
+  "screenshotCount": 12,
+  "storeListingReceipt": "gig-tax-pros-store-listing-verification-20261116.json"
 }

@@ -5,9 +5,14 @@ authenticated upload reported “Uploaded package is processing,” then “Uplo
 succeeded,” and xcodebuild exited successfully. App Store Connect record
 **6835595554** matches `com.ridesharetaxpros.driver`.
 
-This verifies delivery to Apple. TestFlight availability after processing,
-physical-device behavior, reviewer access and public submission remain
-unverified. No testers were invited and no public review was submitted.
+Apple's authenticated API subsequently confirmed **VALID** processing state for
+build2026111603. That build is selected on the iOS1.0 draft (equivalent to the
+binary's1.0.0 version). The listing text and all **12 current screenshots** are
+saved and verified. The version remains **PREPARE_FOR_SUBMISSION** with **MANUAL**
+release. No testers were invited and no public review was submitted.
+
+Physical-device behavior and hosted reviewer access remain unverified. Processing
+completion does not establish a completed device test or tester invitation.
 
 ## Verified artifact and packaging repair
 
@@ -51,20 +56,38 @@ packaging-only repair was verified against the rejected and corrected archives,
 the exported IPA and Apple's actual upload service. No physical device or
 current Simulator acceptance is claimed.
 
-Listing draft, privacy worksheet, reviewer notes and release commands remain
+Listing source, privacy worksheet, reviewer notes and release commands remain
 under `deployments/rideshare-tax-pros/app-store`. The Desktop release package
-contains the corrected IPA and receipts. Its screenshot candidates are labeled
-historic November 7 Simulator captures; they are not current-build or iPad proof.
+contains the corrected IPA and receipts. Its `App Store Screenshots` folder has
+six original iPhone17ProMax screenshots (1320×2868) and six iPadPro13-inch M4
+screenshots (2064×2752), captured from Release Simulator build2026111603. Both
+native capture runs passed. Runtime source matches the uploaded release; only
+capture tooling and documentation changed. The separate historic November7
+`Screenshot Candidates` folder is preserved and was not uploaded.
+
+The initial unsigned Simulator run could not use Keychain. A normal signed
+Simulator build resolved that capture-environment issue without changing app
+runtime code. The iPad capture selector was adapted to iPadOS26 floating tabs.
+Temporary devices were run serially, then shut down/deleted; the owned Simulator
+app was closed. No real customer records or provider connections were created.
+
+Apple processed every uploaded screenshot to COMPLETE. Per-file checksums and
+display order match the original images. Final independent API readback also
+confirmed description, keywords, promotional text, subtitle, support/marketing/
+privacy URLs, categories, manual release and the selected processed build.
+See `gig-tax-pros-store-listing-verification-20261116.json` for the sanitized
+receipt. The API key and account receipts remain private and outside Git.
 
 ## Remaining release gates
 
-1. Confirm processing completes in App Store Connect → Gig Tax Pros → TestFlight.
-   Upload acceptance alone does not establish tester availability.
-2. Perform the documented physical-device checks, particularly background GPS,
+1. Perform the documented physical-device checks, particularly background GPS,
    denied permissions, real screenshot imports and explicit ReplayKit sharing.
-3. Refresh actual iPhone/iPad screenshots, finish App Privacy/listing fields,
-   confirm the support mailbox and supply real reviewer/beta contact details.
-4. Complete hosted account sync/recovery and reviewer access for signed-in
+2. Complete App Privacy and other required review forms, confirm the support
+   mailbox and finish any remaining beta review information. The account holder
+   supplied the actual reviewer contact phone; contact name/email/phone and the
+   guest, permission and provider-flow notes were saved and read back through
+   Apple's API. Private contact data remains outside the source repository.
+3. Complete hosted account sync/recovery and reviewer access for signed-in
    features. Verify the complete invitation/account-creation/deletion flow.
    Unavailable providers must remain honestly described and unavailable.
 

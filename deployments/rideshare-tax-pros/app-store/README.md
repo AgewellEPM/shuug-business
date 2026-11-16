@@ -87,8 +87,8 @@ and absence of alpha before copying the images. It preserves the original pixels
 
 ## Save the draft listing and screenshot assets
 
-`scripts/rideshare-app-store-connect.mjs` supports `inspect`, `listing` and
-`screenshots` commands. It verifies this exact app record, preserves existing
+`scripts/rideshare-app-store-connect.mjs` supports `inspect`, `listing`,
+`screenshots` and `review` commands. It verifies this exact app record, preserves existing
 unrecognized screenshots, saves private before/after receipts, verifies text
 readback, waits for screenshot processing and checks Apple's checksum/order.
 It can attach the matching processed build to the draft. It never submits,
@@ -107,6 +107,11 @@ The helper never prints private keys, JWTs or asset-upload URLs. Keep account
 receipts outside Git. A team key needs its Issuer ID; individual keys use the
 original `ApiKey_...p8` filename without an issuer. API screenshot processing is
 separate from physical-device testing and public review.
+
+The `review` command takes `--contact PRIVATE_JSON` with contactFirstName,
+contactLastName, contactEmail and contactPhone; never put that private file in
+source. It enters the prepared `reviewer-notes.txt` and actual contact details,
+then checks readback. It does not invent credentials or mark hosted access tested.
 
 References: [Apple API keys](https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api),
 [asset upload](https://developer.apple.com/documentation/appstoreconnectapi/uploading-assets-to-app-store-connect).
