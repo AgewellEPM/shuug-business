@@ -31,7 +31,7 @@ const node=(document,tag,text)=>{const value=document.createElement(tag);if(text
 
 /** Encrypted client-side return editor. No taxpayer input goes to a calculator
  * server or browser storage. onSave uses the existing authenticated vault/CAS. */
-export function mountReturnEditor(document,container,{onSave,run,captureScope=()=>0,isCurrentScope=()=>true,onDirty=()=>{},download=()=>{},confirm=globalThis.confirm,proposalOnly=false,allowCreation=false}={}){
+export function mountReturnEditor(document,container,{onSave,run,captureScope=()=>0,isCurrentScope=()=>true,onDirty=()=>{},download=()=>{},beforeExport=null,confirm=globalThis.confirm,proposalOnly=false,allowCreation=false}={}){
   let draft=newReturn(),editingId=null,creating=false,dirty=false,enabled=false,readers=[],sequence=0;
   const section=node(document,'section');section.id='tax-preparation';
   const heading=node(document,'h2','Prepare a tax return'),notice=node(document,'p',scopeNotice),kind=node(document,'select');kind.id='return-kind';
@@ -107,7 +107,7 @@ export function mountReturnEditor(document,container,{onSave,run,captureScope=()
   kind.addEventListener('change',()=>{const next=kind.value;if(proposalOnly&&!creating||!confirmDiscard()){kind.value=draft.kind;return;}draft=newReturn(next,draft.year);editingId=null;dirty=false;draw();onDirty();});
   year.addEventListener('change',()=>{if(editingId!==null){year.value=String(draft.year);return;}collect();draft.year=Number(year.value);modified();draw();});
   clear.addEventListener('click',()=>{if(confirmDiscard())clearView();});
-  calculate.addEventListener('click',()=>run(async()=>{const value=validate(collect()),generation=captureScope();output.replaceChildren(renderReturn(document,value,{run,download,isCurrent:()=>isCurrentScope(generation)&&!document.hidden}));}));
+  calculate.addEventListener('click',()=>run(async()=>{const value=validate(collect()),generation=captureScope();output.replaceChildren(renderReturn(document,value,{run,download,beforeExport,isCurrent:()=>isCurrentScope(generation)&&!document.hidden}));}));
   save.addEventListener('click',()=>run(async()=>{const value=validate(collect()),generation=captureScope(),id=editingId;if(!isCurrentScope(generation))throw new Error('The account view changed.');await onSave(value,id,preparedId=>{if(isCurrentScope(generation))editingId=preparedId;});if(isCurrentScope(generation))clearView();}));
   draw();return api;
 }

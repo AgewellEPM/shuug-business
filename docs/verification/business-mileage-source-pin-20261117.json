@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "checkedAt": "2026-11-17",
+  "scope": "Optional federal business standard mileage rates only; not actual vehicle expenses or a determination of eligibility.",
+  "primaryIndex": "https://www.irs.gov/tax-professionals/standard-mileage-rates",
+  "eligibilitySource": "https://www.irs.gov/taxtopics/tc510",
+  "rates": [
+    {
+      "from": "2023-01-01", "through": "2023-12-31", "centsPerMile": 65.5,
+      "sourceUrl": "https://www.irs.gov/newsroom/irs-issues-standard-mileage-rates-for-2023-business-use-increases-3-cents-per-mile",
+      "authority": "IR-2022-234", "publishedAt": "2022-12-29"
+    },
+    {
+      "from": "2024-01-01", "through": "2024-12-31", "centsPerMile": 67,
+      "sourceUrl": "https://www.irs.gov/newsroom/irs-issues-standard-mileage-rates-for-2024-mileage-rate-increases-to-67-cents-a-mile-up-1-point-5-cents-from-2023",
+      "authority": "IR-2023-239", "publishedAt": "2023-12-14"
+    },
+    {
+      "from": "2025-01-01", "through": "2025-12-31", "centsPerMile": 70,
+      "sourceUrl": "https://www.irs.gov/newsroom/irs-increases-the-standard-mileage-rate-for-business-use-in-2025-key-rate-increases-3-cents-to-70-cents-per-mile",
+      "authority": "IR-2024-312", "publishedAt": "2024-12-19"
+    },
+    {
+      "from": "2026-01-01", "through": "2026-06-30", "centsPerMile": 72.5,
+      "sourceUrl": "https://www.irs.gov/pub/irs-drop/n-26-10.pdf",
+      "authority": "Notice 2026-10, modified by Announcement 2026-11", "publishedAt": "2025-12-29"
+    },
+    {
+      "from": "2026-07-01", "through": "2026-12-31", "centsPerMile": 76,
+      "sourceUrl": "https://www.irs.gov/irb/2026-29_irb",
+      "authority": "Announcement 2026-11", "publishedAt": "2026-07-13",
+      "effectiveAt": "2026-07-01"
+    }
+  ],
+  "unsupportedYears": [2027],
+  "calculationContract": {
+    "input": "Current normalized {id,body} records. Native timestamps are milliseconds since epoch; manual/API timestamps are ISO instants. localDate is required and never inferred from UTC.",
+    "eligibility": "Only eligible === true permits a numeric amount. Eligibility and the vehicle's method history must be confirmed outside this calculation; no ownership, method election, or actual-expense eligibility is inferred.",
+    "exclusions": "Personal and other-year trips are excluded. Unclassified current-year trips, unknown local dates, missing tracking confirmation, gaps, unfinished trips, invalid data, duplicates, and overlapping business-trip times produce review issues.",
+    "blocking": "Any issue returns amountCents null. distanceMeters totals only complete usable nonoverlapping business records; it is not an estimate of excluded travel. Unknown-date nonpersonal records block all requested years until reviewed.",
+    "rounding": "Parse recorded meter numbers as exact decimal rationals, including exponent notation; use integer arithmetic with exactly 1609.344 meters per international mile and half-cent rate units. Sum all dated contributions, then round once half-up to integer cents. Never round miles or individual-trip deductions.",
+    "boundary": "Recorded localDate chooses the rate. When a timeZoneId is present, verify its start date and flag travel crossing a rate or year boundary; a total trip distance cannot be apportioned by elapsed time. Without timeZoneId, within-trip local boundary crossing cannot be verified.",
+    "limitations": "Classifications and recorded distances are user/app evidence, not independent substantiation or a completeness guarantee. No commuting classification, actual-expense deduction, depreciation, car ownership, reimbursements, tolls, parking, or vehicle-specific method determination is performed. Eligibility attestation and private draft integration belong to the caller."
+  }
+}

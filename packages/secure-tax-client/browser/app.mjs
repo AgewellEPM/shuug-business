@@ -15,6 +15,8 @@ import { saveReturn } from './return-save.mjs';
 import { renderCase } from './case-view.mjs';
 import { renderOffice } from './office-view.mjs';
 import { renderLegacyBooks } from './legacy-books-view.mjs';
+import { AutoTaxController, AUTO_TAX_TYPE, autoTaxObjectId } from './auto-tax-controller.mjs';
+import { mountAutoTaxView } from './auto-tax-view.mjs';
 
 const $=id=>document.getElementById(id), labels={
   'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses',
@@ -22,6 +24,7 @@ const $=id=>document.getElementById(id), labels={
 };
 let client, normalEditor, taxEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
 let social,portal,enrollment,passwordRecovery,authenticatorRecovery,keyRecovery,legacyImport;
+let autoTax,autoTaxView,autoTaxEditorId=null;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
   const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');
@@ -34,7 +37,7 @@ async function readJson(input){
   try{return JSON.parse(await file.text());}catch{throw new Error('The selected file is not valid JSON.');}
 }
 function resetEditor(){editing=null;advancedDirty=false;$('payload').value='{"version":1,"title":"","notes":""}';$('attachment').value='';$('domain').disabled=!client?.canWrite||working;$('editor-title').textContent='Add a private item';}
-function clearOpened(){viewGeneration++;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';keyRecovery?.clear();legacyImport?.clear();enrollment?.clear();passwordRecovery?.clear();authenticatorRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
+function clearOpened(){viewGeneration++;autoTaxEditorId=null;autoTax?.clear();autoTaxView?.clear();for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';keyRecovery?.clear();legacyImport?.clear();enrollment?.clear();passwordRecovery?.clear();authenticatorRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
   social?.refresh();
@@ -54,6 +57,7 @@ function refreshControls(){
   normalEditor?.setEnabled(!!writable&&!working);
   taxEditor?.setEnabled(!!writable&&!working);
   keyRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);legacyImport?.refresh();portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);authenticatorRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);
+  autoTaxView?.refresh();
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
 }
@@ -88,7 +92,8 @@ function renderGroups(){
       meta.textContent=`Item ${item.objectId} · revision ${item.revision}`;row.append(title,meta);
       const file=data?.version===1&&data?.type==='private-file'&&typeof data?.data==='string';
       const journal=journalSections(data,{workspaceId:client.config.workspaceId,...client.identity,objectId:item.objectId,domain:item.domain});
-      if(item.verifiedLegacyBooks||data?.type==='legacy-accounting'){title.textContent='Imported business accounting';row.append(renderLegacyBooks(document,item,{download,run}));
+      if(client.clientOnly&&data?.type===AUTO_TAX_TYPE){title.textContent=`${data.year} automatically prepared private draft`;const note=document.createElement('p');note.textContent='App records and your reviewed tax details feed this draft. Use the private tax preparation panel above to review it; calculations update when the account is unlocked.';row.append(note);
+      }else if(item.verifiedLegacyBooks||data?.type==='legacy-accounting'){title.textContent='Imported business accounting';row.append(renderLegacyBooks(document,item,{download,run}));
       }else if(item.verifiedOffice||data?.type==='client-office'){title.textContent='Your client books and firm billing';row.append(renderOffice(document,item,client.records));
       }else if(item.verifiedCase||data?.type==='tax-case'){
         title.textContent='Your client case';row.append(renderCase(document,item,client.records));
@@ -116,7 +121,7 @@ function renderGroups(){
         },'secondary'));
         row.append(button('Download readable JSON',async()=>{download(`${item.objectId}.json`,item.plaintext);message('Readable JSON downloaded at your request. Its Downloads copy is outside this vault.');},'secondary'));
       }
-      if(!item.verifiedCase&&data?.type!=='tax-case')row.append(button('Delete encrypted item',async()=>{
+      if(!item.verifiedCase&&data?.type!=='tax-case'&&data?.type!==AUTO_TAX_TYPE)row.append(button('Delete encrypted item',async()=>{
         if(!confirm('Delete this encrypted item from the live API? Older ciphertext can remain in backups or filesystem history. This cannot remove readable files you downloaded.'))return;
         const generation=viewGeneration;await client.remove(item.objectId);if(generation!==viewGeneration)return;
         if(editing===item.objectId)resetEditor();if(taxEditor?.editingId===item.objectId)taxEditor.clear();renderGroups();message('Live ciphertext and object retry records deleted. A content-free sync tombstone remains; backups and prior downloads may retain copies.');
@@ -125,14 +130,55 @@ function renderGroups(){
     $('groups').append(area);
   }
   portal?.render();
+  autoTaxView?.render();
 }
-const canRefresh=()=>!normalEditor?.dirty&&!taxEditor?.dirty&&!editing&&!advancedDirty;
-portal=mountClientPortal(document,$('groups').parentElement,{getClient:()=>client,run,onSaved:renderGroups,onLocked:()=>{clearOpened();statusText();if(!client.identity)message('Sign-in expired or access was revoked. Opened information was cleared; sign in again.',true);},onMessage:message,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,canRefresh,confirm:text=>confirm(text)});
+const canRefresh=()=>!normalEditor?.dirty&&!taxEditor?.dirty&&!editing&&!advancedDirty&&!autoTaxView?.dirty&&!autoTax?.busy;
+async function prepareFromApp(){if(!client?.clientOnly)return;try{await autoTax.synchronized();}catch(error){message(`App records opened. Automatic preparation needs attention: ${error.message}`,true);}}
+portal=mountClientPortal(document,$('groups').parentElement,{getClient:()=>client,run,onSaved:renderGroups,onSynced:prepareFromApp,onLocked:()=>{clearOpened();statusText();if(!client.identity)message('Sign-in expired or access was revoked. Opened information was cleared; sign in again.',true);},onMessage:message,isWorking:()=>working,setWorking:value=>{working=value;},refreshControls,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,canRefresh,confirm:text=>confirm(text)});
+autoTax=new AutoTaxController({getClient:()=>client,eligible:()=>!document.hidden&&canRefresh(),onChange:()=>autoTaxView?.render()});
+async function openAutoTaxDetails(){
+  const state=autoTax.state,generation=viewGeneration,id=await autoTaxObjectId(client.scope,state.year);
+  if(generation!==viewGeneration||!client.canWrite)throw new Error('Reopen the current private draft.');
+  if(taxEditor.edit(state.model.input,id)!==false)autoTaxEditorId=id;
+  message('Complete your other return details here. This managed Schedule C receives its income and deductions from the app-record review panel.');
+}
+async function exportAutoTaxPdf(){
+  const state=autoTax.state,generation=viewGeneration,model=state.model;
+  if(!model?.incomeConfirmed||!model.businessConfirmed||!Number.isSafeInteger(model.totals.receiptsCents)||!Number.isSafeInteger(model.totals.deductionsCents))throw new Error('Review app income, business ownership and deductions before exporting this draft.');
+  const input=structuredClone(model.input),{generateDraftPdf}=await import('@shuug/tax-engine/pdf');
+  if(generation!==viewGeneration||!client.canWrite||document.hidden)throw new Error('Reopen the current private draft.');
+  const packet=await generateDraftPdf(input);
+  try{
+    if(generation!==viewGeneration||!client.canWrite||document.hidden)throw new Error('The private view changed. No readable PDF was downloaded.');
+    download(`gig-tax-${input.year}-private-draft.pdf`,packet.bytes,'application/pdf');
+  }finally{packet.bytes.fill(0);}
+}
+function downloadTaxReturn(...args){
+  if(autoTaxEditorId&&taxEditor?.editingId===autoTaxEditorId){
+    const model=autoTax.state.model;
+    if(!model?.incomeConfirmed||!model.businessConfirmed||!Number.isSafeInteger(model.totals.receiptsCents)||!Number.isSafeInteger(model.totals.deductionsCents))throw new Error('Review the current app income and deductions before downloading this automatic draft.');
+  }
+  return download(...args);
+}
+async function reviewPriorAutoTax(){
+  const generation=viewGeneration,input=await autoTax.priorInput();
+  if(generation!==viewGeneration||!client.canWrite)throw new Error('Reopen the current private account.');
+  if(taxEditor.edit(input,crypto.randomUUID())!==false)autoTaxEditorId=null;
+  message('An earlier private draft is open as a separate copy. Saving this copy keeps the current automatic draft.');
+}
+autoTaxView=mountAutoTaxView(document,$('groups').parentElement,{
+  getClient:()=>client,getState:()=>autoTax.state,run,isWorking:()=>working||!!taxEditor?.dirty,
+  captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onDirty:()=>portal?.pending(),
+  onYear:year=>autoTax.selectYear(year),onSettings:patch=>autoTax.updateSettings(patch),
+  onExpenseReview:(id,decision)=>autoTax.reviewRecord('expense',id,decision),onIncomeReview:(id,decision)=>autoTax.reviewRecord('income',id,decision),
+  onEdit:openAutoTaxDetails,onPdf:exportAutoTaxPdf,onReviewPrior:reviewPriorAutoTax,
+  onReload:()=>{if(confirm('Reload the latest saved private draft and discard your current unsaved changes? Earlier archived encrypted saves stay available in this browser.'))return autoTax.reloadLatest();},
+});
 legacyImport=mountLegacyImport(document,$('groups'),{getClient:()=>client,run,onSaved:renderGroups,onMessage:message,isWorking:()=>working,download});
 for(const id of ['payload','attachment','domain'])$(id).addEventListener('input',()=>{advancedDirty=true;portal.pending();});
 for(const domain of DOMAINS){const option=document.createElement('option');option.value=domain;option.textContent=labels[domain];$('domain').append(option);}
 normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onDirty:()=>portal.pending(),onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
-taxEditor=mountReturnEditor(document,$('return-editor'),{run,download,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration&&!!client?.canWrite,onDirty:()=>portal.pending(),onSave:async(value,id,onPrepared)=>{const generation=viewGeneration;try{await saveReturn(client,value,id??undefined,{onPrepared});if(generation!==viewGeneration)return;renderGroups();message('Return input encrypted and saved. Calculations can be reopened from these inputs; no return was transmitted.');}catch(error){if(generation===viewGeneration&&client.canWrite)await portal.queue?.restore();throw error;}}});
+taxEditor=mountReturnEditor(document,$('return-editor'),{run,download:downloadTaxReturn,beforeExport:input=>{if(autoTaxEditorId&&taxEditor?.editingId===autoTaxEditorId){const model=autoTax.state.model;if(!model?.incomeConfirmed||!model.businessConfirmed||!Number.isSafeInteger(model.totals.receiptsCents)||!Number.isSafeInteger(model.totals.deductionsCents))throw new Error('Review the current app amounts before exporting.');autoTax.assertManagedInput(input);}},captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration&&!!client?.canWrite,onDirty:()=>portal.pending(),onSave:async(value,id,onPrepared)=>{const generation=viewGeneration;try{if(client.clientOnly&&id&&id===autoTaxEditorId){await autoTax.saveDetails(value);autoTaxEditorId=null;}else await saveReturn(client,value,id??undefined,{onPrepared});if(generation!==viewGeneration)return;renderGroups();message('Return input encrypted and saved. Calculations can be reopened from these inputs; no return was transmitted.');}catch(error){if(generation===viewGeneration&&client.canWrite)await portal.queue?.restore();throw error;}}});
 function signedIn(result){
   if(result.mfaRequired){message('Password verified. Complete authenticator verification to access your account.');return;}
   if(result.recoveryCodes?.length){$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;}
@@ -151,7 +197,7 @@ $('signout').addEventListener('click',()=>run(async()=>{clearOpened();await clie
 $('connect').addEventListener('click',()=>run(async()=>{clearOpened();await client.connect();statusText();message('Account connected. Select its local key to verify enrollment or prepare signed setup.');}));
 $('lock').addEventListener('click',()=>{client.lock();clearOpened();refreshControls();message('View locked. Opened content cleared; the nonextractable key handle remains in this browser profile.');});
 $('key-choice').addEventListener('change',()=>{client?.lock();clearOpened();refreshControls();});
-$('unlock').addEventListener('click',()=>run(async()=>{clearOpened();await client.unlock($('key-choice').value);if(client.canWrite)await portal.activate();resetEditor();message(client.enrolled?'Client key matches the independently verified signed manifest. Your portal can upload files and check current encrypted records.':'Key ready for a public enrollment request. Activation remains unavailable.');}));
+$('unlock').addEventListener('click',()=>run(async()=>{clearOpened();await client.unlock($('key-choice').value);if(client.canWrite){await client.sync();await prepareFromApp();renderGroups();await portal.activate();}resetEditor();message(client.enrolled?'Your private records are open. App records update your tax draft here while this account is unlocked; review any missing information.':'Key ready for a public enrollment request. Activation remains unavailable.');}));
 $('create-key').addEventListener('click',()=>run(async()=>{
   const value=$('passphrase').value;if(value!==$('passphrase-confirm').value)throw new Error('The new-key backup passphrases do not match.');
   try{const result=await client.createKey(value);client.lock();clearOpened();await refreshKeys(result.keyId);downloadJson(`client-key-${result.keyId.slice(0,12)}.encrypted.json`,result.backup);message('Client key saved as nonextractable. Keep the encrypted backup and its separate passphrase safe. No server enrollment changed.');}
@@ -168,7 +214,7 @@ $('request').addEventListener('click',()=>run(async()=>{downloadJson('public-enr
 $('verify-manifest').addEventListener('click',()=>run(async()=>{
   const result=await client.stageManifest(await readJson($('manifest')));$('manifest').value='';$('manifest-result').textContent=`Signature, independent public pins, account, client key and epoch ${result.epoch} verified. Staged locally only; activation remains unavailable.`;message('Signed manifest verified and staged. No enrollment or data migration was sent to the API.');
 }));
-$('sync').addEventListener('click',()=>run(async()=>{if(!canRefresh())throw new Error('Save or clear the current form before refreshing encrypted records. Your unsaved changes were kept.');const generation=viewGeneration,result=await client.sync();if(generation!==viewGeneration)return;renderGroups();portal.updated();$('sync-result').textContent=`${result.items} encrypted items opened locally. No legacy records were migrated.`;message('Encrypted items synced and authenticated on this device.');}));
+$('sync').addEventListener('click',()=>run(async()=>{if(!canRefresh())throw new Error('Save or clear the current form before refreshing encrypted records. Your unsaved changes were kept.');const generation=viewGeneration,result=await client.sync();if(generation!==viewGeneration)return;await prepareFromApp();if(generation!==viewGeneration)return;renderGroups();portal.updated();$('sync-result').textContent=`${result.items} encrypted items opened locally. No legacy records were migrated.`;message('Encrypted items synced and authenticated on this device.');}));
 $('cancel-edit').addEventListener('click',()=>{resetEditor();refreshControls();});
 $('save').addEventListener('click',()=>run(async()=>{
   let bytes;const file=$('attachment').files?.[0],generation=viewGeneration;

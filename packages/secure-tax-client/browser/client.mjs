@@ -465,6 +465,46 @@ export class VaultClient {
   async forgetPendingUpload(mutationId){return this.#exclusive(async()=>{
     await this.#updateUploads(entries=>entries.filter(entry=>entry.mutationId!==mutationId));
   });}
+  #archiveBindingId(){return `auto-tax-retry-archive:${this.#uploadBindingId()}`;}
+  #archivedEntries(value,id){
+    if(value===undefined||value===null)return [];
+    if(Object.keys(value).sort().join('|')!=='entries|id|version'||value.id!==id||value.version!==1||!Array.isArray(value.entries)||value.entries.length>50||encoder.encode(JSON.stringify(value)).byteLength>48*1024*1024)throw new Error('The encrypted draft archive is invalid or full. Keep the original pending upload.');
+    const seen=new Set();
+    for(const entry of value.entries){
+      this.#checkPrepared(entry);
+      if(entry.domain!=='tax-document'||seen.has(entry.mutationId))throw new Error('The encrypted draft archive contains an unsupported or duplicate retry. Keep its originals.');
+      seen.add(entry.mutationId);
+    }
+    return clone(value.entries);
+  }
+  async archivedPendingUploads(){return this.#exclusive(async()=>{
+    if(!this.clientOnly)throw new Error('The private draft archive requires the client-only profile.');
+    const generation=this.#guard(),id=this.#archiveBindingId(),value=await this.#storage.getBinding(id);this.#same(generation);
+    return this.#archivedEntries(value,id);
+  });}
+  async archivePendingUpload(prepared){return this.#exclusive(async()=>{
+    if(!this.clientOnly)throw new Error('The private draft archive requires the client-only profile.');
+    const generation=this.#guard(),value=clone(prepared);this.#checkPrepared(value);
+    if(value.domain!=='tax-document')throw new Error('Only an encrypted automatic tax draft can enter this archive.');
+    const active=(await this.#pendingUploads()).find(entry=>entry.mutationId===value.mutationId);this.#same(generation);
+    if(active&&JSON.stringify(active)!==JSON.stringify(value))throw new Error('An encrypted upload retry cannot change its original bytes.');
+    const plaintext=await this.#openPrepared(value);
+    try{
+      this.#same(generation);
+      if(plaintext.byteLength>MAX_CIPHERTEXT_BYTES-16)throw new Error('The automatic tax draft exceeds its private size limit.');
+      const packet=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plaintext)),scope=packet?.scope;
+      if(packet?.version!==1||packet.type!=='client-auto-tax-draft'||packet.profile!==this.#protocol.profile||!scope||typeof scope!=='object'||Array.isArray(scope)||Object.keys(scope).sort().join('|')!=='accountId|clientId|workspaceId'||scope.workspaceId!==this.#config.workspaceId||scope.accountId!==this.identity.accountId||scope.clientId!==this.identity.clientId)throw new Error('Only this account’s client-only automatic tax draft can enter its encrypted archive.');
+    }finally{plaintext.fill(0);}
+    if(typeof this.#storage.updateBinding!=='function')throw new Error('Atomic private archive storage is required. Keep the original pending upload.');
+    const id=this.#archiveBindingId(),saved=await this.#storage.updateBinding(id,current=>{
+      this.#same(generation);const entries=this.#archivedEntries(current,id),prior=entries.find(entry=>entry.mutationId===value.mutationId);
+      if(prior&&JSON.stringify(prior)!==JSON.stringify(value))throw new Error('An archived encrypted retry cannot change its original bytes.');
+      if(!prior)entries.push(clone(value));
+      const next={id,version:1,entries};this.#archivedEntries(next,id);return next;
+    });this.#same(generation);
+    if(!this.#archivedEntries(saved,id).some(entry=>JSON.stringify(entry)===JSON.stringify(value)))throw new Error('The browser did not confirm a durable encrypted archive copy. Keep the original pending upload.');
+    // Removal is a separate caller decision, after this durable copy succeeds.
+  });}
   async remove(objectId){return this.#exclusive(async()=>{
     const generation=this.#guard();await this.#currentAnchor(generation);if(isCaseObjectId(objectId))throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');const item=this.records.get(objectId);if(!item)throw new Error('Sync the item before deleting it.');
     if(item.verifiedCase)throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');

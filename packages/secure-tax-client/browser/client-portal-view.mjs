@@ -23,7 +23,7 @@ export function renderPortalDashboard(document,records,{staff=false}={}){
 
 /** Mounts into the independent customer artifact. Account sign-in, enrollment and
  * encryption remain exclusively in VaultClient; this surface adds no API route. */
-export function mountClientPortal(document,before,{getClient,run,onSaved=()=>{},onLocked=null,onMessage=()=>{},isWorking=()=>false,setWorking=()=>{},refreshControls=()=>{},captureScope=()=>0,isCurrentScope=()=>true,canRefresh=()=>true,confirm=globalThis.confirm}={}){
+export function mountClientPortal(document,before,{getClient,run,onSaved=()=>{},onSynced=()=>{},onLocked=null,onMessage=()=>{},isWorking=()=>false,setWorking=()=>{},refreshControls=()=>{},captureScope=()=>0,isCurrentScope=()=>true,canRefresh=()=>true,confirm=globalThis.confirm}={}){
   const section=node(document,'section');section.id='client-portal';section.append(node(document,'h2','Your private business portal'),node(document,'p','Upload statements, receipts, invoices and supporting business information. Your business view updates from encrypted records while this tab is visible and unlocked.'));
   const fresh=node(document,'p','Unlock an enrolled account to check for updates.');fresh.id='portal-freshness';fresh.setAttribute('role','status');fresh.setAttribute('aria-live','polite');
   const dashboard=node(document,'div');dashboard.id='portal-dashboard';
@@ -46,7 +46,7 @@ export function mountClientPortal(document,before,{getClient,run,onSaved=()=>{},
   async function sync(){
     const client=getClient();if(!client?.canWrite||isWorking()||queue?.running||client.busy||document.hidden||!canRefresh())return false;
     const generation=captureScope();setWorking(true);refreshControls();
-    try{await client.sync();if(!isCurrentScope(generation)||!client.canWrite)return false;dashboard.replaceChildren(renderPortalDashboard(document,client.records));onSaved();return true;}
+    try{await client.sync();if(!isCurrentScope(generation)||!client.canWrite)return false;await onSynced();if(!isCurrentScope(generation)||!client.canWrite)return false;dashboard.replaceChildren(renderPortalDashboard(document,client.records));onSaved();return true;}
     finally{setWorking(false);if(!client.unlocked){if(onLocked)onLocked();else clear();}refreshControls();updateControls();}
   }
   async function activate(){
@@ -57,7 +57,7 @@ export function mountClientPortal(document,before,{getClient,run,onSaved=()=>{},
       finally{activating=false;updateControls();}
     }
     if(!poller)poller=new PortalRefresh({eligible:()=>!!getClient()?.identity&&!!getClient()?.canWrite&&!document.hidden&&!isWorking()&&!queue?.running&&!getClient()?.busy&&canRefresh(),refresh:sync,onChange:freshRender,onError:()=>{onMessage('Updates could not be checked. Opened data may be older; retry when connected.',true);}});
-    poller.start();dashboard.replaceChildren(renderPortalDashboard(document,client.records));updateControls();
+    uploadHeading.textContent=client.clientOnly?'Add private supporting files':'Add files for your accountant';poller.start();dashboard.replaceChildren(renderPortalDashboard(document,client.records));updateControls();
   }
   function clear(){poller?.stop({clear:true});const result=queue?.clear();loadedScope=null;files.value='';notes.value='';dashboard.replaceChildren();queueList.replaceChildren();fresh.textContent=result?.unpreparedDiscarded?`${result.unpreparedDiscarded} unencrypted file selections cleared; select those originals again. Encrypted pending uploads remain in this account’s browser storage.`:'View locked. Encrypted pending uploads remain recoverable after unlocking this account.';updateControls();}
   add.addEventListener('click',()=>run(async()=>{queue.add(files.files,{purpose:purpose.select.value,category:category.select.value,notes:notes.value});files.value='';notes.value='';poller?.pending();queueRender();}));
