@@ -221,8 +221,14 @@
     const message = $('#location-message');
     $('#location-logout').onclick = async () => {
       $('#location-logout').disabled = true;
-      try { await api('logout'); }
-      finally { $('#location-details').hidden = true; location.replace(sharedSignIn); }
+      try {
+        await api('logout');
+        $('#location-details').hidden = true;
+        location.replace(sharedSignIn);
+      } catch (error) {
+        message.textContent = error.message;
+        $('#location-logout').disabled = false;
+      }
     };
     api('my-location').then(({ location: office }) => {
       $('#location-name').textContent = office.name;

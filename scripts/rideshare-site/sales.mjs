@@ -21,7 +21,7 @@ export function salesPages() {
     },
     {
       slug: 'location', label: 'Tax location workspace', description: 'Gig Tax Pros workspace for your assigned tax office.',
-      main: `<main class="sales-shell signup-shell" data-location-app><h1>Your tax location</h1><p id="location-message" class="sales-message" role="status" aria-live="polite">Checking your workspace access…</p><a href="https://portal.gigtax.pro/" id="location-signin" class="button secondary">Go to sign-in</a><section id="location-details" class="sales-panel" hidden><h2 id="location-name"></h2><p id="location-address"></p><dl><dt>Membership</dt><dd id="location-membership"></dd></dl><button type="button" id="location-logout" class="button secondary">Sign out</button></section></main>`,
+      main: `<div class="sales-shell signup-shell" data-location-app><h1>Your tax location</h1><p id="location-message" class="sales-message" role="status" aria-live="polite">Checking your workspace access…</p><a href="https://portal.gigtax.pro/" id="location-signin" class="button secondary">Go to sign-in</a><section id="location-details" class="sales-panel" hidden><h2 id="location-name"></h2><p id="location-address"></p><dl><dt>Membership</dt><dd id="location-membership"></dd></dl><button type="button" id="location-logout" class="button secondary">Sign out</button></section></div>`,
     },
     {
       slug: 'office-signup', label: 'Activate your office', description: 'Review your Gig Tax Pros office invitation and enrollment terms.',
