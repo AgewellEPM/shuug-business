@@ -46,6 +46,7 @@ export function signInPrivateTaxAccount(code:string,password:string):never{
 }
 export function signOutPrivateTaxAccount(token:string|undefined){if(token)workspaceDatabase(db=>{if(privateAccountTable(db,"secure_tax_sessions"))db.prepare("DELETE FROM secure_tax_sessions WHERE tokenHash=?").run(privateTokenHash(token));},true);}
 export function newPrivateInvitation(db:DatabaseSync){
+  if(process.env.GIGTAX_REQUIRE_CLIENT_ONLY==="true")throw new SecureTaxError(409,"Use the client-owned invitation namespace.");
   initPrivateAccounts(db);const pins=trustedPublicPins(),now=Date.now();
   db.prepare("UPDATE secure_tax_invitations SET status='expired' WHERE status='pending' AND expires<=?").run(now);
   if(Number((db.prepare("SELECT count(*) AS n FROM secure_tax_invitations WHERE status='pending'").get() as {n:number}).n)>=1000)throw new SecureTaxError(413,"Pending invitation capacity needs review.");

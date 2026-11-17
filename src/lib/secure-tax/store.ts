@@ -9,6 +9,7 @@ import { trustedPublicPins } from "./manifest";
 import { secureTaxRequired } from "./policy";
 import { legacySecureTaxData } from "./legacy";
 import { CASE_OBJECT_PREFIX } from "../../../packages/secure-tax-client/case-contract.mjs";
+import { assertLegacyAccountAllowed } from "./client-only/guard";
 
 const ACCOUNT_CIPHERTEXT_BYTES = 512 * 1024 * 1024, WORKSPACE_CIPHERTEXT_BYTES = 2 * 1024 * 1024 * 1024;
 // The final live envelope remains deletable. A content-free tombstone can use
@@ -36,8 +37,11 @@ function init(db: DatabaseSync) {
     CREATE INDEX IF NOT EXISTS secure_tax_mutations_object ON secure_tax_mutations(accountId,objectId);`);
 }
 export function secureTaxEnrollment(db: DatabaseSync, accountId: string) {
+  assertLegacyAccountAllowed(db, { accountId });
   if (!db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='secure_tax_enrollments'").get()) return null;
-  return db.prepare("SELECT * FROM secure_tax_enrollments WHERE accountId=? AND status='active'").get(accountId) as Enrollment | undefined ?? null;
+  const row = db.prepare("SELECT * FROM secure_tax_enrollments WHERE accountId=? AND status='active'").get(accountId) as Enrollment | undefined;
+  if (row) assertLegacyAccountAllowed(db, { accountId, clientId: row.clientId });
+  return row ?? null;
 }
 function scoped(db: DatabaseSync, token: string | undefined) {
   const account = secureAccount(db, token); init(db);
@@ -56,6 +60,7 @@ const receipt = (row: Pick<ObjectRow, "id" | "revision" | "sequence" | "deleted"
 
 /** Transaction primitive used only after authenticated or invitation authority. */
 export function enrollSecureTaxAccount(db:DatabaseSync,account:{id:string;clientId:string},raw:unknown){
+    assertLegacyAccountAllowed(db, { accountId: account.id, clientId: account.clientId });
     const manifest=verifyRecipientManifest(raw,account);init(db);
     const previous = secureTaxEnrollment(db, account.id);
     if (previous && previous.clientId !== account.clientId) throw new SecureTaxError(409, "The secure client's business link changed. Ask the firm to review key enrollment.");
@@ -106,6 +111,7 @@ export function writeSecureTaxObject(token: string | undefined, rawId: string, r
 /** Internal transaction primitive. Callers establish live account/owner authority
  * and signed enrollment before reaching this shared CAS/capacity boundary. */
 export function commitSecureTaxEnvelope(db: DatabaseSync, account: { id: string; clientId: string }, manifest: SignedRecipientManifest, rawId: string, raw: unknown, options: { approvedCaseWrite?: boolean } = {}) {
+    assertLegacyAccountAllowed(db, { accountId: account.id, clientId: account.clientId });
     const id = secureTaxId.parse(rawId), input = mutationInput.parse(raw);
     const caseTable = db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='secure_tax_case_objects'").get();
     if (!options.approvedCaseWrite && (id.startsWith(CASE_OBJECT_PREFIX) || caseTable && db.prepare("SELECT 1 FROM secure_tax_case_objects WHERE accountId=? AND id=?").get(account.id, id))) throw new SecureTaxError(403, "Firm-managed case records require a separately approved case transition.");

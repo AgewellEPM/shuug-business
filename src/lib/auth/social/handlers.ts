@@ -59,7 +59,7 @@ export async function socialCallback(request: Request, context: { params: Promis
     const parameters = request.method === "GET" ? url.searchParams : new URLSearchParams(await boundedCallbackForm(request));
     if (parameters.has("error")) { cancelSocialCallback(provider,parameters.get("state")??""); throw new SocialSignInError("Sign-in was cancelled. Return to the app or previous tab and start again."); }
     await finishSocialCallback(provider, parameters.get("state") ?? "", parameters.get("code") ?? "");
-    const appReturn = /Android/i.test(request.headers.get("user-agent") ?? "") ? '<p><a href="gigtaxpros://signin">Return to Gig Tax Pros</a></p>' : "";
+    const appReturn = /Android|iPhone|iPad|iPod/i.test(request.headers.get("user-agent") ?? "") ? '<p><a href="gigtaxpros://signin">Return to Gig Tax Pros</a></p>' : "";
     return authPage("Sign-in confirmed", `<p>Return to Gig Tax Pros in the app or your previous browser tab to finish signing in.</p>${appReturn}<p>This page does not contain your account session or encryption key.</p>`);
   } catch (error) {
     return authPage("Sign-in was not completed", `<p>${error instanceof SocialSignInError && error.message.includes("cancelled") ? "Sign-in was cancelled." : "The request expired or could not be verified."} Return to the app or your previous browser tab and start again.</p>`, 400);

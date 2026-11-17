@@ -7,13 +7,15 @@ import {assertPasswordRecoveryInvitation,verifyPasswordRecovery} from '../passwo
 import {openPasswordRecoveryChallenge} from '../password-recovery-proof.mjs';
 import {assertPrivateInvitation,privateClientProfile,privateAccountCode} from '../client-enrollment.mjs';
 import {openActivationChallenge} from '../activation-proof.mjs';
-import { DOMAINS, MAX_CIPHERTEXT_BYTES, openEnvelope, sealEnvelope, validateContext, verifyEnrollmentManifest } from '../envelope.mjs';
+import { DOMAINS, MAX_CIPHERTEXT_BYTES, validateContext } from '../envelope.mjs';
+import { privacyProtocol } from './privacy-protocol.mjs';
+import { mergeClientOnlyBinding } from './client-only-binding.mjs';
 import { BrowserKeyStore, assertPrivateKey, createClientKey, importEncryptedBackup } from './custody.mjs';
 import { validateTrustedConfig } from './config.mjs';
 import { assertClientWritablePayload, openedRecordMetadata } from './opened-record.mjs';
 import { isCaseObjectId } from '../case-contract.mjs';
 
-const prefix='/api/website/customer/secure', encoder=new TextEncoder();
+const encoder=new TextEncoder();
 const validId=value=>typeof value==='string' && value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]===value;
 const integer=(value,min=1,max=Number.MAX_SAFE_INTEGER)=>Number.isSafeInteger(value)&&value>=min&&value<=max;
 const stale=()=>{throw new Error('The connection changed. Unlock the current account again.');};
@@ -37,28 +39,41 @@ async function responseJson(response,maximum,allowChallenge=false) {
 // Public routing/revision metadata, encrypted upload retries and nonextractable key handles persist.
 // Decrypted records exist in this controller's memory until lock/account change.
 export class VaultClient {
-  #config; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;#privateLogin=false;#authenticatorRecovery=null;
+  #config; #protocol; #storage; #fetch; #generation=0; #key; #verified; #binding; #cursor=0; #busy=false; #token; #expiresAt; #mfa=null;#privateLogin=false;#authenticatorRecovery=null;
   status=null; identity=null; records=new Map();
   static async create(config,origin,options={}) {
     return new VaultClient(await validateTrustedConfig(config,origin),options);
   }
-  constructor(config,{storage=new BrowserKeyStore(),fetcher=globalThis.fetch}={}) { this.#config=config;this.#storage=storage;this.#fetch=fetcher; }
+  constructor(config,{storage=new BrowserKeyStore(),fetcher=globalThis.fetch}={}) { this.#config=config;this.#protocol=privacyProtocol(config);this.#storage=storage;this.#fetch=fetcher; }
   get config(){return this.#config;}
+  get clientOnly(){return this.#protocol.clientOnly;}
   get unlocked(){return !!this.#key;}
   get enrolled(){return this.status?.enrolled===true;}
   get keyId(){return this.#key?.keyId;}
   get canWrite(){return this.enrolled && !!this.#verified && !!this.#key;}
   get busy(){return this.#busy;}
-  get scope(){return this.identity&&this.#key?{workspaceId:this.#config.workspaceId,...this.identity,keyId:this.#key.keyId}:null;}
+  get scope(){return this.identity&&this.#key?{workspaceId:this.#config.workspaceId,...this.identity,keyId:this.#key.keyId,...this.#protocol.fields()}:null;}
   get pendingMfa(){return this.#mfa?clone(this.#mfa):null;}
   #same(generation){if(generation!==this.#generation)stale();}
-  #bindingId(){return `${this.#config.workspaceId}|${this.identity.accountId}`;}
+  #bindingId(accountId=this.identity.accountId){return this.#protocol.bindingId(this.#config.workspaceId,accountId);}
+  async #persistBinding(next,options={}){
+    if(!this.clientOnly){await this.#storage.putBinding(next);return next;}
+    if(typeof this.#storage.updateBinding!=='function')throw new Error('Atomic client-key storage is required before opening or uploading private records.');
+    const saved=await this.#storage.updateBinding(next.id,current=>mergeClientOnlyBinding(current,next,options));
+    if(!saved)throw new Error('The browser did not confirm a durable client-only binding.');
+    return saved;
+  }
+  async #currentAnchor(generation){
+    if(!this.clientOnly)return;
+    try{const binding=await this.#persistBinding(this.#binding);this.#same(generation);this.#binding=binding;}
+    catch(error){if(generation===this.#generation)this.#reset();throw error;}
+  }
   #reset(){this.#generation++;this.#mfa=null;this.#authenticatorRecovery=null;this.#key=null;this.#verified=null;this.#binding=null;this.#cursor=0;for(const item of this.records.values())item.plaintext.fill(0);this.records.clear();}
   lock(){this.#reset();}
   async #request(path,method='GET',body,maximum=64*1024,allowChallenge=false){
-    const generation=this.#generation;
+    this.#protocol.assertPath(path);const generation=this.#generation;
     if(this.#token&&this.#expiresAt<=Date.now()){this.#token=null;this.#reset();this.identity=null;this.status=null;throw new Error('Your API session expired. Sign in again.');}
-    const response=await this.#fetch(`${this.#config.apiOrigin}${prefix}${path}`,{method,credentials:this.#token?'omit':'include',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',headers:{Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...(this.#token?{Authorization:`Bearer ${this.#token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
+    const response=await this.#fetch(`${this.#config.apiOrigin}${this.#protocol.prefix}${path}`,{method,credentials:this.#token?'omit':'include',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',headers:{Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'}),...(this.#token?{Authorization:`Bearer ${this.#token}`}:{})},...(body===undefined?{}:{body:JSON.stringify(body)})});
     if((response.status===401||response.status===403)&&generation===this.#generation&&!allowChallenge){this.#token=null;this.#reset();this.identity=null;this.status=null;}
     return responseJson(response,maximum,allowChallenge);
   }
@@ -104,7 +119,7 @@ export class VaultClient {
     return this.#stageMfa(result,true);
   }
   async signInWithCode(accountCode,password){return this.#signIn({accountCode:privateAccountCode(accountCode)},password,true);}
-  async signIn(email,password){return this.#signIn({email},password,false);}
+  async signIn(email,password){if(this.clientOnly)throw new Error('Use your private account code or connected Google or Apple sign-in.');return this.#signIn({email},password,false);}
   async #signIn(identifier,password,privateLogin){
 
     this.#token=null;this.#expiresAt=null;this.#reset();this.status=null;this.identity=null;const generation=this.#generation;
@@ -152,6 +167,7 @@ export class VaultClient {
     this.#reset();this.status=null;this.identity=null;const generation=this.#generation;
     const status=await this.#request('/status');this.#same(generation);
     if(!status || typeof status.enrolled!=='boolean' || !validId(status.identity?.accountId) || !validId(status.identity?.clientId)) throw new Error('The API did not provide a usable authenticated account binding.');
+    if(this.clientOnly&&(status.profile!==this.#protocol.profile||status.enrolled&&(status.manifest?.version!==2||status.manifest.profile!==this.#protocol.profile)))throw new Error('The API cannot downgrade the independently installed client-only profile. No account was connected.');
     this.identity={accountId:status.identity.accountId,clientId:status.identity.clientId};this.status=status;
     return status;
   }
@@ -165,63 +181,79 @@ export class VaultClient {
     return {keyId:entry.keyId,publicKey:entry.publicKey};
   }
   async newEnrollmentRequest(invitation,keyId){
-    assertPrivateInvitation(invitation,this.#config.workspaceId);const entry=await this.#storage.getKey(keyId);if(!entry)throw new Error('Create or recover the selected client key first.');assertPrivateKey(entry.privateKey);
-    return {version:1,workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,client:{keyId:entry.keyId,publicKey:entry.publicKey}};
+    this.#protocol.invitation(invitation,this.#config.workspaceId);const entry=await this.#storage.getKey(keyId);if(!entry)throw new Error('Create or recover the selected client key first.');assertPrivateKey(entry.privateKey);
+    return this.#protocol.request({accountId:invitation.accountId,clientId:invitation.clientId},{keyId:entry.keyId,publicKey:entry.publicKey});
   }
   async activateNewAccount({invitation,keyId,manifest,password,profile}){
-    assertPrivateInvitation(invitation,this.#config.workspaceId);if(typeof password!=='string'||password.length<14||password.length>200)throw new Error('Use an account password of 14–200 characters, separate from the key-backup passphrase.');
+    this.#protocol.invitation(invitation,this.#config.workspaceId);if(typeof password!=='string'||password.length<14||password.length>200)throw new Error('Use an account password of 14–200 characters, separate from the key-backup passphrase.');
     this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;const generation=this.#generation;
     const entry=await this.#storage.getKey(keyId);this.#same(generation);if(!entry)throw new Error('The selected client key is unavailable.');assertPrivateKey(entry.privateKey);
-    const expected={accountId:invitation.accountId,clientId:invitation.clientId,minimumEpoch:1},verified=await verifyEnrollmentManifest(manifest,expected,this.#config);this.#same(generation);
+    const expected={accountId:invitation.accountId,clientId:invitation.clientId,minimumEpoch:1},verified=await this.#protocol.verifyManifest(manifest,expected,this.#config);this.#same(generation);
     if(manifest.client.keyId!==entry.keyId||manifest.client.publicKey!==entry.publicKey)throw new Error('The signed manifest is for another client key.');
+    if(this.clientOnly){await this.#persistBinding({id:this.#bindingId(invitation.accountId),...this.#protocol.fields(),workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,keyId:entry.keyId,minimumEpoch:manifest.epoch,manifest:clone(manifest),versions:{}});this.#same(generation);}
     const body=privateClientProfile(profile),bytes=encoder.encode(JSON.stringify(body)),context={workspaceId:this.#config.workspaceId,accountId:invitation.accountId,objectId:crypto.randomUUID(),revision:1,domain:'tax-identity'};let envelope;
-    try{envelope=await sealEnvelope(bytes,context,verified.recipients,'client',entry.privateKey);}finally{bytes.fill(0);}this.#same(generation);
-    const challenge=await this.#request('/activation/challenge','POST',{token:invitation.token,manifest},16384),answer=await openActivationChallenge(challenge,manifest,expected,this.#config,entry.privateKey);this.#same(generation);
+    try{envelope=await this.#protocol.seal(bytes,context,verified.recipients,'client',entry.privateKey);this.#protocol.assertDispatch(envelope,context,entry);}finally{bytes.fill(0);}this.#same(generation);
+    const challenge=await this.#request('/activation/challenge','POST',{token:invitation.token,manifest},16384),answer=await this.#protocol.openActivation(challenge,manifest,expected,this.#config,entry.privateKey);this.#same(generation);
     const result=await this.#request('/activation','POST',{token:invitation.token,manifest,challengeId:challenge.challengeId,answer,password,profile:{mutationId:crypto.randomUUID(),expectedRevision:0,envelope}},4096);this.#same(generation);
-    if(result?.activated!==true||result.identity?.accountId!==invitation.accountId||result.identity?.clientId!==invitation.clientId)throw new Error('Activation returned a different account binding. Contact the firm.');
-    await this.#storage.putBinding({id:`${this.#config.workspaceId}|${invitation.accountId}`,workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,keyId:entry.keyId,minimumEpoch:manifest.epoch,manifest:clone(manifest)});this.#same(generation);
+    if(result?.activated!==true||this.clientOnly&&result.profile!==this.#protocol.profile||result.identity?.accountId!==invitation.accountId||result.identity?.clientId!==invitation.clientId)throw new Error('Activation returned a different account binding. Contact the firm.');
+    await this.#persistBinding({id:this.#bindingId(invitation.accountId),...this.#protocol.fields(),workspaceId:this.#config.workspaceId,accountId:invitation.accountId,clientId:invitation.clientId,keyId:entry.keyId,minimumEpoch:manifest.epoch,manifest:clone(manifest)});this.#same(generation);
     return {accountCode:invitation.accountId,keyId:entry.keyId};
   }
   async recoverAccountPassword({invitation,approval,keyId,newPassword}){
+    this.#protocol.assertLegacyFeature();
     assertPasswordRecoveryInvitation(invitation,this.#config.workspaceId);if(typeof newPassword!=='string'||newPassword.length<14||newPassword.length>200)throw new Error('Choose a new account password of 14–200 characters.');
     this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;const generation=this.#generation,request=invitation.request,entry=await this.#storage.getKey(keyId);this.#same(generation);
     if(!entry||entry.keyId!==request.clientKeyId)throw new Error('Recover the existing enrolled client key from its encrypted backup first.');assertPrivateKey(entry.privateKey);
-    const expected={accountId:request.accountId,clientId:request.clientId,minimumEpoch:request.manifestEpoch};await verifyEnrollmentManifest(invitation.manifest,expected,this.#config);await verifyPasswordRecovery(approval,this.#config,request);this.#same(generation);
+    const expected={accountId:request.accountId,clientId:request.clientId,minimumEpoch:request.manifestEpoch};await this.#protocol.verifyManifest(invitation.manifest,expected,this.#config);await verifyPasswordRecovery(approval,this.#config,request);this.#same(generation);
     const challenge=await this.#request('/password-recovery/challenge','POST',{token:invitation.token,approval},16384),answer=await openPasswordRecoveryChallenge(challenge,invitation.manifest,expected,this.#config,entry.privateKey);this.#same(generation);
     const result=await this.#request('/password-recovery','POST',{token:invitation.token,approval,challengeId:challenge.challengeId,answer,newPassword},4096);this.#same(generation);
     if(result?.passwordChanged!==true||result.sessionsRevoked!==true||result.authenticatorPreserved!==true||result.accountCode!==request.accountId)throw new Error('Recovery was not confirmed. Try signing in with the chosen password before requesting another recovery.');return result;
   }
   async beginAuthenticatorRecovery({invitation,approval,keyId,password}){
+    this.#protocol.assertLegacyFeature();
     assertAuthenticatorRecoveryInvitation(invitation,this.#config.workspaceId);if(typeof password!=='string'||!password||password.length>200)throw new Error('Enter the current account password. Recover a forgotten password first.');
     this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;const generation=this.#generation,request=invitation.request,entry=await this.#storage.getKey(keyId);this.#same(generation);
     if(!entry||entry.keyId!==request.clientKeyId||entry.publicKey!==invitation.manifest.client.publicKey)throw new Error('Select or recover the original account encryption key.');assertPrivateKey(entry.privateKey);
-    const expected={accountId:request.accountId,clientId:request.clientId,minimumEpoch:request.manifestEpoch};await verifyEnrollmentManifest(invitation.manifest,expected,this.#config);await verifyAuthenticatorRecovery(approval,this.#config,request);this.#same(generation);
+    const expected={accountId:request.accountId,clientId:request.clientId,minimumEpoch:request.manifestEpoch};await this.#protocol.verifyManifest(invitation.manifest,expected,this.#config);await verifyAuthenticatorRecovery(approval,this.#config,request);this.#same(generation);
     const result=await this.#request('/authenticator-recovery/challenge','POST',{token:invitation.token,approval,password},16384),answer=await openAuthenticatorRecoveryChallenge(result.challenge,invitation.manifest,expected,this.#config,entry.privateKey);this.#same(generation);
     if(!/^[A-Z2-7]{32}$/.test(result.secret))throw new Error('Invalid replacement authenticator setup.');
     this.#authenticatorRecovery={token:invitation.token,approval:clone(approval),challengeId:result.challenge.challengeId,answer,accountCode:request.accountId,expiresAt:result.challenge.expiresAt};
     return {secret:result.secret,accountCode:request.accountId,expiresAt:result.challenge.expiresAt};
   }
   async finishAuthenticatorRecovery(code){
+    this.#protocol.assertLegacyFeature();
     const pending=this.#authenticatorRecovery;if(!pending||Date.parse(pending.expiresAt)<=Date.now())throw new Error('Authenticator setup expired or was cleared. Begin recovery again.');if(typeof code!=='string'||!/^\d{6}$/.test(code))throw new Error('Enter the six-digit code from the replacement authenticator.');
     const generation=this.#generation,{accountCode,expiresAt,...body}=pending,result=await this.#request('/authenticator-recovery','POST',{...body,code},4096);this.#same(generation);
     this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;
     if(result.authenticatorReplaced!==true||result.sessionsRevoked!==true||result.oldRecoveryCodesRevoked!==true||result.accountCode!==accountCode||!Array.isArray(result.recoveryCodes)||result.recoveryCodes.length!==10||result.recoveryCodes.some(value=>typeof value!=='string'||!/^[A-F0-9]{6}(?:-[A-F0-9]{6}){3}$/.test(value)))throw new Error('Replacement was not confirmed. Try the new authenticator before requesting another recovery.');return result;
   }
   async renewalRequest(keyId){
+    if(this.clientOnly){
+      if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled client-only account first.');
+      const generation=this.#generation,entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
+      if(!entry)throw new Error('Recover the original client key before renewing access.');
+      const result=await this.#request('/enrollment-renewal');this.#same(generation);
+      if(result.profile!==this.#protocol.profile||!result.manifest)throw new Error('The server did not return the client-only enrollment.');
+      await this.#protocol.verifyManifest(result.manifest,{...this.identity,clientPublicKey:entry.publicKey,minimumEpoch:binding?.minimumEpoch??1},this.#config,Math.min(Date.now(),Date.parse(result.manifest.expiresAt)-1));this.#same(generation);
+      if(binding?.keyId&&binding.keyId!==entry.keyId||!this.#protocol.sameManifest(this.status.manifest,result.manifest))throw new Error('The existing client key or enrollment changed. No replacement key was requested.');
+      return {profile:this.#protocol.profile,minimumEpoch:Math.max(result.manifest.epoch,binding?.minimumEpoch??1)+1,previous:clone(result.manifest),request:this.#protocol.request(this.identity,{keyId:entry.keyId,publicKey:entry.publicKey})};
+    }
     if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled account before requesting renewal.');const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
     if(!entry)throw new Error('Select or recover the existing account key.');const request=await this.#request('/enrollment-renewal');await verifyRenewalRequest(request,this.#config,{...identity,minimumEpoch:binding?.minimumEpoch??1});this.#same(generation);
     if(request.manifest.client.keyId!==entry.keyId||request.manifest.client.publicKey!==entry.publicKey)throw new Error('Renewal must keep the existing client key.');return clone(request);
   }
   async requestClientKeyRecovery(keyId){
+    this.#protocol.assertLegacyFeature();
     if(!this.identity||!this.enrolled)throw new Error('Sign in with your account code, password and authenticator before replacing a lost encryption key.');
     const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
     if(!entry||entry.keyId===this.status.manifest.client.keyId)throw new Error('Create and back up a different client key, then select it for recovery.');assertPrivateKey(entry.privateKey);
-    await verifyEnrollmentManifest(this.status.manifest,{...identity,minimumEpoch:binding?.minimumEpoch??1},this.#config);this.#same(generation);checkRecoveryCheckpoint(this.status.manifest,binding);
+    await this.#protocol.verifyManifest(this.status.manifest,{...identity,minimumEpoch:binding?.minimumEpoch??1},this.#config);this.#same(generation);checkRecoveryCheckpoint(this.status.manifest,binding);
     const request=await this.#request('/client-key-recovery','POST',{client:{keyId:entry.keyId,publicKey:entry.publicKey}},8*1024*1024);await verifyClientKeyRecoveryRequest(request,this.#config,{...identity,minimumEpoch:binding?.minimumEpoch??1});this.#same(generation);
     checkRecoveryCheckpoint(request.previous,binding);
     if(request.client.keyId!==entry.keyId||request.client.publicKey!==entry.publicKey||JSON.stringify(request.previous)!==JSON.stringify(this.status.manifest))throw new Error('The recovery request changed the account or replacement key.');return clone(request);
   }
   async completeClientKeyRecovery(raw,keyId){
+    this.#protocol.assertLegacyFeature();
     if(!this.identity||!this.enrolled)throw new Error('Sign in to the private account before completing encryption-key recovery.');
     const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
     if(typeof this.#storage.updateBinding!=='function')throw new Error('Atomic client trust storage is required for encryption-key recovery.');
@@ -239,6 +271,20 @@ export class VaultClient {
     this.#token=null;this.#expiresAt=null;this.#reset();this.identity=null;this.status=null;return result;
   }
   async installEnrollmentRenewal(packet,keyId){
+    if(this.clientOnly){
+      if(!this.identity||!this.enrolled)throw new Error('Sign in before installing a client-only renewal.');
+      this.#reset();
+      const manifest=packet?.manifest??packet,generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
+      if(!entry||binding?.keyId&&binding.keyId!==entry.keyId||manifest?.client?.keyId!==this.status.manifest.client.keyId||manifest.client.publicKey!==this.status.manifest.client.publicKey)throw new Error('Renewal must retain the original client key. An administrator cannot replace it.');
+      await this.#protocol.verifyManifest(manifest,{...identity,clientPublicKey:entry.publicKey,minimumEpoch:Math.max(this.status.manifest.epoch,binding?.minimumEpoch??1)},this.#config);this.#same(generation);
+      if(manifest.epoch===this.status.manifest.epoch&&!this.#protocol.sameManifest(manifest,this.status.manifest))throw new Error('A changed renewal reused the server enrollment epoch.');
+      const nextBinding={...binding,id:this.#bindingId(),...this.#protocol.fields(),workspaceId:this.#config.workspaceId,...identity,keyId:entry.keyId,minimumEpoch:manifest.epoch,manifest:clone(manifest)};
+      await this.#persistBinding(nextBinding);this.#same(generation);
+      const result=await this.#request('/enrollment-renewal','POST',{manifest},16384);this.#same(generation);
+      if(result.renewed!==true||result.profile!==this.#protocol.profile||result.identity?.accountId!==identity.accountId||result.identity?.clientId!==identity.clientId||!this.#protocol.sameManifest(result.manifest,manifest))throw new Error('The API did not confirm this exact same-key renewal.');
+      await this.#persistBinding(nextBinding);this.#same(generation);
+      this.#reset();this.status={...this.status,...result};return {renewed:true,staffSharingRefreshRequired:false};
+    }
     if(!this.identity||!this.enrolled)throw new Error('Sign in to the enrolled account before installing renewal.');const generation=this.#generation,identity={...this.identity},entry=await this.#storage.getKey(keyId),binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
     await verifyEnrollmentRenewal(packet,this.#config,identity);this.#same(generation);
     if(!entry||packet.manifest.client.keyId!==entry.keyId||packet.manifest.client.publicKey!==entry.publicKey||packet.manifest.epoch<(binding?.minimumEpoch??1))throw new Error('Renewal must keep your existing key and respect its observed epoch.');
@@ -251,9 +297,9 @@ export class VaultClient {
     return clone(entry.backup);
   }
   async #verify(manifest,binding,key){
-    const verified=await verifyEnrollmentManifest(manifest,{...this.identity,minimumEpoch:binding?.minimumEpoch??1},this.#config);
+    const verified=await this.#protocol.verifyManifest(manifest,{...this.identity,minimumEpoch:binding?.minimumEpoch??1},this.#config);
     if(manifest.client.keyId!==key.keyId || manifest.client.publicKey!==key.publicKey) throw new Error('The signed manifest is for a different client key.');
-    if(binding?.minimumEpoch===manifest.epoch && binding.manifest && JSON.stringify(binding.manifest)!==JSON.stringify(manifest)) throw new Error('A different manifest reused the locally recorded epoch. Obtain a newer signed manifest.');
+    if(binding?.minimumEpoch===manifest.epoch && binding.manifest && !this.#protocol.sameManifest(binding.manifest,manifest)) throw new Error('A different manifest reused the locally recorded epoch. Obtain a newer signed manifest.');
     return verified;
   }
   async unlock(keyId){
@@ -262,22 +308,25 @@ export class VaultClient {
     if(!entry)throw new Error('Import the encrypted backup for this account, or create a client key for setup.');
     assertPrivateKey(entry.privateKey);
     const binding=await this.#storage.getBinding(this.#bindingId());this.#same(generation);
-    if(binding && (binding.keyId!==entry.keyId || binding.clientId!==this.identity.clientId || binding.workspaceId!==this.#config.workspaceId || binding.accountId!==this.identity.accountId)) throw new Error('The local key binding differs from this account. Use the original key and contact the firm for a reviewed migration.');
+    if(binding && (this.clientOnly&&binding.profile!==this.#protocol.profile||binding.keyId!==entry.keyId || binding.clientId!==this.identity.clientId || binding.workspaceId!==this.#config.workspaceId || binding.accountId!==this.identity.accountId)) throw new Error('The local key binding differs from this account. Use the original key and contact the firm for a reviewed migration.');
     let verified=null;
     if(this.enrolled){verified=await this.#verify(this.status.manifest,binding,entry);this.#same(generation);}
-    this.#key=entry;this.#verified=verified;this.#binding=binding??{id:this.#bindingId(),workspaceId:this.#config.workspaceId,...this.identity,keyId:entry.keyId,minimumEpoch:0,versions:{}};
-    if(verified){this.#binding={...this.#binding,minimumEpoch:verified.epoch,manifest:clone(this.status.manifest)};await this.#storage.putBinding(this.#binding);this.#same(generation);}
+    let next=binding??{id:this.#bindingId(),...this.#protocol.fields(),workspaceId:this.#config.workspaceId,...this.identity,keyId:entry.keyId,minimumEpoch:0,versions:{}};
+    if(this.clientOnly&&!verified)throw new Error('The account has no verified client-only enrollment. Complete the private invitation setup first.');
+    if(verified){next=await this.#persistBinding({...next,minimumEpoch:verified.epoch,manifest:clone(this.status.manifest)});this.#same(generation);}
+    this.#key=entry;this.#verified=verified;this.#binding=next;
     return {keyId:entry.keyId,publicKey:entry.publicKey,enrolled:this.enrolled};
   }
   publicRequest(){
     if(!this.#key||!this.identity)throw new Error('Connect and unlock a client key first.');
-    return {version:1,workspaceId:this.#config.workspaceId,...this.identity,client:{keyId:this.#key.keyId,publicKey:this.#key.publicKey}};
+    return this.#protocol.request(this.identity,{keyId:this.#key.keyId,publicKey:this.#key.publicKey});
   }
   async stageManifest(manifest){
     if(!this.#key||!this.identity)throw new Error('Connect and unlock a client key first.');
     const generation=this.#generation, verified=await this.#verify(manifest,this.#binding,this.#key);this.#same(generation);
     const binding={...this.#binding,minimumEpoch:verified.epoch,manifest:clone(manifest)};
-    await this.#storage.putBinding(binding);this.#same(generation);this.#binding=binding;
+    try{this.#binding=await this.#persistBinding(binding);this.#same(generation);if(this.clientOnly)this.#verified=null;}
+    catch(error){if(this.clientOnly&&generation===this.#generation)this.#reset();throw error;}
     // Staging does not change API enrollment or enable writes for an unenrolled account.
     return {manifestId:verified.manifestId,epoch:verified.epoch,activationAvailable:false};
   }
@@ -287,17 +336,19 @@ export class VaultClient {
     return this.#generation;
   }
   async openLegacyExport(envelope,manifest){
-    const generation=this.#guard(),verified=await verifyEnrollmentManifest(manifest,{...this.identity,minimumEpoch:this.#binding.minimumEpoch},this.#config);this.#same(generation);
+    this.#protocol.assertLegacyFeature();
+    const generation=this.#guard(),verified=await this.#protocol.verifyManifest(manifest,{...this.identity,minimumEpoch:this.#binding.minimumEpoch},this.#config);this.#same(generation);
     const context=envelope?.context;if(manifest.client.keyId!==this.#key.keyId||manifest.client.publicKey!==this.#key.publicKey||verified.manifestId!==this.#verified.manifestId||envelope?.author?.role!=='firm-recovery'||!context||context.workspaceId!==this.#config.workspaceId||context.accountId!==this.identity.accountId||context.revision!==1||!['driver-record','driver-receipt','tax-document'].includes(context.domain))throw new Error('Select a firm-encrypted export for this exact current account and enrollment.');
-    const bytes=await openEnvelope(envelope,context,verified.recipients,'client',this.#key.privateKey);try{this.#same(generation);return bytes;}catch(error){bytes.fill(0);throw error;}
+    const bytes=await this.#protocol.open(envelope,context,verified.recipients,'client',this.#key.privateKey);try{this.#same(generation);return bytes;}catch(error){bytes.fill(0);throw error;}
   }
   async #exclusive(operation){
     if(this.#busy)throw new Error('Wait for the current ciphertext operation to finish.');this.#busy=true;
     try{return await operation();}finally{this.#busy=false;}
   }
   #context(objectId,revision,domain){return {workspaceId:this.#config.workspaceId,accountId:this.identity.accountId,objectId,revision,domain};}
-  async #remember(versions,generation){
-    const binding={...this.#binding,versions};await this.#storage.putBinding(binding);this.#same(generation);this.#binding=binding;
+  async #remember(versions,generation,options={}){
+    try{const binding=await this.#persistBinding({...this.#binding,versions},options);this.#same(generation);this.#binding=binding;}
+    catch(error){if(this.clientOnly&&generation===this.#generation)this.#reset();throw error;}
   }
   async sync(){return this.#exclusive(async()=>{
     const generation=this.#guard(), records=new Map(this.records), versions=clone(this.#binding.versions??{}), seen=new Set(),opened=[];let committed=false;
@@ -318,7 +369,7 @@ export class VaultClient {
         if(!validReceipt(item)||item.objectId!==change.objectId||item.revision<change.revision||item.sequence<change.sequence)throw new Error('The ciphertext item does not match its change record.');
         if(item.deleted){records.delete(item.objectId);versions[item.objectId]={revision:item.revision,deleted:true};continue;}
         const context=this.#context(item.objectId,item.revision,item.envelope?.context?.domain);validateContext(context);
-        const plaintext=await openEnvelope(item.envelope,context,this.#verified.recipients,'client',this.#key.privateKey);opened.push(plaintext);this.#same(generation);
+        const plaintext=await this.#protocol.open(item.envelope,context,this.#verified.recipients,'client',this.#key.privateKey);opened.push(plaintext);this.#same(generation);
         let metadata;try{metadata=await openedRecordMetadata(plaintext,item.envelope,this.identity.clientId,this.#config);this.#same(generation);}catch(error){if(generation===this.#generation)this.#reset();throw error;}
         records.set(item.objectId,{objectId:item.objectId,revision:item.revision,domain:context.domain,plaintext,...metadata});
         versions[item.objectId]={revision:item.revision,deleted:false};
@@ -330,7 +381,7 @@ export class VaultClient {
     if(full)for(const id of Object.keys(this.#binding.versions??{}))if(!seen.has(id))throw new Error('A previously recorded item or tombstone is missing from the API.');
     if(Object.keys(versions).length>100000)throw new Error('The account exceeds the supported revision-history limit.');
     if(records.size>10000||[...records.values()].reduce((sum,item)=>sum+item.plaintext.length,0)>64*1024*1024)throw new Error('This browser view is limited to 10,000 items and 64 MiB of opened content. Larger accounts need a paged client before use.');
-    await this.#remember(versions,generation);this.#same(generation);
+    await this.#remember(versions,generation,{complete:full});this.#same(generation);
     for(const [id,item] of this.records)if(records.get(id)!==item)item.plaintext.fill(0);
     this.records=records;this.#cursor=cursor;committed=true;
     return {items:records.size,cursor};
@@ -339,7 +390,7 @@ export class VaultClient {
   async #prepareSave(domain,plaintext,objectId){
     const generation=this.#guard();
     if(!DOMAINS.includes(domain)||!(plaintext instanceof Uint8Array)||plaintext.length>MAX_CIPHERTEXT_BYTES-16||!validId(objectId))throw new Error('Choose a supported domain and a bounded encrypted payload.');
-    assertClientWritablePayload(plaintext,objectId);
+    assertClientWritablePayload(plaintext,objectId,this.#config);
     const prior=ownVersion(this.#binding.versions??{},objectId), current=this.records.get(objectId);
     if(current?.verifiedCase)throw new Error('Firm-reviewed case work changes only through the reviewed firm workflow. Client edits cannot replace its requests or history.');
     if(this.records.size+(current?0:1)>10000||[...this.records.values()].reduce((sum,item)=>sum+item.plaintext.length,0)-(current?.plaintext.length??0)+plaintext.length>64*1024*1024)throw new Error('This browser preview is limited to 10,000 opened items and 64 MiB.');
@@ -347,7 +398,7 @@ export class VaultClient {
     if(prior&&!current)throw new Error('Sync this item before editing it.');
     if(current&&current.domain!==domain)throw new Error('An existing item keeps its encrypted domain.');
     const expectedRevision=prior?.revision??0, context=this.#context(objectId,expectedRevision+1,domain);
-    const envelope=await sealEnvelope(plaintext,context,this.#verified.recipients,'client',this.#key.privateKey);this.#same(generation);
+    const envelope=await this.#protocol.seal(plaintext,context,this.#verified.recipients,'client',this.#key.privateKey);this.#same(generation);
     return {version:1,type:'shuug-prepared-client-write',scope:this.scope,objectId,domain,expectedRevision,mutationId:crypto.randomUUID(),envelope};
   }
   #checkPrepared(value){
@@ -355,22 +406,24 @@ export class VaultClient {
     if(!value||Object.keys(value).sort().join('|')!==['version','type','scope','objectId','domain','expectedRevision','mutationId','envelope'].sort().join('|')||value.version!==1||value.type!=='shuug-prepared-client-write'||JSON.stringify(value.scope)!==JSON.stringify(this.scope)||!validId(value.objectId)||!validId(value.mutationId)||!integer(value.expectedRevision,0,1e9-1)||!DOMAINS.includes(value.domain))throw new Error('This encrypted upload belongs to another account, key or unsupported format.');
     const context=this.#context(value.objectId,value.expectedRevision+1,value.domain);validateContext(context);
     if(JSON.stringify(value.envelope?.context)!==JSON.stringify(context))throw new Error('The prepared upload has a different encrypted context.');
+    this.#protocol.assertDispatch(value.envelope,context,this.#key);
     return context;
   }
   async #openPrepared(value){
     const generation=this.#guard(),context=this.#checkPrepared(value);
-    const plaintext=await openEnvelope(value.envelope,context,this.#verified.recipients,'client',this.#key.privateKey);
+    const plaintext=await this.#protocol.open(value.envelope,context,this.#verified.recipients,'client',this.#key.privateKey);
     try{this.#same(generation);return plaintext;}catch(error){plaintext.fill(0);throw error;}
   }
   async prepareSave(domain,plaintext,objectId=crypto.randomUUID()){return this.#exclusive(()=>this.#prepareSave(domain,plaintext,objectId));}
   async previewPrepared(value){return this.#exclusive(()=>this.#openPrepared(value));}
   async #savePrepared(value){
-    const generation=this.#guard(),context=this.#checkPrepared(value),prior=ownVersion(this.#binding.versions??{},value.objectId);
+    const generation=this.#guard(),context=this.#checkPrepared(value);
+    await this.#currentAnchor(generation);const prior=ownVersion(this.#binding.versions??{},value.objectId);
     if(this.records.get(value.objectId)?.verifiedCase)throw new Error('Firm-reviewed case work changes only through the reviewed firm workflow. This pending client write was not uploaded.');
     if(prior&&(prior.deleted||prior.revision>context.revision))throw new Error('This pending upload predates a known changed or deleted item. Keep its encrypted copy for review.');
     const plaintext=await this.#openPrepared(value);
     try{
-      assertClientWritablePayload(plaintext,value.objectId);
+      assertClientWritablePayload(plaintext,value.objectId,this.#config);
       const metadata=await openedRecordMetadata(plaintext,value.envelope,this.identity.clientId,this.#config);this.#same(generation);
       const current=this.records.get(value.objectId);
       if(this.records.size+(current?0:1)>10000||[...this.records.values()].reduce((sum,item)=>sum+item.plaintext.length,0)-(current?.plaintext.length??0)+plaintext.length>64*1024*1024)throw new Error('This browser view exceeds its opened-content limit. Keep the encrypted upload for review.');
@@ -382,7 +435,7 @@ export class VaultClient {
   }
   async savePrepared(value){return this.#exclusive(()=>this.#savePrepared(value));}
   async save(domain,plaintext,objectId=crypto.randomUUID()){return this.#exclusive(async()=>this.#savePrepared(await this.#prepareSave(domain,plaintext,objectId)));}
-  #uploadBindingId(){return `portal-uploads:${this.#config.workspaceId}|${this.identity.accountId}|${this.identity.clientId}|${this.#key.keyId}`;}
+  #uploadBindingId(){return `portal-uploads:${this.clientOnly?this.#protocol.profile+'|':''}${this.#config.workspaceId}|${this.identity.accountId}|${this.identity.clientId}|${this.#key.keyId}`;}
   #pendingEntries(value){
     const entries=value?.entries??[];
     if(!Array.isArray(entries)||entries.length>20||JSON.stringify(entries).length>48*1024*1024)throw new Error('The encrypted pending-upload cache exceeds its bounds. Keep this browser profile for recovery.');
@@ -413,7 +466,7 @@ export class VaultClient {
     await this.#updateUploads(entries=>entries.filter(entry=>entry.mutationId!==mutationId));
   });}
   async remove(objectId){return this.#exclusive(async()=>{
-    const generation=this.#guard();if(isCaseObjectId(objectId))throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');const item=this.records.get(objectId);if(!item)throw new Error('Sync the item before deleting it.');
+    const generation=this.#guard();await this.#currentAnchor(generation);if(isCaseObjectId(objectId))throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');const item=this.records.get(objectId);if(!item)throw new Error('Sync the item before deleting it.');
     if(item.verifiedCase)throw new Error('Firm-reviewed case work cannot be deleted by a client. Ask the firm to use its reviewed workflow.');
     const receipt=await this.#request(`/objects/${encodeURIComponent(objectId)}`,'DELETE',{expectedRevision:item.revision});this.#same(generation);
     if(!validReceipt(receipt)||receipt.objectId!==objectId||receipt.revision!==item.revision+1||!receipt.deleted)throw new Error('The API did not confirm the deletion. Refresh before retrying.');

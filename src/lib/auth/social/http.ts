@@ -2,6 +2,8 @@ import { appBaseUrl, setting } from "../../connections/vault";
 import { secureJson } from "../../secure-tax/http";
 import { privateHeaders } from "../../rideshare-driver/http";
 import { callbackUrl, SocialSignInError, type SocialProvider } from "./providers";
+import { assertLegacyRouteAllowed } from "../../secure-tax/client-only/guard";
+import { SecureTaxError } from "../../secure-tax/manifest";
 export function socialCallbackUrl(request: Request, provider: SocialProvider) {
   const actual = new URL(request.url), expected = new URL(callbackUrl(provider));
   if (actual.pathname !== expected.pathname || actual.username || actual.password) throw new SocialSignInError();
@@ -15,6 +17,7 @@ export function socialCallbackUrl(request: Request, provider: SocialProvider) {
   return actual;
 }
 export function socialRequestSurface(request: Request): "owner" | "portal" | "native" {
+  assertLegacyRouteAllowed(request);
   const origin = request.headers.get("origin");
   if (origin === new URL(appBaseUrl()).origin) return "owner";
   const trusted = setting("SHUUG_SECURE_TAX_TRUSTED_ORIGIN");
@@ -30,7 +33,8 @@ export function socialResponse(request: Request, value: unknown, status = 200) {
   return response;
 }
 export function socialFailure(request: Request, error: unknown) {
-  return socialResponse(request, { error: error instanceof SocialSignInError ? error.message : "Sign-in could not be completed. Start again." }, error instanceof SocialSignInError ? error.status : 400);
+  const known = error instanceof SocialSignInError || error instanceof SecureTaxError;
+  return socialResponse(request, { error: known ? error.message : "Sign-in could not be completed. Start again." }, known ? error.status : 400);
 }
 export function socialOptions(request: Request) {
   try {

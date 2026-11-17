@@ -8,6 +8,7 @@ import { SecureTaxError } from "./manifest";
 import { requireSecureBrowserOrigin, secureRequestToken, secureJson, secureResponse, secureFailure } from "./http";
 import { MfaChallengeError } from "../auth/mfa/model";
 import { completeLoginFactor, loginFactorView } from "../auth/mfa/store";
+import { assertLegacyRouteAllowed, assertSessionProfile } from "./client-only/guard";
 
 export async function secureSignIn(request: Request) {
   return signIn(request, false);
@@ -21,6 +22,7 @@ export async function nativeSecureSignIn(request: Request) {
 }
 async function signIn(request: Request, native: boolean) {
   try {
+    assertLegacyRouteAllowed(request);
     if (native) requireNativeRequest(request);
     else requireSecureBrowserOrigin(request);
     if (!driverAvailable()) throw new SecureTaxError(404, "Client access is not enabled. Contact your firm.");
@@ -29,6 +31,7 @@ async function signIn(request: Request, native: boolean) {
       z.object({ email: z.email().max(160), password: z.string().min(1).max(200) }).strict(),
       z.object({ challengeToken: z.string().regex(/^[a-f0-9]{64}$/), code: z.string().min(1).max(40), privateAccount:z.boolean().optional() }).strict(),
     ]).parse(await secureJson(request, 4096));
+    assertSessionProfile(request, "accountCode" in input ? { accountCode: input.accountCode } : "challengeToken" in input ? { challengeToken: input.challengeToken } : {});
     if (native && !("accountCode" in input || "challengeToken" in input && input.privateAccount === true)) {
       throw new SecureTaxError(400, "Use a private account code and authenticator verification.");
     }

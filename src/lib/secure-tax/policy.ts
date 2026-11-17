@@ -1,6 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import { workspaceDatabase } from "../workspace/database";
 import { DriverError } from "../rideshare-driver/model";
+import { hasClientOnlyBinding } from "./client-only/guard";
 
 export type SecureTaxScope = { accountId?: string | null; clientId?: string | null };
 export const SECURE_TAX_REQUIRED_MESSAGE = "This client uses an offhost encrypted tax vault. Use the trusted client encryption path; plaintext tax uploads and host-side provider connections are disabled.";
@@ -16,8 +17,9 @@ export function secureTaxRequired(scope: SecureTaxScope, database?: DatabaseSync
   // A dedicated encrypted deployment must refuse legacy uploads even before a
   // new client completes enrollment. Missing enrollment is never permission to
   // transmit readable records to that deployment.
-  if (process.env.GIGTAX_REQUIRE_PROTECTED_CLIENTS === "true") return true;
+  if (process.env.GIGTAX_REQUIRE_PROTECTED_CLIENTS === "true" || process.env.GIGTAX_REQUIRE_CLIENT_ONLY === "true") return true;
   const read = (db: DatabaseSync) => {
+    if (hasClientOnlyBinding(db, scope)) return true;
     if (!db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='secure_tax_enrollments'").get()) return false;
     // A malformed existing policy schema must raise an error, never silently
     // opt an already-enrolled client back into legacy plaintext writes.

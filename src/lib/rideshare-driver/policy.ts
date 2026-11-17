@@ -4,6 +4,7 @@ import { customerSettings, customerSettingsFromDatabase } from "../customer-acce
 import { getBranding } from "../branding/store";
 import { visibleItems, catalogWithTools } from "../navigation/catalog";
 import { DriverError } from "./model";
+import { assertLegacyAccountAllowed } from "../secure-tax/client-only/guard";
 
 export function driverAvailable(db?: DatabaseSync) {
   const brand = getBranding(), settings = db ? customerSettingsFromDatabase(db) : customerSettings();
@@ -11,9 +12,11 @@ export function driverAvailable(db?: DatabaseSync) {
     && visibleItems(brand, catalogWithTools()).some(item => item.id === "module:rideshare-tax-records");
 }
 export function driverAccount(db: DatabaseSync, token: string | undefined): CustomerAccount & { clientId: string } {
+  if (process.env.GIGTAX_REQUIRE_CLIENT_ONLY === "true") throw new DriverError(409, "Use the client-owned private workspace. Legacy driver access is disabled.");
   if (!driverAvailable(db)) throw new DriverError(404, "Driver records are not enabled for this workspace.");
   const account = customerFromDatabase(db, token);
   if (!account) throw new DriverError(401, "Sign in to your invited client account.");
+  assertLegacyAccountAllowed(db, { accountId: account.id, clientId: account.clientId });
   const client = account.clientId ? db.prepare("SELECT body FROM records WHERE id=? AND kind='client'").get(account.clientId) as { body: string } | undefined : undefined;
   if (!client || ["inactive", "archived", "cancelled"].includes(JSON.parse(client.body).status)) throw new DriverError(403, "Your service-client link is unavailable. Contact the firm.");
   return account as CustomerAccount & { clientId: string };

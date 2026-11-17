@@ -5,6 +5,7 @@ import { DriverError } from "../rideshare-driver/model";
 import { SecureTaxError } from "./manifest";
 import { workspaceDatabase } from "../workspace/database";
 import { secureAccount } from "./account-scope";
+import { assertLegacyRouteAllowed, assertLegacyAccountAllowed, CLIENT_ONLY_PATH } from "./client-only/guard";
 
 function trustedOrigin() {
   const value = process.env.SHUUG_SECURE_TAX_TRUSTED_ORIGIN;
@@ -13,15 +14,22 @@ function trustedOrigin() {
   catch { throw new SecureTaxError(503, "The trusted encrypted-client origin is not configured correctly."); }
 }
 export function requireSecureBrowserOrigin(request: Request) {
+  assertLegacyRouteAllowed(request);
   const permitted = trustedOrigin();
   if (!permitted || request.headers.get("origin") !== permitted) throw new SecureTaxError(403, "Use the separately trusted encrypted client to sign in.");
 }
 export function secureRequestToken(request: Request, mutation = false) {
+  assertLegacyRouteAllowed(request);
   const origin = request.headers.get("origin"), permitted = trustedOrigin();
   if (origin && origin !== permitted) throw new SecureTaxError(403, "Use the separately trusted encrypted client to access this vault.");
   const bearer = request.headers.get("authorization");
   if (mutation && !bearer && (!permitted || origin !== permitted)) throw new SecureTaxError(403, "Encrypted browser changes require an explicitly configured independent trusted origin.");
-  return driverToken(request, true);
+  const token = driverToken(request, true), path = new URL(request.url).pathname;
+  if (token && !(path === CLIENT_ONLY_PATH || path.startsWith(CLIENT_ONLY_PATH + "/"))) workspaceDatabase(db => {
+    // A restored or reconfigured legacy deployment cannot reopen anchored data.
+    const account = secureAccount(db, token); assertLegacyAccountAllowed(db, { accountId: account.id, clientId: account.clientId });
+  });
+  return token;
 }
 export function authenticateSecureRequest(token: string | undefined) { workspaceDatabase(db => secureAccount(db, token)); }
 export async function secureJson(request: Request, maximum: number) {

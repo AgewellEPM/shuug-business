@@ -53,7 +53,7 @@ function refreshControls(){
   $('domain').disabled=!writable||working||!!editing;$('lock').disabled=!unlocked&&client?.records.size===0&&!pending&&!authenticatorRecovery?.dirty&&!legacyImport?.active;
   normalEditor?.setEnabled(!!writable&&!working);
   taxEditor?.setEnabled(!!writable&&!working);
-  keyRecovery?.setEnabled(ready&&!working);legacyImport?.refresh();portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working);authenticatorRecovery?.setEnabled(ready&&!working);
+  keyRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);legacyImport?.refresh();portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);authenticatorRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
 }
@@ -71,6 +71,7 @@ async function run(operation){
 function statusText(){
   $('account').textContent=client.identity?`Connected account ${client.identity.accountId}. ${client.enrolled?'Encrypted enrollment exists.':'Encrypted enrollment is not activated.'}`:'No account connected.';
   const status=client.status;
+  if(client.clientOnly){$('migration').textContent=status?`${status.renewalRequired?'Your same-key enrollment needs renewal. ':''}Your client key opens these records. Account recovery codes do not recover a lost encryption key. Keep your encrypted key backup and its separate passphrase.`:'';return;}
   $('migration').textContent=status?`${status.renewalRequired?'Signed enrollment expired. Renew encrypted access with the existing key before opening records. ':''}${status.legacyMigrationRequired?'Existing plaintext data requires migration. ':'No known current plaintext rows were reported; this is not proof of complete migration. '}${status.legacyProviderAuthorizationPresent?'Host-held provider authorizations remain and require revocation/removal. ':''}Backups, database history, logs and legacy copies still require separate review. Host-compromise protection is not verified.`:'';
 }
 function payload(item){try{return JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(item.plaintext));}catch{return null;}}
@@ -162,7 +163,7 @@ $('import-key').addEventListener('click',()=>run(async()=>{
 }));
 $('backup').addEventListener('click',()=>run(async()=>{const id=$('key-choice').value;downloadJson(`client-key-${id.slice(0,12)}.encrypted.json`,await client.encryptedBackup(id));message('Encrypted backup downloaded. Its passphrase stays separate; this file contains no plaintext private key.');}));
 $('renewal-request').addEventListener('click',()=>run(async()=>{downloadJson('public-enrollment-renewal-request.json',await client.renewalRequest($('key-choice').value));message('Public renewal request saved. Ask the separate firm signing environment to review the existing account and key.');}));
-$('install-renewal').addEventListener('click',()=>run(async()=>{if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before installing renewal.');const packet=await readJson($('renewal-file'));await client.installEnrollmentRenewal(packet,$('key-choice').value);$('renewal-file').value='';clearOpened();message('Enrollment renewed with the same encryption keys. Use the selected key to reopen records. Staff sharing needs fresh firm-approved capsules.');}));
+$('install-renewal').addEventListener('click',()=>run(async()=>{if(!canRefresh()||portal?.queue?.hasUnprepared)throw new Error('Save or clear unfinished work before installing renewal.');const packet=await readJson($('renewal-file'));await client.installEnrollmentRenewal(packet,$('key-choice').value);$('renewal-file').value='';clearOpened();message(client.clientOnly?'Encrypted access renewed with your original client key. Use the selected key to reopen your records.':'Enrollment renewed with the same encryption keys. Use the selected key to reopen records. Staff sharing needs fresh firm-approved capsules.');}));
 $('request').addEventListener('click',()=>run(async()=>{downloadJson('public-enrollment-request.json',client.publicRequest());message('Public request downloaded. Ask the firm to sign it using its separately held signing key.');}));
 $('verify-manifest').addEventListener('click',()=>run(async()=>{
   const result=await client.stageManifest(await readJson($('manifest')));$('manifest').value='';$('manifest-result').textContent=`Signature, independent public pins, account, client key and epoch ${result.epoch} verified. Staged locally only; activation remains unavailable.`;message('Signed manifest verified and staged. No enrollment or data migration was sent to the API.');
@@ -184,6 +185,13 @@ window.addEventListener('pagehide',()=>{client?.lock();clearOpened();});
 window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared||taxEditor?.dirty||enrollment?.dirty||passwordRecovery?.dirty||authenticatorRecovery?.dirty){event.preventDefault();event.returnValue='';}});
 try{
   client=await VaultClient.create(trustedConfig,location.origin);
+  if(client.clientOnly){
+    $('privacy-summary').textContent='Your records · your encryption key';
+    $('privacy-notice').textContent='Prototype. New records are encrypted for your client key alone. The platform owner has no recovery recipient. Keep your encrypted key backup and its separate passphrase: losing every usable copy of your key makes the contents unrecoverable. Existing legacy records require a separate review; this does not file a tax return.';
+    $('key-recovery-policy').textContent='Recover your original client key with your encrypted backup and its separate passphrase. The platform cannot replace that key or decrypt your records using an administrator recovery key.';
+    for(const id of ['client-key-recovery','password-recovery-setup','authenticator-recovery-setup'])if($(id))$(id).hidden=true;
+    legacyImport.element.hidden=true;
+  }
   social=mountSocialSignIn(document,$('connection'),{getClient:()=>client,run,onSignedIn:signedIn,onMessage:message,clearOpened,canRefresh:()=>canRefresh()&&!portal?.queue?.hasUnprepared,isWorking:()=>working});
   await social.configure().catch(()=>{});
   $('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
