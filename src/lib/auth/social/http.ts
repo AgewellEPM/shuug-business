@@ -1,7 +1,19 @@
 import { appBaseUrl, setting } from "../../connections/vault";
 import { secureJson } from "../../secure-tax/http";
 import { privateHeaders } from "../../rideshare-driver/http";
-import { SocialSignInError } from "./providers";
+import { callbackUrl, SocialSignInError, type SocialProvider } from "./providers";
+export function socialCallbackUrl(request: Request, provider: SocialProvider) {
+  const actual = new URL(request.url), expected = new URL(callbackUrl(provider));
+  if (actual.pathname !== expected.pathname || actual.username || actual.password) throw new SocialSignInError();
+  if (actual.origin === expected.origin) return actual;
+  // Next constructs request.url from the container's listening hostname. Behind
+  // HTTPS termination, require the exact public Host and unambiguous proxy
+  // headers instead. Never derive the registered callback from these headers.
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  if (request.headers.get("host") !== expected.host || request.headers.get("x-forwarded-proto") !== "https" ||
+      (forwardedHost !== null && forwardedHost !== expected.host)) throw new SocialSignInError();
+  return actual;
+}
 export function socialRequestSurface(request: Request): "owner" | "portal" | "native" {
   const origin = request.headers.get("origin");
   if (origin === new URL(appBaseUrl()).origin) return "owner";

@@ -3,10 +3,9 @@ import { z } from "zod";
 import { authPage } from "../forms";
 import { SESSION_COOKIE, SESSION_TTL_SECONDS } from "../config";
 import { completeLoginFactor } from "../mfa/store";
-import { appBaseUrl } from "../../connections/vault";
 import { configuredProviders, providerName, SocialSignInError } from "./providers";
 import { claimSocialResult, finishSocialCallback, cancelSocialCallback, socialResultInput, socialStartInput, startSocialSignIn, linkedSocialProviders, unlinkSocialProvider, socialConnectionInput } from "./store";
-import { socialFailure, socialJson, socialRequestSurface, socialResponse } from "./http";
+import { socialCallbackUrl, socialFailure, socialJson, socialRequestSurface, socialResponse } from "./http";
 
 function token(request: Request, surface: string) {
   const bearer = request.headers.get("authorization")?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
@@ -56,8 +55,7 @@ export async function socialOwnerFactor(request: Request) {
 }
 export async function socialCallback(request: Request, context: { params: Promise<{ provider: string }> }) {
   try {
-    const provider = providerName((await context.params).provider), url = new URL(request.url);
-    if (url.origin !== new URL(appBaseUrl()).origin) throw new SocialSignInError();
+    const provider = providerName((await context.params).provider), url = socialCallbackUrl(request, provider);
     const parameters = request.method === "GET" ? url.searchParams : new URLSearchParams(await boundedCallbackForm(request));
     if (parameters.has("error")) { cancelSocialCallback(provider,parameters.get("state")??""); throw new SocialSignInError("Sign-in was cancelled. Return to the app or previous tab and start again."); }
     await finishSocialCallback(provider, parameters.get("state") ?? "", parameters.get("code") ?? "");
