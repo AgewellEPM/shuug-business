@@ -39,12 +39,13 @@ export const ownerClientScript = String.raw`
       const verifier=encode(crypto.getRandomValues(new Uint8Array(32))),challenge=encode(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verifier))));
       const flow=await call('start',{provider:button.dataset.socialProvider,audience:'owner',purpose:button.dataset.socialPurpose,challenge});
       const url=new URL(flow.authorizationUrl);if(!['https://accounts.google.com','https://appleid.apple.com'].includes(url.origin))throw new Error('The provider address was not verified.');
-      if(popup)popup.location.replace(url.href);else {const link=node('a','Open secure provider sign-in');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';area.append(link);}
+      const link=node('a','Open secure provider sign-in');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';area.append(link,node('p','Use this link if the sign-in window stays blank or did not open. Keep this page open to finish.'));
+      if(popup)popup.location.replace(url.href);
       say('Complete the provider sign-in, then return here.');
       while(Date.now()<Date.parse(flow.expiresAt)) {
         await new Promise(resolve=>setTimeout(resolve,1500));const result=await call('result',{requestId:flow.requestId,verifier});
         if(result.pending)continue;if(popup&&!popup.closed)popup.close();
-        if(result.linked){say('Sign-in method connected. You can use it on your next visit.');area.replaceChildren();return;}
+        if(result.linked){button.dataset.socialPurpose='unlink';button.textContent='Disconnect '+(button.dataset.socialProvider==='google'?'Google':'Apple');say('Sign-in method connected. You can use it on your next visit.');area.replaceChildren();return;}
         if(result.mfaRequired){factor(result);return;}throw new Error('The provider did not confirm sign-in.');
       }
       throw new Error('Sign-in expired. Start again.');
