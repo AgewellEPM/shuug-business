@@ -10,12 +10,16 @@ import { securityHeaders } from "@/lib/security/headers";
 import { MfaChallengeError } from "@/lib/auth/mfa/model";
 import { completeLoginFactor } from "@/lib/auth/mfa/store";
 import { factorPage, recoveryPage } from "@/lib/auth/mfa/html";
+import { authPage } from "@/lib/auth/forms";
 export const runtime = "nodejs";
 const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 const secure = () => appBaseUrl().startsWith("https:");
 export async function GET() {
-  const csrf = randomBytes(32).toString("hex");
-  (await cookies()).set("owner_login_csrf", csrf, { httpOnly: true, sameSite: "strict", secure: secure(), path: "/api/auth/login", maxAge: 600 });
+  const jar = await cookies(), previous = jar.get("owner_login_csrf")?.value;
+  // Parallel tabs must not invalidate the form already open in another tab.
+  // The host-only, HttpOnly cookie still binds every POST to this browser.
+  const csrf = previous && /^[a-f0-9]{64}$/.test(previous) ? previous : randomBytes(32).toString("hex");
+  jar.set("owner_login_csrf", csrf, { httpOnly: true, sameSite: "strict", secure: secure(), path: "/api/auth/login", maxAge: 600 });
   const branding = getBranding();
   return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · ${escape(branding.businessName)}</title><style>body{font:16px system-ui;background:#f5f5f4;color:#17231c;display:grid;place-items:center;min-height:95vh}main{background:white;padding:2rem;border:1px solid #d5ddd7;border-radius:1rem;width:min(26rem,80vw)}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:.7rem;border:1px solid #b3c2b8;border-radius:.5rem;font:inherit}button{background:#2c4939;color:white}p{font-size:.9rem;color:#53635b;line-height:1.5}</style><main><h1>${escape(branding.businessName)}</h1><p>Sign in to your private workspace.</p><form method="post"><input type="hidden" name="csrf" value="${csrf}"><label>Email (employees)<input name="email" type="email" autocomplete="username" maxlength="160" placeholder="you@company.com"></label><p>Owner: leave email blank.</p><label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="200" autofocus></label><button>Sign in</button></form><p>Forgot your password? Ask the owner for a new setup link.</p><p>First installation: run <code>npm run workspace:setup</code> on the server to create the owner password.</p></main></html>`, { headers: { ...securityHeaders(secure()), "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }
@@ -29,7 +33,7 @@ export async function POST(request: Request) {
     try { while (true) { const chunk = await reader.read(); if (chunk.done) break; total += chunk.value.length; if (total > 8000) { await reader.cancel(); throw new Error("Form too large."); } chunks.push(chunk.value); } } finally { reader.releaseLock(); }
     const form = new URLSearchParams(Buffer.concat(chunks).toString()), jar = await cookies();
     const expected = Buffer.from(jar.get("owner_login_csrf")?.value ?? ""), supplied = Buffer.from(form.get("csrf") ?? "");
-    if (!expected.length || expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return new Response("Refresh the sign-in page and try again.", { status: 403 });
+    if (!expected.length || expected.length !== supplied.length || !timingSafeEqual(expected, supplied)) return authPage("Start a fresh sign-in", '<p>This sign-in form expired or belongs to an older browser session. Your password and authenticator were not changed.</p><p><a href="/api/auth/login">Open a fresh sign-in form</a></p>', 403);
     csrf = form.get("csrf")!;
     const email = form.get("email")?.trim();
     pending = form.get("challenge") || undefined;
@@ -47,7 +51,9 @@ export async function POST(request: Request) {
   } catch (e) {
     if (e instanceof MfaChallengeError) return factorPage(e.challenge.challengeToken, "staff", "/api/auth/login", `<input type="hidden" name="csrf" value="${escape(csrf)}">`);
     if (pending) {
-      try { return factorPage(pending, "staff", "/api/auth/login", `<input type="hidden" name="csrf" value="${escape(csrf)}">`, e instanceof Error ? e.message : "Verification failed.", 401); } catch { /* Expired or revoked: restart password verification. */ }
+      try { return factorPage(pending, "staff", "/api/auth/login", `<input type="hidden" name="csrf" value="${escape(csrf)}">`, e instanceof Error ? e.message : "Verification failed.", 401); } catch {
+        return authPage("Verification expired", '<p>This verification request expired or was replaced. Sign in with your password again. If setup was unfinished, use the new setup key shown on the new page.</p><p><a href="/api/auth/login">Start a fresh sign-in</a></p>', 401);
+      }
     }
     return new Response(e instanceof Error ? e.message : "Sign-in failed.", { status: 400, headers: { "Content-Type": "text/plain", "Cache-Control": "no-store" } });
   }

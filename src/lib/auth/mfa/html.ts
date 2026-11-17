@@ -9,7 +9,7 @@ export function factorPage(token: string, audience: MfaAudience, action: string,
     ${message ? `<p role="alert">${e(message)}</p>` : ""}
     ${view.secret ? `<p>In your authenticator app, add a time-based account named Shuug. Enter this setup key manually:</p><p style="overflow-wrap:anywhere"><code>${e(view.secret)}</code></p><p>Use six-digit codes and a 30-second interval. Keep the key private. Enter the code from your app to finish setup.</p>` : "<p>Enter the current code from your authenticator app, or one unused recovery code.</p>"}
     <form method="post" action="${e(action)}">${hidden}<input type="hidden" name="challenge" value="${e(token)}"><label>Verification code<input name="code" type="text" autocomplete="one-time-code" maxlength="40" required autofocus></label><button>Verify and sign in</button></form>
-    <p>This sign-in expires in five minutes. If it expires, start again with your password.</p>` , status);
+    <p>This sign-in expires in five minutes. Use the setup key on this page if setup is unfinished. An older page may show a different key.</p><p><a href="${e(action)}">Start a fresh sign-in</a> if verification expires. Refreshing this page starts sign-in again.</p>` , status);
 }
 export function recoveryPage(codes: string[], destination: string) {
   return authPage("Save your recovery codes", `<p>Your authenticator is ready. Save these codes somewhere private, separate from this device. Each code works once with your account password if you lose your authenticator.</p><pre style="overflow-wrap:anywhere;white-space:pre-wrap">${codes.map(e).join("\n")}</pre><p>They will not be shown again. Using a recovery code signs out your other sessions.</p><p><a href="${e(destination)}">I saved my codes. Continue to my account.</a></p>`);

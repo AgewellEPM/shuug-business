@@ -1,5 +1,6 @@
 import { encode64 } from '../envelope.mjs';
 import { calculateReturn } from '@shuug/tax-engine';
+import { dashboardActivity } from './journal-dashboard.mjs';
 
 export const UPLOAD_PURPOSES=Object.freeze({'bank-statement':'Bank statement',receipt:'Receipt',invoice:'Invoice','tax-document':'Tax document','business-record':'Other business information'});
 export const UPLOAD_CATEGORIES=Object.freeze({banking:'Banking',sales:'Sales',purchases:'Purchases',payroll:'Payroll',tax:'Tax',general:'General business'});
@@ -117,24 +118,28 @@ export class PortalRefresh {
 
 export function portalSnapshot(records){
   const counts={statements:0,receipts:0,invoices:0,documents:0,income:0,expenses:0,trips:0,notes:0,other:0},files=[],entries=[],currencies=new Map();
+  const opened=[];
   for(const item of records.values()){
     let value;try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(item.plaintext));}catch{counts.other++;continue;}
+    opened.push({item,value});
     if(value?.version===1&&value.type==='private-file'){
       const kind=value.purpose==='bank-statement'?'statements':value.purpose==='receipt'||item.domain==='driver-receipt'?'receipts':value.purpose==='invoice'?'invoices':'documents';counts[kind]++;
       files.push({objectId:item.objectId,revision:item.revision,name:value.filename,purpose:UPLOAD_PURPOSES[value.purpose]??'Document',category:UPLOAD_CATEGORIES[value.category]??'General business',byteLength:value.byteLength,savedAt:value.savedAt,notes:value.notes??''});
-    }else if(value?.type==='driver-record'&&['income','expense','trip'].includes(value.record?.kind)){
-      if(value.record.deleted===true)continue;
-      const kind=value.record.kind,body=value.record.body??{};counts[kind==='expense'?'expenses':kind==='trip'?'trips':'income']++;
-      entries.push({objectId:item.objectId,kind,date:body.date??body.localDate??'',description:body.description??body.merchant??body.purpose??'',amountCents:body.amountCents,currency:typeof body.currency==='string'?body.currency.slice(0,12):null});
-      if(kind!=='trip'&&Number.isSafeInteger(body.amountCents)&&typeof body.currency==='string'&&/^[A-Z]{3}$/.test(body.currency)){
-        const totals=currencies.get(body.currency)??{currency:body.currency,incomeCents:0,expenseCents:0,known:true},key=kind==='income'?'incomeCents':'expenseCents';
-        if(totals.known){const next=totals[key]+body.amountCents;if(Number.isSafeInteger(next))totals[key]=next;else{totals.known=false;totals.incomeCents=null;totals.expenseCents=null;}}
-        currencies.set(body.currency,totals);
-      }
-    }else if(value?.type==='business-note'){counts.notes++;entries.push({objectId:item.objectId,kind:'Business note',date:value.date??'',description:value.title??''});}
+    }else if(value?.type==='driver-record'||value?.type==='driver-journal'&&item.journalBinding){ /* Project authenticated records below. */ }
+    else if(value?.type==='business-note'){counts.notes++;entries.push({objectId:item.objectId,kind:'Business note',date:value.date??'',description:value.title??''});}
     else counts.other++;
   }
-  return {counts,files,entries,totals:[...currencies.values()]};
+  const activity=dashboardActivity(opened);
+  for(const {objectId,record} of activity.rows) {
+    const kind=record.kind,body=record.body;counts[kind==='expense'?'expenses':kind==='trip'?'trips':'income']++;
+    entries.push({objectId,kind,date:body.date??body.localDate??'',description:body.description??body.merchant??body.purpose??'',amountCents:body.amountCents,currency:typeof body.currency==='string'?body.currency.slice(0,12):null});
+    if(kind!=='trip'&&Number.isSafeInteger(body.amountCents)&&typeof body.currency==='string'&&/^[A-Z]{3}$/.test(body.currency)) {
+      const totals=currencies.get(body.currency)??{currency:body.currency,incomeCents:0,expenseCents:0,known:true},key=kind==='income'?'incomeCents':'expenseCents';
+      if(totals.known){const next=totals[key]+body.amountCents;if(Number.isSafeInteger(next))totals[key]=next;else{totals.known=false;totals.incomeCents=null;totals.expenseCents=null;}}
+      currencies.set(body.currency,totals);
+    }
+  }
+  return {counts,files,entries,totals:[...currencies.values()],conflicts:activity.conflicts};
 }
 export function formatPortalMoney(cents){
   if(!Number.isSafeInteger(cents))return 'Amount not recorded';

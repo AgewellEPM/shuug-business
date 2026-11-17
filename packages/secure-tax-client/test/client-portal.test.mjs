@@ -149,6 +149,23 @@ test('dashboard derives only opened facts and safely marks overflowed totals unk
   put('huge',{version:1,type:'driver-record',record:{kind:'income',body:{amountCents:Number.MAX_SAFE_INTEGER,currency:'USD'}}});const overflow=portalSnapshot(records).totals[0];assert.equal(overflow.known,false);assert.equal(overflow.incomeCents,null);
   const dom=new JSDOM('<!doctype html><body></body>');dom.window.document.body.append(renderPortalDashboard(dom.window.document,records));assert.equal(dom.window.document.querySelectorAll('img,script').length,0);assert.match(dom.window.document.body.textContent,/totals unavailable/);assert(!dom.window.document.body.textContent.includes('9999.99'));dom.window.close();
 });
+
+test('mobile journals populate the portal after authenticated reopening, deduplicate copies and expose conflicting records',async()=>{
+  const f=await fixture(),first=crypto.randomUUID(),second=crypto.randomUUID(),recordId=crypto.randomUUID();
+  const record={id:recordId,revision:0,deleted:false,kind:'income',body:{description:'Synthetic mobile income',amountCents:25000,currency:'USD',date:'2026-11-16'}};
+  const journal=(objectId,entry=record)=>({version:1,type:'driver-journal',binding:{workspaceId:f.config.workspaceId,...f.vault.identity,objectId},capturedAt:Date.now(),journal:{version:1,entries:[{record:entry}],receipts:[]}});
+  await f.vault.save('driver-state',encodeJson(journal(first)),first);
+  await f.vault.save('driver-state',encodeJson(journal(second)),second);
+  const browser=await f.make();await browser.sync();
+  let dashboard=portalSnapshot(browser.records);assert.equal(dashboard.counts.income,1);assert.equal(dashboard.totals[0].incomeCents,25000);assert.equal(dashboard.conflicts,0);
+  assert.ok(browser.records.get(first).journalBinding);assert.ok(f.calls.filter(call=>call.options.method==='PUT').every(call=>!call.options.body.includes('Synthetic mobile income')));
+  await f.vault.save('driver-state',encodeJson(journal(second,{...record,body:{...record.body,amountCents:30000}})),second);
+  await browser.sync();dashboard=portalSnapshot(browser.records);assert.equal(dashboard.conflicts,1);assert.equal(dashboard.counts.income,0);assert.equal(dashboard.totals.length,0);
+  const wrong=crypto.randomUUID(),payload=journal(wrong);payload.binding.clientId='different-client';
+  const writes=f.calls.filter(call=>call.options.method==='PUT').length;
+  await assert.rejects(()=>f.vault.save('driver-state',encodeJson(payload),wrong),/authenticated account binding/);
+  assert.equal(f.calls.filter(call=>call.options.method==='PUT').length,writes);
+});
 test('portal DOM supplies routine multi-file upload and clears file/note/dashboard/queue views on lock',async()=>{
   const f=await fixture(),dom=new JSDOM('<!doctype html><body><section id="existing"></section></body>',{url:f.config.uiOrigin}),document=dom.window.document;let working=false,editing=false,portal,tasks=[];
   Object.defineProperty(document,'hidden',{configurable:true,value:false});

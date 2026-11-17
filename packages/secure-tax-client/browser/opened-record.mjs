@@ -15,6 +15,11 @@ export function assertClientWritablePayload(plaintext,objectId){
 export async function openedRecordMetadata(plaintext,envelope,clientId,pins){
   const envelopeDigest=await secureEnvelopeDigest(envelope);let value;
   try{value=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(plaintext));}catch{if(isCaseObjectId(envelope.context.objectId))throw new Error('The reserved case record does not contain a verifiable firm review.');return {envelopeDigest};}
+  if(value?.type==='driver-journal') {
+    const expected={workspaceId:envelope.context.workspaceId,accountId:envelope.context.accountId,clientId,objectId:envelope.context.objectId};
+    if(value.version!==1||envelope.context.domain!=='driver-state'||!value.binding||Object.keys(expected).some(key=>value.binding[key]!==expected[key])||!Number.isFinite(value.capturedAt)||value.capturedAt<0||value.journal?.version!==1||!Array.isArray(value.journal.entries))throw new Error('The decrypted device journal does not match its authenticated account binding.');
+    return {envelopeDigest,journalBinding:expected};
+  }
   if(isLegacyBooks(value)&&!isCaseObjectId(envelope.context.objectId))return {envelopeDigest,verifiedLegacyBooks:await verifyLegacyBooks(value,{...envelope.context,clientId},pins)};
   if(!isCaseObjectId(envelope.context.objectId)&&value?.type!=='tax-case'&&!isCasePayload(value))return {envelopeDigest};
   const verifiedCase=await verifyCasePayload(value,{...envelope.context,clientId},pins);
