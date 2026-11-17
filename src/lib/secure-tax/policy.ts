@@ -13,6 +13,10 @@ export class SecureTaxRequiredError extends DriverError {
  * Expired/rotated public manifests do not disable this boundary. */
 export function secureTaxRequired(scope: SecureTaxScope, database?: DatabaseSync): boolean {
   if (!scope.accountId && !scope.clientId) return false;
+  // A dedicated encrypted deployment must refuse legacy uploads even before a
+  // new client completes enrollment. Missing enrollment is never permission to
+  // transmit readable records to that deployment.
+  if (process.env.GIGTAX_REQUIRE_PROTECTED_CLIENTS === "true") return true;
   const read = (db: DatabaseSync) => {
     if (!db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name='secure_tax_enrollments'").get()) return false;
     // A malformed existing policy schema must raise an error, never silently

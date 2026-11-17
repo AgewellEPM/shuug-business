@@ -82,6 +82,38 @@ beforeEach(async () => {
 });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); rmSync(directory, { recursive: true, force: true }); });
 
+it("requires encrypted records for every client in a protected deployment before enrollment", async () => {
+  vi.stubEnv("GIGTAX_REQUIRE_PROTECTED_CLIENTS", "true");
+  expect(secureTaxRequired({ accountId: alpha.id })).toBe(true);
+  expect(secureTaxRequired({ clientId: beta.clientId })).toBe(true);
+  expect(() => saveDriverRecord(alpha.token, income())).toThrow(SecureTaxRequiredError);
+  expect(() => saveDriverRecord(beta.token, income())).toThrow(SecureTaxRequiredError);
+  const receipt = randomUUID();
+  expect(() => saveDriverReceipt(alpha.token, receipt, png)).toThrow(SecureTaxRequiredError);
+  expect(existsSync(path.join(directory, "driver-receipts", alpha.id, receipt))).toBe(false);
+  vi.mocked(fetch).mockClear();
+  await expect(createBankLink(alpha.token, {})).rejects.toThrow(SecureTaxRequiredError);
+  expect(() => authorizeUber(alpha.token)).toThrow(SecureTaxRequiredError);
+  expect(fetch).not.toHaveBeenCalled();
+  workspaceDatabase(db => {
+    expect(db.prepare("SELECT 1 FROM sqlite_schema WHERE name='secure_tax_enrollments'").get()).toBeUndefined();
+  });
+});
+
+it("rejects unencrypted HTTP bodies before consuming them when enrollment has not started", async () => {
+  vi.stubEnv("GIGTAX_REQUIRE_PROTECTED_CLIENTS", "true");
+  const recordRequest = new Request(base + "/api/website/customer/driver/records", { method: "POST", headers: headers(), body: "not JSON" });
+  expect((await recordPost(recordRequest)).status).toBe(409);
+  expect(recordRequest.bodyUsed).toBe(false);
+  const id = randomUUID();
+  const receiptRequest = new Request(base + "/api/website/customer/driver/receipts/" + id, { method: "PUT", headers: headers(), body: png });
+  expect((await receiptPut(receiptRequest, { params: Promise.resolve({ id }) })).status).toBe(409);
+  expect(receiptRequest.bodyUsed).toBe(false);
+  const profileRequest = new Request(base + "/api/website/customer/driver/profile", { method: "PATCH", headers: headers(), body: "not JSON" });
+  expect((await profilePatch(profileRequest)).status).toBe(409);
+  expect(profileRequest.bodyUsed).toBe(false);
+});
+
 it("never enrolls implicitly and reads an active account or shared-client policy in the caller's transaction", () => {
   expect(secureTaxRequired({ accountId: alpha.id, clientId: alpha.clientId })).toBe(false);
   workspaceDatabase(db => expect(db.prepare("SELECT 1 FROM sqlite_schema WHERE name='secure_tax_enrollments'").get()).toBeUndefined());

@@ -12,6 +12,8 @@ import { saveCustomerSettings } from "../src/lib/customer-access/service";
 const directory = process.env.DEALDESK_DATA_DIR;
 assert(directory && path.isAbsolute(directory) && directory !== "/", "Dedicated persistent data directory required.");
 assert(process.env.AUTH_ENABLED === "true" && process.env.DEMO_DATA === "false", "Authentication must be enabled; demo seeding is forbidden.");
+assert(process.env.GIGTAX_REQUIRE_PROTECTED_CLIENTS === "true", "Cloud client records require the protected transport policy before enrollment.");
+assert(process.env.SHUUG_REQUIRE_MFA === "true", "Cloud accounts require multi-factor authentication.");
 const origin = new URL(process.env.APP_BASE_URL || "");
 assert(origin.protocol === "https:" && origin.hostname.endsWith(".up.railway.app")
   && !origin.username && !origin.password && origin.pathname === "/" && !origin.search && !origin.hash,
