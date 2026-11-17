@@ -45,7 +45,7 @@ export class VaultClient {
   static async create(config,origin,options={}) {
     return new VaultClient(await validateTrustedConfig(config,origin),options);
   }
-  constructor(config,{storage=new BrowserKeyStore(),fetcher=globalThis.fetch}={}) { this.#config=config;this.#protocol=privacyProtocol(config);this.#storage=storage;this.#fetch=fetcher; }
+  constructor(config,{storage=new BrowserKeyStore(),fetcher=globalThis.fetch.bind(globalThis)}={}) { this.#config=config;this.#protocol=privacyProtocol(config);this.#storage=storage;this.#fetch=fetcher; }
   get config(){return this.#config;}
   get clientOnly(){return this.#protocol.clientOnly;}
   get unlocked(){return !!this.#key;}

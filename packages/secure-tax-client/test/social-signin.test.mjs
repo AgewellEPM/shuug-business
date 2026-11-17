@@ -24,6 +24,16 @@ async function fixture(changeUrl=url=>url){
   return Response.json(value);
  }});return {client,calls};
 }
+test('the default browser request keeps the Window receiver Safari requires',async t=>{
+ const {client}=await fixture();
+ t.mock.method(globalThis,'fetch',function(url){
+  assert.equal(this,globalThis);
+  assert.equal(url,client.config.apiOrigin+'/api/website/customer/secure/social/config');
+  return Promise.resolve(Response.json({apiVersion:1,providers:{google:true,apple:true}}));
+ });
+ const browserClient=await VaultClient.create(client.config,client.config.uiOrigin,{storage:{}});
+ assert.deepEqual(await browserClient.socialProviders(),{google:true,apple:true});
+});
 test('social identity proof is bound to its initiating client and still requires private-account MFA',async()=>{
  const {client,calls}=await fixture(),flow=await client.beginSocialSignIn('google');
  assert.equal(client.identity,null);assert.equal((await client.finishSocialSignIn(flow)).mfaRequired,true);assert.equal(client.identity,null);
