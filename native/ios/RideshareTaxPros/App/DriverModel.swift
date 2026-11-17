@@ -5,6 +5,7 @@ import Foundation
 import Network
 
 @MainActor final class DriverModel: ObservableObject {
+  let privateTax = PrivateTaxController()
   @Published private(set) var journal = Journal()
   @Published private(set) var connection: ConnectionProfile?
   @Published var message: String?
@@ -53,7 +54,10 @@ import Network
   }
   init() {
     do {
-      if rehearsalID == nil { connection = try SessionKeychain.read() }
+      if rehearsalID == nil && !SecureTaxTransportPolicy.clientOnlyBuild { connection = try SessionKeychain.read() }
+      // Preserve the older session and account files, but never reactivate its
+      // plaintext transport for the production client-owned workspace.
+      if connection?.origin.absoluteString == PrivateTaxPins.productionOrigin { connection = nil }
       namespace = connection.map(Self.scope) ?? "guest"
       disk = try JournalDiskStore(directory: root.appendingPathComponent(namespace))
       journal = try disk.load()
@@ -62,12 +66,35 @@ import Network
       message =
         "Your saved journal could not be opened. Keep this installation and its data; do not reinstall. \(error.localizedDescription)"
     }
+    if rehearsalID == nil { privateTax.restore(model: self) }
     monitor.pathUpdateHandler = { [weak self] path in
       if path.status == .satisfied { Task { @MainActor in await self?.syncAll() } }
     }
     monitor.start(queue: DispatchQueue(label: "com.ridesharetaxpros.driver.network"))
   }
   deinit { monitor.cancel() }
+  /// Private accounts have a profile-bound journal namespace. Source guest and
+  /// legacy account directories are never moved, rewritten or treated as queues.
+  func openPrivateJournal(scope: PrivateTaxScope, includeOffline: Bool) throws {
+    guard !syncing, !updatingProfile, active == nil, storageHealthy, connection == nil else { throw PrivateTaxWire.fail("Finish the drive and sign out of any older account before changing private accounts.") }
+    let target = try "private-client-only-v1-" + scope.storageAccount
+    if namespace == target { return }
+    let nextDisk = try JournalDiskStore(directory: root.appendingPathComponent(target))
+    var next = try nextDisk.load()
+    if guest && includeOffline {
+      let plan = try GuestTransferPlan.prepare(source: journal, destination: next, includeRecords: true, includeCoach: false, includeReputation: false)
+      try plan.copyFiles(source: disk, destination: nextDisk); next = plan.journal
+    }
+    try nextDisk.save(next)
+    disk = nextDisk; journal = next; namespace = target; offerRouteEvidence = [:]
+    syncStatus = "Client-owned private sync"; syncDetail = nil; profileError = nil
+  }
+  func closePrivateJournal() throws {
+    guard active == nil, !syncing else { throw PrivateTaxWire.fail("Finish the current drive and upload before signing out.") }
+    let guestDisk = try JournalDiskStore(directory: root.appendingPathComponent("guest")), guestJournal = try guestDisk.load()
+    disk = guestDisk; journal = guestJournal; namespace = "guest"; offerRouteEvidence = [:]
+    syncStatus = "Saved on this iPhone"; syncDetail = nil
+  }
   private static func scope(_ profile: ConnectionProfile) -> String {
     SHA256.hash(
       data: Data(
@@ -82,6 +109,7 @@ import Network
     do {
       try disk.save(next)
       journal = next
+      privateTax.schedule(model: self)
       return true
     } catch {
       message = "Your phone could not save this change. \(error.localizedDescription)"
@@ -137,6 +165,7 @@ import Network
       throw WorkspaceError.message(
         "Finish your current drive before changing the workspace connection.")
     }
+    guard !SecureTaxTransportPolicy.clientOnlyBuild, !privateTax.hasSession, origin.absoluteString != PrivateTaxPins.productionOrigin else { throw PrivateTaxWire.fail("Use Client-owned private sync and your private account code. Legacy profile sign-in is disabled for this workspace.") }
     let originalScope = namespace
     if let expectedScope, expectedScope != originalScope { throw WorkspaceError.message("Your account changed. Start sign-in again.") }
     let client = WorkspaceClient(origin: origin), reply: LoginReply, recoveryCodes: [String]
@@ -210,6 +239,7 @@ import Network
     } catch { message = error.localizedDescription }
   }
   func sync() async {
+    if privateTax.hasSession { await privateTax.sync(model: self); return }
     guard !syncing, !updatingProfile, storageHealthy, let connection else { return }
     let scope = namespace
     let client = WorkspaceClient(origin: connection.origin, token: connection.session.token)

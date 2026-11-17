@@ -32,8 +32,12 @@ struct ConnectionView: View {
     Form {
       Section {
         BrandHeader()
-        Text("Connect your client account to keep this app and your tax portal together in the same private workspace for your tax team’s review.")
+        Text("Connect with your private account code and original client-held key backup. Journal and receipt contents are encrypted for your client key before upload.")
       }.listRowBackground(Brand.surface)
+      Section {
+        NavigationLink { PrivateTaxConnectionView(controller: model.privateTax) } label: { Label("Client-owned private sync", systemImage: "lock.icloud") }
+        Text("Use your private account code and client-held encryption-key backup for the protected cloud workspace.").font(.footnote)
+      }
       if !recoveryCodes.isEmpty {
         Section("Save your recovery codes") {
           Text("Keep these codes private, separate from this device. Each works once with your password if you lose your authenticator. They will not be shown again.")
@@ -41,7 +45,12 @@ struct ConnectionView: View {
           Button("I saved my codes") { recoveryCodes = [] }
         }
       }
-      if let connection = model.connection, !signingIn {
+      if model.privateTax.hasSession {
+        Section("Client-owned private account connected") {
+          Text(model.privateTax.status).font(.footnote)
+          NavigationLink("Manage private sign-in & encrypted sync") { PrivateTaxConnectionView(controller: model.privateTax) }
+        }
+      } else if !SecureTaxTransportPolicy.clientOnlyBuild, let connection = model.connection, !signingIn {
         Section("Your client profile") {
           Text(connection.session.account.name).font(.headline)
           Text(connection.session.account.email).privacySensitive()
@@ -113,7 +122,7 @@ struct ConnectionView: View {
               .font(.footnote).foregroundStyle(.secondary)
           }
         }
-      } else {
+      } else if !SecureTaxTransportPolicy.clientOnlyBuild {
         connectionSteps
       }
       if let notice { Section { Text(notice).font(.footnote) } }
@@ -124,7 +133,7 @@ struct ConnectionView: View {
       Section { NavigationLink("Driver Rewards · Referrals & points") { ReferralView() } }
       Section("On your iPhone") {
         Text("Records save locally before syncing. Signing out keeps each account’s journal separate; reconnect to the same account to see its saved records.")
-        Text("GPS route points are not shared with your firm. Trip details, recorded mileage, expenses, income and the receipts you attach are shared when you connect and sync.")
+        Text("Client-owned private sync uploads encrypted Journal snapshots and available receipt files. Keep your backup and passphrase; losing every usable client key makes the encrypted contents unrecoverable.")
         Text("Bank imports and receipt suggestions need your review. There is no automatic tax filing. Direct bank linking requires your firm’s configured provider.")
       }.font(.footnote)
       Section {
@@ -138,8 +147,9 @@ struct ConnectionView: View {
       }
     }.driverScreen().navigationTitle("Your account").scrollDismissesKeyboard(.interactively)
       .task {
+        if SecureTaxTransportPolicy.clientOnlyBuild { return }
         if model.connection != nil { await model.syncAll(); profileName = model.connection?.session.account.name ?? "" }
-        else if !checkedDiscovery { await findWorkspace() }
+        else if !model.privateTax.hasSession && !checkedDiscovery { await findWorkspace() }
       }
       .onChange(of: model.connection?.session.account.name) { _, name in
         if !editingProfile { profileName = name ?? "" }

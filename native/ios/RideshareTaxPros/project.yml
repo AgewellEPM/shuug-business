@@ -38,6 +38,9 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
+        CFBundleURLTypes:
+          - CFBundleURLName: com.ridesharetaxpros.driver.signin
+            CFBundleURLSchemes: [gigtaxpros]
         UIUserInterfaceStyle: Dark
         UIFileSharingEnabled: true
         LSSupportsOpeningDocumentsInPlace: true
