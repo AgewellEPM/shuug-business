@@ -3,6 +3,7 @@ import { readFile, mkdir, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { prepareBrowser } from '../packages/secure-tax-client/prepare-browser.mjs';
+import { verifyPortalModules } from './verify-gigtax-portal-modules.mjs';
 
 const args = process.argv.slice(2), options = {};
 for (let i = 0; i < args.length; i += 2) {
@@ -45,8 +46,9 @@ async function walk(directory, prefix = '') {
   }
 }
 await walk(assets);
+const moduleGraph = await verifyPortalModules(assets, inventory.map(item => item.path));
 await writeFile(path.join(output, 'asset-inventory.json'), JSON.stringify({
-  apiOrigin: config.apiOrigin, uiOrigin: config.uiOrigin,
+  apiOrigin: config.apiOrigin, uiOrigin: config.uiOrigin, moduleGraph,
   files: inventory.sort((a, b) => a.path.localeCompare(b.path)),
 }, null, 2) + '\n');
-console.log(JSON.stringify({ output, files: inventory.length, privateKeysIncluded: false }));
+console.log(JSON.stringify({ output, files: inventory.length, moduleGraph, privateKeysIncluded: false }));

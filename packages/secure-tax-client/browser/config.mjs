@@ -2,6 +2,7 @@ import { publicKeyId } from '../envelope.mjs';
 
 const identifier = value => typeof value === 'string' && value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0] === value;
 export async function validateTrustedConfig(value, currentOrigin) {
+  if(!globalThis.crypto?.subtle||!globalThis.crypto?.getRandomValues)throw new Error('Use a current HTTPS browser with WebCrypto before opening this private workspace.');
   const keys = ['version','uiOrigin','apiOrigin','workspaceId','signerPublicKey','firmRecoveryPublicKey'];
   if (!value || Object.keys(value).sort().join('|') !== keys.sort().join('|') || value.version !== 1) throw new Error('This client has no independently supplied trust configuration. Connections and key setup are disabled.');
   const ui = new URL(value.uiOrigin), api = new URL(value.apiOrigin);
