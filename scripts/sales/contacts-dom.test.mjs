@@ -21,6 +21,7 @@ test('the shipped UI saves owners and staff, searches the Rolodex, sets a primar
       calls.push({ action: JSON.parse(options.body).action, code });
       return { ok: code < 400, status: code, json: async () => data };
     };
+    if (!cookie) w.history.replaceState(null, '', '#owner-code=' + encodeURIComponent(f.code));
     for (const file of ['sales-contacts.js', 'sales-workflows.js', 'sales.js']) w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
     return { w, d: w.document, close: () => w.close() };
   }
@@ -28,8 +29,6 @@ test('the shipped UI saves owners and staff, searches the Rolodex, sets a primar
   const submit = (w, form) => form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   let b = browser();
   try {
-    await wait(() => b.d.querySelector('#sales-login-form'));
-    const login = b.d.querySelector('#sales-login-form'); login.elements.code.value = f.code; submit(b.w, login);
     await wait(() => !b.d.querySelector('#sales-workspace').hidden);
     b.d.querySelector('[data-tab="contacts"]').click();
     assert.equal(b.d.querySelector('[data-tab-panel="contacts"]').hidden, false);

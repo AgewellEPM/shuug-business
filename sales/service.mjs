@@ -1,4 +1,5 @@
 import { HttpError, STATES, STAGES, digest, secret, text, email, state, https, seal, unseal, visible, metadata, officeInput, officeIdentity, independenceVerified, termsValid, outreach } from './model.mjs';
+import { requestWorkspaceSession } from './workspace-session.mjs';
 import { agreement } from './terms.mjs';
 import { payments } from './payments.mjs';
 import { listingInput, supportInput } from './directory.mjs';
@@ -18,13 +19,27 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
   const ownerHash = env.GIGTAX_SALES_OWNER_HASH;
   const owner = { id: 'owner', name: 'Workspace owner', role: 'owner', states: [] };
+  const workspaceSession = tools.workspaceSession || requestWorkspaceSession;
   const prospects = prospectTools(env, db, tools);
   const reconcile = tools.billingReconciler || reconcileEnrollment;
   const publicUser = u => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, states: u.states,territory:u.territory || null });
   const rosterUser = r => ({ id: String(r.id), name: r.contact_name, email: r.contact_email, role: 'agent', states: metadata(r).states || [],...agentTerritory(r) });
+  async function workspaceIdentity({ role, targetId }) {
+    if (role === 'owner') return owner;
+    if (role === 'staff') {
+      const row = await db.get('agents', targetId);
+      if (row?.status === 'active') return rosterUser(row);
+    }
+    if (role === 'location') {
+      const office = await db.get('offices', targetId);
+      if (office) return { id: String(office.id), name: office.town, role: 'location', office };
+    }
+    throw new HttpError(403, 'Your assigned workspace is unavailable. Contact the owner.');
+  }
   async function identity(token) {
     const session = unseal(token || '', key);
     if (!session) throw new HttpError(401, 'Sign in with your sales access code.');
+    if (session.workspaceSession) return workspaceIdentity(await workspaceSession('read', session.workspaceSession));
     if (session.ownerHash && session.ownerHash === ownerHash) return owner;
     const row = await db.get('agents', session.id);
     if (!row || row.status !== 'active' || metadata(row).codeHash !== session.codeHash) throw new HttpError(401, 'This access code has expired or was revoked.');
@@ -57,7 +72,27 @@ export function service(env, db, payment = payments(env), tools = {}) {
     }
     return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
   }
+  async function enterWorkspace(ticket) {
+    const proof = await workspaceSession('redeem', ticket);
+    const user = await workspaceIdentity(proof);
+    return { destination: user.role === 'location' ? '/location' : '/sales',
+      token: seal({ workspaceSession: proof.session, exp: proof.expires }, key) };
+  }
+  async function logout(token) {
+    const session = unseal(token || '', key);
+    if (session?.workspaceSession) await workspaceSession('revoke', session.workspaceSession);
+  }
   async function dispatch(user, action, b = {}) {
+    if (user.role === 'location') {
+      if (action !== 'my-location') throw new HttpError(403, 'Open your assigned tax location workspace.');
+      const office = user.office;
+      const enrollments = (await db.list('enrollments')).filter(row => String(metadata(row).leadId) === user.id);
+      const latest = enrollments.sort((a, b) => Number(b.id) - Number(a.id))[0];
+      const saved = latest && metadata(latest);
+      return { location: { name: office.town, city: office.locality, state: office.state, address: metadata(office).address || '',
+        membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
+    }
+    if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
     if(['territory-localities','set-agent-territory'].includes(action))return territories(user,action,b);
     if (['search-local', 'map-geocode', 'lookup-business', 'research-local-contacts', 'state-coverage'].includes(action)) return local(user, action, b);
     if (action === 'bootstrap') {
@@ -305,5 +340,5 @@ export function service(env, db, payment = payments(env), tools = {}) {
     await activateOffice(info.leadId);
     return receipt(latest,saved);
   }
-  return { identity, login, dispatch, signup, fulfill };
+  return { identity, login, enterWorkspace, logout, dispatch, signup, fulfill };
 }

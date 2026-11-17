@@ -66,8 +66,10 @@ if (cloudflare) {
   writeFileSync(path.join(staticPath, '_headers'), `/*\n  Content-Security-Policy: ${csp}\n  X-Content-Type-Options: nosniff\n  X-Frame-Options: DENY\n  Referrer-Policy: strict-origin-when-cross-origin\n  Permissions-Policy: camera=(), microphone=(), geolocation=()\n/site-config.json\n  Cache-Control: no-store\n/.well-known/apple-app-site-association\n  Content-Type: application/json\n  Cache-Control: public, max-age=300\n/bank-return\n  Referrer-Policy: no-referrer\n`);
 } else writeFileSync(path.join(destination, 'config.json'), JSON.stringify({ version: 3, routes: [
   ...redirects.vercel,
+  ...(origin === 'https://gigtax.pro' ? [{ src: '^/client-portal(?:\\.html)?/?$', status: 307, headers: { Location: 'https://portal.gigtax.pro/' } }] : []),
   { src: '/.*', headers: { 'Content-Security-Policy': csp, 'X-Content-Type-Options': 'nosniff', 'X-Frame-Options': 'DENY', 'Referrer-Policy': 'strict-origin-when-cross-origin', 'Permissions-Policy': 'camera=(), microphone=(), geolocation=()' }, continue: true },
-  { src: '/sales(?:\\.html)?', headers: { 'Content-Security-Policy': csp.replace("img-src 'self' data:", "img-src 'self' data: https://tile.openstreetmap.org") }, continue: true },
+  { src: '/sales(?:\\.html)?', headers: { 'Cache-Control': 'no-store', 'Content-Security-Policy': csp.replace("img-src 'self' data:", "img-src 'self' data: https://tile.openstreetmap.org") }, continue: true },
+  { src: '/location(?:\\.html)?', headers: { 'Cache-Control': 'no-store' }, continue: true },
   { src: '/site-config.json', headers: { 'Cache-Control': 'no-store' }, continue: true },
   { src: '/assets/(.*)', headers: { 'Cache-Control': 'public, max-age=86400' }, continue: true },
   { src: '/\\.well-known/apple-app-site-association', headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=300' }, continue: true },

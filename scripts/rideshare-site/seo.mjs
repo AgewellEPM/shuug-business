@@ -21,7 +21,7 @@ const routes = {
   faq: ['Gig Economy Tax Questions & Answers | Gig Tax Pros', 'Find answers about gig-worker tax records, mileage, quarterly reviews, platform forms, free tools, professional services, and client-workspace access.', 'Frequently Asked Questions'],
   contact: ['Contact & Availability | Gig Tax Pros', 'Check Gig Tax Pros contact and client-access availability. Prepare service questions while verified phone, email, and onboarding details are finalized.', 'Contact & Availability'],
   tour: ['Gig Tax Pros App Tour | Features, Chapters & Transcript', 'Watch a narrated tour of the Gig Tax Pros iPhone app with captions, chapters, and a full transcript covering earnings, mileage, expenses, and more.', 'App Tour'],
-  'client-portal': ['My Portal | Gig Tax Pros', 'Check availability for the private Gig Tax Pros client workspace and follow verified access instructions from your firm.', 'My Portal'],
+  'client-portal': ['My Portal | Gig Tax Pros', 'Sign in to your assigned Gig Tax Pros workspace.', 'My Portal'],
   sales: ['Private Sales Workspace | Gig Tax Pros', 'Private Gig Tax Pros sales workspace for independent office recruitment.', 'Sales Workspace'],
   'office-signup': ['Office Enrollment | Gig Tax Pros', 'Review your private Gig Tax Pros office invitation and enrollment terms.', 'Office Enrollment'],
   privacy: ['Privacy Notice | Gig Tax Pros', 'Read how the Gig Tax Pros public website handles information, hosting, contact links, and client-access availability.', 'Privacy Notice'],
@@ -30,7 +30,8 @@ const routes = {
   'bank-return': ['Return to the App | Gig Tax Pros', 'Return to the Gig Tax Pros app after completing an external connection step.', 'Return to the App'],
   '404': ['Page Not Found | Gig Tax Pros', 'The requested Gig Tax Pros page could not be found. Use the website navigation to find your next step.', 'Page Not Found'],
 };
-const excluded = new Set(['client-portal', 'sales', 'office-signup', '404', 'bank-return']);
+const privatePages = new Set(['sales', 'location', 'office-signup', 'bank-return']);
+const excluded = new Set(['client-portal', '404', ...privatePages]);
 const escape = value => String(value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character]);
 const decode = value => String(value || '').replace(/&(?:amp|quot|apos|lt|gt|#39);/g, entity => ({ '&amp;': '&', '&quot;': '"', '&apos;': "'", '&#39;': "'", '&lt;': '<', '&gt;': '>' })[entity]);
 const safeJson = value => JSON.stringify(value).replace(/[<>&\u2028\u2029]/g, character => ({ '<': '\\u003c', '>': '\\u003e', '&': '\\u0026', '\u2028': '\\u2028', '\u2029': '\\u2029' })[character]);
@@ -100,7 +101,7 @@ export function optimizeSeo(html, { slug = '', origin }) {
       } catch { /* Invalid existing image metadata falls back to the real tour poster. */ }
     }
     const image = existingImage || `${base}/tour/poster.jpg`;
-    const robots = key === 'sales' || key === 'office-signup' || key === 'bank-return' ? 'noindex, nofollow' : excluded.has(key) ? 'noindex, follow' : 'index, follow, max-image-preview:large';
+    const robots = privatePages.has(key) ? 'noindex, nofollow' : excluded.has(key) ? 'noindex, follow' : 'index, follow, max-image-preview:large';
     const cleaned = head
       .replace(/<title\b[^>]*>[\s\S]*?<\/title\s*>/gi, '')
       .replace(metaTags, tag => {

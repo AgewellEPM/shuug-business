@@ -96,11 +96,9 @@ function fixture() {
 test('private sales UI discovers, reviews sourced contacts, verifies ownership and saves drafts/follow-ups through the real handler', async () => {
   const f = fixture(), { w, d, rows, submit, waitFor } = f;
   try {
-    for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales-console.js', 'sales.js']) w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
-    await new Promise(resolve => setTimeout(resolve, 10));
     assert.equal(d.querySelector('#sales-workspace').hidden, true);
-    const login = d.querySelector('#sales-login-form');
-    login.elements.code.value = 'synthetic-workflow-owner'; submit(login);
+    w.history.replaceState(null, '', '#owner-code=synthetic-workflow-owner');
+    for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales-console.js', 'sales.js']) w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
     await waitFor(() => !d.querySelector('#sales-workspace').hidden, 'Owner sign-in should open the workspace');
     assert.equal(d.querySelector('[data-tab-panel="team"]').hidden, true);
 
@@ -216,9 +214,8 @@ const deferred = () => {
   return { promise, resolve, reject };
 };
 async function signIn(f) {
+  f.w.history.replaceState(null, '', '#owner-code=synthetic-workflow-owner');
   for (const file of ['directory-admin.js', 'sales-research.js', 'sales-workflows.js', 'sales-console.js', 'sales.js']) f.w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
-  await new Promise(resolve => setTimeout(resolve, 10));
-  const login = f.d.querySelector('#sales-login-form'); login.elements.code.value = 'synthetic-workflow-owner'; f.submit(login);
   await f.waitFor(() => !f.d.querySelector('#sales-workspace').hidden, 'Owner sign-in');
 }
 function seededOffice(id, name = `Synthetic Office ${id}`, info = {}) {

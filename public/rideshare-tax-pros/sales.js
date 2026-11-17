@@ -5,6 +5,7 @@
   const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
   const meta = row => { try { return JSON.parse(row.notes || '{}'); } catch { return {}; } };
   const title = value => String(value).replaceAll('_', ' ');
+  const sharedSignIn = 'https://portal.gigtax.pro/';
   const status = (message, error = false, signup = false) => {
     const targets = [$(signup ? '#signup-message' : '#sales-message')];
     if (!signup && $('#sales-gate') && !$('#sales-gate').hidden) targets.push($('#sales-login-status'));
@@ -81,7 +82,7 @@
       const priorStage = $('#sales-stage-filter').value; $('#sales-stage-filter').innerHTML = '<option value="">All stages</option>' + data.stages.map(s => `<option value="${s}">${e(title(s))}</option>`).join(''); $('#sales-stage-filter').value = priorStage;
       const clock = new Date(), today = `${clock.getFullYear()}-${String(clock.getMonth()+1).padStart(2,'0')}-${String(clock.getDate()).padStart(2,'0')}`, stats = [ ['Offices', data.offices.length], ['Follow-ups due', data.offices.filter(o => o.meeting_date && o.meeting_date <= today && !['active','not_interested','do_not_contact'].includes(o.status)).length], ['Invited',data.offices.filter(o => o.status === 'invited').length], ['Active',data.offices.filter(o => o.status === 'active' && o.membership?.eligible === true).length] ];
       $('#sales-stats').innerHTML = stats.map(([label,count]) => `<div class="sales-stat"><strong>${count}</strong><span>${label}</span></div>`).join('');
-      $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>${e(a.territory?.version===1 ? a.territory.areas.map(area=>`${area.state}: ${area.cities===null?'whole state':area.cities.length+' towns / cities'}`).join(' · ') || 'No territory assigned' : a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
+      $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>Agent ID ${e(a.id)}</p><p>${e(a.territory?.version===1 ? a.territory.areas.map(area=>`${area.state}: ${area.cities===null?'whole state':area.cities.length+' towns / cities'}`).join(' · ') || 'No territory assigned' : a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
       $$('[data-revoke]').forEach(b => b.onclick = run(async () => { if (!window.confirm('Revoke this agent’s sales access? Existing sessions will stop working.')) return; await api('revoke-agent',{id:b.dataset.revoke}); await refresh(); status('Agent access revoked. Their office assignments are retained for reassignment.'); }));
       $('#sales-payment-status').textContent = data.paymentsConfigured ? 'Stripe credentials are saved. Live checkout and billing still need verification.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
       $('#sales-terms-status').textContent = data.terms ? `${data.terms.title} · ${data.terms.version}` : 'Agreement prepared for owner approval. Invitations will become available when the final terms are published.';
@@ -121,7 +122,7 @@
       const o = record.office, m = meta(o), panel = $('#sales-detail');
       const savedOwners = (record.contacts?.contacts || []).filter(c => !c.archived && !c.suppressed && ['owner','partner'].includes(c.role));
       if ($('#sales-detail-title')) $('#sales-detail-title').textContent = o.town;
-      panel.innerHTML = `<p class="eyebrow">${e(o.state)} · ${e(title(o.status))}</p><h2>${e(o.town)}</h2><p>${e(m.address)}<br>${e(o.locality)}, ${e(o.state)}</p><div class="sales-actions">${link(m.website,'Office website ↗')}${link(m.source,'Research source ↗')}</div>
+      panel.innerHTML = `<p class="eyebrow">${e(o.state)} · ${e(title(o.status))}</p><h2>${e(o.town)}</h2>${data.user.role === 'owner' ? `<p>Office ID ${e(o.id)}</p>` : ''}<p>${e(m.address)}<br>${e(o.locality)}, ${e(o.state)}</p><div class="sales-actions">${link(m.website,'Office website ↗')}${link(m.source,'Research source ↗')}</div>
       <form id="sales-update-office" class="sales-form"><label>Public contact / decision maker (verify role)<input name="contact" value="${e(o.contact_name)}" maxlength="140"></label><label>Business email<input name="email" type="email" value="${e(o.contact_email)}"></label><label>Phone<input name="phone" type="tel" value="${e(o.contact_phone)}" maxlength="60"></label><label>Stage<select name="stage" ${o.status === 'active' ? 'disabled' : ''}>${data.stages.filter(s => !['active','invited','contract_sent','contract_signed'].includes(s) || s === o.status).map(s => `<option value="${s}" ${s === o.status ? 'selected' : ''}>${e(title(s))}</option>`).join('')}</select></label><label>Next follow-up<input type="date" name="nextFollowup" value="${e((o.meeting_date || '').slice(0,10))}"></label><label>Office website<input name="website" type="url" value="${e(m.website || '')}" maxlength="1200"></label><label>ZIP code<input name="postalCode" value="${e(m.postalCode || '')}" maxlength="10"></label><p>Ownership: <strong>${e(m.independence || 'unverified')}</strong>. Use the ownership verification tool below to record evidence.</p>${data.user.role === 'owner' ? `<label>Assigned agent<select name="assignedTo"><option value="owner">Workspace owner</option>${data.agents.map(a => `<option value="${e(a.id)}" ${String(o.assigned_to) === a.id ? 'selected' : ''}>${e(a.name)}</option>`).join('')}</select></label>` : ''}<button class="button primary">Save changes</button></form>
       <h3>Conversation tools</h3><p>Editable starting points. Review the office facts and current offer before using them.</p>${Object.entries(record.drafts).map(([name,text]) => `<details><summary>${e(title(name.replace('callScript','call script')))}</summary><pre class="sales-draft">${e(text)}</pre></details>`).join('')}
       <h3>Record a follow-up</h3><form id="sales-activity" class="sales-form"><label>Activity<select name="kind"><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option><option value="meeting">Meeting</option></select></label><label>What happened?<textarea name="note" maxlength="3000" required></textarea></label><button class="button primary">Save activity</button></form>
@@ -146,8 +147,7 @@
     const agreementForm = $('#sales-agreement');
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
-    const login = $('#sales-login-form'); login.onsubmit = run(async () => { await api('login',Object.fromEntries(new FormData(login))); login.reset(); await refresh(); tab('home'); status('Signed in.'); },login);
-    $('#sales-logout').onclick = run(async () => { await api('logout'); location.reload(); });
+    $('#sales-logout').onclick = run(async () => { await api('logout'); location.replace(sharedSignIn); });
     $$('[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });
@@ -190,7 +190,7 @@
     $('#sales-results-next')?.addEventListener('click', run(() => discoveryState.query && findOffices(discoveryState.query, discoveryState.offset + discoveryState.limit)));
     const create = $('#sales-create-office'); create.onsubmit = run(async () => { const result = await api('create-office',Object.fromEntries(new FormData(create))); create.reset(); selected = String(result.office.id); await refresh(); tab('pipeline'); status(result.duplicate ? 'Opened the office already in your pipeline.' : 'Office saved to your pipeline.'); },create);
     const agentForm = $('#sales-create-agent'); agentForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agentForm)); input.states = input.states.split(/[\s,]+/).filter(Boolean).map(s=>s.toUpperCase()); const result = await api('create-agent',input); await refresh(); tab('team'); const panel = $('#sales-agent-code'); panel.hidden = false; panel.innerHTML = '<p>Share this access code privately with the agent. It is shown once.</p><code class="sales-secret"></code><button class="button secondary">Copy access code</button>'; $('code',panel).textContent = result.code; $('button',panel).onclick = run(async () => { await navigator.clipboard.writeText(result.code); status('Agent access code copied.'); }); agentForm.reset(); status('Agent created. Save the access code before leaving this page.'); },agentForm);
-    $('#sales-copy-login-link')?.addEventListener('click', run(async () => { await navigator.clipboard.writeText(location.origin + '/sales'); status('Agent sign-in link copied. Share the access code privately.'); }));
+    $('#sales-copy-login-link')?.addEventListener('click', run(async () => { await navigator.clipboard.writeText(sharedSignIn); status('Shared sign-in link copied.'); }));
     localUI = window.GigTaxLocalOffices?.mount({ api, status, onPrepare: result => {
       const form = $('#sales-create-office');
       for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:result.website || '', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
@@ -214,8 +214,27 @@
           discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
         } else tab('home');
       }
-      catch (err) { if (err.status !== 401) status(err.message,true); }
+      catch (err) { if (err.status === 401) location.replace(sharedSignIn); else status(err.message,true); }
     })();
+  }
+  if ($('[data-location-app]')) {
+    const message = $('#location-message');
+    $('#location-logout').onclick = async () => {
+      $('#location-logout').disabled = true;
+      try { await api('logout'); }
+      finally { $('#location-details').hidden = true; location.replace(sharedSignIn); }
+    };
+    api('my-location').then(({ location: office }) => {
+      $('#location-name').textContent = office.name;
+      $('#location-address').textContent = [office.address, [office.city, office.state].filter(Boolean).join(', ')].filter(Boolean).join(' · ');
+      $('#location-membership').textContent = title(office.membership);
+      $('#location-details').hidden = false;
+      $('#location-signin').hidden = true;
+      message.textContent = '';
+    }).catch(error => {
+      if (error.status === 401) location.replace(sharedSignIn);
+      else message.textContent = error.message;
+    });
   }
   if ($('[data-signup-app]')) window.GigTaxSignature?.mount();
 })();

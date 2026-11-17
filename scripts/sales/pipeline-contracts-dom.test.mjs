@@ -29,6 +29,7 @@ test('shipped agent UI tracks contact/reply, prepares and records a contract sen
       calls.push({ action: body.action, status, error: result.error });
       return { ok: status < 400, status, json: async () => result };
     };
+    if (page === 'sales' && authenticated && !ownerCookie) w.history.replaceState(null, '', '#owner-code=' + encodeURIComponent(f.code));
     const files = page === 'sales' ? ['sales-contacts.js', 'sales-progress.js', 'sales-contracts.js', 'sales-console.js', 'sales-workflows.js', 'sales.js'] : ['contract-signature.js', 'sales.js'];
     for (const file of files) w.eval(readFileSync(`public/rideshare-tax-pros/${file}`, 'utf8'));
     return { w, d, close: () => w.close() };
@@ -37,8 +38,8 @@ test('shipped agent UI tracks contact/reply, prepares and records a contract sen
   const submit = (w, form) => form.dispatchEvent(new w.Event('submit', { bubbles: true, cancelable: true }));
   const agent = browser('sales', 'https://gigtax.pro/sales'); let signer;
   try {
-    const { w, d } = agent, login = d.querySelector('#sales-login-form');
-    login.elements.code.value = f.code; submit(w, login); await wait(() => !d.querySelector('#sales-workspace').hidden, 'Owner sign-in');
+    const { w, d } = agent;
+    await wait(() => !d.querySelector('#sales-workspace').hidden, 'Owner sign-in');
     for (const tab of ['contracts', 'locations', 'mail']) assert(d.querySelector(`[data-tab="${tab}"]`));
     d.querySelector('[data-tab="pipeline"]').click(); d.querySelector('[data-console-office]').click();
     await wait(() => d.querySelector('#sales-progress-form'), 'Office progress form');
