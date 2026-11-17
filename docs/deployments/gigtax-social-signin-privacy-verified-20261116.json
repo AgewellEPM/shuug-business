@@ -1,0 +1,35 @@
+{
+  "deploymentId": "dpl_2rWj3DjHje1iiRnmJAoLDtkhyDTj",
+  "baselineDeployment": "dpl_6PqEuA9GepPmrJvpibeoMmiPpinb",
+  "readyState": "READY",
+  "artifactFiles": 692,
+  "preservedFiles": 690,
+  "routesAndHeadersPreserved": true,
+  "checks": [
+    {
+      "path": "/privacy",
+      "status": 200,
+      "sha256Matches": true
+    },
+    {
+      "path": "/app-privacy",
+      "status": 200,
+      "sha256Matches": true
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "sha256Matches": true
+    },
+    {
+      "path": "/site-config.json",
+      "status": 200,
+      "sha256Matches": true
+    },
+    {
+      "path": "/styles.css",
+      "status": 200,
+      "sha256Matches": true
+    }
+  ]
+}
