@@ -57,7 +57,15 @@ class ProtectedObjectClient(private val client:WorkspaceClient,private val scope
         protectedSnapshotID(upload.mutationId)
         val context=upload.envelope.context;protectedSnapshotID(context.objectId)
         require(upload.expectedRevision in 0 until 1_000_000_000 && upload.envelope.version==2 && context==ProtectedEnvelope.Context(scope.workspaceId,scope.identity.accountId,context.objectId,upload.expectedRevision+1,"driver-state"))
-        val body=buildJsonObject { put("mutationId",upload.mutationId);put("expectedRevision",upload.expectedRevision);put("envelope",Wire.encodeToJsonElement(upload.envelope)) }.toString().toByteArray(Charsets.UTF_8)
+        return putEnvelope(upload.mutationId,upload.expectedRevision,upload.envelope)
+    }
+    suspend fun putReceipt(upload:ProtectedReceiptCheckpoint):ProtectedObjectReceipt {
+        upload.validate(scope,upload.receiptId)
+        return putEnvelope(upload.mutationId,0,upload.envelope)
+    }
+    private suspend fun putEnvelope(mutationId:String,expectedRevision:Int,envelope:ProtectedEnvelope):ProtectedObjectReceipt {
+        val context=envelope.context
+        val body=buildJsonObject { put("mutationId",mutationId);put("expectedRevision",expectedRevision);put("envelope",Wire.encodeToJsonElement(envelope)) }.toString().toByteArray(Charsets.UTF_8)
         require(body.size<=24*1024*1024)
         return Wire.decodeFromString<ProtectedObjectReceipt>(client.customer("secure/objects/${context.objectId}","PUT",body,maximum=65536).toString(Charsets.UTF_8)).also {
             it.validate();require(it.objectId==context.objectId && it.revision==context.revision && !it.deleted) { "The workspace did not acknowledge this exact protected archive." }
@@ -83,7 +91,7 @@ class ProtectedJournalService private constructor(private val repo:DriverReposit
         key.requireUnlocked()
     }
     private val client=WorkspaceClient(connection)
-    private val objects:ProtectedObjectTransport=ProtectedObjectClient(client,scope,pins)
+    private val objects=ProtectedObjectClient(client,scope,pins)
     private val checkpoints=ProtectedJournalCheckpointStore(repo.store,namespace,scope)
     private val lock=Mutex()
     private suspend fun authorize() {
@@ -98,6 +106,43 @@ class ProtectedJournalService private constructor(private val repo:DriverReposit
         remote.verify(pins,scope.identity,local.client)
     }
     fun checkpoint():ProtectedJournalCheckpoint? { requireCurrent();return checkpoints.load() }
+    suspend fun syncAutomatic(captured:Journal):Boolean=lock.withLock {
+        authorize()
+        for(receipt in captured.receipts) {
+            requireCurrent()
+            val filename="protected-receipt-"+PrivateStore.hash(scope.storageID+"|"+receipt.id)+".json"
+            val bytes=repo.store.receipt(namespace,receipt.id)
+            var saved:ProtectedReceiptCheckpoint
+            try {
+                val prior=repo.store.read(namespace,filename)
+                saved=if(prior!=null) {
+                    require(prior.size<=24*1024*1024)
+                    Wire.decodeFromString<ProtectedReceiptCheckpoint>(prior.toString(Charsets.UTF_8)).also {
+                        it.validate(scope,receipt.id)
+                        require(it.fingerprint==ProtectedReceiptCheckpoint.fingerprint(receipt,bytes)) {"A saved receipt changed after encryption. Keep its original; add a new receipt instead of replacing it."}
+                    }
+                } else key.withClientPrivateKey { pair,trusted->ProtectedReceiptCheckpoint.prepare(scope,receipt,bytes,trusted,pair) }.also {
+                    // Save the exact ciphertext and mutation before the first network write.
+                    repo.store.write(namespace,filename,Wire.encodeToString(it).toByteArray(Charsets.UTF_8))
+                }
+            } finally {bytes.fill(0)}
+            if(saved.acknowledgment==null) {
+                val receiptResult=objects.putReceipt(saved);requireCurrent()
+                saved=saved.acknowledged(receiptResult)
+                repo.store.write(namespace,filename,Wire.encodeToString(saved).toByteArray(Charsets.UTF_8))
+            }
+        }
+        var checkpoint=checkpoints.create()
+        // First recover an uncertain previous write, then send the newest Journal.
+        repeat(2) {
+            if(checkpoint.pending==null && checkpoint.acknowledgedJournalSHA256==protectedJournalHash(captured))return@withLock protectedJournalHash(repo.journal)==protectedJournalHash(captured)
+            val prepared=key.withClientPrivateKey {pair,trusted->checkpoint.prepared(captured,trusted,pair)}
+            checkpoints.save(prepared,checkpoint)
+            val upload=prepared.pending!!;val receipt=objects.put(upload);requireCurrent()
+            val next=prepared.acknowledged(receipt,upload.mutationId);checkpoints.save(next,prepared);checkpoint=next
+        }
+        checkpoint.acknowledgedJournalSHA256==protectedJournalHash(repo.journal)
+    }
     suspend fun upload(captured:Journal):ProtectedJournalUploadOutcome=lock.withLock {
         authorize();val original=checkpoints.create()
         val prepared=key.withClientPrivateKey { pair,trusted->original.prepared(captured,trusted,pair) }

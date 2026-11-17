@@ -17,6 +17,7 @@ fun openPublicLink(repo:DriverRepository,url:String) {
     repo.app.startActivity(Intent(Intent.ACTION_VIEW,uri).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
 }
 @Composable fun AccountHubScreen(repo:DriverRepository,navigate:(String)->Unit,onTracking:()->Unit) {
+    if(usePrivateAccount(repo)) {PrivateAccountScreen(repo);return}
     var address by remember(repo.scope) {mutableStateOf(repo.connection?.origin ?: "")}
     var email by remember(repo.scope) {mutableStateOf("")};var password by remember(repo.scope) {mutableStateOf("")}
     var expanded by remember {mutableStateOf(false)};var busy by remember {mutableStateOf(false)}

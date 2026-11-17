@@ -102,6 +102,22 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
         current.manifest?.let { previous->require(manifest.epoch>previous.epoch || manifest.epoch==previous.epoch && manifest.canonicalBytes().contentEquals(previous.canonicalBytes())) { "An older or changed signed enrollment cannot replace this phone's highest verified key version." } }
         save(current.copy(manifest=manifest),false);State(current.client,manifest)
     }
+    /** Match the browser account's existing key; never rotate or replace a device key. */
+    fun importBrowserBackup(bytes:ByteArray,passphrase:CharArray,manifest:ProtectedManifest):State=synchronized(LOCK) {
+        requireUnlocked()
+        PortableClientKeyBackup.open(bytes,passphrase).use { opened->
+            manifest.verify(pins,scope.identity,opened.recipient)
+            val current=read()
+            if(current!=null) {
+                require(current.client==opened.recipient) {"A different key exists on this phone. Both originals were kept for firm review."}
+                return@synchronized stage(manifest)
+            }
+            val legacyNamespace=PrivateStore.hash(scope.workspaceOrigin+"|"+scope.identity.accountId)
+            require(!hasLegacy(PrivateStore(context),legacyNamespace)) {"An earlier key exists. Protect that key before importing another backup."}
+            val next=Stored(scope=scope,privateKey=protectedEncode(opened.pkcs8),client=opened.recipient,manifest=manifest)
+            save(next,true);State(next.client,next.manifest)
+        }
+    }
     fun hasLegacy(store:PrivateStore,namespace:String):Boolean {
         requireUnlocked();return store.read(namespace,legacyFilename(scope))!=null
     }

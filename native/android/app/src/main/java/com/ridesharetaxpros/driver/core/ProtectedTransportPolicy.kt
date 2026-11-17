@@ -39,6 +39,8 @@ object ProtectedTransportPolicy {
             if(runCatching {java.util.UUID.fromString(id).toString()==id}.getOrDefault(false))return
         }
         if(path=="driver/session" && verb in setOf("POST","DELETE"))return
+        if(path=="secure/native-session" && verb=="DELETE" && body==null)return
+        if(path=="secure/native-session" && verb=="POST" && validPrivateSignIn(body))return
         // A parked driver explicitly requests these operational endpoints. This
         // does not authorize uploading saved journals, routes or other tax data.
         if(path=="driver/routes" && verb=="POST" && validOperationalRouteRequest(body))return
@@ -57,6 +59,21 @@ object ProtectedTransportPolicy {
         error(REPLACEMENT_REQUIRED)
     }
 }
+
+private fun validPrivateSignIn(body:ByteArray?):Boolean=runCatching {
+    require(body!=null && body.size in 1..4096)
+    val input=Wire.parseToJsonElement(body.toString(Charsets.UTF_8)).jsonObject
+    when(input.keys) {
+        setOf("accountCode","password")-> {
+            require(input.values.all {it is JsonPrimitive && it.isString})
+            protectedSnapshotID(input["accountCode"]!!.jsonPrimitive.content)
+            input["password"]!!.jsonPrimitive.content.length in 1..200
+        }
+        setOf("challengeToken","code","privateAccount")->input["challengeToken"]!!.jsonPrimitive.let {it.isString && it.content.matches(Regex("[a-f0-9]{64}"))} &&
+            input["code"]!!.jsonPrimitive.let {it.isString && it.content.length in 1..40} && input["privateAccount"]!!.jsonPrimitive.let {!it.isString && it.booleanOrNull==true}
+        else->false
+    }
+}.getOrDefault(false)
 
 internal fun validOperationalRouteRequest(body: ByteArray?): Boolean = runCatching {
     require(body!=null && body.size in 1..4096)

@@ -26,6 +26,7 @@ class DriverRepository(val app: Application) {
     var failure by mutableStateOf<String?>(null)
     var storageReady by mutableStateOf(false); private set
     var busy by mutableStateOf(false); private set
+    var privateSyncAt by mutableStateOf<String?>(null); private set
     var updatingProfile by mutableStateOf(false); private set
     var changingAccount by mutableStateOf(false); private set
     var profileError by mutableStateOf<String?>(null); private set
@@ -41,6 +42,9 @@ class DriverRepository(val app: Application) {
     private var lastDriveSyncSession:DriveSyncSession?=null
     private var lastDriveSyncAttempt:Long=0
     val scope get()=connection?.let { PrivateStore.hash(it.origin+"|"+it.session.account.id) } ?: "guest"
+    private val privateSync=PrivateSyncScheduler(jobs,{storageReady && connection?.access==AccountAccess.PRIVATE},{syncPrivate()},
+        {error->failure="Saved on this phone. Encrypted sync is waiting: ${error.message}"})
+    fun resumePrivateSync() {privateSync.request()}
     init { try {
         connection=store.read("session","connection.json")?.let { Wire.decodeFromString<Connection>(it.toString(Charsets.UTF_8)) }
         journal=store.journal(scope); storageReady=true
@@ -49,6 +53,7 @@ class DriverRepository(val app: Application) {
     fun update(transform: (Journal)->Journal) {
         check(storageReady) { "Storage is unavailable." }; val next=transform(journal)
         try { store.save(scope,next); journal=next } catch(error: Exception) { storageReady=false; failure="Could not save your records. Recording has stopped; keep this installation for recovery."; throw error }
+        privateSync.request()
     }
     fun save(record: DriverRecord) {
         update { it.upsert(record) }
@@ -101,6 +106,23 @@ class DriverRepository(val app: Application) {
         } finally {changingAccount=false;drainDriveSync()}
         try {sync()}catch(error:CancellationException) {throw error}catch(error:Exception) {failure="Connected. Saved records are waiting to sync: ${error.message}"}
     }
+    suspend fun connectPrivate(next:Connection) {
+        require(next.access==AccountAccess.PRIVATE && next.privateClientId!=null)
+        val pins=app.assets.open("SecureTaxTrustedPins.json").use {ProtectedPins.decode(boundedRead(it,16384))}
+        require(next.origin==pins.workspaceOrigin);protectedSnapshotID(next.session.account.id);protectedSnapshotID(next.privateClientId)
+        check(storageReady && !busy && !updatingProfile && !changingAccount && journal.activeTripId==null) {"Finish the current drive or account operation before connecting."}
+        connection?.let {require(it.access==AccountAccess.PRIVATE && it.origin==next.origin && it.session.account.id==next.session.account.id && it.privateClientId==next.privateClientId) {"Disconnect before changing private accounts."}}
+        changingAccount=true
+        try {
+            val namespace=PrivateStore.hash(next.origin+"|"+next.session.account.id)
+            val saved=store.journal(namespace).let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
+            store.save(namespace,saved);store.write("session","connection.json",Wire.encodeToString(next).toByteArray())
+            privateSync.stop()
+            app.stopService(Intent(app,DriveService::class.java));app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
+            connection=next;journal=saved;rewards=null;bankStatus=null;profileError=null;privateSyncAt=null
+        } finally {changingAccount=false}
+        privateSync.request()
+    }
     suspend fun reauthenticate(password:String) {
         val expected=connection ?: error("Connect your client account first.")
         check(!busy && !updatingProfile && !changingAccount && journal.activeTripId==null) {"Finish the current drive or account operation before signing in again."}
@@ -117,6 +139,7 @@ class DriverRepository(val app: Application) {
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish before signing out."}
         check(journal.activeTripId==null) { "End your current drive before disconnecting." }
         val previous=connection
+        privateSync.stop()
         changingAccount=true
         try {
         val guest=store.journal("guest").let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
@@ -126,7 +149,7 @@ class DriverRepository(val app: Application) {
         app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=null; journal=guest; rewards=null; bankStatus=null;profileError=null
         } finally {changingAccount=false;drainDriveSync()}
-        previous?.let {try {WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
+        previous?.let {try {if(it.access==AccountAccess.PRIVATE) WorkspaceClient(it).customer("secure/native-session","DELETE") else WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
     }
     fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false,includeRecords:Boolean=true) {
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish before copying phone-only records."}
@@ -151,6 +174,7 @@ class DriverRepository(val app: Application) {
         // Keep the guest source as a recoverable copy; stable record IDs make repeats safe.
     }
     suspend fun sync() {
+        if(connection?.access==AccountAccess.PRIVATE) {syncPrivate();return}
         val active=connection ?: return; if(busy || updatingProfile || changingAccount) return; val namespace=scope; busy=true
         val session=DriveSyncSession(namespace,active.origin,active.session.account.id,active.session.token)
         lastDriveSyncSession=session;lastDriveSyncAttempt=android.os.SystemClock.elapsedRealtime()
@@ -188,12 +212,25 @@ class DriverRepository(val app: Application) {
             refreshProfile()
         } finally { busy=false;drainDriveSync() }
     }
+    private suspend fun syncPrivate():Boolean {
+        val expected=connection ?: return true
+        if(expected.access!=AccountAccess.PRIVATE)return true
+        if(busy || updatingProfile || changingAccount)return false
+        require(storageReady);val namespace=scope;val captured=journal;busy=true
+        try {
+            val matched=withContext(Dispatchers.IO) {ProtectedJournalService.configure(this@DriverRepository).syncAutomatic(captured)}
+            require(connection==expected && scope==namespace) {"Your account changed during encrypted sync. Its saved retry was retained."}
+            privateSyncAt=now();failure=null
+            return matched
+        } finally {busy=false;drainDriveSync()}
+    }
     private fun applyProfile(reply:AccountProfileReply,expected:Connection,namespace:String) {
         check(scope==namespace && connection?.origin==expected.origin && connection?.session?.token==expected.session.token) {"Your account changed before the profile update finished."}
         val next=reply.applyTo(expected)
         store.write("session","connection.json",Wire.encodeToString(next).toByteArray());connection=next;profileError=null
     }
     suspend fun refreshProfile() {
+        if(connection?.access==AccountAccess.PRIVATE)return
         val expected=connection ?: return;if(updatingProfile || changingAccount) return;val namespace=scope
         val generation=++profileGeneration
         try {val reply=WorkspaceClient(expected).profile();if(generation==profileGeneration)applyProfile(reply,expected,namespace)}
@@ -201,6 +238,7 @@ class DriverRepository(val app: Application) {
         catch(error:Exception) {if(generation==profileGeneration && scope==namespace && connection?.session?.token==expected.session.token)profileError=error.message}
     }
     suspend fun updateProfileName(raw:String) {
+        require(connection?.access!=AccountAccess.PRIVATE) {"Update personal details inside the unlocked private website portal."}
         val expected=connection ?: error("Connect your client account first.")
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current sync or profile update to finish."}
         val name=validatedDisplayName(raw);val namespace=scope;profileGeneration++;updatingProfile=true
@@ -229,6 +267,7 @@ class DriverRepository(val app: Application) {
         val namespace=scope
         return try { store.receipt(namespace,id) } catch(_: Exception) {
             val active=connection ?: error("Receipt is unavailable on this phone.")
+            require(active.access!=AccountAccess.PRIVATE) {"This receipt is unavailable locally. Open its encrypted copy in your private website portal."}
             val bytes=WorkspaceClient(active).send("receipts/$id"); check(namespace==scope); store.saveReceipt(namespace,id,bytes); bytes
         }
     }

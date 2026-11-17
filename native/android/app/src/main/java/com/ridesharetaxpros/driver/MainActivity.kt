@@ -12,6 +12,7 @@ import com.ridesharetaxpros.driver.ui.DriverApp
 import com.ridesharetaxpros.driver.offers.OfferScreenshot
 
 class MainActivity: ComponentActivity() {
+    override fun onResume() {super.onResume();(application as DriverApplication).repository.resumePrivateSync()}
     override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState)
         enableEdgeToEdge(statusBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),navigationBarStyle=SystemBarStyle.dark(android.graphics.Color.TRANSPARENT))
         setContent { DriverApp((application as DriverApplication).repository) }

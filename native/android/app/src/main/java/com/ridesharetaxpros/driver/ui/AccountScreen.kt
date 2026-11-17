@@ -11,6 +11,7 @@ import com.ridesharetaxpros.driver.tracking.DriveService
 import kotlinx.serialization.json.*
 
 @Composable fun AccountScreen(repo: DriverRepository,onRewards: ()->Unit,onPrivacy: ()->Unit,onTracking: ()->Unit) {
+    if(usePrivateAccount(repo)) {PrivateAccountScreen(repo);return}
     val exportJournal=rememberJournalExport(repo)
     var address by remember {mutableStateOf("")};var email by remember {mutableStateOf("")};var password by remember {mutableStateOf("")};var transfer by remember {mutableStateOf(false)}
     var actionBusy by remember {mutableStateOf(false)};var signOut by remember {mutableStateOf(false)}

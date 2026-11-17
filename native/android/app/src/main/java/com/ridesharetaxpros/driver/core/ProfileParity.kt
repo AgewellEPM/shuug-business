@@ -240,6 +240,7 @@ private object ProfileLocks {
 }
 fun DriverRepository.saveProfileMutation(mutation: ReputationMutation) { update { it.enqueueReputation(mutation) } }
 suspend fun DriverRepository.syncProfileReputation(): String = ProfileLocks.forRepo(this).withLock {
+    if(connection?.access==com.ridesharetaxpros.driver.data.AccountAccess.PRIVATE) {sync();return@withLock "Ratings and reviews are included in your encrypted Journal. Provider updates remain separate."}
     val profile=connection ?: return@withLock "Saved on this phone · Connect to share with your tax team"
     val expected=scope; val client=WorkspaceClient(profile)
     fun same()=scope==expected && connection?.origin==profile.origin && connection?.session?.token==profile.session.token
@@ -270,6 +271,7 @@ private fun Journal.mergeCoach(state: CoachState,intakeMutation: String? = null,
         coachIntake=if(mutation==null) state.intake else coachIntake,coachIntakeMutationId=mutation,coachMilestones=state.milestones,coachEngine=state.engine)
 }
 suspend fun DriverRepository.syncTaxCoach(from: String,through: String): String = ProfileLocks.forRepo(this,true).withLock {
+    if(connection?.access==com.ridesharetaxpros.driver.data.AccountAccess.PRIVATE) {sync();return@withLock "Saved conversation is included in your encrypted Journal. Answers use this phone’s local analysis."}
     val profile=connection ?: return@withLock "On this phone · Connect to share with your firm"
     val expected=scope; val client=WorkspaceClient(profile)
     fun same()=scope==expected && connection?.origin==profile.origin && connection?.session?.token==profile.session.token

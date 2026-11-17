@@ -37,4 +37,12 @@ class ProtectedTransportPolicyTest {
         assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"driver/routes","POST",ByteArray(4097))}.isFailure)
         assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"driver/records","POST",payload.toByteArray())}.isFailure)
     }
+    @Test fun privateSignInAllowsOnlyOpaqueCredentialsAndExplicitPrivateFactorProof() {
+        for(value in listOf("""{"accountCode":"00000000-0000-0000-0000-000000000001","password":"synthetic"}""",
+            """{"challengeToken":"${"a".repeat(64)}","code":"123456","privateAccount":true}"""))ProtectedTransportPolicy.assertAllowed(true,"secure/native-session","POST",value.toByteArray())
+        for(value in listOf("{}","""{"email":"synthetic@example.com","password":"synthetic"}""",
+            """{"challengeToken":"${"a".repeat(64)}","code":"123456","privateAccount":false}""",
+            """{"accountCode":"00000000-0000-0000-0000-000000000001","password":"synthetic","journal":{}}"""))
+            assertTrue(runCatching {ProtectedTransportPolicy.assertAllowed(true,"secure/native-session","POST",value.toByteArray())}.isFailure)
+    }
 }
