@@ -149,6 +149,7 @@ import kotlinx.serialization.json.*
     }
     Panel("Included services") {
         Text("The app uses Android location and notification services, Android Geocoder, OpenStreetMap office maps, native Google Maps when configured, and an authenticated Google Routes service for requested comparisons, bundled on-device ML Kit recognition and Plaid for optional bank linking. No advertising SDK or automatic tax-filing connection is included.")
+        Text("ML Kit reads receipt and offer images on this device. It sends device/app information, installation identifiers and recognition performance or usage metrics to Google for diagnostics and analytics; the input images and recognized text are not sent to Google by ML Kit. Configured Google Maps can also send device/request metadata, diagnostic data and a Maps identifier. These SDKs do not provide advertising tracking in this app.",color=Muted)
         Text("Find my firm’s workspace retrieves the public connection address from the firm’s website. Calling, appointment providers, bank linking, your chosen maps app and pages opened in a browser have their own data practices.",color=Muted)
     }
 }

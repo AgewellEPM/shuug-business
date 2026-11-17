@@ -60,3 +60,8 @@ next-env.d.ts
 /dist/
 /packages/secure-tax-client/dist-browser/
 .github/workflows/
+
+# Android signing material must remain outside source
+*.jks
+*.keystore
+*.p12

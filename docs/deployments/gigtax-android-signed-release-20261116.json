@@ -1,0 +1,74 @@
+{
+  "verifiedAt": "2026-11-16T23:30:32.777803+00:00",
+  "packageName": "com.ridesharetaxpros.driver",
+  "versionCode": 1,
+  "versionName": "1.0.0",
+  "minSdk": 26,
+  "targetSdk": 36,
+  "debuggable": false,
+  "uploadCertificateSHA256": "71c5bd1c965cd39edbdef0ddc509ebec3d8a975fbe55c9532ceede46b159a27c",
+  "apk": {
+    "fileName": "app-release.apk",
+    "bytes": 79891115,
+    "sha256": "1ea5b3d4178625e56a5958daff6e2071d62899f87700464fcf4fb827154b7218"
+  },
+  "aab": {
+    "fileName": "app-release.aab",
+    "bytes": 54431763,
+    "sha256": "769d389e712245bb3c1f9ed8a8d7b51fdce6834d855dcdf37c29afe70343a2e8"
+  },
+  "apkSignatureVerified": true,
+  "bundleSignatureVerified": true,
+  "zip16KBAlignmentVerified": true,
+  "nativeLibraries": [
+    {
+      "path": "lib/arm64-v8a/libandroidx.graphics.path.so",
+      "elfBits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/arm64-v8a/libmlkit_google_ocr_pipeline.so",
+      "elfBits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libandroidx.graphics.path.so",
+      "elfBits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/armeabi-v7a/libmlkit_google_ocr_pipeline.so",
+      "elfBits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86/libandroidx.graphics.path.so",
+      "elfBits": 32,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86/libmlkit_google_ocr_pipeline.so",
+      "elfBits": 32,
+      "minimumLoadAlignment": 4096
+    },
+    {
+      "path": "lib/x86_64/libandroidx.graphics.path.so",
+      "elfBits": 64,
+      "minimumLoadAlignment": 16384
+    },
+    {
+      "path": "lib/x86_64/libmlkit_google_ocr_pipeline.so",
+      "elfBits": 64,
+      "minimumLoadAlignment": 16384
+    }
+  ],
+  "sdkDisclosurePresentInBothArtifacts": true,
+  "releaseUnitTests": {
+    "tests": 100,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  },
+  "physicalDeviceVerified": false,
+  "playUploadVerified": false
+}

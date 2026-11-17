@@ -7,13 +7,13 @@ Do not change the package name or create another app record to bypass an issue.
 
 ## Observed form state
 
-The signed-in Safari creation form has Gig Tax Pros, the verified package name,
-English (United States), App and Free selected. Google's Check availability
-returned Package name available. No Create app action has been taken.
-The owner is reviewing the three actual declarations: Developer Program Policy
-compliance, Play App Signing Terms of Service, and U.S. export-law/encryption
-certification. Do not mark an owner answer or legal acceptance complete until
-it actually happens. Re-read the existing form rather than open a duplicate.
+The free English-U.S. Google Play app record has been created successfully.
+Package availability was checked and all creation declarations were completed
+following the owner's instruction to finish setup. The actual app dashboard
+shows the new-account production gate: at least12closed testers for14days,
+then an application for production access. Internal testing is available now.
+An owner-only email list was created and selected; recipient details remain
+private outside source. The first internal release is being prepared.
 
 Native Safari accessibility can read/set fields and press controls without
 Apple Events JavaScript access. AX indices move after validation; re-read the
@@ -60,3 +60,34 @@ The Apple app remains WAITING_FOR_REVIEW; this Android setup does not change it.
 
 References: [Google app setup](https://support.google.com/googleplay/android-developer/answer/9859152),
 [developer account types](https://support.google.com/googleplay/android-developer/answer/13634885).
+
+## Signed release artifacts
+
+Version1.0.0/code1 is now built with an owner-private RSA4096 PKCS12 upload key.
+The encrypted key has a verified second local copy on the external drive, and
+its password is stored/read-back in macOS Keychain. All credentials and private
+configuration remain outside the repository. Google Play manages its app signing
+key separately; do not advertise the local upload-key APK as an update-compatible
+replacement for a Google Play signed install.
+
+The Gradle release variant requires GIGTAX_ANDROID_SIGNING_CONFIG, a private
+properties file with storeFile, storePassword, keyAlias and keyPassword. Debug
+builds do not require signing credentials. Release bundle/package tasks refuse
+missing credentials instead of silently producing unsigned distributables.
+Default app version is1.0.0/code1. Optional gigTaxVersionName/gigTaxVersionCode
+Gradle properties support later increments; the verifier must use matching flags.
+
+scripts/release-rideshare-android.sh builds AAB/APK, runs existing release JVM tests
+and verifies real artifacts. Supply GIGTAX_ANDROID_BUILD_ROOT,
+GIGTAX_ANDROID_UPLOAD_CERTIFICATE and GIGTAX_ANDROID_RECEIPT as well as the signing
+config. No password is passed as a command-line argument. The artifact verifier
+checks actual package/version/SDK/non-debuggable APK, APK and AAB signatures against
+the expected public certificate, ZIP alignment, all64bitELF16KB alignment, CRCs,
+actual SDK-disclosure strings in both DEX bundles, and recorded test results.
+The signed-release receipt records99passing checks/1existing interoperability
+skip (the independent Swift helper was not supplied). No physical-device claim.
+
+The in-app privacy text now discloses Google's ML Kit metrics and configured Maps
+metadata in addition to local image processing. The public app privacy policy was
+updated separately with Android notification access, foreground-service control,
+disabled Android backup, Google SDK metrics and the configured routing services.
