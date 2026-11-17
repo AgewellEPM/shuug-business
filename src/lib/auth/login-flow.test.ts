@@ -25,6 +25,7 @@ it("keeps an open tab valid when another login tab opens and admits the complete
  const first=await (await GET()).text(),csrf=first.match(/name="csrf" value="([a-f0-9]+)"/)![1];
  await GET();expect(jar.get("owner_login_csrf")).toBe(csrf);
  const factor=await post({csrf,password});expect(factor.status).toBe(200);const html=await factor.text();
+ expect(html).toContain('alt="Authenticator setup QR code"');expect(html).toContain('src="data:image/gif;base64,');
  const challenge=html.match(/name="challenge" value="([a-f0-9]+)"/)![1],secret=html.match(/<code>([A-Z2-7]{32})<\/code>/)![1];
  const complete=await post({csrf,challenge,code:totp(secret,Math.floor(Date.now()/30000))});expect(complete.status).toBe(200);expect(await complete.text()).toContain("Save your recovery codes");
  const token=jar.get("dd_session")!;expect(ownerSessionValid(token)).toBe(true);

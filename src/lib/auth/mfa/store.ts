@@ -5,6 +5,7 @@ import { openSecret, sealSecret, setting } from "../../connections/vault";
 import { SESSION_TTL_SECONDS } from "../config";
 import { authenticatorUri, newTotpSecret, verifyTotp } from "./crypto";
 import { MfaError, type MfaAudience, type MfaChallenge, type MfaSubject } from "./model";
+import { getBranding } from "../../branding/store";
 
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
 interface Factor { kind: string; account_id: string; secret: string; revision: number; last_counter: number }
@@ -67,7 +68,7 @@ export function loginFactorView(token: string, audience: MfaAudience) {
     if (!allowed(db, row, Date.now())) throw new MfaError("Too many verification attempts. Try again in 15 minutes.", 429);
     const secret = row.secret ? openSecret(row.secret) : null;
     return { enrollmentRequired: !!secret, expiresAt: new Date(row.expires).toISOString(), secret,
-      authenticatorUri: secret ? authenticatorUri(secret, `${row.kind}-${row.id}`) : null };
+      authenticatorUri: secret ? authenticatorUri(secret, `${row.kind}-${row.id}`, getBranding().businessName) : null };
   });
 }
 export function mfaSessionAllowed(db: DatabaseSync, subject: MfaSubject, tokenHash: string): boolean {

@@ -44,7 +44,7 @@ function refreshControls(){
   const pending=client?.pendingMfa;
   $('second-factor').hidden=!pending;$('mfa-code').disabled=!pending||working;$('mfa-verify').disabled=!pending||working;
   $('mfa-setup').textContent=pending?.secret??'';
-  $('mfa-instructions').textContent=pending?.enrollmentRequired?'Add a time-based Shuug account in your authenticator using this private setup key. Use six digits and a 30-second interval, then enter its code.':'Enter the current code from your authenticator, or one unused recovery code.';
+  $('mfa-instructions').textContent=pending?.enrollmentRequired?'Add a time-based account in your authenticator using this private setup key. Use six digits and a 30-second interval, then enter its code.':'Enter the current code from your authenticator, or one unused recovery code.';
   for(const id of ['unlock'])$(id).disabled=!client?.identity||!$('key-choice').value||working;
   for(const id of ['renewal-request','renewal-file','install-renewal'])$(id).disabled=!client?.identity||!client.enrolled||!$('key-choice').value||working;
   $('backup').disabled=!ready||!$('key-choice').value||working;

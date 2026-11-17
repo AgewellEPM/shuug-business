@@ -37,6 +37,7 @@ export function verifyTotp(secret: string, code: string, now: number, lastCounte
   }
   return found;
 }
-export function authenticatorUri(secret: string, label: string): string {
-  return `otpauth://totp/${encodeURIComponent(`Shuug:${label}`)}?${new URLSearchParams({ secret, issuer: "Shuug", algorithm: "SHA1", digits: "6", period: "30" })}`;
+export function authenticatorUri(secret: string, label: string, issuer = "Shuug"): string {
+  const name = issuer.trim().slice(0,64) || "Shuug";
+  return `otpauth://totp/${encodeURIComponent(`${name}:${label}`)}?${new URLSearchParams({ secret, issuer: name, algorithm: "SHA1", digits: "6", period: "30" })}`;
 }
