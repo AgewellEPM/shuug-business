@@ -35,3 +35,18 @@ real app-to-browser transfer, backup/restore, deletion/retention and store priva
 updates remain required before real client onboarding. Do not point public
 site-config.json at this API for the old store binaries. iOS integration remains
 separate; do not cancel the existing Apple review without a qualified replacement.
+
+Google and Apple sign-in additions (candidate): the app opens the official
+provider in an external browser, retaining a one-time result verifier in memory.
+Its independently checked URL permits only the pinned API callback and minimal
+identity permissions. A verified linked provider still returns the existing
+private-account authenticator challenge. Initial invitations and key approval
+remain required; social login does not create or merge accounts by email. Users
+connect or disconnect a method from a current verified account. Foreground
+polling avoids starting the five-minute factor challenge while the user is still
+in the provider browser. The Android return URI carries no credentials. Real
+provider/phone acceptance and updated signed store delivery remain pending.
+
+The signed1.0.1/code2 social-sync candidate built successfully with107 JVM
+checks:106 passed, one existing native interoperability skip, zero failures.
+No physical phone or live provider acceptance is implied by this build.

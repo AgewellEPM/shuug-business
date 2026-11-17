@@ -41,6 +41,7 @@ object ProtectedTransportPolicy {
         if(path=="driver/session" && verb in setOf("POST","DELETE"))return
         if(path=="secure/native-session" && verb=="DELETE" && body==null)return
         if(path=="secure/native-session" && verb=="POST" && validPrivateSignIn(body))return
+        if(path.startsWith("secure/social/") && verb=="POST" && validPrivateSocialRequest(path,body))return
         // A parked driver explicitly requests these operational endpoints. This
         // does not authorize uploading saved journals, routes or other tax data.
         if(path=="driver/routes" && verb=="POST" && validOperationalRouteRequest(body))return
@@ -71,6 +72,19 @@ private fun validPrivateSignIn(body:ByteArray?):Boolean=runCatching {
         }
         setOf("challengeToken","code","privateAccount")->input["challengeToken"]!!.jsonPrimitive.let {it.isString && it.content.matches(Regex("[a-f0-9]{64}"))} &&
             input["code"]!!.jsonPrimitive.let {it.isString && it.content.length in 1..40} && input["privateAccount"]!!.jsonPrimitive.let {!it.isString && it.booleanOrNull==true}
+        else->false
+    }
+}.getOrDefault(false)
+
+private fun validPrivateSocialRequest(path:String,body:ByteArray?):Boolean=runCatching {
+    require(body!=null&&body.size in 1..4096)
+    val input=Wire.parseToJsonElement(body.toString(Charsets.UTF_8)).jsonObject
+    require(input.values.all {it is JsonPrimitive&&it.isString})
+    when(path) {
+        "secure/social/start"->input.keys==setOf("provider","audience","purpose","challenge")&&input["provider"]!!.jsonPrimitive.content in setOf("google","apple")&&input["audience"]!!.jsonPrimitive.content=="secure-customer"&&input["purpose"]!!.jsonPrimitive.content in setOf("login","link")&&input["challenge"]!!.jsonPrimitive.content.matches(Regex("[A-Za-z0-9_-]{43}"))
+        "secure/social/result"->{require(input.keys==setOf("requestId","verifier"));protectedSnapshotID(input["requestId"]!!.jsonPrimitive.content);input["verifier"]!!.jsonPrimitive.content.matches(Regex("[A-Za-z0-9_-]{43}"))}
+        "secure/social/connections"->input.keys==setOf("audience")&&input["audience"]!!.jsonPrimitive.content=="secure-customer"
+        "secure/social/unlink"->input.keys==setOf("audience","provider")&&input["audience"]!!.jsonPrimitive.content=="secure-customer"&&input["provider"]!!.jsonPrimitive.content in setOf("google","apple")
         else->false
     }
 }.getOrDefault(false)

@@ -58,6 +58,7 @@ import kotlinx.serialization.json.*
         message?.let {Text(it,color=Link)}
     }
     if(signIn) Panel("Sign in") {
+        PrivateSocialSignIn(repo,pins,blocked) {challenge=it;signIn=true}
         if(challenge==null) {
             Field("Private account code",accountCode,{accountCode=it.trim()});Field("Account password",password,{password=it},secret=true)
             Action(if(busy) "Checking…" else "Continue",{
@@ -85,6 +86,7 @@ import kotlinx.serialization.json.*
         TextButton(onClick={recoveryCodes=emptyList()}) {Text("I saved the codes")}
     }
     if(repo.connection?.access==AccountAccess.PRIVATE) {
+        Panel("Google and Apple sign-in") {PrivateSocialSignIn(repo,pins,blocked,manage=true) {challenge=it;signIn=true}}
         Panel("Encrypted sync") {
             Text("Account: ${repo.connection!!.session.account.id}",color=Muted)
             Text("Last sync check: ${repo.privateSyncAt ?: "Waiting for this phone’s first check"}")
