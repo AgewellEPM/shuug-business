@@ -20,17 +20,17 @@ import kotlinx.serialization.json.*
     fun requireIdentity() {require(repo.connection?.session?.token==identityToken && identityToken!=null) {"Your account changed. Reopen protected setup."};require(!repo.app.getSystemService(KeyguardManager::class.java).isDeviceLocked) {"Unlock this phone to access its protected client key."}}
     fun keyStore():ProtectedDeviceKeyStore {
         requireIdentity();val roots=pins ?: error("This signed app has no independent firm public keys.")
-        return ProtectedDeviceKeyStore(repo.app,ProtectedJournalScope(roots.workspaceOrigin,roots.workspaceId,identity ?: error("This account identity has not been verified.")),roots)
+        return ProtectedDeviceKeyStore(repo.app,ProtectedJournalScope(roots.workspaceOrigin,roots.workspaceId,identity ?: error("This account identity has not been verified."),roots.profile),roots)
     }
     fun reload() {val connection=repo.connection ?: return;busy=true;repo.run {try {
         val data=repo.app.assets.open("SecureTaxTrustedPins.json").use {boundedRead(it,16384)}
-        val roots=ProtectedPins.decode(data);require(roots.workspaceOrigin==connection.origin) {"This connection does not match the workspace pinned in the signed app."};pins=roots
-        val result=Wire.parseToJsonElement(WorkspaceClient(connection).customer("secure/status",maximum=65536).toString(Charsets.UTF_8)).jsonObject
+        val roots=ProtectedPins.decode(data);require(roots.workspaceOrigin==connection.origin && roots.profile==connection.encryptionProfile) {"This connection does not match the workspace pinned in the signed app."};pins=roots
+        val result=Wire.parseToJsonElement(WorkspaceClient(connection).customer("${roots.apiPrefix}/status",maximum=65536).toString(Charsets.UTF_8)).jsonObject
         require(repo.connection?.session?.token==identityToken);val bound=Wire.decodeFromJsonElement<ProtectedIdentity>(result["identity"]!!)
         require(bound.accountId==connection.session.account.id);validateProtectedID(bound.accountId);validateProtectedID(bound.clientId);identity=bound;server=result
-        val keys=keyStore();val saved=keys.state();client=saved?.client;staged=saved?.stagedManifest;legacyAvailable=keys.hasLegacy(repo.store,repo.scope)
+        val keys=keyStore();val saved=keys.state();client=saved?.client;staged=saved?.stagedManifest;legacyAvailable=!roots.clientOnly && keys.hasLegacy(repo.store,repo.scope)
         message=null
-    }catch(e:java.io.FileNotFoundException) {message="Secure setup is unavailable until your firm’s public signing and recovery keys are included in this signed app."}
+    }catch(e:java.io.FileNotFoundException) {message="Secure setup is unavailable until your workspace’s public signing key and client-only profile are included in this signed app."}
     catch(e:Exception) {message=e.message}finally {busy=false}}}
     fun stage(value:ProtectedManifest) {requireIdentity()
         val saved=keyStore().stage(value);client=saved.client;staged=saved.stagedManifest
@@ -50,12 +50,13 @@ import kotlinx.serialization.json.*
         else if(legacyAvailable) {
             Text("An earlier client key exists for this account. Keep that key and its approval when adding OS-enforced unlocked-device protection.",color=Muted)
             Action("Protect my existing client key",{confirmation="migrate"},false,pins!=null && identity!=null && !busy)
-        } else Action("Create this phone’s client key",{confirmation="create"},false,pins!=null && identity!=null && !busy)
+        } else if(pins?.clientOnly==true) Text("Import your client-held encrypted key backup from the private account screen. This profile never replaces an enrolled key.",color=Muted)
+        else Action("Create this phone’s client key",{confirmation="create"},false,pins!=null && identity!=null && !busy)
         Text("Create a key only for the signed-in client account. Your firm must approve its public key before protected data can use it.",color=Muted)
     }
     Panel("2 · Ask your firm to approve this key") {
         client?.let {recipient->Action("Share public enrollment request",{repo.run {
-            requireIdentity();val request=buildJsonObject {put("version",1);put("workspaceId",pins!!.workspaceId);put("accountId",identity!!.accountId);put("clientId",identity!!.clientId);put("client",Wire.encodeToJsonElement(recipient))}.toString()
+            requireIdentity();val request=buildJsonObject {put("version",if(pins!!.clientOnly) 2 else 1);if(pins!!.clientOnly)put("profile",pins!!.profile);put("workspaceId",pins!!.workspaceId);put("accountId",identity!!.accountId);put("clientId",identity!!.clientId);put("client",Wire.encodeToJsonElement(recipient))}.toString()
             repo.app.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).setType("text/plain").putExtra(Intent.EXTRA_TEXT,request),"Share public enrollment request").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
         }},false)}
         Action("Import signed enrollment JSON",{importer.launch(arrayOf("application/json","text/json"))},false,client!=null && identity!=null && !busy)

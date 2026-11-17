@@ -16,7 +16,7 @@ import kotlinx.serialization.json.*
         pins.validate();require(apiVersion==1 && token.matches(Regex("[a-f0-9]{64}")) && Instant.parse(expiresAt)>Instant.now())
         protectedSnapshotID(identity.accountId);protectedSnapshotID(identity.clientId)
         require(recoveryCodes.size<=10 && recoveryCodes.all {it.matches(Regex("[A-F0-9]{6}(-[A-F0-9]{6}){3}"))})
-        return Connection(pins.workspaceOrigin,LoginReply(1,token,expiresAt,ClientAccount(identity.accountId,"Private client",""),WorkspaceBrand("Gig Tax Pros","#21152d","#d362ee")),AccountAccess.PRIVATE,identity.clientId)
+        return Connection(pins.workspaceOrigin,LoginReply(1,token,expiresAt,ClientAccount(identity.accountId,"Private client",""),WorkspaceBrand("Gig Tax Pros","#21152d","#d362ee")),AccountAccess.PRIVATE,identity.clientId,pins.profile)
     }
 }
 class PrivateAccountClient(val pins:ProtectedPins) {
@@ -25,13 +25,13 @@ class PrivateAccountClient(val pins:ProtectedPins) {
     suspend fun begin(accountCode:String,password:String):PrivateMfaChallenge {
         protectedSnapshotID(accountCode);require(password.isNotEmpty() && password.length<=200)
         val body=buildJsonObject {put("accountCode",accountCode);put("password",password)}.toString().toByteArray(Charsets.UTF_8)
-        val result=try {client.customer("secure/native-session","POST",body,maximum=8192,allowMfaChallenge=true)} finally {body.fill(0)}
+        val result=try {client.customer("${pins.apiPrefix}/native-session","POST",body,maximum=8192,allowMfaChallenge=true)} finally {body.fill(0)}
         return Wire.decodeFromString<PrivateMfaChallenge>(result.toString(Charsets.UTF_8)).also {it.validate()}
     }
     suspend fun complete(challenge:PrivateMfaChallenge,code:String):PrivateAccountSession {
         challenge.validate();require(code.trim().length in 1..40)
         val body=buildJsonObject {put("challengeToken",challenge.challengeToken);put("code",code.trim());put("privateAccount",true)}.toString().toByteArray(Charsets.UTF_8)
-        val result=try {client.customer("secure/native-session","POST",body,maximum=8192)} finally {body.fill(0)}
+        val result=try {client.customer("${pins.apiPrefix}/native-session","POST",body,maximum=8192)} finally {body.fill(0)}
         return Wire.decodeFromString<PrivateAccountSession>(result.toString(Charsets.UTF_8)).also {it.connection(pins)}
     }
 }

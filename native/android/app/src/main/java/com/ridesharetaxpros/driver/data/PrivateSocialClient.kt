@@ -11,9 +11,9 @@ import kotlinx.serialization.json.*
 data class PrivateSocialFlow(val reply:PrivateSocialStart,val verifier:String,val link:Boolean)
 class PrivateSocialClient(private val pins:ProtectedPins,connection:Connection?=null) {
     private val client=WorkspaceClient(connection,pins.workspaceOrigin)
-    init {pins.validate();require(connection==null||connection.access==AccountAccess.PRIVATE&&connection.origin==pins.workspaceOrigin)}
+    init {pins.validate();require(connection==null||connection.access==AccountAccess.PRIVATE&&connection.origin==pins.workspaceOrigin&&connection.encryptionProfile==pins.profile)}
     suspend fun providers():Map<String,Boolean> {
-        val raw=Wire.parseToJsonElement(client.customer("secure/social/config",maximum=8192).toString(Charsets.UTF_8)).jsonObject
+        val raw=Wire.parseToJsonElement(client.customer("${pins.apiPrefix}/social/config",maximum=8192).toString(Charsets.UTF_8)).jsonObject
         require(raw["apiVersion"]?.jsonPrimitive?.intOrNull==1)
         return listOf("google","apple").associateWith {raw["providers"]!!.jsonObject[it]!!.jsonPrimitive.boolean}
     }
@@ -41,5 +41,5 @@ class PrivateSocialClient(private val pins:ProtectedPins,connection:Connection?=
         require(Instant.parse(flow.reply.expiresAt)>Instant.now()) {"Provider sign-in expired. Start again."}
         return post("result",buildJsonObject {put("requestId",flow.reply.requestId);put("verifier",flow.verifier)})
     }
-    private suspend fun post(path:String,body:JsonObject):JsonObject = Wire.parseToJsonElement(client.customer("secure/social/$path","POST",body.toString().toByteArray(Charsets.UTF_8),maximum=8192).toString(Charsets.UTF_8)).jsonObject
+    private suspend fun post(path:String,body:JsonObject):JsonObject = Wire.parseToJsonElement(client.customer("${pins.apiPrefix}/social/$path","POST",body.toString().toByteArray(Charsets.UTF_8),maximum=8192).toString(Charsets.UTF_8)).jsonObject
 }

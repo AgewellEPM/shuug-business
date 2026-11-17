@@ -13,7 +13,13 @@ import kotlinx.serialization.json.*
 @Serializable data class WorkspaceBrand(val name: String,val primaryColor: String,val accentColor: String)
 @Serializable data class LoginReply(val apiVersion: Int,val token: String,val expiresAt: String,val account: ClientAccount,val branding: WorkspaceBrand)
 @Serializable enum class AccountAccess { LEGACY, PRIVATE }
-@Serializable data class Connection(val origin: String,val session: LoginReply,val access:AccountAccess=AccountAccess.LEGACY,val privateClientId:String?=null)
+@Serializable data class Connection(val origin: String,val session: LoginReply,val access:AccountAccess=AccountAccess.LEGACY,val privateClientId:String?=null,val encryptionProfile:String?=null) {
+    val storageNamespace get():String {
+        if(encryptionProfile==null)return PrivateStore.hash(origin+"|"+session.account.id)
+        require(encryptionProfile==ProtectedProfile.CLIENT_ONLY && access==AccountAccess.PRIVATE && privateClientId!=null) {"The local private account profile is invalid."}
+        return PrivateStore.hash(origin+"|"+encryptionProfile+"|"+session.account.id+"|"+privateClientId)
+    }
+}
 @Serializable data class Failure(val error: String? = null,val current: ServerRecord? = null)
 class WorkspaceError(val status: Int,message: String,val current: ServerRecord? = null): Exception(message)
 @Serializable data class BankItem(val id: String,val label: String,val environment: String,val lastSync: String? = null,val error: String? = null,val connected: Int)
@@ -25,7 +31,7 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
     suspend fun customer(path: String,method: String="GET",body: ByteArray?=null,mime: String="application/json",maximum:Int=8*1024*1024,allowMfaChallenge:Boolean=false): ByteArray = request(path,method,body,mime,maximum,allowMfaChallenge)
     private suspend fun request(path: String,method: String,body: ByteArray?,mime: String,maximum:Int,allowMfaChallenge:Boolean=false): ByteArray = withContext(Dispatchers.IO) {
         require(!path.startsWith("/") && !path.contains("..") && !path.contains("#")) {"Invalid workspace path."}
-        ProtectedTransportPolicy.assertAllowed(ProtectedTransportPolicy.requiresProtected(address),path,method,body)
+        ProtectedTransportPolicy.assertAllowedForOrigin(address,path,method,body)
         val url=URI(address+"/api/website/customer/"+path).toURL()
         val request=url.openConnection() as HttpURLConnection
         try {
@@ -37,7 +43,7 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
             val stream=if(status in 200..299) request.inputStream else request.errorStream
             val data=stream?.use { boundedRead(it,maximum) } ?: byteArrayOf()
             require(data.size<=maximum) { "The workspace response is too large." }
-            if(status !in 200..299 && !(allowMfaChallenge && status==428 && path=="secure/native-session" && method=="POST" && maximum<=8192)) {
+            if(status !in 200..299 && !(allowMfaChallenge && status==428 && path in setOf("secure/native-session","client-only/native-session") && method=="POST" && maximum<=8192)) {
                 val failure=runCatching { Wire.decodeFromString<Failure>(data.toString(Charsets.UTF_8)) }.getOrNull()
                 throw WorkspaceError(status,failure?.error ?: "Workspace request failed ($status). Saved records are kept.",failure?.current)
             }
@@ -67,14 +73,20 @@ class WorkspaceClient(val connection: Connection? = null,private val address: St
                 && !host.endsWith(".internal") && !host.endsWith(".localhost") && !host.matches(Regex("[0-9.]+")) && !host.contains(':')) { "Use your firm's public HTTPS workspace address or client sign-in link." }
             return "https://$host"
         }
+        internal fun discoveredOrigin(bytes:ByteArray):String? {
+            require(bytes.size<=32000)
+            val value=Wire.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject["workspaceUrl"]
+            return if(value==null || value is JsonNull) null else origin(value.jsonPrimitive.content).also {
+                ProtectedTransportPolicy.requiresProtected(it)
+            }
+        }
         suspend fun discover(): String? = withContext(Dispatchers.IO) {
             val request=URI("https://gigtax.pro/site-config.json").toURL().openConnection() as HttpURLConnection
             try {
                 request.instanceFollowRedirects=false; request.connectTimeout=15000; request.readTimeout=15000
                 require(request.responseCode==200)
                 val bytes=request.inputStream.use { boundedRead(it,32000) }
-                val value=Wire.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject["workspaceUrl"]
-                if(value==null || value is JsonNull) null else origin(value.jsonPrimitive.content)
+                discoveredOrigin(bytes)
             } finally { request.disconnect() }
         }
     }

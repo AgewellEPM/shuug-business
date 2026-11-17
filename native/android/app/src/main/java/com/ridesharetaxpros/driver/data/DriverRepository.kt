@@ -15,7 +15,12 @@ class DriverApplication: Application() {
     val repository by lazy { DriverRepository(this) }
     override fun onCreate() {
         super.onCreate()
-        ProtectedTransportPolicy.configurationSource={try {assets.open("SecureTaxTrustedPins.json").use {boundedRead(it,16384)}}catch(_:java.io.FileNotFoundException) {null}}
+        ProtectedTransportPolicy.configurationSource={
+            val bytes=assets.open("SecureTaxTrustedPins.json").use {boundedRead(it,16384)}
+            val pins=ProtectedPins.decode(bytes)
+            require(pins.clientOnly && pins.workspaceOrigin==ProtectedProfile.GIGTAX_ORIGIN) {ProtectedTransportPolicy.CONFIGURATION_ERROR}
+            bytes
+        }
     }
 }
 class DriverRepository(val app: Application) {
@@ -41,7 +46,7 @@ class DriverRepository(val app: Application) {
     private var driveSyncJob:Job?=null
     private var lastDriveSyncSession:DriveSyncSession?=null
     private var lastDriveSyncAttempt:Long=0
-    val scope get()=connection?.let { PrivateStore.hash(it.origin+"|"+it.session.account.id) } ?: "guest"
+    val scope get()=connection?.let { it.storageNamespace } ?: "guest"
     private val privateSync=PrivateSyncScheduler(jobs,{storageReady && connection?.access==AccountAccess.PRIVATE},{syncPrivate()},
         {error->failure="Saved on this phone. Encrypted sync is waiting: ${error.message}"})
     fun resumePrivateSync() {privateSync.request()}
@@ -109,12 +114,12 @@ class DriverRepository(val app: Application) {
     suspend fun connectPrivate(next:Connection) {
         require(next.access==AccountAccess.PRIVATE && next.privateClientId!=null)
         val pins=app.assets.open("SecureTaxTrustedPins.json").use {ProtectedPins.decode(boundedRead(it,16384))}
-        require(next.origin==pins.workspaceOrigin);protectedSnapshotID(next.session.account.id);protectedSnapshotID(next.privateClientId)
+        require(next.origin==pins.workspaceOrigin && next.encryptionProfile==pins.profile);protectedSnapshotID(next.session.account.id);protectedSnapshotID(next.privateClientId)
         check(storageReady && !busy && !updatingProfile && !changingAccount && journal.activeTripId==null) {"Finish the current drive or account operation before connecting."}
-        connection?.let {require(it.access==AccountAccess.PRIVATE && it.origin==next.origin && it.session.account.id==next.session.account.id && it.privateClientId==next.privateClientId) {"Disconnect before changing private accounts."}}
+        connection?.let {require(it.access==AccountAccess.PRIVATE && it.origin==next.origin && it.session.account.id==next.session.account.id && it.privateClientId==next.privateClientId && it.encryptionProfile==next.encryptionProfile) {"Disconnect before changing private accounts."}}
         changingAccount=true
         try {
-            val namespace=PrivateStore.hash(next.origin+"|"+next.session.account.id)
+            val namespace=next.storageNamespace
             val saved=store.journal(namespace).let {it.copy(offerReader=it.offerReader.copy(enabled=false))}
             store.save(namespace,saved);store.write("session","connection.json",Wire.encodeToString(next).toByteArray())
             privateSync.stop()
@@ -149,7 +154,7 @@ class DriverRepository(val app: Application) {
         app.stopService(Intent(app,com.ridesharetaxpros.driver.offers.OfferScreenService::class.java))
         connection=null; journal=guest; rewards=null; bankStatus=null;profileError=null
         } finally {changingAccount=false;drainDriveSync()}
-        previous?.let {try {if(it.access==AccountAccess.PRIVATE) WorkspaceClient(it).customer("secure/native-session","DELETE") else WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
+        previous?.let {try {if(it.access==AccountAccess.PRIVATE) WorkspaceClient(it).customer(if(it.encryptionProfile==ProtectedProfile.CLIENT_ONLY) "client-only/native-session" else "secure/native-session","DELETE") else WorkspaceClient(it).send("session","DELETE")} catch(error:CancellationException) {throw error} catch(_:Exception) { /* Local sign-out remains usable offline. */ }}
     }
     fun transferGuest(includeCoach:Boolean=false,includeReputation:Boolean=false,includeRecords:Boolean=true) {
         check(!busy && !updatingProfile && !changingAccount) {"Wait for the current account operation to finish before copying phone-only records."}

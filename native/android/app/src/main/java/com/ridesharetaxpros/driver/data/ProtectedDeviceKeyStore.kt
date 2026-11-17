@@ -32,8 +32,9 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
     @Serializable private data class Stored(val version:Int=2,val scope:ProtectedJournalScope,val privateKey:String,val client:ProtectedRecipient,val manifest:ProtectedManifest?=null)
     private val directory=File(context.noBackupFilesDir,"protected-client-keys")
     private val target=File(directory,scope.storageID+".bin")
-    private val alias="gigtax-protected-client-v2-"+scope.storageID
-    private val aad=buildJsonArray { add(2);add("shuug/android-protected-device-key");add(scope.workspaceOrigin);add(scope.workspaceId);add(scope.identity.accountId);add(scope.identity.clientId) }.toString().toByteArray(Charsets.UTF_8)
+    private val bindingTarget=File(directory,(if(pins.clientOnly) scope.accountBindingID else scope.storageID)+".binding.bin")
+    private val alias=if(pins.clientOnly) "gigtax-protected-client-v3-"+scope.accountBindingID else "gigtax-protected-client-v2-"+scope.storageID
+    private val aad=buildJsonArray { add(if(scope.profile==null) 2 else 3);add("shuug/android-protected-device-key");if(scope.profile!=null)add(scope.profile);add(scope.workspaceOrigin);add(scope.workspaceId);add(scope.identity.accountId);add(scope.identity.clientId) }.toString().toByteArray(Charsets.UTF_8)
     fun requireUnlocked() {
         require(Build.VERSION.SDK_INT>=28) { "Protected client keys require Android 9 or newer with OS-enforced unlocked-device access. This phone's existing records are kept." }
         val guard=context.getSystemService(KeyguardManager::class.java)
@@ -44,8 +45,8 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
     private fun wrapping(create:Boolean):SecretKey {
         requireUnlocked()
         val store=KeyStore.getInstance("AndroidKeyStore").apply { load(null) }
-        if(store.containsAlias(alias)) return store.getKey(alias,null) as? SecretKey ?: error("The protected wrapping key is unavailable. Keep this installation and ask the firm to review recovery.")
-        require(create && !target.exists() && !File(target.path+".bak").exists()) { "The device wrapping key is missing. The original encrypted key was kept; it will not be replaced automatically." }
+        if(store.containsAlias(alias)) return store.getKey(alias,null) as? SecretKey ?: error("The protected wrapping key is unavailable. Keep this installation and recover the identical key from your client-held encrypted backup.")
+        require(create && !target.exists() && !File(target.path+".bak").exists() && !bindingTarget.exists() && !File(bindingTarget.path+".bak").exists()) { "The device wrapping key is missing. The original encrypted key was kept; it will not be replaced automatically." }
         return KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES,"AndroidKeyStore").run {
             init(KeyGenParameterSpec.Builder(alias,KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
                 .setKeySize(256).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
@@ -53,15 +54,50 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
             generateKey()
         }
     }
+    private fun binding():ProtectedClientBinding? {
+        if(!bindingTarget.exists() && !File(bindingTarget.path+".bak").exists())return null
+        val encrypted=AtomicFile(bindingTarget).readFully();require(encrypted.size in 28..16384)
+        val bytes=try {Cipher.getInstance("AES/GCM/NoPadding").run {
+            init(Cipher.DECRYPT_MODE,wrapping(false),GCMParameterSpec(128,encrypted.copyOfRange(0,12)))
+            // Full scope includes the original clientId; a changed server ID
+            // finds this account's existing file and fails authentication.
+            updateAAD(aad+"/immutable-binding".toByteArray(Charsets.UTF_8));doFinal(encrypted,12,encrypted.size-12)
+        }} catch(failure:Exception) {throw IllegalArgumentException("The saved account binding could not be opened for this client. Its original was kept.",failure)}
+        return try {
+            val raw=Wire.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
+            require(raw.keys==setOf("version","scope","client","highestEpoch","manifestSHA256")) {"The immutable local binding uses an unsupported format. Its original was kept."}
+            Wire.decodeFromString<ProtectedClientBinding>(bytes.toString(Charsets.UTF_8))
+        } finally {bytes.fill(0)}
+    }
+    private fun bind(value:Stored,create:Boolean) {
+        if(!pins.clientOnly)return
+        val approval=value.manifest ?: error("A new client-only signed enrollment is required before saving key material.")
+        val current=binding()
+        val next=if(current==null) {
+            require(create) {"The immutable local key binding is unavailable. Keep this installation."}
+            ProtectedClientBinding.first(scope,approval,pins,value.client)
+        } else current.approve(approval,pins,value.client)
+        val bytes=Wire.encodeToString(next).toByteArray(Charsets.UTF_8)
+        val cipher=Cipher.getInstance("AES/GCM/NoPadding").apply {init(Cipher.ENCRYPT_MODE,wrapping(create));updateAAD(aad+"/immutable-binding".toByteArray(Charsets.UTF_8))}
+        val encrypted=try {cipher.iv+cipher.doFinal(bytes)} finally {bytes.fill(0)}
+        require(directory.isDirectory || directory.mkdirs());Os.chmod(directory.path,448)
+        val file=AtomicFile(bindingTarget);val output=file.startWrite()
+        try {output.write(encrypted);file.finishWrite(output)}catch(failure:Exception){file.failWrite(output);throw failure}
+        Os.chmod(bindingTarget.path,384)
+    }
     private fun checked(value:Stored):Stored {
-        require(value.version==2 && value.scope==scope) { "The saved protected key belongs to another account or unsupported format." }
+        require(value.version==(if(pins.clientOnly) 3 else 2) && value.scope==scope) { "The saved protected key belongs to another account or unsupported format." }
         val bytes=ProtectedEnvelope.decodeBounded(value.privateKey,1,4096)
         try { pair(bytes,value.client) } finally { bytes.fill(0) }
         return value
     }
     private fun read():Stored? {
         requireUnlocked()
-        if(!target.exists() && !File(target.path+".bak").exists()) return null
+        if(!target.exists() && !File(target.path+".bak").exists()) {
+            // A missing key file never authorizes a new clientId/key binding.
+            if(pins.clientOnly)binding()?.let {it.validate(scope,it.client)}
+            return null
+        }
         val encrypted=AtomicFile(target).readFully();require(encrypted.size in 28..32768) { "The saved device key is incomplete or exceeds its supported format. Keep its original file." }
         val plaintext=Cipher.getInstance("AES/GCM/NoPadding").run {
             init(Cipher.DECRYPT_MODE,wrapping(false),GCMParameterSpec(128,encrypted.copyOfRange(0,12)));updateAAD(aad);doFinal(encrypted,12,encrypted.size-12)
@@ -69,13 +105,16 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
         try {
             val objectValue=Wire.parseToJsonElement(plaintext.toString(Charsets.UTF_8)).jsonObject
             require(objectValue.keys.all { it in setOf("version","scope","privateKey","client","manifest") }) { "The saved protected key uses a future format. Its original bytes were kept." }
-            return checked(Wire.decodeFromString(plaintext.toString(Charsets.UTF_8)))
+            return checked(Wire.decodeFromString<Stored>(plaintext.toString(Charsets.UTF_8))).also {
+                if(pins.clientOnly) (binding() ?: error("The immutable local key binding is unavailable. Keep its original key file.")).validate(scope,it.client)
+            }
         } finally { plaintext.fill(0) }
     }
     private fun save(value:Stored,create:Boolean) {
         requireUnlocked();checked(value)
         if(create) require(!target.exists() && !File(target.path+".bak").exists()) { "An existing protected key will never be overwritten by creation." }
         else require(target.exists() || File(target.path+".bak").exists()) { "The original protected key file is missing. No replacement was written." }
+        bind(value,create)
         val plaintext=Wire.encodeToString(value).toByteArray(Charsets.UTF_8);require(plaintext.size<=24576)
         val cipher=Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE,wrapping(create));updateAAD(aad) }
         val encrypted=try { cipher.iv+cipher.doFinal(plaintext) } finally { plaintext.fill(0) }
@@ -88,6 +127,7 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
     fun createClientKey():State=synchronized(LOCK) {
         read()?.let { return@synchronized State(it.client,it.manifest) }
         val legacyNamespace=PrivateStore.hash(scope.workspaceOrigin+"|"+scope.identity.accountId)
+        require(scope.profile==null) {"Recover your existing client-owned key from its encrypted backup. Automatic key replacement is unavailable."}
         require(!hasLegacy(PrivateStore(context),legacyNamespace)) { "An earlier client key exists for this account. Explicitly protect that existing key instead of creating another one." }
         val key=KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
         val public=protectedPublicBytes(key.public as ECPublicKey);val bytes=key.private.encoded
@@ -109,12 +149,12 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
             manifest.verify(pins,scope.identity,opened.recipient)
             val current=read()
             if(current!=null) {
-                require(current.client==opened.recipient) {"A different key exists on this phone. Both originals were kept for firm review."}
+                require(current.client==opened.recipient) {"A different key exists on this phone. Both originals were kept for review."}
                 return@synchronized stage(manifest)
             }
             val legacyNamespace=PrivateStore.hash(scope.workspaceOrigin+"|"+scope.identity.accountId)
-            require(!hasLegacy(PrivateStore(context),legacyNamespace)) {"An earlier key exists. Protect that key before importing another backup."}
-            val next=Stored(scope=scope,privateKey=protectedEncode(opened.pkcs8),client=opened.recipient,manifest=manifest)
+            if(scope.profile==null)require(!hasLegacy(PrivateStore(context),legacyNamespace)) {"An earlier key exists. Protect that key before importing another backup."}
+            val next=Stored(version=if(pins.clientOnly) 3 else 2,scope=scope,privateKey=protectedEncode(opened.pkcs8),client=opened.recipient,manifest=manifest)
             save(next,true);State(next.client,next.manifest)
         }
     }
@@ -123,6 +163,7 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
     }
     /** Consent is required, and the encrypted legacy source is deliberately retained. */
     fun migrateLegacy(store:PrivateStore,namespace:String,consented:Boolean):State=synchronized(LOCK) {
+        require(scope.profile==null && !pins.clientOnly) {"Legacy key migration is unavailable for client-only accounts. Import client-held key material with a new client-only enrollment."}
         require(consented) { "Explicit consent is required to protect an existing client key." };requireUnlocked()
         require(namespace==PrivateStore.hash(scope.workspaceOrigin+"|"+scope.identity.accountId)) { "The earlier key belongs to another account namespace." }
         val bytes=store.read(namespace,legacyFilename(scope)) ?: error("The earlier client key is unavailable. No new key was generated.")
@@ -138,7 +179,7 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
             checked(value)
             val current=read()
             if(current!=null) {
-                require(current.client==value.client && current.privateKey==value.privateKey) { "A different protected key already exists. Both originals were kept for firm review." }
+                require(current.client==value.client && current.privateKey==value.privateKey) { "A different protected key already exists. Both originals were kept for review." }
                 return@synchronized State(current.client,current.manifest)
             }
             save(value,true);State(value.client,value.manifest)
@@ -148,8 +189,9 @@ class ProtectedDeviceKeyStore(private val context:Context,val scope:ProtectedJou
         val current=read() ?: error("This device's protected client key is unavailable.")
         val approval=current.manifest ?: error("This device has no verified signed enrollment for this account.")
         approval.verify(pins,scope.identity,current.client)
+        if(pins.clientOnly) (binding() ?: error("This account's immutable local binding is unavailable.")).approve(approval,pins,current.client)
         val bytes=ProtectedEnvelope.decodeBounded(current.privateKey,1,4096)
-        try { operation(pair(bytes,current.client),ProtectedEnvelope.Trusted(approval.client,approval.firmRecovery)) }
+        try { operation(pair(bytes,current.client),approval.trusted()) }
         finally { bytes.fill(0) }
     }
     companion object {

@@ -7,13 +7,21 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair
 
-@Serializable data class ProtectedJournalScope(val workspaceOrigin:String,val workspaceId:String,val identity:ProtectedIdentity) {
+@Serializable data class ProtectedJournalScope(val workspaceOrigin:String,val workspaceId:String,val identity:ProtectedIdentity,val profile:String?=null) {
     fun validate(pins:ProtectedPins) {
         pins.validate();validateProtectedID(identity.accountId);validateProtectedID(identity.clientId)
-        require(workspaceOrigin==pins.workspaceOrigin && workspaceId==pins.workspaceId) { "The protected archive belongs to another independently trusted workspace." }
+        require(workspaceOrigin==pins.workspaceOrigin && workspaceId==pins.workspaceId && profile==pins.profile) { "The protected archive belongs to another independently trusted workspace." }
+    }
+    /** Account-level authority must be found even when the server changes clientId. */
+    val accountBindingID get():String {
+        require(profile==ProtectedProfile.CLIENT_ONLY)
+        return protectedKeyID(buildJsonArray {
+            add(1);add("gigtax/client-only-account-binding");add(profile)
+            add(workspaceOrigin);add(workspaceId);add(identity.accountId)
+        }.toString().toByteArray(Charsets.UTF_8))
     }
     val storageID get()=protectedKeyID(buildJsonArray {
-        add(1);add("shuug/secure-tax-device-key");add(workspaceOrigin);add(workspaceId);add(identity.accountId);add(identity.clientId)
+        add(if(profile==null) 1 else 2);add("shuug/secure-tax-device-key");if(profile!=null)add(profile);add(workspaceOrigin);add(workspaceId);add(identity.accountId);add(identity.clientId)
     }.toString().toByteArray(Charsets.UTF_8))
 }
 fun protectedSnapshotID(value:String) { require(runCatching { UUID.fromString(value).toString()==value }.getOrDefault(false)) { "A protected archive must use its opaque random UUID." } }
@@ -30,8 +38,10 @@ fun protectedJournalHash(journal:Journal):String=protectedKeyID(protectedCanonic
     fun encoded():ByteArray=protectedCanonical(Wire.encodeToJsonElement(this)).toString().toByteArray(Charsets.UTF_8).also {
         require(it.size<=ProtectedEnvelope.MAX_CIPHERTEXT-16) { "This journal exceeds the encrypted snapshot size limit. Keep its local records and attachments." }
     }
-    fun seal(revision:Int,trusted:ProtectedEnvelope.Trusted,key:AsymmetricCipherKeyPair)=ProtectedEnvelope.seal(encoded(),
-        ProtectedEnvelope.Context(binding.workspaceId,binding.accountId,binding.objectId,revision,"driver-state"),trusted,"client",key)
+    fun seal(revision:Int,trusted:ProtectedEnvelope.Trusted,key:AsymmetricCipherKeyPair):ProtectedEnvelope {
+        val bytes=encoded()
+        return try {ProtectedEnvelope.seal(bytes,ProtectedEnvelope.Context(binding.workspaceId,binding.accountId,binding.objectId,revision,"driver-state"),trusted,"client",key)} finally {bytes.fill(0)}
+    }
     companion object {
         // Both supported native archives retain their own fields. We do not silently
         // decode a foreign Journal into Android defaults or provide restore/apply.
@@ -61,7 +71,8 @@ fun protectedJournalHash(journal:Journal):String=protectedKeyID(protectedCanonic
         }
         fun open(envelope:ProtectedEnvelope,scope:ProtectedJournalScope,id:String,revision:Int,trusted:ProtectedEnvelope.Trusted,key:AsymmetricCipherKeyPair):ProtectedJournalSnapshot {
             val expected=ProtectedEnvelope.Context(scope.workspaceId,scope.identity.accountId,id,revision,"driver-state")
-            return decode(envelope.open(expected,trusted,"client",key),binding(scope,id))
+            val bytes=envelope.open(expected,trusted,"client",key)
+            return try {decode(bytes,binding(scope,id))} finally {bytes.fill(0)}
         }
     }
 }
@@ -89,12 +100,13 @@ fun protectedJournalHash(journal:Journal):String=protectedKeyID(protectedCanonic
         protectedSnapshotID(objectId);acknowledgedJournalSHA256?.let { protectedDecode(it,32) }
         pending?.let {
             protectedSnapshotID(it.mutationId);protectedDecode(it.journalSHA256,32)
-            require(!deleted && it.expectedRevision==revision && revision<1_000_000_000 && it.envelope.context==ProtectedEnvelope.Context(scope.workspaceId,scope.identity.accountId,objectId,revision+1,"driver-state")) { "The encrypted retry no longer matches its saved account and revision." }
+            require(it.envelope.version==(if(scope.profile==ProtectedProfile.CLIENT_ONLY) 3 else 2) && it.envelope.profile==scope.profile && !deleted && it.expectedRevision==revision && revision<1_000_000_000 && it.envelope.context==ProtectedEnvelope.Context(scope.workspaceId,scope.identity.accountId,objectId,revision+1,"driver-state")) { "The encrypted retry no longer matches its saved account and revision." }
         }
     }
     fun prepared(journal:Journal,trusted:ProtectedEnvelope.Trusted,key:AsymmetricCipherKeyPair,clock:Instant=Instant.now()):ProtectedJournalCheckpoint {
         validate(scope);require(!deleted && revision<1_000_000_000) { "This archive was deleted or reached its revision limit." }
-        if(pending!=null) return this
+        require(trusted.profile==scope.profile) {"The encrypted retry profile differs from this account."}
+        if(pending!=null) {pending.envelope.assertAuthorized(pending.envelope.context,trusted);return this}
         val snapshot=ProtectedJournalSnapshot.capture(journal,scope,objectId,clock)
         return copy(pending=ProtectedSnapshotUpload(uuid(),revision,protectedJournalHash(journal),snapshot.seal(revision+1,trusted,key)))
     }

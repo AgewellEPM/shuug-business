@@ -40,15 +40,17 @@ interface ProtectedObjectTransport {
     suspend fun delete(id:String,revision:Int):ProtectedObjectReceipt
 }
 /** Only the authenticated ciphertext envelope and required CAS metadata leave the phone. */
-class ProtectedObjectClient(private val client:WorkspaceClient,private val scope:ProtectedJournalScope,private val pins:ProtectedPins):ProtectedObjectTransport {
+class ProtectedObjectClient(private val client:WorkspaceClient,private val scope:ProtectedJournalScope,private val pins:ProtectedPins,
+    private val trusted:()->ProtectedEnvelope.Trusted,
+    private val send:suspend (String,String,ByteArray?)->ByteArray={path,method,body->client.customer(path,method,body,maximum=65536)}):ProtectedObjectTransport {
     init { scope.validate(pins);require(client.connection?.origin==pins.workspaceOrigin) }
     override suspend fun changes(after:Long,limit:Int):ProtectedObjectPage {
         require(after in 0..9_007_199_254_740_991 && limit in 1..200)
-        return Wire.decodeFromString<ProtectedObjectPage>(client.customer("secure/objects?after=$after&limit=$limit",maximum=65536).toString(Charsets.UTF_8)).also { it.validate(after,limit) }
+        return Wire.decodeFromString<ProtectedObjectPage>(client.customer("${pins.apiPrefix}/objects?after=$after&limit=$limit",maximum=65536).toString(Charsets.UTF_8)).also { it.validate(after,limit) }
     }
     override suspend fun item(id:String):ProtectedStoredObject {
         protectedSnapshotID(id)
-        val bytes=client.customer("secure/objects/$id",maximum=24*1024*1024)
+        val bytes=client.customer("${pins.apiPrefix}/objects/$id",maximum=24*1024*1024)
         val raw=Wire.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
         (raw["envelope"] as? JsonObject)?.let { ProtectedEnvelope.decode(it.toString().toByteArray(Charsets.UTF_8)) }
         return Wire.decodeFromString<ProtectedStoredObject>(bytes.toString(Charsets.UTF_8)).also { it.validate(id,scope) }
@@ -56,7 +58,7 @@ class ProtectedObjectClient(private val client:WorkspaceClient,private val scope
     override suspend fun put(upload:ProtectedSnapshotUpload):ProtectedObjectReceipt {
         protectedSnapshotID(upload.mutationId)
         val context=upload.envelope.context;protectedSnapshotID(context.objectId)
-        require(upload.expectedRevision in 0 until 1_000_000_000 && upload.envelope.version==2 && context==ProtectedEnvelope.Context(scope.workspaceId,scope.identity.accountId,context.objectId,upload.expectedRevision+1,"driver-state"))
+        require(upload.expectedRevision in 0 until 1_000_000_000 && upload.envelope.version==(if(pins.clientOnly) 3 else 2) && upload.envelope.profile==pins.profile && context==ProtectedEnvelope.Context(scope.workspaceId,scope.identity.accountId,context.objectId,upload.expectedRevision+1,"driver-state"))
         return putEnvelope(upload.mutationId,upload.expectedRevision,upload.envelope)
     }
     suspend fun putReceipt(upload:ProtectedReceiptCheckpoint):ProtectedObjectReceipt {
@@ -65,21 +67,24 @@ class ProtectedObjectClient(private val client:WorkspaceClient,private val scope
     }
     private suspend fun putEnvelope(mutationId:String,expectedRevision:Int,envelope:ProtectedEnvelope):ProtectedObjectReceipt {
         val context=envelope.context
+        require(context.workspaceId==scope.workspaceId && context.accountId==scope.identity.accountId && envelope.profile==scope.profile)
+        val recipients=trusted();require(recipients.profile==pins.profile)
+        envelope.assertAuthorized(context,recipients)
         val body=buildJsonObject { put("mutationId",mutationId);put("expectedRevision",expectedRevision);put("envelope",Wire.encodeToJsonElement(envelope)) }.toString().toByteArray(Charsets.UTF_8)
         require(body.size<=24*1024*1024)
-        return Wire.decodeFromString<ProtectedObjectReceipt>(client.customer("secure/objects/${context.objectId}","PUT",body,maximum=65536).toString(Charsets.UTF_8)).also {
+        return Wire.decodeFromString<ProtectedObjectReceipt>(send("${pins.apiPrefix}/objects/${context.objectId}","PUT",body).toString(Charsets.UTF_8)).also {
             it.validate();require(it.objectId==context.objectId && it.revision==context.revision && !it.deleted) { "The workspace did not acknowledge this exact protected archive." }
         }
     }
     override suspend fun delete(id:String,revision:Int):ProtectedObjectReceipt {
         protectedSnapshotID(id);require(revision in 1..1_000_000_001)
         val body=buildJsonObject { put("expectedRevision",revision) }.toString().toByteArray(Charsets.UTF_8)
-        return Wire.decodeFromString<ProtectedObjectReceipt>(client.customer("secure/objects/$id","DELETE",body,maximum=65536).toString(Charsets.UTF_8)).also {
+        return Wire.decodeFromString<ProtectedObjectReceipt>(client.customer("${pins.apiPrefix}/objects/$id","DELETE",body,maximum=65536).toString(Charsets.UTF_8)).also {
             it.validate();require(it.objectId==id && it.deleted && it.revision in revision..revision+1) { "The workspace did not confirm deletion of this archive." }
         }
     }
 }
-@Serializable private data class ProtectedJournalStatus(val enrolled:Boolean,val keyProvisioningEnabled:Boolean,val identity:ProtectedIdentity,val manifest:ProtectedManifest?=null)
+@Serializable private data class ProtectedJournalStatus(val enrolled:Boolean,val keyProvisioningEnabled:Boolean,val identity:ProtectedIdentity,val manifest:ProtectedManifest?=null,val profile:String?=null)
 data class ProtectedJournalUploadOutcome(val receipt:ProtectedObjectReceipt,val localJournalStillMatches:Boolean)
 /** Explicit archive workflow, with no enrollment, live-journal apply or plaintext fallback. */
 class ProtectedJournalService private constructor(private val repo:DriverRepository,val scope:ProtectedJournalScope,private val pins:ProtectedPins) {
@@ -91,18 +96,18 @@ class ProtectedJournalService private constructor(private val repo:DriverReposit
         key.requireUnlocked()
     }
     private val client=WorkspaceClient(connection)
-    private val objects=ProtectedObjectClient(client,scope,pins)
+    private val objects=ProtectedObjectClient(client,scope,pins,{key.withClientPrivateKey {_,trusted->trusted}})
     private val checkpoints=ProtectedJournalCheckpointStore(repo.store,namespace,scope)
     private val lock=Mutex()
     private suspend fun authorize() {
         requireCurrent();require(repo.storageReady) { "The saved local Journal could not be opened. Keep this installation; an empty replacement will not be uploaded." }
         val local=key.state()?.stagedManifest ?: error("This device has no verified signed enrollment for this account.")
-        val bytes=client.customer("secure/status",maximum=65536)
+        val bytes=client.customer("${pins.apiPrefix}/status",maximum=65536)
         requireCurrent()
         val raw=Wire.parseToJsonElement(bytes.toString(Charsets.UTF_8)).jsonObject
         val remote=ProtectedManifest.decode((raw["manifest"] as? JsonObject ?: error("Your device approval is staged, but encrypted workspace enrollment is not activated.")).toString().toByteArray(Charsets.UTF_8))
         val status=Wire.decodeFromString<ProtectedJournalStatus>(bytes.toString(Charsets.UTF_8))
-        require(status.enrolled && status.keyProvisioningEnabled && status.identity==scope.identity && remote.canonicalBytes().contentEquals(local.canonicalBytes())) { "Encrypted snapshots need matching verified device approval and active workspace enrollment. No plaintext fallback is available." }
+        require(status.profile==pins.profile && status.enrolled && status.keyProvisioningEnabled && status.identity==scope.identity && remote.canonicalBytes().contentEquals(local.canonicalBytes())) { "Encrypted snapshots need matching verified device approval and active workspace enrollment. No plaintext fallback is available." }
         remote.verify(pins,scope.identity,local.client)
     }
     fun checkpoint():ProtectedJournalCheckpoint? { requireCurrent();return checkpoints.load() }
@@ -175,12 +180,13 @@ class ProtectedJournalService private constructor(private val repo:DriverReposit
             require(repo.storageReady) { "The local Journal could not be opened. Keep this installation and its saved records." }
             val namespace=repo.scope;val connection=repo.connection ?: error("Connect your invited client account first.")
             val pins=repo.app.assets.open("SecureTaxTrustedPins.json").use { ProtectedPins.decode(boundedRead(it,16384)) }
-            require(connection.origin==pins.workspaceOrigin) { "The connected workspace differs from this signed app's independent public pins." }
-            val bytes=WorkspaceClient(connection).customer("secure/status",maximum=65536)
+            require(connection.origin==pins.workspaceOrigin && connection.encryptionProfile==pins.profile) { "The connected workspace differs from this signed app's independent public pins." }
+            val bytes=WorkspaceClient(connection).customer("${pins.apiPrefix}/status",maximum=65536)
             require(repo.scope==namespace && repo.connection==connection)
             val status=Wire.decodeFromString<ProtectedJournalStatus>(bytes.toString(Charsets.UTF_8))
-            require(status.identity.accountId==connection.session.account.id && status.enrolled==(status.manifest!=null))
-            val scope=ProtectedJournalScope(pins.workspaceOrigin,pins.workspaceId,status.identity).also { it.validate(pins) }
+            require(status.profile==pins.profile && status.identity.accountId==connection.session.account.id && status.enrolled==(status.manifest!=null))
+            if(pins.clientOnly)require(connection.access==AccountAccess.PRIVATE && status.identity.clientId==connection.privateClientId) {"The private account/client binding changed."}
+            val scope=ProtectedJournalScope(pins.workspaceOrigin,pins.workspaceId,status.identity,pins.profile).also { it.validate(pins) }
             return ProtectedJournalService(repo,scope,pins).also { it.authorize() }
         }
     }

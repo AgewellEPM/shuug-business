@@ -34,11 +34,11 @@ import kotlinx.serialization.json.*
         else action {
             try {
                 val connection=repo.connection ?: error("Sign in to your private account first.")
-                require(connection.access==AccountAccess.PRIVATE)
-                val scope=ProtectedJournalScope(pins.workspaceOrigin,pins.workspaceId,ProtectedIdentity(connection.session.account.id,connection.privateClientId!!))
+                require(connection.access==AccountAccess.PRIVATE && connection.encryptionProfile==pins.profile)
+                val scope=ProtectedJournalScope(pins.workspaceOrigin,pins.workspaceId,ProtectedIdentity(connection.session.account.id,connection.privateClientId!!),pins.profile)
                 withContext(Dispatchers.IO) {
-                    val raw=Wire.parseToJsonElement(WorkspaceClient(connection).customer("secure/status",maximum=65536).toString(Charsets.UTF_8)).jsonObject
-                    require(Wire.decodeFromJsonElement<ProtectedIdentity>(raw["identity"]!!)==scope.identity && raw["enrolled"]?.jsonPrimitive?.boolean==true)
+                    val raw=Wire.parseToJsonElement(WorkspaceClient(connection).customer("${pins.apiPrefix}/status",maximum=65536).toString(Charsets.UTF_8)).jsonObject
+                    require(Wire.decodeFromJsonElement<ProtectedIdentity>(raw["identity"]!!)==scope.identity && raw["enrolled"]?.jsonPrimitive?.boolean==true && (raw["profile"]?.jsonPrimitive?.content)==pins.profile)
                     val manifest=ProtectedManifest.decode(raw["manifest"]!!.toString().toByteArray(Charsets.UTF_8))
                     val bytes=repo.app.contentResolver.openInputStream(uri)!!.use {boundedRead(it,8192)}
                     try {
@@ -98,7 +98,7 @@ import kotlinx.serialization.json.*
             Text("Choose the encrypted client-key backup created in your website portal. Use its separate backup passphrase. Both stay on this phone; the server receives neither.",color=Muted)
             Field("Backup passphrase",backupPassword,{backupPassword=it},secret=true)
             Action("Choose encrypted key backup",{importer.launch(arrayOf("application/json","text/json"))},false,!blocked && backupPassword.length in 16..1024)
-            Text("Keep a secure screen lock. Losing your backup and passphrase may require your tax team’s separately held recovery key.",color=Muted)
+            Text("Keep a secure screen lock. Only you hold the decryption key. Losing every usable key, backup and passphrase makes the encrypted contents unrecoverable. Gig Tax Pros cannot recover them.",color=Muted)
         }
         Panel("Your phone-only records") {
             Text("Copying includes your phone-only journal, receipts, saved chat, ratings and preferences. The original phone-only copy remains available.",color=Muted)
@@ -106,6 +106,6 @@ import kotlinx.serialization.json.*
             TextButton(enabled=!blocked,onClick={confirmSignOut=true}) {Text("Disconnect private account")}
         }
     }
-    if(confirmCopy) AlertDialog(onDismissRequest={confirmCopy=false},title={Text("Copy and share phone-only records?")},text={Text("These records will be encrypted for this private account and your tax team’s recovery key, then uploaded automatically. The original stays on this phone.")},confirmButton={TextButton(onClick={confirmCopy=false;action {repo.transferGuest(includeCoach=true,includeReputation=true);repo.resumePrivateSync()}}) {Text("Copy and sync")}},dismissButton={TextButton(onClick={confirmCopy=false}) {Text("Cancel")}})
+    if(confirmCopy) AlertDialog(onDismissRequest={confirmCopy=false},title={Text("Copy phone-only records?")},text={Text("These records will be encrypted only for your client key, then uploaded automatically. The original stays on this phone.")},confirmButton={TextButton(onClick={confirmCopy=false;action {repo.transferGuest(includeCoach=true,includeReputation=true);repo.resumePrivateSync()}}) {Text("Copy and sync")}},dismissButton={TextButton(onClick={confirmCopy=false}) {Text("Cancel")}})
     if(confirmSignOut) AlertDialog(onDismissRequest={confirmSignOut=false},title={Text("Disconnect this private account?")},text={Text("Account records and their encrypted retries remain separately on this phone. The server session is revoked when reachable.")},confirmButton={TextButton(onClick={confirmSignOut=false;action {repo.disconnect();recoveryCodes=emptyList();challenge=null;password="";backupPassword="";signIn=true}}) {Text("Disconnect")}},dismissButton={TextButton(onClick={confirmSignOut=false}) {Text("Cancel")}})
 }
