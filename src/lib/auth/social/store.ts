@@ -5,15 +5,18 @@ import { workspaceDatabase } from "../../workspace/database";
 import { openSecret, sealSecret } from "../../connections/vault";
 import { privateTaxSession } from "../../secure-tax/private-accounts";
 import { secureStaffIdentity } from "../../secure-tax/staff-session";
+import { hasClientOnlyBinding } from "../../secure-tax/client-only/guard";
 import { beginFederatedLoginFactor, loginFactorView } from "../mfa/store";
 import { authorizationUrl, exchangeAuthorizationCode, providerName, revokeAppleAuthorization, SocialSignInError, type SocialProvider } from "./providers";
+import { acceptWorkspaceInvitation, issueWorkspaceTicket, workspaceSecret, workspaceSecretDigest } from "./workspace-access";
 
 const hash = (value: string) => createHash("sha256").update(value).digest("base64url");
 const proof = z.string().regex(/^[A-Za-z0-9_-]{43}$/);
 export const socialStartInput = z.object({ provider: z.enum(["google", "apple"]), audience: z.enum(["owner", "secure-customer"]), purpose: z.enum(["login", "link"]), challenge: proof }).strict();
 export const socialResultInput = z.object({ requestId: z.uuid(), verifier: proof }).strict();
 type Audience = "owner" | "secure-customer";
-type Flow = { id: string; provider: SocialProvider; audience: Audience; purpose: "login" | "link"; accountId: string | null; challenge: string; stateHash: string; nonce: string; providerVerifier: string; status: string; identityDigest: string | null; refreshToken: string | null; expires: number };
+type Flow = { id: string; provider: SocialProvider; audience: Audience | "workspace"; purpose: "login" | "link"; accountId: string | null; challenge: string; stateHash: string; nonce: string; providerVerifier: string; status: string; identityDigest: string | null; refreshToken: string | null; expires: number };
+const workspaceStartInput = z.object({ provider: z.enum(["google", "apple"]), challenge: proof, invitation: workspaceSecret.optional() }).strict();
 function init(db: DatabaseSync) {
   db.exec(`CREATE TABLE IF NOT EXISTS social_login_flows(id TEXT PRIMARY KEY,provider TEXT NOT NULL,audience TEXT NOT NULL,purpose TEXT NOT NULL,accountId TEXT,challenge TEXT NOT NULL,stateHash TEXT UNIQUE NOT NULL,nonce TEXT NOT NULL,providerVerifier TEXT NOT NULL,status TEXT NOT NULL,identityDigest TEXT,refreshToken TEXT,expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS social_identities(provider TEXT NOT NULL,identityDigest TEXT NOT NULL,audience TEXT NOT NULL,accountId TEXT NOT NULL,refreshToken TEXT,createdAt TEXT NOT NULL,PRIMARY KEY(provider,identityDigest,audience),UNIQUE(provider,audience,accountId));
@@ -25,14 +28,22 @@ function authorizeLink(db: DatabaseSync, audience: Audience, token?: string) {
   throw new SocialSignInError("Sign in to the account before connecting Google or Apple.", 401);
 }
 export function startSocialSignIn(raw: unknown, token?: string) {
-  const input = socialStartInput.parse(raw), state = randomBytes(32).toString("base64url"), nonce = randomBytes(32).toString("base64url"), verifier = randomBytes(32).toString("base64url"), id = randomUUID(), expires = Date.now() + 10 * 60000;
+  const input = socialStartInput.parse(raw);
+  return createSocialFlow(input, db => input.purpose === "link" ? authorizeLink(db, input.audience, token) : null);
+}
+export function startWorkspaceSignIn(raw: unknown) {
+  const { provider, challenge, invitation } = workspaceStartInput.parse(raw);
+  return createSocialFlow({ provider, challenge, audience: "workspace", purpose: "login" }, () => invitation ? workspaceSecretDigest(invitation) : null);
+}
+function createSocialFlow(input: Pick<Flow, "provider" | "challenge" | "audience" | "purpose">, account: (db: DatabaseSync) => string | null) {
+  const state = randomBytes(32).toString("base64url"), nonce = randomBytes(32).toString("base64url"), verifier = randomBytes(32).toString("base64url"), id = randomUUID(), expires = Date.now() + 10 * 60000;
   const url = authorizationUrl(input.provider, state, nonce, hash(verifier));
   workspaceDatabase(db => {
     init(db); const now = Date.now(); db.prepare("DELETE FROM social_login_flows WHERE expires<=?").run(now); db.prepare("DELETE FROM social_login_limits WHERE expires<=?").run(now);
     const count = db.prepare("SELECT count FROM social_login_limits WHERE bucket='start'").get() as { count: number } | undefined;
     if ((count?.count ?? 0) >= 200 || Number((db.prepare("SELECT count(*) AS n FROM social_login_flows").get() as { n: number }).n) >= 1000) throw new SocialSignInError("Sign-in is busy. Wait a minute before retrying.", 429);
     db.prepare("INSERT INTO social_login_limits VALUES('start',1,?) ON CONFLICT(bucket) DO UPDATE SET count=count+1").run(now + 60000);
-    const accountId = input.purpose === "link" ? authorizeLink(db, input.audience, token) : null;
+    const accountId = account(db);
     db.prepare("INSERT INTO social_login_flows VALUES(?,?,?,?,?,?,?,?,?,'pending',NULL,NULL,?)").run(id, input.provider, input.audience, input.purpose, accountId, input.challenge, hash(state), nonce, sealSecret(verifier), expires);
   }, true);
   return { apiVersion: 1, requestId: id, authorizationUrl: url, expiresAt: new Date(expires).toISOString() };
@@ -53,38 +64,71 @@ export async function finishSocialCallback(provider: SocialProvider, state: stri
     }, true);
   } catch {
     workspaceDatabase(db => db.prepare("UPDATE social_login_flows SET status='failed',providerVerifier='',refreshToken=NULL WHERE id=?").run(flow.id), true);
-    throw new SocialSignInError();
+    if (flow.audience !== "workspace") throw new SocialSignInError();
   }
+  return flow.audience;
 }
 export function cancelSocialCallback(provider:SocialProvider,state:string) {
   providerName(provider);if(!proof.safeParse(state).success)throw new SocialSignInError();
-  workspaceDatabase(db=>{init(db);db.prepare("UPDATE social_login_flows SET status='failed',providerVerifier='',refreshToken=NULL WHERE provider=? AND stateHash=? AND status='pending' AND expires>?").run(provider,hash(state),Date.now());},true);
+  return workspaceDatabase(db=>{
+    init(db);
+    const row=db.prepare("UPDATE social_login_flows SET status='failed',providerVerifier='',refreshToken=NULL WHERE provider=? AND stateHash=? AND status='pending' AND expires>? RETURNING audience").get(provider,hash(state),Date.now());
+    return row?.audience;
+  },true);
 }
-export function claimSocialResult(raw: unknown, token?: string) {
+type LinkedIdentity = { audience: Audience | "workspace-member"; accountId: string };
+function claimWorkspaceIdentity(db: DatabaseSync, row: Flow) {
+  const identities = db.prepare("SELECT audience,accountId FROM social_identities WHERE provider=? AND identityDigest=?")
+    .all(row.provider, row.identityDigest) as LinkedIdentity[];
+  if (identities.length > 1) throw new SocialSignInError("This sign-in is connected to more than one account. Review the connected accounts with the owner.", 409);
+  let identity = identities[0];
+  if (row.accountId) {
+    if (identity) throw new SocialSignInError("This sign-in is already connected. Use a different Google or Apple account for the invitation.", 409);
+    const accountId = acceptWorkspaceInvitation(db, row.accountId);
+    if (db.prepare("SELECT 1 FROM social_identities WHERE audience='workspace-member' AND provider=? AND accountId=?").get(row.provider, accountId)) {
+      throw new SocialSignInError("This assignment already has a sign-in for that provider.", 409);
+    }
+    identity = { audience: "workspace-member", accountId };
+    db.prepare("INSERT INTO social_identities VALUES(?,?,?,?,?,?)").run(row.provider, row.identityDigest, identity.audience, accountId, row.refreshToken, new Date().toISOString());
+    db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)")
+      .run(accountId, accountId, "auth.workspace.connected", new Date().toISOString(), JSON.stringify({ provider: row.provider }));
+  }
+  if (!identity) throw new SocialSignInError("This sign-in is not connected. Use your account code or open your workspace invitation first.", 409);
+  if (identity.audience === "secure-customer" && !hasClientOnlyBinding(db, { accountId: identity.accountId })) {
+    throw new SocialSignInError("Activate your client-owned account before using the shared sign-in.", 409);
+  }
+  return identity;
+}
+export function claimSocialResult(raw: unknown, token?: string, workspace = false) {
   const input = socialResultInput.parse(raw);
   const result = workspaceDatabase(db => {
     init(db); const row = db.prepare("SELECT * FROM social_login_flows WHERE id=? AND expires>?").get(input.requestId, Date.now()) as Flow | undefined;
     const actual = Buffer.from(hash(input.verifier)), expected = Buffer.from(row?.challenge ?? "");
-    if (!row || actual.length !== expected.length || !timingSafeEqual(actual, expected) || row.status === "consumed") throw new SocialSignInError();
+    if (!row || (row.audience === "workspace") !== workspace || actual.length !== expected.length || !timingSafeEqual(actual, expected) || row.status === "consumed") throw new SocialSignInError();
     if (row.status === "pending" || row.status === "processing") return { apiVersion: 1, pending: true } as const;
     if (row.status !== "complete" || !row.identityDigest) throw new SocialSignInError();
-    if (row.purpose === "link") {
+    if (row.purpose === "link" && row.audience !== "workspace") {
       const accountId = authorizeLink(db, row.audience, token);
       if (accountId !== row.accountId) throw new SocialSignInError("Your account changed. Connect the provider again.", 409);
       const existing = db.prepare("SELECT accountId FROM social_identities WHERE provider=? AND identityDigest=? AND audience=?").get(row.provider, row.identityDigest, row.audience) as { accountId: string } | undefined;
       const other = db.prepare("SELECT identityDigest FROM social_identities WHERE provider=? AND audience=? AND accountId=?").get(row.provider, row.audience, accountId) as { identityDigest: string } | undefined;
       if (existing && existing.accountId !== accountId || other && other.identityDigest !== row.identityDigest) throw new SocialSignInError("This provider is connected to a different account. Review it before replacing any sign-in.", 409);
+      if (process.env.GIGTAX_REQUIRE_CLIENT_ONLY === "true" && db.prepare("SELECT 1 FROM social_identities WHERE provider=? AND identityDigest=? AND audience<>?").get(row.provider, row.identityDigest, row.audience)) {
+        throw new SocialSignInError("This provider is connected to a different workspace account.", 409);
+      }
       db.prepare("INSERT INTO social_identities VALUES(?,?,?,?,?,?) ON CONFLICT(provider,identityDigest,audience) DO UPDATE SET refreshToken=COALESCE(excluded.refreshToken,social_identities.refreshToken)").run(row.provider, row.identityDigest, row.audience, accountId, row.refreshToken, new Date().toISOString());
       db.prepare("UPDATE social_login_flows SET status='consumed',refreshToken=NULL WHERE id=?").run(row.id);
       db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)").run(accountId,accountId,"auth.social.linked",new Date().toISOString(),JSON.stringify({provider:row.provider,audience:row.audience}));
       return { apiVersion: 1, linked: true, provider: row.provider } as const;
     }
-    const identity = db.prepare("SELECT accountId FROM social_identities WHERE provider=? AND identityDigest=? AND audience=?").get(row.provider, row.identityDigest, row.audience) as { accountId: string } | undefined;
+    const identity = row.audience === "workspace" ? claimWorkspaceIdentity(db, row) : db.prepare("SELECT audience,accountId FROM social_identities WHERE provider=? AND identityDigest=? AND audience=?")
+      .get(row.provider, row.identityDigest, row.audience) as LinkedIdentity | undefined;
     if (!identity) throw new SocialSignInError("This Google or Apple account is not connected yet. Sign in using your existing account and connect it first.", 409);
-    const challenge = beginFederatedLoginFactor(db, { kind: row.audience, id: identity.accountId });
-    if(row.refreshToken)db.prepare("UPDATE social_identities SET refreshToken=? WHERE provider=? AND identityDigest=? AND audience=?").run(row.refreshToken,row.provider,row.identityDigest,row.audience);
+    if(row.refreshToken)db.prepare("UPDATE social_identities SET refreshToken=? WHERE provider=? AND identityDigest=? AND audience=?").run(row.refreshToken,row.provider,row.identityDigest,identity.audience);
     db.prepare("UPDATE social_login_flows SET status='consumed',refreshToken=NULL WHERE id=?").run(row.id);
-    return { apiVersion: 1, mfaRequired: true, audience: row.audience, ...challenge } as const;
+    if (identity.audience === "workspace-member") return { apiVersion: 1, ...issueWorkspaceTicket(db, identity.accountId) } as const;
+    const challenge = beginFederatedLoginFactor(db, { kind: identity.audience, id: identity.accountId });
+    return { apiVersion: 1, mfaRequired: true, audience: identity.audience, ...challenge } as const;
   }, true);
   if ("mfaRequired" in result) return { ...result, ...loginFactorView(result.challengeToken, result.audience === "owner" ? "staff" : "secure-customer") };
   return result;

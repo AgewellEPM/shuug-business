@@ -5,15 +5,17 @@ import { tmpdir } from "node:os";
 import { createHash } from "node:crypto";
 import { importBusinessTemplate } from "../../branding/templates";
 import { gigTaxProsTemplate } from "../../industry/rideshare-tax-pros";
-import { configureOwnerPassword, signInOwner } from "../owner-session";
+import { configureOwnerPassword, signInOwner, signOutOwner } from "../owner-session";
 import { MfaChallengeError } from "../mfa/model";
 import { completeLoginFactor, loginFactorView } from "../mfa/store";
 import { totp } from "../mfa/crypto";
 import { workspaceDatabase } from "../../workspace/database";
 import { initPrivateAccounts, signInPrivateTaxAccount } from "../../secure-tax/private-accounts";
+import { initClientOnly } from "../../secure-tax/client-only/store";
 import { hashPassword } from "../passwords";
 import { randomUUID } from "node:crypto";
-import { startSocialSignIn, finishSocialCallback, cancelSocialCallback, claimSocialResult, linkedSocialProviders, unlinkSocialProvider } from "./store";
+import { startSocialSignIn, finishSocialCallback, cancelSocialCallback, claimSocialResult, linkedSocialProviders, unlinkSocialProvider, startWorkspaceSignIn } from "./store";
+import { issueOwnerSdrTicket, listWorkspaceAssignments, manageWorkspaceAssignment, workspaceRoleSession } from "./workspace-access";
 const identity = vi.hoisted(() => ({ issuer: "https://accounts.google.com", subject: "synthetic-stable-subject", refreshToken: null }));
 vi.mock("./providers", async importOriginal => ({ ...await importOriginal<typeof import("./providers")>(), exchangeAuthorizationCode: vi.fn(async () => identity) }));
 let directory: string, owner: string;
@@ -56,6 +58,16 @@ it("binds client linking to its original MFA-verified account and issues only th
   expect(claimSocialResult({requestId:flow.requestId,verifier},first.token)).toMatchObject({linked:true});
   const login=startSocialSignIn({provider:"google",audience:"secure-customer",purpose:"login",challenge});await finishSocialCallback("google",new URL(login.authorizationUrl).searchParams.get("state")!,"synthetic-code");
   expect(claimSocialResult({requestId:login.requestId,verifier})).toMatchObject({mfaRequired:true,audience:"secure-customer"});
+  const shared = await sharedFlow();
+  expect(() => claimSocialResult(shared, undefined, true)).toThrow("client-owned account");
+  workspaceDatabase(db => {
+    initClientOnly(db);
+    db.prepare("INSERT INTO secure_tax_client_only_bindings VALUES(?,?,?,?,?,?,?)")
+      .run(first.id, randomUUID(), "synthetic-workspace", "client-only-v1", "synthetic-public-key-id", "synthetic-public-key", new Date().toISOString());
+  }, true);
+  const sharedResult = claimSocialResult(shared, undefined, true);
+  expect(sharedResult).toMatchObject({ mfaRequired: true, audience: "secure-customer" });
+  expect(sharedResult).not.toHaveProperty("ticket");
 });
 it("disconnects a provider only for its verified account and invalidates outstanding provider sign-ins",async()=>{
  const linked=await completed("link",owner);claimSocialResult({requestId:linked.requestId,verifier},owner);expect(linkedSocialProviders("owner",owner)).toEqual(["google"]);
@@ -67,4 +79,59 @@ it("ends a cancelled provider flow immediately so the app can retry without wait
  const flow=startSocialSignIn({provider:"google",audience:"owner",purpose:"login",challenge}),state=new URL(flow.authorizationUrl).searchParams.get("state")!;
  expect(claimSocialResult({requestId:flow.requestId,verifier})).toMatchObject({pending:true});cancelSocialCallback("google",state);
  expect(()=>claimSocialResult({requestId:flow.requestId,verifier})).toThrow();
+});
+
+async function sharedFlow(invitation?: string) {
+  const flow = startWorkspaceSignIn({ provider: "google", challenge, ...(invitation ? { invitation } : {}) });
+  expect(await finishSocialCallback("google", new URL(flow.authorizationUrl).searchParams.get("state")!, "synthetic-code")).toBe("workspace");
+  return { requestId: flow.requestId, verifier };
+}
+
+it("uses the same sign-in for one-time role enrollment, current assignments and revocation", async () => {
+  const input = { action: "save", role: "staff", targetId: "11", label: "Synthetic team member", enabled: true };
+  expect(() => manageWorkspaceAssignment("a".repeat(64), input)).toThrow();
+  const { assignmentId: id, assignments: [created] } = manageWorkspaceAssignment(owner, input);
+  expect(() => claimSocialResult({ requestId: randomUUID(), verifier }, undefined, true)).toThrow();
+  const unassigned = await sharedFlow();
+  expect(() => claimSocialResult(unassigned, undefined, true)).toThrow("not connected");
+  const { invitation } = manageWorkspaceAssignment(owner, { action: "invite", id, revision: created.revision });
+  const flow = await sharedFlow(invitation);
+  expect(() => claimSocialResult(flow)).toThrow();
+  expect(() => claimSocialResult({ ...flow, verifier: "w".repeat(43) }, undefined, true)).toThrow();
+  const joined = claimSocialResult(flow, undefined, true);
+  expect(joined).toMatchObject({ audience: "staff", ticket: expect.stringMatching(/^[a-f0-9]{64}$/) });
+  if (!("ticket" in joined)) throw new Error("Missing staff handoff");
+  expect(() => claimSocialResult(flow, undefined, true)).toThrow();
+  expect(listWorkspaceAssignments(owner).assignments[0].providers).toEqual(["google"]);
+  const session = workspaceRoleSession({ action: "redeem", token: joined.ticket });
+  expect(session).toMatchObject({ role: "staff", targetId: "11" });
+  if (!("session" in session)) throw new Error("Missing staff session");
+  expect(() => workspaceRoleSession({ action: "redeem", token: joined.ticket })).toThrow();
+  expect(workspaceRoleSession({ action: "read", token: session.session })).toMatchObject({ role: "staff", targetId: "11" });
+  const reassigned = { ...input, id, revision: created.revision, role: "location", targetId: "89" };
+  const { assignments: [updated] } = manageWorkspaceAssignment(owner, reassigned);
+  expect(() => manageWorkspaceAssignment(owner, reassigned)).toThrow("changed");
+  expect(() => workspaceRoleSession({ action: "read", token: session.session })).toThrow();
+  const returning = claimSocialResult(await sharedFlow(), undefined, true);
+  expect(returning).toMatchObject({ audience: "location" });
+  if (!("ticket" in returning)) throw new Error("Missing location handoff");
+  manageWorkspaceAssignment(owner, { ...reassigned, revision: updated.revision, enabled: false });
+  expect(() => workspaceRoleSession({ action: "redeem", token: returning.ticket })).toThrow();
+  const disabled = await sharedFlow();
+  expect(() => claimSocialResult(disabled, undefined, true)).toThrow("access is unavailable");
+});
+
+it("requires owner MFA for shared management and ties SDR access to the live owner session", async () => {
+  const linked = await completed("link", owner);
+  claimSocialResult({ requestId: linked.requestId, verifier }, owner);
+  const factor = claimSocialResult(await sharedFlow(), undefined, true);
+  expect(factor).toMatchObject({ audience: "owner", mfaRequired: true });
+  expect(factor).not.toHaveProperty("ticket");
+  expect(() => issueOwnerSdrTicket("a".repeat(64))).toThrow();
+  const { ticket } = issueOwnerSdrTicket(owner);
+  const result = workspaceRoleSession({ action: "redeem", token: ticket });
+  expect(result).toMatchObject({ role: "owner", targetId: null });
+  if (!("session" in result)) throw new Error("Missing owner session");
+  signOutOwner(owner);
+  expect(() => workspaceRoleSession({ action: "read", token: result.session })).toThrow();
 });

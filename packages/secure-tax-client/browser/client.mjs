@@ -14,6 +14,7 @@ import { BrowserKeyStore, assertPrivateKey, createClientKey, importEncryptedBack
 import { validateTrustedConfig } from './config.mjs';
 import { assertClientWritablePayload, openedRecordMetadata } from './opened-record.mjs';
 import { isCaseObjectId } from '../case-contract.mjs';
+import { createSignInProof, validateSignInFlow } from './social-proof.mjs';
 
 const encoder=new TextEncoder();
 const validId=value=>typeof value==='string' && value.match(/^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$/)?.[0]===value;
@@ -23,7 +24,7 @@ const clone=value=>structuredClone(value);
 const ownVersion=(versions,id)=>Object.hasOwn(versions,id)?versions[id]:undefined;
 const validReceipt=value=>value && validId(value.objectId) && integer(value.revision,1,1e9+1) && integer(value.sequence) && typeof value.deleted==='boolean';
 const checkRecoveryCheckpoint=(manifest,binding)=>{if(manifest.epoch<(binding?.minimumEpoch??1)||binding?.minimumEpoch===manifest.epoch&&binding.manifest&&JSON.stringify(binding.manifest)!==JSON.stringify(manifest))throw new Error('Recovery cannot replace a newer enrollment or a different previously observed manifest at the same epoch.');};
-async function responseJson(response,maximum,allowChallenge=false) {
+export async function responseJson(response,maximum,allowChallenge=false) {
   if(!response.ok&&!(allowChallenge&&response.status===428)) throw new Error(response.status===401||response.status===403?'Sign-in verification failed. Check your code or sign in again.':'The ciphertext API rejected this request. Refresh before retrying.');
   if(!response.headers.get('content-type')?.toLowerCase().startsWith('application/json')) throw new Error('The ciphertext API did not return JSON.');
   const declared=Number(response.headers.get('content-length'));
@@ -99,16 +100,10 @@ export class VaultClient {
     if(!['google','apple'].includes(provider))throw new Error('Choose Google or Apple.');
     if(link){privateAccountCode(this.identity?.accountId);if(!this.#token)throw new Error('Sign in before connecting another sign-in method.');}
     else {this.#token=null;this.#expiresAt=null;this.#reset();this.status=null;this.identity=null;}
-    const generation=this.#generation,verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),byte=>String.fromCharCode(byte)).join('');
-    const encoded=btoa(verifier).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
-    const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(encoded)));
-    const challenge=btoa(String.fromCharCode(...digest)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+    const generation=this.#generation,{verifier,challenge}=await createSignInProof();
     const result=await this.#request('/social/start','POST',{provider,audience:'secure-customer',purpose:link?'link':'login',challenge},8192);this.#same(generation);
-    const url=new URL(result?.authorizationUrl);
-    const google=provider==='google',expectedOrigin=google?'https://accounts.google.com':'https://appleid.apple.com',expectedPath=google?'/o/oauth2/v2/auth':'/auth/authorize';
-    const params=url.searchParams,keys=['client_id','redirect_uri','response_type','state','nonce',...(google?['scope','code_challenge','code_challenge_method','prompt']:['response_mode'])];
-    if(result?.apiVersion!==1||typeof result.requestId!=='string'||!/^[0-9a-f-]{36}$/.test(result.requestId)||url.origin!==expectedOrigin||url.pathname!==expectedPath||url.username||url.password||url.hash||[...params.keys()].sort().join('|')!==keys.sort().join('|')||params.get('redirect_uri')!==`${this.#config.apiOrigin}/api/auth/social/${provider}/callback`||params.get('response_type')!=='code'||!['state','nonce'].every(key=>/^[A-Za-z0-9_-]{43}$/.test(params.get(key)))||google&&(params.get('scope')!=='openid'||params.get('code_challenge_method')!=='S256'||params.get('prompt')!=='select_account')||!google&&params.get('response_mode')!=='query'||!Number.isFinite(Date.parse(result.expiresAt))||Date.parse(result.expiresAt)<=Date.now()||Date.parse(result.expiresAt)>Date.now()+11*60000)throw new Error('The provider sign-in request is invalid.');
-    return {...result,verifier:encoded,generation,link};
+    validateSignInFlow(result,this.#config.apiOrigin,provider);
+    return {...result,verifier,generation,link};
   }
   async finishSocialSignIn(flow){
     this.#same(flow.generation);
@@ -116,6 +111,11 @@ export class VaultClient {
     if(result.pending===true)return {pending:true};
     if(flow.link){if(result.linked!==true)throw new Error('The sign-in method was not connected.');return {linked:true};}
     if(result.audience!=='secure-customer'||result.mfaRequired!==true)throw new Error('Private sign-in requires authenticator verification.');
+    return this.#stageMfa(result,true);
+  }
+  stageWorkspaceSignIn(result){
+    if(!this.clientOnly||this.identity||result?.audience!=='secure-customer'||result.mfaRequired!==true)throw new Error('Private sign-in requires authenticator verification.');
+    this.#reset();
     return this.#stageMfa(result,true);
   }
   async signInWithCode(accountCode,password){return this.#signIn({accountCode:privateAccountCode(accountCode)},password,true);}

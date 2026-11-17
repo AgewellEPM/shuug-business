@@ -17,6 +17,7 @@ import { renderOffice } from './office-view.mjs';
 import { renderLegacyBooks } from './legacy-books-view.mjs';
 import { AutoTaxController, AUTO_TAX_TYPE, autoTaxObjectId } from './auto-tax-controller.mjs';
 import { mountAutoTaxView } from './auto-tax-view.mjs';
+import { mountWorkspaceSignIn } from './workspace-signin-view.mjs';
 
 const $=id=>document.getElementById(id), labels={
   'tax-document':'Tax documents','tax-identity':'Tax identity','driver-record':'Trips, income & expenses',
@@ -24,6 +25,7 @@ const $=id=>document.getElementById(id), labels={
 };
 let client, normalEditor, taxEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
 let social,portal,enrollment,passwordRecovery,authenticatorRecovery,keyRecovery,legacyImport;
+let workspaceEntry;
 let autoTax,autoTaxView,autoTaxEditorId=null;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
@@ -58,6 +60,7 @@ function refreshControls(){
   taxEditor?.setEnabled(!!writable&&!working);
   keyRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);legacyImport?.refresh();portal?.refresh();enrollment?.setEnabled(ready&&!working);passwordRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);authenticatorRecovery?.setEnabled(ready&&!working&&!client?.clientOnly);
   autoTaxView?.refresh();
+  workspaceEntry?.refresh(working);
   // Pagination retains its own first/last-page disabled state.
   for(const button of $('groups').querySelectorAll('article.item>button'))button.disabled=working;
 }
@@ -180,7 +183,7 @@ for(const domain of DOMAINS){const option=document.createElement('option');optio
 normalEditor=mountForms(document,$('normal-editor'),{run,captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration,onDirty:()=>portal.pending(),onSave:async(result,id)=>{const generation=viewGeneration,bytes=encodeJson(result.payload);try{await client.save(result.domain,bytes,id??undefined);if(generation!==viewGeneration)return;renderGroups();message('Private item encrypted on this device and saved. Journal snapshots were not merged or replaced.');}finally{bytes.fill(0);}},onDelete:async id=>{await client.remove(id);renderGroups();message('Entire live tax-identity ciphertext and retry records deleted. A content-free tombstone remains; backups and recipient copies are not erased.');}});
 taxEditor=mountReturnEditor(document,$('return-editor'),{run,download:downloadTaxReturn,beforeExport:input=>{if(autoTaxEditorId&&taxEditor?.editingId===autoTaxEditorId){const model=autoTax.state.model;if(!model?.incomeConfirmed||!model.businessConfirmed||!Number.isSafeInteger(model.totals.receiptsCents)||!Number.isSafeInteger(model.totals.deductionsCents))throw new Error('Review the current app amounts before exporting.');autoTax.assertManagedInput(input);}},captureScope:()=>viewGeneration,isCurrentScope:generation=>generation===viewGeneration&&!!client?.canWrite,onDirty:()=>portal.pending(),onSave:async(value,id,onPrepared)=>{const generation=viewGeneration;try{if(client.clientOnly&&id&&id===autoTaxEditorId){await autoTax.saveDetails(value);autoTaxEditorId=null;}else await saveReturn(client,value,id??undefined,{onPrepared});if(generation!==viewGeneration)return;renderGroups();message('Return input encrypted and saved. Calculations can be reopened from these inputs; no return was transmitted.');}catch(error){if(generation===viewGeneration&&client.canWrite)await portal.queue?.restore();throw error;}}});
 function signedIn(result){
-  if(result.mfaRequired){message('Password verified. Complete authenticator verification to access your account.');return;}
+  if(result.mfaRequired){message('Complete authenticator verification to access your account.');return;}
   if(result.recoveryCodes?.length){$('recovery-values').textContent=result.recoveryCodes.join('\n');$('recovery-codes').hidden=false;}
   message('Signed in. Select the account client key to verify enrollment or prepare signed setup.');
 }
@@ -238,8 +241,14 @@ try{
     for(const id of ['client-key-recovery','password-recovery-setup','authenticator-recovery-setup'])if($(id))$(id).hidden=true;
     legacyImport.element.hidden=true;
   }
-  social=mountSocialSignIn(document,$('connection'),{getClient:()=>client,run,onSignedIn:signedIn,onMessage:message,clearOpened,canRefresh:()=>canRefresh()&&!portal?.queue?.hasUnprepared,isWorking:()=>working});
+  const shared=!!$('workspace-signin');
+  social=mountSocialSignIn(document,$('connection'),{getClient:()=>client,run,onSignedIn:signedIn,onMessage:message,clearOpened,showLogin:!shared,canRefresh:()=>canRefresh()&&!portal?.queue?.hasUnprepared,isWorking:()=>working});
   await social.configure().catch(()=>{});
   $('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
-  $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();message('Independent trust configuration loaded. Sign in with your private account code, or set up a new account using a firm invitation.');
+  $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();
+  if(shared){
+    workspaceEntry=await mountWorkspaceSignIn(document,{client,config:trustedConfig,run,onMessage:message,onClientFactor:signedIn});
+    message('');
+    await workspaceEntry.initialize();
+  }else message('Independent trust configuration loaded. Sign in with your private account code, or set up a new account using a firm invitation.');
 }catch(error){message(error.message,true);}

@@ -2,3 +2,32 @@
 :focus-visible{outline:3px solid var(--warn);outline-offset:3px}.journal{margin-top:18px}.journal-row{padding:12px 0}.journal dl{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,2fr);gap:6px 14px;margin:12px 0}.journal dt{color:var(--muted)}.journal dd{margin:0;overflow-wrap:anywhere}.journal dd dl{display:block;padding-left:12px;border-left:1px solid var(--line)}.journal dd dt{font-size:.85rem;margin-top:8px}.journal ol{padding-left:22px}.journal li{padding:6px 0}@media(max-width:600px){.journal dl{display:block}.journal dt{margin-top:10px}}
 .portal-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:20px 0}.portal-card{display:flex;flex-direction:column;gap:4px;padding:18px;border:1px solid var(--line);border-radius:12px;background:#0d1c1e}.portal-card strong{font-size:1.8rem;color:var(--accent)}.portal-card span{font-size:.9rem;color:var(--muted)}#portal-freshness,#staff-freshness{padding:12px 16px;border-left:3px solid var(--accent);background:#0d1c1e}#portal-upload-queue h3,#portal-dashboard h3{overflow-wrap:anywhere}.portal-queue-item .error{color:#ffd4bb}.portal-queue-item{padding:18px;border:1px solid var(--line);border-radius:12px;margin-top:14px}#client-portal input[type=file]{width:100%;margin:12px 0}#client-portal textarea{font-family:inherit}
 .tax-check{display:flex;gap:16px;align-items:center;justify-content:space-between;padding:8px 0}.tax-check label{margin:0;font-weight:400}.tax-check input[type=checkbox]{display:inline-block;flex:0 0 24px;width:24px;min-height:24px;height:24px;margin:0;accent-color:var(--accent)}.tax-return-totals{display:grid;grid-template-columns:minmax(140px,2fr) minmax(100px,1fr);gap:6px 14px}.tax-return-totals dt{color:var(--muted)}.tax-return-totals dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}.tax-blocker{color:var(--warn);margin:8px 0}#tax-preparation textarea{font-family:inherit}.tax-return-result{margin:18px 0;padding:18px}.tax-return-result details{max-height:450px;overflow:auto}
+
+body[data-workspace="sign-in"] {
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 85% 18%, #231534, transparent 58%), #0d111b;
+}
+body[data-workspace="sign-in"] #client-workspace {max-width: 500px; padding-top: clamp(40px, 12vh, 120px)}
+body[data-workspace="sign-in"] > header,
+body[data-workspace="sign-in"] > footer,
+body[data-workspace="owner"] > header,
+body[data-workspace="owner"] #client-workspace,
+body[data-workspace="client"] #workspace-signin,
+body[data-workspace] #legacy-session-option,
+body[data-workspace="client"] #client-account-credentials,
+body[data-workspace="sign-in"] #trust,
+body[data-workspace="sign-in"] #signout {display: none}
+body[data-workspace="sign-in"] #client-workspace > :not(#workspace-signin, #message, #second-factor) {display: none}
+body[data-workspace="sign-in"][data-workspace-option="client-code"] #client-workspace > #connection,
+body[data-workspace="sign-in"][data-workspace-option="setup"] #client-workspace > :is(#connection, #enrollment-container, #keys) {display: block}
+#workspace-signin {padding: 24px; background: #1e2030; border-color: #3a3c51; border-radius: 18px}
+#workspace-signin h1 {font-size: clamp(1.65rem, 5vw, 2.1rem); line-height: 1.2; margin: 4px 0 24px}
+#workspace-signin .workspace-brand {font-weight: 700; color: #e2cbff; margin: 0}
+.workspace-providers {display: grid; gap: 10px}
+.workspace-providers button {min-height: 46px; margin: 0; background: #f3f2fa; color: #161620; border-color: transparent}
+.workspace-providers button[data-provider="apple"] {background: #11111a; color: white; border-color: #535362}
+#workspace-options {margin-top: 22px}
+#workspace-access-code {margin-top: 16px}
+body[data-workspace="sign-in"] #message:empty {display: none}
+#owner-workspace-access form {margin-block: 14px}
+#owner-sdr-link {display: inline-block; margin-inline-start: 12px}

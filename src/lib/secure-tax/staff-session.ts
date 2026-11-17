@@ -15,6 +15,11 @@ import { requireSecureBrowserOrigin, secureFailure, secureJson, secureResponse }
 
 const tokenHash = (token: string) => createHash("sha256").update(token).digest("hex");
 const hasTable = (db: DatabaseSync, name: string) => !!db.prepare("SELECT 1 FROM sqlite_schema WHERE type='table' AND name=?").get(name);
+export function verifiedOwnerSession(db: DatabaseSync, digest: string, now = Date.now()) {
+  if (!hasTable(db, "owner_sessions")) return undefined;
+  const session = db.prepare("SELECT expires FROM owner_sessions WHERE token_hash=? AND expires>?").get(digest, now) as { expires: number } | undefined;
+  if (session && mfaSessionVerified(db, { kind: "owner", id: "workspace-owner" }, digest)) return session;
+}
 export function secureStaffToken(request: Request): string {
   requireSecureBrowserOrigin(request);
   const token = request.headers.get("authorization")?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
@@ -27,10 +32,8 @@ export function secureStaffToken(request: Request): string {
 export function secureStaffIdentity(db: DatabaseSync, token: string | undefined): { user: WorkspaceUser; expiresAt: string } {
   if (!token || !/^[a-f0-9]{64}$/.test(token)) throw new SecureTaxError(401, "Staff verification is required.");
   const digest = tokenHash(token), now = Date.now();
-  if (hasTable(db, "owner_sessions")) {
-    const session = db.prepare("SELECT expires FROM owner_sessions WHERE token_hash=? AND expires>?").get(digest, now) as { expires: number } | undefined;
-    if (session && mfaSessionVerified(db, { kind: "owner", id: "workspace-owner" }, digest)) return { user: ownerIdentity(), expiresAt: new Date(session.expires).toISOString() };
-  }
+  const session = verifiedOwnerSession(db, digest, now);
+  if (session) return { user: ownerIdentity(), expiresAt: new Date(session.expires).toISOString() };
   if (hasTable(db, "employee_sessions") && hasTable(db, "employee_accounts")) {
     const account = db.prepare("SELECT a.id,a.memberId,a.name,a.email,s.expires FROM employee_sessions s JOIN employee_accounts a ON a.id=s.accountId WHERE s.tokenHash=? AND s.expires>? AND a.status='active'").get(digest, now) as { id: string; memberId: string; name: string; email: string; expires: number } | undefined;
     if (account && getMember(account.memberId) && mfaSessionVerified(db, { kind: "employee", id: account.id }, digest)) {

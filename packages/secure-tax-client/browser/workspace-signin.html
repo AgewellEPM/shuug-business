@@ -1,0 +1,20 @@
+<section id="workspace-signin" aria-labelledby="workspace-signin-title">
+  <p class="workspace-brand">Gig Tax Pros</p>
+  <h1 id="workspace-signin-title">Sign in to your workspace</h1>
+  <p id="workspace-invitation" hidden>Choose a sign-in method to accept your workspace invitation.</p>
+  <div class="workspace-providers">
+    <button type="button" data-provider="google" disabled>Continue with Google</button>
+    <button type="button" data-provider="apple" disabled>Continue with Apple</button>
+  </div>
+  <details id="workspace-options">
+    <summary>More sign-in options</summary>
+    <button type="button" id="workspace-client-code" disabled>Use client account code</button>
+    <button type="button" id="workspace-first-time" disabled>Set up a client account</button>
+    <button type="button" id="workspace-owner" disabled>Use owner password</button>
+    <form id="workspace-access-code" method="post" autocomplete="on">
+      <label>Business email<input name="email" type="email" autocomplete="username" maxlength="240" disabled></label>
+      <label>Private access code<input name="code" type="password" autocomplete="current-password" maxlength="200" required disabled></label>
+      <button type="submit" disabled>Sign in with access code</button>
+    </form>
+  </details>
+</section>

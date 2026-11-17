@@ -1,8 +1,8 @@
 // No third-party SDK runs in the key-holding portal. Provider authentication
 // opens separately; its one-time result requires this page's private verifier.
-export function mountSocialSignIn(document,before,{getClient,run,onSignedIn,onMessage,clearOpened,canRefresh=()=>true,isWorking=()=>false,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms))}) {
+export function mountSocialSignIn(document,before,{getClient,run,onSignedIn,onMessage,clearOpened,showLogin=true,canRefresh=()=>true,isWorking=()=>false,wait=ms=>new Promise(resolve=>setTimeout(resolve,ms))}) {
   const section=document.createElement('section'),heading=document.createElement('h2'),status=document.createElement('p');
-  heading.textContent='Continue with your account';status.setAttribute('role','status');section.hidden=true;section.append(heading,status);before.before(section);
+  heading.textContent=showLogin?'Continue with your account':'Connected sign-in methods';status.setAttribute('role','status');section.hidden=true;section.append(heading,status);before.before(section);
   const rows=[];let linked=[],connectionScope=null;
   async function connections(){const id=getClient()?.identity?.accountId;if(!id)return;try{const value=await getClient().linkedSocialProviders();if(getClient()?.identity?.accountId===id){linked=value;refresh();}}catch{ /* Existing sign-in remains usable while settings are offline. */ }}
   for(const provider of ['google','apple'])for(const mode of ['login','link','unlink']) {
@@ -39,7 +39,7 @@ export function mountSocialSignIn(document,before,{getClient,run,onSignedIn,onMe
     const signedIn=!!getClient()?.identity,id=getClient()?.identity?.accountId;
     if(!signedIn){connectionScope=null;linked=[];}else if(connectionScope!==id){connectionScope=id;void connections();}
     for(const {provider,mode,button} of rows){button.hidden=!providers[provider]||(signedIn?(mode==='login'||mode==='link'&&linked.includes(provider)||mode==='unlink'&&!linked.includes(provider)):mode!=='login');button.disabled=isWorking()||!!getClient()?.busy;}
-    section.hidden=!Object.values(providers).some(Boolean);
+    section.hidden=(!showLogin&&!signedIn)||!Object.values(providers).some(Boolean);
   }
   return {configure,refresh,element:section};
 }

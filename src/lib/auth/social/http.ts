@@ -25,6 +25,17 @@ export function socialRequestSurface(request: Request): "owner" | "portal" | "na
   if (!request.headers.has("origin") && !request.headers.has("sec-fetch-site") && !request.headers.has("cookie")) return "native";
   throw new SocialSignInError("Use the trusted app or sign-in website.", 403);
 }
+export function workspacePortalOrigin() {
+  const value = setting("SHUUG_SECURE_TAX_TRUSTED_ORIGIN");
+  const origin = value ? URL.parse(value) : null;
+  if (process.env.GIGTAX_REQUIRE_CLIENT_ONLY !== "true" || !origin || origin.protocol !== "https:" || origin.origin !== value || origin.origin === new URL(appBaseUrl()).origin) {
+    throw new SocialSignInError("The shared Gig Tax Pros workspace is unavailable.", 503);
+  }
+  return origin.origin;
+}
+export function requireWorkspacePortal(request: Request) {
+  if (request.headers.get("origin") !== workspacePortalOrigin()) throw new SocialSignInError("Continue from the Gig Tax Pros sign-in page.", 403);
+}
 export const socialJson = (request: Request) => secureJson(request, 8192);
 export function socialResponse(request: Request, value: unknown, status = 200) {
   const response = Response.json(value, { status, headers: { ...privateHeaders, Vary: "Origin", "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'" } });

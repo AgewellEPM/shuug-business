@@ -5,7 +5,13 @@ import { SESSION_COOKIE, SESSION_TTL_SECONDS } from "../config";
 import { completeLoginFactor } from "../mfa/store";
 import { configuredProviders, providerName, SocialSignInError } from "./providers";
 import { claimSocialResult, finishSocialCallback, cancelSocialCallback, socialResultInput, socialStartInput, startSocialSignIn, linkedSocialProviders, unlinkSocialProvider, socialConnectionInput } from "./store";
-import { socialCallbackUrl, socialFailure, socialJson, socialRequestSurface, socialResponse } from "./http";
+import { socialCallbackUrl, socialFailure, socialJson, socialRequestSurface, socialResponse, workspacePortalOrigin } from "./http";
+
+function workspaceReturn() {
+  return new Response(null, { status: 303, headers: {
+    Location: `${workspacePortalOrigin()}/?signin=resume`, "Cache-Control": "no-store", "Referrer-Policy": "no-referrer",
+  } });
+}
 
 function token(request: Request, surface: string) {
   const bearer = request.headers.get("authorization")?.match(/^Bearer ([a-f0-9]{64})$/)?.[1];
@@ -57,8 +63,11 @@ export async function socialCallback(request: Request, context: { params: Promis
   try {
     const provider = providerName((await context.params).provider), url = socialCallbackUrl(request, provider);
     const parameters = request.method === "GET" ? url.searchParams : new URLSearchParams(await boundedCallbackForm(request));
-    if (parameters.has("error")) { cancelSocialCallback(provider,parameters.get("state")??""); throw new SocialSignInError("Sign-in was cancelled. Return to the app or previous tab and start again."); }
-    await finishSocialCallback(provider, parameters.get("state") ?? "", parameters.get("code") ?? "");
+    if (parameters.has("error")) {
+      if (cancelSocialCallback(provider, parameters.get("state") ?? "") === "workspace") return workspaceReturn();
+      throw new SocialSignInError("Sign-in was cancelled. Return to the app or previous tab and start again.");
+    }
+    if (await finishSocialCallback(provider, parameters.get("state") ?? "", parameters.get("code") ?? "") === "workspace") return workspaceReturn();
     const appReturn = /Android|iPhone|iPad|iPod/i.test(request.headers.get("user-agent") ?? "") ? '<p><a href="gigtaxpros://signin">Return to Gig Tax Pros</a></p>' : "";
     return authPage("Sign-in confirmed", `<p>Return to Gig Tax Pros in the app or your previous browser tab to finish signing in.</p>${appReturn}<p>This page does not contain your account session or encryption key.</p>`);
   } catch (error) {
