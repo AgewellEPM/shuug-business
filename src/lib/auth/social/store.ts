@@ -56,6 +56,10 @@ export async function finishSocialCallback(provider: SocialProvider, state: stri
     throw new SocialSignInError();
   }
 }
+export function cancelSocialCallback(provider:SocialProvider,state:string) {
+  providerName(provider);if(!proof.safeParse(state).success)throw new SocialSignInError();
+  workspaceDatabase(db=>{init(db);db.prepare("UPDATE social_login_flows SET status='failed',providerVerifier='',refreshToken=NULL WHERE provider=? AND stateHash=? AND status='pending' AND expires>?").run(provider,hash(state),Date.now());},true);
+}
 export function claimSocialResult(raw: unknown, token?: string) {
   const input = socialResultInput.parse(raw);
   const result = workspaceDatabase(db => {

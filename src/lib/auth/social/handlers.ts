@@ -5,7 +5,7 @@ import { SESSION_COOKIE, SESSION_TTL_SECONDS } from "../config";
 import { completeLoginFactor } from "../mfa/store";
 import { appBaseUrl } from "../../connections/vault";
 import { configuredProviders, providerName, SocialSignInError } from "./providers";
-import { claimSocialResult, finishSocialCallback, socialResultInput, socialStartInput, startSocialSignIn, linkedSocialProviders, unlinkSocialProvider, socialConnectionInput } from "./store";
+import { claimSocialResult, finishSocialCallback, cancelSocialCallback, socialResultInput, socialStartInput, startSocialSignIn, linkedSocialProviders, unlinkSocialProvider, socialConnectionInput } from "./store";
 import { socialFailure, socialJson, socialRequestSurface, socialResponse } from "./http";
 
 function token(request: Request, surface: string) {
@@ -59,7 +59,7 @@ export async function socialCallback(request: Request, context: { params: Promis
     const provider = providerName((await context.params).provider), url = new URL(request.url);
     if (url.origin !== new URL(appBaseUrl()).origin) throw new SocialSignInError();
     const parameters = request.method === "GET" ? url.searchParams : new URLSearchParams(await boundedCallbackForm(request));
-    if (parameters.has("error")) throw new SocialSignInError("Sign-in was cancelled. Return to the app or previous tab and start again.");
+    if (parameters.has("error")) { cancelSocialCallback(provider,parameters.get("state")??""); throw new SocialSignInError("Sign-in was cancelled. Return to the app or previous tab and start again."); }
     await finishSocialCallback(provider, parameters.get("state") ?? "", parameters.get("code") ?? "");
     const appReturn = /Android/i.test(request.headers.get("user-agent") ?? "") ? '<p><a href="gigtaxpros://signin">Return to Gig Tax Pros</a></p>' : "";
     return authPage("Sign-in confirmed", `<p>Return to Gig Tax Pros in the app or your previous browser tab to finish signing in.</p>${appReturn}<p>This page does not contain your account session or encryption key.</p>`);

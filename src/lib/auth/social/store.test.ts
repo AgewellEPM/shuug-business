@@ -13,7 +13,7 @@ import { workspaceDatabase } from "../../workspace/database";
 import { initPrivateAccounts, signInPrivateTaxAccount } from "../../secure-tax/private-accounts";
 import { hashPassword } from "../passwords";
 import { randomUUID } from "node:crypto";
-import { startSocialSignIn, finishSocialCallback, claimSocialResult, linkedSocialProviders, unlinkSocialProvider } from "./store";
+import { startSocialSignIn, finishSocialCallback, cancelSocialCallback, claimSocialResult, linkedSocialProviders, unlinkSocialProvider } from "./store";
 const identity = vi.hoisted(() => ({ issuer: "https://accounts.google.com", subject: "synthetic-stable-subject", refreshToken: null }));
 vi.mock("./providers", async importOriginal => ({ ...await importOriginal<typeof import("./providers")>(), exchangeAuthorizationCode: vi.fn(async () => identity) }));
 let directory: string, owner: string;
@@ -62,4 +62,9 @@ it("disconnects a provider only for its verified account and invalidates outstan
  const waiting=await completed("login");await expect(unlinkSocialProvider({provider:"google",audience:"owner"},"a".repeat(64))).rejects.toThrow();
  expect(await unlinkSocialProvider({provider:"google",audience:"owner"},owner)).toMatchObject({disconnected:true});expect(linkedSocialProviders("owner",owner)).toEqual([]);
  expect(()=>claimSocialResult({requestId:waiting.requestId,verifier})).toThrow();
+});
+it("ends a cancelled provider flow immediately so the app can retry without waiting ten minutes",()=>{
+ const flow=startSocialSignIn({provider:"google",audience:"owner",purpose:"login",challenge}),state=new URL(flow.authorizationUrl).searchParams.get("state")!;
+ expect(claimSocialResult({requestId:flow.requestId,verifier})).toMatchObject({pending:true});cancelSocialCallback("google",state);
+ expect(()=>claimSocialResult({requestId:flow.requestId,verifier})).toThrow();
 });
