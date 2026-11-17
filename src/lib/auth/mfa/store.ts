@@ -47,6 +47,12 @@ function passwordHashFor(db: DatabaseSync, subject: MfaSubject): string | null {
     : db.prepare("SELECT passwordHash FROM customer_accounts WHERE id=? AND status='active'").get(subject.id);
   return (row as { passwordHash: string | null } | undefined)?.passwordHash ?? null;
 }
+/** A verified, explicitly linked identity replaces password entry, never MFA. */
+export function beginFederatedLoginFactor(db: DatabaseSync, subject: MfaSubject): MfaChallenge {
+  const binding = passwordHashFor(db, subject);
+  if (!binding) throw new MfaError("This account is unavailable. Sign in using its existing method.", 401);
+  return beginLoginFactor(db, subject, binding, true)!;
+}
 function pending(db: DatabaseSync, token: string, audience: MfaAudience): Pending {
   if (!/^[a-f0-9]{64}$/.test(token)) throw new MfaError("Verification expired. Sign in again.", 401);
   const row = db.prepare("SELECT * FROM mfa_challenges WHERE token_hash=? AND expires>?").get(hash(token), Date.now()) as Pending | undefined;

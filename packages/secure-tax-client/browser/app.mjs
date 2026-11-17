@@ -1,3 +1,4 @@
+import {mountSocialSignIn} from './social-signin.mjs';
 import {mountClientKeyRecovery} from './key-recovery-view.mjs';
 import {mountLegacyImport} from './legacy-import-view.mjs';
 import {mountAuthenticatorRecovery} from './authenticator-recovery-view.mjs';
@@ -20,7 +21,7 @@ const $=id=>document.getElementById(id), labels={
   'driver-receipt':'Receipts','driver-state':'Journal, goals & preferences','driver-route':'Routes','provider-record':'Provider records'
 };
 let client, normalEditor, taxEditor, editing=null, advancedDirty=false, working=false, viewGeneration=0;
-let portal,enrollment,passwordRecovery,authenticatorRecovery,keyRecovery,legacyImport;
+let social,portal,enrollment,passwordRecovery,authenticatorRecovery,keyRecovery,legacyImport;
 const message=(text,error=false)=>{$('message').textContent=text;$('message').classList.toggle('error',error);};
 const download=(name,bytes,type='application/json')=>{
   const url=URL.createObjectURL(new Blob([bytes],{type})),link=document.createElement('a');
@@ -36,6 +37,7 @@ function resetEditor(){editing=null;advancedDirty=false;$('payload').value='{"ve
 function clearOpened(){viewGeneration++;for(const id of ['current-password','new-password','new-password-confirm'])$(id).value='';keyRecovery?.clear();legacyImport?.clear();enrollment?.clear();passwordRecovery?.clear();authenticatorRecovery?.clear();portal?.clear();taxEditor?.clear();$('groups').replaceChildren();resetEditor();normalEditor?.clear();$('payload').value='';$('mfa-code').value='';$('mfa-setup').textContent='';$('recovery-values').textContent='';$('recovery-codes').hidden=true;$('sync-result').textContent='Opened content cleared from this view.';}
 function refreshControls(){
   const ready=!!client, unlocked=client?.unlocked, writable=client?.canWrite;
+  social?.refresh();
   for(const id of ['connect','key-choice','create-key','import-backup','import-key','signin-password','email','password'])$(id).disabled=!ready||working;
   $('account-controls').hidden=!client?.identity;for(const id of ['current-password','new-password','new-password-confirm','change-password','revoke-sessions'])$(id).disabled=!client?.identity||working;
   $('signout').disabled=!client?.identity||working;
@@ -181,6 +183,9 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&(client?.u
 window.addEventListener('pagehide',()=>{client?.lock();clearOpened();});
 window.addEventListener('beforeunload',event=>{if(portal?.queue?.hasUnprepared||taxEditor?.dirty||enrollment?.dirty||passwordRecovery?.dirty||authenticatorRecovery?.dirty){event.preventDefault();event.returnValue='';}});
 try{
-  client=await VaultClient.create(trustedConfig,location.origin);$('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
+  client=await VaultClient.create(trustedConfig,location.origin);
+  social=mountSocialSignIn(document,$('connection'),{getClient:()=>client,run,onSignedIn:signedIn,onMessage:message,clearOpened,canRefresh:()=>canRefresh()&&!portal?.queue?.hasUnprepared,isWorking:()=>working});
+  await social.configure().catch(()=>{});
+  $('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
   $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();message('Independent trust configuration loaded. Sign in with your private account code, or set up a new account using a firm invitation.');
 }catch(error){message(error.message,true);}

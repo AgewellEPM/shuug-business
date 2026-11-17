@@ -11,6 +11,7 @@ import { MfaChallengeError } from "@/lib/auth/mfa/model";
 import { completeLoginFactor } from "@/lib/auth/mfa/store";
 import { factorPage, recoveryPage } from "@/lib/auth/mfa/html";
 import { authPage } from "@/lib/auth/forms";
+import { ownerSocialControls } from "@/lib/auth/social/owner";
 export const runtime = "nodejs";
 const escape = (s: string) => s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
 const secure = () => appBaseUrl().startsWith("https:");
@@ -21,7 +22,7 @@ export async function GET() {
   const csrf = previous && /^[a-f0-9]{64}$/.test(previous) ? previous : randomBytes(32).toString("hex");
   jar.set("owner_login_csrf", csrf, { httpOnly: true, sameSite: "strict", secure: secure(), path: "/api/auth/login", maxAge: 600 });
   const branding = getBranding();
-  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · ${escape(branding.businessName)}</title><style>body{font:16px system-ui;background:#f5f5f4;color:#17231c;display:grid;place-items:center;min-height:95vh}main{background:white;padding:2rem;border:1px solid #d5ddd7;border-radius:1rem;width:min(26rem,80vw)}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:.7rem;border:1px solid #b3c2b8;border-radius:.5rem;font:inherit}button{background:#2c4939;color:white}p{font-size:.9rem;color:#53635b;line-height:1.5}</style><main><h1>${escape(branding.businessName)}</h1><p>Sign in to your private workspace.</p><form method="post"><input type="hidden" name="csrf" value="${csrf}"><label>Email (employees)<input name="email" type="email" autocomplete="username" maxlength="160" placeholder="you@company.com"></label><p>Owner: leave email blank.</p><label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="200" autofocus></label><button>Sign in</button></form><p>Forgot your password? Ask the owner for a new setup link.</p><p>First installation: run <code>npm run workspace:setup</code> on the server to create the owner password.</p></main></html>`, { headers: { ...securityHeaders(secure()), "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
+  return new Response(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Sign in · ${escape(branding.businessName)}</title><style>body{font:16px system-ui;background:#f5f5f4;color:#17231c;display:grid;place-items:center;min-height:95vh}main{background:white;padding:2rem;border:1px solid #d5ddd7;border-radius:1rem;width:min(26rem,80vw)}input,button{box-sizing:border-box;width:100%;padding:.8rem;margin-top:.7rem;border:1px solid #b3c2b8;border-radius:.5rem;font:inherit}button{background:#2c4939;color:white}p{font-size:.9rem;color:#53635b;line-height:1.5}</style><main><h1>${escape(branding.businessName)}</h1><p>Sign in to your private workspace.</p>${ownerSocialControls("login")}<form method="post"><input type="hidden" name="csrf" value="${csrf}"><label>Email (employees)<input name="email" type="email" autocomplete="username" maxlength="160" placeholder="you@company.com"></label><p>Owner: leave email blank.</p><label>Password<input name="password" type="password" autocomplete="current-password" required maxlength="200" autofocus></label><button>Sign in</button></form><p>Forgot your password? Ask the owner for a new setup link.</p><p>First installation: run <code>npm run workspace:setup</code> on the server to create the owner password.</p></main></html>`, { headers: { ...securityHeaders(secure()), "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" } });
 }
 export async function POST(request: Request) {
   let pending: string | undefined, csrf = "";
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     jar.delete("owner_login_csrf");
     jar.delete("dd_active_role");
     const destination = new URL(employee ? "/me" : "/", appBaseUrl());
-    if (completed?.recoveryCodes.length) return recoveryPage(completed.recoveryCodes, destination.toString());
+    if (completed?.recoveryCodes.length) return recoveryPage(completed.recoveryCodes, new URL(employee ? "/me" : "/api/auth/social/manage", appBaseUrl()).toString());
     return NextResponse.redirect(destination, 303);
   } catch (e) {
     if (e instanceof MfaChallengeError) return factorPage(e.challenge.challengeToken, "staff", "/api/auth/login", `<input type="hidden" name="csrf" value="${escape(csrf)}">`);

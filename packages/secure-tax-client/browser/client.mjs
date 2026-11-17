@@ -62,6 +62,47 @@ export class VaultClient {
     if((response.status===401||response.status===403)&&generation===this.#generation&&!allowChallenge){this.#token=null;this.#reset();this.identity=null;this.status=null;}
     return responseJson(response,maximum,allowChallenge);
   }
+  async socialProviders(){
+    const result=await this.#request('/social/config');
+    if(result?.apiVersion!==1||typeof result.providers?.google!=='boolean'||typeof result.providers?.apple!=='boolean')throw new Error('Sign-in methods are unavailable.');
+    return result.providers;
+  }
+  async linkedSocialProviders(){
+    privateAccountCode(this.identity?.accountId);
+    const result=await this.#request('/social/connections','POST',{audience:'secure-customer'});
+    if(result?.apiVersion!==1||!Array.isArray(result.providers)||result.providers.some(value=>!['google','apple'].includes(value)))throw new Error('Connected sign-in methods could not be read.');
+    return result.providers;
+  }
+  async unlinkSocialProvider(provider){
+    if(!['google','apple'].includes(provider))throw new Error('Choose Google or Apple.');
+    privateAccountCode(this.identity?.accountId);
+    const result=await this.#request('/social/unlink','POST',{audience:'secure-customer',provider});
+    if(result?.apiVersion!==1||result.disconnected!==true||result.provider!==provider)throw new Error('The sign-in method was not disconnected. Retry from account settings.');
+    return result;
+  }
+  async beginSocialSignIn(provider,{link=false}={}){
+    if(!['google','apple'].includes(provider))throw new Error('Choose Google or Apple.');
+    if(link){privateAccountCode(this.identity?.accountId);if(!this.#token)throw new Error('Sign in before connecting another sign-in method.');}
+    else {this.#token=null;this.#expiresAt=null;this.#reset();this.status=null;this.identity=null;}
+    const generation=this.#generation,verifier=Array.from(crypto.getRandomValues(new Uint8Array(32)),byte=>String.fromCharCode(byte)).join('');
+    const encoded=btoa(verifier).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+    const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(encoded)));
+    const challenge=btoa(String.fromCharCode(...digest)).replaceAll('+','-').replaceAll('/','_').replaceAll('=','');
+    const result=await this.#request('/social/start','POST',{provider,audience:'secure-customer',purpose:link?'link':'login',challenge},8192);this.#same(generation);
+    const url=new URL(result?.authorizationUrl);
+    const google=provider==='google',expectedOrigin=google?'https://accounts.google.com':'https://appleid.apple.com',expectedPath=google?'/o/oauth2/v2/auth':'/auth/authorize';
+    const params=url.searchParams,keys=['client_id','redirect_uri','response_type','state','nonce',...(google?['scope','code_challenge','code_challenge_method','prompt']:['response_mode'])];
+    if(result?.apiVersion!==1||typeof result.requestId!=='string'||!/^[0-9a-f-]{36}$/.test(result.requestId)||url.origin!==expectedOrigin||url.pathname!==expectedPath||url.username||url.password||url.hash||[...params.keys()].sort().join('|')!==keys.sort().join('|')||params.get('redirect_uri')!==`${this.#config.apiOrigin}/api/auth/social/${provider}/callback`||params.get('response_type')!=='code'||!['state','nonce'].every(key=>/^[A-Za-z0-9_-]{43}$/.test(params.get(key)))||google&&(params.get('scope')!=='openid'||params.get('code_challenge_method')!=='S256'||params.get('prompt')!=='select_account')||!google&&params.get('response_mode')!=='query'||!Number.isFinite(Date.parse(result.expiresAt))||Date.parse(result.expiresAt)<=Date.now()||Date.parse(result.expiresAt)>Date.now()+11*60000)throw new Error('The provider sign-in request is invalid.');
+    return {...result,verifier:encoded,generation,link};
+  }
+  async finishSocialSignIn(flow){
+    this.#same(flow.generation);
+    const result=await this.#request('/social/result','POST',{requestId:flow.requestId,verifier:flow.verifier},8192);this.#same(flow.generation);
+    if(result.pending===true)return {pending:true};
+    if(flow.link){if(result.linked!==true)throw new Error('The sign-in method was not connected.');return {linked:true};}
+    if(result.audience!=='secure-customer'||result.mfaRequired!==true)throw new Error('Private sign-in requires authenticator verification.');
+    return this.#stageMfa(result,true);
+  }
   async signInWithCode(accountCode,password){return this.#signIn({accountCode:privateAccountCode(accountCode)},password,true);}
   async signIn(email,password){return this.#signIn({email},password,false);}
   async #signIn(identifier,password,privateLogin){
@@ -70,12 +111,15 @@ export class VaultClient {
     if((!privateLogin&&(typeof identifier.email!=='string'||identifier.email.length>160))||typeof password!=='string'||password.length>200)throw new Error(privateLogin?'Enter your private account code and password.':'Enter the invited account email and password.');
     const session=await this.#request('/session','POST',{...identifier,password},8192,true);this.#same(generation);
     if(session?.mfaRequired===true){
-      if(session.apiVersion!==1||typeof session.challengeToken!=='string'||!/^[a-f0-9]{64}$/.test(session.challengeToken)||typeof session.enrollmentRequired!=='boolean'||!Number.isFinite(Date.parse(session.expiresAt))||Date.parse(session.expiresAt)<=Date.now()||Date.parse(session.expiresAt)>Date.now()+6*60000||session.enrollmentRequired&&!/^[A-Z2-7]{32}$/.test(session.secret))throw new Error('The API did not return valid sign-in verification.');
-      this.#privateLogin=privateLogin;this.#mfa={challengeToken:session.challengeToken,enrollmentRequired:session.enrollmentRequired,expiresAt:session.expiresAt,secret:session.enrollmentRequired?session.secret:null};
-      return {mfaRequired:true};
+      return this.#stageMfa(session,privateLogin);
     }
     if(privateLogin)throw new Error('Private account sign-in requires authenticator verification.');
     return this.#acceptSession(session,generation);
+  }
+  #stageMfa(session,privateLogin){
+    if(session.apiVersion!==1||typeof session.challengeToken!=='string'||!/^[a-f0-9]{64}$/.test(session.challengeToken)||typeof session.enrollmentRequired!=='boolean'||!Number.isFinite(Date.parse(session.expiresAt))||Date.parse(session.expiresAt)<=Date.now()||Date.parse(session.expiresAt)>Date.now()+6*60000||session.enrollmentRequired&&!/^[A-Z2-7]{32}$/.test(session.secret))throw new Error('The API did not return valid sign-in verification.');
+    this.#privateLogin=privateLogin;this.#mfa={challengeToken:session.challengeToken,enrollmentRequired:session.enrollmentRequired,expiresAt:session.expiresAt,secret:session.enrollmentRequired?session.secret:null};
+    return {mfaRequired:true};
   }
   async verifySignIn(code){
     if(!this.#mfa||Date.parse(this.#mfa.expiresAt)<=Date.now()){this.#mfa=null;throw new Error('Verification expired. Sign in with your password again.');}
