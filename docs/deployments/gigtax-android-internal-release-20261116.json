@@ -1,0 +1,38 @@
+{
+  "verifiedAt": "2026-11-17T00:15:17.609728+00:00",
+  "packageName": "com.ridesharetaxpros.driver",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "track": "INTERNAL",
+  "trackState": "ACTIVE",
+  "releaseName": "1.0.0 - Android preview",
+  "availableToInternalTesters": true,
+  "testerCountConfigured": 1,
+  "ownerOptInVerified": true,
+  "playInstallButtonEnabled": true,
+  "deviceAvailableOnPlay": true,
+  "remoteInstallRequested": true,
+  "remoteInstallConfirmed": false,
+  "remoteInstallBoundary": "Owner chose to install directly from the test link on the phone; physical install remains unverified",
+  "publicProductionAvailable": false,
+  "productionGate": {
+    "closedTestersRequired": 12,
+    "continuousDaysRequired": 14,
+    "productionAccessApprovalRequired": true
+  },
+  "publicStoreListingCompleted": true,
+  "dataSafetyPublished": false,
+  "contentRatingPublished": false,
+  "physicalDeviceExecutionVerified": false,
+  "hostedWorkspaceVerified": false,
+  "playUploadAABSHA256": "769d389e712245bb3c1f9ed8a8d7b51fdce6834d855dcdf37c29afe70343a2e8",
+  "nonblockingWarnings": [
+    "No R8 mapping file; build is not minified",
+    "No vendor native debug symbols uploaded"
+  ],
+  "storeSetupTasksCompleted": 9,
+  "storeSetupTasksTotal": 12,
+  "contentRatingSaved": true,
+  "dataSafetyDraftSaved": true,
+  "dataSafetyTypesPrepared": 18
+}

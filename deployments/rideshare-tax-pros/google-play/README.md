@@ -1,65 +1,63 @@
-# Gig Tax Pros Google Play setup
+# Gig Tax Pros Google Play release
 
-Android source is unchanged from the committed parity implementation05585f4;
-this release checkout inherits the independently saved iOS release branch.
-The Android Gradle applicationId and namespace are com.ridesharetaxpros.driver.
-Do not change the package name or create another app record to bypass an issue.
+The signed1.0.0/code1 release is ACTIVE on Google Play internal testing. The
+owner enrolled, and the live Play page offered an enabled Install button and an
+available Motorola device. Google requested account re-verification for remote
+installation; the owner chose to use the test link directly on the phone.
+Physical installation and release-device execution remain unverified.
 
-## Observed form state
+The app is free, en-US, package com.ridesharetaxpros.driver. Initial public
+availability is intended for the United States. Do not create another app record
+or change the package to bypass a problem. Use the existing private console record.
 
-The free English-U.S. Google Play app record has been created successfully.
-Package availability was checked and all creation declarations were completed
-following the owner's instruction to finish setup. The actual app dashboard
-shows the new-account production gate: at least12closed testers for14days,
-then an application for production access. Internal testing is available now.
-An owner-only email list was created and selected; recipient details remain
-private outside source. The first internal release is being prepared.
+## Saved store setup
 
-Native Safari accessibility can read/set fields and press controls without
-Apple Events JavaScript access. AX indices move after validation; re-read the
-semantic labels and verify URL/label/value before every mutation. Resolve paths
-through actual child lists rather than lazy nested UI-element references.
-Private before/after form evidence and the owner-bound local helper remain
-outside Git under the existing app's GooglePlayRelease support folder.
+Nine of twelve dashboard tasks are complete. Privacy policy, no-ads, government,
+health, financial features and inherited trader declarations are saved. Financial
+features include rewards/points and other mileage/income/expense recordkeeping.
+The app category is Finance; contact details are support@gigtax.pro and
+https://gigtax.pro/app-support. The listing text, icon, feature graphic and four
+unmodified Android captures are saved and read back as ready to send for review.
+The listing and declarations have not been sent for public review.
 
-## Android-specific listing
+The saved IARC questionnaire reports user interactions and firm-managed cash
+referral rewards. North America currently receives Mature17+ / Cash Rewards.
+There is no wagering, NFT issuance or digital-goods purchase flow in this release.
+The audience is planned for adults; that form depends on app-access completion.
 
-The draft describes the Android NotificationListener and explicit MediaProjection
-flows, instead of copying iOS ReplayKit or claims that notification reading is
-impossible. The manifest uses location and mediaProjection foreground services;
-no ACCESS_BACKGROUND_LOCATION declaration is present. Store text, runtime
-permissions, Data safety and foreground-service declarations must match the
-actual release artifact. A source description is not physical-device proof.
+Data safety has18type handling entries saved as a draft, including SDK telemetry.
+The source worksheet and data-safety-draft.json preserve their scope and remaining
+provider/deletion checks. Do not present draft answers as published declarations.
+The public privacy page now covers Android as well as iOS and is live.
 
-The public app privacy/support pages currently emphasize the iOS release.
-Before Android submission, explicitly cover Android's optional notification
-access and native SDK handling. Audit ML Kit, Plaid and Maps data practices,
-account sharing and encrypted snapshots for the Android Data safety form;
-do not blindly copy Apple's questionnaire. Existing Maps key is optional and
-unconfigured features must remain unavailable. No credential or key belongs here.
+assets.json records exact uploaded asset hashes and the historical Android capture
+provenance. Android runtime source differs from screenshot baseline05585f4 only
+in release signing/version settings and one privacy-disclosure paragraph. The
+screens are actual Android captures, not fresh physical-device release proof.
 
-## Remaining work
+## Public-release blockers
 
-- Finish the owner's declaration decision and create/read back one app record.
-- Save the verified listing, contact/privacy information and current Android
-  screenshots/icon/feature graphic; do not reuse iPhone pixels as Android proof.
-- Prepare an actual release AAB, private recoverable upload key and signed
-  artifact verification. Only a historic debug APK exists; no release AAB upload
-  or Play App Signing key selection has been performed by this setup step.
-- Complete Google's content, app-access, Data safety, financial feature and
-  foreground-service forms from actual Android source and enabled services.
-- Resolve organization-account requirements for the actual financial/business
-  features before a public launch. The current developer account is Personal;
-  identity verification must use the actual account owner.
-- Observe the account's testing/production-access requirements and obtain actual
-  consenting testers as needed. No invitations or external messages authorized.
+- App access: local journal needs no login, but optional firm features are
+  restricted. No working review account is available. Do not certify full access
+  or manufacture credentials to satisfy Google's mandatory reviewer-access check.
+- Account/data deletion: the public privacy page describes email requests, but
+  delivery, identity verification, permanent account/data handling and retention
+  must be verified before publishing the Data safety declaration. Invitation
+  activation sets credentials and is included in the account-creation draft.
+- Complete adult target audience after app access. Resolve Google's organization
+  account requirements for these actual business/financial features. The account
+  is currently Personal; the app inherits the owner's declared trader status.
+- Finish setup, publish a real closed test and obtain at least12consenting testers
+  for14continuous days, then apply for production access and review. The live
+  dashboard currently reports0closed testers. Internal testing does not satisfy
+  that closed-test period. No outside invitations or messages were sent.
+- Hosted workspace currently has health404 and public discovery remains null.
+  Maps/bank/provider services need real authorized configuration. Do not publish
+  claims that these connections are working. Support-mail delivery is unverified.
 
-Hosted workspace startup remains unverified/health404 and discovery disconnected.
-Connected features cannot be described as operational or given fake credentials.
-The Apple app remains WAITING_FOR_REVIEW; this Android setup does not change it.
-
-References: [Google app setup](https://support.google.com/googleplay/android-developer/answer/9859152),
-[developer account types](https://support.google.com/googleplay/android-developer/answer/13634885).
+Native Safari accessibility completed the console work without JavaScript,
+Chrome or a new VM. Private account snapshots and helpers remain outside Git.
+The Apple app remains WAITING_FOR_REVIEW; Android setup does not change it.
 
 ## Signed release artifacts
 

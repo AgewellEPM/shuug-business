@@ -1,0 +1,64 @@
+{
+  "verifiedAt": "2026-11-17T00:40:07.713244+00:00",
+  "packageName": "com.ridesharetaxpros.driver",
+  "versionName": "1.0.0",
+  "versionCode": 1,
+  "setupTasksCompleted": 9,
+  "setupTasksTotal": 12,
+  "savedDeclarations": [
+    "privacy_policy",
+    "no_ads",
+    "not_government",
+    "no_health_features",
+    "financial_rewards_and_other_recordkeeping",
+    "trader_status"
+  ],
+  "category": "FINANCE",
+  "supportEmail": "support@gigtax.pro",
+  "supportURL": "https://gigtax.pro/app-support",
+  "listingState": "READY_TO_SEND_FOR_REVIEW",
+  "descriptionExactSourceReadback": true,
+  "uploadedPhoneScreenshots": 4,
+  "uploadedIcon": true,
+  "uploadedFeatureGraphic": true,
+  "contentRating": {
+    "state": "SAVED_PENDING_REVIEW",
+    "northAmerica": "Mature 17+",
+    "descriptors": [
+      "Cash Rewards",
+      "Users Interact"
+    ],
+    "cashRewardsReason": "Firm-managed tax-preparation referral rewards in AccountScreen.kt; no wagering, NFTs or digital purchases"
+  },
+  "dataSafety": {
+    "state": "DRAFT",
+    "typesPrepared": 18,
+    "submitted": false,
+    "deletionRequestFlowVerified": false
+  },
+  "appAccess": {
+    "state": "INCOMPLETE",
+    "guestLocalJournalAvailable": true,
+    "firmReviewCredentialsAvailable": false,
+    "fullAccessCertificationSubmitted": false
+  },
+  "targetAudience": {
+    "state": "BLOCKED_BY_APP_ACCESS",
+    "planned": [
+      "18+"
+    ]
+  },
+  "publicSubmission": {
+    "submitted": false,
+    "closedTestersOptedIn": 0,
+    "closedTestersRequired": 12,
+    "continuousDaysRequired": 14,
+    "organizationAccountRequirementsResolved": false
+  },
+  "privateInformationExcluded": [
+    "Tester email",
+    "Native AX account snapshots",
+    "Store authorization URL parameters",
+    "Signing credentials"
+  ]
+}

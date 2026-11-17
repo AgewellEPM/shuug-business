@@ -1,0 +1,65 @@
+{
+  "uploadedAndReadBack": true,
+  "screenshotRuntimeBaseline": "05585f4",
+  "releaseSourceChangesFromScreenshotBaseline": [
+    "Release version and private signing configuration",
+    "One in-app SDK privacy disclosure paragraph"
+  ],
+  "freshReleaseDeviceScreenshots": false,
+  "assets": [
+    {
+      "fileName": "02-01-1F - Final installed Home dashboard.png",
+      "sha256": "503b386b69f464ddca71db464ddc77ba8b384ff7c2784c905c70078522400bbc",
+      "bytes": 1080319,
+      "width": 1320,
+      "height": 2868,
+      "kind": "PHONE_SCREENSHOT",
+      "source": "2026-11-08 installed Android review capture; unmodified pixels"
+    },
+    {
+      "fileName": "03-04-1F2 - Final Manual trip - Capsules and date time pills.png",
+      "sha256": "0f32a6ab85a2a8e0d06a50acd7f9a3b15710707a0fb311431555e90f7a5cab62",
+      "bytes": 242366,
+      "width": 1320,
+      "height": 2868,
+      "kind": "PHONE_SCREENSHOT",
+      "source": "2026-11-08 installed Android review capture; unmodified pixels"
+    },
+    {
+      "fileName": "08-01-1F2 - Final Add expense - Capsules date pill receipt icons.png",
+      "sha256": "876b4b949d7c9f1c4bcc9cb0e4016dfa6a51cc5754fa1243148348a4c5c5fa38",
+      "bytes": 185462,
+      "width": 1320,
+      "height": 2868,
+      "kind": "PHONE_SCREENSHOT",
+      "source": "2026-11-08 installed Android review capture; unmodified pixels"
+    },
+    {
+      "fileName": "10-01-1F2 - Final Offers - Icon actions and charcoal tabs.png",
+      "sha256": "89562312e43e0640b1e794b0594e0dea08b013ce4855cb571f210e04afcb4e38",
+      "bytes": 778951,
+      "width": 1320,
+      "height": 2868,
+      "kind": "PHONE_SCREENSHOT",
+      "source": "2026-11-08 installed Android review capture; unmodified pixels"
+    },
+    {
+      "fileName": "app-icon.png",
+      "sha256": "29516283a780cbcde278c6e67fffc6319edefb7cfff8a45357882d77841eb470",
+      "bytes": 17996,
+      "width": 512,
+      "height": 512,
+      "kind": "APP_ICON",
+      "source": "Native AppKit render of existing Android vector brand and text"
+    },
+    {
+      "fileName": "feature-graphic.png",
+      "sha256": "25738c768c8d008d4e091b2988a862572463b713407a97543a3cbc2f2a8817e0",
+      "bytes": 38557,
+      "width": 1024,
+      "height": 500,
+      "kind": "FEATURE_GRAPHIC",
+      "source": "Native AppKit render of existing Android vector brand and text"
+    }
+  ]
+}

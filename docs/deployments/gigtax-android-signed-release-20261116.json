@@ -70,5 +70,17 @@
     "skipped": 1
   },
   "physicalDeviceVerified": false,
-  "playUploadVerified": false
+  "playUploadVerified": true,
+  "playUploadReadback": {
+    "versionName": "1.0.0",
+    "versionCode": 1,
+    "targetSdk": 36,
+    "minSdk": 26,
+    "distributionSize": "41.3 MB",
+    "validationErrors": 0,
+    "validationWarnings": [
+      "No R8 deobfuscation file (minification disabled)",
+      "Vendor native symbols not uploaded"
+    ]
+  }
 }

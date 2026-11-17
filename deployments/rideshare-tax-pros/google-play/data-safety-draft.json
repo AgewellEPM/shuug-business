@@ -1,0 +1,222 @@
+{
+  "status": "DRAFT_ONLY",
+  "allCollectedDataEncryptedInTransit": true,
+  "accountCreationSupported": [
+    "username_password_via_firm_invitation_activation"
+  ],
+  "deleteAccountURLDraft": "https://gigtax.pro/app-privacy",
+  "deletionRequestFulfillmentVerified": false,
+  "reviewRequired": [
+    "Verify real firm review account and reachable authorized workspace",
+    "Verify deletion request delivery and permanent account/data handling, retention disclosure and prominent request link",
+    "Reconfirm provider-specific sharing exceptions and optional bank handling against the configured provider flow before publication"
+  ],
+  "dataTypes": [
+    {
+      "category": "Personal info",
+      "type": "Name",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Account management"
+      ]
+    },
+    {
+      "category": "Personal info",
+      "type": "Email address",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Account management"
+      ]
+    },
+    {
+      "category": "Personal info",
+      "type": "User IDs",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Account management"
+      ]
+    },
+    {
+      "category": "Personal info",
+      "type": "Other info",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Financial info",
+      "type": "User payment info",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Financial info",
+      "type": "Purchase history",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Financial info",
+      "type": "Other financial info",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Location",
+      "type": "Approximate location",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Location",
+      "type": "Precise location",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Messages",
+      "type": "Other in-app messages",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Photos and videos",
+      "type": "Photos",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "Files and docs",
+      "type": "Files and docs",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "App activity",
+      "type": "App interactions",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "category": "App activity",
+      "type": "Other user-generated content",
+      "collected": true,
+      "sharedDraft": false,
+      "optional": true,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality"
+      ]
+    },
+    {
+      "category": "App info and performance",
+      "type": "Crash logs",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "category": "App info and performance",
+      "type": "Diagnostics",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "category": "App info and performance",
+      "type": "Other app performance data",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Analytics"
+      ]
+    },
+    {
+      "category": "Device or other IDs",
+      "type": "Device or other IDs",
+      "collected": true,
+      "sharedDraft": true,
+      "optional": false,
+      "ephemeral": false,
+      "purposes": [
+        "App functionality",
+        "Analytics"
+      ]
+    }
+  ]
+}
