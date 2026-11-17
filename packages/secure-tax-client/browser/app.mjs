@@ -243,12 +243,13 @@ try{
   }
   const shared=!!$('workspace-signin');
   social=mountSocialSignIn(document,$('connection'),{getClient:()=>client,run,onSignedIn:signedIn,onMessage:message,clearOpened,showLogin:!shared,canRefresh:()=>canRefresh()&&!portal?.queue?.hasUnprepared,isWorking:()=>working});
-  await social.configure().catch(()=>{});
+  if(!shared)await social.configure().catch(()=>{});
   $('trust').textContent=`Independent client: ${client.config.uiOrigin}. Ciphertext API: ${client.config.apiOrigin}. Public trust pins were installed with this static client.`;
   $('signin').href=`${client.config.apiOrigin}/api/website/customer`;$('signin').hidden=false;await refreshKeys();
   if(shared){
     workspaceEntry=await mountWorkspaceSignIn(document,{client,config:trustedConfig,run,onMessage:message,onClientFactor:signedIn});
     message('');
+    void social.configure().catch(()=>{});
     await workspaceEntry.initialize();
   }else message('Independent trust configuration loaded. Sign in with your private account code, or set up a new account using a firm invitation.');
 }catch(error){message(error.message,true);}

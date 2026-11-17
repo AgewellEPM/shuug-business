@@ -42,8 +42,10 @@ function owner(db: DatabaseSync, token: string) {
 function assignments(db: DatabaseSync) {
   const social = db.prepare("SELECT 1 FROM sqlite_schema WHERE name='social_identities'").get();
   const providers = social && db.prepare("SELECT provider FROM social_identities WHERE audience='workspace-member' AND accountId=? ORDER BY provider");
+  const passwordTable = db.prepare("SELECT 1 FROM sqlite_schema WHERE name='workspace_password_credentials'").get();
+  const password = passwordTable && db.prepare("SELECT 1 FROM workspace_password_credentials WHERE kind='workspace-member' AND id=?");
   const rows = db.prepare("SELECT id,role,targetId,label,enabled,revision FROM workspace_role_assignments ORDER BY label,id").all() as Assignment[];
-  return rows.map(row => ({ ...row, enabled: row.enabled === 1, providers: providers ? providers.all(row.id).map(value => value.provider) : [] }));
+  return rows.map(row => ({ ...row, enabled: row.enabled === 1, providers: providers ? providers.all(row.id).map(value => value.provider) : [], passwordConfigured: !!(password && password.get(row.id)) }));
 }
 
 export function listWorkspaceAssignments(token: string) {

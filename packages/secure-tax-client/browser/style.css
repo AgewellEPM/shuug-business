@@ -23,6 +23,9 @@ body[data-workspace="sign-in"][data-workspace-option="setup"] #client-workspace 
 #workspace-signin {padding: 24px; background: #1e2030; border-color: #3a3c51; border-radius: 18px}
 #workspace-signin h1 {font-size: clamp(1.65rem, 5vw, 2.1rem); line-height: 1.2; margin: 4px 0 24px}
 #workspace-signin .workspace-brand {font-weight: 700; color: #e2cbff; margin: 0}
+#workspace-password button {width: 100%; min-height: 46px; margin: 16px 0 0}
+.workspace-divider {display: flex; align-items: center; gap: 12px; margin: 16px 0; color: var(--muted)}
+.workspace-divider::before, .workspace-divider::after {content: ''; flex: 1; border-top: 1px solid #535362}
 .workspace-providers {display: grid; gap: 10px}
 .workspace-providers button {min-height: 46px; margin: 0; background: #f3f2fa; color: #161620; border-color: transparent}
 .workspace-providers button[data-provider="apple"] {background: #11111a; color: white; border-color: #535362}

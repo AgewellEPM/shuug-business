@@ -1,5 +1,5 @@
 /** Single-merchant server vault. Atomic encrypted files on the configured data volume. */
-import { createCipheriv, createDecipheriv, randomBytes, randomUUID } from "node:crypto";
+import { createCipheriv, createDecipheriv, createHmac, randomBytes, randomUUID } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync, renameSync } from "node:fs";
 import path from "node:path";
 export function dataDirectory() { return process.env.DEALDESK_DATA_DIR || path.join(process.cwd(), ".data"); }
@@ -32,6 +32,11 @@ export function saveSecrets(patch: Record<string,string|null>) {
 }
 export function setting(name:string):string { return readVault()[name] ?? process.env[name]?.trim() ?? ""; }
 export function appBaseUrl():string { return setting("APP_BASE_URL") || "http://localhost:3000"; }
+/** A private, stable index for a server-side lookup. */
+export function privateLookupDigest(namespace: string, value: string): string {
+  const lookupKey = createHmac("sha256", key()).update(`private-lookup:${namespace}`).digest();
+  return createHmac("sha256", lookupKey).update(value).digest("hex");
+}
 /** Encrypt short-lived integration credentials with the private workspace key. */
 export function sealSecret(value: string): string {
   const iv = randomBytes(12), cipher = createCipheriv("aes-256-gcm", key(), iv);

@@ -118,6 +118,10 @@ export class VaultClient {
     this.#reset();
     return this.#stageMfa(result,true);
   }
+  async configureSignInEmail(email,currentPassword){
+    if(!this.clientOnly||!this.identity||!this.#token)throw new Error('Sign in to your client account first.');
+    return this.#request('/sign-in-email','POST',{email,currentPassword},2048);
+  }
   async signInWithCode(accountCode,password){return this.#signIn({accountCode:privateAccountCode(accountCode)},password,true);}
   async signIn(email,password){if(this.clientOnly)throw new Error('Use your private account code or connected Google or Apple sign-in.');return this.#signIn({email},password,false);}
   async #signIn(identifier,password,privateLogin){

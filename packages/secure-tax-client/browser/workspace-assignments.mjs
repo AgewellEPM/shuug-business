@@ -20,7 +20,9 @@ export function mountWorkspaceAssignments(root, { call, run, onMessage }) {
     form.elements.targetId.value = item?.targetId ?? '';
     form.elements.enabled.checked = item?.enabled ?? true;
     link.value = '';
-    methods.textContent = item?.providers?.length ? `Connected sign-in: ${item.providers.map(provider => provider === 'google' ? 'Google' : 'Apple').join(', ')}` : '';
+    const connected = (item?.providers ?? []).map(provider => provider === 'google' ? 'Google' : 'Apple');
+    if (item?.passwordConfigured) connected.push('Email and password');
+    methods.textContent = connected.length ? `Connected sign-in: ${connected.join(', ')}` : '';
     refresh();
   }
   function render(value, choose = '') {
@@ -54,7 +56,7 @@ export function mountWorkspaceAssignments(root, { call, run, onMessage }) {
     render(value, item.id);
     link.value = `${root.ownerDocument.location.origin}/#invite=${value.invitation}`;
     refresh();
-    onMessage('Share this one-use sign-in link privately with the person you assigned. It expires in 48 hours.');
+    onMessage('Share this one-use link privately with the assigned person to set up or update their sign-in. It expires in 48 hours.');
   });
   copy.onclick = () => run(async () => { await navigator.clipboard.writeText(link.value); onMessage('Private sign-in link copied.'); });
   return {

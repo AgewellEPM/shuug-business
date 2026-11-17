@@ -34,7 +34,7 @@ export function privacyProtocol(config){
     assertPath(path){
       if(!clientOnly)return;
       const url=new URL(path,'https://private.invalid');
-      if(!['/status','/session','/account','/enroll','/enrollment-renewal','/activation','/activation/challenge','/objects'].includes(url.pathname)&&!/^\/objects\/[A-Za-z0-9_.:%-]{1,384}$/.test(url.pathname)&&!/^\/social\/(config|start|result|connections|unlink)$/.test(url.pathname))unavailable();
+      if(!['/status','/session','/account','/sign-in-email','/enroll','/enrollment-renewal','/activation','/activation/challenge','/objects'].includes(url.pathname)&&!/^\/objects\/[A-Za-z0-9_.:%-]{1,384}$/.test(url.pathname)&&!/^\/social\/(config|start|result|connections|unlink)$/.test(url.pathname))unavailable();
     },
     assertDispatch(envelope,expectedContext,client){
       if(!clientOnly)return;

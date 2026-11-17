@@ -12,6 +12,7 @@ async function post(url, body, credentials = 'omit') {
     const error = new Error(response.status === 409 ? 'This sign-in is unavailable. Use your account code or ask for a fresh invitation.' :
       response.status === 403 ? 'Your workspace access is unavailable. Contact the owner.' :
       response.status === 401 ? 'Sign-in expired or the code was incorrect. Try again.' : 'Sign-in could not be completed. Start again.');
+    error.status = response.status;
     await response.body?.cancel().catch(() => {});
     throw error;
   }
@@ -22,6 +23,17 @@ export async function enterBusinessWorkspace(body) {
   const result = await post(`${website}/api/sales`, body, 'include');
   if (!['/sales', '/location'].includes(result.destination)) throw new Error('The assigned workspace could not be verified.');
   return website + result.destination;
+}
+
+export async function signInWorkspacePassword(apiOrigin, email, password, invitation) {
+  const operation = invitation ? 'set-password' : 'password';
+  try {
+    return await post(`${apiOrigin}/api/auth/workspace/${operation}`, { email, password, ...(invitation ? { invitation } : {}) });
+  } catch (error) {
+    if (error.status === 401) throw new Error('Check your email and password. If you still use an account code, add your sign-in email under Account access.');
+    if (error.status === 409 && invitation) throw new Error('That email or invitation is unavailable. Use your current sign-in or ask the owner for a new link.');
+    throw error;
+  }
 }
 
 export async function startWorkspaceProvider(apiOrigin, provider, invitation) {

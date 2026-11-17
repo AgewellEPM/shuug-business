@@ -2,6 +2,14 @@
   <p class="workspace-brand">Gig Tax Pros</p>
   <h1 id="workspace-signin-title">Sign in to your workspace</h1>
   <p id="workspace-invitation" hidden>Choose a sign-in method to accept your workspace invitation.</p>
+  <form id="workspace-password" method="post" autocomplete="on">
+    <label for="workspace-email">Email</label>
+    <input id="workspace-email" name="email" type="email" autocomplete="username" maxlength="240" required disabled>
+    <label for="workspace-password-input">Password</label>
+    <input id="workspace-password-input" name="password" type="password" autocomplete="current-password" maxlength="200" required disabled>
+    <button type="submit" disabled>Sign in</button>
+  </form>
+  <p class="workspace-divider">or</p>
   <div class="workspace-providers">
     <button type="button" data-provider="google" disabled>Continue with Google</button>
     <button type="button" data-provider="apple" disabled>Continue with Apple</button>

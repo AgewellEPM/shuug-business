@@ -1,6 +1,7 @@
 import { validateTrustedConfig } from './config.mjs';
 import { enterBusinessWorkspace, workspaceSecret } from './workspace-entry.mjs';
 import { mountWorkspaceAssignments } from './workspace-assignments.mjs';
+import { mountWorkspaceEmailSettings } from './workspace-email-settings.mjs';
 
 const PROFILE='client-only-v1',PREFIX='/api/website/customer/client-only';
 const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
@@ -22,9 +23,10 @@ export async function mountClientOnlyOwner(document,{config,fetcher=globalThis.f
   let trusted=null,token=null,expires=0,pending=null,working=false,recovery=false,destroyed=false,generation=0;
   const shared=!!onReturn;
   const workspace=shared&&mountWorkspaceAssignments($('owner-workspace-access'),{call,run,onMessage:message});
+  const emailSettings=shared&&mountWorkspaceEmailSettings($('owner-console').querySelector('[data-sign-in-email]'),{run,save:(email,currentPassword)=>call('/sign-in-email','POST',{email,currentPassword}),message});
   const listeners=[];
   function clearVerification(){pending=null;$('owner-mfa-code').value='';$('owner-mfa-secret').textContent='';}
-  function clear(){generation++;token=null;expires=0;clearVerification();recovery=false;$('owner-password').value='';$('owner-recovery-values').textContent='';$('owner-invitation-id').value='';$('owner-account-code').value='';if(workspace){workspace.clear();$('owner-sdr-link').hidden=true;$('owner-sdr-link').removeAttribute('href');}}
+  function clear(){generation++;token=null;expires=0;clearVerification();recovery=false;$('owner-password').value='';$('owner-recovery-values').textContent='';$('owner-invitation-id').value='';$('owner-account-code').value='';if(workspace){workspace.clear();emailSettings.clear();$('owner-sdr-link').hidden=true;$('owner-sdr-link').removeAttribute('href');}}
   const signed=()=>!!token&&expires>Date.now();
   function refresh(){
     const ready=!!trusted&&!destroyed,active=signed(),manage=active&&!recovery;
@@ -38,6 +40,7 @@ export async function mountClientOnlyOwner(document,{config,fetcher=globalThis.f
     $('owner-identity').textContent=active?'Owner sign-in verified.':'Signed out.';
     if(workspace){
       workspace.refresh(ready&&manage,working);
+      emailSettings.refresh(ready&&manage,working);
       $('owner-sdr-access').hidden=!manage;$('owner-sdr-ticket').disabled=!manage||working;
       $('owner-methods').hidden=!manage;
       for(const id of ['owner-create-invitation','owner-account-code'])$(id).closest('section').hidden=!manage;
