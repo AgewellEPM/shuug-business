@@ -1,4 +1,4 @@
-import { responseJson } from './client.mjs';
+import { readResponseJson, responseJson } from './client.mjs';
 import { createSignInProof, providerProof, signInRequestId, validateSignInFlow } from './social-proof.mjs';
 
 export const website = 'https://gigtax.pro';
@@ -9,10 +9,12 @@ async function post(url, body, credentials = 'omit') {
   const response = await fetch(url, { method: 'POST', credentials, cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer',
     headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), signal: AbortSignal.timeout(12000) });
   if (!response.ok) {
+    const detail = response.status === 409 ? await readResponseJson(response, 2048).catch(() => null) : undefined;
     const error = new Error(response.status === 409 ? 'This sign-in is unavailable. Use your account code or ask for a fresh invitation.' :
       response.status === 403 ? 'Your workspace access is unavailable. Contact the owner.' :
       response.status === 401 ? 'Sign-in expired or the code was incorrect. Try again.' : 'Sign-in could not be completed. Start again.');
     error.status = response.status;
+    if (detail?.code === 'provider_not_connected') error.code = detail.code;
     await response.body?.cancel().catch(() => {});
     throw error;
   }

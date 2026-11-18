@@ -82,7 +82,14 @@ export async function mountWorkspaceSignIn(document, { client, config, run, onMe
   async function initialize() {
     refresh(false);
     void client.socialProviders().then(providers => { Object.assign(state, providers); refresh(); }).catch(() => {});
-    if (resume) await run(async () => finish(await resumeWorkspaceProvider(config.apiOrigin)));
+    if (resume) await run(async () => {
+      try { await finish(await resumeWorkspaceProvider(config.apiOrigin)); }
+      catch (error) {
+        if (error.code !== 'provider_not_connected') throw error;
+        byId('workspace-options').open = true;
+        onMessage('To connect Google or Apple, first sign in with your existing password or account code. Staff and tax locations can connect from their invitation link.');
+      }
+    });
   }
   return { refresh, initialize };
 }

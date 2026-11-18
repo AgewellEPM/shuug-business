@@ -4,7 +4,7 @@ import { appBaseUrl, setting } from "../../connections/vault";
 
 export type SocialProvider = "google" | "apple";
 export class SocialSignInError extends Error {
-  constructor(message = "Sign-in could not be verified. Start again.", readonly status = 400) { super(message); }
+  constructor(message = "Sign-in could not be verified. Start again.", readonly status = 400, readonly code?: "provider_not_connected") { super(message); }
 }
 export const providerName = (value: unknown): SocialProvider => {
   if (value !== "google" && value !== "apple") throw new SocialSignInError("Choose Google or Apple.");

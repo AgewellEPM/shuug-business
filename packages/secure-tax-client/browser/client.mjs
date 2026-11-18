@@ -26,6 +26,9 @@ const validReceipt=value=>value && validId(value.objectId) && integer(value.revi
 const checkRecoveryCheckpoint=(manifest,binding)=>{if(manifest.epoch<(binding?.minimumEpoch??1)||binding?.minimumEpoch===manifest.epoch&&binding.manifest&&JSON.stringify(binding.manifest)!==JSON.stringify(manifest))throw new Error('Recovery cannot replace a newer enrollment or a different previously observed manifest at the same epoch.');};
 export async function responseJson(response,maximum,allowChallenge=false) {
   if(!response.ok&&!(allowChallenge&&response.status===428)) throw new Error(response.status===401||response.status===403?'Sign-in verification failed. Check your code or sign in again.':'The ciphertext API rejected this request. Refresh before retrying.');
+  return readResponseJson(response,maximum);
+}
+export async function readResponseJson(response,maximum) {
   if(!response.headers.get('content-type')?.toLowerCase().startsWith('application/json')) throw new Error('The ciphertext API did not return JSON.');
   const declared=Number(response.headers.get('content-length'));
   if(declared>maximum) throw new Error('The ciphertext response is too large.');

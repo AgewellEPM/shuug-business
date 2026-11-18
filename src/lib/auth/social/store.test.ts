@@ -16,6 +16,7 @@ import { hashPassword } from "../passwords";
 import { randomUUID } from "node:crypto";
 import { startSocialSignIn, finishSocialCallback, cancelSocialCallback, claimSocialResult, linkedSocialProviders, unlinkSocialProvider, startWorkspaceSignIn } from "./store";
 import { issueOwnerSdrTicket, listWorkspaceAssignments, manageWorkspaceAssignment, workspaceRoleSession } from "./workspace-access";
+import { POST as workspaceSignIn } from "@/app/api/auth/workspace/[operation]/route";
 const identity = vi.hoisted(() => ({ issuer: "https://accounts.google.com", subject: "synthetic-stable-subject", refreshToken: null }));
 vi.mock("./providers", async importOriginal => ({ ...await importOriginal<typeof import("./providers")>(), exchangeAuthorizationCode: vi.fn(async () => identity) }));
 let directory: string, owner: string;
@@ -86,6 +87,22 @@ async function sharedFlow(invitation?: string) {
   expect(await finishSocialCallback("google", new URL(flow.authorizationUrl).searchParams.get("state")!, "synthetic-code")).toBe("workspace");
   return { requestId: flow.requestId, verifier };
 }
+
+it("explains an unconnected provider after browser verification and issues no account authority", async () => {
+  const origin = "https://portal.example.test";
+  vi.stubEnv("GIGTAX_REQUIRE_CLIENT_ONLY", "true");
+  vi.stubEnv("SHUUG_SECURE_TAX_TRUSTED_ORIGIN", origin);
+  const flow = await sharedFlow();
+  const claim = (proof: string) => workspaceSignIn(new Request("https://workspace.example.com/api/auth/workspace/result", {
+    method: "POST", headers: { Origin: origin, "Content-Type": "application/json" }, body: JSON.stringify({ ...flow, verifier: proof }),
+  }), { params: Promise.resolve({ operation: "result" }) });
+  const invalid = await claim("w".repeat(43));
+  expect(invalid.status).toBe(400);
+  expect(await invalid.json()).not.toHaveProperty("code");
+  const verified = await claim(flow.verifier);
+  expect(verified.status).toBe(409);
+  expect(await verified.json()).toEqual({ error: expect.any(String), code: "provider_not_connected" });
+});
 
 it("uses the same sign-in for one-time role enrollment, current assignments and revocation", async () => {
   const input = { action: "save", role: "staff", targetId: "11", label: "Synthetic team member", enabled: true };

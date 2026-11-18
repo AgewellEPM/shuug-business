@@ -93,7 +93,7 @@ function claimWorkspaceIdentity(db: DatabaseSync, row: Flow) {
     db.prepare("INSERT INTO audit(record_id,actor,action,at,snapshot) VALUES(?,?,?,?,?)")
       .run(accountId, accountId, "auth.workspace.connected", new Date().toISOString(), JSON.stringify({ provider: row.provider }));
   }
-  if (!identity) throw new SocialSignInError("This sign-in is not connected. Use your account code or open your workspace invitation first.", 409);
+  if (!identity) throw new SocialSignInError("This sign-in is not connected. Sign in with your existing credentials or open your workspace invitation.", 409, "provider_not_connected");
   if (identity.audience === "secure-customer" && !hasClientOnlyBinding(db, { accountId: identity.accountId })) {
     throw new SocialSignInError("Activate your client-owned account before using the shared sign-in.", 409);
   }

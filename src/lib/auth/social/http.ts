@@ -45,7 +45,8 @@ export function socialResponse(request: Request, value: unknown, status = 200) {
 }
 export function socialFailure(request: Request, error: unknown) {
   const known = error instanceof SocialSignInError || error instanceof SecureTaxError;
-  return socialResponse(request, { error: known ? error.message : "Sign-in could not be completed. Start again." }, known ? error.status : 400);
+  const code = error instanceof SocialSignInError ? error.code : undefined;
+  return socialResponse(request, { error: known ? error.message : "Sign-in could not be completed. Start again.", ...(code ? { code } : {}) }, known ? error.status : 400);
 }
 export function socialOptions(request: Request) {
   try {

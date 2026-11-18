@@ -2,6 +2,8 @@ import { validateTrustedConfig } from './config.mjs';
 import { enterBusinessWorkspace, workspaceSecret } from './workspace-entry.mjs';
 import { mountWorkspaceAssignments } from './workspace-assignments.mjs';
 import { mountWorkspaceEmailSettings } from './workspace-email-settings.mjs';
+import { mountSocialSignIn } from './social-signin.mjs';
+import { createSignInProof, validateSignInFlow } from './social-proof.mjs';
 
 const PROFILE='client-only-v1',PREFIX='/api/website/customer/client-only';
 const uuid=value=>typeof value==='string'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(value);
@@ -21,13 +23,44 @@ function downloadJson(document,name,value){
 export async function mountClientOnlyOwner(document,{config,fetcher=globalThis.fetch,download=(name,value)=>downloadJson(document,name,value),onReturn}={}){
   const $=id=>document.getElementById(id),message=(text,error=false)=>{$('owner-message').textContent=text;$('owner-message').classList.toggle('error',error);};
   let trusted=null,token=null,expires=0,pending=null,working=false,recovery=false,destroyed=false,generation=0;
+  const signed=()=>!!token&&expires>Date.now();
   const shared=!!onReturn;
   const workspace=shared&&mountWorkspaceAssignments($('owner-workspace-access'),{call,run,onMessage:message});
   const emailSettings=shared&&mountWorkspaceEmailSettings($('owner-console').querySelector('[data-sign-in-email]'),{run,save:(email,currentPassword)=>call('/sign-in-email','POST',{email,currentPassword}),message});
+  const socialAccount={
+    get identity(){return signed()&&!recovery?{accountId:'workspace-owner'}:null;},
+    async socialProviders(){
+      const value=await call('/social/config','GET',undefined,false);
+      if(value?.apiVersion!==1||typeof value.providers?.google!=='boolean'||typeof value.providers?.apple!=='boolean')throw new Error('Sign-in methods are unavailable.');
+      return value.providers;
+    },
+    async linkedSocialProviders(){
+      const value=await call('/social/connections','POST',{audience:'owner'});
+      if(value?.apiVersion!==1||!Array.isArray(value.providers)||value.providers.some(provider=>!['google','apple'].includes(provider)))throw new Error('Connected sign-in methods could not be read.');
+      return value.providers;
+    },
+    async beginSocialSignIn(provider,{link}){
+      if(!link||!this.identity)throw new Error('Verify your owner sign-in before connecting a provider.');
+      const started=generation,{verifier,challenge}=await createSignInProof();
+      const value=await call('/social/start','POST',{provider,audience:'owner',purpose:'link',challenge});
+      const flow=validateSignInFlow(value,trusted.apiOrigin,provider);
+      return {...flow,verifier,started,provider,expiresAt:new Date(flow.expires).toISOString()};
+    },
+    async finishSocialSignIn(flow){
+      if(flow.started!==generation||!this.identity)throw new Error('The owner sign-in changed. Start again.');
+      const value=await call('/social/result','POST',{requestId:flow.requestId,verifier:flow.verifier});
+      if(value?.apiVersion!==1||!(value.pending===true||value.linked===true&&value.provider===flow.provider))throw new Error('The sign-in method could not be connected.');
+      return value;
+    },
+    async unlinkSocialProvider(provider){
+      const value=await call('/social/unlink','POST',{provider,audience:'owner'});
+      if(value?.apiVersion!==1||value.disconnected!==true||value.provider!==provider)throw new Error('The sign-in method could not be disconnected.');
+    },
+  };
+  const ownerSocial=shared?mountSocialSignIn(document,$('owner-sdr-access'),{getClient:()=>socialAccount,run,onMessage:message,showLogin:false,isWorking:()=>working}):null;
   const listeners=[];
   function clearVerification(){pending=null;$('owner-mfa-code').value='';$('owner-mfa-secret').textContent='';}
   function clear(){generation++;token=null;expires=0;clearVerification();recovery=false;$('owner-password').value='';$('owner-recovery-values').textContent='';$('owner-invitation-id').value='';$('owner-account-code').value='';if(workspace){workspace.clear();emailSettings.clear();$('owner-sdr-link').hidden=true;$('owner-sdr-link').removeAttribute('href');}}
-  const signed=()=>!!token&&expires>Date.now();
   function refresh(){
     const ready=!!trusted&&!destroyed,active=signed(),manage=active&&!recovery;
     $('owner-password').disabled=!ready||working||active||!!pending;$('owner-signin').disabled=!ready||working||active||!!pending;
@@ -41,8 +74,8 @@ export async function mountClientOnlyOwner(document,{config,fetcher=globalThis.f
     if(workspace){
       workspace.refresh(ready&&manage,working);
       emailSettings.refresh(ready&&manage,working);
+      ownerSocial.refresh();
       $('owner-sdr-access').hidden=!manage;$('owner-sdr-ticket').disabled=!manage||working;
-      $('owner-methods').hidden=!manage;
       for(const id of ['owner-create-invitation','owner-account-code'])$(id).closest('section').hidden=!manage;
     }
     for(const id of ['owner-create-invitation','owner-invitation-id','owner-revoke-invitation','owner-account-code','owner-suspend-account','owner-restore-account'])$(id).disabled=!ready||!manage||working;
@@ -77,6 +110,7 @@ export async function mountClientOnlyOwner(document,{config,fetcher=globalThis.f
     if(!pending||Date.parse(pending.expiresAt)<=Date.now()){clearVerification();throw new Error('Verification expired. Start a fresh sign-in.');}
     if(!code||code.length>40)throw new Error('Enter an authenticator or unused recovery code.');
     acceptSession(await call('/staff/session','POST',{challengeToken:pending.challengeToken,code},false));
+    if(ownerSocial)void ownerSocial.configure().catch(()=>{});
   });
   on('owner-cancel-verification',async()=>{clearVerification();message('Enter your owner password to start again.');});
   on('owner-codes-saved',async()=>{recovery=false;$('owner-recovery-values').textContent='';message('Recovery codes cleared from this page.');});
@@ -102,7 +136,8 @@ export async function mountClientOnlyOwner(document,{config,fetcher=globalThis.f
   try{
     if(config?.version!==2||config.profile!==PROFILE)throw new Error('This owner page requires the client-owned private workspace. Sign-in is disabled.');
     const checked=await validateTrustedConfig(config,document.location.origin);if(destroyed)return;
-    trusted=checked;$('owner-trust').textContent='Client-owned workspace verified.';$('owner-methods').href=trusted.apiOrigin+'/api/auth/social/manage';$('owner-methods').hidden=false;message('Sign in with your owner password and authenticator.');
+    trusted=checked;$('owner-trust').textContent='Client-owned workspace verified.';message('Sign in with your owner password and authenticator.');
+    if(!shared){$('owner-methods').href=trusted.apiOrigin+'/api/auth/social/manage';$('owner-methods').hidden=false;}
   }catch(error){message(error instanceof Error?error.message:'This owner workspace could not be verified.',true);}refresh();
   const pagehide=()=>{clear();refresh();};document.defaultView?.addEventListener('pagehide',pagehide);listeners.push(()=>document.defaultView?.removeEventListener('pagehide',pagehide));
   return {

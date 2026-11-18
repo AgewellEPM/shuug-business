@@ -8,9 +8,13 @@ import {mountClientOnlyOwner} from '../browser/client-only-owner.mjs';
 const uiOrigin='https://owner.example.test',apiOrigin='https://api.example.test',prefix='/api/website/customer/client-only';
 const token='a'.repeat(64),challengeToken='b'.repeat(64),id='12345678-1234-4234-8234-123456789012',accountId='12345678-1234-4234-8234-123456789013',clientId='12345678-1234-4234-8234-123456789014';
 const json=(value,status=200)=>new Response(JSON.stringify(value),{status,headers:{'Content-Type':'application/json'}});
-const wait=async condition=>{for(let i=0;i<100;i++){if(condition())return;await new Promise(resolve=>setTimeout(resolve,5));}assert.fail('Expected owner UI state was not reached');};
-async function fixture({configChanges={},invitationChanges={},rejectInvitation=false,verificationGate=Promise.resolve()}={}){
-  const dom=new JSDOM(await readFile(new URL('../browser/client-only-owner.html',import.meta.url),'utf8'),{url:uiOrigin+'/staff.html'}),d=dom.window.document,$=id=>d.getElementById(id),requests=[],downloads=[];
+const wait=async (condition,timeout=500)=>{const deadline=Date.now()+timeout;while(Date.now()<deadline){if(condition())return;await new Promise(resolve=>setTimeout(resolve,5));}assert.fail('Expected owner UI state was not reached');};
+async function fixture({configChanges={},invitationChanges={},rejectInvitation=false,verificationGate=Promise.resolve(),shared=false}={}){
+  const template=name=>readFile(new URL(`../browser/${name}.html`,import.meta.url),'utf8');
+  let html=await template('client-only-owner');
+  if(shared)html=html.replace('<!-- WORKSPACE_OWNER_TOOLS -->',await template('workspace-owner-tools')).replace('<!-- WORKSPACE_EMAIL_SETTINGS -->',await template('workspace-email-settings'));
+  const dom=new JSDOM(html,{url:uiOrigin+'/staff.html',pretendToBeVisual:true}),d=dom.window.document,$=id=>d.getElementById(id),requests=[],downloads=[];
+  let connected=false, providerChallenge;
   const key=await generateRecipientKeyPair(),config={version:2,profile:'client-only-v1',uiOrigin,apiOrigin,workspaceId:'synthetic-owner',signerPublicKey:key.publicKey,...configChanges};
   const fetcher=async(url,options={})=>{
     requests.push({url,options});assert.ok(url.startsWith(apiOrigin+prefix+'/'));
@@ -20,14 +24,28 @@ async function fixture({configChanges={},invitationChanges={},rejectInvitation=f
       if(body.password){assert.deepEqual(body,{email:'',password:'Synthetic owner password'});return json({apiVersion:1,mfaRequired:true,challengeToken,enrollmentRequired:false,expiresAt:new Date(Date.now()+300000).toISOString()},428);}
       assert.deepEqual(body,{challengeToken,code:'123456'});await verificationGate;return json({apiVersion:1,mfaVerified:true,identity:{staffAccountId:'workspace-owner'},token,expiresAt:new Date(Date.now()+3600000).toISOString()});
     }
+    if(path==='/social/config'&&shared){assert.equal(options.headers.Authorization,undefined);return json({apiVersion:1,providers:{google:true,apple:false}});}
     assert.equal(options.headers.Authorization,'Bearer '+token);
+    if(path==='/social/connections'&&shared){assert.deepEqual(body,{audience:'owner'});return json({apiVersion:1,providers:connected?['google']:[]});}
+    if(path==='/social/start'&&shared){
+      assert.deepEqual({...body,challenge:undefined},{provider:'google',audience:'owner',purpose:'link',challenge:undefined});
+      providerChallenge=body.challenge;
+      const params=new URLSearchParams({client_id:'synthetic.apps.googleusercontent.com',redirect_uri:apiOrigin+'/api/auth/social/google/callback',response_type:'code',state:'s'.repeat(43),nonce:'n'.repeat(43),scope:'openid',code_challenge:'c'.repeat(43),code_challenge_method:'S256',prompt:'select_account'});
+      return json({apiVersion:1,requestId:id,authorizationUrl:`https://accounts.google.com/o/oauth2/v2/auth?${params}`,expiresAt:new Date(Date.now()+300000).toISOString()});
+    }
+    if(path==='/social/result'&&shared){
+      assert.equal(body.requestId,id);
+      const derived=new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(body.verifier)));
+      assert.equal(Buffer.from(derived).toString('base64url'),providerChallenge);
+      connected=true;return json({apiVersion:1,linked:true,provider:'google'});
+    }
     if(path==='/staff/session'&&options.method==='DELETE')return json({ok:true});
     if(path==='/staff/client-invitations'&&options.method==='POST')return rejectInvitation?json({error:'Owner verification expired'},401):json({version:2,type:'gigtax-client-only-invitation',profile:'client-only-v1',invitationId:id,workspaceId:'synthetic-owner',accountId,clientId,token:'c'.repeat(64),expiresAt:new Date(Date.now()+48*3600000).toISOString(),...invitationChanges});
     if(path==='/staff/client-invitations'&&options.method==='DELETE'){assert.deepEqual(body,{invitationId:id});return json({revoked:true});}
     if(path==='/staff/client-access'){assert.equal(body.accountCode,accountId);return json({accountCode:accountId,enabled:body.enabled,sessionsRevoked:true});}
     throw new Error('Unexpected owner endpoint '+path);
   };
-  const mounted=await mountClientOnlyOwner(d,{config,fetcher,download:(name,value)=>downloads.push({name,value})});
+  const mounted=await mountClientOnlyOwner(d,{config,fetcher,download:(name,value)=>downloads.push({name,value}),...(shared?{onReturn(){}}:{})});
   async function signin(){
     $('owner-password').value='Synthetic owner password';$('owner-signin').click();await wait(()=>$('owner-mfa').hidden===false);
     assert.equal($('owner-password').value,'');assert.equal($('owner-create-invitation').disabled,true);
@@ -44,6 +62,25 @@ test('owner console requires pinned client-only configuration and contains no cl
     assert.doesNotMatch(p.d.body.textContent,/publish.*grant|sharing capsule|unlock.*device|private key|open.*record/i);
     assert.equal(p.$('owner-methods').hidden,true);
   }finally{p.close();}
+});
+
+test('shared owner workspace connects Google after verifying the current owner session',async()=>{
+  const previous=globalThis.open;
+  globalThis.open=()=>null;
+  const p=await fixture({shared:true});
+  try{
+    const find=text=>[...p.d.querySelectorAll('button')].find(button=>button.textContent===text);
+    assert.equal(find('Connect Google').hidden,true);
+    await p.signin();
+    await wait(()=>!find('Connect Google').hidden);
+    assert.equal(p.$('owner-methods').hidden,true);
+    find('Connect Google').click();
+    await wait(()=>p.d.querySelector('a[href^="https://accounts.google.com/o/oauth2/v2/auth"]'));
+    await wait(()=>!find('Disconnect Google').hidden,3500);
+    assert.equal(p.$('owner-identity').textContent,'Owner sign-in verified.');
+    assert.equal(p.dom.window.sessionStorage.length,0);
+    assert.equal(p.d.body.innerHTML.includes(token),false);
+  }finally{p.close();if(previous)globalThis.open=previous;else delete globalThis.open;}
 });
 
 test('mandatory MFA gates opaque invitations and availability controls, using only the new namespace and memory-only sessions',async()=>{
