@@ -53,6 +53,46 @@ export type VolunteerChat = (options: {
 
 const format = z.toJSONSchema(planSchema, { target: "draft-7" });
 
+const directFacts = ["orgName", "address", "city", "zip", "startsAt", "endsAt"] as const;
+
+function normalized(value: string): string {
+  return value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim();
+}
+
+function timeWasSupplied(value: string, message: string): boolean {
+  if (message.includes(value)) return true;
+  const [date, time] = value.split("T");
+  if (!message.includes(date)) return false;
+  const [hours, minutes] = time.split(":");
+  const hour = Number(hours);
+  const period = hour < 12 ? "am" : "pm";
+  const clockHour = hour % 12 || 12;
+  const twelveHour = new RegExp(`\\b${clockHour}${minutes === "00" ? "(?::00)?" : `:${minutes}`}\\s*${period}\\b`, "i");
+  const twentyFourHour = new RegExp(`\\b${hours}:${minutes}\\b`);
+  return twelveHour.test(message) || twentyFourHour.test(message);
+}
+
+function groundProposal(plan: VolunteerPlan, input: Conversation): VolunteerPlan {
+  const messages = input.messages.filter(item => item.role === "user").map(item => item.content);
+  const draft = { ...plan.draft };
+  let needsConfirmation = false;
+  for (const field of directFacts) {
+    const value = draft[field];
+    if (value == null || value === input.draft?.[field]) continue;
+    const known = messages.some(message => field === "startsAt" || field === "endsAt"
+      ? timeWasSupplied(value, message)
+      : ` ${normalized(message)} `.includes(` ${normalized(value)} `));
+    if (!known) {
+      draft[field] = input.draft?.[field] ?? null;
+      needsConfirmation = true;
+    }
+  }
+  return needsConfirmation ? {
+    ...plan, draft,
+    answer: "I updated the draft. Please confirm any remaining date, time, organization, or location details in the form.",
+  } : plan;
+}
+
 export async function askVolunteerPlanner(input: Conversation, todayInConnecticut: string, chat: VolunteerChat): Promise<VolunteerPlan> {
   const request = volunteerConversationInput.parse(input);
   const response = await chat({
@@ -75,5 +115,5 @@ export async function askVolunteerPlanner(input: Conversation, todayInConnecticu
   });
   if (!response.ok || !response.text) throw new Error("Volunteer planning model did not respond.");
   const raw: unknown = JSON.parse(response.text.replace(/^\s*```(?:json)?\s*/i, "").replace(/\s*```\s*$/, ""));
-  return planSchema.parse(raw);
+  return groundProposal(planSchema.parse(raw), request);
 }
