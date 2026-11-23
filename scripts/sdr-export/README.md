@@ -39,7 +39,9 @@ Add `"focus": "senior-care"` to the existing `workspace.json` and restart the wo
 
 ## State facility directories
 
-Open **Territories** and select any state or D.C. Switch between **Nursing homes** and **Senior community centers**, search by facility or city, or browse the pages for that state. Nursing home records come from the [CMS Care Compare certified provider directory](https://data.cms.gov/provider-data/dataset/4pq5-n9py). Senior community center records come from [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) via [QLever](https://qlever.dev/osm-planet). Mapped coverage varies by state, and published contact details vary by facility. Salespeople see facilities within their assigned territory. The owner still assigns town or statewide coverage in the town panel below.
+Open **Territories** and click a state or D.C. to see a colored county map with capital and city markers. Click a county or zoom in to reveal more town names and boundaries. Click a town or choose one by name to zoom to it. Clear **Map colors** for grayscale. The browser remembers your choice across states and reloads. **Find offices** searches that town, **Fit state** shows the full state again, and **All states** returns to the U.S. map. The map uses Census cartographic boundaries with TIGER/Line supplements for newer localities. Connecticut shows its 169 municipal towns. Other states show the places and local subdivisions in their territory catalogs.
+
+Below the map, switch between **Nursing homes** and **Senior community centers**, search by facility or city, or browse the pages for that state. Nursing home records come from the [CMS Care Compare certified provider directory](https://data.cms.gov/provider-data/dataset/4pq5-n9py). Senior community center records come from [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) via [QLever](https://qlever.dev/osm-planet). Mapped coverage varies by state, and published contact details vary by facility. Salespeople see facilities within their assigned territory. The owner still assigns town or statewide coverage in the town panel below.
 
 ## Sales teams
 
