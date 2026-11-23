@@ -56,7 +56,13 @@
     const pagination = byId('sales-prospect-pagination'), previous = byId('sales-prospect-previous'), next = byId('sales-prospect-next');
     let editing, offset = 0, request = 0;
 
+    function reveal() {
+      const section = editor.closest('details');
+      if (section) section.open = true;
+      return section;
+    }
     function editProspect(record) {
+      reveal();
       editing = record;
       edit.reset();
       edit.elements.sourceURL.readOnly = Boolean(record);
@@ -161,7 +167,7 @@
       edit.elements.name.focus();
       return true;
     }
-    return { refresh, capture };
+    return { refresh, capture, reveal: () => reveal()?.scrollIntoView?.({ block: 'start' }) };
   }
 
   window.SdrLinkedIn = {

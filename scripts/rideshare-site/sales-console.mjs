@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs';
+import { renderProspects } from './sales-prospects.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
@@ -120,9 +121,8 @@ const standaloneFacilities = `<section class="sdr-card territory-facilities" id=
   </nav>
 </section>`;
 
-const prospectsPanel = `<section data-tab-panel="prospects" hidden aria-label="Saved prospects">
-  <div class="sdr-card">
-    <div class="sdr-card-head"><h2>Saved prospects</h2><button id="sales-add-prospect" class="button primary" type="button">Add prospect</button></div>
+const linkedInProspects = `  <div class="sdr-card">
+    <div class="sdr-card-head"><h2>Saved prospects</h2><button id="sales-add-prospect" class="button primary" type="button">Add LinkedIn prospect</button></div>
     <form id="sales-filter-prospects" class="sales-form">
       <label>Find a saved prospect<input name="query" type="search" maxlength="140" placeholder="Name, company, role, location, or notes"></label>
       <label class="sales-check"><input name="archived" type="checkbox">Show archived</label>
@@ -161,8 +161,7 @@ const prospectsPanel = `<section data-tab-panel="prospects" hidden aria-label="S
         <button class="button secondary" type="submit" name="kind" value="companies">Search companies ↗</button>
       </div>
     </form>
-  </div>
-</section>`;
+  </div>`;
 
 const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidden aria-label="Outreach campaigns">
   <div class="sdr-card">
@@ -265,6 +264,6 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section><section data-tab-panel="mail" hidden aria-label="Shared and agent email senders"><div id="sales-mailboxes"></div></section>
 <section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
 <section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title"><div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>${prospects ? 'Choose a state to browse facilities, towns, and cities, or assign sales coverage.' : 'Choose a state, drill into towns and cities, and assign sales coverage.'}</p></div><span class="sdr-count-label">50 states + DC</span></div><div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? standaloneFacilities : ''}<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>
-${discover}${prospects ? prospectsPanel + campaignsPanel + standaloneTeam(team) : team}</div>
+${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + standaloneTeam(team) : team}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

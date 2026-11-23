@@ -30,7 +30,7 @@
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, prospectUI, campaignUI, overviewUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, prospectUI, prospectsWorkspace, campaignUI, overviewUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
     const careCRM = document.body.hasAttribute('data-care-crm');
     const facilityLabels = { 'nursing-home': 'Nursing home', 'senior-center': 'Senior center' };
     const facilityType = office => meta(office)?.facilityType || '';
@@ -48,12 +48,16 @@
     const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh });
     const tab = name => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
+      if (standalone) document.body.dataset.sdrView = name;
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team' })[name] || 'Workspace';
       $('#sales-stats').hidden = ['home','discover','prospects','campaigns'].includes(name);
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
-      if (name === 'prospects') prospectUI?.refresh();
+      if (name === 'prospects') {
+        prospectsWorkspace?.enter();
+        prospectUI?.refresh();
+      }
       if (name === 'campaigns') campaignUI?.refresh();
       if (name === 'team') teamUI?.refresh(data.user);
       if (name === 'home' && data) overviewUI?.render(data);
@@ -65,6 +69,7 @@
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
       if (!prospectUI || !['prospects', 'linkedin'].includes(params.get('view'))) return false;
       tab('prospects');
+      if (params.get('view') === 'linkedin') prospectUI.reveal();
       const profile = params.get('profile');
       if (profile && prospectUI.capture(profile, params.get('name') || '')) {
         history.replaceState(null, '', location.pathname + location.search + '#view=prospects');
@@ -125,6 +130,7 @@
       $('#sales-payment-status').textContent = agreementOnly ? '' : data.paymentsConfigured ? 'Stripe credentials are saved. Live checkout and billing still need verification.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
       $('#sales-terms-status').textContent = data.terms ? `${data.terms.title} · ${data.terms.version}` : 'Agreement prepared for owner approval. Invitations will become available when the final terms are published.';
       renderList();
+      prospectsWorkspace?.render({ ...data, offices: scopedOffices });
       territoryUI?.render(data);
       if ($('[data-tab][aria-pressed="true"]')?.dataset.tab !== 'home') overviewUI?.render(data);
       window.GigTaxWorkflows?.queue({ offices: scopedOffices, facilityView: careCRM, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
@@ -262,6 +268,7 @@
     contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });
+    prospectsWorkspace = window.SdrProspects?.mount({ api, refresh, onOpenOffice: showOffice });
     campaignUI = window.SdrCampaigns?.mount({ api, status });
     overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice, onBrowseFacilities: browseFacilities, facilityType });
     territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onOpenOffice: id => { tab('pipeline'); return showOffice(id); },onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});

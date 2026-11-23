@@ -304,6 +304,65 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('save-prospect', { ...fixtureProspect, sourceURL: 'https://linkedin.com.example.test/in/renee-example' }, 400);
   await owner.api('update-prospect', { id: localRecord.id, expectedRevision: 'stale', archived: true }, 409);
 
+  await t.test('Prospects displays and updates real business records and keeps LinkedIn capture', async () => {
+    const panel = pageDocument.querySelector('.sdr-prospects');
+    const find = selector => panel.querySelector(selector);
+    assert.equal((await owner.request('/sales-prospects.css')).status, 200);
+    assert.equal((await owner.request('/sales-prospects-community.webp')).headers.get('content-type'), 'image/webp');
+    assert.equal(find('#sales-linkedin-prospects').open, true);
+    find('[data-prospect-add]').click();
+    const form = find('#sales-business-prospect-form');
+    for (const [field, value] of Object.entries({
+      name: 'Example Care Prospect', address: '72 Example St', city: 'Portland', state: 'ME',
+      facilityType: 'nursing-home', contact: 'Example Administrator', email: 'care@example.test',
+    })) form.elements.namedItem(field).value = value;
+    form.requestSubmit();
+    const row = await waitFor(() => [...panel.querySelectorAll('[data-prospect-select]')]
+      .find(button => button.textContent.includes('Example Care Prospect')), 'Created business did not appear in Prospects');
+    const id = row.dataset.prospectSelect;
+    assert.equal(JSON.parse((await owner.api('office', { id })).office.notes).facilityType, 'nursing-home');
+    assert.match(find('[data-prospect-detail]').textContent, /Example Care Prospect/);
+    assert.match(find('[data-prospect-detail]').textContent, /Example Administrator/);
+
+    const stage = find('[data-prospect-status]');
+    stage.value = 'contacted';
+    stage.dispatchEvent(new window.Event('change', { bubbles: true }));
+    await waitFor(() => find('[data-prospect-action-status]')?.textContent === 'Status updated.', 'Status was not confirmed');
+    assert.equal((await owner.api('office', { id })).office.status, 'contacted');
+
+    find('[data-prospect-action="followup"]').click();
+    const followup = find('[data-prospect-action-form] form');
+    followup.elements.nextFollowup.value = '2026-11-24';
+    followup.requestSubmit();
+    await waitFor(() => find('[data-prospect-action-status]')?.textContent === 'Follow-up scheduled.', 'Follow-up was not confirmed');
+    assert.equal((await owner.api('office', { id })).office.meeting_date, '2026-11-24');
+
+    find('[data-prospect-action="call"]').click();
+    const call = find('[data-prospect-action-form] form');
+    call.elements.note.value = 'Fixture call discussed an introduction.';
+    call.requestSubmit();
+    await waitFor(() => find('[data-prospect-note]')?.textContent.includes('Fixture call'), 'Logged call was not projected into notes');
+    assert.equal((await owner.api('office', { id })).pipeline.lastContact.channel, 'call');
+
+    find('[data-prospect-view="map"]').click();
+    assert.match(find('[data-prospect-region="ME"]').textContent, /Maine/);
+    find('[data-prospect-region="ME"]').click();
+    assert.equal(find('#sales-business-prospect-filter').elements.state.value, 'ME');
+    assert.equal(find('[data-prospect-pane="list"]').hidden, false);
+    find('[data-prospect-view="pipeline"]').click();
+    assert.match(find('[data-prospect-pane="pipeline"]').textContent, /In conversation/);
+    assert.match(find('[data-prospect-pane="pipeline"]').textContent, /Example Care Prospect/);
+    find('[data-prospect-save-filter]').click();
+    assert.match(find('[data-prospect-filter-status]').textContent, /saved/);
+    find('[data-prospect-clear]').click();
+    assert.equal(find('#sales-business-prospect-filter').elements.state.value, '');
+    find('[data-prospect-view="list"]').click();
+    find('[data-prospect-action="email"]').click();
+    await waitFor(() => pageDocument.querySelector('#sales-detail .sales-compose-form'),
+      'Draft email did not open the existing reviewable composer');
+    pageDocument.querySelector('#sales-detail-close').click();
+  });
+
   const agentEmail = 'agent@example.test';
   const { agent, code: accessCode } = await owner.api('create-agent', { name: 'Example Agent', email: agentEmail, states: ['CT'] });
   const legacyStore = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));

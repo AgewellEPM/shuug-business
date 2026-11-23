@@ -16,6 +16,8 @@ import {agentTerritory, territoryTools} from './territories.mjs';
 import {localityAllowed} from './territory-access.mjs';
 import { salesTeamTools } from './sales-team.mjs';
 
+const facilityTypes = new Set(['nursing-home', 'senior-center', 'assisted-living', 'independent-living', 'long-term-care']);
+
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
   const ownerHash = env.GIGTAX_SALES_OWNER_HASH;
@@ -151,6 +153,10 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (PROSPECT_ACTIONS.has(action)) return prospects(user, await leadFor(user, b.id), action, b);
     if (action === 'create-office') {
       const input = officeInput(b);
+      if (!facility && tools.facilities && b.facilityType) {
+        if (!facilityTypes.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
+        facility = { facilityType: b.facilityType };
+      }
       if (!localityAllowed(user,input.state,input.city)) throw new HttpError(403, 'Choose a town or city in your assigned territory.');
       const identity = officeIdentity(input.name, input.address, input.city, input.state);
       function matches(row) {
@@ -208,7 +214,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       }
       let info = verificationUpdate(b, before, user);
       if (tools.facilities && b.facilityType !== undefined) {
-        if (!['', 'nursing-home', 'senior-center'].includes(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
+        if (b.facilityType !== '' && !facilityTypes.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
         info = { ...(info || metadata(before)), facilityType: b.facilityType };
       }
       if (b.independence !== undefined) {

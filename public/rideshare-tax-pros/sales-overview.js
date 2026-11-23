@@ -45,7 +45,7 @@
       form.elements.type.focus();
       $('#sdr-category-research').scrollIntoView?.({ block: 'nearest' });
     };
-    const prospectFocus = () => { onNavigate('prospects'); $('#sales-add-prospect').click(); };
+    const prospectFocus = () => { onNavigate('prospects'); $('[data-prospect-add], #sales-add-prospect')?.click(); };
     const followups = () => {
       onNavigate('home');
       $('#sales-followups').scrollIntoView?.({ block: 'center' });
