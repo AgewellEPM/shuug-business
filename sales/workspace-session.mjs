@@ -3,9 +3,9 @@ import { HttpError } from './model.mjs';
 export const workspaceOrigin = 'https://portal.gigtax.pro';
 const endpoint = 'https://gig-tax-pros-production.up.railway.app/api/auth/workspace/session';
 
-export async function requestWorkspaceSession(action, token) {
+export async function requestWorkspaceSession(action, token, sessionEndpoint = endpoint) {
   if (!/^[a-f0-9]{64}$/.test(token)) throw new HttpError(401, 'Sign-in expired. Sign in again.');
-  const response = await fetch(endpoint, {
+  const response = await fetch(sessionEndpoint, {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, token }),
     redirect: 'error', cache: 'no-store', signal: AbortSignal.timeout(5000),
   });

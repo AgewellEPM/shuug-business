@@ -13,7 +13,7 @@ export function safeSalesEvent(row) {
   const info = metadata(row);
   return info.action === 'contract_delivery' ? { ...row, notes: JSON.stringify({ actorId: info.actorId, action: info.action, at: info.at, detail: receipt(row), delivery: receipt(row) }) } : row;
 }
-export function deliveryTools(env, db, { now = Date.now, mailSender = sendContractMail } = {}) {
+export function deliveryTools(env, db, { now = Date.now, mailSender = sendContractMail, workspaceName = 'Gig Tax Pros' } = {}) {
   async function mailboxes(user) {
     const all = await db.list('agents');
     return all.filter(row => row.status === 'mailbox' && metadata(row).mailbox && (user.role === 'owner' || row.assigned_to === 'shared' || String(row.assigned_to) === String(user.id))).map(row => ({ id: String(row.id), name: row.contact_name, email: row.contact_email,
@@ -57,8 +57,10 @@ export function deliveryTools(env, db, { now = Date.now, mailSender = sendContra
     await allowed(office, contract);
     if (action === 'preview-contract-email') {
       const profile = await sender(user, body.senderId), config = mailConfig(env), link = contractLink(env, contract, now());
+      const terms = metadata(contract).terms;
+      const confirmation = terms.paymentRequired === false ? 'Signing records your agreement.' : 'Signing records your agreement. Membership activates only after the required payment is verified.';
       const preview = { from: profile.email, fromName: profile.name, replyTo: profile.replyTo, to: singleEmail(contract.contact_email), subject: text(body.subject || `Office agreement · ${office.town}`, 180, true),
-        text: `${text(body.intro || `Hello ${contract.contact_name},\n\nPlease review your Gig Tax Pros office agreement.`, 2000)}\n\nReview and sign your private agreement:\n${link}\n\n${metadata(contract).terms.title}\nSigning records your agreement. Membership activates only after the required payment is verified. Keep this link private.`, link };
+        text: `${text(body.intro || `Hello ${contract.contact_name},\n\nPlease review your ${workspaceName} office agreement.`, 2000)}\n\nReview and sign your private agreement:\n${link}\n\n${terms.title}\n${confirmation} Keep this link private.`, link };
       const snapshot = { officeRevision: metadata(office).revision || '', contractFingerprint: contractFingerprint(contract), sender: profile, configDigest: config.digest };
       const previewDigest = digest(JSON.stringify({ preview, snapshot }));
       const row = await db.create('events', { town: `Contract email ${secret().slice(0, 12)}`, assigned_to: String(office.id), contact_name: user.name, status: 'preview', notes: JSON.stringify({ action: 'contract_delivery', actorId: user.id, contractId: String(contract.id), at: new Date(now()).toISOString(),

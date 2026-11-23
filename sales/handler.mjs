@@ -3,23 +3,28 @@ import { service } from './service.mjs';
 import { HttpError } from './model.mjs';
 import { workspaceOrigin } from './workspace-session.mjs';
 
-function salesCookie(res, token, age = 28800) {
-  res.setHeader('Set-Cookie', `gigtax_sales=${token}; HttpOnly; Secure; SameSite=Strict; Path=/api/sales; Max-Age=${age}`);
+function salesCookie(res, name, token, age, localHttp) {
+  res.setHeader('Set-Cookie', `${name}=${token}; HttpOnly; ${localHttp ? '' : 'Secure; '}SameSite=Strict; Path=/api/sales; Max-Age=${age}`);
 }
 
 export function createHandler(env = process.env, adapter, tools = {}) {
+  const cookieName = tools.cookieName || 'gigtax_sales';
+  if (!/^gigtax_sales(?:_[a-f0-9]{16})?$/.test(cookieName)) throw new Error('Invalid SDR session cookie name.');
+  const cookiePrefix = cookieName + '=';
+  const localHttp = Boolean(adapter && tools.localHttp && /^http:\/\/127\.0\.0\.1:\d+$/.test(env.GIGTAX_SALES_ORIGIN));
   return async function handler(req, res) {
     const reply = (status, body) => { res.statusCode = status; res.setHeader('Content-Type', 'application/json; charset=utf-8'); res.end(JSON.stringify(body)); };
     res.setHeader('Cache-Control', 'private, no-store');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'no-referrer');
     try {
-      if (!env.GIGTAX_TINKY_KEY || !/^[a-f0-9]{64}$/.test(env.GIGTAX_SALES_SESSION_KEY || '') || !/^[a-f0-9]{64}$/.test(env.GIGTAX_SALES_OWNER_HASH || '') || !env.GIGTAX_SALES_ORIGIN) throw new HttpError(503, 'Sales workspace setup is not complete.');
+      if ((!adapter && !env.GIGTAX_TINKY_KEY) || !/^[a-f0-9]{64}$/.test(env.GIGTAX_SALES_SESSION_KEY || '') || !/^[a-f0-9]{64}$/.test(env.GIGTAX_SALES_OWNER_HASH || '') || !env.GIGTAX_SALES_ORIGIN) throw new HttpError(503, 'Sales workspace setup is not complete.');
       const origins=[env.GIGTAX_SALES_ORIGIN,...(env.GIGTAX_SALES_ORIGIN==='https://gigtax.pro'?['https://www.gigtax.pro']:[])];
-      const sharedEntry = env.GIGTAX_SALES_ORIGIN === 'https://gigtax.pro' && req.headers.origin === workspaceOrigin;
+      const sharedOrigin = tools.sharedOrigin === undefined ? (env.GIGTAX_SALES_ORIGIN === 'https://gigtax.pro' ? workspaceOrigin : null) : tools.sharedOrigin;
+      const sharedEntry = Boolean(sharedOrigin && req.headers.origin === sharedOrigin);
       res.setHeader('Vary', 'Origin');
       if (sharedEntry) {
-        res.setHeader('Access-Control-Allow-Origin', workspaceOrigin);
+        res.setHeader('Access-Control-Allow-Origin', sharedOrigin);
         res.setHeader('Access-Control-Allow-Credentials', 'true');
         if (req.method === 'OPTIONS') {
           res.setHeader('Access-Control-Allow-Methods', 'POST');
@@ -29,7 +34,7 @@ export function createHandler(env = process.env, adapter, tools = {}) {
         }
       }
       if (req.method !== 'POST') throw new HttpError(405, 'Use the sales workspace to make this request.');
-      if (!sharedEntry && !origins.includes(req.headers.origin)) throw new HttpError(403, 'Open the sales workspace on GigTax.pro.');
+      if (!sharedEntry && !origins.includes(req.headers.origin)) throw new HttpError(403, 'Open the sales workspace on its configured website.');
       if (!req.headers['content-type']?.startsWith('application/json')) throw new HttpError(415, 'Use a JSON request.');
       let body;
       if (req.body !== undefined) {
@@ -45,24 +50,26 @@ export function createHandler(env = process.env, adapter, tools = {}) {
       if (sharedEntry) {
         if (body.action === 'workspace-entry' && typeof body.ticket === 'string' && /^[a-f0-9]{64}$/.test(body.ticket)) {
           const result = await app.enterWorkspace(body.ticket);
-          salesCookie(res, result.token);
+          salesCookie(res, cookieName, result.token, 28800, false);
           return reply(200, { destination: result.destination });
         }
         if (body.action === 'login') {
+          await tools.beforeLogin?.(req);
           const result = await app.login(body);
-          salesCookie(res, result.token);
+          salesCookie(res, cookieName, result.token, 28800, false);
           return reply(200, { destination: '/sales' });
         }
         throw new HttpError(403, 'Use your assigned workspace to continue.');
       }
-      const cookie = (req.headers.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith('gigtax_sales='))?.slice(13);
+      const cookie = (req.headers.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith(cookiePrefix))?.slice(cookiePrefix.length);
       if (body.action === 'login') {
+        await tools.beforeLogin?.(req);
         const result = await app.login(body);
-        salesCookie(res, result.token);
+        salesCookie(res, cookieName, result.token, 28800, localHttp);
         return reply(200, { user: result.user });
       }
       if (body.action === 'logout') {
-        salesCookie(res, '', 0);
+        salesCookie(res, cookieName, '', 0, localHttp);
         await app.logout(cookie);
         return reply(200, { ok: true });
       }

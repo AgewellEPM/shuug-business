@@ -6,7 +6,7 @@ export function contractSummary(row, office, now = Date.now()) {
   return { id: String(row.id), officeId: String(office.id), office: office.town, address: metadata(office).address || '', city: office.locality, state: office.state, postalCode: metadata(office).postalCode || '',
     ownerName: row.contact_name, email: row.contact_email, termsTitle: info.terms?.title || '', termsHash: info.terms?.hash || '',
     preparedAt: row.created_at || info.preparedAt || null, signed, signedAt: info.acceptedAt || null, signature: info.signature || null, active,
-    status: active ? 'active' : signed ? 'signed_payment_pending' : expired ? 'expired' : 'awaiting_signature', expiresAt: info.expiresAt ? new Date(info.expiresAt).toISOString() : null,
+    status: active ? 'active' : signed ? (info.terms?.paymentRequired === false ? 'signed' : 'signed_payment_pending') : expired ? 'expired' : 'awaiting_signature', expiresAt: info.expiresAt ? new Date(info.expiresAt).toISOString() : null,
     linkAvailable: Boolean(info.expiresAt >= now) && ['invited', 'payment_pending', 'active'].includes(row.status) };
 }
 export function contractLink(env, row, now = Date.now()) {
@@ -17,7 +17,8 @@ export function contractLink(env, row, now = Date.now()) {
 export function signedContractReceipt(row, office) {
   const info = metadata(row);
   if (!info.signature || !info.acceptedAt) throw new HttpError(409, 'The owner has not signed this contract yet.');
+  const paymentRequired = info.terms.paymentRequired !== false;
   return { signed: true, active: enrollmentEligibility(row).eligible && office.status === 'active', receipt: String(row.id), office: info.officeName, signature: info.signature,
-    businessEmail: row.contact_email, acceptedAt: info.acceptedAt, termsHash: info.terms.hash, terms: info.terms, paymentStatus: enrollmentEligibility(row).status,
-    message: 'The agreement signature is recorded. Paid membership activates only after the required payment is verified.' };
+    businessEmail: row.contact_email, acceptedAt: info.acceptedAt, termsHash: info.terms.hash, terms: info.terms, paymentStatus: paymentRequired ? enrollmentEligibility(row).status : 'not_required',
+    message: paymentRequired ? 'The agreement signature is recorded. Paid membership activates only after the required payment is verified.' : 'The agreement signature is recorded.' };
 }

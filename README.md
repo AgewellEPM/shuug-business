@@ -6,6 +6,8 @@ Keep your website. Keep your accounting and payment tools. Connect supported ser
 
 A self-hosted business workspace with ten searchable industry starting points and configurable **Sales / products**, **Service industry**, and **Nonprofit** profiles. Combine profiles, apply your own branding, and show or hide individual tools. Source code and implemented features are included under the [MIT license](LICENSE).
 
+The [Universal SDR export](scripts/sdr-export/README.md) packages the full sales workspace for reuse across projects. Run `node scripts/sdr-export/export.mjs <new-folder>` to create a fresh copy.
+
 This release provides working records and workflows for all 40 service/nonprofit sidebar sections, a client portal, notes with AI roadmaps, and an optional Shopify/MCP backend. It is a **single-client deployment with owner and employee accounts**, not a completed enterprise or multi-tenant product. See the exact [capability boundaries](docs/WORKFLOWS-AND-RELEASE.md) before deploying it for an organization.
 
 ## Install the full source

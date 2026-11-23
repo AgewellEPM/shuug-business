@@ -13,7 +13,7 @@
         const result = await response.json(); if (!response.ok) throw new Error(result.error || 'The contract request was not confirmed.'); return result;
       }
       function signed(result) {
-        receipt = result; form.hidden = true; $('#signup-receipt').hidden = false; $('#signup-pending').hidden = result.active;
+        receipt = result; form.hidden = true; $('#signup-receipt').hidden = false; $('#signup-pending').hidden = result.active || view.terms.paymentRequired === false;
         $('#signup-receipt h3').textContent = result.active ? 'Your office membership is active' : 'Your agreement is signed';
         $('#signup-receipt-text').textContent = `${result.office} · Signed by ${result.signature} · ${new Date(result.acceptedAt).toLocaleString()} · Receipt ${result.receipt}`;
         $('#signup-pending h3').textContent = 'Membership activation';
@@ -22,7 +22,7 @@
         $('#signup-check-payment').hidden = !view.checkoutPending && params.get('payment') !== 'return';
         $('#signup-check-payment').disabled = !view.paymentsConfigured;
         form.elements.signature.value = result.signature;
-        status(result.active ? 'Paid membership is active.' : 'Agreement signed. Download your copy below. Payment and membership activation remain separate.');
+        status(result.active ? 'Paid membership is active.' : view.terms.paymentRequired === false ? 'Agreement signed. Download your copy below.' : 'Agreement signed. Download your copy below. Payment and membership activation remain separate.');
       }
       const run = work => async event => { event?.preventDefault(); const buttons = [...document.querySelectorAll('button')].map(button => ({ button, disabled: button.disabled })); buttons.forEach(({ button }) => button.disabled = true); try { await work(); } catch (error) { status(error.message, true); } finally { buttons.forEach(({ button, disabled }) => button.disabled = disabled); if (receipt) { $('#signup-start-checkout').disabled = !view.paymentsConfigured; $('#signup-check-payment').disabled = !view.paymentsConfigured; } } };
       form.onsubmit = run(async () => {
@@ -39,9 +39,10 @@
       $('#signup-check-payment').onclick = run(async () => { const result = await api('signup-confirm', invitation); signed({ ...receipt, ...result }); });
       $('#signup-download').onclick = () => {
         if (!receipt) return;
-        const text = `${view.terms.title}\n\nOffice: ${receipt.office}\nSigned by: ${receipt.signature}\nBusiness email: ${view.email}\nAccepted: ${receipt.acceptedAt}\nReceipt: ${receipt.receipt}\nTerms SHA-256: ${receipt.termsHash}\nMembership: ${receipt.active ? 'Active after payment verification' : 'Payment/activation pending'}\n\n${view.terms.text}`;
+        const paymentLine = view.terms.paymentRequired === false ? '' : `\nMembership: ${receipt.active ? 'Active after payment verification' : 'Payment/activation pending'}`;
+        const text = `${view.terms.title}\n\nOffice: ${receipt.office}\nSigned by: ${receipt.signature}\nBusiness email: ${view.email}\nAccepted: ${receipt.acceptedAt}\nReceipt: ${receipt.receipt}\nTerms SHA-256: ${receipt.termsHash}${paymentLine}\n\n${view.terms.text}`;
         const url = URL.createObjectURL(new Blob([text], { type: 'text/plain;charset=utf-8' })), anchor = document.createElement('a');
-        anchor.href = url; anchor.download = `gig-tax-pros-signed-agreement-${receipt.receipt}.txt`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
+        anchor.href = url; anchor.download = `${document.body.hasAttribute('data-standalone-sdr') ? 'signed-agreement' : 'gig-tax-pros-signed-agreement'}-${receipt.receipt}.txt`; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
       };
       (async () => {
         try {
@@ -53,7 +54,7 @@
           $('#signup-version').textContent = `Terms version ${view.terms.version} · SHA-256 ${view.terms.hash}`;
           form.elements.email.value = view.email; form.elements.signature.value = view.ownerName;
           if (view.signed) signed(await api('signup-receipt', invitation));
-          else { $('#signup-pending').hidden = true; $('#signup-receipt').hidden = true; form.querySelector('button').disabled = false; status('Review the agreement, confirm your authority and sign. Signing does not charge you or activate membership.'); }
+          else { $('#signup-pending').hidden = true; $('#signup-receipt').hidden = true; form.querySelector('button').disabled = false; status(view.terms.paymentRequired === false ? 'Review the agreement, confirm your authority and sign.' : 'Review the agreement, confirm your authority and sign. Signing does not charge you or activate membership.'); }
           if (params.get('payment') === 'return' && view.paymentsConfigured) $('#signup-check-payment').hidden = false;
         } catch (error) { status(error.message, true); }
       })();

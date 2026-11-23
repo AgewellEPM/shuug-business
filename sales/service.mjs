@@ -20,6 +20,8 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const ownerHash = env.GIGTAX_SALES_OWNER_HASH;
   const owner = { id: 'owner', name: 'Workspace owner', role: 'owner', states: [] };
   const workspaceSession = tools.workspaceSession || requestWorkspaceSession;
+  const prepareAgreement = tools.agreement || agreement;
+  const outreachDrafts = tools.outreach || outreach;
   const prospects = prospectTools(env, db, tools);
   const reconcile = tools.billingReconciler || reconcileEnrollment;
   const publicUser = u => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, states: u.states,territory:u.territory || null });
@@ -103,7 +105,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         return { ...row, ...(current ? { membership: enrollmentEligibility(current) } : {}), pipeline: progressProjection(row, events, enrollments) };
       });
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
-      return { user: publicUser(user), offices, contracts, revenue: revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [],...agentTerritory(r) })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured(), states: STATES, stages: STAGES };
+      return { user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [],...agentTerritory(r) })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES };
     }
     if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
     if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);
@@ -150,7 +152,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         return { id: r.id, status: saved.payment?.live ? enrollmentEligibility(r).status : expired ? 'invitation_expired' : r.status, contact_name: r.contact_name, contact_email: r.contact_email, created_at: r.created_at, acceptedAt: saved.acceptedAt || null, hasLivePayment: saved.payment?.live === true, expired: expired || r.status === 'checkout_expired' };
       });
       const allEnrollments = await db.list('enrollments');
-      return { office, pipeline: progressProjection(office, events, allEnrollments), contacts: contactBook(office), events: events.map(safeSalesEvent), enrollments, contracts: allEnrollments.filter(row => String(metadata(row).leadId) === String(office.id)).map(row => ({ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) })), drafts: outreach(office) };
+      return { office, pipeline: progressProjection(office, events, allEnrollments), contacts: contactBook(office), events: events.map(safeSalesEvent), enrollments, contracts: allEnrollments.filter(row => String(metadata(row).leadId) === String(office.id)).map(row => ({ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) })), drafts: outreachDrafts(office) };
     }
     if (action === 'update-office') {
       const before = await leadFor(user, b.id);
@@ -246,11 +248,11 @@ export function service(env, db, payment = payments(env), tools = {}) {
       return { office };
     }
     if (action === 'publish-terms') {
-      const terms = agreement(b);
+      const terms = prepareAgreement(b);
       await db.setTerms(terms);
       return { terms };
     }
-    if (action === 'preview-terms') return {terms:agreement({...b,approved:true})};
+    if (action === 'preview-terms') return {terms:prepareAgreement({...b,approved:true})};
     if (action === 'create-agent') {
       const address = email(b.email), name = text(b.name, 140, true), states = b.states;
       if (!Array.isArray(states) || states.length > 51 || states.some(v => !STATES.includes(v))) throw new HttpError(400, 'Choose valid territories.');
@@ -278,7 +280,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   }
   async function signup(action, b) {
     const { row, info, lead } = await invitation(b.id, b.token);
-    if (action === 'view') return { id: row.id, office: info.officeName, address: info.address, ownerName: row.contact_name, email: row.contact_email, terms: info.terms, status: row.status, acceptedAt: info.acceptedAt || null, signed: Boolean(info.signature && info.acceptedAt), checkoutPending: Boolean(info.checkoutId), paymentsConfigured:payment.configured() };
+    if (action === 'view') return { id: row.id, office: info.officeName, address: info.address, ownerName: row.contact_name, email: row.contact_email, terms: info.terms, status: row.status, acceptedAt: info.acceptedAt || null, signed: Boolean(info.signature && info.acceptedAt), checkoutPending: Boolean(info.checkoutId), paymentsConfigured:info.terms.paymentRequired !== false && payment.configured() };
     if (action === 'receipt') return signedContractReceipt(row, lead);
     if (action === 'sign') {
       if (b.accepted !== true || b.authorized !== true || b.independent !== true || b.electronicConsent !== true || b.termsHash !== info.terms.hash) throw new HttpError(400, 'Review the exact agreement, confirm your authority and independent ownership, and consent to an electronic signature.');
@@ -295,6 +297,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       await audit({ id: 'office:' + lead.id, name: signature }, lead.id, 'contract_signed', { enrollmentId: String(row.id), termsHash: info.terms.hash, acceptedAt: signed.acceptedAt });
       return signedContractReceipt(saved, current || lead);
     }
+    if (info.terms.paymentRequired === false) throw new HttpError(409, 'This agreement does not require a payment.');
     if (action === 'confirm') return fulfill(row.id);
     if (action !== 'accept') throw new HttpError(404, 'Unknown signup action.');
     if (row.status === 'active') {
@@ -322,6 +325,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   }
   async function fulfill(id,sessionId){
     const row=await db.get('enrollments',id);if(!row)throw new HttpError(404,'Enrollment not found.');const info=metadata(row);
+    if (info.terms?.paymentRequired === false) throw new HttpError(409, 'This agreement does not require a payment.');
     if(!info.signature||!info.acceptedAt||!['payment_pending','active'].includes(row.status))throw new HttpError(409,'Terms acceptance has not been recorded.');
     if(row.status==='active'&&info.payment?.live) {
       if(sessionId&&sessionId!==info.payment.checkoutId)throw new HttpError(409,'Payment does not match.');

@@ -43,7 +43,7 @@ export function createMailWebhook(env = process.env, adapter, { now = Date.now }
     const reply = (status, data) => { res.statusCode = status; res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'private, no-store'); res.end(JSON.stringify(data)); };
     try {
       if (req.method !== 'POST') throw new HttpError(405, 'Use POST.');
-      if (!env.GIGTAX_MAILGUN_WEBHOOK_KEY || !env.GIGTAX_TINKY_KEY) throw new HttpError(503, 'Email notifications are not connected.');
+      if (!env.GIGTAX_MAILGUN_WEBHOOK_KEY || (!adapter && !env.GIGTAX_TINKY_KEY)) throw new HttpError(503, 'Email notifications are not connected.');
       const { raw, data } = await payload(req), receivedAt = authenticate(req, data, raw, env.GIGTAX_MAILGUN_WEBHOOK_KEY, now());
       const db = adapter || backend(env), rows = await db.list('events');
       const emails = rows.filter(row => metadata(row).action === 'contract_delivery');

@@ -5,7 +5,9 @@
   const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
   const meta = row => { try { return JSON.parse(row.notes || '{}'); } catch { return {}; } };
   const title = value => String(value).replaceAll('_', ' ');
-  const sharedSignIn = 'https://portal.gigtax.pro/';
+  const standalone = document.body.hasAttribute('data-standalone-sdr');
+  const agreementOnly = document.body.hasAttribute('data-agreement-only');
+  const sharedSignIn = standalone ? document.body.dataset.identityPortal || location.origin + '/sales' : 'https://portal.gigtax.pro/';
   const status = (message, error = false, signup = false) => {
     const targets = [$(signup ? '#signup-message' : '#sales-message')];
     if (!signup && $('#sales-gate') && !$('#sales-gate').hidden) targets.push($('#sales-login-status'));
@@ -84,7 +86,7 @@
       $('#sales-stats').innerHTML = stats.map(([label,count]) => `<div class="sales-stat"><strong>${count}</strong><span>${label}</span></div>`).join('');
       $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>Agent ID ${e(a.id)}</p><p>${e(a.territory?.version===1 ? a.territory.areas.map(area=>`${area.state}: ${area.cities===null?'whole state':area.cities.length+' towns / cities'}`).join(' · ') || 'No territory assigned' : a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
       $$('[data-revoke]').forEach(b => b.onclick = run(async () => { if (!window.confirm('Revoke this agent’s sales access? Existing sessions will stop working.')) return; await api('revoke-agent',{id:b.dataset.revoke}); await refresh(); status('Agent access revoked. Their office assignments are retained for reassignment.'); }));
-      $('#sales-payment-status').textContent = data.paymentsConfigured ? 'Stripe credentials are saved. Live checkout and billing still need verification.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
+      $('#sales-payment-status').textContent = agreementOnly ? '' : data.paymentsConfigured ? 'Stripe credentials are saved. Live checkout and billing still need verification.' : 'Stripe payment account and signed webhook connection are required before paid activation.';
       $('#sales-terms-status').textContent = data.terms ? `${data.terms.title} · ${data.terms.version}` : 'Agreement prepared for owner approval. Invitations will become available when the final terms are published.';
       renderList();
       territoryUI?.render(data);
@@ -145,13 +147,21 @@
       invite.onsubmit = run(async () => { const result = await api('invite',{id,...Object.fromEntries(new FormData(invite))}); await refresh(); showInvitation(result); status('Contract prepared. Review its email in the Office contract section.'); }, invite);
     }
     const agreementForm = $('#sales-agreement');
+    const loginForm = $('#sales-login-form');
+    if (standalone) loginForm.onsubmit = run(async () => {
+      const input = Object.fromEntries(new FormData(loginForm));
+      loginForm.elements.code.value = '';
+      await api('login', input);
+      await refresh();
+      tab('home');
+    }, loginForm);
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
     $('#sales-logout').onclick = run(async () => { await api('logout'); location.replace(sharedSignIn); });
     $$('[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });
-    $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download('gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
+    $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download(standalone ? 'sales-workspace-offices.csv' : 'gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
     const discovery = $('#sales-discover');
     async function findOffices(input, offset = 0) {
       if (localUI) return localUI.search(input);
@@ -214,7 +224,10 @@
           discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
         } else tab('home');
       }
-      catch (err) { if (err.status === 401) location.replace(sharedSignIn); else status(err.message,true); }
+      catch (err) {
+        if (err.status === 401 && !standalone) location.replace(sharedSignIn);
+        else if (err.status !== 401) status(err.message,true);
+      }
     })();
   }
   if ($('[data-location-app]')) {

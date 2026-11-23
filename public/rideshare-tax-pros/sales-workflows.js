@@ -64,7 +64,8 @@
       const info = metadata(office), ownership = info.independenceVerification || info.ownershipVerification || {}, address = email(office.contact_email), number = phone(office.contact_phone), blocked = contactBlocked(office);
       const savedDrafts = events.map(row => ({ row, details: metadata(row) })).filter(item => item.details.action === 'outreach_draft' && item.details.detail && typeof item.details.detail === 'object').sort((a, b) => (Date.parse(b.details.at || b.row.created_at) || 0) - (Date.parse(a.details.at || a.row.created_at) || 0) || Number(b.row.id) - Number(a.row.id));
       const latestDraft = savedDrafts.map(item => item.details.detail).find(item => email(item.to).toLowerCase() === address.toLowerCase()) || null;
-      const subject = latestDraft?.subject || `A conversation with ${office.town || 'your office'} about Gig Tax Pros`.slice(0, 180);
+      const workspaceName = document.body.dataset.workspaceName || 'Gig Tax Pros';
+      const subject = latestDraft?.subject || `A conversation with ${office.town || 'your office'} about ${workspaceName}`.slice(0, 180);
       const body = latestDraft?.message || drafts.message || `Hi ${office.contact_name || 'there'},\n\nI’m reaching out to ${office.town || 'your office'} about Gig Tax Pros’ independent office network. Would you be open to a short conversation about whether it fits your office?\n\nPlease let us know if you prefer not to be contacted.`;
       host.innerHTML = '<h3>Contact and follow-up tools</h3>' +
         `<p>${blocked ? 'This office is marked not interested or do not contact. Contact actions are disabled. Keep any outcome or correction in the office history.' : 'Open your own phone or email app to contact the office. Copying or opening a draft never records a message as sent.'}</p>` +

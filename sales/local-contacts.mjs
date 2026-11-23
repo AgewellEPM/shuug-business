@@ -16,7 +16,7 @@ export function publishedCandidateContacts(candidate, checkedAt) {
       excerpt:field === 'contact' ? 'Listed contact or principal; role and connection need review.' : 'Published business contact channel; not automatically a direct line to the named person.' }];
   });
 }
-export async function researchLocalContacts(candidate, body, { search = async () => [], researcher = researchOffice, placeLookup = lookupBusinessPlaces, now = Date.now } = {}) {
+export async function researchLocalContacts(candidate, body, { search = async () => [], researcher = researchOffice, placeLookup = lookupBusinessPlaces, now = Date.now, businessQuery = 'tax accounting official business contact' } = {}) {
   const checkedAt = new Date(now()).toISOString(), known = publishedCandidateContacts(candidate, checkedAt);
   const context = { name:candidate.name, address:candidate.address, city:candidate.city, state:candidate.state, contact:candidate.contact || '', contactRole:candidate.contactRole || 'unverified' };
   let catalogue, catalogueIssues=[];
@@ -25,7 +25,7 @@ export async function researchLocalContacts(candidate, body, { search = async ()
   const catalogueEvidence=(catalogue?.evidence || []).map(item=>({...item,checkedAt}));
   const catalogueSummary=catalogue?{status:catalogue.status,release:catalogue.release,sourceName:catalogue.sourceName,sourceURL:catalogue.sourceURL,attribution:catalogue.attribution,attributionURL:catalogue.attributionURL,matches:catalogue.matches,limits:catalogue.limits}:undefined;
   if (!body.website) {
-    const query = [candidate.contact ? `"${candidate.contact}"` : '', `"${candidate.name}"`, candidate.city, candidate.state, 'tax accounting official business contact'].filter(Boolean).join(' ').slice(0,500);
+    const query = [candidate.contact ? `"${candidate.contact}"` : '', `"${candidate.name}"`, candidate.city, candidate.state, businessQuery].filter(Boolean).join(' ').slice(0,500);
     let found = catalogue?.candidates || [], issues = [...catalogueIssues], queries = [], unconfirmed=false;
     const searchQuery=async value=>{const reply=await search(value);if(reply?.status==='unconfirmed')unconfirmed=true;return Array.isArray(reply)?reply:Array.isArray(reply?.results)?reply.results:[];};
     try { if(!found.length) {

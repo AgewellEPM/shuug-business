@@ -1,15 +1,15 @@
 import { readFileSync } from "node:fs";
 import type { SalesInvoke } from "../../src/lib/backend/sales-mcp";
 
-type Options = { origin: string; codeFile: string; email?: string; fetcher?: typeof fetch };
-export function createSalesConnection({ origin, codeFile, email, fetcher = fetch }: Options): SalesInvoke {
+type Options = { origin: string; codeFile: string; email?: string; project?: boolean; fetcher?: typeof fetch };
+export function createSalesConnection({ origin, codeFile, email, project = false, fetcher = fetch }: Options): SalesInvoke {
   const base = new URL(origin);
   if (base.username || base.password || base.pathname !== "/" || base.search || base.hash ||
     (base.protocol !== "https:" && !(base.protocol === "http:" && ["127.0.0.1", "localhost", "[::1]"].includes(base.hostname)))) throw new Error("Use an HTTPS sales origin or explicit loopback HTTP, without credentials or a path.");
   if (!codeFile.startsWith("/")) throw new Error("Select an absolute private sales access-code file.");
   return async (operation, args = {}) => {
     if (operation === "sdr_catalog") return {
-      version: 6, storage: "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses", "contact_research", "state_coverage", "territory_localities"],
+      version: 6, storage: project ? "This project's private SDR records" : "Existing GigTax private sales records", reads: ["workspace", "rolodex", "office", "pipeline", "contracts", "mailboxes", "local_offices", "business", "map_addresses", "contact_research", "state_coverage", "territory_localities"],
       actions: ["save-contact", "set-primary-contact", "archive-contact", "restore-contact"],
       roles: ["unverified", "owner", "partner", "manager", "accountant", "staff", "other"],
       limits: { contactsPerOffice: 50, exactRetryReceiptsPerOffice: 30, totalOfficeMetadataCharacters: 48000 },
@@ -17,7 +17,7 @@ export function createSalesConnection({ origin, codeFile, email, fetcher = fetch
       authority: "Uses the supplied sales identity. Agent assignment, territory and revoked-access rules apply at the backend.",
       territories:"territory_localities accepts state, optional query and offset; it returns up to 100 Census town/city names within the caller's territory. The owner assigns coverage in the Territories view. Town-scoped agents must search a permitted city name; ZIP-only searches do not expand their territory.",
       evidence: "A named owner/partner remains unconfirmed without an explicit source check. Office ownership, email delivery and paid eligibility are separate.",
-      localDiscovery: "local_offices accepts city/state and includes chains, public IRS locations and connected official business records. state_coverage distinguishes automatic record connectors from official-search links and lists principal-field limits. business accepts its actor-bound candidateToken and returns sourced records, never a confirmed owner; registered agents are separate. map_addresses accepts up to 10 returned candidateTokens. No prospect is saved by these reads.",
+      localDiscovery: project ? "local_offices accepts city/state and searches this project's configured directory. business, state_coverage and map_addresses use the same published source and territory rules as the browser. No prospect is saved by these reads." : "local_offices accepts city/state and includes chains, public IRS locations and connected official business records. state_coverage distinguishes automatic record connectors from official-search links and lists principal-field limits. business accepts its actor-bound candidateToken and returns sourced records, never a confirmed owner; registered agents are separate. map_addresses accepts up to 10 returned candidateTokens. No prospect is saved by these reads.",
       contactResearch: "contact_research accepts a candidateToken set to a returned office or principal researchToken. With no website it returns published directory details and possible business websites. Supply a checked official website with websiteReviewed:true to read its public contact pages. Business channels are not automatically a person's direct contact. No saves, account lookups, mail, calls or payment.",
       workflowTools: ["sdr_progress", "sdr_contract", "sdr_sender"],
       externalEffects: "sdr_contract send_email explicitly sends the exact reviewed contract email when a provider is configured. Other contract operations prepare links/previews or record evidence. No campaigns, calls or payments.",
@@ -48,7 +48,7 @@ export function createSalesConnection({ origin, codeFile, email, fetcher = fetch
       if (!code || code.length > 200) throw new Error("The private sales code file is empty or invalid.");
       const login = await call({ action: "login", code, ...(email ? { email } : {}) }, false);
       cookie = (login.response.headers.get("set-cookie") || "").split(";")[0];
-      if (!cookie.startsWith("gigtax_sales=")) throw new Error("Sales sign-in did not return its protected session.");
+      if (!/^gigtax_sales(?:_[a-f0-9]{16})?=/.test(cookie)) throw new Error("Sales sign-in did not return its protected session.");
       return (await call({ ...args, action })).data;
     } finally {
       if (cookie) { try { await call({ action: "logout" }); } catch { /* Sessions are local encrypted cookies; never print credentials on cleanup. */ } }
