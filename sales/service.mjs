@@ -14,6 +14,7 @@ import { revenueSummary } from './revenue.mjs';
 import { localDiscovery } from './local-discovery.mjs';
 import {agentTerritory, territoryTools} from './territories.mjs';
 import {localityAllowed} from './territory-access.mjs';
+import { salesTeamTools } from './sales-team.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -25,12 +26,16 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const prospects = prospectTools(env, db, tools);
   const reconcile = tools.billingReconciler || reconcileEnrollment;
   const publicUser = u => ({ id: u.id, name: u.name, email: u.email || '', role: u.role, states: u.states,territory:u.territory || null });
-  const rosterUser = r => ({ id: String(r.id), name: r.contact_name, email: r.contact_email, role: 'agent', states: metadata(r).states || [],...agentTerritory(r) });
+  const rosterUser = row => {
+    if (row?.status !== 'active') return null;
+    if (salesTeam) return salesTeam.rosterUser(row);
+    return { id: String(row.id), name: row.contact_name, email: row.contact_email, role: 'agent', states: metadata(row).states || [], ...agentTerritory(row) };
+  };
   async function workspaceIdentity({ role, targetId }) {
     if (role === 'owner') return owner;
     if (role === 'staff') {
-      const row = await db.get('agents', targetId);
-      if (row?.status === 'active') return rosterUser(row);
+      const user = rosterUser(await db.get('agents', targetId));
+      if (user) return user;
     }
     if (role === 'location') {
       const office = await db.get('offices', targetId);
@@ -44,8 +49,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (session.workspaceSession) return workspaceIdentity(await workspaceSession('read', session.workspaceSession));
     if (session.ownerHash && session.ownerHash === ownerHash) return owner;
     const row = await db.get('agents', session.id);
-    if (!row || row.status !== 'active' || metadata(row).codeHash !== session.codeHash) throw new HttpError(401, 'This access code has expired or was revoked.');
-    return rosterUser(row);
+    const user = rosterUser(row);
+    if (!user || metadata(row).codeHash !== session.codeHash) throw new HttpError(401, 'This access code has expired or was revoked.');
+    return user;
   }
   async function leadFor(user, id) {
     const lead = await db.get('offices', id);
@@ -53,10 +59,11 @@ export function service(env, db, payment = payments(env), tools = {}) {
     return lead;
   }
   const audit = (user, leadId, action, detail) => db.create('events', { town: `${action} ${secret().slice(0, 12)}`, contact_name: user.name, assigned_to: String(leadId), status: 'recorded', notes: JSON.stringify({ actorId: user.id, action, detail, at: new Date().toISOString() }) });
+  const salesTeam = tools.salesTeam ? salesTeamTools(db, audit, owner) : null;
   const contacts = contactTools(db, audit, tools.now);
   const territories = territoryTools(db,audit);
   const progress = progressTools(db, audit, tools.now);
-  const delivery = deliveryTools(env, db, tools);
+  const delivery = deliveryTools(env, db, salesTeam ? { ...tools, isActiveAgent: row => Boolean(rosterUser(row)) } : tools);
   const local = localDiscovery(env, { search:db.search?.bind(db), ...tools.localDiscovery, checkCandidate:async (_user,candidate) => {
     const identity = officeIdentity(candidate.name,candidate.address,candidate.city,candidate.state);
     const saved = (await db.list('offices')).find(row => officeIdentity(row.town,metadata(row).address,row.locality,row.state) === identity);
@@ -69,8 +76,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
     else {
       const address = email(body.email);
       const row = (await db.list('agents')).find(r => r.status === 'active' && r.contact_email === address && metadata(r).codeHash === codeHash);
-      if (!row) throw new HttpError(401, 'Check your email and access code.');
-      user = rosterUser(row); session = { id: String(row.id), codeHash };
+      user = rosterUser(row);
+      if (!user) throw new HttpError(401, 'Check your email and access code.');
+      session = { id: user.id, codeHash };
     }
     return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
   }
@@ -98,6 +106,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
+    if (salesTeam?.actions.has(action)) return salesTeam.dispatch(user, action, b);
     if (tools.savedProspects && ['list-prospects', 'save-prospect', 'update-prospect'].includes(action)) {
       return tools.savedProspects(user, action, b);
     }
@@ -111,7 +120,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
         return { ...row, ...(current ? { membership: enrollmentEligibility(current) } : {}), pipeline: progressProjection(row, events, enrollments) };
       });
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
-      return { user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: agents.filter(r => r.status === 'active').map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [],...agentTerritory(r) })), terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES, ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}) };
+      const activeAgents = salesTeam ? salesTeam.roster(user, agents) : agents.filter(r => r.status === 'active')
+        .map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [], ...agentTerritory(r) }));
+      return { user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents, terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES, ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}) };
     }
     if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
     if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);
@@ -143,9 +154,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
       if (duplicate) { if (!visible(user, duplicate)) throw new HttpError(409, 'This office is already in the team pipeline. Ask the owner about its assignment.'); return { office: duplicate, duplicate: true }; }
       let assigned = user.id;
       if (user.role === 'owner' && b.assignedTo && b.assignedTo !== 'owner') {
-        const agent = await db.get('agents', b.assignedTo);
-        if (!agent || agent.status !== 'active' || !localityAllowed(rosterUser(agent),input.state,input.city)) throw new HttpError(400, 'Choose an active agent covering this town or city.');
-        assigned = String(agent.id);
+        const agent = rosterUser(await db.get('agents', b.assignedTo));
+        if (!agent || !localityAllowed(agent,input.state,input.city)) throw new HttpError(400, 'Choose an active agent covering this town or city.');
+        assigned = agent.id;
       }
       const row = await db.create('offices', { town: input.name, state: input.state, contact_name: input.contact, contact_email: input.email, contact_phone: input.phone, locality: input.city, assigned_to: assigned, category: 'local_business', status: 'new', notes: JSON.stringify({ address: input.address, postalCode: input.postalCode, website: input.website, source: input.source, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, sourceCheckedAt: new Date().toISOString() }) });
       await audit(user, row.id, 'office_created', input.name);
@@ -184,7 +195,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       if (info) patch.notes = JSON.stringify(info);
       if (b.assignedTo !== undefined) {
         if (user.role !== 'owner') throw new HttpError(403, 'Only the owner can reassign offices.');
-        if (b.assignedTo !== 'owner') { const a = await db.get('agents', b.assignedTo); if (!a || a.status !== 'active' || !localityAllowed(rosterUser(a),before.state,before.locality)) throw new HttpError(400, 'Choose an active agent covering this town or city.'); }
+        if (b.assignedTo !== 'owner') { const a = rosterUser(await db.get('agents', b.assignedTo)); if (!a || !localityAllowed(a,before.state,before.locality)) throw new HttpError(400, 'Choose an active agent covering this town or city.'); }
         patch.assigned_to = b.assignedTo;
       }
       const office = await patchReviewed(db, 'offices', before, patch);
@@ -262,12 +273,17 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (action === 'create-agent') {
       const address = email(b.email), name = text(b.name, 140, true), states = b.states;
       if (!Array.isArray(states) || states.length > 51 || states.some(v => !STATES.includes(v))) throw new HttpError(400, 'Choose valid territories.');
+      if (salesTeam) {
+        const result = salesTeam.dispatch(user, 'sales-team-invite', { name, email: address, states });
+        return { agent: publicUser(result.agent), code: result.code };
+      }
       if ((await db.list('agents')).some(r => r.status === 'active' && r.contact_email === address)) throw new HttpError(409, 'An active agent already uses that email.');
       const code = secret();
       const row = await db.create('agents', { town: `Sales agent ${secret().slice(0, 12)}`, contact_name: name, contact_email: address, status: 'active', notes: JSON.stringify({ codeHash: digest(code), states: [...new Set(states)] }) });
       return { agent: publicUser(rosterUser(row)), code };
     }
     if (action === 'revoke-agent') {
+      if (salesTeam) return salesTeam.dispatch(user, 'sales-team-revoke', b);
       const row = await db.get('agents', b.id);
       if (!row) throw new HttpError(404, 'Agent not found.');
       await db.patch('agents', row.id, { status: 'revoked' });

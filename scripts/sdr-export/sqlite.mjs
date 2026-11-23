@@ -52,9 +52,25 @@ export function sqliteStore(filename) {
   };
   const get = (kind, id) => /^[1-9]\d*$/.test(String(id)) ? decode(one.get(kindFor(kind), String(id))) : undefined;
 
-  function patch(kind, id, values, expectedNotes) {
+  let writing = false;
+  function writeTransaction(work) {
+    if (writing) return work();
     db.exec('BEGIN IMMEDIATE');
+    writing = true;
     try {
+      const result = work();
+      db.exec('COMMIT');
+      return result;
+    } catch (error) {
+      db.exec('ROLLBACK');
+      throw error;
+    } finally {
+      writing = false;
+    }
+  }
+
+  function patch(kind, id, values, expectedNotes) {
+    return writeTransaction(() => {
       const before = get(kind, id);
       if (!before) throw new HttpError(404, 'Record not found.');
       if (expectedNotes !== undefined && (before.notes ?? null) !== expectedNotes) {
@@ -62,12 +78,8 @@ export function sqliteStore(filename) {
       }
       const after = { ...before, ...values, id: before.id, updated_at: new Date().toISOString() };
       update.run(JSON.stringify(after), before.id);
-      db.exec('COMMIT');
       return after;
-    } catch (error) {
-      db.exec('ROLLBACK');
-      throw error;
-    }
+    });
   }
 
   return {
@@ -94,6 +106,7 @@ export function sqliteStore(filename) {
     suppressedEmail: address => Boolean(suppressedEmail.get(address)),
     patch: (kind, id, body) => patch(kind, id, body),
     patchIfUnchanged: (kind, id, notes, body) => patch(kind, id, body, notes ?? null),
+    writeAgentTeam: writeTransaction,
     terms: () => JSON.parse(setting.get('terms')?.value ?? 'null'),
     setTerms: value => save.run('terms', JSON.stringify(value)),
     support: () => JSON.parse(setting.get('support')?.value ?? 'null'),

@@ -33,6 +33,14 @@ From **Overview → Research a business type**, enter a category and select a ci
 
 The Overview header awards 10 XP per saved business, 20 for its first recorded contact, 30 for its first reply, and 40 for its signed agreement. Every 100 XP advances one level. In an agreement workspace, the owner uses **Earned to date** to record money already received in USD. Membership workspaces show the existing commission totals based on verified collections.
 
+## Sales teams
+
+Open **Sales team** to invite a member and share their access code privately. The owner can place a new member anywhere in the active reporting tree. Each member can invite their own direct reports and see everyone who reports through them. New reports inherit the manager’s territory by default. A narrower state selection keeps any town restrictions from the manager’s territory, and later changes to the manager’s territory also apply to their branch.
+
+The owner can revoke any member. Each member can revoke a direct report, which ends that report’s access and blocks sign-in for their branch. The workspace retains their assignments and reporting history. The owner can reassign saved prospects through the existing pipeline controls.
+
+Members on other devices use the workspace’s hosted HTTPS address. An address beginning with `127.0.0.1` opens the workspace on the Mac running it.
+
 ## Campaigns
 
 Open **Campaigns** as the workspace owner. Enter your company, offer, desired next step, city, state and prospect keywords. Choose your saved LinkedIn prospects, the project directory, or Connecticut's public business registry. Click **Save campaign** and **Run now**. The runner collects matching companies, checks published roles and business contact channels, and prepares a draft tailored to each company using your offer. Companies with usable business addresses also go to Pipeline. **Repeat every** enables a saved schedule while the server runs, and **Pause schedule** stops future runs.

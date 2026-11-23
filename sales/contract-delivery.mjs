@@ -13,7 +13,8 @@ export function safeSalesEvent(row) {
   const info = metadata(row);
   return info.action === 'contract_delivery' ? { ...row, notes: JSON.stringify({ actorId: info.actorId, action: info.action, at: info.at, detail: receipt(row), delivery: receipt(row) }) } : row;
 }
-export function deliveryTools(env, db, { now = Date.now, mailSender = sendContractMail, workspaceName = 'Gig Tax Pros' } = {}) {
+export function deliveryTools(env, db, { now = Date.now, mailSender = sendContractMail, workspaceName = 'Gig Tax Pros',
+  isActiveAgent = row => row?.status === 'active' } = {}) {
   async function mailboxes(user) {
     const all = await db.list('agents');
     return all.filter(row => row.status === 'mailbox' && metadata(row).mailbox && (user.role === 'owner' || row.assigned_to === 'shared' || String(row.assigned_to) === String(user.id))).map(row => ({ id: String(row.id), name: row.contact_name, email: row.contact_email,
@@ -22,8 +23,9 @@ export function deliveryTools(env, db, { now = Date.now, mailSender = sendContra
   async function saveMailbox(user, body) {
     const kind = body.kind, ownerId = kind === 'shared' ? 'shared' : user.role === 'owner' ? String(body.ownerId || '') : String(user.id);
     if (!['shared', 'agent'].includes(kind) || (kind === 'shared' && user.role !== 'owner')) throw new HttpError(403, 'Only the workspace owner can configure a shared sender.');
-    let agent;
-    if (kind === 'agent') { agent = await db.get('agents', ownerId); if (!agent || agent.status !== 'active') throw new HttpError(400, 'Choose an active agent for this sender.'); }
+    if (kind === 'agent' && !isActiveAgent(await db.get('agents', ownerId))) {
+      throw new HttpError(400, 'Choose an active agent for this sender.');
+    }
     const address = singleEmail(body.email), replyTo = singleEmail(body.replyTo || address), name = text(body.name, 140, true);
     if (/[\r\n<>]/.test(name)) throw new HttpError(400, 'Use a plain sender name.');
     if (user.role !== 'owner' && (address !== user.email || replyTo !== user.email)) throw new HttpError(403, 'Your sender and reply address must match your agent email. Ask the owner to approve a different sender.');
@@ -41,8 +43,12 @@ export function deliveryTools(env, db, { now = Date.now, mailSender = sendContra
   async function sender(user, id) {
     const profile = (await mailboxes(user)).find(profile => profile.id === String(id));
     if (!profile) throw new HttpError(404, 'Choose one of your available sender accounts.');
-    if (profile.kind === 'agent') { const agent = await db.get('agents', profile.ownerId); if (!agent || agent.status !== 'active') throw new HttpError(409, 'This agent sender is no longer active.'); }
-    if (user.role !== 'owner') { const agent = await db.get('agents', user.id); if (!agent || agent.status !== 'active') throw new HttpError(401, 'This agent access has been revoked.'); }
+    if (profile.kind === 'agent' && !isActiveAgent(await db.get('agents', profile.ownerId))) {
+      throw new HttpError(409, 'This agent sender is no longer active.');
+    }
+    if (user.role !== 'owner' && !isActiveAgent(await db.get('agents', user.id))) {
+      throw new HttpError(401, 'This agent access has been revoked.');
+    }
     return profile;
   }
   async function allowed(office, contract) {

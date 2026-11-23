@@ -19,16 +19,14 @@ export function renderWorkspace(profile, signIn) {
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
   const site = escape(profile.publicSite || '/sales');
   let sales = legacy.find(page => page.slug === 'sales').html
-    .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"></head>')
-    .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sales.js"')
+    .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"></head>')
+    .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sales-team.js" defer></script><script src="/sales.js"')
     .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
     .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}>`)
     .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')
     .replace('<link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml">', '')
     .replace('<a class="sdr-brand" href="/"', `<a class="sdr-brand" href="${site}"`)
-    .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '')
-    .replace('<p>Assign staff to their SDR agent record under Workspace access on the <a href="https://portal.gigtax.pro/">shared sign-in page</a>.</p>',
-      signIn ? `<p>Assign staff to their SDR agent record through the <a href="${escape(signIn)}">shared sign-in page</a>.</p>` : '<p>Agents sign in with their business email and the private access code you assign.</p>');
+    .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '');
   if (profile.directory === 'project') {
     sales = sales.replace('Find local tax offices', 'Find local businesses');
   }

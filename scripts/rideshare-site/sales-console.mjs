@@ -139,6 +139,47 @@ const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidd
   <div class="sdr-card"><h2>Collected prospects</h2><div id="sales-campaign-results" aria-live="polite"></div></div>
 </section>`;
 
+function standaloneTeam(legacyTeam) {
+  const terms = section(legacyTeam, '<section id="sales-enrollment-terms"')
+    .replace('<section id="sales-enrollment-terms">', '<section id="sales-enrollment-terms" class="sales-panel" data-owner-only hidden>')
+    .replace('<h3>Enrollment terms</h3>', '<h2>Enrollment terms</h2>');
+  return `<section data-tab-panel="team" aria-labelledby="sales-team-title" hidden>
+    <div class="sdr-team-layout">
+      <section class="sales-panel sdr-team-roster">
+        <div class="sdr-card-head"><div><h2 id="sales-team-title">Reporting structure</h2><p id="sales-team-scope"></p></div><button type="button" id="sales-reload-team" class="button secondary">Refresh team</button></div>
+        <div id="sales-team"></div>
+      </section>
+      <div class="sdr-team-controls">
+        <section class="sales-panel" aria-labelledby="sales-team-invite-title">
+          <h2 id="sales-team-invite-title">Invite a team member</h2>
+          <p>Share the sign-in page and private access code with the person you invite.</p>
+          <form id="sales-create-agent" class="sales-form">
+            <label>Name<input name="name" autocomplete="off" maxlength="140" required></label>
+            <label>Business email<input name="email" type="email" autocomplete="off" maxlength="200" required></label>
+            <label data-owner-only hidden>Reports to<select name="parentId"></select></label>
+            <div><label>Territory states<input name="states" aria-describedby="sales-team-territory-hint" placeholder="CT, MA, NY"></label><p class="field-hint" id="sales-team-territory-hint">Leave blank to inherit the manager’s states and towns.</p></div>
+            <button type="submit" class="button primary" disabled>Create access code</button>
+          </form>
+          <p id="sales-team-status" role="status" aria-live="polite"></p>
+          <div id="sales-agent-code" hidden>
+            <p>Share this code privately while it’s displayed here.</p><code class="sales-secret" id="sales-agent-code-value"></code>
+            <div class="sales-actions">
+              <button type="button" class="button secondary" id="sales-copy-team-code">Copy code</button>
+              <button type="button" class="button secondary" id="sales-copy-team-link">Copy sign-in link</button>
+              <button type="button" class="button secondary" id="sales-dismiss-team-code">Dismiss</button>
+            </div>
+          </div>
+          <div data-owner-only hidden data-team-identity-portal>
+            <p>For shared sign-in, link a staff account to its SDR agent ID.</p>
+            <button type="button" class="button secondary" id="sales-copy-login-link">Copy shared sign-in link</button>
+          </div>
+        </section>
+        ${terms}
+      </div>
+    </div>
+  </section>`;
+}
+
 export function renderSalesConsole(page, { prospects = false } = {}) {
   const login = section(page.main, '<section id="sales-login"');
   const discover = section(page.main, '<section data-tab-panel="discover"');
@@ -155,7 +196,7 @@ export function renderSalesConsole(page, { prospects = false } = {}) {
     const order = ['home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'contacts', 'locations', 'mail'];
     nav.sort((first, second) => order.indexOf(first[0]) - order.indexOf(second[0]));
   }
-  const navButtons = nav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === 'home'}"${['team', 'campaigns'].includes(name) ? ' data-owner-only hidden' : ''}>${icon(name)}<span>${label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
+  const navButtons = nav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === 'home'}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name)}<span>${label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Office workspace | Gig Tax Pros</title><meta name="description" content="Private Gig Tax Pros office recruitment workspace."><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/sales.css"><link rel="stylesheet" href="/sales-console.css"><link rel="stylesheet" href="/vendor/leaflet-1.9.4/leaflet.css"><link rel="stylesheet" href="/local-offices.css"><script src="/directory-admin.js" defer></script><script src="/sales-research.js" defer></script><script src="/sales-workflows.js" defer></script><script src="/sales-console.js" defer></script><script src="/sales-contacts.js" defer></script><script src="/sales-progress.js" defer></script><script src="/sales-contracts.js" defer></script><script src="/vendor/leaflet-1.9.4/leaflet.js" defer></script><script src="/local-contacts.js" defer></script><script src="/local-offices.js" defer></script><link rel="stylesheet" href="/territories.css"><script src="/territories.js" defer></script><script src="/sales.js" defer></script></head>
 <body class="sales-console-page"><a class="sdr-skip" href="#sales-main">Skip to workspace</a><div class="sdr-ambient" aria-hidden="true"><i></i><i></i><i></i></div><div class="sales-console" data-sales-app>
 <div id="sales-gate" class="sdr-gate"><div class="sdr-gate-brand"><img src="/assets/brand-mark.svg" width="42" height="42" alt=""><strong>Gig Tax Pros</strong></div>${login}<p id="sales-login-status" role="status" aria-live="polite"></p></div>
@@ -165,6 +206,6 @@ export function renderSalesConsole(page, { prospects = false } = {}) {
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section><section data-tab-panel="mail" hidden aria-label="Shared and agent email senders"><div id="sales-mailboxes"></div></section>
 <section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Every office, every next step.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
 <section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title"><div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div><div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div><div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>
-${discover}${prospects ? prospectsPanel + campaignsPanel : ''}${team}</div>
+${discover}${prospects ? prospectsPanel + campaignsPanel + standaloneTeam(team) : team}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

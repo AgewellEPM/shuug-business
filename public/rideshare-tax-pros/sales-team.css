@@ -1,0 +1,17 @@
+.sdr-team-layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.85fr); gap: 22px; align-items: start; }
+.sdr-team-roster, .sdr-team-controls { min-width: 0; }
+.sdr-team-tree, .sdr-team-tree ul { list-style: none; margin: 0; padding: 0; }
+.sdr-team-tree ul { border-inline-start: 2px solid var(--glass-border-muted); margin: 8px 0 0 6px; padding-inline-start: 10px; }
+.sdr-team-tree li + li { margin-top: 8px; }
+.sdr-team-member { display: flex; align-items: start; flex-wrap: wrap; gap: 8px 14px; padding: 11px; border: 1px solid var(--glass-border-muted); border-radius: 12px; background: var(--glass-fill-muted); }
+.sdr-team-member-content { flex: 1 1 12rem; min-width: 0; overflow-wrap: anywhere; }
+.sdr-team-member-title { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 9px; color: var(--text-primary); }
+.sdr-team-member-state, .sdr-team-member-self { font-size: 12px; border-radius: 99px; padding: 2px 8px; background: var(--glass-fill-strong); color: var(--text-secondary); }
+.sdr-team-member-state[data-active="true"] { background: var(--success-soft); color: var(--success-ink); }
+.sdr-team-member-content p { font-size: 13px; }
+.sales-console-page .sdr-team-member .button { padding: 7px 10px; min-height: 36px; font-size: 12px; }
+#sales-create-agent, #sales-team-status:not(:empty), #sales-agent-code, [data-team-identity-portal] { margin-top: 12px; }
+.sales-console-page #sales-team-status[data-error="true"] { color: var(--danger-ink); }
+@media (max-width: 900px) {
+  .sdr-team-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
+}

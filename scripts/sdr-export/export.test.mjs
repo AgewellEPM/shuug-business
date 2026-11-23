@@ -5,6 +5,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, symlinkSync, writeFileSy
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
+import { DatabaseSync } from 'node:sqlite';
 import { spawn, execFileSync } from 'node:child_process';
 import { test } from 'node:test';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -70,6 +71,20 @@ function browserSession(origin) {
   return { request, api };
 }
 
+async function mountConsole(t, origin, session, html) {
+  const dom = new JSDOM(html, { url: origin + '/sales', runScripts: 'outside-only', beforeParse(window) {
+    window.fetch = (path, options) => session.request(path, options);
+  } });
+  t.after(() => dom.window.close());
+  const { window } = dom;
+  for (const script of window.document.querySelectorAll('script[src]')) {
+    const asset = await session.request(script.getAttribute('src'));
+    assert.equal(asset.status, 200);
+    window.eval(await asset.text());
+  }
+  return window;
+}
+
 test('exported workspace runs its real console, keeps projects isolated and persists an agreement workflow', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'universal-sdr-test-'));
   const root = join(directory, 'first');
@@ -103,10 +118,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.notEqual(code, otherCode);
   const owner = browserSession(first.origin);
   const differentProject = browserSession(other.origin);
+  await owner.api('sales-team-read', {}, 401);
   await differentProject.api('login', { code, email: 'agent@example.test' }, 401);
   await differentProject.api('login', { code: otherCode });
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
   assert.deepEqual((await differentProject.api('campaign-read')).campaigns, []);
+  assert.deepEqual((await differentProject.api('sales-team-read')).members.map(member => member.id), ['owner']);
   assert.equal((await fetch(first.origin + '/workspace-data/owner-code')).status, 404);
   assert.equal((await fetch(first.origin + '/business-directory.json')).status, 404);
   assert.equal((await fetch(first.origin + '/api/sales', { method: 'POST', headers: { Origin: 'https://other.example.test', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
@@ -115,16 +132,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const html = await response.text();
   assert.ok(html.includes('Solar Partners SDR'));
   assert.ok(!html.includes('portal.gigtax.pro'));
-  const dom = new JSDOM(html, { url: first.origin + '/sales', runScripts: 'outside-only', beforeParse(window) {
-    window.fetch = (path, options) => owner.request(path, options);
-  } });
-  t.after(() => dom.window.close());
-  const { window } = dom;
-  for (const script of window.document.querySelectorAll('script[src]')) {
-    const asset = await owner.request(script.getAttribute('src'));
-    assert.equal(asset.status, 200);
-    window.eval(await asset.text());
-  }
+  const window = await mountConsole(t, first.origin, owner, html);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, true);
   const login = window.document.querySelector('#sales-login-form');
   login.elements.code.value = code;
@@ -218,6 +226,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
   const agentEmail = 'agent@example.test';
   const { agent, code: accessCode } = await owner.api('create-agent', { name: 'Example Agent', email: agentEmail, states: ['CT'] });
+  const legacyStore = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));
+  try {
+    const { data } = legacyStore.prepare("SELECT data FROM records WHERE kind = 'agents' AND id = ?").get(Number(agent.id));
+    const { notes, ...row } = JSON.parse(data);
+    const { parentId, ...legacyNotes } = JSON.parse(notes);
+    assert.equal(parentId, 'owner');
+    legacyStore.prepare("UPDATE records SET data = ? WHERE kind = 'agents' AND id = ?")
+      .run(JSON.stringify({ ...row, notes: JSON.stringify(legacyNotes) }), Number(agent.id));
+  } finally { legacyStore.close(); }
   const agentSession = browserSession(first.origin);
   await agentSession.api('login', { email: agentEmail, code: accessCode });
   await agentSession.api('create-agent', { name: 'Denied', email: 'denied@example.test', states: [] }, 403);
@@ -236,6 +253,75 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal((await agentSession.api('list-prospects', { archived: true })).records[0].id, archived.id);
   await agentSession.api('search-local', { city: 'Boston', state: 'MA' }, 403);
   assert.ok((await agentSession.api('territory-localities', { state: 'CT', query: 'Hartford' })).results.length > 0);
+
+  const revision = async () => (await owner.api('bootstrap')).agents.find(member => member.id === agent.id).territoryRevision;
+  const assignTown = async town => owner.api('set-agent-territory', { id: agent.id, state: 'CT', mode: 'selected',
+    cityKeys: [town], expectedRevision: await revision() });
+  await assignTown('hartford');
+  window.document.querySelector('[data-tab=team]').click();
+  const ownerInvite = window.document.querySelector('#sales-create-agent');
+  const submitInvite = ownerInvite.querySelector('button[type=submit]');
+  for (let retry = 0; retry < 100 && submitInvite.disabled; retry++) await delay(20);
+  assert.equal(submitInvite.disabled, false);
+  for (const [key, value] of Object.entries({ name: 'Example Peer', email: 'peer@example.test', states: 'MA' })) ownerInvite.elements[key].value = value;
+  ownerInvite.requestSubmit();
+  const createdCode = () => window.document.querySelector('#sales-agent-code-value')?.textContent;
+  for (let retry = 0; retry < 100 && !createdCode(); retry++) await delay(20);
+  assert.match(createdCode() || '', /^[A-Za-z0-9_-]{43}$/);
+  const peer = (await owner.api('sales-team-read')).members.find(member => member.email === 'peer@example.test');
+  assert.equal(peer.parentId, 'owner');
+  const juniorInput = { name: 'Example Junior', email: 'junior@example.test' };
+  await agentSession.api('sales-team-invite', { ...juniorInput, states: ['MA'] }, 403);
+  await agentSession.api('sales-team-invite', { ...juniorInput, parentId: peer.id }, 403);
+  const tryInvite = () => agentSession.request('/api/sales', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'sales-team-invite', ...juniorInput }) });
+  const inviteReplies = await Promise.all([tryInvite(), tryInvite()]);
+  assert.deepEqual(inviteReplies.map(reply => reply.status).sort(), [200, 409]);
+  const junior = await inviteReplies.find(reply => reply.ok).json();
+  const juniorSession = browserSession(first.origin);
+  await juniorSession.api('login', { email: juniorInput.email, code: junior.code });
+  const traineeInput = { name: 'Example Trainee', email: 'trainee@example.test' };
+  const trainee = await juniorSession.api('sales-team-invite', traineeInput);
+  const traineeSession = browserSession(first.origin);
+  await traineeSession.api('login', { email: traineeInput.email, code: trainee.code });
+  const team = await owner.api('sales-team-read');
+  const byId = new Map(team.members.map(member => [member.id, member]));
+  assert.equal(team.rootId, 'owner');
+  assert.equal(byId.get(agent.id).parentId, 'owner');
+  assert.equal(byId.get(junior.agent.id).parentId, agent.id);
+  assert.equal(byId.get(trainee.agent.id).parentId, junior.agent.id);
+  assert.equal(byId.get(trainee.agent.id).active, true);
+  assert.equal(team.members.some(member => 'codeHash' in member || 'code' in member), false);
+  const branch = await agentSession.api('sales-team-read');
+  assert.equal(branch.rootId, agent.id);
+  assert.deepEqual((await agentSession.api('bootstrap')).agents, []);
+  assert.deepEqual(new Set(branch.members.map(member => member.id)), new Set([agent.id, junior.agent.id, trainee.agent.id]));
+  assert.equal(branch.members.find(member => member.id === junior.agent.id).canRevoke, true);
+  assert.equal(branch.members.find(member => member.id === trainee.agent.id).canRevoke, false);
+  await agentSession.api('sales-team-revoke', { id: trainee.agent.id }, 403);
+  await agentSession.api('sales-team-revoke', { id: peer.id }, 403);
+  const agentWindow = await mountConsole(t, first.origin, agentSession, html);
+  const agentDocument = agentWindow.document;
+  for (let retry = 0; retry < 100 && agentDocument.querySelector('#sales-workspace').hidden; retry++) await delay(20);
+  const agentNav = agentDocument.querySelector('[data-tab=team]');
+  assert.equal(agentNav.hidden, false);
+  agentNav.click();
+  assert.equal(agentDocument.querySelector('#sales-enrollment-terms').hidden, true);
+  const branchTree = agentDocument.querySelector('#sales-team');
+  const traineeRow = '[data-team-member="' + trainee.agent.id + '"]';
+  for (let retry = 0; retry < 100 && !branchTree.querySelector(traineeRow); retry++) await delay(20);
+  assert.ok(branchTree.querySelector('[data-team-member="' + junior.agent.id + '"] ' + traineeRow));
+  assert.equal(branchTree.querySelector('[data-team-member="' + peer.id + '"]'), null);
+  assert.ok(branchTree.querySelector('[data-team-revoke="' + junior.agent.id + '"]'));
+  assert.equal(branchTree.querySelector('[data-team-revoke="' + trainee.agent.id + '"]'), null);
+  const juniorScope = (await juniorSession.api('bootstrap')).user.territory;
+  assert.deepEqual(juniorScope.areas, [{ state: 'CT', cities: ['hartford'] }]);
+  await juniorSession.api('search-local', { city: 'New Haven', state: 'CT' }, 403);
+  await assignTown('new haven');
+  assert.deepEqual((await traineeSession.api('bootstrap')).user.territory.areas, []);
+  await traineeSession.api('search-local', { city: 'Hartford', state: 'CT' }, 403);
+  await assignTown('hartford');
+  assert.deepEqual((await traineeSession.api('bootstrap')).user.territory.areas, juniorScope.areas);
 
   const candidates = await owner.api('search-local', { city: 'Hartford', state: 'CT' });
   assert.equal(candidates.results[0].name, office.name);
@@ -277,8 +363,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
   assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
+  await agentSession.api('sales-team-revoke', { id: junior.agent.id });
+  await juniorSession.api('bootstrap', {}, 401);
+  await traineeSession.api('bootstrap', {}, 401);
+  await traineeSession.api('login', { email: traineeInput.email, code: trainee.code }, 401);
   await owner.api('revoke-agent', { id: agent.id });
   await agentSession.api('bootstrap', {}, 401);
+  const replacement = await owner.api('sales-team-invite', { ...traineeInput, parentId: peer.id });
+  assert.notEqual(replacement.agent.id, trainee.agent.id);
+  const replacementSession = browserSession(first.origin);
+  await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
+  await owner.api('sales-team-revoke', { id: peer.id });
+  await replacementSession.api('bootstrap', {}, 401);
 
   await first.stop();
   const restarted = await run(root);
@@ -291,6 +387,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(recovered.offices.find(row => row.town === office.name).pipeline.stage, 'contract_signed');
   assert.equal(recovered.contracts[0].status, 'signed');
   assert.deepEqual(recovered.agents, []);
+  const recoveredTeam = await reopen.api('sales-team-read');
+  const originalTrainee = recoveredTeam.members.find(member => member.id === trainee.agent.id);
+  assert.equal(originalTrainee.active, false);
+  assert.equal(originalTrainee.parentId, junior.agent.id);
   assert.equal((await reopen.api('list-prospects', { query: 'renee' })).records[0].id, localRecord.id);
   assert.equal((await reopen.api('list-prospects', { archived: true })).records[0].id, archived.id);
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
