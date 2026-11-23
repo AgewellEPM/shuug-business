@@ -107,6 +107,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) return salesTeam.dispatch(user, action, b);
+    if (tools.facilities && action === 'territory-facilities') return tools.facilities(user, b);
     if (tools.savedProspects && ['list-prospects', 'save-prospect', 'update-prospect'].includes(action)) {
       return tools.savedProspects(user, action, b);
     }

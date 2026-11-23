@@ -4,6 +4,8 @@ import { REGISTRIES } from './registry-catalog.mjs';
 import { localityKey } from './territory-access.mjs';
 
 const CMS = 'https://data.cms.gov/provider-data/api/1/datastore/query/4pq5-n9py/0';
+export const nursingHomesSource = Object.freeze({ name: 'CMS Care Compare', url: 'https://data.cms.gov/provider-data/dataset/4pq5-n9py' });
+const nursingFields = ['cms_certification_number_ccn', 'provider_name', 'provider_address', 'citytown', 'state', 'zip_code', 'telephone_number'];
 const PHOTON = 'https://photon.komoot.io/api/';
 const clean = (value, limit) => typeof value === 'string' ? value.trim().slice(0, limit) : '';
 const normalize = value => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -29,22 +31,55 @@ async function sourceJSON(url, fetcher, timeout = 12000) {
   return JSON.parse(await publicText(response, 2_000_000));
 }
 
-export async function nursingHomes({ state, locality, zip }, fetcher = fetch) {
+function nursingHomeRow(row, state) {
+  const id = typeof row?.cms_certification_number_ccn === 'string' ? row.cms_certification_number_ccn.trim() : '';
+  if (!/^[0-9A-Z]{6}$/.test(id) || row.state !== state) return null;
+  const name = clean(row.provider_name, 180), city = clean(row.citytown, 100);
+  if (!name || !city) return null;
+  const record = new URL(nursingHomesSource.url);
+  cmsFilter(record, [['cms_certification_number_ccn', id]]);
+  return { name, city, state, address: clean(row.provider_address, 300), zip: zipCode(row.zip_code),
+    phone: clean(row.telephone_number, 60), sourceURL: record.href, sourceName: nursingHomesSource.name };
+}
+
+async function nursingHomePage(state, conditions, offset, limit, fetcher) {
   const url = new URL(CMS);
-  cmsFilter(url, [['state', state], zip ? ['zip_code', zip] : ['citytown', locality]]);
-  url.searchParams.set('limit', '30');
+  cmsFilter(url, [['state', state], ...conditions]);
+  nursingFields.forEach((field, index) => url.searchParams.set('properties[' + index + ']', field));
+  if (!conditions.length) {
+    url.searchParams.set('sorts[0][property]', 'cms_certification_number_ccn');
+    url.searchParams.set('sorts[0][order]', 'asc');
+  }
+  url.searchParams.set('limit', String(limit));
+  url.searchParams.set('offset', String(offset));
   const data = await sourceJSON(url, fetcher);
   if (!Array.isArray(data.results)) throw new HttpError(502, 'CMS nursing home data could not be read.');
-  return data.results.flatMap(row => {
-    const id = clean(row.cms_certification_number_ccn, 6);
-    const name = clean(row.provider_name, 180), city = clean(row.citytown, 100);
-    if (!/^[0-9A-Z]{6}$/.test(id) || !name || !city || row.state !== state ||
-      (zip ? row.zip_code !== zip : normalize(city) !== normalize(locality))) return [];
-    const record = new URL('https://data.cms.gov/provider-data/dataset/4pq5-n9py');
-    cmsFilter(record, [['cms_certification_number_ccn', id]]);
-    return [{ name, city, state, address: clean(row.provider_address, 300), zip: zipCode(row.zip_code),
-      phone: clean(row.telephone_number, 60), sourceURL: record.href, sourceName: 'CMS Care Compare' }];
-  });
+  return data;
+}
+
+export async function nursingHomes({ state, locality, zip }, fetcher = fetch) {
+  const { results } = await nursingHomePage(state, [zip ? ['zip_code', zip] : ['citytown', locality]], 0, 30, fetcher);
+  return results.map(row => nursingHomeRow(row, state)).filter(row => row &&
+    (zip ? row.zip === zip : normalize(row.city) === normalize(locality)));
+}
+
+export async function statewideNursingHomes(state, fetcher = fetch) {
+  const limit = 1000, results = new Map();
+  let offset = 0, count;
+  do {
+    const page = await nursingHomePage(state, [], offset, limit, fetcher);
+    if (!Number.isSafeInteger(page.count) || page.count < 0 || page.count > 20000 ||
+        (count !== undefined && page.count !== count) || page.results.length !== Math.min(limit, page.count - offset)) {
+      throw new HttpError(502, 'CMS nursing home data changed or was incomplete. Try again.');
+    }
+    count = page.count;
+    for (const row of page.results) {
+      const result = nursingHomeRow(row, state);
+      if (result) results.set(result.sourceURL, result);
+    }
+    offset += page.results.length;
+  } while (offset < count);
+  return [...results.values()];
 }
 
 export function publicWebsite(value) {

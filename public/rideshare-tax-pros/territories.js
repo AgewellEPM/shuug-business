@@ -4,9 +4,14 @@
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
   window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
+    const facilities=window.SdrTerritoryFacilities?.mount({api,onBack:returnToStates});
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;
     const agent=()=>data?.agents.find(row=>String(row.id)===agentId);
     const owner=()=>data?.user.role==='owner';
+    function returnToStates(){
+      state='';sequence++;clearTimeout(timer);facilities?.clear();paint();
+      document.querySelector('#sales-territory-map')?.scrollIntoView?.({block:'start'});
+    }
     function resetSelection(){
       const person=agent(),area=person?.territory?.areas.find(area=>area.state===state);
       selected=new Set(area?.cities || []);
@@ -33,7 +38,7 @@
         <div class="sales-actions"><button type="button" class="button secondary" data-territory-prev ${!offset?'disabled':''}>Previous towns</button><span>${report?.total?`${offset+1}–${Math.min(offset+100,report.total)} of ${report.total}`:'0'}</span><button type="button" class="button secondary" data-territory-next ${!report?.hasMore?'disabled':''}>Next towns</button></div>
         <p class="local-map-coverage">Territory coverage controls discovery and which offices can be assigned to a salesperson. Existing offices keep their individual assignments. Review and save to change coverage.</p></section>`;
       const $=selector=>host.querySelector(selector);
-      $('[data-territory-back]').onclick=()=>{state='';sequence++;paint();document.querySelector('#sales-territory-map')?.scrollIntoView?.({block:'start'});};
+      $('[data-territory-back]').onclick=returnToStates;
       if(own){
         $('[data-territory-agent]').onchange=event=>{agentId=event.target.value;resetSelection();paint();};
         $('[data-territory-mode]').value=mode;
@@ -64,6 +69,11 @@
       finally{saving=false;paint();}
     }
     return {render(next){data=next;if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';resetSelection();paint();},
-      selectState(region){state=region;query='';offset=0;report=undefined;resetSelection();paint();void load();host.scrollIntoView?.({block:'start',behavior:'smooth'});}};
+      selectState(region){
+        clearTimeout(timer);state=region;query='';offset=0;report=undefined;
+        resetSelection();paint();void load();
+        const drilldown=facilities?.selectState(region) || host;
+        drilldown.scrollIntoView?.({block:'start',behavior:'smooth'});
+      }};
   }};
 })();

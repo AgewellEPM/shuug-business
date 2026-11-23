@@ -98,10 +98,38 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(existsSync(join(root, 'workspace-data')), false);
   for (const destination of [root, second]) writeFileSync(join(destination, 'public-source-fixture.mjs'), `
     const fetchNetwork = globalThis.fetch;
-    globalThis.fetch = (url, options) => new URL(url).hostname === 'photon.komoot.io' ? Promise.resolve(Response.json({ features: [
-      { properties: { name: 'Example Senior Center', city: 'Portland', state: 'Maine', postcode: '04101', countrycode: 'US', osm_type: 'W', osm_id: 42, osm_key: 'amenity', osm_value: 'community_centre', housenumber: '30', street: 'Example St' } },
-      { properties: { name: 'Wrong State Senior Center', city: 'Portland', state: 'Oregon', postcode: '12345', countrycode: 'US', osm_type: 'W', osm_id: 43, osm_key: 'amenity', osm_value: 'community_centre' } }
-    ] })) : fetchNetwork(url, options);
+    globalThis.fetch = async (address, options) => {
+      const url = new URL(address);
+      if (url.hostname === 'data.cms.gov') {
+        const state = url.searchParams.get('conditions[0][value]');
+        const cities = state === 'CT' ? ['BRIDGEPORT', ...Array(28).fill('HARTFORD')] : state === 'AK' ? ['ANCHORAGE'] : [];
+        const offset = Number(url.searchParams.get('offset') || 0), limit = Number(url.searchParams.get('limit') || 30);
+        const rows = cities.map((city, index) => ({ cms_certification_number_ccn: String(index + 1).padStart(6, '0'),
+          provider_name: city + ' Example Home ' + (index + 1), provider_address: (index + 1) + ' EXAMPLE STREET',
+          citytown: city, state, zip_code: city === 'ANCHORAGE' ? '99501' : '06106', telephone_number: '8605550100' }));
+        return Response.json({ results: rows.slice(offset, offset + limit), count: rows.length, total: rows.length });
+      }
+      if (url.hostname === 'qlever.dev') {
+        const query = url.searchParams.get('query') || '';
+        const state = query.match(/"US-([A-Z]{2})"/)?.[1];
+        const place = id => ({ type: 'uri', value: 'https://www.openstreetmap.org/way/' + id });
+        const literal = value => ({ type: 'literal', value });
+        const facility = (id, city) => ({ place: place(id), name: literal(city + ' Example Senior Center'), city: literal(city),
+          houseNumber: literal('80'), street: literal('Example Street') });
+        let bindings = [];
+        if (state === 'CT') bindings = [facility('45', 'Hartford'), { place: place('54'), name: literal('Second Example Senior Center') },
+          { place: place('55'), name: literal('Third Example Senior Center') }];
+        else if (state === 'AK') bindings = [facility('46', 'Anchorage')];
+        else if (query.includes('VALUES ?place')) bindings = [{ place: place('54'), city: literal('Hartford') },
+          { place: place('55'), city: literal('Hartford') }, { place: place('55'), city: literal('West Hartford') }];
+        return Response.json({ results: { bindings } });
+      }
+      if (url.hostname === 'photon.komoot.io') return Response.json({ features: [
+        { properties: { name: 'Example Senior Center', city: 'Portland', state: 'Maine', postcode: '04101', countrycode: 'US', osm_type: 'W', osm_id: 42, osm_key: 'amenity', osm_value: 'community_centre', housenumber: '30', street: 'Example St' } },
+        { properties: { name: 'Wrong State Senior Center', city: 'Portland', state: 'Oregon', postcode: '12345', countrycode: 'US', osm_type: 'W', osm_id: 43, osm_key: 'amenity', osm_value: 'community_centre' } }
+      ] });
+      return fetchNetwork(address, options);
+    };
   `);
   const office = { name: 'Sample Solar Partner', city: 'Hartford', state: 'CT', address: '10 Example St', postalCode: '06103', source: 'https://example.test/partners', contact: 'Example Owner', email: 'owner@example.test' };
   const directoryLead = { name: 'Example Carpentry', city: 'Portland', state: 'ME', address: '20 Example St', postalCode: '04101',
@@ -119,6 +147,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const owner = browserSession(first.origin);
   const differentProject = browserSession(other.origin);
   await owner.api('sales-team-read', {}, 401);
+  await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home' }, 401);
   await differentProject.api('login', { code, email: 'agent@example.test' }, 401);
   await differentProject.api('login', { code: otherCode });
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
@@ -140,6 +169,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, false);
   assert.equal(window.document.querySelector('[data-tab=team]').hidden, false);
+  const ctDirectory = await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home' });
+  assert.equal(ctDirectory.total, 29);
+  assert.equal(ctDirectory.results.length, 25);
+  assert.equal(ctDirectory.hasMore, true);
+  assert.ok(ctDirectory.results.every(record => record.state === 'CT' && record.sourceName === 'CMS Care Compare'));
+  const secondPage = await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: 25 });
+  assert.equal(secondPage.results.length, 4);
+  assert.equal(secondPage.hasMore, false);
+  assert.ok(secondPage.results.every(record => !ctDirectory.results.some(prior => prior.sourceURL === record.sourceURL)));
+  const anchorages = await owner.api('territory-facilities', { state: 'AK', category: 'nursing-home', query: 'Anchorage' });
+  assert.deepEqual(anchorages.results.map(record => record.state), ['AK']);
+  await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
+  await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
+  const pageDocument = window.document;
+  pageDocument.querySelector('[data-tab="territories"]').click();
+  pageDocument.querySelector('[data-territory-state="AK"]').click();
+  const facilitiesPanel = pageDocument.querySelector('#sales-territory-facilities');
+  const facilitiesResults = () => facilitiesPanel.querySelector('[data-facility-results]');
+  for (let retry = 0; retry < 100 && !facilitiesResults()?.textContent.match(/Anchorage Example Home/i); retry++) await delay(20);
+  assert.match(facilitiesResults().textContent, /Anchorage Example Home/i);
+  assert.match(facilitiesResults().querySelector('a').href, /^https:\/\/data\.cms\.gov\//);
+  pageDocument.querySelector('[data-territory-state="CT"]').click();
+  for (let retry = 0; retry < 100 && !facilitiesResults()?.textContent.match(/Bridgeport Example Home/i); retry++) await delay(20);
+  assert.match(facilitiesResults().textContent, /Bridgeport Example Home/i);
+  assert.doesNotMatch(facilitiesResults().textContent, /Anchorage Example Home/i);
+  const facilitySearch = facilitiesPanel.querySelector('[data-facility-search]');
+  facilitiesPanel.querySelector('[data-facility-query]').value = 'Bridgeport';
+  facilitySearch.requestSubmit();
+  for (let retry = 0; retry < 100 && (facilitiesResults()?.textContent.match(/Hartford Example Home/i) || !facilitiesResults()?.textContent.match(/Bridgeport Example Home/i)); retry++) await delay(20);
+  assert.match(facilitiesResults().textContent, /Bridgeport Example Home/i);
+  assert.doesNotMatch(facilitiesResults().textContent, /Hartford Example Home/i);
+  const ctSenior = await owner.api('territory-facilities', { state: 'CT', category: 'senior-center' });
+  assert.deepEqual(ctSenior.results.map(record => record.city), ['', 'Hartford', 'Hartford']);
+  assert.equal(ctSenior.sources[0].url, 'https://www.openstreetmap.org/copyright');
+  facilitiesPanel.querySelector('[data-facility-category="senior-center"]').click();
+  facilitiesPanel.querySelector('[data-facility-query]').value = '';
+  facilitySearch.requestSubmit();
+  for (let retry = 0; retry < 100 && !facilitiesResults()?.textContent.match(/Hartford Example Senior Center/i); retry++) await delay(20);
+  assert.match(facilitiesResults().textContent, /Hartford Example Senior Center/i);
+  assert.match(facilitiesResults().querySelector('a').href, /^https:\/\/www\.openstreetmap\.org\//);
+  pageDocument.querySelector('[data-tab="home"]').click();
   assert.equal((await owner.request('/sales-welcome.webp')).headers.get('content-type'), 'image/webp');
   assert.equal(window.document.querySelector('#sdr-xp-level').textContent, 'Level 1');
   const researchForm = window.document.querySelector('#sdr-category-form');
@@ -258,6 +328,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const assignTown = async town => owner.api('set-agent-territory', { id: agent.id, state: 'CT', mode: 'selected',
     cityKeys: [town], expectedRevision: await revision() });
   await assignTown('hartford');
+  const townFacilities = await agentSession.api('territory-facilities', { state: 'CT', category: 'nursing-home' });
+  assert.equal(townFacilities.total, 28);
+  assert.ok(townFacilities.results.every(record => record.city.toLowerCase() === 'hartford'));
+  const townCenters = await agentSession.api('territory-facilities', { state: 'CT', category: 'senior-center' });
+  assert.deepEqual(townCenters.results.map(record => record.name), ['Hartford Example Senior Center', 'Second Example Senior Center']);
+  await agentSession.api('territory-facilities', { state: 'AK', category: 'nursing-home' }, 403);
   window.document.querySelector('[data-tab=team]').click();
   const ownerInvite = window.document.querySelector('#sales-create-agent');
   const submitInvite = ownerInvite.querySelector('button[type=submit]');

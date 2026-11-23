@@ -20,7 +20,7 @@ export function renderWorkspace(profile, signIn) {
   const site = escape(profile.publicSite || '/sales');
   let sales = legacy.find(page => page.slug === 'sales').html
     .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"></head>')
-    .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sales-team.js" defer></script><script src="/sales.js"')
+    .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/sales.js"')
     .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
     .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}>`)
     .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')

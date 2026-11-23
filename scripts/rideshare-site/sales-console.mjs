@@ -66,6 +66,27 @@ function territoryMap() {
   return `<svg data-sales-state-map viewBox="0 0 1000 650" role="group" aria-label="United States territory map, including Alaska and Hawaii">${paths}</svg>`;
 }
 
+const standaloneFacilities = `<section class="sdr-card territory-facilities" id="sales-territory-facilities" aria-labelledby="sales-facilities-title" hidden>
+  <div class="sdr-card-head"><h3 id="sales-facilities-title" data-facility-title>Facilities</h3><button type="button" class="button secondary" data-facility-back>All states</button></div>
+  <div class="territory-facility-categories" role="group" aria-label="Facility type">
+    <button type="button" class="button secondary" data-facility-category="nursing-home" aria-pressed="true" aria-controls="sales-facility-results">Nursing homes</button>
+    <button type="button" class="button secondary" data-facility-category="senior-center" aria-pressed="false" aria-controls="sales-facility-results">Senior community centers</button>
+  </div>
+  <form class="territory-facility-search" data-facility-search role="search" aria-label="Search state facilities">
+    <label>Facility name, city, or ZIP<input type="search" data-facility-query maxlength="100" placeholder="Search this state"></label>
+    <button type="submit" class="button secondary">Search</button>
+  </form>
+  <p class="territory-facility-coverage" data-facility-coverage hidden></p>
+  <div class="territory-facility-sources" data-facility-sources hidden></div>
+  <ul class="territory-facility-issues" data-facility-issues hidden></ul>
+  <div class="territory-facility-status"><p role="status" aria-atomic="true" data-facility-status></p><button type="button" class="button secondary" data-facility-retry hidden>Retry</button></div>
+  <ul class="territory-facility-results" id="sales-facility-results" data-facility-results hidden></ul>
+  <nav class="territory-facility-pages" aria-label="Facility results pages" data-facility-pages hidden>
+    <button type="button" class="button secondary" data-facility-previous disabled>Previous facilities</button>
+    <button type="button" class="button secondary" data-facility-next disabled>Next facilities</button>
+  </nav>
+</section>`;
+
 const prospectsPanel = `<section data-tab-panel="prospects" hidden aria-label="Saved prospects">
   <div class="sdr-card">
     <div class="sdr-card-head"><h2>Saved prospects</h2><button id="sales-add-prospect" class="button primary" type="button">Add prospect</button></div>
@@ -205,7 +226,7 @@ export function renderSalesConsole(page, { prospects = false } = {}) {
 <section data-tab-panel="home" aria-label="Workspace overview">${prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section><section data-tab-panel="mail" hidden aria-label="Shared and agent email senders"><div id="sales-mailboxes"></div></section>
 <section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Every office, every next step.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
-<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title"><div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div><div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div><div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>
+<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title"><div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>${prospects ? 'Choose a state to browse facilities, towns, and cities, or assign sales coverage.' : 'Choose a state, drill into towns and cities, and assign sales coverage.'}</p></div><span class="sdr-count-label">50 states + DC</span></div><div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? standaloneFacilities : ''}<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>
 ${discover}${prospects ? prospectsPanel + campaignsPanel + standaloneTeam(team) : team}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

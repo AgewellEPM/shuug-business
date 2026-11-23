@@ -18,6 +18,7 @@ import { campaignActions, campaigns } from './campaigns.mjs';
 import { campaignNotifications } from './campaign-mail.mjs';
 import { workspaceResearch } from '../../sales/workspace-research.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
+import { stateFacilityDirectory } from '../../sales/state-facilities.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -85,6 +86,7 @@ const sales = createHandler(env, db, {
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
+  facilities: stateFacilityDirectory(),
   salesTeam: true,
   beforeLogin() {
     const now = Date.now();

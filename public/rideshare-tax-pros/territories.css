@@ -1,1 +1,15 @@
 .territory-drilldown{margin-top:20px}.territory-controls{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:18px 0}.territory-drilldown label{display:grid;gap:7px}.territory-drilldown input[type=search],.territory-drilldown select{width:100%;min-height:44px;padding:10px 12px;background:#202029;color:inherit;border:1px solid #ffffff26;border-radius:10px}.territory-town-list{display:grid;gap:8px;margin:16px 0;max-height:640px;overflow:auto}.territory-town{display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid #ffffff1c;border-radius:12px;padding:14px}.territory-town label{display:flex;align-items:center;gap:14px;min-width:0}.territory-town input{width:20px;height:20px;flex-shrink:0;accent-color:#009cff}.territory-town span{display:grid;gap:5px}.territory-town small{color:#a9abb7}.territory-town button{flex-shrink:0}.territory-drilldown .sales-actions{margin:14px 0}@media(max-width:650px){.territory-controls{grid-template-columns:1fr}.territory-town{align-items:flex-start;flex-wrap:wrap}.territory-town button{margin-left:34px}.territory-drilldown .sdr-card-head{flex-wrap:wrap;gap:12px}}
+
+.territory-facilities { display: grid; gap: 12px; min-width: 0; margin-top: 20px; scroll-margin-top: 75px; }
+.territory-facilities .sdr-card-head { margin-bottom: 0; }
+.territory-facility-categories, .territory-facility-status, .territory-facility-pages, .territory-facility-sources { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+.sales-console-page .territory-facility-categories .button[aria-pressed="true"] { color: white; background: var(--accent); border-color: var(--accent); }
+.territory-facility-search { display: flex; align-items: end; flex-wrap: wrap; gap: 8px 12px; }
+.territory-facility-search label { display: grid; flex: 1 1 230px; gap: 6px; }
+.territory-facility-search input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--glass-border-muted); border-radius: 10px; background: var(--glass-fill-strong); color: var(--text-primary); }
+.territory-facility-coverage, .territory-facility-result p { color: var(--text-secondary); }
+.territory-facility-status [data-error="true"] { color: var(--danger-ink); }
+.territory-facility-issues { margin: 0; padding-inline-start: 20px; color: var(--text-secondary); }
+.territory-facility-results { display: grid; align-content: start; gap: 7px; max-height: 32rem; overflow: auto; margin: 0; padding: 1px; list-style: none; }
+.territory-facility-result { display: grid; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--glass-border-muted); border-radius: 10px; background: var(--glass-fill-muted); overflow-wrap: anywhere; }
+.territory-facility-result p, .territory-facility-sources { font-size: 13px; }
