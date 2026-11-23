@@ -16,6 +16,8 @@ import { renderWorkspace } from './pages.mjs';
 import { savedProspects } from './saved-prospects.mjs';
 import { campaignActions, campaigns } from './campaigns.mjs';
 import { campaignNotifications } from './campaign-mail.mjs';
+import { workspaceResearch } from '../../sales/workspace-research.mjs';
+import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -81,6 +83,8 @@ const sales = createHandler(env, db, {
   workspaceName: profile.name,
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
+  research: workspaceResearch(db, { catalogue }),
+  earnings: agreementOnly ? workspaceEarnings(db) : null,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -107,7 +111,7 @@ for (const path of readdirSync(staticRoot, { recursive: true, withFileTypes: tru
   files.set('/' + filename.slice(staticRoot.length + 1), filename);
 }
 const mimes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png',
-  '.svg': 'image/svg+xml', '.txt': 'text/plain; charset=utf-8' };
+  '.svg': 'image/svg+xml', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
 const csp = "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'";
 const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, async (request, response) => {
   const finish = (status, body = '') => { response.statusCode = status; response.end(body); };

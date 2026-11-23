@@ -2,7 +2,7 @@ import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
 
-const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads']);
+const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings']);
 function kindFor(kind) {
   if (!kinds.has(kind)) throw new Error('Unknown SDR collection.');
   return kind;
@@ -98,6 +98,8 @@ export function sqliteStore(filename) {
     setTerms: value => save.run('terms', JSON.stringify(value)),
     support: () => JSON.parse(setting.get('support')?.value ?? 'null'),
     setSupport: value => save.run('support', JSON.stringify(value)),
+    lastResearch: userId => JSON.parse(setting.get('research-' + userId)?.value ?? 'null'),
+    setLastResearch: (userId, value) => save.run('research-' + userId, JSON.stringify(value)),
     close: () => db.close(),
   };
 }

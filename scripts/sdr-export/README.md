@@ -27,6 +27,12 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 - The existing Stripe checkout, webhook, billing reconciliation, revenue and commission projections can be used with the optional membership profile. The default agreement profile completes after signature and offers project-defined agreement text.
 - The optional MCP server exposes the same records and role restrictions used by the browser.
 
+## Overview
+
+From **Overview → Research a business type**, enter a category and select a city or ZIP and state. The search covers all 50 states and D.C. through [OpenStreetMap via Photon](https://github.com/komoot/photon/blob/master/docs/api-v1.md), with [CMS Care Compare](https://data.cms.gov/provider-data/dataset/4pq5-n9py) added for nursing homes and matching records from the project directory. Results link to the public listing and show contact and registry evidence where published. The latest search is saved for that account. Use **Save to Pipeline** to choose the businesses you want to work with. Public source coverage varies by area and category.
+
+The Overview header awards 10 XP per saved business, 20 for its first recorded contact, 30 for its first reply, and 40 for its signed agreement. Every 100 XP advances one level. In an agreement workspace, the owner uses **Earned to date** to record money already received in USD. Membership workspaces show the existing commission totals based on verified collections.
+
 ## Campaigns
 
 Open **Campaigns** as the workspace owner. Enter your company, offer, desired next step, city, state and prospect keywords. Choose your saved LinkedIn prospects, the project directory, or Connecticut's public business registry. Click **Save campaign** and **Run now**. The runner collects matching companies, checks published roles and business contact channels, and prepares a draft tailored to each company using your offer. Companies with usable business addresses also go to Pipeline. **Repeat every** enables a saved schedule while the server runs, and **Pause schedule** stops future runs.

@@ -30,7 +30,7 @@
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, prospectUI, campaignUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, prospectUI, campaignUI, overviewUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
     const tab = name => {
       if (['team','campaigns'].includes(name) && data?.user.role !== 'owner') name = 'home';
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
@@ -40,6 +40,7 @@
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') prospectUI?.refresh();
       if (name === 'campaigns') campaignUI?.refresh();
+      if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
@@ -103,6 +104,7 @@
       $('#sales-terms-status').textContent = data.terms ? `${data.terms.title} · ${data.terms.version}` : 'Agreement prepared for owner approval. Invitations will become available when the final terms are published.';
       renderList();
       territoryUI?.render(data);
+      if ($('[data-tab][aria-pressed="true"]')?.dataset.tab !== 'home') overviewUI?.render(data);
       window.GigTaxWorkflows?.queue({ offices: data.offices, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
       tab($('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
       if (selected) await showOffice(selected);
@@ -224,6 +226,7 @@
     contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });
     campaignUI = window.SdrCampaigns?.mount({ api, status });
+    overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice });
     territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
     consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onTerritory:territoryUI?state=>territoryUI.selectState(state):undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;

@@ -24,7 +24,7 @@ async function freePort() {
 async function run(root) {
   const port = await freePort();
   const origin = 'http://127.0.0.1:' + port;
-  const child = spawn(process.execPath, ['scripts/sdr-export/server.mjs'], {
+  const child = spawn(process.execPath, ['--import', './public-source-fixture.mjs', 'scripts/sdr-export/server.mjs'], {
     cwd: root, env: { PATH: process.env.PATH, SDR_PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stderr = '';
@@ -81,6 +81,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   });
   for (const destination of [root, second]) execFileSync(process.execPath, ['scripts/sdr-export/export.mjs', destination]);
   assert.equal(existsSync(join(root, 'workspace-data')), false);
+  for (const destination of [root, second]) writeFileSync(join(destination, 'public-source-fixture.mjs'), `
+    const fetchNetwork = globalThis.fetch;
+    globalThis.fetch = (url, options) => new URL(url).hostname === 'photon.komoot.io' ? Promise.resolve(Response.json({ features: [
+      { properties: { name: 'Example Senior Center', city: 'Portland', state: 'Maine', postcode: '04101', countrycode: 'US', osm_type: 'W', osm_id: 42, osm_key: 'amenity', osm_value: 'community_centre', housenumber: '30', street: 'Example St' } },
+      { properties: { name: 'Wrong State Senior Center', city: 'Portland', state: 'Oregon', postcode: '12345', countrycode: 'US', osm_type: 'W', osm_id: 43, osm_key: 'amenity', osm_value: 'community_centre' } }
+    ] })) : fetchNetwork(url, options);
+  `);
   const office = { name: 'Sample Solar Partner', city: 'Hartford', state: 'CT', address: '10 Example St', postalCode: '06103', source: 'https://example.test/partners', contact: 'Example Owner', email: 'owner@example.test' };
   const directoryLead = { name: 'Example Carpentry', city: 'Portland', state: 'ME', address: '20 Example St', postalCode: '04101',
     source: 'https://example.test/directory', contact: 'Example Contact', email: 'hello@example.test' };
@@ -125,6 +132,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, false);
   assert.equal(window.document.querySelector('[data-tab=team]').hidden, false);
+  assert.equal((await owner.request('/sales-welcome.webp')).headers.get('content-type'), 'image/webp');
+  assert.equal(window.document.querySelector('#sdr-xp-level').textContent, 'Level 1');
+  const researchForm = window.document.querySelector('#sdr-category-form');
+  assert.equal(researchForm.elements.state.options.length, 51);
+  for (const [key, value] of Object.entries({ type: 'senior centers', locality: 'Portland', state: 'ME' })) researchForm.elements[key].value = value;
+  researchForm.requestSubmit();
+  const businessResults = window.document.querySelector('#sdr-category-results');
+  for (let retry = 0; retry < 100 && !businessResults.querySelector('article'); retry++) await delay(20);
+  assert.equal(businessResults.querySelectorAll('article').length, 1);
+  assert.match(businessResults.textContent, /Example Senior Center/);
+  businessResults.querySelector('button').click();
+  for (let retry = 0; retry < 100 && window.document.querySelector('#sdr-xp-bar').value === 0; retry++) await delay(20);
+  assert.equal(window.document.querySelector('#sdr-xp-bar').value, 10);
+  const earnings = window.document.querySelector('#sdr-earnings-form');
+  earnings.elements.label.value = 'Example payment';
+  earnings.elements.amount.value = '125.50';
+  earnings.requestSubmit();
+  for (let retry = 0; retry < 100 && window.document.querySelector('#sdr-earning-amount').textContent === '$0.00'; retry++) await delay(20);
+  assert.equal(window.document.querySelector('#sdr-earning-amount').textContent, '$125.50');
+  assert.equal((await differentProject.api('bootstrap')).earnings.totalCents, 0);
   window.document.querySelector('[data-tab=campaigns]').click();
   assert.equal(window.document.querySelector('[data-tab-panel=campaigns]').hidden, false);
   const campaignForm = window.document.querySelector('#sales-campaign-form');
@@ -194,6 +221,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentSession = browserSession(first.origin);
   await agentSession.api('login', { email: agentEmail, code: accessCode });
   await agentSession.api('create-agent', { name: 'Denied', email: 'denied@example.test', states: [] }, 403);
+  await agentSession.api('record-earnings', {}, 403);
+  await agentSession.api('business-research', { type: 'senior center', locality: 'Portland', state: 'ME' }, 403);
+  assert.equal((await agentSession.api('business-research-last')).research, null);
   assert.deepEqual((await agentSession.api('list-prospects')).records, []);
   await agentSession.api('update-prospect', { id: localRecord.id, expectedRevision: localRecord.revision, archived: true }, 404);
   const agentCompany = { name: 'Example Solar', sourceURL: 'https://www.linkedin.com/company/example-solar/about/' };
@@ -256,6 +286,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const reopen = browserSession(restarted.origin);
   await reopen.api('login', { code });
   const recovered = await reopen.api('bootstrap');
+  assert.equal(recovered.earnings.totalCents, 12550);
+  assert.equal((await reopen.api('business-research-last')).research.companies[0].name, 'Example Senior Center');
   assert.equal(recovered.offices.find(row => row.town === office.name).pipeline.stage, 'contract_signed');
   assert.equal(recovered.contracts[0].status, 'signed');
   assert.deepEqual(recovered.agents, []);
