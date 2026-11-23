@@ -17,6 +17,14 @@ With Xcode tools installed on macOS 14 or newer, run `bash scripts/sdr-export/bu
 
 Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. **Prospects** opens the reusable local store in that same pane. Each site uses its usual sign-in inside the wrapper.
 
+## iPad app
+
+Universal SDR runs on iPadOS 17 and later. Use **Workspace** and **Prospects** to work in your existing SDR project. On a wide screen, LinkedIn and other research pages open beside the workspace. On a narrower screen, use the toolbar to switch panes. On a LinkedIn profile or company page, **Add to Prospects** opens a draft for review before you save it.
+
+- Install Xcode and XcodeGen on the build Mac. Run `bash scripts/sdr-export/build-ipad.sh` for the simulator app. For a physical iPad, open the generated `native/ios/UniversalSDR/UniversalSDR.xcodeproj`, select your development team and iPad, and run the app from Xcode.
+- In the app, enter the project's HTTPS workspace address and use your existing owner or agent access code. The iPad connects to that workspace's server and records. For a Mac-only workspace, first make it reachable at a trusted HTTPS address. A Debug simulator build also accepts the Mac's loopback workspace URL.
+- Sign in to LinkedIn in the research pane with your LinkedIn account.
+
 ## What is included
 
 - Overview, territory maps and US town catalogues, local discovery, approved website research, public registry lookup, ownership evidence and contact Rolodex.

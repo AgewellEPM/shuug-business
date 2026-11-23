@@ -39,8 +39,11 @@ const assets = [
   ...['layers-2x', 'layers', 'marker-icon-2x', 'marker-icon', 'marker-shadow'].map(name => 'vendor/leaflet-1.9.4/images/' + name + '.png'),
 ];
 for (const path of assets) copy('public/rideshare-tax-pros/' + path, 'site/' + path);
-for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
+for (const name of ['build-ipad.sh', 'build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
 for (const name of ['Capture.swift', 'SDRWrapper.swift']) copy('native/macos/SDRWrapper/' + name);
+for (const name of ['.gitignore', 'project.yml', 'App/SDRBrowser.swift', 'App/UniversalSDRApp.swift', 'App/WorkspaceAddress.swift', 'UITests/WorkspaceTests.swift']) {
+  copy('native/ios/UniversalSDR/' + name);
+}
 copy('scripts/sales/mcp-connection.ts');
 copy('src/lib/backend/sales-mcp.ts');
 copy('LICENSE');
