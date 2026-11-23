@@ -78,10 +78,52 @@
 .prospects-filter-fields label { flex: 1 1 145px; min-width: 0; }
 .prospects-filter-fields label:first-child { flex: 2 1 220px; }
 #sales-business-prospect-filter fieldset { min-width: 0; padding: 4px 0 0; margin: 0; border: 0; }
-[data-prospect-stages] { display: flex; flex-wrap: wrap; gap: 6px 8px; }
-[data-prospect-stages] label { display: flex; align-items: center; gap: 6px; min-height: 30px; padding: 3px 8px; border: 1px solid var(--prospect-border); border-radius: 8px; background: #f2f6fc; font-size: 12px; font-weight: 500; }
-[data-prospect-stages] input { accent-color: #086ef1; }
-.prospects-stage-key { flex: none; display: inline-block; width: 9px; height: 9px; border-radius: 3px; background: var(--stage-bg, #dde5ee); }
+[data-prospect-stages] { display: flex; flex-wrap: wrap; gap: 9px; }
+[data-prospect-stages] .prospects-status-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 13px;
+  border: 1px solid color-mix(in srgb, var(--stage-ink, #405776) 28%, white);
+  border-radius: 11px;
+  color: var(--stage-ink, #304762);
+  background: linear-gradient(#fff, var(--stage-bg, #edf3fa));
+  box-shadow: inset 0 -2px 0 #152a5015, 0 2px 3px #192e4712;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+.prospects-status-button input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.prospects-status-button:hover { background: var(--stage-bg, #edf3fa); }
+.prospects-status-button:active { box-shadow: inset 0 2px 3px #152a5029; transform: translateY(1px); }
+.prospects-status-button:has(input:focus-visible) { outline: 2px solid #075cce; outline-offset: 3px; }
+[data-prospect-stages] .prospects-status-button:has(input:checked) {
+  color: #fff;
+  border-color: var(--stage-ink, #304762);
+  background: var(--stage-ink, #304762);
+  box-shadow: inset 0 2px 4px #0003;
+}
+.prospects-status-mark { display: grid; flex: none; place-items: center; width: 13px; height: 13px; border: 1.5px solid currentColor; border-radius: 50%; }
+.prospects-status-button:has(input:checked) .prospects-status-mark::after {
+  content: "";
+  width: 6px;
+  height: 4px;
+  border: solid currentColor;
+  border-width: 0 0 2px 2px;
+  transform: translateY(-1px) rotate(-45deg);
+}
+.prospects-status-count {
+  min-width: 24px;
+  padding: 3px 5px;
+  border-radius: 6px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
 .prospects-filters [data-prospect-save-filter] { flex: none; color: #084daf; border-color: #a9c9f2; background: linear-gradient(#f5faff, #e1efff); }
 
 .prospects-list-card { min-height: 170px; }

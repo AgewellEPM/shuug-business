@@ -111,8 +111,11 @@
       replaceOptions(filter.elements.state, 'All territories', [...areas].sort((a,b) => collator.compare(regionLabel(a), regionLabel(b)))
         .map(state => [state, regionLabel(state)]), saved.state);
       $('[data-prospect-stages]').innerHTML = [...new Set([...Object.keys(statuses).slice(0, 6), 'interested', ...stageCounts.keys(), ...stages])]
-        .map(stage => `<label><input type="checkbox" name="stage" value="${stage}" ${stages.has(stage) ? 'checked' : ''}>
-          <span class="prospects-stage-key" data-stage="${stage}"></span><span>${label(stage)} (${stageCounts.get(stage) || 0})</span></label>`).join('');
+        .map(stage => `<label class="prospects-status-button" data-stage="${stage}">
+          <input type="checkbox" name="stage" value="${stage}" ${stages.has(stage) ? 'checked' : ''}>
+          <span class="prospects-status-mark" aria-hidden="true"></span>
+          <span>${label(stage)}</span><span class="prospects-status-count">${stageCounts.get(stage) || 0}</span>
+        </label>`).join('');
     }
     function stats() {
       const now = new Date();

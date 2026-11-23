@@ -330,6 +330,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => find('[data-prospect-action-status]')?.textContent === 'Status updated.', 'Status was not confirmed');
     assert.equal((await owner.api('office', { id })).office.status, 'contacted');
 
+    const statusButton = status => find(`.prospects-status-button[data-stage="${status}"]`);
+    const visibleRow = () => find(`[data-prospect-pane="list"] [data-prospect-select="${id}"]`);
+    statusButton('new').click();
+    assert.equal(statusButton('new').querySelector('input').checked, true);
+    assert.equal(visibleRow(), null);
+    statusButton('contacted').click();
+    assert.equal(statusButton('contacted').querySelector('input').checked, true);
+    assert.ok(visibleRow());
+    find('[data-prospect-clear]').click();
+    assert.equal(statusButton('contacted').querySelector('input').checked, false);
+    visibleRow().click();
+
     find('[data-prospect-action="followup"]').click();
     const followup = find('[data-prospect-action-form] form');
     followup.elements.nextFollowup.value = '2026-11-24';
