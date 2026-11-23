@@ -2,7 +2,7 @@ import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
 
-const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects']);
+const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads']);
 function kindFor(kind) {
   if (!kinds.has(kind)) throw new Error('Unknown SDR collection.');
   return kind;
@@ -18,6 +18,10 @@ export function sqliteStore(filename) {
       id INTEGER PRIMARY KEY, kind TEXT NOT NULL, data TEXT NOT NULL
     );
     CREATE INDEX IF NOT EXISTS records_kind ON records(kind, id);
+    CREATE UNIQUE INDEX IF NOT EXISTS campaign_lead_key
+      ON records(json_extract(data, '$.campaignId'), json_extract(data, '$.leadKey'))
+      WHERE kind = 'campaign-leads';
+    CREATE TABLE IF NOT EXISTS outreach_suppression (email TEXT PRIMARY KEY);
     CREATE UNIQUE INDEX IF NOT EXISTS prospects_source
       ON records(json_extract(data, '$.assigned_to'), json_extract(data, '$.sourceKey'))
       WHERE kind = 'prospects';
@@ -27,6 +31,13 @@ export function sqliteStore(filename) {
   const one = db.prepare('SELECT id, data FROM records WHERE kind = ? AND id = ?');
   const insert = db.prepare('INSERT INTO records (kind, data) VALUES (?, ?)');
   const insertProspect = db.prepare("INSERT INTO records (kind, data) VALUES ('prospects', ?) ON CONFLICT DO NOTHING");
+  const insertLead = db.prepare("INSERT INTO records (kind, data) VALUES ('campaign-leads', ?) ON CONFLICT DO NOTHING");
+  const getLead = db.prepare(`
+    SELECT id, data FROM records WHERE kind = 'campaign-leads'
+      AND json_extract(data, '$.campaignId') = ? AND json_extract(data, '$.leadKey') = ?
+  `);
+  const suppressEmail = db.prepare('INSERT OR IGNORE INTO outreach_suppression VALUES (?)');
+  const suppressedEmail = db.prepare('SELECT 1 FROM outreach_suppression WHERE email = ?');
   const prospect = db.prepare(`
     SELECT id, data FROM records WHERE kind = 'prospects'
       AND json_extract(data, '$.assigned_to') = ? AND json_extract(data, '$.sourceKey') = ?
@@ -74,6 +85,13 @@ export function sqliteStore(filename) {
         ? { record: { ...data, id: Number(result.lastInsertRowid) }, existing: false }
         : { record: decode(prospect.get(body.assigned_to, body.sourceKey)), existing: true };
     },
+    saveCampaignLead(body) {
+      const data = stamped(body);
+      const result = insertLead.run(JSON.stringify(data));
+      return result.changes ? { ...data, id: Number(result.lastInsertRowid) } : decode(getLead.get(body.campaignId, body.leadKey));
+    },
+    suppressEmail: address => suppressEmail.run(address),
+    suppressedEmail: address => Boolean(suppressedEmail.get(address)),
     patch: (kind, id, body) => patch(kind, id, body),
     patchIfUnchanged: (kind, id, notes, body) => patch(kind, id, body, notes ?? null),
     terms: () => JSON.parse(setting.get('terms')?.value ?? 'null'),

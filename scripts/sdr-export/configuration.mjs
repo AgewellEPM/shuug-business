@@ -35,12 +35,14 @@ export function projectCatalogue(root) {
     const input = officeInput(record);
     if (!input.source) throw new Error('Each directory record needs its published business source URL.');
     const identity = officeIdentity(input.name, input.address, input.city, input.state);
-    records.set(identity, { ...input, candidateId: digest(identity).slice(0, 24), zip: input.postalCode, sourceKind: 'project',
+    records.set(identity, { ...input, industry: text(record.industry || '', 140), candidateId: digest(identity).slice(0, 24), zip: input.postalCode, sourceKind: 'project',
       url: input.source, sourceURL: input.source, title: input.name, snippet: [input.address, input.city, input.phone].filter(Boolean).join(' · '), contactRole: 'unverified' });
   }
-  return (region, locality) => {
+  return (region, locality, keywords = '') => {
     const query = locality.toLowerCase().trim();
-    return [...records.values()].filter(row => row.state === region && (row.city.toLowerCase().includes(query) || row.zip.startsWith(query)));
+    const terms = keywords.toLowerCase().split(/\s+/).filter(Boolean);
+    return [...records.values()].filter(row => row.state === region && (row.city.toLowerCase().includes(query) || row.zip.startsWith(query)) &&
+      terms.every(term => [row.name, row.industry, row.contact].join(' ').toLowerCase().includes(term)));
   };
 }
 

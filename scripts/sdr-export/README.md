@@ -27,6 +27,12 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 - The existing Stripe checkout, webhook, billing reconciliation, revenue and commission projections can be used with the optional membership profile. The default agreement profile completes after signature and offers project-defined agreement text.
 - The optional MCP server exposes the same records and role restrictions used by the browser.
 
+## Campaigns
+
+Open **Campaigns** as the workspace owner. Enter your company, offer, desired next step, city, state and prospect keywords. Choose your saved LinkedIn prospects, the project directory, or Connecticut's public business registry. Click **Save campaign** and **Run now**. The runner collects matching companies, checks published roles and business contact channels, and prepares a draft tailored to each company using your offer. Companies with usable business addresses also go to Pipeline. **Repeat every** enables a saved schedule while the server runs, and **Pause schedule** stops future runs.
+
+Campaigns can prepare drafts without a mail provider. For automatic sending, configure Mailgun, approve a shared provider sender in **Senders**, set the campaign to **Research and send automatically**, and enter your business mailing address. Connect Mailgun inbound routes and delivery webhooks to `/api/sales-mail-webhook` on the workspace's HTTPS hostname for live delivery and replies. Messages identify the company and include a reply-to-unsubscribe instruction. Signed events and matched replies are recorded against the original attempt. [Mailgun webhook setup](https://documentation.mailgun.com/docs/mailgun/user-manual/webhooks/configuring-webhooks) · [FTC commercial email guide](https://www.ftc.gov/business-guidance/resources/can-spam-act-compliance-guide-business)
+
 ## Project directory and contracts
 
 For the default `"directory": "project"`, place your approved business-source records in `business-directory.json`. Restart after editing it. A record has `name`, `address`, `city`, two-letter US `state`, `postalCode` and public `source` URL. Optional fields are `contact`, `email`, `phone` and `website`. This sample uses a Hartford business.

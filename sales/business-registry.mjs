@@ -37,6 +37,16 @@ export async function taxBusinesses(region, locality, fetcher = fetch) {
   const rows = await query(CT_BUSINESSES, `upper(billingstate)='CT' and upper(status)='ACTIVE' and ${condition} and (upper(name) like '%TAX%' or upper(name) like '%ACCOUNT%' or upper(name) like '%BOOKKEEP%' or naics_code like '%54121%' or naics_sub_code like '54121%')`, SELECT, 501, fetcher);
   return { supported: true, results: rows.slice(0, 500).filter(isTaxBusiness).map(businessRecord), truncated: rows.length > 500, source: 'https://data.ct.gov/d/n7gp-d28j' };
 }
+export async function searchConnecticutBusinesses(city, keywords, { limit = 30, fetcher = fetch } = {}) {
+  const terms = keywords.toUpperCase().match(/[\p{L}\p{N}]+/gu)?.slice(0, 5) || [];
+  const filters = terms.map(word => {
+    const pattern = literal('%' + word + '%');
+    return `(upper(name) like ${pattern} or upper(naics_code) like ${pattern} or upper(naics_sub_code) like ${pattern})`;
+  });
+  const where = ["upper(billingstate)='CT'", "upper(status)='ACTIVE'", `upper(billingcity)=${literal(city.toUpperCase())}`,
+    'billingstreet is not null', ...filters].join(' and ');
+  return (await query(CT_BUSINESSES, where, SELECT, limit, fetcher)).map(businessRecord);
+}
 export async function lookupBusiness(candidate, fetcher = fetch) {
   if (candidate.state !== 'CT') return { supported: false, matches: [], message: 'Automatic registry cross-reference currently supports Connecticut. Use the office website and its state business registry to review ownership.' };
   let rows;

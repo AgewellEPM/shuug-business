@@ -6,6 +6,7 @@ import { createHandler } from '../../sales/handler.mjs';
 import { createDirectoryHandler } from '../../sales/directory-handler.mjs';
 import { createWebhookHandler } from '../../sales/webhook.mjs';
 import { createMailWebhook } from '../../sales/mail-webhook.mjs';
+import { service } from '../../sales/service.mjs';
 import { HttpError, digest } from '../../sales/model.mjs';
 import { discoverOffices } from '../../sales/discovery.mjs';
 import { requestWorkspaceSession } from '../../sales/workspace-session.mjs';
@@ -13,6 +14,8 @@ import { httpsSetting, profileAt, projectAgreement, projectCatalogue, projectOut
 import { sqliteStore } from './sqlite.mjs';
 import { renderWorkspace } from './pages.mjs';
 import { savedProspects } from './saved-prospects.mjs';
+import { campaignActions, campaigns } from './campaigns.mjs';
+import { campaignNotifications } from './campaign-mail.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -49,6 +52,7 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
   if (process.env[variable]) env[variable] = process.env[variable];
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
+const automation = campaigns(env, db, { catalogue });
 db.discover = catalogue ? async (region, locality, { offset = 0, limit = 50 } = {}) => {
   const rows = catalogue(region, locality);
   return { results: rows.slice(offset, offset + limit), total: rows.length, offset, limit, hasMore: offset + limit < rows.length };
@@ -76,6 +80,7 @@ const sales = createHandler(env, db, {
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
   savedProspects: savedProspects(db),
+  campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -91,7 +96,7 @@ const routes = new Map([
   ['/api/sales', sales],
   ['/api/offices', createDirectoryHandler(env, db)],
   ['/api/sales-webhook', createWebhookHandler(env, db)],
-  ['/api/sales-mail-webhook', createMailWebhook(env, db)],
+  ['/api/sales-mail-webhook', createMailWebhook(env, db, { campaignNotification: campaignNotifications(db) })],
 ]);
 const pages = renderWorkspace(profile, signIn?.href);
 const files = new Map();
@@ -137,6 +142,15 @@ server.listen(port, '127.0.0.1', () => {
   console.log('Universal SDR is available at ' + origin.origin + '/sales');
   console.log('Owner access code file: ' + owner);
 });
+const runScheduledSales = service(env, db).dispatch;
+let scheduledRun;
+const scheduler = setInterval(() => {
+  if (!scheduledRun) scheduledRun = automation.tick(runScheduledSales)
+    .catch(() => console.error('The campaign scheduler could not finish its current cycle.'))
+    .finally(() => { scheduledRun = null; });
+}, 30_000);
+scheduler.unref();
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
-  server.close(() => db.close());
+  clearInterval(scheduler);
+  server.close(async () => { await scheduledRun; db.close(); });
 });

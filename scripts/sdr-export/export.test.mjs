@@ -82,8 +82,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (const destination of [root, second]) execFileSync(process.execPath, ['scripts/sdr-export/export.mjs', destination]);
   assert.equal(existsSync(join(root, 'workspace-data')), false);
   const office = { name: 'Sample Solar Partner', city: 'Hartford', state: 'CT', address: '10 Example St', postalCode: '06103', source: 'https://example.test/partners', contact: 'Example Owner', email: 'owner@example.test' };
+  const directoryLead = { name: 'Example Carpentry', city: 'Portland', state: 'ME', address: '20 Example St', postalCode: '04101',
+    source: 'https://example.test/directory', contact: 'Example Contact', email: 'hello@example.test' };
   writeFileSync(join(root, 'workspace.json'), JSON.stringify({ name: 'Solar Partners SDR', directory: 'project', contracts: 'agreement' }));
-  writeFileSync(join(root, 'business-directory.json'), JSON.stringify([office]));
+  writeFileSync(join(root, 'business-directory.json'), JSON.stringify([office, directoryLead]));
 
   const first = await run(root);
   servers.push(first);
@@ -97,6 +99,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await differentProject.api('login', { code, email: 'agent@example.test' }, 401);
   await differentProject.api('login', { code: otherCode });
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
+  assert.deepEqual((await differentProject.api('campaign-read')).campaigns, []);
   assert.equal((await fetch(first.origin + '/workspace-data/owner-code')).status, 404);
   assert.equal((await fetch(first.origin + '/business-directory.json')).status, 404);
   assert.equal((await fetch(first.origin + '/api/sales', { method: 'POST', headers: { Origin: 'https://other.example.test', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
@@ -122,6 +125,23 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, false);
   assert.equal(window.document.querySelector('[data-tab=team]').hidden, false);
+  window.document.querySelector('[data-tab=campaigns]').click();
+  assert.equal(window.document.querySelector('[data-tab-panel=campaigns]').hidden, false);
+  const campaignForm = window.document.querySelector('#sales-campaign-form');
+  for (const [key, value] of Object.entries({ campaignName: 'Carpentry outreach', business: 'Example Services',
+    offer: 'We provide appointment scheduling tools.', nextStep: 'Reply if your team would like a demo.',
+    keywords: 'carpentry', city: 'Portland', state: 'ME', source: 'directory', mode: 'draft' })) {
+    campaignForm.elements.namedItem(key).value = value;
+  }
+  campaignForm.requestSubmit();
+  const runCampaign = window.document.querySelector('#sales-run-campaign');
+  for (let retry = 0; retry < 100 && runCampaign.disabled; retry++) await delay(20);
+  assert.equal(runCampaign.disabled, false);
+  runCampaign.click();
+  const campaignResults = window.document.querySelector('#sales-campaign-results');
+  for (let retry = 0; retry < 100 && !campaignResults.querySelector('article'); retry++) await delay(20);
+  assert.ok(campaignResults.textContent.includes(directoryLead.name));
+  assert.ok(campaignResults.textContent.includes('appointment scheduling tools'));
   window.document.querySelector('[data-tab=prospects]').click();
   assert.equal(window.document.querySelector('[data-tab-panel=prospects]').hidden, false);
   const search = window.document.querySelector('#sales-linkedin-search');
@@ -226,7 +246,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const sign = await signer.api('signup-sign', { ...token, signature: office.contact, email: office.email, termsHash: view.terms.hash, authorized: true, independent: true, electronicConsent: true, accepted: true });
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
-  assert.equal((await owner.api('bootstrap')).offices[0].pipeline.waitingOn, 'none');
+  assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
   await owner.api('revoke-agent', { id: agent.id });
   await agentSession.api('bootstrap', {}, 401);
 
@@ -236,7 +256,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const reopen = browserSession(restarted.origin);
   await reopen.api('login', { code });
   const recovered = await reopen.api('bootstrap');
-  assert.equal(recovered.offices[0].pipeline.stage, 'contract_signed');
+  assert.equal(recovered.offices.find(row => row.town === office.name).pipeline.stage, 'contract_signed');
   assert.equal(recovered.contracts[0].status, 'signed');
   assert.deepEqual(recovered.agents, []);
   assert.equal((await reopen.api('list-prospects', { query: 'renee' })).records[0].id, localRecord.id);
@@ -258,7 +278,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     }));
     const read = await client.callTool({ name: 'sdr_read', arguments: { resource: 'pipeline' } });
     assert.ok(!read.isError, read.content[0]?.text);
-    assert.equal(JSON.parse(read.content[0].text).offices[0].town, office.name);
+    assert.ok(JSON.parse(read.content[0].text).offices.some(row => row.town === office.name));
   } finally {
     await client.close();
   }
