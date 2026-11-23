@@ -122,6 +122,25 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, false);
   assert.equal(window.document.querySelector('[data-tab=team]').hidden, false);
+  window.document.querySelector('[data-tab=linkedin]').click();
+  assert.equal(window.document.querySelector('[data-tab-panel=linkedin]').hidden, false);
+  const search = window.document.querySelector('#sales-linkedin-search');
+  const searches = [];
+  window.open = (href, target, features) => searches.push({ url: new URL(href), target, features });
+  search.elements.keywords.value = '   ';
+  search.requestSubmit(search.querySelector('[value=people]'));
+  assert.equal(searches.length, 0);
+  search.elements.keywords.value = '  Sales & partnerships + Hartford  ';
+  search.elements.keywords.dispatchEvent(new window.Event('input'));
+  for (const kind of ['people', 'companies']) {
+    search.requestSubmit(search.querySelector(`[value=${kind}]`));
+    const { url, target, features } = searches.pop();
+    assert.equal(url.origin, 'https://www.linkedin.com');
+    assert.equal(url.pathname, `/search/results/${kind}/`);
+    assert.equal(url.searchParams.get('keywords'), 'Sales & partnerships + Hartford');
+    assert.equal(target, '_blank');
+    assert.equal(features, 'noopener,noreferrer');
+  }
 
   const agentEmail = 'agent@example.test';
   const { agent, code: accessCode } = await owner.api('create-agent', { name: 'Example Agent', email: agentEmail, states: ['CT'] });
@@ -137,6 +156,16 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.ok(sourced.evidence.some(item => item.value === office.email));
   const saved = (await owner.api('create-office', { ...office, assignedTo: agent.id })).office;
   const id = String(saved.id);
+  window.document.querySelector('[data-tab=pipeline]').click();
+  window.document.querySelector('#sales-refresh').click();
+  const officeSelector = `#sales-offices [data-office="${id}"]`;
+  for (let retry = 0; retry < 100 && !window.document.querySelector(officeSelector); retry++) await delay(20);
+  window.document.querySelector(officeSelector).click();
+  const sourceLinks = '#sales-detail .sales-actions a[href^="https://www.linkedin.com/"]';
+  for (let retry = 0; retry < 100 && !window.document.querySelector(sourceLinks); retry++) await delay(20);
+  const prospectSearch = new URL(window.document.querySelector(sourceLinks).href);
+  assert.equal(prospectSearch.pathname, '/search/results/people/');
+  assert.equal(prospectSearch.searchParams.get('keywords'), 'Sample Solar Partner Hartford CT');
   assert.equal((await agentSession.api('bootstrap')).offices[0].town, office.name);
   const detail = await agentSession.api('office', { id });
   assert.match(detail.drafts.message, /Solar Partners SDR/);

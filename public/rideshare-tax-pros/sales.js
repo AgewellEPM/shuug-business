@@ -35,8 +35,8 @@
       if (name === 'team' && data?.user.role !== 'owner') name = 'home';
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', team: 'Sales team' })[name] || 'Workspace';
-      $('#sales-stats').hidden = ['home','discover'].includes(name);
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', linkedin: 'LinkedIn', team: 'Sales team' })[name] || 'Workspace';
+      $('#sales-stats').hidden = ['home','discover','linkedin'].includes(name);
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
     };
     function closeDetail() {
@@ -134,6 +134,7 @@
       window.GigTaxContacts?.office({ office: o, book: record.contacts, api, status, refresh });
       if (data.user.role === 'owner') window.GigTaxDirectory?.office({ office: o, info: m, api, status, refresh: () => showOffice(id) });
       window.GigTaxResearch?.mount({ office: o, api, status, refresh });
+      window.SdrLinkedIn?.office(o, $('.sales-actions', panel));
       window.GigTaxWorkflows?.mount({ office: o, api, status, refresh, drafts: record.drafts, events: record.events });
       window.GigTaxProgress?.office({ office: o, pipeline: record.pipeline, api, status, refresh });
       window.GigTaxContracts?.office({ office: o, contracts: record.contracts, data, api, status, refresh });
@@ -222,7 +223,7 @@
         const region = params.get('state'), city = params.get('city');
         if (params.get('view') === 'discover' && city && city.length <= 100 && [...discovery.elements.state.options].some(option => option.value === region)) {
           discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
-        } else tab('home');
+        } else tab(params.get('view') === 'linkedin' && $('[data-tab="linkedin"]') ? 'linkedin' : 'home');
       }
       catch (err) {
         if (err.status === 401 && !standalone) location.replace(sharedSignIn);
