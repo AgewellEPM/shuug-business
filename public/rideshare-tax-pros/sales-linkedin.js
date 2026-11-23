@@ -150,7 +150,18 @@
       } catch (error) { status(error.message, true); }
       finally { button.disabled = false; }
     });
-    return { refresh };
+    function capture(source, label) {
+      let url;
+      try { url = new URL(source); } catch { return false; }
+      if (url.protocol !== 'https:' || url.username || url.password || url.port ||
+          !/^(?:www\.|[a-z]{2}\.)?linkedin\.com$/.test(url.hostname) || !/^\/(in|company)\/[^/]+/.test(url.pathname)) return false;
+      editProspect();
+      edit.elements.sourceURL.value = source.slice(0, 1200);
+      edit.elements.name.value = label.slice(0, 140);
+      edit.elements.name.focus();
+      return true;
+    }
+    return { refresh, capture };
   }
 
   window.SdrLinkedIn = {

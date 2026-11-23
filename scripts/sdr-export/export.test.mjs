@@ -144,8 +144,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
   const fixtureProspect = { name: 'Renée Example', title: 'Sales Manager', company: 'Example Solar',
     locality: 'Hartford', note: 'Ask about the program', sourceURL: 'https://uk.linkedin.com/in/renee-example/?trk=fixture#details' };
-  window.document.querySelector('#sales-add-prospect').click();
+  window.location.hash = new URLSearchParams({ view: 'prospects', profile: fixtureProspect.sourceURL, name: fixtureProspect.name }).toString();
+  const editor = window.document.querySelector('#sales-prospect-editor');
+  for (let retry = 0; retry < 50 && editor.hidden; retry++) await delay(20);
   const prospectForm = window.document.querySelector('#sales-save-prospect');
+  assert.equal(editor.hidden, false);
+  assert.equal(prospectForm.elements.sourceURL.value, fixtureProspect.sourceURL);
+  assert.equal(prospectForm.elements.namedItem('name').value, fixtureProspect.name);
+  assert.equal(window.location.hash, '#view=prospects');
   for (const [key, value] of Object.entries(fixtureProspect)) prospectForm.elements.namedItem(key).value = value;
   prospectForm.requestSubmit();
   const prospectCards = window.document.querySelector('#sales-prospect-results');

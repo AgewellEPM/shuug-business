@@ -11,6 +11,12 @@ This is the full Gig Tax Pros SDR console and sales workflow in a standalone pac
 
 The export starts with an empty directory and an empty workspace. Keep the original ZIP as your starting point for new projects. To run multiple workspaces, set a different `SDR_PORT` for each. Every workspace defaults to the private `workspace-data` in its folder. Use a distinct `SDR_DATA_DIR` if you override the storage path.
 
+## Mac wrapper
+
+With Xcode tools installed on macOS 14 or newer, run `bash scripts/sdr-export/build-mac.sh "$HOME/Applications/Universal SDR.app"` and open the resulting app while the local workspace is running. The window shows the SDR and LinkedIn side by side. Sign into LinkedIn in the right pane. With a profile or company page open, click **Add profile to Prospects** to fill the URL and, when available, the page title for review.
+
+Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. **Prospects** opens the reusable local store in that same pane. Each site uses its usual sign-in inside the wrapper.
+
 ## What is included
 
 - Overview, territory maps and US town catalogues, local discovery, approved website research, public registry lookup, ownership evidence and contact Rolodex.

@@ -40,6 +40,16 @@
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') prospectUI?.refresh();
     };
+    function showRequestedProspect(params = new URLSearchParams(location.hash.slice(1))) {
+      if (!prospectUI || !['prospects', 'linkedin'].includes(params.get('view'))) return false;
+      tab('prospects');
+      const profile = params.get('profile');
+      if (profile && prospectUI.capture(profile, params.get('name') || '')) {
+        history.replaceState(null, '', location.pathname + location.search + '#view=prospects');
+      }
+      return true;
+    }
+    if (standalone) window.addEventListener('hashchange', () => { if (data) showRequestedProspect(); });
     function closeDetail() {
       const drawer = $('#sales-detail-drawer'); if (!drawer) return;
       drawer.hidden = true; $('#sales-detail-backdrop').hidden = true;
@@ -155,7 +165,7 @@
       loginForm.elements.code.value = '';
       await api('login', input);
       await refresh();
-      tab('home');
+      if (!showRequestedProspect()) tab('home');
     }, loginForm);
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
@@ -225,7 +235,7 @@
         const region = params.get('state'), city = params.get('city');
         if (params.get('view') === 'discover' && city && city.length <= 100 && [...discovery.elements.state.options].some(option => option.value === region)) {
           discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
-        } else tab(['linkedin', 'prospects'].includes(params.get('view')) && $('[data-tab="prospects"]') ? 'prospects' : 'home');
+        } else if (!showRequestedProspect(params)) tab('home');
       }
       catch (err) {
         if (err.status === 401 && !standalone) location.replace(sharedSignIn);
