@@ -155,7 +155,7 @@
       const nextLabel = closed.has(row.stage) ? '—' : row.stage === 'new' ? 'Contact' : row.stage === 'replied' ? 'Review reply' : 'Follow up';
       return `<tr class="${row.id === selected ? 'is-selected' : ''}">
         <th scope="row"><button type="button" data-prospect-select="${escape(row.id)}" aria-pressed="${row.id === selected}"><strong>${escape(row.name)}</strong><small>${escape(row.location)}</small></button></th>
-        <td><span class="prospects-type" title="${types[row.type]}">${icon('business')}<span class="prospects-sr-only">${types[row.type]}</span></span></td>
+        <td><span class="prospects-type" title="${types[row.type]}">${icon('business')}<span class="prospects-type-label">${types[row.type]}</span></span></td>
         <td>${stageBadge(row)}</td>
         <td><span class="prospects-next" title="${escape(row.next)}">${date ? icon('date') + escape(date) : escape(nextLabel)}</span></td>
       </tr>`;
@@ -228,7 +228,7 @@
           ${office.contact_phone ? `<p>${escape(office.contact_phone)}</p>` : ''}${office.contact_email ? `<p class="prospects-inline">${icon('mail')}${escape(office.contact_email)}</p>` : ''}</section>
         <section><h4>Next action</h4><p class="prospects-inline">${icon('date')}<strong>${escape(row.due && !paused ? 'Follow up' : row.next || 'Review prospect')}</strong></p>
           ${dateText(row.due, fullDate) ? `<p>${escape(dateText(row.due, fullDate))}</p>` : ''}</section>
-        <section><div class="prospects-card-head"><h4>Notes</h4><button type="button" class="prospects-text" data-prospect-action="note">Add note</button></div><p class="prospects-note" data-prospect-note>Loading latest note…</p></section>
+        <section class="prospects-detail-notes"><div class="prospects-card-head"><h4>Notes</h4><button type="button" class="prospects-text" data-prospect-action="note">Add note</button></div><p class="prospects-note" data-prospect-note>Loading latest note…</p></section>
         <div class="prospects-detail-actions">
           <button type="button" class="button primary" data-prospect-action="followup" ${paused ? 'disabled' : ''}>${icon('date')} Schedule follow-up</button>
           <button type="button" class="button secondary" data-prospect-action="email" ${paused || !office.contact_email ? 'disabled' : ''}>${icon('mail')} Draft email</button>
@@ -322,7 +322,7 @@
         paintList();
         const target = $$('[data-prospect-select]').find(item => item.dataset.prospectSelect === selected && !item.closest('[hidden]'));
         target?.focus();
-        if (window.matchMedia?.('(max-width: 960px)').matches) detail.scrollIntoView?.({ block: 'nearest' });
+        if (event.detail > 0) detail.scrollIntoView?.({ block: 'nearest' });
       }
       if (button?.dataset.prospectView) choosePane(button.dataset.prospectView);
       if (button?.dataset.prospectPage !== undefined) { index = Number(button.dataset.prospectPage); paintList(); }

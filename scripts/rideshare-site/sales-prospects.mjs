@@ -18,11 +18,13 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
     <section class="prospects-card prospects-filters" aria-labelledby="prospects-filter-title">
       <div class="prospects-card-head"><h3 id="prospects-filter-title">Filters</h3><button type="button" class="prospects-text" data-prospect-clear>Clear all</button></div>
       <form id="sales-business-prospect-filter">
-        <label>Search<input type="search" name="query" maxlength="180" placeholder="Search prospects…"></label>
-        <label>Office type<select name="type"><option value="">All types</option></select></label>
+        <div class="prospects-filter-fields">
+          <label>Search<input type="search" name="query" maxlength="180" placeholder="Search prospects…"></label>
+          <label>Office type<select name="type"><option value="">All types</option></select></label>
+          <label>Territory<select name="state"><option value="">All territories</option></select></label>
+          <button type="button" class="button secondary" data-prospect-save-filter>Save filter</button>
+        </div>
         <fieldset><legend>Status</legend><div data-prospect-stages></div></fieldset>
-        <label>Territory<select name="state"><option value="">All territories</option></select></label>
-        <button type="button" class="button secondary" data-prospect-save-filter>Save filter</button>
       </form>
       <p data-prospect-filter-status class="prospects-muted" role="status"></p>
     </section>
