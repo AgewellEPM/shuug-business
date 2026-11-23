@@ -33,6 +33,11 @@
       actions.append(...links);
       row.append(actions);
     }
+    row.append(saveForm(facility, save, open, refresh));
+    return row;
+  }
+
+  function saveForm(facility, save, open, refresh, openLabel = 'Open in Pipeline') {
     const form = node('form', null, 'territory-facility-actions');
     form.dataset.facilitySave = '';
     const button = node('button', 'Save to Pipeline', 'button secondary');
@@ -40,7 +45,7 @@
     message.setAttribute('role', 'status');
     function saved(id) {
       button.type = 'button';
-      button.textContent = 'Open in Pipeline';
+      button.textContent = openLabel;
       delete button.dataset.saveToPipeline;
       button.dataset.openFacility = String(id);
       button.onclick = async () => {
@@ -79,8 +84,7 @@
         } finally { button.disabled = false; }
       });
     }
-    row.append(form);
-    return row;
+    return form;
   }
 
   function mount({ api, onBack, refresh, onOpenOffice }) {
@@ -178,5 +182,5 @@
     };
   }
 
-  window.SdrTerritoryFacilities = { mount };
+  window.SdrTerritoryFacilities = { mount, saveForm, sourceLink };
 })();

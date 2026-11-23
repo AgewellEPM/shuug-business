@@ -1,6 +1,6 @@
 export function renderProspects({ icon, map, linkedIn, seniorCare }) {
   const metrics = [
-    ['total', 'Total prospects', 'team', 'blue'],
+    ['total', 'Saved prospects', 'team', 'blue'],
     ['active', 'Active', 'arrow', 'green'],
     ['due', 'Follow-ups due', 'calendar', 'gold'],
     ['progress', 'In progress', 'pipeline', 'violet'],
@@ -37,11 +37,29 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
           <button type="button" data-prospect-view="pipeline" aria-pressed="false">${icon('pipeline')} Pipeline</button>
         </div>
         <div data-prospect-pane="list">
-          <div class="prospects-table-scroll"><table class="prospects-table">
+          <div class="prospects-table-scroll" data-prospect-saved-table><table class="prospects-table">
             <thead><tr><th scope="col" aria-sort="ascending"><button type="button" data-prospect-sort>Office / organization <span aria-hidden="true">↕</span></button></th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Next action</th></tr></thead>
             <tbody data-prospect-rows></tbody>
           </table></div>
           <p class="prospects-empty" data-prospect-empty hidden></p>
+          <section class="prospects-directory" data-prospect-directory hidden aria-labelledby="prospects-directory-title">
+            <div class="prospects-directory-head">
+              <h4 id="prospects-directory-title">Directory matches</h4>
+              <div data-prospect-directory-sources></div>
+            </div>
+            <p data-prospect-directory-status role="status"></p>
+            <div class="prospects-table-scroll prospects-directory-scroll" data-prospect-directory-table hidden>
+              <table class="prospects-table">
+                <thead><tr><th scope="col">Office / organization</th><th scope="col">Type</th><th scope="col">Contact</th><th scope="col">Action</th></tr></thead>
+                <tbody data-prospect-directory-results></tbody>
+              </table>
+            </div>
+            <nav class="prospects-pagination" data-prospect-directory-pages aria-label="Directory result pages" hidden>
+              <button type="button" class="button secondary" data-prospect-directory-prev>‹ Previous</button>
+              <button type="button" class="button secondary" data-prospect-directory-next>Next ›</button>
+            </nav>
+            <button type="button" class="button secondary" data-prospect-directory-retry hidden>Retry directory</button>
+          </section>
         </div>
         <div class="prospects-map" data-prospect-pane="map" hidden>${map}<div data-prospect-map-summary></div></div>
         <div class="prospects-board" data-prospect-pane="pipeline" hidden></div>

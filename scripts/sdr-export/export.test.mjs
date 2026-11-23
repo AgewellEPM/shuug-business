@@ -375,6 +375,48 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     pageDocument.querySelector('#sales-detail-close').click();
   });
 
+  await t.test('selecting a facility type and state loads sourced prospects before saving', async () => {
+    const panel = pageDocument.querySelector('.sdr-prospects');
+    const find = selector => panel.querySelector(selector);
+    const filter = find('#sales-business-prospect-filter');
+    const status = find('[data-prospect-directory-status]');
+    const listing = find('[data-prospect-directory-results]');
+    const before = (await owner.api('bootstrap')).offices.length;
+    function choose(field, value) {
+      filter.elements[field].value = value;
+      filter.elements[field].dispatchEvent(new window.Event('change', { bubbles: true }));
+    }
+    find('[data-prospect-clear]').click();
+    choose('type', 'nursing-home');
+    assert.equal(find('[data-prospect-directory]').hidden, true);
+    choose('state', 'CT');
+    await waitFor(() => status.textContent.includes('Showing 1–25 of 29 for Connecticut'), 'Connecticut did not auto-populate');
+    assert.match(listing.textContent, /Bridgeport Example Home/i);
+    assert.match(listing.querySelector('a').href, /^https:\/\/data\.cms\.gov\//);
+    assert.equal((await owner.api('bootstrap')).offices.length, before);
+    find('[data-prospect-directory-next]').click();
+    await waitFor(() => status.textContent.includes('Showing 26–29'), 'Directory next page did not load');
+    filter.elements.query.value = 'Bridgeport';
+    filter.elements.query.dispatchEvent(new window.Event('input', { bubbles: true }));
+    await waitFor(() => listing.rows.length === 1 && listing.textContent.includes('BRIDGEPORT'), 'Search did not filter the Connecticut directory');
+    listing.querySelector('form').requestSubmit();
+    await waitFor(() => listing.querySelector('[data-open-facility]'), 'Directory row did not become a saved prospect');
+    const office = (await owner.api('bootstrap')).offices.find(row => /bridgeport example home/i.test(row.town));
+    assert.ok(office);
+    assert.equal(JSON.parse(office.notes).facilityType, 'nursing-home');
+    assert.equal((await owner.api('bootstrap')).offices.length, before + 1);
+
+    filter.elements.query.value = '';
+    choose('type', 'senior-center');
+    await waitFor(() => listing.textContent.includes('Hartford Example Senior Center'), 'Senior centers did not replace the nursing-home list');
+    assert.ok(!listing.textContent.includes('BRIDGEPORT'));
+    find('[data-prospect-clear]').click();
+    window.location.hash = '#view=prospects&type=nursing-home&state=AK';
+    await waitFor(() => listing.textContent.includes('ANCHORAGE Example Home'), 'Prospects link did not load the chosen state');
+    assert.match(status.textContent, /Alaska/);
+    find('[data-prospect-clear]').click();
+  });
+
   const agentEmail = 'agent@example.test';
   const { agent, code: accessCode } = await owner.api('create-agent', { name: 'Example Agent', email: agentEmail, states: ['CT'] });
   const legacyStore = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));

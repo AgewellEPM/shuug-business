@@ -57,6 +57,94 @@
     return `<span class="prospects-stage" data-stage="${record.stage}">${label(record.stage)}</span>`;
   }
 
+  function mountDirectory(panel, { api, refresh, onOpenOffice }) {
+    const facilities = window.SdrTerritoryFacilities;
+    if (!panel || !facilities?.saveForm) return null;
+    const find = name => panel.querySelector(`[data-prospect-directory-${name}]`);
+    const status = find('status'), heading = panel.querySelector('h4'), sources = find('sources');
+    const table = find('table'), results = find('results'), navigation = find('pages');
+    const previous = find('prev'), next = find('next'), retry = find('retry');
+    let criteria, key = '', sequence = 0, timer, offset = 0, report;
+
+    function rowFor(facility, page) {
+      const row = document.createElement('tr');
+      row.innerHTML = `<th scope="row"><strong>${escape(facility.name)}</strong>
+        <small>${escape([facility.address, [facility.city, facility.state, facility.zip].filter(Boolean).join(' ')].filter(Boolean).join(' · '))}</small></th>
+        <td>${escape(types[page.category])}</td>
+        <td>${escape([facility.phone, facility.email].filter(Boolean).join(' · ') || '—')}</td><td></td>`;
+      const source = facilities.sourceLink(facility.sourceURL, facility.sourceName || 'Source record');
+      if (source) row.querySelector('th').append(source);
+      row.lastElementChild.append(facilities.saveForm(facility,
+        fields => api('territory-facility-save', { ...fields, state: page.state, category: page.category, sourceURL: facility.sourceURL }),
+        onOpenOffice, refresh, 'Open prospect'));
+      return row;
+    }
+
+    function paint(page) {
+      results.replaceChildren(...(page?.results || []).map(facility => rowFor(facility, page)));
+      sources.replaceChildren(...(page?.sources || []).map(source => facilities.sourceLink(source.url, source.name)).filter(Boolean));
+      table.hidden = !page?.results.length;
+      navigation.hidden = !page?.offset && !page?.hasMore;
+      previous.disabled = !page?.offset;
+      next.disabled = !page?.hasMore;
+      if (page) table.scrollTop = 0;
+    }
+
+    async function load(pageOffset, request) {
+      offset = pageOffset;
+      report = undefined;
+      retry.hidden = true;
+      paint();
+      table.setAttribute('aria-busy', 'true');
+      try {
+        const page = await api('territory-facilities', { ...criteria, offset });
+        if (request !== sequence) return;
+        report = page;
+        paint(page);
+        heading.textContent = `Directory matches (${page.total.toLocaleString()})`;
+        status.textContent = page.results.length
+          ? `Showing ${page.offset + 1}–${page.offset + page.results.length} of ${page.total.toLocaleString()} for ${regionLabel(page.state)}.`
+          : 'No directory matches for these filters.';
+        if (page.issues?.length) status.textContent += ' Some source results may be unavailable.';
+      } catch (error) {
+        if (request !== sequence) return;
+        status.textContent = error.message || 'The directory could not be loaded.';
+        status.dataset.error = 'true';
+        retry.hidden = false;
+      } finally {
+        if (request === sequence) table.removeAttribute('aria-busy');
+      }
+    }
+
+    function start(pageOffset) {
+      status.dataset.error = 'false';
+      status.textContent = `Loading ${regionLabel(criteria.state)} directory…`;
+      void load(pageOffset, ++sequence);
+    }
+    previous.onclick = () => { if (report?.offset) start(Math.max(0, report.offset - report.limit)); };
+    next.onclick = () => { if (report?.hasMore) start(report.offset + report.limit); };
+    retry.onclick = () => start(offset);
+    return {
+      update(input, searchDelay = 0) {
+        const wanted = input ? JSON.stringify(input) : '';
+        if (wanted === key) return;
+        clearTimeout(timer);
+        key = wanted;
+        const request = ++sequence;
+        criteria = input;
+        panel.hidden = !input;
+        if (!input) return;
+        heading.textContent = 'Directory matches';
+        status.dataset.error = 'false';
+        status.textContent = `Loading ${regionLabel(input.state)} directory…`;
+        retry.hidden = true;
+        paint();
+        if (searchDelay) timer = setTimeout(() => void load(0, request), searchDelay);
+        else void load(0, request);
+      },
+    };
+  }
+
   function mount({ api, refresh, onOpenOffice }) {
     const root = document.querySelector('.sdr-prospects');
     if (!root) return null;
@@ -71,7 +159,8 @@
     const linkedIn = $('#sales-linkedin-prospects');
     let workspace, records = [], visible = [], selected = '', view = 'list', index = 0, descending = false;
     let storageKey, detailRequest = 0, detailStale = true, saving = false;
-    let stages = new Set();
+    let stages = new Set(), lastLink, searchDelay = 0;
+    const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice });
 
     function writeStatus(target, message, error = false) {
       target.textContent = message;
@@ -164,13 +253,19 @@
       </tr>`;
     }
     function paintList() {
-      $('[data-prospect-count]').textContent = `(${visible.length.toLocaleString()})`;
+      const { type, state, query } = criteria();
+      const showDirectory = directory && !root.hidden && view === 'list' && state && !stages.size &&
+        ['nursing-home', 'senior-center'].includes(type);
+      directory?.update(showDirectory ? { state, category: type, query: query.trim().slice(0, 100) } : null, searchDelay);
+      $('[data-prospect-saved-table]').hidden = Boolean(showDirectory && !visible.length);
+      $('[data-prospect-count]').textContent = showDirectory ? `(${visible.length.toLocaleString()} saved)` : `(${visible.length.toLocaleString()})`;
       const pages = Math.ceil(visible.length / pageSize);
       index = Math.max(0, Math.min(index, pages - 1));
       const start = index * pageSize;
       const empty = $('[data-prospect-empty]');
-      empty.hidden = visible.length > 0;
-      empty.textContent = records.length ? 'No prospects match these filters.' : 'Your saved businesses will appear here. Add a prospect to get started.';
+      empty.hidden = visible.length > 0 || Boolean(showDirectory);
+      empty.textContent = records.length || stages.size ? 'No saved prospects match these filters.' :
+        'Choose Nursing home or Senior community center and a territory to find directory matches, or add a prospect.';
       if (view === 'list') $('[data-prospect-rows]').innerHTML = visible.slice(start, start + pageSize).map(rowMarkup).join('');
       if (view === 'map') paintMap();
       if (view === 'pipeline') paintBoard();
@@ -336,9 +431,15 @@
       if (event.target.dataset.state && ['Enter', ' '].includes(event.key)) { event.preventDefault(); setRegion(event.target.dataset.state); }
     });
     filter.addEventListener('submit', event => { event.preventDefault(); updateList({ reset: true }); });
+    filter.addEventListener('change', event => {
+      if (event.target.matches('select')) updateList({ reset: true });
+    });
     filter.addEventListener('input', event => {
+      if (event.target.matches('select')) return;
       if (event.target.name === 'stage') stages = new Set([...filter.querySelectorAll('[name="stage"]:checked')].map(input => input.value));
+      searchDelay = event.target.name === 'query' ? 250 : 0;
       updateList({ reset: true });
+      searchDelay = 0;
     });
     const globalSearch = document.querySelector('#sdr-header-search');
     globalSearch?.addEventListener('submit', event => {
@@ -409,7 +510,20 @@
       finally { button.disabled = false; }
     };
     return {
-      enter() { if (detailStale) showDetails(); },
+      enter() {
+        const link = location.hash;
+        if (lastLink !== link) {
+          lastLink = link;
+          const params = new URLSearchParams(link.slice(1));
+          if (params.get('view') === 'prospects') {
+            for (const field of ['type', 'state']) {
+              const select = filter.elements[field], value = params.get(field);
+              if (value && [...select.options].some(option => option.value === value)) select.value = value;
+            }
+          }
+        }
+        updateList({ detailChanged: detailStale });
+      },
       render(data) {
         workspace = data;
         records = data.offices.map(business);
