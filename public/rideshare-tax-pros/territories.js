@@ -2,9 +2,9 @@
   'use strict';
   const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
-  window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate}){
+  window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate,onOpenOffice}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
-    const facilities=window.SdrTerritoryFacilities?.mount({api,onBack:returnToStates});
+    const facilities=window.SdrTerritoryFacilities?.mount({api,refresh,onOpenOffice,onBack:returnToStates});
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;
     const agent=()=>data?.agents.find(row=>String(row.id)===agentId);
     const owner=()=>data?.user.role==='owner';
@@ -69,10 +69,10 @@
       finally{saving=false;paint();}
     }
     return {render(next){data=next;if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';resetSelection();paint();},
-      selectState(region){
+      selectState(region, category, facilityQuery){
         clearTimeout(timer);state=region;query='';offset=0;report=undefined;
         resetSelection();paint();void load();
-        const drilldown=facilities?.selectState(region) || host;
+        const drilldown=facilities?.selectState(region, category, facilityQuery) || host;
         drilldown.scrollIntoView?.({block:'start',behavior:'smooth'});
       }};
   }};

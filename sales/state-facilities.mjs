@@ -1,4 +1,4 @@
-import { HttpError, officeIdentity, state, text } from './model.mjs';
+import { HttpError, email, metadata, officeIdentity, state, text, visible } from './model.mjs';
 import { localityAllowed, localityKey, stateAllowed } from './territory-access.mjs';
 import { loadStateFacilities } from './state-facility-sources.mjs';
 
@@ -18,7 +18,7 @@ function sortedFacilities(rows, region) {
     a.sourceURL.localeCompare(b.sourceURL));
 }
 
-export function stateFacilityDirectory({ load = loadStateFacilities, now = Date.now } = {}) {
+export function stateFacilityDirectory({ db, load = loadStateFacilities, now = Date.now } = {}) {
   const cache = new Map(), pending = new Map();
 
   async function reportFor(region, category) {
@@ -40,10 +40,24 @@ export function stateFacilityDirectory({ load = loadStateFacilities, now = Date.
     return request;
   }
 
-  return async function browse(user, input) {
+  return async function directory(user, input, saveOffice) {
     const region = state(input.state), category = input.category;
     if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');
     if (!categories.has(category)) throw new HttpError(400, 'Choose nursing homes or senior community centers.');
+    if (saveOffice) {
+      const source = text(input.sourceURL, 1200, true);
+      const { results } = await reportFor(region, category);
+      const row = results.find(item => item.sourceURL === source && localityAllowed(user, region, item.city));
+      if (!row) throw new HttpError(404, 'This facility is unavailable in your territory. Refresh the directory.');
+      // Some public maps omit a street or city. Use reviewed inputs only for the missing fields.
+      let addressEmail = '';
+      if (row.email) {
+        try { addressEmail = email(row.email); } catch { /* Keep unstructured source text in the directory. */ }
+      }
+      return saveOffice({ ...row, source, email: addressEmail,
+        address: row.address || text(input.address, 300, true), city: row.city || text(input.city, 100, true) },
+        { facilityType: category, facilitySource: source });
+    }
     const offset = input.offset === undefined ? 0 : Number(input.offset);
     if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new HttpError(400, 'Choose a valid facility page.');
     const query = localityKey(text(input.query ?? '', 100));
@@ -54,7 +68,22 @@ export function stateFacilityDirectory({ load = loadStateFacilities, now = Date.
       const label = localityKey([row.name, row.city, row.zip].join(' '));
       return terms.every(term => label.includes(term));
     });
-    return { state: region, category, results: matches.slice(offset, offset + pageSize),
+    const page = matches.slice(offset, offset + pageSize);
+    if (db && page.length) {
+      const saved = new Map();
+      for (const office of await db.list('offices')) {
+        if (office.state !== region || !visible(user, office)) continue;
+        const info = metadata(office);
+        if (info.facilityType !== category) continue;
+        if (info.facilitySource || info.source) saved.set(info.facilitySource || info.source, office.id);
+        saved.set(officeIdentity(office.town, info.address, office.locality, region), office.id);
+      }
+      for (const [index, row] of page.entries()) {
+        const id = saved.get(row.sourceURL) || saved.get(officeIdentity(row.name, row.address, row.city, region));
+        if (id) page[index] = { ...row, savedOfficeId: id };
+      }
+    }
+    return { state: region, category, results: page,
       total: matches.length, offset, limit: pageSize, hasMore: offset + pageSize < matches.length, coverage, sources, issues };
   };
 }

@@ -13,7 +13,8 @@ export function profileAt(root) {
   if (publicSite && (publicSite.protocol !== 'https:' || publicSite.username || publicSite.password)) {
     throw new Error('Set publicSite to an HTTPS website or leave it blank.');
   }
-  return { name, publicSite: publicSite?.href || '', directory: raw.directory, contracts: raw.contracts };
+  return { name, publicSite: publicSite?.href || '', directory: raw.directory, contracts: raw.contracts,
+    focus: raw.focus === 'senior-care' ? 'senior-care' : '' };
 }
 
 export function httpsSetting(name, value) {

@@ -29,9 +29,11 @@
     return document.querySelector('.sdr-nav [data-tab="' + view + '"] svg')?.cloneNode(true) || node('span');
   }
 
-  function mount({ api, onNavigate, onOpenOffice, refresh, status }) {
+  function mount({ api, onNavigate, onOpenOffice, onBrowseFacilities, facilityType, refresh, status }) {
     const form = $('#sdr-category-form');
     if (!form) return null;
+    const care = Boolean(form.closest('[data-senior-care]'));
+    const directoryState = $('#care-directory-state');
     const researchStatus = $('#sdr-category-status'), resultList = $('#sdr-category-results');
     const report = (message, error = false) => {
       researchStatus.textContent = message;
@@ -39,6 +41,7 @@
     };
     const researchFocus = () => {
       onNavigate('home');
+      if (care) $('#sdr-category-research').open = true;
       form.elements.type.focus();
       $('#sdr-category-research').scrollIntoView?.({ block: 'nearest' });
     };
@@ -47,16 +50,29 @@
       onNavigate('home');
       $('#sales-followups').scrollIntoView?.({ block: 'center' });
     };
-    const pipeline = (stage = '') => {
+    const pipeline = (stage = '', kind = '') => {
       onNavigate('pipeline');
       const filter = $('#sales-stage-filter');
+      const facilityFilter = $('#sales-facility-kind-filter');
+      if (facilityFilter) facilityFilter.value = kind;
       filter.value = stage;
       filter.dispatchEvent(new Event('change', { bubbles: true }));
     };
-    const actions = { research: researchFocus, prospects: prospectFocus, campaigns: () => onNavigate('campaigns'),
+    const openCarePipeline = (kind = '') => {
+      $('#sales-filter').value = '';
+      $('#sales-attention-filter').value = '';
+      pipeline('', kind);
+    };
+    const actions = { pipeline: () => openCarePipeline(), research: researchFocus, prospects: prospectFocus, campaigns: () => onNavigate('campaigns'),
       contracts: () => onNavigate('contracts') };
     for (const button of document.querySelectorAll('[data-overview-action]')) {
       button.addEventListener('click', actions[button.dataset.overviewAction]);
+    }
+    for (const button of document.querySelectorAll('[data-browse-facility]')) {
+      button.addEventListener('click', () => {
+        const state = directoryState.value;
+        if (state) onBrowseFacilities({ state, category: button.dataset.browseFacility });
+      });
     }
     $('#sdr-header-search').addEventListener('submit', event => {
       event.preventDefault();
@@ -174,6 +190,7 @@
     });
 
     function renderTerritory(offices) {
+      if (care) return;
       const host = $('#sdr-overview-territory');
       const states = new Set(offices.map(office => office.state));
       const cities = new Set(offices.filter(office => office.locality).map(office => office.state + ':' + office.locality.toLowerCase()));
@@ -198,6 +215,34 @@
       host.append(control('Open Territory Map', () => onNavigate('territories'), 'button primary'));
     }
 
+    function renderCareAccounts(accounts) {
+      const list = $('#care-account-list');
+      const open = accounts.filter(office => !['active', 'not_interested', 'do_not_contact', 'contract_signed'].includes(office.pipeline?.stage || office.status));
+      open.sort((a, b) => (a.meeting_date || '9999').localeCompare(b.meeting_date || '9999') ||
+        String(a.town).localeCompare(String(b.town)));
+      if (!open.length) {
+        const empty = node('div', undefined, 'care-accounts-empty');
+        empty.append(navigationIcon('pipeline'), node('strong', 'No open facility accounts'),
+          node('p', 'Save a facility from the directory to start tracking contacts and follow-ups.'));
+        list.replaceChildren(empty);
+        return;
+      }
+      list.replaceChildren(...open.slice(0, 5).map(office => {
+        const row = control(undefined, () => {
+          openCarePipeline();
+          return onOpenOffice(office.id).catch(error => status(error.message, true));
+        }, 'care-account-row');
+        const details = node('span');
+        const type = facilityType(office) === 'nursing-home' ? 'Nursing home' : 'Senior center';
+        details.append(node('strong', office.town), node('small', [type, office.locality, office.state].filter(Boolean).join(' · ')));
+        const next = node('span', undefined, 'care-account-next');
+        const stage = String(office.pipeline?.stage || office.status || 'new').replace(/_/g, ' ');
+        next.append(node('span', stage.charAt(0).toUpperCase() + stage.slice(1)), node('small', office.meeting_date ? 'Follow up ' + office.meeting_date.slice(0, 10) : 'No follow-up date'));
+        row.append(details, next);
+        return row;
+      }));
+    }
+
     let loaded = false, currentOffices = [];
     form.elements.state.addEventListener('change', () => renderTerritory(currentOffices));
     return {
@@ -205,14 +250,16 @@
         if (!loaded) {
           loaded = true;
           void api('business-research-last').then(({ research }) => {
-            if (!research || form.querySelector('button').disabled || form.elements.type.value) return;
+            if (!research || form.querySelector('button').disabled) return;
+            if (care && ![...form.elements.type.options].some(option => option.value === research.type)) return;
+            if (care ? Boolean(form.elements.locality.value) : Boolean(form.elements.type.value)) return;
             for (const key of ['type', 'locality', 'state']) form.elements[key].value = research[key];
             renderTerritory(currentOffices);
             renderResearch(research);
           }).catch(error => report(error.message, true));
         }
         const now = new Date(), hour = now.getHours();
-        $('#sdr-greeting').textContent = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
+        if (!care) $('#sdr-greeting').textContent = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
         const offices = data.offices;
         currentOffices = offices;
         const started = offices.filter(office => office.pipeline?.lastContact).length;
@@ -220,13 +267,19 @@
         const signed = offices.filter(office => office.pipeline?.converted).length;
         const scheduled = offices.filter(office => office.meeting_date).length;
         const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-        const due = offices.filter(office => office.meeting_date && office.meeting_date <= today && !['active', 'not_interested', 'do_not_contact'].includes(office.status));
+        const accounts = care ? offices.filter(office => ['nursing-home', 'senior-center'].includes(facilityType(office))) : offices;
+        const due = accounts.filter(office => office.meeting_date && office.meeting_date <= today && !['active', 'not_interested', 'do_not_contact'].includes(office.status));
         const xp = offices.length * 10 + started * 20 + replied * 30 + signed * 40;
         $('#sdr-xp-level').textContent = 'Level ' + (Math.floor(xp / 100) + 1);
         $('#sdr-xp-bar').value = xp % 100;
         $('#sdr-xp-label').textContent = (xp % 100) + ' / 100 XP';
         renderEarnings(data.earnings);
-        const stats = [
+        const stats = care ? [
+          ['Nursing homes saved', accounts.filter(office => facilityType(office) === 'nursing-home').length, 'pipeline', () => openCarePipeline('nursing-home'), 'green'],
+          ['Senior centers saved', accounts.filter(office => facilityType(office) === 'senior-center').length, 'territories', () => openCarePipeline('senior-center'), 'blue'],
+          ['Follow-ups due', due.length, 'contacts', followups, 'purple'],
+          ['Agreements signed', accounts.filter(office => office.pipeline?.converted).length, 'contracts', actions.contracts, 'blue'],
+        ] : [
           ['Saved Businesses', offices.length, 'pipeline', pipeline, 'green'],
           ['Follow-ups Due', due.length, 'territories', followups, 'blue'],
           ['Interested', offices.filter(office => office.status === 'interested').length, 'prospects', () => pipeline('interested'), 'purple'],
@@ -239,6 +292,13 @@
           card.append(navigationIcon(icon), value);
           return card;
         }));
+        if (care) {
+          const noTerritory = !directoryState.value;
+          document.querySelectorAll('[data-browse-facility]').forEach(button => { button.disabled = noTerritory; });
+          $('#care-directory-status').textContent = noTerritory ? 'Ask your sales team manager to assign a territory to browse facilities.' : '';
+          renderCareAccounts(accounts);
+          return;
+        }
         const steps = [
           ['Find your first business', 'Research a business type in your area.', 'Find Businesses', researchFocus, Boolean(resultList.querySelector('article') || offices.length)],
           ['Add a prospect', 'Save a result to your pipeline.', 'Open Pipeline', pipeline, Boolean(offices.length)],

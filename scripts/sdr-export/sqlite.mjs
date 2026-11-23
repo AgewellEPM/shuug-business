@@ -90,6 +90,12 @@ export function sqliteStore(filename) {
       const result = insert.run(kindFor(kind), JSON.stringify(data));
       return { ...data, id: Number(result.lastInsertRowid) };
     },
+    createOfficeOnce(body, matches) {
+      return writeTransaction(() => {
+        const existing = this.list('offices').find(matches);
+        return existing ? { office: existing, duplicate: true } : { office: this.create('offices', body) };
+      });
+    },
     saveProspect(body) {
       const data = stamped(body);
       const result = insertProspect.run(JSON.stringify(data));

@@ -33,7 +33,7 @@
   const verifiedOwnership = office => { const info = metadata(office); return info.independence === 'independent' && info.independenceVerification?.reviewed === true && info.independenceVerification.finding === 'independent'; };
   let previousMount;
 
-  function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onSearch = () => {}, onTerritory } = {}) {
+  function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onSearch = () => {}, onTerritory, matchesFacility = () => true, facilityLabel = () => '' } = {}) {
     previousMount?.();
     let data = { offices: [], agents: [], user: {}, stages: STAGES }, selectedState = '', currentView = 'dashboard', pipelineView = 'board';
     const cleanups = [], boundPaths = new WeakSet();
@@ -130,7 +130,7 @@
     function queryRows() {
       const query = ($('#sales-filter')?.value || '').trim().toLowerCase();
       const attention = $('#sales-attention-filter')?.value || '';
-      return offices().filter(office => (!attention || office.pipeline?.waitingOn === attention) && (!query || [office.town,office.locality,office.state,office.contact_name,office.contact_email,metadata(office).address,office.pipeline?.nextAction].join(' ').toLowerCase().includes(query)));
+      return offices().filter(office => matchesFacility(office) && (!attention || office.pipeline?.waitingOn === attention) && (!query || [office.town,office.locality,office.state,office.contact_name,office.contact_email,metadata(office).address,office.pipeline?.nextAction].join(' ').toLowerCase().includes(query)));
     }
     function setStage(stage) {
       const select = $('#sales-stage-filter');
@@ -148,6 +148,8 @@
       const name = office.town || 'Office record';
       const top = node('span','sdr-office-card-top'); top.append(node('span','sdr-office-avatar',name.slice(0,1).toUpperCase()),node('strong','',name));
       control.append(top,node('span','sdr-office-location',[office.locality,office.state].filter(Boolean).join(', ')),node('span','sdr-office-contact',office.contact_name || 'Public contact needs research'));
+      const kind = facilityLabel(office);
+      if (kind) control.append(node('span','sdr-office-location',kind));
       if (dateOnly(office.meeting_date)) control.append(node('span',due(office,localToday()) ? 'sdr-office-due is-due' : 'sdr-office-due',`Follow-up ${office.meeting_date}`));
       control.append(node('span','sdr-office-verification',verifiedOwnership(office) ? 'Ownership evidence reviewed' : 'Ownership needs review'));
       if (office.membership) control.append(node('span','sdr-office-membership',office.membership.eligible && office.status === 'active' ? 'Membership current' : `Membership: ${label(office.membership.status)}`));
@@ -160,7 +162,7 @@
       const strip = $('#sales-stage-strip');
       if (strip) {
         strip.classList.add('sdr-stage-strip');
-        const chips = [['','All offices'],...stages.map(name => [name,label(name)])].map(([name,title]) => {
+        const chips = [['',$('#sales-facility-kind-filter') ? 'All stages' : 'All offices'],...stages.map(name => [name,label(name)])].map(([name,title]) => {
           const count = name ? rows.filter(o => stageOf(o) === name).length : rows.length;
           const control = button('','sdr-stage-chip',() => setStage(name)); control.dataset.consoleStage = name; control.setAttribute('aria-pressed',String(stage === name)); control.append(node('span','',title),node('span','sdr-stage-count',count)); return control;
         }); strip.replaceChildren(...chips);
@@ -173,11 +175,11 @@
       });
       host.replaceChildren(...columns); setPipelineView(pipelineView);
     }
-    function chooseState(state) {
+    function chooseState(state, category, query) {
       if (!permitted(state)) return;
       selectedState = state; renderTerritories();
       const form = $('#sales-discover'), select = form?.elements.namedItem('state'); if (select) select.value = state;
-      if(onTerritory){openView('territories');return onTerritory(state);}
+      if(onTerritory){openView('territories');return onTerritory(state, category, query);}
       return openView('discover');
     }
     function searchCity(state, city) {
@@ -248,7 +250,7 @@
     previousMount = () => cleanups.forEach(remove => remove());
     return {
       render(next) { data = { offices:[], agents:[], stages:STAGES, user:{}, ...next }; if (!permitted(selectedState)) selectedState = ''; renderRevenue(); renderDashboard(); renderPipeline(); renderTerritories(); navigate(currentView); },
-      navigate,
+      navigate, chooseState,
     };
   }
   window.GigTaxConsole = { mount };

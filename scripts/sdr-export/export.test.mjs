@@ -71,8 +71,8 @@ function browserSession(origin) {
   return { request, api };
 }
 
-async function mountConsole(t, origin, session, html) {
-  const dom = new JSDOM(html, { url: origin + '/sales', runScripts: 'outside-only', beforeParse(window) {
+async function mountConsole(t, origin, session, html, path = '/sales') {
+  const dom = new JSDOM(html, { url: origin + path, runScripts: 'outside-only', beforeParse(window) {
     window.fetch = (path, options) => session.request(path, options);
   } });
   t.after(() => dom.window.close());
@@ -83,6 +83,15 @@ async function mountConsole(t, origin, session, html) {
     window.eval(await asset.text());
   }
   return window;
+}
+
+async function waitFor(read, description) {
+  for (let attempt = 0; attempt < 100; attempt++) {
+    const result = await read();
+    if (result) return result;
+    await delay(20);
+  }
+  assert.fail(description);
 }
 
 test('exported workspace runs its real console, keeps projects isolated and persists an agreement workflow', async t => {
@@ -134,7 +143,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const office = { name: 'Sample Solar Partner', city: 'Hartford', state: 'CT', address: '10 Example St', postalCode: '06103', source: 'https://example.test/partners', contact: 'Example Owner', email: 'owner@example.test' };
   const directoryLead = { name: 'Example Carpentry', city: 'Portland', state: 'ME', address: '20 Example St', postalCode: '04101',
     source: 'https://example.test/directory', contact: 'Example Contact', email: 'hello@example.test' };
-  writeFileSync(join(root, 'workspace.json'), JSON.stringify({ name: 'Solar Partners SDR', directory: 'project', contracts: 'agreement' }));
+  writeFileSync(join(root, 'workspace.json'), JSON.stringify({ name: 'Solar Partners SDR', directory: 'project', contracts: 'agreement', focus: 'senior-care' }));
   writeFileSync(join(root, 'business-directory.json'), JSON.stringify([office, directoryLead]));
 
   const first = await run(root);
@@ -154,6 +163,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.deepEqual((await differentProject.api('campaign-read')).campaigns, []);
   assert.deepEqual((await differentProject.api('sales-team-read')).members.map(member => member.id), ['owner']);
   assert.equal((await fetch(first.origin + '/workspace-data/owner-code')).status, 404);
+  assert.equal((await differentProject.request('/sales/senior-care')).status, 404);
   assert.equal((await fetch(first.origin + '/business-directory.json')).status, 404);
   assert.equal((await fetch(first.origin + '/api/sales', { method: 'POST', headers: { Origin: 'https://other.example.test', 'Content-Type': 'application/json' }, body: '{}' })).status, 403);
 
@@ -452,6 +462,53 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
 
+  await t.test('senior-care and universal views share saved facilities and honor the active pipeline filter', async t => {
+    const path = '/sales/senior-care';
+    const carePage = await owner.request(path);
+    assert.equal(carePage.status, 200);
+    assert.ok(pageDocument.querySelector('a[href="/sales/senior-care"]'));
+    assert.equal(pageDocument.querySelector('#care-directory-state'), null);
+    const careWindow = await mountConsole(t, first.origin, owner, await carePage.text(), path);
+    const care = careWindow.document;
+    await waitFor(() => !care.querySelector('#sales-workspace').hidden, 'Care view did not reuse the signed-in session');
+    const directoryState = care.querySelector('#care-directory-state');
+    assert.equal(directoryState.options.length, 51);
+    const facilities = [
+      { category: 'nursing-home', state: 'AK', name: 'ANCHORAGE Example Home 1' },
+      { category: 'senior-center', state: 'CT', name: 'Second Example Senior Center', address: '42 Example Street' },
+    ];
+    for (const facility of facilities) {
+      care.querySelector('[data-tab="home"]').click();
+      directoryState.value = facility.state;
+      directoryState.dispatchEvent(new careWindow.Event('change', { bubbles: true }));
+      care.querySelector(`[data-browse-facility="${facility.category}"]`).click();
+      const row = await waitFor(() => [...care.querySelectorAll('[data-facility-results] li')]
+        .find(item => item.querySelector('strong')?.textContent === facility.name), 'Directory did not open the requested facility type and state');
+      if (facility.address) row.querySelector('[name="address"]').value = facility.address;
+      row.querySelector('[data-save-to-pipeline]').click();
+      await waitFor(() => row.querySelector('[data-open-facility]'), 'Directory did not confirm the saved facility');
+    }
+
+    const savedOffices = (await owner.api('bootstrap')).offices;
+    care.querySelector('[data-tab="pipeline"]').click();
+    pageDocument.querySelector('[data-tab="pipeline"]').click();
+    pageDocument.querySelector('#sales-refresh').click();
+    for (const facility of facilities) {
+      const matching = savedOffices.filter(row => row.town === facility.name);
+      assert.equal(matching.length, 1);
+      assert.equal(JSON.parse(matching[0].notes).facilityType, facility.category);
+      const office = `#sales-offices [data-office="${matching[0].id}"]`;
+      await waitFor(() => pageDocument.querySelector(office), 'Universal pipeline did not show the saved facility');
+      const filter = care.querySelector('#sales-facility-kind-filter');
+      filter.value = facility.category;
+      filter.dispatchEvent(new careWindow.Event('change', { bubbles: true }));
+      const visible = [...care.querySelectorAll('#sales-offices [data-office]')].map(button => button.textContent);
+      assert.ok(visible.some(label => label.includes(facility.name)));
+      const other = facilities.find(row => row.category !== facility.category);
+      assert.ok(visible.every(label => !label.includes(other.name)));
+    }
+  });
+
   await first.stop();
   const restarted = await run(root);
   servers.push(restarted);
@@ -461,6 +518,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(recovered.earnings.totalCents, 12550);
   assert.equal((await reopen.api('business-research-last')).research.companies[0].name, 'Example Senior Center');
   assert.equal(recovered.offices.find(row => row.town === office.name).pipeline.stage, 'contract_signed');
+  assert.equal(JSON.parse(recovered.offices.find(row => row.town === 'Second Example Senior Center').notes).facilityType, 'senior-center');
   assert.equal(recovered.contracts[0].status, 'signed');
   assert.deepEqual(recovered.agents, []);
   const recoveredTeam = await reopen.api('sales-team-read');
@@ -490,4 +548,11 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   } finally {
     await client.close();
   }
+  await other.stop();
+  const unspecifiedProfile = JSON.parse(readFileSync(join(second, 'workspace.json'), 'utf8'));
+  writeFileSync(join(second, 'workspace.json'), JSON.stringify({ ...unspecifiedProfile, focus: 'another-sector' }));
+  const otherSector = await run(second);
+  servers.push(otherSector);
+  assert.equal((await fetch(otherSector.origin + '/sales')).status, 200);
+  assert.equal((await fetch(otherSector.origin + '/sales/senior-care')).status, 404);
 });

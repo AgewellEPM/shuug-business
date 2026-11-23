@@ -35,9 +35,10 @@
   }
 
   window.GigTaxWorkflows = {
-    queue({ offices = [], container = document.querySelector('#sales-followups'), onSelect = () => {} } = {}) {
+    queue({ offices = [], facilityView = false, container = document.querySelector('#sales-followups'), onSelect = () => {} } = {}) {
       if (!container) return;
       const today = day(new Date());
+      const noun = facilityView ? 'facilities' : 'offices';
       const candidates = offices.filter(office => !closed.has(office.status)).map(office => {
         const date = followupDate(office.meeting_date);
         return { office, date, group: !date ? 3 : date < today ? 0 : date === today ? 1 : 2 };
@@ -45,11 +46,11 @@
       const counts = ['Overdue', 'Due today', 'Upcoming', 'Unscheduled'].map((label, group) => ({ label, count: candidates.filter(item => item.group === group).length }));
       container.innerHTML = '<h2>Follow-up queue</h2><p>Prioritized by your saved dates. This queue does not send messages or schedule reminders.</p>' +
         `<div class="sales-followup-counts">${counts.map(item => `<span><strong>${item.count}</strong> ${item.label}</span>`).join('')}</div>` +
-        '<label class="sales-queue-filter">Show<select><option value="due">Due and overdue</option><option value="upcoming">Upcoming</option><option value="unscheduled">No follow-up date</option><option value="all">All open offices</option></select></label><div class="sales-followup-list"></div><p class="sales-queue-status" role="status" aria-live="polite"></p>';
+        `<label class="sales-queue-filter">Show<select><option value="due">Due and overdue</option><option value="upcoming">Upcoming</option><option value="unscheduled">No follow-up date</option><option value="all">All open ${noun}</option></select></label><div class="sales-followup-list"></div><p class="sales-queue-status" role="status" aria-live="polite"></p>`;
       const select = container.querySelector('select'), list = container.querySelector('.sales-followup-list');
       function render() {
         const filtered = candidates.filter(item => select.value === 'all' || (select.value === 'due' && item.group < 2) || (select.value === 'upcoming' && item.group === 2) || (select.value === 'unscheduled' && item.group === 3));
-        list.innerHTML = filtered.length ? filtered.map(item => `<button type="button" class="sales-followup-item" data-followup-office="${escape(item.office.id)}"><span><strong>${escape(item.office.town || 'Office')}</strong><small>${escape([item.office.locality, item.office.state].filter(Boolean).join(', '))}</small></span><span class="sales-followup-state" data-state="${item.group}">${item.group === 0 ? 'Overdue · ' : item.group === 1 ? 'Today · ' : ''}${escape(item.date || 'Set a follow-up date')}</span></button>`).join('') : `<p class="sales-queue-empty">${select.value === 'due' ? 'No open offices have a follow-up due today. Use “No follow-up date” to plan your next conversations.' : 'No offices match this follow-up view.'}</p>`;
+        list.innerHTML = filtered.length ? filtered.map(item => `<button type="button" class="sales-followup-item" data-followup-office="${escape(item.office.id)}"><span><strong>${escape(item.office.town || 'Office')}</strong><small>${escape([item.office.locality, item.office.state].filter(Boolean).join(', '))}</small></span><span class="sales-followup-state" data-state="${item.group}">${item.group === 0 ? 'Overdue · ' : item.group === 1 ? 'Today · ' : ''}${escape(item.date || 'Set a follow-up date')}</span></button>`).join('') : `<p class="sales-queue-empty">${select.value === 'due' ? `No open ${noun} have a follow-up due today. Use “No follow-up date” to plan your next conversations.` : `No ${noun} match this follow-up view.`}</p>`;
         list.querySelectorAll('[data-followup-office]').forEach(button => button.addEventListener('click', async () => { button.disabled = true; try { await onSelect(button.dataset.followupOffice); } catch (error) { container.querySelector('.sales-queue-status').textContent = error.message || 'The office could not be opened. Refresh and try again.'; } finally { if (button.isConnected) button.disabled = false; } }));
       }
       select.addEventListener('change', render); render();

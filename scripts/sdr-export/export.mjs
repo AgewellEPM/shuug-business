@@ -32,7 +32,7 @@ for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
   'business-data-attribution.txt', 'styles.css', 'contract-signature.js', 'directory-admin.js',
-  'sales-overview.css', 'sales-overview.js', 'sales-welcome.webp',
+  'sales-overview.css', 'sales-overview.js', 'sales-welcome.webp', 'sales-care-community.webp',
   'local-contacts.js', 'local-offices.css', 'local-offices.js', 'sales.css', 'sales.js', 'sales-console.css',
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-team.css', 'sales-team.js', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js',

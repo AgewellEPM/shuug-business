@@ -33,6 +33,10 @@ From **Overview → Research a business type**, enter a category and select a ci
 
 The Overview header awards 10 XP per saved business, 20 for its first recorded contact, 30 for its first reply, and 40 for its signed agreement. Every 100 XP advances one level. In an agreement workspace, the owner uses **Earned to date** to record money already received in USD. Membership workspaces show the existing commission totals based on verified collections.
 
+## Senior Care CRM
+
+Add `"focus": "senior-care"` to the existing `workspace.json` and restart the workspace to enable a second sales view at `/sales/senior-care`. Switch between **Universal CRM** and **Senior Care CRM** in the sidebar. Both views use the same sign-in, account records, team assignments, and follow-ups. In Senior Care, choose a state and a facility type to browse the directory. Save a facility to Pipeline to track your contact, stage, and next follow-up. The facility type filter also lets you find and classify existing CRM records.
+
 ## State facility directories
 
 Open **Territories** and select any state or D.C. Switch between **Nursing homes** and **Senior community centers**, search by facility or city, or browse the pages for that state. Nursing home records come from the [CMS Care Compare certified provider directory](https://data.cms.gov/provider-data/dataset/4pq5-n9py). Senior community center records come from [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) via [QLever](https://qlever.dev/osm-planet). Mapped coverage varies by state, and published contact details vary by facility. Salespeople see facilities within their assigned territory. The owner still assigns town or statewide coverage in the town panel below.

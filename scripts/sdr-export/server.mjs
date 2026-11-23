@@ -86,7 +86,7 @@ const sales = createHandler(env, db, {
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
-  facilities: stateFacilityDirectory(),
+  facilities: stateFacilityDirectory({ db }),
   salesTeam: true,
   beforeLogin() {
     const now = Date.now();

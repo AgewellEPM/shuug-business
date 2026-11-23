@@ -13,3 +13,7 @@
 .territory-facility-results { display: grid; align-content: start; gap: 7px; max-height: 32rem; overflow: auto; margin: 0; padding: 1px; list-style: none; }
 .territory-facility-result { display: grid; gap: 4px; min-width: 0; padding: 10px 12px; border: 1px solid var(--glass-border-muted); border-radius: 10px; background: var(--glass-fill-muted); overflow-wrap: anywhere; }
 .territory-facility-result p, .territory-facility-sources { font-size: 13px; }
+.territory-facility-actions { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; margin-top: 4px; }
+.territory-facility-actions label { display: grid; gap: 3px; font-size: 13px; }
+.territory-facility-actions input { min-width: 0; max-width: 100%; padding: 8px; border: 1px solid var(--glass-border-muted); border-radius: 6px; background: var(--glass-fill-strong); color: var(--text-primary); }
+.territory-facility-actions span { align-self: center; font-size: 13px; }

@@ -31,6 +31,20 @@
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
     let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, prospectUI, campaignUI, overviewUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    const careCRM = document.body.hasAttribute('data-care-crm');
+    const facilityLabels = { 'nursing-home': 'Nursing home', 'senior-center': 'Senior center' };
+    const facilityType = office => meta(office)?.facilityType || '';
+    const classified = office => Object.hasOwn(facilityLabels, facilityType(office));
+    function matchesFacility(office) {
+      const filter = $('#sales-facility-kind-filter');
+      if (!filter || filter.value === 'all') return true;
+      if (!filter.value) return classified(office);
+      if (filter.value === 'unclassified') return !classified(office);
+      return facilityType(office) === filter.value;
+    }
+    function browseFacilities({ state, category, query }) {
+      if (state) consoleUI?.chooseState(state, category, query);
+    }
     const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh });
     const tab = name => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
@@ -45,6 +59,7 @@
       if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
+      if (standalone && params.get('view') === 'pipeline') { tab('pipeline'); return true; }
       if (teamUI && params.get('view') === 'team') { tab('team'); return true; }
       if (standalone && territoryUI && params.get('view') === 'territories') { tab('territories'); return true; }
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
@@ -86,9 +101,9 @@
     });
     function renderList() {
       const filter = $('#sales-filter').value.toLowerCase(), stage = $('#sales-stage-filter').value, attention = $('#sales-attention-filter')?.value || '';
-      if ($('#sales-nav-count')) $('#sales-nav-count').textContent = data.offices.length;
-      const offices = data.offices.filter(o => (!attention || o.pipeline?.waitingOn === attention) && (!stage || (o.pipeline?.stage || o.status) === stage) && [o.town,o.locality,o.state,o.contact_name,o.contact_email].join(' ').toLowerCase().includes(filter));
-      $('#sales-offices').innerHTML = offices.length ? offices.map(o => `<button class="sales-office" data-office="${e(o.id)}" aria-pressed="${String(o.id) === selected}"><strong>${e(o.town)}</strong><small>${e(o.locality)}, ${e(o.state)} · ${e(title(o.pipeline?.stage || o.status))}</small>${o.pipeline ? `<small>Waiting on ${e(({us:'our team',office:'office reply',delivery:'email delivery',signature:'signature',payment:'payment',none:'nothing pending',other:'other'})[o.pipeline.waitingOn] || o.pipeline.waitingOn)} · ${e(o.pipeline.nextAction)}</small>` : ''}<small>${e(o.contact_name || 'Public contact needed')}${o.meeting_date ? ` · Follow up ${e(o.meeting_date)}` : ''}</small></button>`).join('') : '<p class="sales-empty">No offices in this view. Find an office to start your pipeline.</p>';
+      if ($('#sales-nav-count')) $('#sales-nav-count').textContent = careCRM ? data.offices.filter(classified).length : data.offices.length;
+      const offices = data.offices.filter(o => matchesFacility(o) && (!attention || o.pipeline?.waitingOn === attention) && (!stage || (o.pipeline?.stage || o.status) === stage) && [o.town,o.locality,o.state,o.contact_name,o.contact_email].join(' ').toLowerCase().includes(filter));
+      $('#sales-offices').innerHTML = offices.length ? offices.map(o => `<button class="sales-office" data-office="${e(o.id)}" aria-pressed="${String(o.id) === selected}"><strong>${e(o.town)}</strong>${careCRM && classified(o) ? `<small>${facilityLabels[facilityType(o)]}</small>` : ''}<small>${e(o.locality)}, ${e(o.state)} · ${e(title(o.pipeline?.stage || o.status))}</small>${o.pipeline ? `<small>Waiting on ${e(({us:'our team',office:'office reply',delivery:'email delivery',signature:'signature',payment:'payment',none:'nothing pending',other:'other'})[o.pipeline.waitingOn] || o.pipeline.waitingOn)} · ${e(o.pipeline.nextAction)}</small>` : ''}<small>${e(o.contact_name || 'Public contact needed')}${o.meeting_date ? ` · Follow up ${e(o.meeting_date)}` : ''}</small></button>`).join('') : '<p class="sales-empty">No offices in this view. Find an office to start your pipeline.</p>';
       $$('[data-office]').forEach(b => b.onclick = run(() => showOffice(b.dataset.office)));
       if (data) { consoleUI?.render(data); contactsUI?.render(data); contractsUI?.render(data); window.GigTaxProgress?.locations(data, showOffice); }
     }
@@ -100,7 +115,8 @@
       $$('[data-states]').forEach(s => { const previous = s.value; const states = data.user.territory?.version===1 ? data.user.territory.areas.map(area=>area.state) : data.user.states.length ? data.user.states : data.states; s.innerHTML = states.map(v => `<option>${e(v)}</option>`).join(''); if (states.includes(previous)) s.value = previous; });
       $$('[data-agents]').forEach(s => { s.innerHTML = '<option value="owner">Workspace owner</option>' + data.agents.map(a => `<option value="${e(a.id)}">${e(a.name)}</option>`).join(''); });
       const priorStage = $('#sales-stage-filter').value; $('#sales-stage-filter').innerHTML = '<option value="">All stages</option>' + data.stages.map(s => `<option value="${s}">${e(title(s))}</option>`).join(''); $('#sales-stage-filter').value = priorStage;
-      const clock = new Date(), today = `${clock.getFullYear()}-${String(clock.getMonth()+1).padStart(2,'0')}-${String(clock.getDate()).padStart(2,'0')}`, stats = [ ['Offices', data.offices.length], ['Follow-ups due', data.offices.filter(o => o.meeting_date && o.meeting_date <= today && !['active','not_interested','do_not_contact'].includes(o.status)).length], ['Invited',data.offices.filter(o => o.status === 'invited').length], ['Active',data.offices.filter(o => o.status === 'active' && o.membership?.eligible === true).length] ];
+      const scopedOffices = careCRM ? data.offices.filter(classified) : data.offices;
+      const clock = new Date(), today = `${clock.getFullYear()}-${String(clock.getMonth()+1).padStart(2,'0')}-${String(clock.getDate()).padStart(2,'0')}`, stats = [ [careCRM ? 'Facilities' : 'Offices', scopedOffices.length], ['Follow-ups due', scopedOffices.filter(o => o.meeting_date && o.meeting_date <= today && !['active','not_interested','do_not_contact'].includes(o.status)).length], ['Invited',scopedOffices.filter(o => o.status === 'invited').length], ['Active',scopedOffices.filter(o => o.status === 'active' && o.membership?.eligible === true).length] ];
       $('#sales-stats').innerHTML = stats.map(([label,count]) => `<div class="sales-stat"><strong>${count}</strong><span>${label}</span></div>`).join('');
       if (!teamUI) {
         $('#sales-team').innerHTML = data.agents.length ? data.agents.map(a => `<div class="sales-result"><strong>${e(a.name)}</strong><p>Agent ID ${e(a.id)}</p><p>${e(a.territory?.version===1 ? a.territory.areas.map(area=>`${area.state}: ${area.cities===null?'whole state':area.cities.length+' towns / cities'}`).join(' · ') || 'No territory assigned' : a.states.length ? a.states.join(', ') : 'Nationwide')}</p><button class="button secondary" data-revoke="${e(a.id)}">Revoke access</button></div>`).join('') : '<p>No agents yet.</p>';
@@ -111,7 +127,7 @@
       renderList();
       territoryUI?.render(data);
       if ($('[data-tab][aria-pressed="true"]')?.dataset.tab !== 'home') overviewUI?.render(data);
-      window.GigTaxWorkflows?.queue({ offices: data.offices, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
+      window.GigTaxWorkflows?.queue({ offices: scopedOffices, facilityView: careCRM, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
       tab($('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
       if (selected) await showOffice(selected);
       if (data.user.role === 'owner') await window.GigTaxDirectory?.support({ api, status });
@@ -151,7 +167,19 @@
       <h3>Record a follow-up</h3><form id="sales-activity" class="sales-form"><label>Activity<select name="kind"><option value="note">Note</option><option value="call">Call</option><option value="email">Email</option><option value="meeting">Meeting</option></select></label><label>What happened?<textarea name="note" maxlength="3000" required></textarea></label><button class="button primary">Save activity</button></form>
       <section id="sales-contract-prepare"><h3>Prepare the office contract</h3><p>The owner reviews the exact terms and signs for this office. Copy the link to share through your normal conversation.</p><form id="sales-invite" class="sales-form">${savedOwners.length ? `<label>Use a saved owner<select name="savedOwner"><option value="">Enter owner details below</option>${savedOwners.map(c => `<option value="${e(c.id)}">${e(c.name)} · ${c.verification ? 'source checked' : 'role needs checking'}</option>`).join('')}</select></label>` : ''}<label>Owner name<input name="ownerName" value="${e(o.contact_name)}" required maxlength="140"></label><label>Owner business email<input name="email" type="email" value="${e(o.contact_email)}" required></label><button class="button primary" ${!data.terms || m.primaryContactDoNotContact || (m.independence !== 'independent' || m.independenceVerification?.reviewed !== true) || ['active','do_not_contact','not_interested'].includes(o.status) ? 'disabled' : ''}>Prepare contract link</button></form><div id="sales-invitation"></div></section>
       <h3>Enrollments</h3>${record.enrollments.map(r => `<p>${e(r.contact_name)} · ${e(title(r.status))}${r.acceptedAt ? ` · ${e(new Date(r.acceptedAt).toLocaleString())}` : ''}</p>${data.user.role === 'owner' && r.hasLivePayment ? `<button class="button secondary" data-refresh-billing="${e(r.id)}">Refresh billing status</button>` : ''}`).join('') || '<p>No owner invitation yet.</p>'}${data.user.role === 'owner' && !m.primaryContactDoNotContact && !['do_not_contact','not_interested'].includes(o.status) && record.enrollments.some(r => r.expired) && !record.enrollments.some(r => r.hasLivePayment) ? '<form id="sales-renew-invitation" class="sales-form"><h4>Review an expired invitation</h4><label>Reason for a new invitation<textarea name="reason" maxlength="900" required></textarea></label><label class="sales-check"><input type="checkbox" name="reviewed" required>I reviewed the old invitation and want to prepare a fresh private link. This does not renew a paid membership.</label><button class="button secondary">Prepare fresh invitation</button></form>' : ''}<h3>Office history</h3>${record.events.slice().reverse().map(r => { const event = meta(r); return `<div class="sales-event"><small>${e(r.contact_name)} · ${e(title(event.action))} · ${e(new Date(event.at).toLocaleString())}</small><p>${e(typeof event.detail === 'string' ? event.detail : JSON.stringify(event.detail))}</p></div>`; }).join('')}`;
-      const update = $('#sales-update-office'); update.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(update)); if (values.stage === o.status && ['invited','active','contract_sent','contract_signed'].includes(o.status)) delete values.stage; await api('update-office',{id,...values}); await refresh(); status('Office changes saved.'); }, update);
+      const update = $('#sales-update-office');
+      if (careCRM) {
+        const label = document.createElement('label');
+        label.textContent = 'Facility type';
+        const select = document.createElement('select');
+        select.name = 'facilityType';
+        select.add(new Option('Unclassified', ''));
+        for (const [value, name] of Object.entries(facilityLabels)) select.add(new Option(name, value));
+        select.value = facilityType(o);
+        label.append(select);
+        update.prepend(label);
+      }
+      update.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(update)); if (values.stage === o.status && ['invited','active','contract_sent','contract_signed'].includes(o.status)) delete values.stage; await api('update-office',{id,...values}); await refresh(); status('Office changes saved.'); }, update);
       window.GigTaxContacts?.office({ office: o, book: record.contacts, api, status, refresh });
       if (data.user.role === 'owner') window.GigTaxDirectory?.office({ office: o, info: m, api, status, refresh: () => showOffice(id) });
       window.GigTaxResearch?.mount({ office: o, api, status, refresh });
@@ -181,7 +209,7 @@
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
     $('#sales-logout').onclick = run(async () => { await api('logout'); location.replace(sharedSignIn); });
     $$('[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));
-    $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
+    $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; $('#sales-facility-kind-filter')?.addEventListener('change', renderList); if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });
     $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download(standalone ? 'sales-workspace-offices.csv' : 'gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
     const discovery = $('#sales-discover');
@@ -235,9 +263,10 @@
     contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });
     campaignUI = window.SdrCampaigns?.mount({ api, status });
-    overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice });
-    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
-    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onTerritory:territoryUI?state=>territoryUI.selectState(state):undefined, onSearch: async input => {
+    overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice, onBrowseFacilities: browseFacilities, facilityType });
+    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onOpenOffice: id => { tab('pipeline'); return showOffice(id); },onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
+    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, matchesFacility, facilityLabel: office => careCRM && classified(office) ? facilityLabels[facilityType(office)] : '',
+      onTerritory: territoryUI ? (state, category, query) => territoryUI.selectState(state, category, query) : undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
       tab('discover');
       return findOffices(Object.fromEntries(new FormData(discovery)), 0);

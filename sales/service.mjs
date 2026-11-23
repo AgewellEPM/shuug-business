@@ -92,7 +92,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     const session = unseal(token || '', key);
     if (session?.workspaceSession) await workspaceSession('revoke', session.workspaceSession);
   }
-  async function dispatch(user, action, b = {}) {
+  async function dispatch(user, action, b = {}, facility) {
     if (user.role === 'location') {
       if (action !== 'my-location') throw new HttpError(403, 'Open your assigned tax location workspace.');
       const office = user.office;
@@ -108,6 +108,8 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) return salesTeam.dispatch(user, action, b);
     if (tools.facilities && action === 'territory-facilities') return tools.facilities(user, b);
+    if (tools.facilities && action === 'territory-facility-save') return tools.facilities(user, b,
+      (input, classification) => dispatch(user, 'create-office', input, classification));
     if (tools.savedProspects && ['list-prospects', 'save-prospect', 'update-prospect'].includes(action)) {
       return tools.savedProspects(user, action, b);
     }
@@ -151,15 +153,32 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const input = officeInput(b);
       if (!localityAllowed(user,input.state,input.city)) throw new HttpError(403, 'Choose a town or city in your assigned territory.');
       const identity = officeIdentity(input.name, input.address, input.city, input.state);
-      const duplicate = (await db.list('offices')).find(r => officeIdentity(r.town, metadata(r).address, r.locality, r.state) === identity);
-      if (duplicate) { if (!visible(user, duplicate)) throw new HttpError(409, 'This office is already in the team pipeline. Ask the owner about its assignment.'); return { office: duplicate, duplicate: true }; }
+      function matches(row) {
+        const info = metadata(row);
+        return officeIdentity(row.town, info.address, row.locality, row.state) === identity ||
+          (facility?.facilitySource && row.state === input.state &&
+            (info.facilitySource === facility.facilitySource || info.source === facility.facilitySource));
+      }
+      async function useExisting(row) {
+        if (!visible(user, row)) throw new HttpError(409, 'This office is already in the team pipeline. Ask the owner about its assignment.');
+        const info = metadata(row);
+        if (facility && (!info.facilityType || (info.facilityType === facility.facilityType && facility.facilitySource && !info.facilitySource))) {
+          row = await patchReviewed(db, 'offices', row, { notes: JSON.stringify({ ...info, ...facility }) });
+        }
+        return { office: row, duplicate: true };
+      }
+      const duplicate = (await db.list('offices')).find(matches);
+      if (duplicate) return useExisting(duplicate);
       let assigned = user.id;
       if (user.role === 'owner' && b.assignedTo && b.assignedTo !== 'owner') {
         const agent = rosterUser(await db.get('agents', b.assignedTo));
         if (!agent || !localityAllowed(agent,input.state,input.city)) throw new HttpError(400, 'Choose an active agent covering this town or city.');
         assigned = agent.id;
       }
-      const row = await db.create('offices', { town: input.name, state: input.state, contact_name: input.contact, contact_email: input.email, contact_phone: input.phone, locality: input.city, assigned_to: assigned, category: 'local_business', status: 'new', notes: JSON.stringify({ address: input.address, postalCode: input.postalCode, website: input.website, source: input.source, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, sourceCheckedAt: new Date().toISOString() }) });
+      const body = { town: input.name, state: input.state, contact_name: input.contact, contact_email: input.email, contact_phone: input.phone, locality: input.city, assigned_to: assigned, category: 'local_business', status: 'new', notes: JSON.stringify({ address: input.address, postalCode: input.postalCode, website: input.website, source: input.source, ...facility, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, sourceCheckedAt: new Date().toISOString() }) };
+      const saved = db.createOfficeOnce ? db.createOfficeOnce(body, matches) : { office: await db.create('offices', body) };
+      if (saved.duplicate) return useExisting(saved.office);
+      const row = saved.office;
       await audit(user, row.id, 'office_created', input.name);
       return { office: row };
     }
@@ -188,6 +207,10 @@ export function service(env, db, payment = payments(env), tools = {}) {
         patch.meeting_date = b.nextFollowup || null;
       }
       let info = verificationUpdate(b, before, user);
+      if (tools.facilities && b.facilityType !== undefined) {
+        if (!['', 'nursing-home', 'senior-center'].includes(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
+        info = { ...(info || metadata(before)), facilityType: b.facilityType };
+      }
       if (b.independence !== undefined) {
         if (!['unverified', 'independent', 'chain'].includes(b.independence)) throw new HttpError(400, 'Choose an ownership finding.');
         if (b.independence === 'independent' && !independenceVerified(metadata(before))) throw new HttpError(400, 'Use the ownership verification tool to record source evidence first.');

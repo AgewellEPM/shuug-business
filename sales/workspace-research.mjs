@@ -72,7 +72,9 @@ export function workspaceResearch(db, {
       if (!company || !company.address || !company.city || !localityAllowed(user, company.state, company.city)) {
         throw new HttpError(409, 'Run the search again or choose a result with a published address in your territory.');
       }
-      return sales(user, 'create-office', { ...company, contact: '', source: company.sourceURL });
+      const category = businessCategory(run.type);
+      const facility = ['senior center', 'nursing home'].includes(category) ? { facilityType: category.replace(' ', '-') } : undefined;
+      return sales(user, 'create-office', { ...company, contact: '', source: company.sourceURL }, facility);
     }
     const region = state(input.state);
     const location = text(input.locality, 100, true);

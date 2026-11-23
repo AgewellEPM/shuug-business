@@ -20,7 +20,7 @@
     } catch { return null; }
   }
 
-  function facilityRow(facility) {
+  function facilityRow(facility, save, open, refresh) {
     const row = node('li', null, 'territory-facility-result');
     row.append(node('strong', facility.name));
     const locality = [facility.city, facility.state].filter(Boolean).join(', ');
@@ -33,10 +33,57 @@
       actions.append(...links);
       row.append(actions);
     }
+    const form = node('form', null, 'territory-facility-actions');
+    form.dataset.facilitySave = '';
+    const button = node('button', 'Save to Pipeline', 'button secondary');
+    const message = node('span');
+    message.setAttribute('role', 'status');
+    function saved(id) {
+      button.type = 'button';
+      button.textContent = 'Open in Pipeline';
+      delete button.dataset.saveToPipeline;
+      button.dataset.openFacility = String(id);
+      button.onclick = async () => {
+        try { await open(id); } catch (error) { message.textContent = error.message; }
+      };
+      form.replaceChildren(button, message);
+    }
+    if (facility.savedOfficeId) {
+      saved(facility.savedOfficeId);
+    } else {
+      for (const [key, labelText, maxLength] of [['address', 'Street address', 300], ['city', 'City or town', 100]]) {
+        if (facility[key]) continue;
+        const label = node('label', labelText);
+        const input = node('input');
+        input.name = key;
+        input.maxLength = maxLength;
+        input.required = true;
+        label.append(input);
+        form.append(label);
+      }
+      button.type = 'submit';
+      button.dataset.saveToPipeline = '';
+      form.append(button, message);
+      form.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (button.disabled || button.type !== 'submit') return;
+        button.disabled = true;
+        message.textContent = 'Saving…';
+        try {
+          const { office, duplicate } = await save(Object.fromEntries(new FormData(form)));
+          saved(office.id);
+          message.textContent = duplicate ? 'Already in Pipeline.' : 'Saved to Pipeline.';
+          await refresh();
+        } catch (error) {
+          message.textContent = button.dataset.openFacility ? 'Saved. Refresh the workspace to update your totals.' : error.message;
+        } finally { button.disabled = false; }
+      });
+    }
+    row.append(form);
     return row;
   }
 
-  function mount({ api, onBack }) {
+  function mount({ api, onBack, refresh, onOpenOffice }) {
     const panel = document.getElementById('sales-territory-facilities');
     if (!panel) return null;
     const find = name => panel.querySelector(`[data-facility-${name}]`);
@@ -48,7 +95,8 @@
 
     function paint(page) {
       const rows = page?.results || [];
-      results.replaceChildren(...rows.map(facilityRow));
+      results.replaceChildren(...rows.map(facility => facilityRow(facility, details => api('territory-facility-save',
+        { state: page.state, category: page.category, sourceURL: facility.sourceURL, ...details }), onOpenOffice, refresh)));
       results.hidden = rows.length === 0;
       coverage.textContent = page?.coverage || '';
       coverage.hidden = !coverage.textContent;
@@ -109,11 +157,14 @@
     retry.addEventListener('click', () => void load(offset));
 
     return {
-      selectState(region) {
-        if (state === region) return panel;
+      selectState(region, selectedCategory, search) {
+        const nextCategory = selectedCategory || category;
+        if (state === region && nextCategory === category && (search === undefined || search === query)) return panel;
+        category = nextCategory;
+        categories.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.facilityCategory === category)));
         state = region;
         stateName = document.querySelector(`[data-territory-state="${region}"] strong`)?.textContent || region;
-        field.value = query = '';
+        field.value = query = search || '';
         title.textContent = `${stateName} facilities`;
         panel.hidden = false;
         void load();
