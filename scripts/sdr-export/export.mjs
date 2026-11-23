@@ -41,7 +41,12 @@ const assets = [
 for (const path of assets) copy('public/rideshare-tax-pros/' + path, 'site/' + path);
 for (const name of ['build-ipad.sh', 'build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
 for (const name of ['Capture.swift', 'SDRWrapper.swift']) copy('native/macos/SDRWrapper/' + name);
-for (const name of ['.gitignore', 'project.yml', 'App/SDRBrowser.swift', 'App/UniversalSDRApp.swift', 'App/WorkspaceAddress.swift', 'UITests/WorkspaceTests.swift']) {
+for (const name of [
+  '.gitignore', 'project.yml', 'App/ReferenceLibrary.swift', 'App/ReferencePanel.swift',
+  'App/SDRBrowser.swift', 'App/UniversalSDRApp.swift', 'App/WorkspaceAddress.swift',
+  'App/WorkspacePresentation.swift', 'WorkspaceStyle/workspace.js', 'WorkspaceStyle/workspace.css', 'WorkspaceStyle/town.webp',
+  'Tests/ReferenceLibraryTests.swift', 'Tests/WorkspacePresentationTests.swift', 'UITests/WorkspaceTests.swift',
+]) {
   copy('native/ios/UniversalSDR/' + name);
 }
 copy('scripts/sales/mcp-connection.ts');

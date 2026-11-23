@@ -1,0 +1,220 @@
+body[data-sdr-ipad] #sales-main:has([data-ipad-page]:not([hidden])) {
+  --glass-fill: #f9fbff;
+  --glass-fill-strong: #fff;
+  --glass-fill-muted: #edf4fc;
+  --glass-border: #cfdef1;
+  --glass-border-muted: #dde7f3;
+  --text-primary: #11223b;
+  --text-secondary: #334a67;
+  --text-tertiary: #4d6280;
+  --accent: #005fc9;
+  color-scheme: light;
+  color: var(--text-primary);
+  background: linear-gradient(155deg, #f7fbff, #eef4fb 48%, #f8fbff);
+}
+
+body[data-sdr-ipad] #sales-main:has([data-ipad-page]:not([hidden])) .sdr-topbar {
+  background: #fff;
+  color: #142943;
+  min-height: 56px;
+}
+
+body[data-sdr-ipad] #sales-main:has([data-ipad-page]:not([hidden])) .sdr-topbar > div:has(#sales-view-title) {
+  display: none;
+}
+
+body[data-sdr-ipad] #sales-main [data-ipad-page]:not([hidden]) {
+  display: grid;
+  gap: 15px;
+  color: #12243e;
+  padding-bottom: 12px;
+}
+
+.ipad-page-hero {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 126px;
+  padding: 20px 22px;
+  border-radius: 15px;
+  color: #fff;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, #034298 0%, #045bb9ef 34%, #1171c8a3 60%, #1679c52e 100%),
+    url("SDR_TOWN_ART") right 62% / cover no-repeat,
+    #0866c0;
+}
+
+[data-ipad-page="campaigns"] .ipad-page-hero {
+  background-position: center, right 52%, center;
+}
+
+[data-ipad-page] .ipad-page-hero > .sdr-icon {
+  flex: 0 0 42px;
+  width: 42px;
+  height: 42px;
+  color: #f1f8ff;
+  filter: drop-shadow(0 2px 4px #043e8066);
+}
+
+#sales-main [data-ipad-page] .ipad-hero-copy h1 {
+  color: #fff;
+  margin: 0 0 4px;
+  padding: 0;
+  font-size: clamp(30px, 4.6vw, 48px);
+  font-weight: 780;
+  line-height: 1.02;
+  letter-spacing: -.045em;
+}
+
+#sales-main [data-ipad-page] .ipad-hero-copy p {
+  max-width: 40ch;
+  margin: 0;
+  color: #f2f8ff;
+  font-size: clamp(13px, 1.55vw, 16px);
+  line-height: 1.45;
+  text-shadow: 0 1px 3px #053168;
+}
+
+.ipad-hero-copy { max-width: 74%; }
+
+.ipad-studio-tools {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ipad-prospect-tools { grid-template-columns: minmax(0, .8fr) repeat(2, minmax(0, 1fr)); }
+
+#sales-main [data-ipad-page] .ipad-studio-tile,
+#sales-main [data-ipad-page] .ipad-prospect-metric {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 12px;
+  min-width: 0;
+  min-height: 66px;
+  border: 1px solid var(--tile-border, #c7e2fd);
+  border-radius: 13px;
+  box-shadow: 0 2px 3px #122f5c0d;
+  background: var(--tile-bg, #e5f2ff);
+  color: #142943;
+  text-align: left;
+  text-decoration: none;
+}
+
+#sales-main [data-ipad-page] .ipad-studio-tile:focus-visible {
+  outline: 2px solid #0674e5;
+  outline-offset: 2px;
+}
+
+.ipad-studio-tile.green { --tile-bg: #e5f6ec; --tile-border: #c8e9d4; --tile-ink: #157750; }
+.ipad-studio-tile.purple { --tile-bg: #eeeaff; --tile-border: #dfd6fc; --tile-ink: #6442c8; }
+.ipad-studio-tile.gold { --tile-bg: #fff3dc; --tile-border: #efdcb0; --tile-ink: #915500; }
+
+.ipad-tile-badge {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 9px;
+  color: var(--tile-ink, #0069d7);
+  background: #ffffffb8;
+}
+
+.ipad-tile-copy { min-width: 0; }
+.ipad-tile-copy strong { display: block; font-size: 13px; line-height: 1.25; }
+.ipad-tile-copy small { display: block; margin-top: 3px; font-size: 11px; line-height: 1.25; color: #394f6d; }
+.ipad-tile-arrow { margin-left: auto; font-size: 20px; color: var(--tile-ink, #005bc5); }
+.ipad-prospect-metric strong { font-size: 27px; font-variant-numeric: tabular-nums; color: #085eaf; }
+.ipad-prospect-metric span { font-size: 12px; font-weight: 650; }
+
+.ipad-page-content, .ipad-page-secondary {
+  display: grid;
+  min-width: 0;
+  align-items: start;
+  gap: 13px;
+}
+
+#sales-main [data-ipad-page] .ipad-page-content .sdr-card {
+  min-width: 0;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #cfdef1;
+  border-radius: 14px;
+  color: #152744;
+  background: #fff;
+  box-shadow: 0 2px 4px #203f6612;
+  scroll-margin-top: 62px;
+}
+
+#sales-main [data-ipad-page] .ipad-page-content :is(h2, h3) {
+  color: #142641;
+  letter-spacing: -.02em;
+}
+
+#sales-main [data-ipad-page] .ipad-page-content .sdr-card-head {
+  gap: 9px;
+  margin-bottom: 12px;
+}
+
+#sales-main [data-ipad-page] .ipad-page-content .button.primary {
+  border: 1px solid #0a73e5;
+  color: #fff;
+  background: linear-gradient(#0b84f6, #0059c2);
+}
+
+#sales-main [data-ipad-page] .ipad-page-content .button.secondary {
+  border-color: #cfdef1;
+  color: #174880;
+  background: #f4f8ff;
+}
+
+#sales-main [data-ipad-page] .ipad-page-content :is(input:not([type=checkbox]), select, textarea) {
+  border-color: #becfe5;
+  color: #11243e;
+  background-color: #f7faff;
+}
+
+#sales-main [data-ipad-page] .ipad-prospect-list #sales-filter-prospects {
+  padding: 11px;
+  background: #f1f7ff;
+  border: 1px solid #dbe7f6;
+  border-radius: 10px;
+}
+
+#sales-main [data-ipad-page] :is(#sales-prospect-results, #sales-campaign-results) .sales-result {
+  border: 0;
+  border-top: 1px solid #dde7f3;
+  padding: 12px 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#sales-main [data-ipad-page] .ipad-campaign-collected {
+  background: linear-gradient(#f0f7ff, #fff 95px);
+}
+
+@media (min-width: 1000px) {
+  .ipad-campaign-tools { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .ipad-prospects-content { grid-template-columns: minmax(0, 1.55fr) minmax(230px, 1fr); }
+  .ipad-campaign-content { grid-template-columns: minmax(0, 1.65fr) minmax(220px, 1fr); }
+  .ipad-page-hero { min-height: 145px; }
+}
+
+@media (max-width: 760px) {
+  body[data-sdr-ipad] #sales-workspace:has([data-ipad-page]:not([hidden])) .sdr-sidebar {
+    position: sticky;
+    top: 0;
+  }
+  #sales-main [data-ipad-page] .ipad-page-content .sdr-card { scroll-margin-top: 132px; }
+}
+
+@media (max-width: 540px) {
+  .ipad-page-hero { min-height: 111px; padding: 14px; gap: 10px; }
+  [data-ipad-page] .ipad-page-hero > .sdr-icon { flex-basis: 29px; width: 29px; height: 29px; }
+  .ipad-hero-copy { max-width: 86%; }
+  .ipad-prospect-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ipad-prospect-metric { grid-column: 1 / -1; }
+}

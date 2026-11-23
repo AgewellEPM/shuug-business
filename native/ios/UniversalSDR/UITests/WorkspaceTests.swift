@@ -27,13 +27,14 @@ final class WorkspaceTests: XCTestCase {
         workspace.buttons["Sign in"].tap()
         XCTAssertTrue(workspace.buttons["Sign out"].waitForExistence(timeout: 15))
 
-        let researchPane = app.buttons["Hide research pane"]
+        let researchPane = app.buttons["sdr.toggleSidebar"]
         XCTAssertTrue(researchPane.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["www.linkedin.com"].waitForExistence(timeout: 10))
         XCTAssertFalse(app.buttons["sdr.capture"].isEnabled)
         researchPane.tap()
 
         app.buttons["sdr.prospects"].tap()
+        XCTAssertTrue(workspace.staticTexts["Build your prospect list and find the right people to contact."].waitForExistence(timeout: 10))
         XCTAssertTrue(workspace.buttons["Add prospect"].waitForExistence(timeout: 10))
         workspace.buttons["Add prospect"].tap()
         let key = String(UUID().uuidString.prefix(8)).lowercased()
@@ -42,6 +43,26 @@ final class WorkspaceTests: XCTestCase {
         enter("iPad Prospect " + key, in: workspace.textFields["Person or company name"])
         workspace.buttons["Save prospect"].tap()
         XCTAssertTrue(workspace.staticTexts["iPad Prospect " + key].waitForExistence(timeout: 10))
+
+        let rightPage = app.webViews.element(boundBy: 1)
+        app.buttons["sdr.demo"].tap()
+        enter(origin + "/sales\n", in: app.textFields["sdr.reference.link"])
+        XCTAssertTrue(rightPage.secureTextFields.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(workspace.buttons["Sign out"].exists)
+
+        let campaigns = workspace.descendants(matching: .any).matching(identifier: "Campaigns").firstMatch
+        XCTAssertTrue(campaigns.waitForExistence(timeout: 5))
+        campaigns.tap()
+        XCTAssertTrue(workspace.staticTexts["Plan outreach, prepare drafts, and review the prospects you collect."].waitForExistence(timeout: 10))
+        workspace.links.matching(NSPredicate(format: "label BEGINSWITH %@", "Sales materials")).firstMatch.tap()
+        XCTAssertTrue(app.buttons["sdr.reference.pdf"].waitForExistence(timeout: 5))
+        enter(origin + "/sales\n", in: app.textFields["sdr.reference.link"])
+        XCTAssertTrue(rightPage.secureTextFields.firstMatch.waitForExistence(timeout: 10))
+        app.buttons["sdr.demo"].tap()
+        XCTAssertTrue(rightPage.secureTextFields.firstMatch.waitForExistence(timeout: 10))
+        researchPane.tap()
+        XCTAssertTrue(rightPage.secureTextFields.firstMatch.waitForNonExistence(timeout: 5))
+        XCTAssertEqual(researchPane.label, "Show right pane")
 
         XCUIDevice.shared.orientation = .portrait
         let linkedIn = app.buttons["sdr.linkedin"]

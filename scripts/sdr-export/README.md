@@ -23,7 +23,9 @@ Universal SDR runs on iPadOS 17 and later. Use **Workspace** and **Prospects** t
 
 - Install Xcode and XcodeGen on the build Mac. Run `bash scripts/sdr-export/build-ipad.sh` for the simulator app. For a physical iPad, open the generated `native/ios/UniversalSDR/UniversalSDR.xcodeproj`, select your development team and iPad, and run the app from Xcode.
 - In the app, enter the project's HTTPS workspace address and use your existing owner or agent access code. The iPad connects to that workspace's server and records. For a Mac-only workspace, first make it reachable at a trusted HTTPS address. A Debug simulator build also accepts the Mac's loopback workspace URL.
-- Sign in to LinkedIn in the research pane with your LinkedIn account.
+- Choose **LinkedIn**, **Demo**, or **Docs** in the toolbar. Demo opens an HTTPS link. Docs opens a documentation link or a PDF from Files. The app remembers those choices for each workspace on the iPad. Use the right-pane button to give the sales workspace the full width.
+- In **Campaigns**, **Demo** and **Sales materials** open the corresponding right pane. **Prospects** uses your live saved-prospect list, search and editor.
+- Sign in to LinkedIn in its pane with your LinkedIn account.
 
 ## What is included
 

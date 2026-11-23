@@ -3,7 +3,7 @@ import WebKit
 
 @MainActor
 final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDelegate, WKDownloadDelegate {
-    enum Pane { case workspace, research }
+    enum Sidebar { case research, demo, docs }
 
     struct Export: Identifiable {
         let id = UUID()
@@ -15,8 +15,9 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
     private static let savedAddress = "sdr.workspaceAddress"
 
     @Published private(set) var address: WorkspaceAddress?
-    @Published var selectedPane: Pane = .workspace
-    @Published var researchShown = true
+    @Published private(set) var sidebar: Sidebar = .research
+    @Published private(set) var sidebarShown = true
+    @Published private(set) var workspaceSelected = true
     @Published private(set) var workspaceError: String?
     @Published private(set) var researchError: String?
     @Published private(set) var researchHost: String?
@@ -34,6 +35,7 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
     override init() {
         let workspaceConfig = WKWebViewConfiguration()
         workspaceConfig.defaultWebpagePreferences.preferredContentMode = .mobile
+        WorkspacePresentation.install(in: workspaceConfig.userContentController)
         workspace = WKWebView(frame: .zero, configuration: workspaceConfig)
         let researchConfig = WKWebViewConfiguration()
         researchConfig.websiteDataStore = WKWebsiteDataStore(forIdentifier: Self.researchStoreID)
@@ -65,7 +67,7 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
 
     func showWorkspace() {
         guard let address else { return }
-        selectedPane = .workspace
+        workspaceSelected = true
         workspaceError = nil
         workspace.load(URLRequest(url: address.salesURL))
     }
@@ -73,7 +75,7 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
     func showProspects() {
         guard let address,
               let url = SDRCapture.destination(workspace: address.salesURL) else { return }
-        selectedPane = .workspace
+        workspaceSelected = true
         workspaceError = nil
         workspace.load(URLRequest(url: url))
     }
@@ -83,23 +85,27 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
     }
 
     func showLinkedIn() {
-        selectedPane = .research
-        researchShown = true
+        showSidebar(.research)
         if let url = research.url, SDRCapture.isLinkedIn(url), researchError == nil { return }
         loadResearch(Self.linkedIn)
     }
 
-    func toggleResearch() {
-        researchShown.toggle()
-        selectedPane = researchShown ? .research : .workspace
-        if researchShown { startResearch() }
+    func showSidebar(_ pane: Sidebar) {
+        sidebar = pane
+        sidebarShown = true
+        workspaceSelected = false
+    }
+
+    func toggleSidebar() {
+        sidebarShown.toggle()
+        workspaceSelected = !sidebarShown
     }
 
     func captureProspect() {
         guard canCapture, !research.isLoading, let address, let profile = research.url.flatMap(SDRCapture.profile),
               let destination = SDRCapture.destination(workspace: address.salesURL, profile: profile, title: research.title)
         else { return }
-        selectedPane = .workspace
+        workspaceSelected = true
         workspaceError = nil
         workspace.load(URLRequest(url: destination))
     }
@@ -119,8 +125,7 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
     private func routeExternal(_ url: URL) {
         guard url.user == nil, url.password == nil else { return }
         if url.scheme == "https" {
-            selectedPane = .research
-            researchShown = true
+            showSidebar(.research)
             loadResearch(url)
         } else if ["mailto", "tel"].contains(url.scheme ?? "") {
             UIApplication.shared.open(url)
@@ -132,6 +137,16 @@ final class SDRBrowser: NSObject, ObservableObject, WKNavigationDelegate, WKUIDe
         guard let url = action.request.url else { decisionHandler(.cancel); return }
         if action.targetFrame?.isMainFrame == false { decisionHandler(.allow); return }
         if webView === workspace {
+            if action.navigationType == .linkActivated && action.sourceFrame.isMainFrame &&
+                address?.contains(action.sourceFrame.request.url) == true && url.scheme == "sdr-ipad" {
+                switch url.host() {
+                case "demo": showSidebar(.demo)
+                case "docs": showSidebar(.docs)
+                default: break
+                }
+                decisionHandler(.cancel)
+                return
+            }
             if action.shouldPerformDownload && action.sourceFrame.isMainFrame && address?.contains(workspace.url) == true {
                 decisionHandler(.download)
                 return

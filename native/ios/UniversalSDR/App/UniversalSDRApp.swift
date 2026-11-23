@@ -10,37 +10,41 @@ struct UniversalSDRApp: App {
 
 private struct SDRWindow: View {
     @StateObject private var browser = SDRBrowser()
+    @StateObject private var references = ReferenceLibrary()
     @State private var editingAddress = false
     @State private var exportToCleanUp: URL?
 
     var body: some View {
         GeometryReader { geometry in
             let wide = geometry.size.width >= 900
-            let workspaceVisible = wide || browser.selectedPane == .workspace
-            let researchVisible = browser.address != nil && (wide ? browser.researchShown : !workspaceVisible)
-            let split = wide && researchVisible
+            let workspaceVisible = wide || browser.workspaceSelected
+            let sidebarVisible = browser.address != nil && (wide ? browser.sidebarShown : !workspaceVisible)
+            let split = wide && sidebarVisible
             let workspaceWidth = workspaceVisible ? geometry.size.width * (split ? 0.53 : 1) : 0
-            let researchWidth = researchVisible ? geometry.size.width - workspaceWidth : 0
+            let sidebarWidth = sidebarVisible ? geometry.size.width - workspaceWidth : 0
 
             VStack(spacing: 0) {
-                toolbar(wide: wide, compact: geometry.size.width < 700)
+                toolbar(wide: wide, compact: geometry.size.width < 800, sidebarVisible: sidebarVisible)
                 Divider()
                 HStack(spacing: 0) {
                     workspacePane
                         .frame(width: workspaceWidth)
                         .clipped()
                         .accessibilityHidden(!workspaceVisible)
-                    researchPane
-                        .frame(width: researchWidth)
+                    sidebarContent(visible: sidebarVisible)
+                        .frame(width: sidebarWidth)
                         .clipped()
-                        .accessibilityHidden(!researchVisible)
+                        .accessibilityHidden(!sidebarVisible)
                         .overlay(alignment: .leading) { if split { Divider() } }
                 }
             }
             .background(Color(uiColor: .systemBackground))
-            .onChange(of: researchVisible, initial: true) { _, visible in
+            .onChange(of: sidebarVisible && browser.sidebar == .research, initial: true) { _, visible in
                 if visible { browser.startResearch() }
             }
+        }
+        .onChange(of: browser.address?.salesURL, initial: true) { _, address in
+            references.selectWorkspace(address)
         }
         .sheet(isPresented: $editingAddress) {
             NavigationStack {
@@ -74,7 +78,7 @@ private struct SDRWindow: View {
         }
     }
 
-    private func toolbar(wide: Bool, compact: Bool) -> some View {
+    private func toolbar(wide: Bool, compact: Bool, sidebarVisible: Bool) -> some View {
         HStack(spacing: compact ? 2 : 10) {
             Button("Workspace", systemImage: "rectangle.grid.2x2", action: browser.showWorkspace)
                 .accessibilityIdentifier("sdr.workspace")
@@ -83,16 +87,24 @@ private struct SDRWindow: View {
                 .accessibilityIdentifier("sdr.prospects")
                 .disabled(browser.address == nil)
             Spacer(minLength: 4)
-            Button("LinkedIn", systemImage: "link", action: browser.showLinkedIn)
-                .accessibilityIdentifier("sdr.linkedin")
-                .disabled(browser.address == nil)
-            Button("Add to Prospects", systemImage: "person.badge.plus", action: browser.captureProspect)
-                .accessibilityIdentifier("sdr.capture")
-                .disabled(!browser.canCapture || browser.address == nil)
+            sidebarButton("LinkedIn", icon: "link", pane: .research, id: "linkedin", visible: sidebarVisible,
+                          action: browser.showLinkedIn)
+            sidebarButton("Demo", icon: "play.rectangle", pane: .demo, id: "demo", visible: sidebarVisible) {
+                browser.showSidebar(.demo)
+            }
+            sidebarButton("Docs", icon: "doc.text", pane: .docs, id: "docs", visible: sidebarVisible) {
+                browser.showSidebar(.docs)
+            }
+            if sidebarVisible && browser.sidebar == .research {
+                Button("Add to Prospects", systemImage: "person.badge.plus", action: browser.captureProspect)
+                    .accessibilityIdentifier("sdr.capture")
+                    .disabled(!browser.canCapture)
+            }
             if wide && browser.address != nil {
-                Button(browser.researchShown ? "Hide research pane" : "Show research pane",
-                       systemImage: "sidebar.trailing", action: browser.toggleResearch)
+                Button(browser.sidebarShown ? "Hide right pane" : "Show right pane",
+                       systemImage: "sidebar.trailing", action: browser.toggleSidebar)
                     .labelStyle(.iconOnly)
+                    .accessibilityIdentifier("sdr.toggleSidebar")
             }
             Button("Workspace settings", systemImage: "gearshape") { editingAddress = true }
                 .labelStyle(.iconOnly)
@@ -105,6 +117,33 @@ private struct SDRWindow: View {
         .background(.bar)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("Universal SDR")
+    }
+
+    private func sidebarButton(_ name: String, icon: String, pane: SDRBrowser.Sidebar, id: String,
+                               visible: Bool, action: @escaping () -> Void) -> some View {
+        let selected = visible && browser.sidebar == pane
+        return Button(name, systemImage: icon, action: action)
+            .background(selected ? Color.accentColor.opacity(0.11) : Color.clear,
+                        in: RoundedRectangle(cornerRadius: 8))
+            .accessibilityAddTraits(selected ? .isSelected : [])
+            .accessibilityIdentifier("sdr." + id)
+            .disabled(browser.address == nil)
+    }
+
+    @ViewBuilder
+    private func sidebarContent(visible: Bool) -> some View {
+        if visible {
+            switch browser.sidebar {
+            case .research:
+                researchPane
+            case .demo:
+                ReferencePanel(kind: .demo, library: references)
+            case .docs:
+                ReferencePanel(kind: .docs, library: references)
+            }
+        } else {
+            Color.clear
+        }
     }
 
     private var workspacePane: some View {

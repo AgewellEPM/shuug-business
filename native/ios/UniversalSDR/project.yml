@@ -9,10 +9,15 @@ targets:
     sources:
       - App
       - ../../macos/SDRWrapper/Capture.swift
+      - path: WorkspaceStyle
+        type: folder
+        buildPhase: resources
     settings:
       base:
         PRODUCT_NAME: Universal SDR
-        PRODUCT_BUNDLE_IDENTIFIER: com.shuug.universal-sdr.ipad
+        SDR_APP_BUNDLE_ID: com.shuug.universal-sdr.ipad
+        PRODUCT_BUNDLE_IDENTIFIER: $(SDR_APP_BUNDLE_ID)
+        PRODUCT_MODULE_NAME: UniversalSDR
         MARKETING_VERSION: "1.0"
         CURRENT_PROJECT_VERSION: "1"
         TARGETED_DEVICE_FAMILY: "2"
@@ -31,6 +36,18 @@ targets:
           - UIInterfaceOrientationLandscapeRight
         NSAppTransportSecurity:
           NSAllowsLocalNetworking: true
+  UniversalSDRTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: com.shuug.universal-sdr.ipad.tests
+      GENERATE_INFOPLIST_FILE: YES
+      TARGETED_DEVICE_FAMILY: "2"
+      TEST_HOST: $(BUILT_PRODUCTS_DIR)/Universal SDR.app/Universal SDR
+    dependencies:
+      - target: UniversalSDR
   UniversalSDRUITests:
     type: bundle.ui-testing
     platform: iOS
@@ -49,4 +66,5 @@ schemes:
         UniversalSDR: all
     test:
       targets:
+        - UniversalSDRTests
         - UniversalSDRUITests
