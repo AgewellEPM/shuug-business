@@ -12,6 +12,7 @@ import { requestWorkspaceSession } from '../../sales/workspace-session.mjs';
 import { httpsSetting, profileAt, projectAgreement, projectCatalogue, projectOutreach } from './configuration.mjs';
 import { sqliteStore } from './sqlite.mjs';
 import { renderWorkspace } from './pages.mjs';
+import { savedProspects } from './saved-prospects.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -74,6 +75,7 @@ const sales = createHandler(env, db, {
   localDiscovery: catalogue ? { catalogue, placeLookup: async () => null } : undefined,
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
+  savedProspects: savedProspects(db),
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);

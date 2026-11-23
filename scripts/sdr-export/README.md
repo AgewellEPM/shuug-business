@@ -14,7 +14,7 @@ The export starts with an empty directory and an empty workspace. Keep the origi
 ## What is included
 
 - Overview, territory maps and US town catalogues, local discovery, approved website research, public registry lookup, ownership evidence and contact Rolodex.
-- LinkedIn people and company search. The **LinkedIn** tab opens searches in your browser's own LinkedIn session. An office record also links to a people search by business and location. Save a reviewed profile link in the Rolodex contact's source field.
+- LinkedIn prospect collection. In **Prospects**, open LinkedIn and sign into your own account to find people or companies. Use **Add prospect** to save the selected profile URL and the details you want to keep. Search, edit, or archive those records inside SDR. **Search the public web** looks up a prospect by their saved professional details and excludes LinkedIn results. The workspace owner can review team prospects, and agents see their own saved records.
 - Pipeline list and board, assignments, follow-ups, recorded contact and reply history, suppression preferences, and CSV export.
 - Owner and agent access, territory enforcement, and revocation. An optional shared identity portal can also grant scoped staff and location sessions.
 - Agreement preview and publication, private invitations, signatures, receipts and delivery history. Email can be recorded from an external mail app or sent through a configured Mailgun account following the existing reviewed preview flow.

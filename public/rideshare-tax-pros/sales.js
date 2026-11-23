@@ -30,14 +30,15 @@
   }
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
-    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    let data, selected, consoleUI, contactsUI, contractsUI, localUI, territoryUI, prospectUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
     const tab = name => {
       if (name === 'team' && data?.user.role !== 'owner') name = 'home';
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', linkedin: 'LinkedIn', team: 'Sales team' })[name] || 'Workspace';
-      $('#sales-stats').hidden = ['home','discover','linkedin'].includes(name);
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', prospects: 'Prospects', team: 'Sales team' })[name] || 'Workspace';
+      $('#sales-stats').hidden = ['home','discover','prospects'].includes(name);
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
+      if (name === 'prospects') prospectUI?.refresh();
     };
     function closeDetail() {
       const drawer = $('#sales-detail-drawer'); if (!drawer) return;
@@ -209,6 +210,7 @@
     } });
     contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
+    prospectUI = window.SdrLinkedIn?.mount({ api, status });
     territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
     consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onTerritory:territoryUI?state=>territoryUI.selectState(state):undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
@@ -223,7 +225,7 @@
         const region = params.get('state'), city = params.get('city');
         if (params.get('view') === 'discover' && city && city.length <= 100 && [...discovery.elements.state.options].some(option => option.value === region)) {
           discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
-        } else tab(params.get('view') === 'linkedin' && $('[data-tab="linkedin"]') ? 'linkedin' : 'home');
+        } else tab(['linkedin', 'prospects'].includes(params.get('view')) && $('[data-tab="prospects"]') ? 'prospects' : 'home');
       }
       catch (err) {
         if (err.status === 401 && !standalone) location.replace(sharedSignIn);

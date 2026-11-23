@@ -122,8 +122,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, false);
   assert.equal(window.document.querySelector('[data-tab=team]').hidden, false);
-  window.document.querySelector('[data-tab=linkedin]').click();
-  assert.equal(window.document.querySelector('[data-tab-panel=linkedin]').hidden, false);
+  window.document.querySelector('[data-tab=prospects]').click();
+  assert.equal(window.document.querySelector('[data-tab-panel=prospects]').hidden, false);
   const search = window.document.querySelector('#sales-linkedin-search');
   const searches = [];
   window.open = (href, target, features) => searches.push({ url: new URL(href), target, features });
@@ -142,11 +142,42 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(features, 'noopener,noreferrer');
   }
 
+  const fixtureProspect = { name: 'Renée Example', title: 'Sales Manager', company: 'Example Solar',
+    locality: 'Hartford', note: 'Ask about the program', sourceURL: 'https://uk.linkedin.com/in/renee-example/?trk=fixture#details' };
+  window.document.querySelector('#sales-add-prospect').click();
+  const prospectForm = window.document.querySelector('#sales-save-prospect');
+  for (const [key, value] of Object.entries(fixtureProspect)) prospectForm.elements.namedItem(key).value = value;
+  prospectForm.requestSubmit();
+  const prospectCards = window.document.querySelector('#sales-prospect-results');
+  for (let retry = 0; retry < 100 && !prospectCards.querySelector('article'); retry++) await delay(20);
+  const places = [...prospectCards.querySelectorAll('a')].map(a => new URL(a.href));
+  assert.equal(places[0].href, 'https://www.linkedin.com/in/renee-example');
+  assert.equal(places[1].origin, 'https://www.google.com');
+  assert.equal(places[1].searchParams.get('q'), 'Renée Example Example Solar Sales Manager Hartford -site:linkedin.com');
+  const localFilter = window.document.querySelector('#sales-filter-prospects');
+  localFilter.elements.query.value = 'renee program';
+  localFilter.requestSubmit();
+  const localRecord = (await owner.api('list-prospects', { query: 'renee program' })).records[0];
+  assert.equal(localRecord.name, fixtureProspect.name);
+  assert.equal((await owner.api('save-prospect', { ...fixtureProspect, sourceURL: 'https://www.linkedin.com/in/Renee-Example/' })).existing, true);
+  await owner.api('save-prospect', { ...fixtureProspect, sourceURL: 'https://linkedin.com.example.test/in/renee-example' }, 400);
+  await owner.api('update-prospect', { id: localRecord.id, expectedRevision: 'stale', archived: true }, 409);
+
   const agentEmail = 'agent@example.test';
   const { agent, code: accessCode } = await owner.api('create-agent', { name: 'Example Agent', email: agentEmail, states: ['CT'] });
   const agentSession = browserSession(first.origin);
   await agentSession.api('login', { email: agentEmail, code: accessCode });
   await agentSession.api('create-agent', { name: 'Denied', email: 'denied@example.test', states: [] }, 403);
+  assert.deepEqual((await agentSession.api('list-prospects')).records, []);
+  await agentSession.api('update-prospect', { id: localRecord.id, expectedRevision: localRecord.revision, archived: true }, 404);
+  const agentCompany = { name: 'Example Solar', sourceURL: 'https://www.linkedin.com/company/example-solar/about/' };
+  const company = (await agentSession.api('save-prospect', agentCompany)).record;
+  assert.equal(company.type, 'company');
+  assert.equal(company.sourceURL, 'https://www.linkedin.com/company/example-solar');
+  assert.equal((await owner.api('list-prospects')).total, 2);
+  const archived = (await agentSession.api('update-prospect', { id: company.id, expectedRevision: company.revision, archived: true })).record;
+  assert.deepEqual((await agentSession.api('list-prospects')).records, []);
+  assert.equal((await agentSession.api('list-prospects', { archived: true })).records[0].id, archived.id);
   await agentSession.api('search-local', { city: 'Boston', state: 'MA' }, 403);
   assert.ok((await agentSession.api('territory-localities', { state: 'CT', query: 'Hartford' })).results.length > 0);
 
@@ -202,6 +233,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(recovered.offices[0].pipeline.stage, 'contract_signed');
   assert.equal(recovered.contracts[0].status, 'signed');
   assert.deepEqual(recovered.agents, []);
+  assert.equal((await reopen.api('list-prospects', { query: 'renee' })).records[0].id, localRecord.id);
+  assert.equal((await reopen.api('list-prospects', { archived: true })).records[0].id, archived.id);
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
   const doLogin = (origin, secret) => fetch(origin + '/api/sales', {
     method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', code: secret }),

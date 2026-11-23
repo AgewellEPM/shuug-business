@@ -95,6 +95,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
         membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
+    if (tools.savedProspects && ['list-prospects', 'save-prospect', 'update-prospect'].includes(action)) {
+      return tools.savedProspects(user, action, b);
+    }
     if(['territory-localities','set-agent-territory'].includes(action))return territories(user,action,b);
     if (['search-local', 'map-geocode', 'lookup-business', 'research-local-contacts', 'state-coverage'].includes(action)) return local(user, action, b);
     if (action === 'bootstrap') {

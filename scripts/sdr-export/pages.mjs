@@ -13,7 +13,7 @@ const contractInputs = `<label>Contracting business<input name="business" requir
 <label>Full agreement<textarea name="agreementText" required minlength="100" maxlength="10000" rows="9"></textarea></label>`;
 
 export function renderWorkspace(profile, signIn) {
-  const legacy = salesPages({ linkedIn: true });
+  const legacy = salesPages({ prospects: true });
   const branded = html => html.replace(/Gig Tax Pros|GIG TAX PROS/g, () => escape(profile.name));
   const portal = signIn ? ` data-identity-portal="${escape(signIn)}"` : '';
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
