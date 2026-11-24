@@ -62,6 +62,7 @@ test('Zoho mailbox uses its exact primary address, preserves long IDs, reads, re
     const { hostname, pathname, searchParams } = new URL(url);
     if (hostname === 'accounts.zoho.com') {
       granted++;
+      assert.equal(options.body.get('grant_type'), 'refresh_token');
       assert.equal(options.body.get('refresh_token'), env.ZOHO_REFRESH_TOKEN);
       return Response.json({ access_token: 'fixture-access', expires_in: 3600 });
     }
@@ -118,6 +119,48 @@ test('Zoho mailbox uses its exact primary address, preserves long IDs, reads, re
   assert.equal(sent.ccAddress, payload.cc);
   assert.equal(sent.bccAddress, payload.bcc);
   assert.equal(sent.attachments[0].storeName, '1234');
+});
+
+test('company credentials open the assigned mailbox directly and renew an invalidated token', async t => {
+  const { db, rep } = fixture(t);
+  const company = { ...env };
+  delete company.ZOHO_REFRESH_TOKEN;
+  const grants = [], folders = [], ok = data => Response.json({ data });
+  let invalidate = false;
+  const fetcher = async (url, options) => {
+    const { hostname, pathname, searchParams } = new URL(url);
+    if (hostname === 'accounts.zoho.com') {
+      const form = options.body;
+      assert.equal(form.get('grant_type'), 'client_credentials');
+      assert.equal(form.get('client_id'), company.ZOHO_CLIENT_ID);
+      assert.equal(form.get('client_secret'), company.ZOHO_CLIENT_SECRET);
+      assert.equal(form.get('refresh_token'), null);
+      assert.equal(form.get('scope'), 'ZohoMail.accounts.READ,ZohoMail.folders.READ,ZohoMail.messages.ALL');
+      assert.equal(form.get('soid'), null);
+      grants.push('service-' + (grants.length + 1));
+      return Response.json({ access_token: grants.at(-1), expires_in: 3600 });
+    }
+    assert.equal(hostname, 'mail.zoho.com');
+    assert.equal(options.headers.Authorization, 'Zoho-oauthtoken ' + grants.at(-1));
+    if (invalidate) { invalidate = false; return new Response(null, { status: 401 }); }
+    if (pathname === '/api/accounts') return ok([{ primaryEmailAddress: company.SDR_ZOHO_OWNER_ADDRESS, accountId: '101' }]);
+    if (pathname === '/api/accounts/101/folders') return ok([{ folderId: '202', folderType: 'Inbox', folderName: 'Inbox' }]);
+    assert.equal(pathname, '/api/accounts/101/messages/view');
+    folders.push(searchParams.get('folderId'));
+    return ok([]);
+  };
+  const app = repEmailWorkspace(db, key, company, { transport: zohoMail(fetcher) });
+  assert.equal(app.summary(owner).mailbox.configured, true);
+  const list = user => app.dispatch(user, 'rep-email-list', { folder: 'inbox' });
+  await list(owner);
+  await assert.rejects(list(rep), { status: 503 });
+  assert.deepEqual(folders, ['202']);
+  invalidate = true;
+  await assert.rejects(list(owner), { status: 503 });
+  assert.equal(grants.length, 1);
+  await list(owner);
+  assert.deepEqual(grants, ['service-1', 'service-2']);
+  assert.deepEqual(folders, ['202','202']);
 });
 
 test('outreach checks all recipients, records one accepted send, and retains unconfirmed submissions without automatic retry', async t => {

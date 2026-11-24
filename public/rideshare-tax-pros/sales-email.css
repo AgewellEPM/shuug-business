@@ -1,3 +1,4 @@
+[data-standalone-sdr]:is([data-sdr-view="email"], [data-sdr-view="mail"]) .sdr-topbar { display: none; }
 .sdr-email-hero {
   display: flex;
   align-items: center;

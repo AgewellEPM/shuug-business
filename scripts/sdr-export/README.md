@@ -31,7 +31,7 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 
 From **Overview → Research a business type**, enter a category and select a city or ZIP and state. The search covers all 50 states and D.C. through [OpenStreetMap via Photon](https://github.com/komoot/photon/blob/master/docs/api-v1.md), with [CMS Care Compare](https://data.cms.gov/provider-data/dataset/4pq5-n9py) added for nursing homes and matching records from the project directory. Results link to the public listing and show contact and registry evidence where published. The latest search is saved for that account. Use **Save to Pipeline** to choose the businesses you want to work with. Public source coverage varies by area and category.
 
-The progress tracker on Overview awards 10 XP per saved business, 20 for its first recorded contact, 30 for its first reply, and 40 for its signed agreement. Every 100 XP advances one level. In an agreement workspace, the owner uses **Earned to date** to record money already received in USD. Membership workspaces show the existing commission totals based on verified collections.
+Saving a business earns 10 XP. Its first recorded contact earns 20 XP, its first reply 30 XP, and its signed agreement 40 XP. Every 100 XP advances one level. In an agreement workspace, the owner uses **Earned to date** to record money already received in USD. Membership workspaces show the existing commission totals based on verified collections.
 
 ## Senior Care CRM
 
@@ -123,9 +123,9 @@ Use the workspace’s hosted HTTPS origin for clients on other devices. Keep the
 
 **Email** opens the signed-in rep’s assigned Zoho Mail account. Inbox, Sent, Trash and Zoho drafts come from Zoho. The workspace also keeps private, editable drafts across CRM and desktop-client sessions. **Owners & Rolodex** and facility **Quick Email** open the same composer. It supports replies, forwarding, Cc, Bcc, attachments up to 4 MB combined, and downloads up to 5 MB each. Accepted submissions to linked contacts appear in office history.
 
-The owner can authorize the installation once in **Senders → Workspace mail authorization**. In the Zoho API Console, use **Self Client → Generate Code**, request the scopes below, and download the JSON. The CRM exchanges the short-lived code, verifies the owner’s actual Inbox, and saves the grant in the private workspace directory. A local operator can also import the same file with `npm run mail:authorize -- /path/to/self_client.json owner@example.com`. [Zoho Self Client authorization](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html)
+The workspace can use its company Zoho Self Client directly. Configure the client ID, client secret, region and the owner’s primary mailbox address on the server. The server obtains and renews its access token, requesting `ZohoMail.accounts.READ`, `ZohoMail.folders.READ` and `ZohoMail.messages.ALL`. An organization account lookup also requests `ZohoMail.organization.accounts.READ`. Reps open **Email** using their existing CRM sign-in. [Zoho client credentials flow](https://www.zoho.com/developer/oauth/self-client/client-credentials-flow.html)
 
-For a centrally managed installation, the workspace operator supplies the company’s existing Zoho OAuth client and an authorized offline grant on the server. Use the grant’s region and scopes `ZohoMail.accounts.READ`, `ZohoMail.folders.READ`, and `ZohoMail.messages.ALL`. An organization account lookup also needs `ZohoMail.organization.accounts.READ`. Zoho must permit the grant to access the particular mailbox and send as that address. Use an authorized mailbox-specific grant when the company grant has insufficient access. [Zoho Mail OAuth](https://www.zoho.com/mail/help/api/using-oauth-2.html) · [Zoho Mail delegation](https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html)
+Installations using an offline grant can import it once in **Senders → Workspace mail authorization**. Open **Self Client → Generate Code** in the Zoho API Console, request the mail scopes above, and download the JSON. The CRM exchanges the code, verifies the assigned owner’s Inbox, and stores the refresh token privately. A local operator can also run `npm run mail:authorize -- /path/to/self_client.json owner@example.com`. Zoho must grant access to each assigned mailbox and permission to send from it. A rep can have an individually authorized mailbox in the server configuration. [Zoho Self Client authorization](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html) · [Zoho Mail delegation](https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html)
 
 Place the configuration in `workspace-data/zoho-mail.json` with mode `0600`, or set `SDR_ZOHO_CONFIG_FILE` to its private location. The server reads it on demand. The following example uses placeholders.
 
@@ -134,7 +134,6 @@ Place the configuration in `workspace-data/zoho-mail.json` with mode `0600`, or 
   "region": "us",
   "clientId": "<Zoho OAuth client ID>",
   "clientSecret": "<Zoho OAuth client secret>",
-  "refreshToken": "<company-authorized refresh token>",
   "ownerAddress": "office@example.com"
 }
 ```
