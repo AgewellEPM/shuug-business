@@ -1,9 +1,9 @@
 (() => {
   'use strict';
   const steps = [
-    { id: 'welcome', group: 'Getting started', title: 'Welcome to your sales workspace',
-      copy: 'Follow the highlighted controls as you move from finding a lead to booking a demo and closing an agreement.',
-      instruction: 'Practice uses sample scenarios. You can pause at any time and pick up where you left off.' },
+    { id: 'welcome', group: 'Getting started', title: 'Welcome aboard.',
+      copy: 'I’m Tinky, your sales guide. Let’s follow a prospect from the first hello to a booked demo, right here in your workspace.',
+      instruction: 'Try each tool with sample details. Pause anywhere and I’ll save your place.' },
     { id: 'today', group: 'Start your day', title: 'Start with Today’s Plan', view: 'today', target: '[data-today-filters]',
       copy: 'This is your daily queue. Use its filters to find follow-ups, meetings and tasks due today. Open a task to jump to the right account or appointment.',
       practice: { prompt: 'A prospect asked for a callback this morning. Where do you look first?',
@@ -50,7 +50,7 @@
         result: 'Once approval is recorded, share the link for those approved terms.' } },
     { id: 'locations', group: 'Close the deal', title: 'Find signed locations', view: 'locations', target: '#sales-signup-locations h2',
       copy: 'Signup locations shows businesses and facilities with signed agreements. Use the state filter to find locations and open the linked account to continue the handoff.' },
-    { id: 'team', group: 'Work with your team', title: 'Find your team and tools', view: 'team', target: '#sales-team-sidebar-section',
+    { id: 'team', group: 'Work with your team', title: 'Find your team and tools', view: 'team', target: '#sales-team-tab-roster',
       copy: 'Sales team shows the roster and the team tools menu. Open a teammate’s profile to see their role and territory. Use the menu to reach Calendar, Territories, Team chat and other team tools.' },
     { id: 'rolodex', group: 'Work with your team', title: 'Find and keep business contacts', view: 'contacts', target: '[data-rolodex-add]',
       copy: 'Use Owners & Rolodex to look up saved contacts. Add the person’s business details and link them to the correct account so outreach stays with the right organization.' },
@@ -69,9 +69,9 @@
       practice: { prompt: 'Enter the command you’d give Tinky to open your pipeline.',
         fields: [{ name: 'command', label: 'Ask Tinky', placeholder: 'Open my pipeline' }],
         match: /\bpipeline\b/i, result: '“Open my pipeline” opens the Pipeline view while Tinky stays in the corner.' } },
-    { id: 'finish', group: 'Getting started', title: 'Ready for your first prospect',
-      copy: 'Start in Today’s Plan, find a prospect in your territory, and give the account a clear next step.',
-      instruction: 'You can reopen this walkthrough anytime from Getting started.' },
+    { id: 'finish', group: 'Getting started', title: 'Your first stop is Today’s Plan.',
+      copy: 'Pick a follow-up in Today’s Plan, or find a new prospect in your territory. Give that account a next action and a date.',
+      instruction: 'Look for Ask Tinky in the bottom corner whenever you want a hand.' },
   ];
   window.SdrTourSteps = steps;
 })();
