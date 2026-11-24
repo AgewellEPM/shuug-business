@@ -1564,10 +1564,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     tourAction('Next step').click();
     assert.match(panel.querySelector('.cf-room-head').textContent, /Discharge/);
     tourAction('Discuss a pilot').click();
+    const demoVoice = panel.querySelector('[data-care-voice]');
+    demoVoice.open = true;
+    demoVoice.querySelector('textarea').value = 'A practice phrase';
     tourAction('Open pilot planner').click();
     await waitFor(() => panel.querySelector('[data-care-plan] a[href="https://tinkytown.com/start.html?intent=pilot"]'), 'Planner missing pilot request form');
     const pilot = panel.querySelector('[data-care-plan]');
     assert.equal(pilot.hidden, false);
+    assert.equal(demoVoice.open, false);
+    assert.equal(demoVoice.querySelector('textarea').value, '');
     const lead = pilot.querySelector('input[placeholder="Role or team"]');
     lead.value = 'Practice admissions team';
     lead.dispatchEvent(new careWindow.Event('input', {bubbles: true}));

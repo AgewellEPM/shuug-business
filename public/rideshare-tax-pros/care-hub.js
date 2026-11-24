@@ -36,6 +36,13 @@
     tourVenue = planVenue = tourCleanup = planCleanup = null;
   }
 
+  function closeVoice(hide = false) {
+    if (!voice) return;
+    voice.open = false;
+    if (hide) voice.hidden = true;
+    voice.querySelector('[data-training-voice]')?.dispatchEvent(new Event('training-voice:reset'));
+  }
+
   function companions(venue, args) {
     const planning = args.get('pilot') === '1';
     const available = Boolean(venue && venue !== 'guide');
@@ -80,6 +87,7 @@
       planVenue = nextPlan;
       if (nextPlan) {
         stroke?.deactivate();
+        closeVoice();
         window.speechSynthesis?.cancel();
         surface.dispatchEvent(new Event('care:pause'));
         const kioskRoom = surface.querySelector('.cf-room-head h3')?.textContent;
@@ -96,11 +104,7 @@
     cleanup?.();
     cleanup = null;
     stroke?.deactivate();
-    if (voice) {
-      voice.open = false;
-      voice.hidden = true;
-      voice.querySelector('[data-training-voice]')?.dispatchEvent(new Event('training-voice:reset'));
-    }
+    closeVoice(true);
     window.speechSynthesis?.cancel();
     surface.replaceChildren();
   }
