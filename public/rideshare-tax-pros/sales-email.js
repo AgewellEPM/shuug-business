@@ -111,6 +111,17 @@
         cursors = [''];
         return load();
       }
+      async function refreshMail() {
+        const button = find('refresh');
+        button.disabled = true;
+        try {
+          const current = await api('rep-email-settings');
+          if (state?.revision !== current.revision) applySettings(current);
+          loaded = true;
+          await firstPage();
+        } catch (error) { announce(error.message, true); }
+        finally { button.disabled = false; }
+      }
       function applySettings(nextState) {
         const changed = state?.revision !== nextState.revision;
         state = nextState;
@@ -381,7 +392,7 @@
         openEditor();
       };
       find('settings').onclick = () => onNavigate('mail');
-      find('refresh').onclick = firstPage;
+      find('refresh').onclick = refreshMail;
       find('older').onclick = () => { if (next) { cursors.push(next); void load(); } };
       find('newer').onclick = () => { if (cursors.length > 1) { cursors.pop(); void load(); } };
       find('contact-filter').querySelector('button').onclick = () => { contactFilter = null; void firstPage(); };

@@ -700,8 +700,16 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.match(drafts.querySelector('textarea').value, /families to get oriented/);
     assert.doesNotMatch(drafts.querySelector('textarea').value, /Fixture Reviewer|questions about visiting hours/);
     assert.equal((await owner.api('bootstrap')).offices.length, before + 1);
-    close.click();
+    const reviewedDraft = drafts.querySelector('textarea').value;
+    drafts.querySelector('[data-open-workspace-email]').click();
     assert.equal(profile.open, false);
+    assert.equal(pageDocument.querySelector('[data-tab-panel="email"]').hidden, false);
+    const email = pageDocument.querySelector('[data-email-compose-form]');
+    assert.equal(email.elements.to.value, 'sbowling@limestonehf.com');
+    assert.equal(email.elements.body.value, reviewedDraft);
+    assert.equal(email.querySelector('[data-email-send]').disabled, true);
+    assert.deepEqual((await owner.api('rep-email-drafts')).drafts, []);
+    pageDocument.querySelector('[data-tab="prospects"]').click();
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
     assert.equal(profile.open, true);
     assert.equal(reviewPane.open, false);

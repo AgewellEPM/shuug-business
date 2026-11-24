@@ -169,7 +169,8 @@ export const mailTransport = {
       }));
       result = await smtp.sendMail({ envelope: { from: account.address, to: [draft.to] }, raw });
     } catch (error) {
-      const refused = error.responseCode >= 400 && error.responseCode <= 599;
+      const refused = (error.responseCode >= 400 && error.responseCode <= 599) ||
+        /^(CONN|EHLO|HELO|STARTTLS|AUTH|MAIL FROM|RCPT TO)\b/.test(error.command || '');
       throw new HttpError(refused ? 422 : 502, refused
         ? 'Your provider rejected the email. The draft is still available.'
         : 'The provider did not confirm submission. Check Sent before trying again.');
