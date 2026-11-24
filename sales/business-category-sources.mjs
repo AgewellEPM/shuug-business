@@ -5,7 +5,8 @@ import { localityKey } from './territory-access.mjs';
 
 const CMS = 'https://data.cms.gov/provider-data/api/1/datastore/query/4pq5-n9py/0';
 export const nursingHomesSource = Object.freeze({ name: 'CMS Care Compare', url: 'https://data.cms.gov/provider-data/dataset/4pq5-n9py' });
-const nursingFields = ['cms_certification_number_ccn', 'provider_name', 'provider_address', 'citytown', 'state', 'zip_code', 'telephone_number'];
+const nursingFields = ['cms_certification_number_ccn', 'provider_name', 'provider_address', 'citytown', 'state', 'zip_code',
+  'telephone_number', 'number_of_certified_beds', 'provider_type', 'ownership_type'];
 const PHOTON = 'https://photon.komoot.io/api/';
 const clean = (value, limit) => typeof value === 'string' ? value.trim().slice(0, limit) : '';
 const normalize = value => value.normalize('NFKD').replace(/\p{M}/gu, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -38,8 +39,10 @@ function nursingHomeRow(row, state) {
   if (!name || !city) return null;
   const record = new URL(nursingHomesSource.url);
   cmsFilter(record, [['cms_certification_number_ccn', id]]);
+  const beds = /^\d{1,4}$/.test(String(row.number_of_certified_beds ?? '')) ? Number(row.number_of_certified_beds) : null;
+  const cms = { id, beds, program: clean(row.provider_type, 100), ownership: clean(row.ownership_type, 120) };
   return { name, city, state, address: clean(row.provider_address, 300), zip: zipCode(row.zip_code),
-    phone: clean(row.telephone_number, 60), sourceURL: record.href, sourceName: nursingHomesSource.name };
+    phone: clean(row.telephone_number, 60), sourceURL: record.href, sourceName: nursingHomesSource.name, cms };
 }
 
 async function nursingHomePage(state, conditions, offset, limit, fetcher) {

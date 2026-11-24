@@ -263,3 +263,78 @@
 .prospects-administrator-photo { flex: none; display: block; width: 44px; height: 44px; }
 .prospects-administrator-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; border-radius: 8px; }
 .prospects-administrator-sources { display: flex; flex-wrap: wrap; gap: 3px 8px; margin-top: 4px; font-size: 11px; }
+
+.facility-profile-open {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #0754b8;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.facility-profile-open:hover { text-decoration: underline; }
+button.prospects-administrator-photo { padding: 0; border: 0; border-radius: 8px; background: #e2ecfa; cursor: pointer; }
+button.prospects-administrator-photo:is(:hover,:focus-visible) { outline: 2px solid #166cd3; outline-offset: 2px; }
+
+.facility-profile {
+  width: min(960px, calc(100vw - 36px));
+  max-width: none;
+  max-height: min(88dvh, 900px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #b9d0eb;
+  border-radius: 20px;
+  background: #f7faff;
+  color: #132642;
+  box-shadow: 0 24px 72px #10294355;
+}
+.facility-profile[open] { display: flex; flex-direction: column; overflow: hidden; }
+.facility-profile::backdrop { background: #11274191; }
+.facility-profile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 18px 24px; background: linear-gradient(120deg, #e8f3ff, #f4f0ff); border-bottom: 1px solid #ceddf1; }
+.facility-profile-header h2 { color: #142d53; font-size: clamp(20px, 3vw, 29px); font-weight: 750; line-height: 1.15; overflow-wrap: anywhere; }
+.facility-profile-header p { margin-bottom: 5px; color: #426084; font-size: 13px; }
+.facility-profile-body { display: grid; gap: 22px; padding: 21px 24px 24px; min-height: 0; overflow: auto; }
+.facility-profile-body h3 { margin-bottom: 5px; color: #182e52; font-size: 19px; }
+.facility-profile-body h4 { margin-bottom: 7px; color: #243e62; font-size: 13px; }
+.facility-profile-body p { color: #425b7c; font-size: 13px; }
+.facility-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 176px), 1fr)); gap: 8px; margin: 14px 0; }
+.facility-fact { min-width: 0; padding: 10px 12px; border: 1px solid #d5e3f2; border-radius: 10px; background: #fff; }
+.facility-fact dt { color: #4f6683; font-size: 12px; }
+.facility-fact dd { margin: 4px 0 0; font-weight: 650; font-size: 13px; overflow-wrap: anywhere; }
+.facility-fact dd a { display: block; margin-top: 4px; font-size: 11px; font-weight: 500; }
+.facility-profile-links { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.facility-team { display: grid; gap: 12px; padding-top: 16px; border-top: 1px solid #d1dfef; }
+.facility-team-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(190px, .42fr); align-items: start; gap: 12px; }
+.facility-team-chart, .facility-team-contact { min-width: 0; }
+.facility-team-chart { display: grid; gap: 11px; }
+.facility-team-lead, .facility-departments > section, .facility-team-contact { min-width: 0; padding: 11px; border-radius: 11px; border: 1px solid #cfdef1; background: #eef5ff; }
+.facility-team-lead { background: #ebf0ff; }
+.facility-departments { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 166px), 1fr)); gap: 8px; }
+.facility-person {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 7px;
+  border: 1px solid #cad9ec;
+  border-radius: 8px;
+  background: #fff;
+  color: #1a375d;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+.facility-person + .facility-person { margin-top: 5px; }
+.facility-person:hover { border-color: #6aa2e2; background: #f5faff; }
+.facility-person[aria-pressed="true"] { border-color: #4587d8; background: #e2f1ff; }
+.facility-person-avatar { position: relative; display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 8px; background: #d7e6fb; color: #244d85; overflow: hidden; font-size: 12px; font-weight: 700; }
+.facility-person-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+.facility-person strong, .facility-person small { display: block; font-size: 12px; overflow-wrap: anywhere; }
+.facility-person small { margin-top: 3px; color: #4b6282; }
+.facility-team-contact .prospects-administrator { margin-top: 10px; overflow-wrap: anywhere; }
+@media (max-width: 630px) {
+  .facility-profile { width: calc(100vw - 16px); }
+  .facility-profile-header, .facility-profile-body { padding-inline: 13px; }
+  .facility-team-layout { grid-template-columns: minmax(0, 1fr); }
+}

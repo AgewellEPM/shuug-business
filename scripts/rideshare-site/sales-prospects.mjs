@@ -95,5 +95,29 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
     </form>
   </section>
   <details class="prospects-card prospects-linkedin" id="sales-linkedin-prospects"><summary>LinkedIn prospects</summary>${linkedIn}</details>
+  <dialog class="facility-profile" data-facility-profile aria-labelledby="facility-profile-title">
+    <header class="facility-profile-header">
+      <div><p data-facility-profile-location></p><h2 id="facility-profile-title" data-facility-profile-title></h2></div>
+      <button type="button" class="button secondary" data-facility-profile-close aria-label="Close facility profile" autofocus>Close</button>
+    </header>
+    <div class="facility-profile-body">
+      <section aria-labelledby="facility-overview-title">
+        <h3 id="facility-overview-title">Facility overview</h3>
+        <p data-facility-profile-description></p>
+        <dl class="facility-facts" data-facility-profile-facts></dl>
+        <div class="facility-profile-links" data-facility-profile-links></div>
+      </section>
+      <section class="facility-team" aria-labelledby="facility-team-title">
+        <div><h3 id="facility-team-title">Organization chart</h3><p data-facility-profile-team-status></p></div>
+        <div class="facility-team-layout">
+          <div class="facility-team-chart" data-facility-profile-team></div>
+          <section class="facility-team-contact" aria-labelledby="facility-contact-title">
+            <h4 id="facility-contact-title">Contact details</h4>
+            <div data-facility-profile-contact></div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </dialog>
 </section>`;
 }

@@ -10,7 +10,7 @@ const seniorName = '(^|[^a-z])(senior( citizens?| and community| community| acti
 function seniorQuery(state) {
   return `PREFIX osmkey: <https://www.openstreetmap.org/wiki/Key:>
 PREFIX osmgeo: <http://www.opengis.net/rdf#>
-SELECT ?place ?name ?city ?houseNumber ?street ?fullAddress ?postalCode ?phone ?email ?website ?facility WHERE {
+SELECT ?place ?name ?city ?houseNumber ?street ?fullAddress ?postalCode ?phone ?email ?website ?hours ?facility WHERE {
   ?state osmkey:ISO3166-2 "US-${state}" ; osmgeo:sfContains ?place .
   { ?place osmkey:community_centre:for "senior" ; osmkey:name ?name . }
   UNION
@@ -25,6 +25,7 @@ SELECT ?place ?name ?city ?houseNumber ?street ?fullAddress ?postalCode ?phone ?
   OPTIONAL { ?place osmkey:phone|osmkey:contact:phone ?phone }
   OPTIONAL { ?place osmkey:email|osmkey:contact:email ?email }
   OPTIONAL { ?place osmkey:website|osmkey:contact:website ?website }
+  OPTIONAL { ?place osmkey:opening_hours ?hours }
   OPTIONAL { ?place osmkey:social_facility ?facility }
 }`;
 }
@@ -38,7 +39,7 @@ function seniorCenter(row, state) {
   const postalCode = clean(row, 'postalCode', 20);
   return { name, city, state, address, zip: /^\d{5}(?:-\d{4})?$/.test(postalCode) ? postalCode : '',
     phone: clean(row, 'phone', 60), email: clean(row, 'email', 240), website: publicWebsite(clean(row, 'website', 1200)),
-    sourceURL, sourceName: mapSource.name };
+    hours: clean(row, 'hours', 240), sourceURL, sourceName: mapSource.name };
 }
 
 async function mapBindings(query, fetcher, timeout) {

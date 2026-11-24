@@ -74,6 +74,9 @@ function browserSession(origin) {
 async function mountConsole(t, origin, session, html, path = '/sales') {
   const dom = new JSDOM(html, { url: origin + path, runScripts: 'outside-only', beforeParse(window) {
     window.fetch = (path, options) => session.request(path, options);
+    const dialog = window.HTMLDialogElement.prototype;
+    dialog.showModal ??= function () { this.open = true; };
+    dialog.close ??= function () { this.open = false; this.dispatchEvent(new window.Event('close')); };
   } });
   t.after(() => dom.window.close());
   const { window } = dom;
@@ -111,9 +114,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       const url = new URL(address);
       if (url.hostname === 'data.cms.gov') {
         const state = url.searchParams.get('conditions[0][value]');
-        if (state === 'AL') return Response.json({ count: 1, results: [{
+        if (state === 'AL') return Response.json({ count: 2, results: [{
           cms_certification_number_ccn: '015024', provider_name: 'Limestone Nursing and Rehabilitation Center',
           provider_address: '1600 WEST HOBBS STREET', citytown: 'ATHENS', state: 'AL', zip_code: '35611', telephone_number: '2562323461',
+          number_of_certified_beds: '170',
+        }, {
+          cms_certification_number_ccn: '015465', provider_name: 'Aspire Physical Recovery Center of West Alabama',
+          provider_address: '2400 HOSPITAL DRIVE', citytown: 'NORTHPORT', state: 'AL', zip_code: '35476', telephone_number: '2053308412',
+          number_of_certified_beds: '75',
         }] });
         const cities = state === 'CT' ? ['BRIDGEPORT', ...Array(28).fill('HARTFORD')] : state === 'AK' ? ['ANCHORAGE'] : [];
         const offset = Number(url.searchParams.get('offset') || 0), limit = Number(url.searchParams.get('limit') || 30);
@@ -535,10 +543,39 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.match(administrator.querySelector('img').src, /^https:\/\/static\.wixstatic\.com\//);
     assert.match(administrator.textContent, /sbowling@limestonehf\.com/);
     assert.equal(administrator.querySelector('a[title]').href, 'https://www.limestonehf.com/meet-our-team');
+    const profile = find('[data-facility-profile]');
+    const facts = find('[data-facility-profile-facts]');
+    const contact = find('[data-facility-profile-contact]');
+    const close = find('[data-facility-profile-close]');
+    administrator.querySelector('.prospects-administrator-photo').click();
+    assert.equal(profile.open, true);
+    assert.match(facts.textContent, /Certified beds170/);
+    assert.match(facts.textContent, /Call for Champion Rehab visiting times/);
+    assert.ok(contact.querySelector('a[href="https://www.linkedin.com/in/sherry-bowling-565401bb"]'));
+    const nursing = find('[data-facility-person="Aleshia Teeples"]');
+    nursing.click();
+    assert.equal(nursing.getAttribute('aria-pressed'), 'true');
+    assert.match(contact.textContent, /Director of Nursing.*ateeples@limestonehf\.com/s);
+    assert.match(contact.querySelector('img').alt, /Aleshia Teeples/);
+    close.click();
+    assert.equal(profile.open, false);
+    listing.rows[1].querySelector('[data-open-facility-profile]').click();
+    assert.equal(profile.open, true);
+    assert.match(facts.textContent, /Certified beds75/);
+    assert.match(facts.textContent, /52,000 sq ft/);
+    assert.ok(facts.querySelector('a[href^="https://www.maxusconstruction.com/"]'));
+    assert.equal(find('[data-facility-person="Aleshia Teeples"]'), null);
+    close.click();
     listing.querySelector('form').requestSubmit();
     await waitFor(() => listing.querySelector('[data-open-facility]'), 'Administrator facility was not saved');
     const limestone = (await owner.api('bootstrap')).offices.find(row => /limestone/i.test(row.town));
     assert.equal(JSON.parse(limestone.notes).facilityAdministrator.name, 'Sherry Bowling');
+    const saved = await waitFor(() => find(`[data-prospect-select="${limestone.id}"]`), 'Saved facility did not render in Prospects');
+    saved.click();
+    find('[data-prospect-action="facility-profile"]').click();
+    assert.equal(profile.open, true);
+    await waitFor(() => find('[data-facility-person="Aleshia Teeples"]'), 'Saved facility did not reload its leadership');
+    close.click();
     find('[data-prospect-clear]').click();
   });
 

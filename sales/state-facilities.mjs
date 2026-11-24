@@ -1,6 +1,6 @@
 import { HttpError, email, metadata, officeIdentity, state, text, visible } from './model.mjs';
 import { localityAllowed, localityKey, stateAllowed } from './territory-access.mjs';
-import { publishedFacilityAdministrator } from './facility-administrators.mjs';
+import { publishedFacilityAdministrator, publishedFacilityProfile } from './facility-administrators.mjs';
 import { loadStateFacilities } from './state-facility-sources.mjs';
 
 const categories = new Set(['nursing-home', 'senior-center']);
@@ -62,17 +62,19 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
     }
     const offset = input.offset === undefined ? 0 : Number(input.offset);
     if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new HttpError(400, 'Choose a valid facility page.');
+    const sourceURL = text(input.sourceURL ?? '', 1200);
     const query = localityKey(text(input.query ?? '', 100));
     const terms = query ? query.split(' ') : [];
     const { results, coverage, sources, issues } = await reportFor(region, category);
     const matches = results.filter(row => {
-      if (!localityAllowed(user, region, row.city)) return false;
+      if ((sourceURL && row.sourceURL !== sourceURL) || !localityAllowed(user, region, row.city)) return false;
       const label = localityKey([row.name, row.city, row.zip].join(' '));
       return terms.every(term => label.includes(term));
     });
     const page = matches.slice(offset, offset + pageSize).map(row => {
       const administrator = category === 'nursing-home' ? publishedFacilityAdministrator(row) : null;
-      return administrator ? { ...row, administrator } : row;
+      const profile = category === 'nursing-home' ? publishedFacilityProfile(row) : null;
+      return { ...row, ...(administrator ? { administrator } : {}), ...(profile ? { profile } : {}) };
     });
     if (db && page.length) {
       const saved = new Map();

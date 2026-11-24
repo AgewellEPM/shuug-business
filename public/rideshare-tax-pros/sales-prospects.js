@@ -57,16 +57,22 @@
     return `<span class="prospects-stage" data-stage="${record.stage}">${label(record.stage)}</span>`;
   }
 
-  function administratorProfile(facility, role) {
+  function administratorProfile(facility, role, { open, showTitle = false, showResearch = false } = {}) {
     const profile = document.createElement('div');
     profile.className = 'prospects-administrator';
     const details = document.createElement('div');
     const links = window.SdrTerritoryFacilities?.sourceLink;
     if (role?.photoURL) {
-      const portrait = links?.(role.photoURL, '');
-      if (portrait) {
+      const source = links?.(role.photoURL, '');
+      if (source) {
+        const portrait = open ? document.createElement('button') : source;
+        if (open) {
+          portrait.type = 'button';
+          portrait.setAttribute('aria-label', 'View facility profile for ' + role.name);
+          portrait.onclick = open;
+        }
         const photo = document.createElement('img');
-        photo.src = portrait.href;
+        photo.src = source.href;
         photo.alt = `Headshot of ${role.name}`;
         photo.loading = 'lazy';
         photo.referrerPolicy = 'no-referrer';
@@ -76,10 +82,15 @@
         profile.append(portrait);
       }
     }
-    const name = document.createElement(role?.name ? 'strong' : 'span');
+    const name = document.createElement(role?.name ? (open ? 'button' : 'strong') : 'span');
     name.textContent = role?.name || 'Administrator not sourced';
+    if (role?.name && open) {
+      name.type = 'button';
+      name.className = 'facility-profile-open';
+      name.onclick = open;
+    }
     details.append(name);
-    if (role?.title && role.title !== 'Administrator') {
+    if (role?.title && (showTitle || role.title !== 'Administrator')) {
       const title = document.createElement('small');
       title.textContent = role.title;
       details.append(title);
@@ -89,7 +100,7 @@
     if (phone.length === 10) {
       const office = document.createElement('a');
       office.href = 'tel:+1' + phone;
-      office.textContent = `Office (${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+      office.textContent = `${role?.directPhone ? 'Business' : 'Office'} (${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
       details.append(office);
     } else if (rawPhone) {
       const office = document.createElement('small');
@@ -112,15 +123,16 @@
         pages.append(source);
       }
     }
-    if (!role?.name || !role.photoURL) {
-      const query = [role?.name, facility.name, facility.city, facility.state, 'administrator'].filter(Boolean).join(' ');
+    if (showResearch || !role?.name || !role.photoURL) {
+      const query = [role?.name, facility.name, facility.city, facility.state, role?.title || 'administrator'].filter(Boolean).join(' ');
       const google = new URL('https://www.google.com/search');
       google.searchParams.set('q', query);
-      if (role?.name) google.searchParams.set('tbm', 'isch');
+      if (role?.name && !role.photoURL) google.searchParams.set('tbm', 'isch');
       const linkedin = new URL('https://www.linkedin.com/search/results/people/');
       linkedin.searchParams.set('keywords', query);
-      for (const [url, text] of [[google, role?.name ? 'Find headshot' : 'Google'], [linkedin, 'LinkedIn']]) {
-        const link = links?.(url.href, text);
+      for (const [url, text] of [[google.href, role?.name && !role.photoURL ? 'Find headshot' : 'Google'],
+        [role?.linkedinURL || linkedin.href, role?.linkedinURL ? 'LinkedIn profile' : 'LinkedIn search']]) {
+        const link = links?.(url, text);
         if (link) pages.append(link);
       }
     }
@@ -129,7 +141,147 @@
     return profile;
   }
 
-  function mountDirectory(panel, { api, refresh, onOpenOffice }) {
+  function facilityProfile(dialog, api) {
+    const find = name => dialog.querySelector(`[data-facility-profile-${name}]`);
+    const team = find('team'), contact = find('contact');
+    const link = (href, text) => window.SdrTerritoryFacilities?.sourceLink(href, text);
+    const textNode = (tag, text) => { const element = document.createElement(tag); element.textContent = text; return element; };
+    let request = 0;
+
+    function appendFact(parent, label, value, url, sourceName = 'Source') {
+      const fact = document.createElement('div');
+      fact.className = 'facility-fact';
+      fact.append(textNode('dt', label));
+      const field = textNode('dd', value || 'Unavailable');
+      const source = url && link(url, sourceName);
+      if (source) field.append(source);
+      fact.append(field);
+      parent.append(fact);
+    }
+
+    function personButton(parent, person, selectPerson) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'facility-person';
+      button.dataset.facilityPerson = person.name;
+      button.setAttribute('aria-pressed', 'false');
+      const icon = textNode('span', person.name.split(/\s+/).slice(0, 2).map(word => word[0]).join(''));
+      icon.className = 'facility-person-avatar';
+      const photo = person.photoURL && link(person.photoURL, '');
+      if (photo) {
+        const image = document.createElement('img');
+        image.src = photo.href;
+        image.alt = '';
+        image.referrerPolicy = 'no-referrer';
+        image.loading = 'lazy';
+        image.addEventListener('error', () => image.remove(), { once: true });
+        icon.append(image);
+      }
+      const info = document.createElement('span');
+      info.append(textNode('strong', person.name), textNode('small', person.title));
+      button.append(icon, info);
+      button.onclick = () => selectPerson(person);
+      parent.append(button);
+    }
+
+    function render(facility, category, personName, loading = false) {
+      const { profile = {}, cms, administrator } = facility;
+      find('location').textContent = [[facility.city, facility.state].filter(Boolean).join(', '), types[category]].filter(Boolean).join(' · ');
+      find('title').textContent = facility.name;
+      find('description').textContent = profile.description || (category === 'nursing-home'
+        ? 'Medicare or Medicaid-certified nursing facility.' : 'Community facility listed in OpenStreetMap.');
+      const facts = find('facts');
+      facts.replaceChildren();
+      if (cms) {
+        appendFact(facts, 'Certified beds', cms.beds == null ? '' : cms.beds.toLocaleString(), facility.sourceURL, 'CMS');
+        if (cms.program) appendFact(facts, 'Certification', cms.program, facility.sourceURL, 'CMS');
+        if (cms.ownership) appendFact(facts, 'Ownership', cms.ownership, facility.sourceURL, 'CMS');
+      }
+      if (facility.hours) appendFact(facts, 'Opening hours', facility.hours, facility.sourceURL, 'OpenStreetMap');
+      const publicFacts = profile.facts || [];
+      for (const fact of publicFacts) appendFact(facts, fact.label, fact.value, fact.sourceURL);
+      if (!facility.hours && !publicFacts.some(fact => fact.label === 'Visiting hours')) {
+        appendFact(facts, category === 'nursing-home' ? 'Visiting hours' : 'Opening hours', '');
+      }
+      if (!publicFacts.some(fact => fact.label === 'Building area')) appendFact(facts, 'Building area', '');
+      const address = [facility.address, [facility.city, facility.state, facility.zip].filter(Boolean).join(' ')].filter(Boolean).join(', ');
+      if (address) appendFact(facts, 'Address', address, facility.sourceURL, facility.sourceName || 'Directory');
+      const sourceLinks = find('links');
+      sourceLinks.replaceChildren(...[link(profile.website || facility.website, 'Facility website'), link(facility.sourceURL, facility.sourceName || 'Directory record')].filter(Boolean));
+      if (loading) {
+        find('team-status').textContent = 'Loading directory profile…';
+        team.replaceChildren();
+        contact.replaceChildren();
+        return;
+      }
+      const people = profile.people || [];
+      find('team-status').textContent = administrator || people.length
+        ? 'Published roles grouped by department. Reporting lines are unavailable.'
+        : 'Public leadership profiles are unavailable for this facility.';
+      team.replaceChildren();
+      function selectPerson(person) {
+        team.querySelectorAll('[data-facility-person]').forEach(item => item.setAttribute('aria-pressed', String(item.dataset.facilityPerson === person?.name)));
+        contact.replaceChildren(administratorProfile(facility, person, { showTitle: true, showResearch: true }));
+      }
+      if (administrator) {
+        const lead = document.createElement('section');
+        lead.className = 'facility-team-lead';
+        lead.append(textNode('h4', 'Facility leadership'));
+        personButton(lead, administrator, selectPerson);
+        team.append(lead);
+      }
+      if (people.length) {
+        const departments = document.createElement('div');
+        departments.className = 'facility-departments';
+        const groups = new Map();
+        for (const person of people) {
+          if (!groups.has(person.group)) groups.set(person.group, []);
+          groups.get(person.group).push(person);
+        }
+        for (const [group, members] of groups) {
+          const department = document.createElement('section');
+          department.append(textNode('h4', group));
+          members.forEach(person => personButton(department, person, selectPerson));
+          departments.append(department);
+        }
+        team.append(departments);
+      }
+      selectPerson([administrator, ...people].find(person => person?.name && person.name === personName) || administrator || people[0]);
+    }
+    function show() {
+      if (!dialog.open) dialog.showModal();
+      dialog.querySelector('.facility-profile-body').scrollTop = 0;
+    }
+    find('close').onclick = () => dialog.close();
+    dialog.addEventListener('close', () => { request++; });
+    return {
+      open(row, category, personName) {
+        request++;
+        render(row, category, personName);
+        show();
+      },
+      async openSaved(record) {
+        const { office, metadata } = record;
+        const row = { name: record.name, state: record.state, city: office.locality, address: metadata.address, zip: metadata.postalCode,
+          phone: office.contact_phone, email: office.contact_email, website: metadata.website, administrator: metadata.facilityAdministrator,
+          sourceURL: metadata.facilitySource };
+        const active = ++request;
+        render(row, record.type, row.administrator?.name, true);
+        show();
+        try {
+          const page = await api('territory-facilities', { state: row.state, category: record.type, sourceURL: row.sourceURL });
+          if (active !== request) return;
+          render(page.results[0] || row, record.type, row.administrator?.name);
+        } catch {
+          if (active !== request) return;
+          render(row, record.type, row.administrator?.name);
+          find('team-status').textContent = 'Public profile unavailable. Showing the saved facility record.';
+        }
+      },
+    };
+  }
+
+  function mountDirectory(panel, { api, refresh, onOpenOffice, openProfile }) {
     const facilities = window.SdrTerritoryFacilities;
     if (!panel || !facilities?.saveForm) return null;
     const find = name => panel.querySelector(`[data-prospect-directory-${name}]`);
@@ -140,10 +292,13 @@
 
     function rowFor(facility, page) {
       const row = document.createElement('tr');
-      row.innerHTML = `<th scope="row"><strong>${escape(facility.name)}</strong>
+      row.innerHTML = `<th scope="row"><button type="button" class="facility-profile-open" data-open-facility-profile><strong>${escape(facility.name)}</strong></button>
         <small>${escape([facility.address, [facility.city, facility.state, facility.zip].filter(Boolean).join(' ')].filter(Boolean).join(' · '))}</small></th>
         <td>${escape(types[page.category])}</td><td data-regular-contact></td><td></td>`;
-      row.querySelector('[data-regular-contact]').append(administratorProfile(facility, facility.administrator));
+      row.querySelector('[data-open-facility-profile]').onclick = () => openProfile(facility, page.category);
+      row.querySelector('[data-regular-contact]').append(administratorProfile(facility, facility.administrator, {
+        open: () => openProfile(facility, page.category, facility.administrator?.name),
+      }));
       const source = facilities.sourceLink(facility.sourceURL, facility.sourceName || 'Source record');
       if (source) row.querySelector('th').append(source);
       row.lastElementChild.append(facilities.saveForm(facility,
@@ -232,7 +387,8 @@
     let workspace, records = [], visible = [], selected = '', view = 'list', index = 0, descending = false;
     let storageKey, detailRequest = 0, detailStale = true, saving = false;
     let stages = new Set(), lastLink, searchDelay = 0;
-    const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice });
+    const profileDialog = facilityProfile($('[data-facility-profile]'), api);
+    const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice, openProfile: profileDialog.open });
 
     function writeStatus(target, message, error = false) {
       target.textContent = message;
@@ -404,12 +560,15 @@
           <button type="button" class="button primary" data-prospect-action="followup" ${paused ? 'disabled' : ''}>${icon('date')} Schedule follow-up</button>
           <button type="button" class="button secondary" data-prospect-action="email" ${paused || !office.contact_email ? 'disabled' : ''}>${icon('mail')} Draft email</button>
           <button type="button" class="button secondary" data-prospect-action="call">Log call</button>
+          ${row.metadata.facilitySource ? '<button type="button" class="button secondary" data-prospect-action="facility-profile">Facility profile</button>' : ''}
         </div>
         <p class="prospects-muted" data-prospect-action-status role="status"></p>
         <div data-prospect-action-form></div>
       </div>`;
       const role = row.metadata.facilityAdministrator;
-      if (role) $('[data-prospect-admin]').append(administratorProfile({ name: row.name, city: office.locality, state: row.state }, role));
+      if (role) $('[data-prospect-admin]').append(administratorProfile({ name: row.name, city: office.locality, state: row.state }, role, {
+        open: row.metadata.facilitySource ? () => void profileDialog.openSaved(row) : undefined,
+      }));
     }
     function showDetails() {
       detailStale = false;
@@ -478,7 +637,10 @@
       const button = event.target.closest('button');
       if (!button || button.disabled) return;
       if (button.hasAttribute('data-prospect-details-open') || button.dataset.prospectAction === 'email') openOffice(button.dataset.prospectAction === 'email');
-      else if (button.dataset.prospectAction) actionForm(button.dataset.prospectAction);
+      else if (button.dataset.prospectAction === 'facility-profile') {
+        const record = records.find(row => row.id === selected);
+        if (record) void profileDialog.openSaved(record);
+      } else if (button.dataset.prospectAction) actionForm(button.dataset.prospectAction);
     });
     function setRegion(region) {
       const path = $(`[data-prospect-pane="map"] path[data-state="${region}"]`);
