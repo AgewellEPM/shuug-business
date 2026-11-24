@@ -1,9 +1,9 @@
 (() => {
   'use strict';
   const steps = [
-    { id: 'welcome', group: 'Getting started', title: 'Welcome to your sales workspace',
-      copy: 'Follow the highlighted controls as you move from finding a lead to booking a demo and closing an agreement.',
-      instruction: 'Practice uses sample scenarios. You can pause at any time and pick up where you left off.' },
+    { id: 'welcome', group: 'Getting started', title: 'Welcome aboard.',
+      copy: 'I’m Tinky, your sales guide. Let’s follow a prospect from the first hello to a booked demo, right here in your workspace.',
+      instruction: 'Try each tool with sample details. Pause anywhere and I’ll save your place.' },
     { id: 'today', group: 'Start your day', title: 'Start with Today’s Plan', view: 'today', target: '[data-today-filters]',
       copy: 'This is your daily queue. Use its filters to find follow-ups, meetings and tasks due today. Open a task to jump to the right account or appointment.',
       practice: { prompt: 'A prospect asked for a callback this morning. Where do you look first?',
@@ -69,9 +69,9 @@
       practice: { prompt: 'Enter the command you’d give Tinky to open your pipeline.',
         fields: [{ name: 'command', label: 'Ask Tinky', placeholder: 'Open my pipeline' }],
         match: /\bpipeline\b/i, result: '“Open my pipeline” opens the Pipeline view while Tinky stays in the corner.' } },
-    { id: 'finish', group: 'Getting started', title: 'Ready for your first prospect',
-      copy: 'Start in Today’s Plan, find a prospect in your territory, and give the account a clear next step.',
-      instruction: 'You can reopen this walkthrough anytime from Getting started.' },
+    { id: 'finish', group: 'Getting started', title: 'Your first stop is Today’s Plan.',
+      copy: 'Pick a follow-up in Today’s Plan, or find a new prospect in your territory. Give that account a next action and a date.',
+      instruction: 'Look for Ask Tinky in the bottom corner whenever you want a hand.' },
   ];
   window.SdrTourSteps = steps;
 })();

@@ -101,17 +101,35 @@
       feedback.textContent = correct ? exercise.result : 'Try again using the highlighted tool and the instructions above.';
       schedule();
     };
+    const chapterArt = {
+      'Start your day': 'time',
+      'Set up your account': 'path-new',
+      'Find prospects': 'crm',
+      'Start outreach': 'sales',
+      'Work the pipeline': 'crm',
+      'Book and present': 'product',
+      'Close the deal': 'certificate',
+      'Work with your team': 'healthcare',
+      'Keep learning': 'cap',
+    };
     function render() {
       const step = steps[index];
-      find('[data-tour-section]').textContent = step.group;
+      const mode = ['welcome', 'finish'].includes(step.id) ? step.id : 'lesson';
+      dialog.dataset.tourMode = mode;
+      find('[data-tour-section]').textContent = mode === 'welcome' ? 'Agent orientation' : mode === 'finish' ? 'Walkthrough complete' : step.group;
+      const emblem = find('[data-tour-emblem]');
+      emblem.hidden = mode !== 'lesson';
+      if (!emblem.hidden) emblem.src = '/training-art/' + (chapterArt[step.group] || 'cap') + '.png';
+      find('[data-tour-route]').hidden = mode !== 'welcome';
+      card.scrollTop = 0;
       title.textContent = step.title; find('#sdr-tour-copy').textContent = step.copy;
       const hint = find('[data-tour-instruction]'); hint.hidden = !step.instruction; hint.textContent = step.instruction || '';
       meter.hidden = index === 0 || index === steps.length - 1;
       meter.querySelector('progress').max = steps.length - 2; meter.querySelector('progress').value = index;
-      meter.querySelector('span').textContent = index + ' of ' + (steps.length - 2);
+      meter.querySelector('span').textContent = 'Stop ' + index + ' of ' + (steps.length - 2);
       setupExercise(step.practice);
       back.hidden = index === 0;
-      next.textContent = index === 0 ? 'Start walkthrough' : index === steps.length - 1 ? 'Finish' : 'Next';
+      next.textContent = index === 0 ? 'Start walkthrough' : index === steps.length - 1 ? 'Finish walkthrough' : 'Next';
       status.textContent = ''; title.focus({ preventScroll: true }); spotlight(step);
     }
     async function save(state, step) {
