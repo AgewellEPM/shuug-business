@@ -23,6 +23,7 @@
 .sdr-tour [hidden] { display: none !important; }
 .sdr-tour-shade { position: absolute; inset: 0; overflow: hidden; background: #06182cd9; }
 .sdr-tour-spot .sdr-tour-shade { background: transparent; }
+body:has(#sdr-tour[open][data-tour-mode="lesson"]:not([data-tour-step="tinky"])) #coach-widget { visibility: hidden; }
 .sdr-tour-spot .sdr-tour-shade span {
   position: absolute;
   left: var(--spot-x);
@@ -206,19 +207,19 @@
 .sdr-tour-choice:has(input:checked) { box-shadow: inset 0 0 0 1px var(--tour-blue); }
 .sdr-tour-choice input { flex: none; width: 16px; height: 16px; margin: 0; accent-color: var(--tour-blue); }
 .sdr-tour [data-tour-fields] :is(input:not([type="radio"]), textarea) { box-sizing: border-box; width: 100%; min-width: 0; border: 1px solid #b8aa90; border-radius: 7px; padding: 6px 8px; background: white; color: inherit; font: inherit; }
-.sdr-tour .sdr-tour-practice .button { min-height: 32px; margin-top: 10px; padding: 5px 11px; border: 1px solid #a3844c; border-radius: 7px; color: #533a14; background: #fffaf0; font-size: .8rem; font-weight: 680; }
+#sdr-tour .sdr-tour-practice button[type="submit"] { min-height: 32px; margin-top: 10px; padding: 5px 11px; border: 1px solid #a3844c; border-radius: 7px; color: #533a14; background: #fffaf0; font-size: .8rem; font-weight: 680; }
 .sdr-tour .sdr-tour-card :is(.sdr-tour-status,[data-tour-feedback]) { color: #943121; margin-top: 8px; font-size: .86rem; }
 .sdr-tour .sdr-tour-card [data-correct="true"] { color: #185641; }
 .sdr-tour :is([data-tour-status],[data-tour-feedback]):empty { display: none; }
-.sdr-tour-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 12px 21px 14px; border-top: 1px solid #ddd9ce; background: #f8f5ec; }
+.sdr-tour-actions { position: sticky; bottom: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 9px; padding: 12px 21px 14px; border-top: 1px solid #ddd9ce; background: #f8f5ec; }
 .sdr-tour:is([data-tour-mode="welcome"],[data-tour-mode="finish"]) .sdr-tour-actions { padding-inline: 29px; }
 .sdr-tour-actions button { min-height: 37px; cursor: pointer; font: 650 .86rem/1.22 system-ui,sans-serif; }
 .sdr-tour .sdr-tour-back, .sdr-tour .sdr-tour-later { padding: 5px; color: #294661; border: 0; background: transparent; }
 .sdr-tour .sdr-tour-later { font-weight: 500; }
 .sdr-tour .sdr-tour-back:hover, .sdr-tour .sdr-tour-later:hover { text-decoration: underline; }
-.sdr-tour .button.primary { gap: 9px; margin-left: auto; padding: 9px 15px; border: 1px solid #064482; border-radius: 10px; background: var(--tour-blue); color: #fff; box-shadow: 0 2px 0 #083462; }
-.sdr-tour .button.primary::after { display: inline-block; content: ''; width: 6px; height: 6px; border-top: 2px solid; border-right: 2px solid; transform: rotate(45deg); }
-.sdr-tour .button.primary:hover { background: #064987; }
+#sdr-tour .sdr-tour-actions [data-tour-next] { display: inline-flex; align-items: center; justify-content: center; gap: 9px; margin-left: auto; padding: 9px 15px; border: 1px solid #064482; border-radius: 10px; background: var(--tour-blue); color: #fff; box-shadow: 0 2px 0 #083462; }
+#sdr-tour .sdr-tour-actions [data-tour-next]::after { display: inline-block; content: ''; width: 6px; height: 6px; border-top: 2px solid; border-right: 2px solid; transform: rotate(45deg); }
+#sdr-tour .sdr-tour-actions [data-tour-next]:hover { background: #064987; }
 .sdr-tour :is(button,input,textarea):focus-visible { outline: 3px solid #3285c7; outline-offset: 2px; }
 .sdr-tour .sdr-tour-close:focus-visible { outline-color: #ffe49b; }
 @media (max-width: 620px) {

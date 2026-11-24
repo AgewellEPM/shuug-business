@@ -17,7 +17,9 @@
     function locate() {
       if (!dialog.open) return;
       const pad = 12, gutter = 18, width = dialog.clientWidth || innerWidth, height = dialog.clientHeight || innerHeight;
-      const w = card.offsetWidth, h = card.offsetHeight;
+      const w = card.offsetWidth, viewportLimit = height - pad * 2;
+      const h = Math.min(viewportLimit, card.scrollHeight + card.offsetHeight - card.clientHeight);
+      let heightLimit = viewportLimit;
       const centered = [(width - w) / 2, (height - h) / 2];
       const box = target?.getBoundingClientRect();
       const seen = box && box.width && box.height && box.right > 0 && box.bottom > 0 && box.left < width && box.top < height;
@@ -34,11 +36,19 @@
         ];
         const fits = sides.find(side => side.room >= side.size + gutter + pad);
         if (fits) [left, top] = [fits.x, fits.y];
-        else { left = (width - w) / 2; top = (y > height - bottom) ? pad : height - h - pad; }
+        else {
+          const above = y - gutter - pad, below = height - bottom - gutter - pad;
+          heightLimit = Math.max(above, below);
+          // A target can fill most of a short landscape viewport. Keep the guide usable there.
+          heightLimit = Math.min(viewportLimit, Math.max(120, heightLimit));
+          left = (width - w) / 2;
+          top = above >= below ? pad : height - Math.min(h, heightLimit) - pad;
+        }
         for (const [key, n] of Object.entries({ x, y, w: right - x, h: bottom - y })) dialog.style.setProperty('--spot-' + key, n + 'px');
       }
+      card.style.maxHeight = heightLimit + 'px';
       card.style.left = keepIn(pad, left, width - w - pad) + 'px';
-      card.style.top = keepIn(pad, top, height - h - pad) + 'px';
+      card.style.top = keepIn(pad, top, height - card.offsetHeight - pad) + 'px';
     }
     function schedule() {
       clearTimeout(frame); frame = setTimeout(locate, 16);
@@ -116,6 +126,7 @@
       const step = steps[index];
       const mode = ['welcome', 'finish'].includes(step.id) ? step.id : 'lesson';
       dialog.dataset.tourMode = mode;
+      dialog.dataset.tourStep = step.id;
       find('[data-tour-section]').textContent = mode === 'welcome' ? 'Agent orientation' : mode === 'finish' ? 'Walkthrough complete' : step.group;
       const emblem = find('[data-tour-emblem]');
       emblem.hidden = mode !== 'lesson';

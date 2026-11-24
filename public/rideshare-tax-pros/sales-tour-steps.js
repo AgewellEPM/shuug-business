@@ -50,7 +50,7 @@
         result: 'Once approval is recorded, share the link for those approved terms.' } },
     { id: 'locations', group: 'Close the deal', title: 'Find signed locations', view: 'locations', target: '#sales-signup-locations h2',
       copy: 'Signup locations shows businesses and facilities with signed agreements. Use the state filter to find locations and open the linked account to continue the handoff.' },
-    { id: 'team', group: 'Work with your team', title: 'Find your team and tools', view: 'team', target: '#sales-team-sidebar-section',
+    { id: 'team', group: 'Work with your team', title: 'Find your team and tools', view: 'team', target: '#sales-team-tab-roster',
       copy: 'Sales team shows the roster and the team tools menu. Open a teammate’s profile to see their role and territory. Use the menu to reach Calendar, Territories, Team chat and other team tools.' },
     { id: 'rolodex', group: 'Work with your team', title: 'Find and keep business contacts', view: 'contacts', target: '[data-rolodex-add]',
       copy: 'Use Owners & Rolodex to look up saved contacts. Add the person’s business details and link them to the correct account so outreach stays with the right organization.' },
