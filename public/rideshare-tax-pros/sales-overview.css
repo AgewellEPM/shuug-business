@@ -54,6 +54,7 @@ body.sales-console-page[data-standalone-sdr] {
 [data-standalone-sdr] .sdr-sidebar-portrait img { width: 100%; height: 100%; object-fit: cover; }
 [data-standalone-sdr] .sdr-sidebar-label { display: none; }
 [data-standalone-sdr] .sdr-nav { gap: 3px; }
+[data-standalone-sdr] .sdr-nav-divider { flex: none; margin: 7px 11px; border: 0; border-top: 1px solid var(--sdr-sidebar-divider); }
 [data-standalone-sdr] .sdr-nav button { color: #e8f2ff; min-height: 47px; font-size: 16px; }
 [data-standalone-sdr] .sdr-nav button:hover { background: #213956; }
 [data-standalone-sdr] .sdr-nav button[aria-pressed=true] { color: #fff; border-color: #26b2f3; background: linear-gradient(#0e9cf0, #0872ed); }
@@ -182,6 +183,7 @@ body.sales-console-page[data-standalone-sdr] {
   [data-standalone-sdr] .sdr-sidebar .sdr-brand { padding: 0 8px; font-size: 20px; }
   [data-standalone-sdr] .sdr-brand .sdr-brand-mark { font-size: 29px; }
   [data-standalone-sdr] .sdr-nav button { min-height: 41px; font-size: 14px; }
+  [data-standalone-sdr] .sdr-nav-divider { align-self: stretch; margin: 5px 4px; border-top: 0; border-inline-start: 1px solid var(--sdr-sidebar-divider); }
   [data-standalone-sdr] .sdr-topbar { position: relative; gap: 9px; }
   [data-standalone-sdr] .sdr-topbar-right { width: 100%; flex-wrap: wrap; justify-content: space-between; gap: 8px; }
   #sdr-header-search { height: 38px; }
