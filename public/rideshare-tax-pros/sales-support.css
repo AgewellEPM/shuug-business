@@ -1,8 +1,3 @@
-[data-sdr-view="support"] .sdr-topbar > div:first-child,
-[data-sdr-view="support"] .sdr-workspace-tracker,
-[data-sdr-view="support"] .sdr-sidebar :is(.sdr-sidebar-profile, .care-workspace-switch),
-[data-sdr-view="support"] #sales-identity :is(.sdr-user-avatar, #sales-name) { display: none; }
-
 .support-sidebar-help { display: none; }
 @media (min-width: 761px) {
   [data-standalone-sdr][data-sdr-view="support"] .sdr-main { padding-inline: 15px; }

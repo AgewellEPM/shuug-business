@@ -303,6 +303,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => document.querySelector('#directory-support-form'), 'Owner settings did not load');
     assert.equal(document.body.dataset.sdrView, 'support');
     assert.equal(document.querySelector('[data-tab-panel="support"]').hidden, false);
+    const header = document.querySelector('.sdr-topbar');
+    const { progress } = await owner.api('bootstrap');
+    assert.equal(header.querySelector('#sdr-xp-level').textContent, 'Level ' + progress.level);
+    assert.equal(header.querySelector('#sdr-xp-bar').value, progress.xpIntoLevel);
+    assert.equal(header.querySelector('#sdr-earnings').hidden, false);
+    assert.ok(header.querySelector('#sales-logout'));
+    assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
+    const search = header.querySelector('#sdr-header-search');
+    search.querySelector('input').value = 'Solar';
+    search.requestSubmit();
+    assert.equal(document.body.dataset.sdrView, 'pipeline');
+    assert.equal(document.querySelector('#sales-filter').value, 'Solar');
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -836,8 +848,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.elements.to.value, 'sbowling@limestonehf.com');
     assert.equal(email.elements.body.value, reviewedDraft);
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
-    assert.equal(pageDocument.querySelector('.sdr-topbar, #sdr-header-search, #sales-identity, [data-mail-connect]'), null);
-    assert.ok(pageDocument.querySelector('.sdr-sidebar #sales-logout'));
+    assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
+    assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-header-search'));
+    assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });
     const settings = await (await mailApi('rep-email-settings')).json();

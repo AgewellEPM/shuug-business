@@ -74,6 +74,15 @@
         if (state) onBrowseFacilities({ state, category: button.dataset.browseFacility });
       });
     }
+    $('#sdr-header-search')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const field = $('#sales-filter');
+      field.value = event.currentTarget.querySelector('input').value.trim();
+      $('#sales-attention-filter').value = '';
+      pipeline();
+      field.focus();
+    });
+
     function renderResearch(research) {
       resultList.replaceChildren();
       if (!research) return;
