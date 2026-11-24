@@ -1,6 +1,9 @@
 import { HttpError, text } from '../../sales/model.mjs';
 import { accountContext, goalProgress, readGoalInput, validDate } from './coach-context.mjs';
 import { knowledgeFor, learningContext } from './coach-knowledge.mjs';
+import { asksToEmail, confirmsEmail, editsEmail, preparedEmail, recipientsFor, submitPreview } from './coach-mail.mjs';
+import { coachForms, selectCoachForm, statedFormFields } from '../../sales/coach-forms.mjs';
+import { saveReviewed } from './coach-save.mjs';
 
 const actions = new Set(['coach-state', 'coach-ask', 'coach-goal']);
 const defaultModel = 'qwen3:4b-instruct-2507-q4_K_M';
@@ -40,6 +43,15 @@ function navigationFor(question, user, demo, care) {
   const label = question.toLowerCase().trim().replace(/[’']/g, '').replace(/[.!?]+$/, '')
     .match(/^(?:(?:can|could|would) you )?(?:please )?(?:open|show me|take me to|go to|switch to|navigate to|bring up) (?:the |my |our )?(.+?)\s*$/)?.[1];
   if (!label) return undefined;
+  const inside = {
+    'new prospect form': ['New prospect', 'prospects&form=new'], 'add prospect': ['New prospect', 'prospects&form=new'],
+    'email composer': ['Email composer', 'email&compose=new'], 'new email': ['Email composer', 'email&compose=new'],
+    'training catalog': ['Course catalog', 'training&section=catalog'], 'my training plan': ['Training plan', 'training&section=plan'],
+    'course catalog': ['Course catalog', 'training&section=catalog'], playbooks: ['Training playbooks', 'training&section=playbooks'],
+    'sales profile': ['Sales profile', 'team&section=profile'], 'booking calendar': ['Book a meeting', 'calendar&section=book'],
+    'direct messages': ['Direct messages', 'chat&new=dm'],
+  };
+  if (Object.hasOwn(inside, label)) return { title: inside[label][0], href: '#view=' + inside[label][1] };
   for (const [view, names] of Object.entries(destinations)) {
     if (view === 'demo' && !demo || view === 'facilities' && !care || view === 'campaigns' && !(demo || user.role === 'owner')) continue;
     if (names.some(name => name.toLowerCase().replace(/[’']/g, '') === label)) return { title: names[0], href: '#view=' + view };
@@ -171,21 +183,46 @@ function dates(today) {
 }
 const sourceLink = ({ title, href }) => ({ title, href });
 
-export function salesCoach(db, plan, { articles = [], demo = false, model = defaultModel, fetcher = fetch } = {}) {
+export function salesCoach(db, plan, { articles = [], demo = false, model = defaultModel, fetcher = fetch, mail } = {}) {
   const store = db.coach, running = new Map();
   function snapshot(user, timeZone) {
     const day = plan.dispatch(user, 'sales-daily-plan', { timeZone });
     return { day, goal: goalProgress(db, user, store.goal(user.id)) };
   }
-  async function answer(user, input, question) {
+  async function answer(user, input, question, crm) {
+    const history = store.history(user.id, 5).turns, previous = history.at(-1);
+    const workflow = answer => ({ mode: 'workflow', answer, sources: [], draft: null });
+    if (/^(?:please )?(?:save|record) (?:it|this|that|the (?:prospect|goal|note|call|follow[- ]?up))(?: now)?[.!]*$/i.test(question.trim())) {
+      return saveReviewed({ db, user, input, previous, crm, allowedFields: draftFields });
+    }
+    if (/^(?:please )?(?:fill (?:it|this|that)(?: in| out)?|apply (?:it|this|the draft)|use (?:this|that) draft)[.!]*$/i.test(question.trim()) && previous?.draft) {
+      return { ...workflow('Opening the form with your prepared details.'), draft: previous.draft, apply: true, draftTurnId: previous.draftTurnId || previous.id };
+    }
+    if (mail && confirmsEmail(question)) {
+      if (!previous?.mail || input.mailTurnId !== undefined && previous.id !== input.mailTurnId) return workflow('Prepare a new email preview with the prospect and message you want to send.');
+      return submitPreview(mail, user, previous.mail);
+    }
+    const revision = mail && previous?.mail && editsEmail(question);
+    if (previous?.mail && /^(?:please )?(?:cancel|discard|don['’]?t send|do not send)(?: (?:it|that|the (?:email|message|draft)))?[.!]*$/i.test(question.trim())) return workflow('Email canceled.');
+    const emailRequest = revision || mail && asksToEmail(question) && !/^\s*(?:how|what|where|can i|should i)\b/i.test(question);
     const navigation = navigationFor(question, user, demo, demo && input.screen?.care === true);
     if (navigation) return { mode: 'workflow', answer: 'Here is ' + navigation.title + '. You can keep chatting while you work.', navigation, sources: [], draft: null };
     const manual = manualWorkflow(question);
-    if (manual) return { mode: 'workflow', answer: manual[2], sources: [{ title: manual[0], href: manual[1] }], draft: null };
+    if (manual && !emailRequest) return { mode: 'workflow', answer: manual[2], sources: [{ title: manual[0], href: manual[1] }], draft: null };
     const { day, goal } = snapshot(user, input.timeZone);
-    const history = store.history(user.id, 5).turns;
     const accounts = accountContext(db, user, question, history, day.recommendations, input.screen?.officeId);
     const screen = screenContext(input.screen, accounts, demo);
+    const selection = emailRequest && recipientsFor(db, user, revision ? previous.mail.entries.map(x => x.name + ' ' + x.to).join(', ') : question, screen?.account, previous);
+    const generalEmail = /\b(?:generic|general|example|sample|template)\b/i.test(question);
+    if (selection?.issue && !generalEmail) return workflow(selection.issue);
+    if (selection?.recipients?.length) {
+      const exact = /\bsubject:\s*([^\n]+?)\s+(?:body|message):\s*([\s\S]+)$/i.exec(question);
+      if (exact) return preparedEmail(mail, user, selection, { subject: exact[1], body: exact[2] }, 'workflow');
+      if (revision && previous.mail.entries.length === 1) {
+        const subject = /^(?:please )?(?:change|set) (?:the )?subject to\s+(.+)$/i.exec(question.trim())?.[1];
+        if (subject) return preparedEmail(mail, user, selection, { subject, body: previous.mail.entries[0].body }, 'workflow');
+      }
+    }
     const target = /^(?:(?:can|could) you )?(?:please )?(?:open|show me|bring up|take me to)\s+(?:(?:the )?(?:account|record|prospect) (?:for )?)?(.+?)(?:['’]s (?:account|record))?[.!?]*$/i.exec(question.trim())?.[1];
     if (target) {
       const named = accounts.filter(row => row.name.toLowerCase() === target.toLowerCase());
@@ -201,21 +238,33 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
       scope: user.role === 'owner' ? 'Workspace totals; the goal belongs to you personally.' : 'Your accessible pipeline and your calendar.',
       tasks: day.tasks.filter(t => !t.completed).slice(0, 6).map(({ title, detail, view, officeId }) => ({ title, detail, view, officeId })),
       agenda: day.schedule.slice(0, 6).map(({ title, dueOn, start, timeZone }) => ({ title, dueOn, start, timeZone })), accounts };
-    const previous = history.at(-1);
     const continuing = previous && /^(?:yes[, ]|it(?:'s| is)\b|the (?:name|address|date|account)\b|here (?:are|is)\b|use\b|also add\b|change (?:that|the date)\b)/i.test(question.trim());
     const filling = screen?.form === 'prospect' && /\b(?:fill|finish|complete|update)\b/i.test(question);
-    const intent = requestedForm(question) || (filling && 'prospect') || (continuing && (previous.draft?.type || requestedForm(previous.question))) || 'none';
+    const knownIntent = requestedForm(question);
+    const formKey = !emailRequest && !knownIntent && selectCoachForm(question, input.screen?.activeForm?.key);
+    const descriptor = formKey && coachForms[formKey];
+    const intent = emailRequest ? 'email' : descriptor ? 'workspaceForm' : knownIntent || (filling && 'prospect') || (continuing && (previous.draft?.type !== 'workspaceForm' && previous.draft?.type || requestedForm(previous.question))) || 'none';
     const messages = [{ role: 'system', content: instructions }, { role: 'user', content: JSON.stringify({
       workspaceContext: workspace, sourceGuides: guides.map(({ id, title, content }) => ({ id, title, content })) }) }];
     for (const turn of history) {
       messages.push({ role: 'user', content: turn.question.slice(0, 650) }, { role: 'assistant', content: turn.answer.slice(0, 850) });
+    }
+    if (selection?.recipients?.length) messages[0].content += '\nWrite the requested message with a complete subject and body. Use {{organization}}, {{contact}} and {{rep}} for personalization. Use only the facts in the user request and product guides. Each recipient will get a separate message. Do not invent a prior exchange, a contact name, a booking link, a title or a signature.';
+    if (revision) { const first = previous.mail.entries[0]; messages.push({ role: 'user', content: JSON.stringify({ currentDraft: { subject: first.subject, body: first.body } }) }); }
+    if (descriptor) {
+      const active = input.screen?.activeForm;
+      const fields = Object.fromEntries(descriptor.fields.map(name => [name, formKey === active?.key ? active.fields?.[name] : undefined]));
+      messages.push({ role: 'user', content: JSON.stringify({ form: descriptor.title, fields: JSON.stringify(fields).slice(0, 5000) }) });
+      messages[0].content += '\nFill the given form with the facts the rep supplied. Use an available option value for selects. Omit unknown fields and do not invent business facts. Return answer and fields.';
     }
     messages.push({ role: 'user', content: question });
     let value;
     try {
       const response = await fetcher('http://127.0.0.1:11434/api/chat', {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, redirect: 'error', signal: AbortSignal.timeout(100_000),
-        body: JSON.stringify({ model, messages, stream: false, think: false, keep_alive: 300, format: outputFormat(intent), options: { num_ctx: 8192, num_predict: 680, temperature: 0.2 } }),
+        body: JSON.stringify({ model, messages, stream: false, think: false, keep_alive: 300, format: descriptor ? { type: 'object', properties: {
+          fields: { type: 'object', properties: Object.fromEntries(descriptor.fields.map(name => [name, { type: 'string' }])), additionalProperties: false },
+          answer: { type: 'string' } }, required: ['fields','answer'] } : outputFormat(intent), options: { num_ctx: 8192, num_predict: 680, temperature: 0.2 } }),
       });
       if (!response.ok) throw new Error('Model unavailable');
       value = JSON.parse((await response.json()).message.content);
@@ -230,8 +279,19 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
     const sources = (cited.length ? cited : guides.slice(0, 1)).map(sourceLink);
     const lesson = /\b(?:teach|train(?:ing)?|lesson|practice|learn|walkthrough)\b/i.test(question) && guides.find(item => item.id.startsWith('learn-'));
     if (lesson && !sources.some(source => source.href === lesson.href)) sources.push(sourceLink(lesson));
+    if (descriptor) {
+      const fields = Object.fromEntries(Object.entries(value.fields || {}).filter(([k, v]) => descriptor.fields.includes(k) && typeof v === 'string' && v.trim()).map(([k, v]) => [k, v.trim().slice(0, 2000)]));
+      Object.assign(fields, statedFormFields(question, descriptor));
+      if (!Object.keys(fields).length) return workflow('What details should I put in the ' + descriptor.title.toLowerCase() + ' form?');
+      return { mode: 'ai', answer: 'Prepared for ' + descriptor.title + '\n\n' + Object.entries(fields).map(([k, v]) => k + ' · ' + v).join('\n'),
+        sources: [], draft: { type: 'workspaceForm', formKey, fields, ...(screen?.account ? { recordId: screen.account.id } : {}) }, apply: true };
+    }
     const type = intent || value.action;
     const draft = normalizeDraft({ ...value, action: type }, accounts, question, history, workspace.calendar, screen);
+    if (draft?.type === 'goal') draft.goalRevision = goal?.revision || 0;
+    if (type === 'email' && selection?.recipients?.length) {
+      return preparedEmail(mail, user, selection, value.fields || {});
+    }
     const genericEmail = type === 'email' && !draft && !namedAccounts(question, accounts).length && !/\b(?:them|their|that account)\b/i.test(question);
     const emailCopy = genericEmail && [value.fields?.subject, value.fields?.body].filter(v => typeof v === 'string' && v.trim()).join('\n\n').slice(0, 3800);
     const response = emailCopy || (Object.hasOwn(draftFields, type) ? draftAnswer(type, draft) : value.answer.trim().slice(0, 5500));
@@ -242,9 +302,10 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
     if (type === 'none' && lesson && answerText.length < 180 && /\b(?:teach|walkthrough|how|practice|steps)\b/i.test(question)) {
       answerText = lesson.content + '\n\n' + 'Open “' + lesson.title + '” below to practice.';
     }
-    return { mode: 'ai', answer: answerText, sources, draft };
+    const apply = Boolean(draft && /\b(?:fill|populate|enter|log|record|add|set|schedule|put (?:this|that|it) in)\b/i.test(question));
+    return { mode: 'ai', answer: answerText, sources, draft, ...(apply ? { apply } : {}) };
   }
-  async function dispatch(user, action, input) {
+  async function dispatch(user, action, input, crm) {
     if (!['owner','agent'].includes(user.role)) throw new HttpError(403, 'Sign in to the sales workspace to use Ask Tinky.');
     const member = user.id;
     if (action === 'coach-state') {
@@ -267,7 +328,7 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
       if (pending.key === key && pending.question === question) return pending.work;
       throw new HttpError(409, 'Another answer is in progress for your account. Try again when it finishes.');
     }
-    const work = answer(user, input, question).then(result => ({ turn: store.append(member, key, question, result, after) }));
+    const work = answer(user, input, question, crm).then(result => ({ turn: store.append(member, key, question, result, after) }));
     running.set(member, { key, question, work });
     try { return await work; } finally { running.delete(member); }
   }

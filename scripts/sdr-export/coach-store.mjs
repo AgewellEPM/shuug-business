@@ -11,6 +11,7 @@ export function coachStore(db) {
       UNIQUE(member, request_id)
     );
     CREATE INDEX IF NOT EXISTS coach_member_history ON coach_turns(member, id);
+    CREATE TABLE IF NOT EXISTS coach_saves (member TEXT NOT NULL, turn INTEGER NOT NULL, receipt TEXT, PRIMARY KEY(member, turn));
   `);
   const goal = db.prepare('SELECT revision, data FROM coach_goals WHERE member = ?');
   const newGoal = db.prepare('INSERT INTO coach_goals VALUES (?, 1, ?) ON CONFLICT DO NOTHING');
@@ -18,6 +19,10 @@ export function coachStore(db) {
   const turns = db.prepare('SELECT * FROM coach_turns WHERE member = ? AND id < ? ORDER BY id DESC LIMIT ?');
   const latest = db.prepare('SELECT MAX(id) AS id FROM coach_turns WHERE member = ?');
   const receipt = db.prepare('SELECT * FROM coach_turns WHERE member = ? AND request_id = ?');
+  const claim = db.prepare('INSERT OR IGNORE INTO coach_saves(member, turn) VALUES (?, ?)');
+  const claimed = db.prepare('SELECT receipt FROM coach_saves WHERE member=? AND turn=?');
+  const finish = db.prepare('UPDATE coach_saves SET receipt=? WHERE member=? AND turn=?');
+  const release = db.prepare('DELETE FROM coach_saves WHERE member=? AND turn=? AND receipt IS NULL');
   const insert = db.prepare(`INSERT INTO coach_turns(member,request_id,question,answer,created_at)
     SELECT ?,?,?,?,? WHERE (SELECT COALESCE(MAX(id),0) FROM coach_turns WHERE member=?)=? ON CONFLICT DO NOTHING`);
   function readGoal(member) {
@@ -28,6 +33,9 @@ export function coachStore(db) {
     return row && { id: row.id, question: row.question, ...JSON.parse(row.answer), createdAt: row.created_at };
   }
   return {
+    claimSave(member, turn) { return claim.run(member, turn).changes ? { claimed: true } : { receipt: claimed.get(member, turn)?.receipt }; },
+    finishSave(member, turn, result) { finish.run(JSON.stringify(result), member, turn); },
+    releaseSave(member, turn) { release.run(member, turn); },
     goal: readGoal,
     saveGoal(member, value, revision) {
       const serialized = JSON.stringify(value);

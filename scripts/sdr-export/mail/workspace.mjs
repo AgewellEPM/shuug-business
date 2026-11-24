@@ -176,6 +176,17 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
     });
     return { status: 'accepted' };
   }
+  async function sendReviewed(user, proposal) {
+    if (summary(user).mailbox.address !== proposal.from) throw new HttpError(409, 'Your sender changed. Prepare a fresh preview.');
+    const existing = store.draft(user.id, proposal.id);
+    if (existing && ['accepted','uncertain','sending'].includes(existing.status)) return { status: existing.status === 'accepted' ? 'accepted' : 'uncertain' };
+    const saved = existing ? draftView(user, existing) : store.transaction(() => saveDraft(user, { ...proposal, revision: 0 }));
+    if (saved.to !== proposal.to || saved.subject !== proposal.subject || saved.body !== proposal.body || saved.from !== proposal.from ||
+        saved.cc || saved.bcc || saved.files.length || saved.link?.officeId !== proposal.link.officeId || saved.link?.contactId !== proposal.link.contactId) {
+      throw new HttpError(409, 'The saved draft was edited. Review it in Sales email.');
+    }
+    return send(user, { id: saved.id, revision: saved.revision });
+  }
   function folderFor(value) {
     if (!['inbox', 'sent', 'drafts', 'trash'].includes(value)) throw new HttpError(400, 'Choose a mailbox folder.');
     return value;
@@ -242,5 +253,5 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
       throw error;
     }
   }
-  return { actions, dispatch, summary, bookingSender, sendBooking };
+  return { actions, dispatch, summary, bookingSender, sendBooking, sendReviewed };
 }

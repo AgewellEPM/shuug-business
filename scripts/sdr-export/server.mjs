@@ -123,7 +123,7 @@ const sales = createHandler(env, db, {
   nextBooking: booking.nextBooking,
   teamChat: db.chat,
   dailyPlan,
-  salesCoach: salesCoach(db, dailyPlan, { articles: coachArticles, demo: profile.focus === 'senior-care', model: process.env.SDR_COACH_MODEL }),
+  salesCoach: salesCoach(db, dailyPlan, { articles: coachArticles, demo: profile.focus === 'senior-care', model: process.env.SDR_COACH_MODEL, mail: repEmail }),
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);

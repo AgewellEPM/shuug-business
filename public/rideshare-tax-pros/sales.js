@@ -65,7 +65,7 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
-    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate });
+    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
     if (coachUI) document.addEventListener('click', event => {
       if (event.target.closest('[data-prospect-select],[data-prospect-add],[data-prospect-cancel]')) coachUI.sync();
     });
@@ -190,7 +190,7 @@
         return true;
       }
       if (standalone && ['pipeline', 'contacts', 'calendar', 'locations', 'contracts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
-      if (emailUI && ['email', 'mail'].includes(params.get('view'))) { tab(params.get('view')); return true; }
+      if (emailUI && ['email', 'mail'].includes(params.get('view'))) { tab(params.get('view')); if (params.get('view') === 'email' && params.get('compose') === 'new') emailUI.compose(); return true; }
       if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
       if (teamUI && params.get('view') === 'team') {
         tab('team');
@@ -206,6 +206,7 @@
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
       if (!prospectUI || !['prospects', 'linkedin'].includes(params.get('view'))) return false;
       tab('prospects');
+      if (params.get('form') === 'new') $('[data-prospect-add]')?.click();
       if (params.get('view') === 'linkedin') prospectUI.reveal();
       const profile = params.get('profile');
       if (profile && prospectUI.capture(profile, params.get('name') || '')) {

@@ -6,15 +6,22 @@
     if (className) out.className = className;
     return out;
   }
-  function mount({ api, review, context, navigate }) {
+  function mount({ api, review, context, navigate, changed }) {
     const host = document.querySelector('#coach-widget');
     if (!host) return;
     const panel = host.querySelector('#coach-popup'), launcher = host.querySelector('#coach-launch'), home = host.parentElement;
     const $ = s => panel.querySelector(s), form = $('#coach-form'), question = form.elements.question;
-    const send = form.querySelector('button'), status = $('#coach-status'), log = $('#coach-messages'), stream = $('#coach-stream');
+    const send = form.querySelector('[type="submit"]'), status = $('#coach-status'), log = $('#coach-messages'), stream = $('#coach-stream');
     const editor = $('#coach-goal-form'), edit = $('#coach-edit-goal'), goalStatus = $('#coach-goal-status'), reload = $('#coach-reload');
     const older = $('#coach-older'), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let identity, active = false, state, busy = false, key, version = 0, latestRequest = 0, pending, editingRevision = 0;
+    let mailTurnId, applied;
+    const nativeForms = window.SdrCoachControls?.forms();
+    function say(message, previewId) {
+      if (busy || !state) return;
+      pane(false); question.value = message; key = undefined; mailTurnId = previewId; controls(); form.requestSubmit();
+    }
+    const voice = window.SdrCoachControls?.voice($('#coach-mic'), say, message => announce(message));
     const switchKey = id => 'sdr.coach.open.' + id;
     function remember(open) { if (identity) { try { sessionStorage.setItem(switchKey(identity), String(open)); } catch {} } }
     function sync() {
@@ -35,6 +42,7 @@
       if (focus) (state && !question.disabled ? question : $('#coach-minimize')).focus({ preventScroll: true });
     }
     function minimize(focus = true) {
+      voice?.stop();
       active = false; panel.hidden = true; launcher.hidden = false; launcher.setAttribute('aria-expanded','false'); remember(false);
       if (focus) launcher.focus({ preventScroll: true });
     }
@@ -102,6 +110,24 @@
       if (href === '#view=coach') { pane(true); return; }
       try { await navigate(href); sync(); } catch (error) { pane(false); announce(error.message, true); }
     }
+    async function fillDraft(draft, originalForm) {
+      if (draft.type === 'goal') { openGoal(draft.fields); return; }
+      if (draft.type === 'workspaceForm') {
+        if (draft.recordId && context().officeId !== draft.recordId) await navigate('#view=pipeline&account=' + encodeURIComponent(draft.recordId));
+        await nativeForms.fill(draft, originalForm, navigate, context().view); return;
+      }
+      await review(draft);
+    }
+    function reviewedFields(turn) {
+      const draft = turn?.draft;
+      if (!draft || applied !== (turn.draftTurnId || turn.id)) return;
+      if (draft.recordId && context().officeId !== draft.recordId) return;
+      const selectors = { prospect: '#sales-business-prospect-form', activity: '#sales-activity', followup: '.sales-quick-followup', goal: '#coach-goal-form' };
+      const form = selectors[draft.type] && document.querySelector(selectors[draft.type]);
+      if (!form || (draft.type === 'goal' ? form.hidden : form.closest('[hidden]'))) return;
+      const fields = Object.fromEntries([...form.elements].filter(f => f.name && !f.disabled && !['file','hidden','password'].includes(f.type)).map(f => [f.name, f.value]));
+      return { type: draft.type, recordId: draft.recordId, fields };
+    }
     function renderTurn(turn) {
       const group = node('article', undefined, 'coach-turn');
       group.dataset.id = turn.id;
@@ -110,13 +136,13 @@
       const author = turn.mode === 'guide' ? 'Workspace guide · AI unavailable' : turn.mode === 'workflow' ? 'Workspace guide' : 'Tinky';
       response.append(node('strong', author, 'coach-author'), node('p', turn.answer));
       if (turn.draft) {
-        const labels = { prospect: 'Review prospect form', activity: 'Review activity', followup: 'Review follow-up', email: 'Review email draft', goal: 'Review goal' };
+        const labels = { prospect: 'Review prospect form', activity: 'Review activity', followup: 'Review follow-up', email: 'Review email draft', goal: 'Review goal', workspaceForm: 'Fill in form' };
         const button = node('button', labels[turn.draft.type] + (turn.draft.recordName ? ' · ' + turn.draft.recordName : ''), 'coach-review');
         button.type = 'button';
         button.onclick = async () => {
-          if (turn.draft.type === 'goal') { openGoal(turn.draft.fields); return; }
+          if (turn.draft.type === 'goal') { openGoal(turn.draft.fields); applied = turn.draftTurnId || turn.id; return; }
           button.disabled = true;
-          try { await review(turn.draft); minimize(false); }
+          try { await fillDraft(turn.draft); applied = turn.draftTurnId || turn.id; minimize(false); }
           catch (error) {
             announce(error.message, true);
             const visible = document.querySelector('#sales-detail-drawer:not([hidden]) #sales-detail-status') || document.querySelector('#sales-message');
@@ -124,6 +150,22 @@
           } finally { button.disabled = false; }
         };
         response.append(button);
+      }
+      if (turn.mail) {
+        const card = node('section', undefined, 'coach-mail-preview');
+        card.append(node('strong', 'From ' + (turn.mail.entries[0]?.from || 'your sales mailbox')));
+        for (const entry of turn.mail.entries) {
+          const details = node('details'); details.open = turn.mail.entries.length === 1;
+          details.append(node('summary', entry.name + ' · ' + entry.to), node('strong', entry.subject), node('p', entry.body)); card.append(details);
+        }
+        if (turn.mail.omitted.length) card.append(node('p', 'Excluded: ' + turn.mail.omitted.join(', ')));
+        if (!turn.mail.configured) card.append(node('p', 'Connect your business mailbox in Senders to deliver this message.'));
+        const deliver = node('button', turn.mail.entries.length === 1 ? 'Send this email' : 'Send ' + turn.mail.entries.length + ' individual emails', 'coach-review');
+        deliver.type = 'button'; deliver.onclick = () => {
+          if (state?.turns.at(-1)?.id !== turn.id) { announce('This preview is from an earlier turn. Ask for a fresh draft.', true); return; }
+          say('Send it', turn.id);
+        };
+        card.append(deliver); response.append(card);
       }
       if (turn.navigation) {
         const button = node('button', 'Open ' + turn.navigation.title, 'coach-review'); button.type = 'button';
@@ -167,7 +209,7 @@
       }
     }
     function reset() {
-      minimize(false); pane(false); host.hidden = true;
+      minimize(false); pane(false); host.hidden = true; applied = mailTurnId = undefined;
       version++; latestRequest++; identity = undefined; state = pending = key = undefined; busy = false;
       log.replaceChildren(); question.value = ''; goalStatus.textContent = ''; $('#coach-next').replaceChildren();
       $('#coach-goal-summary').replaceChildren(); editor.reset(); closeGoal(); older.hidden = reload.hidden = true; announce(''); controls();
@@ -209,7 +251,7 @@
         if (generation === version) { goalStatus.textContent = error.message; if (error.status === 409) { closeGoal(); await loadState(); } }
       } finally { button.disabled = false; }
     };
-    question.oninput = () => { key = undefined; controls(); };
+    question.oninput = () => { key = undefined; mailTurnId = undefined; controls(); };
     for (const prompt of panel.querySelectorAll('[data-prompt]')) prompt.onclick = () => {
       question.value = prompt.dataset.prompt; key = undefined; controls(); question.focus();
     };
@@ -226,18 +268,26 @@
       busy = true; reload.hidden = true; pending = node('p', message, 'coach-question'); log.append(pending);
       controls(); announce('Tinky is working on your question…'); stream.scrollTop = stream.scrollHeight;
       try {
-        const here = context();
-        const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone,
-          screen: { view: here.view, care: here.care, form: here.form, officeId: here.officeId, prospect: here.prospect } });
+        const here = context(), activeForm = nativeForms?.current();
+        const reviewed = /^(?:please )?(?:save|record) (?:it|this|that|the )/i.test(message) ? reviewedFields(state.turns.at(-1)) : undefined;
+        const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone, mailTurnId, reviewed,
+          screen: { view: here.view, care: here.care, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm } });
         if (generation !== version) return;
         pending.remove(); pending = null;
         if (!state.turns.some(item => item.id === turn.id)) { state.turns.push(turn); log.append(renderTurn(turn)); }
-        question.value = ''; key = undefined; announce(''); stream.scrollTop = stream.scrollHeight;
+        question.value = ''; key = mailTurnId = undefined; announce(''); stream.scrollTop = stream.scrollHeight;
         if (turn.navigation && active && context().view === here.view && context().officeId === here.officeId) go(turn.navigation.href);
+        if (turn.apply && turn.draft && active && context().view === here.view && context().officeId === here.officeId) {
+          try { await fillDraft(turn.draft, activeForm); applied = turn.draftTurnId || turn.id; announce('Filled in the workspace. Review the fields before saving.'); }
+          catch (error) { announce(error.message, true); }
+        }
+        if (turn.saved) { applied = undefined; if (turn.saved.type === 'goal') closeGoal(); await changed?.(); await loadState(); }
+        if (active) voice?.answer(turn);
         if (active && panel.contains(document.activeElement)) question.focus({ preventScroll: true });
       } catch (error) {
         if (generation !== version) return;
         if ([401,403].includes(error.status)) reset();
+        voice?.stop();
         announce(error.message, true); reload.hidden = error.status !== 409;
       } finally {
         if (generation === version) { pending?.remove(); pending = null; busy = false; controls(); }
