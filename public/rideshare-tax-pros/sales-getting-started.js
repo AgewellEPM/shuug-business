@@ -59,7 +59,7 @@
           if (dialog.open && loaded && loaded !== target) { target = loaded; scrollToTarget(); schedule(); }
         }, 430);
       }
-      scrollToTarget(); schedule();
+      scrollToTarget(); locate();
     }
     function scrollToTarget() {
       const box = target?.getBoundingClientRect();
