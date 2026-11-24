@@ -22,10 +22,8 @@ export function renderWorkspace(profile, signIn) {
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source, seniorCare = false) {
     let sales = source
-      .replace('</head>', '<link rel="stylesheet" href="/sales-booking.css"></head>')
-      .replace('<script src="/sales.js"', '<script src="/booking-ui.js" defer></script><script src="/sales-booking.js" defer></script><script src="/sales.js"')
-      .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"></head>')
-      .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales.js"')
+      .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"><link rel="stylesheet" href="/facility-reviews.css"><link rel="stylesheet" href="/sales-booking.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/booking-ui.js" defer></script><script src="/sales-booking.js" defer></script><script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/facility-reviews.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
       .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}${seniorCare ? ' data-care-crm' : ''}>`)
       .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')
@@ -55,6 +53,15 @@ export function renderWorkspace(profile, signIn) {
   const pages = new Map([
     ['/book', clientBookingPage(profile.name)], ['/book/connect', connectionPage(profile.name)], ['/book/api', bookingAPIGuide(profile.name)],
     ['/sales', salesPage(legacy.find(page => page.slug === 'sales').html)],
+    ['/sales/review-data', frame('Google Maps review data', `<article class="sales-panel">
+      <h1>Google Maps review data</h1>
+      <h2>Terms of use</h2>
+      <p>Google Maps content is subject to the <a href="https://maps.google.com/help/terms_maps/" rel="noreferrer">Google Maps End User Additional Terms of Service</a>.</p>
+      <h2>Privacy</h2>
+      <p>Opening the reviews panel with Google Places connected sends the facility’s name and public address to Google to identify the listing. Your sales contact details and notes stay in the workspace. The app displays the ratings and reviews for the current profile without saving them to the workspace.</p>
+      <p>See the <a href="https://policies.google.com/privacy" rel="noreferrer">Google Privacy Policy</a> and <a href="https://support.google.com/contributionpolicy/answer/7422880" rel="noreferrer">Google Maps review policy</a>.</p>
+      <p><a href="/sales">Return to the sales workspace</a></p>
+    </article>`)],
     ['/office-signup', frame('Private agreement', branded(signup), '<script src="/contract-signature.js" defer></script><script src="/sales.js" defer></script>')],
   ]);
   if (careWorkspace) {

@@ -162,7 +162,8 @@
     const draftStatus = dialog.querySelector('[data-facility-outreach-status]');
     const link = (href, text) => window.SdrTerritoryFacilities?.sourceLink(href, text);
     const textNode = (tag, text) => { const element = document.createElement(tag); element.textContent = text; return element; };
-    let request = 0;
+    let request = 0, prepareOutreach;
+    const reviews = window.SdrFacilityReviews.mount(dialog, api, focus => void prepareOutreach?.(focus));
 
     function draftCard(draft, index) {
       const card = document.createElement('details');
@@ -192,31 +193,42 @@
     function setupOutreach(facility, category, people) {
       draftPanel.hidden = true;
       draftList.replaceChildren();
-      outreach.hidden = !facility.sourceURL || !people.some(person => person?.email);
+      const canDraft = Boolean(facility.sourceURL && people.some(person => person?.email));
+      outreach.hidden = !canDraft;
       outreach.disabled = false;
-      outreach.onclick = async () => {
+      reviews.allowDraft(canDraft);
+      let draftFocus;
+      prepareOutreach = async focus => {
+        if (!canDraft || outreach.disabled) return;
         draftPanel.hidden = false;
         draftPanel.querySelector('h3').focus();
-        if (draftList.childElementCount) return;
+        if (draftFocus === focus && draftList.childElementCount) return;
         const active = request;
         outreach.disabled = true;
+        reviews.allowDraft(canDraft, true);
         draftStatus.textContent = 'Preparing a separate draft for each eligible contact…';
         try {
-          const { drafts, skipped } = await api('facility-outreach-drafts', {
-            state: facility.state, category, sourceURL: facility.sourceURL,
+          const { drafts, skipped, focus: draftTopic } = await api('facility-outreach-drafts', {
+            state: facility.state, category, sourceURL: facility.sourceURL, communicationFocus: focus,
           });
           if (active !== request) return;
+          draftFocus = focus;
           draftList.replaceChildren(...drafts.map(draftCard));
           draftStatus.textContent = drafts.length
             ? `${drafts.length} individual ${drafts.length === 1 ? 'draft' : 'drafts'} ready. No email sent.`
+              + (draftTopic ? ` Focus · ${draftTopic}.` : '')
               + (skipped ? ` ${skipped} ${skipped === 1 ? 'contact excluded' : 'contacts excluded'}.` : '')
             : 'No contacts with eligible business email addresses.';
         } catch (error) {
           if (active === request) draftStatus.textContent = error.message || 'Could not prepare drafts. Try again.';
         } finally {
-          if (active === request) outreach.disabled = false;
+          if (active === request) {
+            outreach.disabled = false;
+            reviews.allowDraft(canDraft);
+          }
         }
       };
+      outreach.onclick = () => void prepareOutreach(draftFocus ?? reviews.focus());
     }
 
     function appendFact(parent, label, value, url, sourceName = 'Source') {
@@ -246,12 +258,12 @@
       parent.append(button);
     }
 
-    function render(facility, category, personName, loading = false) {
+    function render(facility, category, personName, { loading = false, officeId } = {}) {
       const { profile = {}, cms, administrator } = facility;
       find('location').textContent = [[facility.city, facility.state].filter(Boolean).join(', '), types[category]].filter(Boolean).join(' · ');
       find('title').textContent = facility.name;
-      find('description').textContent = profile.description || (category === 'nursing-home'
-        ? 'Medicare or Medicaid-certified nursing facility.' : 'Community facility listed in OpenStreetMap.');
+      find('description').textContent = profile.description || (cms ? 'Medicare or Medicaid-certified nursing facility.'
+        : facility.sourceURL && category === 'senior-center' ? 'Community facility listed in OpenStreetMap.' : 'Saved prospect.');
       const facts = find('facts');
       facts.replaceChildren();
       if (cms) {
@@ -270,6 +282,7 @@
       if (address) appendFact(facts, 'Address', address, facility.sourceURL, facility.sourceName || 'Directory');
       const sourceLinks = find('links');
       sourceLinks.replaceChildren(...[link(profile.website || facility.website, 'Facility website'), link(facility.sourceURL, facility.sourceName || 'Directory record')].filter(Boolean));
+      reviews.target(facility, officeId ? { officeId } : { state: facility.state, category, sourceURL: facility.sourceURL });
       const people = profile.people || [];
       setupOutreach(facility, category, loading ? [] : [administrator, ...people]);
       if (loading) {
@@ -316,7 +329,9 @@
       dialog.querySelector('.facility-profile-body').scrollTop = 0;
     }
     find('close').onclick = () => dialog.close();
-    dialog.addEventListener('close', () => { request++; });
+    dialog.addEventListener('close', () => {
+      if (!dialog.open) { request++; reviews.reset(); }
+    });
     return {
       open(row, category, personName) {
         request++;
@@ -328,16 +343,18 @@
         const row = { name: record.name, state: record.state, city: office.locality, address: metadata.address, zip: metadata.postalCode,
           phone: office.contact_phone, email: office.contact_email, website: metadata.website, administrator: metadata.facilityAdministrator,
           sourceURL: metadata.facilitySource };
+        const options = { officeId: record.id, loading: Boolean(row.sourceURL) };
         const active = ++request;
-        render(row, record.type, row.administrator?.name, true);
+        render(row, record.type, row.administrator?.name, options);
         show();
+        if (!row.sourceURL) { reviews.show(); return; }
         try {
           const page = await api('territory-facilities', { state: row.state, category: record.type, sourceURL: row.sourceURL });
           if (active !== request) return;
-          render(page.results[0] || row, record.type, row.administrator?.name);
+          render(page.results[0] || row, record.type, row.administrator?.name, { officeId: record.id });
         } catch {
           if (active !== request) return;
-          render(row, record.type, row.administrator?.name);
+          render(row, record.type, row.administrator?.name, { officeId: record.id });
           find('team-status').textContent = 'Public profile unavailable. Showing the saved facility record.';
         }
       },
@@ -634,7 +651,8 @@
           <button type="button" class="button primary" data-prospect-action="followup" ${paused ? 'disabled' : ''}>${icon('date')} Schedule follow-up</button>
           <button type="button" class="button secondary" data-prospect-action="email" ${paused || !office.contact_email ? 'disabled' : ''}>${icon('mail')} Draft email</button>
           <button type="button" class="button secondary" data-prospect-action="call">Log call</button>
-          ${row.metadata.facilitySource ? '<button type="button" class="button secondary" data-prospect-action="facility-profile">Facility profile</button>' : ''}
+          ${row.metadata.facilitySource || (office.locality && row.state)
+            ? `<button type="button" class="button secondary" data-prospect-action="facility-profile">${row.metadata.facilitySource ? 'Facility profile' : 'Google reviews'}</button>` : ''}
         </div>
         <p class="prospects-muted" data-prospect-action-status role="status"></p>
         <div data-prospect-action-form></div>
