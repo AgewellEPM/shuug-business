@@ -42,11 +42,19 @@ export function createHandler(env = process.env, adapter, tools = {}) {
         if (Buffer.byteLength(raw) > 16000) throw new HttpError(413, 'This request is too large.');
         body = JSON.parse(raw);
       } else {
-        let raw = ''; for await (const chunk of req) { raw += chunk; if (Buffer.byteLength(raw) > 16000) throw new HttpError(413, 'This request is too large.'); }
-        body = JSON.parse(raw);
+        const chunks = [];
+        let size = 0;
+        for await (const chunk of req) {
+          size += Buffer.byteLength(chunk);
+          if (size > 16000) throw new HttpError(413, 'This request is too large.');
+          chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+        }
+        body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
       }
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'Invalid request.');
-      const app = service(env, adapter || backend(env), undefined, tools);
+      const disconnect = body.action === 'chat-watch' && tools.teamChat ? new AbortController() : null;
+      if (disconnect) res.once('close', () => disconnect.abort());
+      const app = service(env, adapter || backend(env), undefined, disconnect ? { ...tools, requestSignal: disconnect.signal } : tools);
       if (sharedEntry) {
         if (body.action === 'workspace-entry' && typeof body.ticket === 'string' && /^[a-f0-9]{64}$/.test(body.ticket)) {
           const result = await app.enterWorkspace(body.ticket);
@@ -75,7 +83,8 @@ export function createHandler(env = process.env, adapter, tools = {}) {
       }
       if (['signup-view', 'signup-accept', 'signup-confirm', 'signup-sign', 'signup-receipt'].includes(body.action)) return reply(200, await app.signup(body.action.slice(7), body));
       const user = await app.identity(cookie);
-      return reply(200, await app.dispatch(user, body.action, body));
+      const result = await app.dispatch(user, body.action, body);
+      if (!res.destroyed) return reply(200, result);
     } catch (error) {
       const status = error.status || (error instanceof SyntaxError || error instanceof TypeError ? 400 : 502);
       reply(status, { error: error instanceof HttpError ? error.message : status === 400 ? 'Check your request and try again.' : 'The backend did not confirm this operation. Refresh before trying again.' });

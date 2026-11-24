@@ -25,6 +25,7 @@ import { directoryFacility, stateFacilityDirectory } from '../../sales/state-fac
 import { googleFacilityReviews } from '../../sales/facility-reviews.mjs';
 import { facilityOutreach } from './facility-outreach.mjs';
 import { initialize, privateValue } from './setup.mjs';
+import { repEmailWorkspace } from './mail/workspace.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const profile = profileAt(root);
@@ -95,6 +96,7 @@ const sales = createHandler(env, db, {
   localDiscovery: catalogue ? { catalogue, placeLookup: async () => null } : undefined,
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
+  repEmail: repEmailWorkspace(db, sessionKey, process.env),
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
@@ -106,6 +108,7 @@ const sales = createHandler(env, db, {
   territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,
+  teamChat: db.chat,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -177,5 +180,6 @@ const scheduler = setInterval(() => {
 scheduler.unref();
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
   clearInterval(scheduler);
+  db.chat.close();
   server.close(async () => { await scheduledRun; db.close(); });
 });

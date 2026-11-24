@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import { randomUUID } from 'node:crypto';
+import { DatabaseSync } from 'node:sqlite';
+import { test } from 'node:test';
+import { teamChat } from './team-chat.mjs';
+
+test('channel history pages meet without gaps and each reader advances independently', t => {
+  const db = new DatabaseSync(':memory:');
+  const chat = teamChat(db);
+  t.after(() => { chat.close(); db.close(); });
+  const owner = { id: 'owner', name: 'Workspace owner', role: 'owner' };
+  const rep = { id: '12', name: 'Sales rep', role: 'agent' };
+  const send = (user, channel, body) => chat.dispatch(user, 'chat-send', { channel, body, requestId: randomUUID() }).id;
+  const ids = Array.from({ length: 105 }, (_, index) => {
+    send(rep, 'wins', 'Another channel');
+    return send(index % 2 ? rep : owner, 'general', 'Message ' + index);
+  });
+  const sync = (user, options = {}) => chat.dispatch(user, 'chat-sync', { channel: 'general', ...options });
+  const last = sync(rep);
+  assert.deepEqual(last.messages.map(r => r.id), ids.slice(-50));
+  assert.equal(last.hasMore, true);
+  const prior = chat.dispatch(rep, 'chat-history', { channel: 'general', before: last.messages[0].id });
+  const first = chat.dispatch(rep, 'chat-history', { channel: 'general', before: prior.messages[0].id });
+  assert.equal(first.hasMore, false);
+  assert.deepEqual([...first.messages, ...prior.messages, ...last.messages].map(r => r.id), ids);
+  const forward = sync(rep, { after: 0 });
+  assert.deepEqual(forward.messages.map(r => r.id), ids.slice(0, 50));
+  assert.deepEqual(sync(rep, { after: forward.messages.at(-1).id }).messages.map(r => r.id), ids.slice(50, 100));
+  const general = user => sync(user).channels.find(c => c.slug === 'general');
+  assert.deepEqual([general(owner).unread, general(rep).unread], [52, 53]);
+  chat.dispatch(rep, 'chat-seen', { channel: 'general', through: ids[30] });
+  chat.dispatch(rep, 'chat-seen', { channel: 'general', through: ids[1] });
+  assert.equal(general(rep).seen, ids[30]);
+  assert.equal(general(rep).unread, 37);
+  assert.equal(general(owner).unread, 52);
+  assert.throws(() => chat.dispatch(rep, 'chat-seen', { channel: 'wins', through: ids[30] }), { status: 404 });
+  assert.throws(() => chat.dispatch({ ...rep, role: 'location' }, 'chat-sync', {}), { status: 403 });
+  for (const body of ['   ', 'x'.repeat(2001)]) assert.throws(() => send(rep, 'general', body), { status: 400 });
+  const request = { channel: 'general', body: 'Original', requestId: randomUUID() };
+  chat.dispatch(rep, 'chat-send', request);
+  assert.throws(() => chat.dispatch(rep, 'chat-send', { ...request, body: 'Changed' }), { status: 409 });
+});

@@ -1,6 +1,8 @@
 import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
+import { mailStore } from './mail/store.mjs';
+import { teamChat } from './team-chat.mjs';
 
 const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests']);
 function kindFor(kind) {
@@ -84,7 +86,10 @@ export function sqliteStore(filename) {
     });
   }
 
+  const chat = teamChat(db);
   return {
+    repMail: mailStore(db, writeTransaction),
+    chat,
     list: kind => all.all(kindFor(kind)).map(decode),
     get,
     create(kind, body) {
@@ -141,6 +146,6 @@ export function sqliteStore(filename) {
     setSupport: value => save.run('support', JSON.stringify(value)),
     lastResearch: userId => JSON.parse(setting.get('research-' + userId)?.value ?? 'null'),
     setLastResearch: (userId, value) => save.run('research-' + userId, JSON.stringify(value)),
-    close: () => db.close(),
+    close: () => { chat.close(); db.close(); },
   };
 }
