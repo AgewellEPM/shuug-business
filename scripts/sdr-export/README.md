@@ -114,41 +114,50 @@ The owner calendar starts with 30-minute sales appointments and 45-minute demos,
 
 - **Google Calendar and Microsoft Outlook.** Register a web OAuth app and its exact redirect URI, `<SDR_ORIGIN>/book/connect`. Enable the Google Calendar API with the Calendar events scope, or Microsoft Graph delegated `Calendars.ReadWrite` with offline access. Configure `SDR_GOOGLE_CALENDAR_CLIENT_ID` and `SDR_GOOGLE_CALENDAR_CLIENT_SECRET`, or `SDR_MICROSOFT_CALENDAR_CLIENT_ID` and `SDR_MICROSOFT_CALENDAR_CLIENT_SECRET`, on the server. Each rep signs into their own provider from Connections. One primary calendar per rep supplies busy times and receives appointment changes and client invitations. Connecting also queues future bookings already on the schedule. When the provider cannot confirm availability, the connected rep’s booking page asks the client to retry. [Google Calendar events](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert) · [Microsoft calendar view](https://learn.microsoft.com/en-us/graph/api/user-list-calendarview?view=graph-rest-1.0) · [Microsoft events](https://learn.microsoft.com/en-us/graph/api/user-post-events?view=graph-rest-1.0)
 - **Apple Calendar and other subscriptions.** Create a private iCalendar feed in Connections. The subscriber controls its refresh frequency. Turning off the feed invalidates the link.
-- **Email.** Connect a business mailbox in **Senders**, then select **Use my mailbox for bookings** in the rep’s Calendar connections. Reconnecting an account requires turning booking emails on for that account again. Alternatively, configure Mailgun and approve a sender in **Senders**. A rep-specific Mailgun sender takes priority over a shared one. Clients and reps receive confirmation, reschedule and cancellation messages. Without a connected calendar provider, booking email includes an ICS attachment. The calendar shows provider acceptance and signed Mailgun delivery receipts separately.
+- **Email.** With the assigned Zoho mailbox authorized, select **Use my mailbox for bookings** in Calendar connections. If the assigned sender changes, re-enable booking email for the new address. Alternatively, configure Mailgun and approve a sender in **Senders**. A rep-specific Mailgun sender takes priority over a shared one. Clients and reps receive confirmation, reschedule and cancellation messages. Without a connected calendar provider, booking email includes an ICS attachment. The calendar shows provider acceptance and signed Mailgun delivery receipts separately.
 - **Other APIs.** In **Connections → Add an API connection**, enter an HTTPS webhook and an optional bearer token. Copy the signing secret into the receiving service. A rep can subscribe to their own bookings and the owner can subscribe the whole workspace. Open `/book/api` for public availability, booking operations, webhook payloads, signature verification, retries and server-managed endpoints. Each appointment shows its current delivery status.
 
 Use the workspace’s hosted HTTPS origin for clients on other devices. Keep the workspace database and its session key together during backup and restore. The key protects private links, saved webhook credentials and calendar refresh tokens.
 
-## Rep email
+## Business email
 
-For a new export install the mail dependencies with
-`npm ci --prefix scripts/sdr-export/mail --ignore-scripts`. Sign in as yourself,
-open **Sales team → Senders → My business mailbox**, and choose your provider. Reps connect
-the business address they use to sign in. Enter a provider-generated app
-password and select **Verify and connect**. Gmail and Google Workspace accounts
-need to allow app passwords. iCloud Mail and Fastmail also have built-in
-presets. [Google instructions](https://support.google.com/accounts/answer/185833) ·
-[iCloud instructions](https://support.apple.com/en-us/102654) ·
-[Fastmail instructions](https://www.fastmail.help/hc/en-us/articles/360058752854)
+**Sales team → Email** opens the signed-in rep’s assigned Zoho Mail account. Inbox, Sent, Trash and Zoho drafts come from Zoho. The workspace also keeps private, editable drafts across CRM and desktop-client sessions. **Owners & Rolodex** and facility **Quick Email** open the same composer. It supports replies, forwarding, Cc, Bcc, attachments up to 4 MB combined, and downloads up to 5 MB each. Accepted submissions to linked contacts appear in office history.
 
-**Email** opens Inbox, Sent and workspace Drafts. Choose a recipient from the
-Rolodex in the composer, or select **Email** or **Email history** on a saved
-contact. Reading and sending use the signed-in rep’s verified mailbox over
-TLS. The workspace saves unfinished drafts privately and records provider
-acceptance in the linked office history. Check Sent or the provider’s webmail
-for an unconfirmed submission. Email displays plain text and supports
-attachment downloads on messages up to 6 MB. Open provider webmail
-for larger messages or to attach a file to an outgoing email.
+The owner can authorize the installation once in **Senders → Workspace mail authorization**. In the Zoho API Console, use **Self Client → Generate Code**, request the scopes below, and download the JSON. The CRM exchanges the short-lived code, verifies the owner’s actual Inbox, and saves the grant in the private workspace directory. A local operator can also import the same file with `npm run mail:authorize -- /path/to/self_client.json owner@example.com`. [Zoho Self Client authorization](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html)
 
-For another app-password provider, the server operator can set
-`SDR_MAIL_IMAP_HOST`, `SDR_MAIL_SMTP_HOST`, optional `SDR_MAIL_IMAP_PORT`
-(default 993), and optional `SDR_MAIL_SMTP_PORT` (implicit TLS by default,
-STARTTLS on port 587).
-Use `SDR_MAIL_SMTP_SAVES_SENT=1` if the provider automatically stores a copy
-of SMTP submissions in Sent. Accounts that require OAuth-only access,
-including Microsoft 365 and Outlook.com, require a separate integration.
-The **Contract & campaign senders** section continues to use the
-configured Mailgun provider or the reviewed external email flow.
+For a centrally managed installation, the workspace operator supplies the company’s existing Zoho OAuth client and an authorized offline grant on the server. Use the grant’s region and scopes `ZohoMail.accounts.READ`, `ZohoMail.folders.READ`, and `ZohoMail.messages.ALL`. An organization account lookup also needs `ZohoMail.organization.accounts.READ`. Zoho must permit the grant to access the particular mailbox and send as that address. Use an authorized mailbox-specific grant when the company grant has insufficient access. [Zoho Mail OAuth](https://www.zoho.com/mail/help/api/using-oauth-2.html) · [Zoho Mail delegation](https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html)
+
+Place the configuration in `workspace-data/zoho-mail.json` with mode `0600`, or set `SDR_ZOHO_CONFIG_FILE` to its private location. The server reads it on demand. The following example uses placeholders.
+
+```json
+{
+  "region": "us",
+  "clientId": "<Zoho OAuth client ID>",
+  "clientSecret": "<Zoho OAuth client secret>",
+  "refreshToken": "<company-authorized refresh token>",
+  "ownerAddress": "office@example.com"
+}
+```
+
+The server also accepts `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, `SDR_ZOHO_REGION`, `SDR_ZOHO_OWNER_ADDRESS` and optional `SDR_ZOHO_ORG_ID`. Owner-issued rep accounts automatically use their business sign-in email. For a different assigned address, a team-lead invitation, or a mailbox-specific grant, add an entry under `mailboxes` keyed by the immutable CRM member ID, for example `"42": {"address":"rep@example.com","refreshToken":"<authorized grant>"}`. An optional `accountId` selects a specific Zoho account. The server verifies the primary address before accessing any mail. Reps only sign into the CRM.
+
+### Mailbox API
+
+A native client can reuse its existing CRM session with `POST /api/sales/mail/v1`. Send the workspace Origin, its private sales session cookie and an `application/json` body. Account selection is server-side. The browser uses this same endpoint.
+
+| Action | Request fields | Result |
+| --- | --- | --- |
+| `rep-email-settings` | — | Assigned address, configured state, API version |
+| `rep-email-list` | `folder` (inbox, sent, drafts, trash), optional `query`, `contact`, `cursor` | Messages and next cursor |
+| `rep-email-read` | `folder`, `id` | Message, attachment metadata, optional reply fields |
+| `rep-email-download` | `folder`, `id`, zero-based `index` | Filename and Base64 content |
+| `rep-email-change` | `folder`, `id`, `operation` (read, unread, trash, restore) | Confirmed change |
+| `rep-email-drafts` | — | Private workspace drafts |
+| `rep-email-save` | UUID `id`, `revision` (0 for new), `to`, `subject`, `body`, optional `cc`, `bcc`, `files`, `link`, `replyToken` | Saved draft and next revision |
+| `rep-email-discard` | Workspace draft `id`, `revision` | Discard confirmation |
+| `rep-email-send` | Workspace draft `id`, `revision` | Accepted by Zoho, rejected, or unconfirmed |
+
+Send new files as `{ "name": "notes.txt", "base64": "SGVsbG8=" }`. Reuse the returned file IDs on subsequent saves. A linked Rolodex contact uses `{ "officeId": "...", "contactId": "..." }`. To reply, pass the recipient, subject and reply token returned by reading that message. After an unconfirmed submission, review Sent before attempting another send. [Zoho Mail message APIs](https://www.zoho.com/mail/help/api/email-api.html)
 
 ## Campaigns
 

@@ -15,7 +15,8 @@
     targets.filter(Boolean).forEach(el => { el.textContent = message; el.dataset.error = error; });
   };
   async function api(action, body = {}, signal) {
-    const r = await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', signal, body: JSON.stringify({ ...body, action }) });
+    const endpoint = action.startsWith('rep-email-') ? '/api/sales/mail/v1' : '/api/sales';
+    const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', signal, body: JSON.stringify({ ...body, action }) });
     const result = await r.json();
     if (!r.ok) { const error = new Error(result.error || 'The request did not finish.'); error.status = r.status; throw error; }
     return result;
@@ -229,7 +230,8 @@
     }
     function renderIdentity() {
       const name = data.repProfile?.name || data.user.name;
-      $('#sales-name').textContent = name;
+      const label = $('#sales-name');
+      if (label) label.textContent = name;
       const profile = $('[data-sdr-own-profile]');
       if (!profile) return;
       $('[data-profile-name]', profile).textContent = name;
@@ -243,7 +245,9 @@
     }
     async function refresh() {
       data = await api('bootstrap');
-      $('#sales-login').hidden = true; $('#sales-workspace').hidden = false; $('#sales-identity').hidden = false;
+      $('#sales-login').hidden = true; $('#sales-workspace').hidden = false;
+      const identity = $('#sales-identity');
+      if (identity) identity.hidden = false;
       renderIdentity();
       todayUI?.render(data);
       if ($('#sales-gate')) $('#sales-gate').hidden = true;

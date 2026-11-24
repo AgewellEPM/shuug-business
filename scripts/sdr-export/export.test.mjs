@@ -816,6 +816,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.elements.to.value, 'sbowling@limestonehf.com');
     assert.equal(email.elements.body.value, reviewedDraft);
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
+    assert.equal(pageDocument.querySelector('.sdr-topbar, #sdr-header-search, #sales-identity, [data-mail-connect]'), null);
+    assert.ok(pageDocument.querySelector('.sdr-sidebar #sales-logout'));
+    const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
+      headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });
+    const settings = await (await mailApi('rep-email-settings')).json();
+    assert.equal(settings.mailbox.provider, 'zoho');
+    assert.equal(settings.apiVersion, 1);
+    assert.equal((await mailApi('login')).status, 404);
     assert.deepEqual((await owner.api('rep-email-drafts')).drafts, []);
     pageDocument.querySelector('[data-tab="prospects"]').click();
     listing.rows[1].querySelector('[data-open-facility-profile]').click();

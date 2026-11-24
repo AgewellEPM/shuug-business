@@ -137,7 +137,7 @@ export function salesTeamTools(db, audit, owner) {
     const scope = chosen.size ? intersect(new Map([...chosen].map(state => [state, null])), parent.scope) : parent.scope;
     const code = secret(), fields = territoryFields(scope, parent.structured);
     const row = db.create('agents', { town: `Sales agent ${secret().slice(0, 12)}`, contact_name: name, contact_email: address,
-      status: 'active', notes: JSON.stringify({ codeHash: digest(code), parentId: rootId, ...fields }) });
+      status: 'active', notes: JSON.stringify({ codeHash: digest(code), parentId: rootId, invitedBy: user.id, ...fields }) });
     audit(user, `agent:${row.id}`, 'sales_team_member_invited', { agentId: idOf(row), parentId: rootId });
     return { agent: { ...publicMember(row, { active: true, scope, structured: parent.structured }, user.id), role: 'agent' }, code };
   }
