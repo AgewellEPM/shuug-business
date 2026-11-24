@@ -21,8 +21,10 @@ export function renderWorkspace(profile, signIn) {
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source, seniorCare = false) {
-    const demoStyle = careWorkspace ? '<link rel="stylesheet" href="/sales-demo.css">' : '';
-    const demoScript = careWorkspace ? '<script src="/sales-demo.js" defer></script>' : '';
+    const demoStyle = careWorkspace ? ['sales-demo','care-hub','care-locations','care-facility','care-stroke','care-library']
+      .map(name => `<link rel="stylesheet" href="/${name}.css">`).join('') : '';
+    const demoScript = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosks','sales-demo','care-hub']
+      .map(name => `<script src="/${name}.js" defer></script>`).join('') : '';
     let sales = source
       .replace('</head>', demoStyle + '</head>')
       .replace('<script src="/sales.js"', demoScript + '<script src="/sales.js"')
