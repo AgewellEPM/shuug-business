@@ -1590,6 +1590,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
 
+  await t.test('Products opens from the rail, searches catalog sections, compares devices, and starts a quote request', async t => {
+    const productsWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=products&section=phones');
+    const find = selector => productsWindow.document.querySelector(selector);
+    const pane = find('[data-tab-panel="products"]');
+    await waitFor(() => !pane.hidden, 'Products did not open from its deep link');
+    assert.equal(find('[data-product-device="phones"]').hidden, false);
+    assert.ok(find('[data-product-device="tablets"]').hidden);
+    find('.sdr-nav [data-tab="products"]').click();
+    assert.equal(find('[data-product-device="tablets"]').hidden, false);
+    const search = find('[data-product-search] input');
+    search.value = 'charging dock';
+    search.dispatchEvent(new productsWindow.Event('input', { bubbles: true }));
+    const results = [...pane.querySelectorAll('[data-product-result]:not([hidden]) a')];
+    const accessories = results.find(link => link.textContent.trim() === 'Accessories');
+    assert.ok(accessories);
+    accessories.click();
+    assert.equal(find('[data-product-pane="accessories"]').hidden, false);
+    assert.ok(find('[data-product-results]').hidden);
+    find('[data-product-tab="compare"]').click();
+    assert.equal(find('[data-product-pane="compare"]').hidden, false);
+    assert.match(find('.products-table-wrap table').textContent, /Larger landscape touchscreen/);
+    assert.equal(find('.products-cta a').getAttribute('href'), '/book?type=demo');
+
+    const before = (await owner.api('support-requests')).requests.length;
+    find('[data-product-tab="packages"]').click();
+    find('[data-product-package-open="care"]').click();
+    assert.ok(find('[data-product-dialog]').open);
+    assert.equal(find('#products-dialog-title').textContent, 'Care Package');
+    find('[data-product-package-detail="care"] [data-product-dialog-quote]').click();
+    const quote = await waitFor(() => find('[data-support-form="create"]'), 'Quote request form did not open');
+    assert.equal(quote.elements.subject.value, 'Quote request for the Care Package');
+    assert.equal(quote.elements.category.value, 'billing');
+    assert.equal((await owner.api('support-requests')).requests.length, before);
+    quote.elements.message.value = 'Synthetic facility needs a tablet and two bedside devices.';
+    quote.requestSubmit();
+    await waitFor(() => find('.support-thread')?.textContent.includes('two bedside devices'), 'Quote request was not recorded');
+    const { requests } = await owner.api('support-requests');
+    assert.equal(requests.length, before + 1);
+    assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
+  });
+
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
     const path = '/sales';
     const before = await owner.api('bootstrap');
