@@ -1,5 +1,6 @@
 import { HttpError, metadata, text, visible } from '../../sales/model.mjs';
 import { officeOutreachBlocked } from '../../sales/outreach-preferences.mjs';
+import { progressProjection } from '../../sales/pipeline.mjs';
 
 export const goalMetrics = { prospects: 'Prospects added', meetings: 'Meetings scheduled', calls: 'Calls logged', agreements: 'Agreements signed' };
 export function validDate(value) {
@@ -73,18 +74,22 @@ export function accountContext(db, user, question, history, recommendations) {
     .sort((a, b) => b.score - a.score || String(b.row.updated_at).localeCompare(String(a.row.updated_at))).slice(0, 10);
   const events = new Map(rows.map(({ row }) => [String(row.id), []]));
   for (const event of db.list('events')) {
-    const list = events.get(String(event.assigned_to));
-    if (!list) continue;
-    const info = metadata(event);
-    if (['note','call','meeting','email','progress_recorded'].includes(info.action)) {
-      const note = typeof info.detail === 'string' ? info.detail : info.detail?.note;
-      if (note) list.push({ type: info.action, date: event.created_at?.slice(0, 10), note: note.slice(0, 220) });
-    }
+    events.get(String(event.assigned_to))?.push(event);
   }
+  const contracts = new Map(rows.map(({ row }) => [String(row.id), []]));
+  for (const agreement of db.list('enrollments')) contracts.get(String(metadata(agreement).leadId))?.push(agreement);
   return rows.map(({ row }) => {
-    const info = metadata(row);
-    return { id: String(row.id), name: row.town, city: row.locality, state: row.state, stage: row.status,
-      nextFollowup: row.meeting_date || '', nextAction: String(info.progress?.nextAction || '').slice(0, 260),
-      outreachAllowed: !officeOutreachBlocked(row), recentActivity: events.get(String(row.id)).slice(-2) };
+    const id = String(row.id), history = events.get(id);
+    const progress = progressProjection(row, history, contracts.get(id));
+    const recentActivity = history.flatMap(event => {
+      const info = metadata(event);
+      if (!['note','call','meeting','email','progress_recorded','care_pilot'].includes(info.action)) return [];
+      const note = typeof info.detail === 'string' ? info.detail : info.detail?.note;
+      return note ? [{ type: info.action, date: event.created_at?.slice(0, 10), note: note.slice(0, 220) }] : [];
+    }).slice(-3);
+    return { id, name: row.town, city: row.locality, state: row.state, stage: progress.stage,
+      nextFollowup: progress.nextDue, nextAction: progress.nextAction.slice(0, 260), waitingOn: progress.waitingOn,
+      agreement: { prepared: progress.contract.prepared, signed: progress.contract.signed, signedAt: progress.contract.signedAt },
+      outreachAllowed: !officeOutreachBlocked(row), recentActivity };
   });
 }

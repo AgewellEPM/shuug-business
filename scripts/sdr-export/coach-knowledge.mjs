@@ -1,3 +1,5 @@
+import { trainingCourses, trainingPlaybooks } from '../../sales/training-content.mjs';
+
 const guides = [
   ['product', 'How TinkyTown works', 'https://tinkytown.com/faq.html', 'product pitch QR communication AAC access languages visitor front desk TinkySpeak', 'TinkyTown puts a venue-specific communication board at a service counter. Visitors scan a QR poster, open the board in a browser, choose a language and tap picture-and-word tiles. The device speaks their selection. Staff can reply across languages. A counter tablet can serve someone without a phone. An example conversation is asking where to check in.'],
   ['venues', 'TinkyTown venue guide', 'https://tinkytown.com/venues.html', 'venue industry restaurant library bank hotel airport municipal school retail hospital target discovery', 'Start with the actual counter and who staffs it. At a library, show asking for a card. At a restaurant, show placing an order. At a town hall, show finding the right service desk. At a hospital, show checking in or asking for directions. Ask what gets difficult today and who would evaluate a short demonstration.'],
@@ -18,16 +20,33 @@ const guides = [
   ['pipeline', 'Pipeline and account activity', '#view=pipeline', 'pipeline saved accounts log call note next step followup follow-up reply stage account status CRM opportunity', 'Open an account in Pipeline. Record a follow-up logs an actual call, meeting, email or note. Plan the next follow-up saves a date. Record contact, a reply or the next step updates progress. Review the existing account and save the form.'],
   ['contracts', 'Contracts', '#view=contracts', 'agreement terms signature contract signed payment enrollment', 'Contracts shows agreement status. Review the saved business owner, evidence and current workspace terms on the account before preparing an agreement. Only recorded signatures and payments establish those statuses.'],
   ['campaigns', 'Campaigns', '#view=campaigns', 'campaign owner automation prospecting outreach list', 'The workspace owner manages campaign criteria and schedules in Campaigns. Reps use Prospects and Pipeline for their own accounts.'],
+  ['care-pilots', 'Nursing-home campaigns and pilots', '#view=campaigns', 'nursing home facility pilot campaign sales kit measures workflow worksheet', 'In a senior-care workspace, Campaigns has the nursing-home sales kit, discovery conversation, demo and pilot worksheet. Agree on one unit, a staff lead, the baseline, a measure, and a review date. Open the saved facility to record the pilot. The example percentages in the kit are illustrative targets.'],
+  ['training', 'Training Center', '#view=training', 'training curriculum lesson learn practice playbooks objection handling certifications demo lab pipeline', 'Training contains the course catalog, playbooks, Demo Lab, pipeline practice and your own training plan. Open a linked lesson to practice the skill, then apply it to an appropriate account in the live workspace.'],
   ['contacts', 'Contacts and Rolodex', '#view=contacts', 'contacts rolodex owner decision maker administrator name leadership', 'Sales team → Contacts or Owners & Rolodex holds business contacts. Confirm a person’s role, contact details and outreach preferences in the record.'],
   ['prospects', 'Prospects', '#view=prospects', 'prospect add create lead organization address office business facility research directory', 'Prospects lets staff research facilities and add a business by hand. The form requires an organization, street address, city and state. Fill verified details, then save the prospect.'],
   ['support', 'Support Center', '#view=support', 'help support question troubleshooting issue access help center', 'Open Support for workspace guides or send the support team a request describing the task and what happened.'],
 ].map(([id, title, href, tags, content]) => ({ id, title, href, tags, content }));
 
+const curriculum = [...trainingCourses, ...trainingPlaybooks].flatMap(item => item.sections.map(section => ({
+  id: 'learn-' + item.id + '-' + section.id,
+  title: item.title + ' · ' + section.title,
+  href: item.category ? '#view=training&course=' + item.id + '&lesson=' + section.id : '#view=training&section=playbooks',
+  tags: [item.title, item.category, item.description].filter(Boolean).join(' '),
+  content: section.steps.join(' ').slice(0, 1100),
+})));
+
+export function learningContext(saved) {
+  if (!saved) return undefined;
+  const byId = id => trainingCourses.find(course => course.id === id)?.title;
+  return { currentCourse: byId(saved.currentCourseId), plan: (saved.plan || []).map(byId).filter(Boolean).slice(0, 6),
+    completed: Object.keys(saved.completed || {}).map(byId).filter(Boolean).slice(-6) };
+}
+
 const words = value => new Set(String(value).toLowerCase().match(/[\p{L}\p{N}]{3,}/gu)?.filter(w => !['the','this','what','can','for','have','how','with','that','and','from','please','are','would','you','our','want','could','some','help','get','into','tinkytown'].includes(w)) || []);
 export function knowledgeFor(question, articles, user, demo) {
   const requested = words(question);
   const entries = guides.concat(articles.map(article => ({ id: 'help-' + article.id, title: article.title, href: '#view=' + (article.view || 'support'),
-    tags: article.topic + ' ' + article.title, content: [article.description, ...article.steps].join(' ') })));
+    tags: article.topic + ' ' + article.title, content: [article.description, ...article.steps].join(' ') })), curriculum);
   const score = item => {
     let total = 0;
     for (const [value, weight] of [[item.title, 5], [item.tags, 3], [item.content, 1]]) {
@@ -35,7 +54,7 @@ export function knowledgeFor(question, articles, user, demo) {
     }
     return total;
   };
-  const ranked = entries.filter(item => (item.id !== 'campaigns' || user.role === 'owner') && (item.id !== 'demo' || demo))
+  const ranked = entries.filter(item => (item.id !== 'campaigns' || user.role === 'owner') && (!['demo','care-pilots'].includes(item.id) || demo))
     .map(item => ({ item, score: score(item) })).filter(row => row.score).sort((a, b) => b.score - a.score).slice(0, 4).map(row => row.item);
   if (!ranked.some(item => item.id === 'product')) ranked.push(guides[0]);
   return ranked;

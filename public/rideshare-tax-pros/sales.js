@@ -166,7 +166,8 @@
       if ($('[data-tab-panel="training-demo"]') && params.get('view') === 'training-demo') { tab('training-demo'); return true; }
       if (trainingUI && params.get('view') === 'training') {
         tab('training');
-        if (params.has('section')) trainingUI.show(params.get('section'));
+        if (params.has('course')) void trainingUI.openLesson(params.get('course'), params.get('lesson'));
+        else if (params.has('section')) trainingUI.show(params.get('section'));
         return true;
       }
       if (supportUI && params.get('view') === 'support') { tab('support'); return true; }

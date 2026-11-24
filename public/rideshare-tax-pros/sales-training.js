@@ -512,10 +512,10 @@
       return job;
     }
 
-    function openCourse(courseId) {
+    function openCourse(courseId, lessonId) {
       const course = courseFor(courseId);
       if (!course) return;
-      const section = course.sections.find(item => item.id === progress.sections[courseId]) || course.sections[0];
+      const section = course.sections.find(item => item.id === lessonId) || course.sections.find(item => item.id === progress.sections[courseId]) || course.sections[0];
       go({ name: 'course', courseId, sectionId: section.id, area: view.area || view.name, back: view });
       if (progress.currentCourseId !== courseId || progress.sections[courseId] !== section.id || updating) {
         void save({ courseId, sectionId: section.id });
@@ -612,6 +612,10 @@
       show(section) {
         if (Object.hasOwn(areaNames, section)) go({ name: section }, false);
         if (!catalog && !updating) return load();
+      },
+      async openLesson(courseId, lessonId) {
+        if (!catalog) await load();
+        if (catalog && !root.hidden) openCourse(courseId, lessonId);
       },
     };
   }

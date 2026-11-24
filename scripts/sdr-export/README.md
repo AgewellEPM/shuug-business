@@ -27,6 +27,16 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 - The existing Stripe checkout, webhook, billing reconciliation, revenue and commission projections can be used with the optional membership profile. The default agreement profile completes after signature and offers project-defined agreement text.
 - The optional MCP server exposes the same records and role restrictions used by the browser.
 
+## Ask Tinky
+
+Open **Ask Tinky** in the workspace sidebar. Each signed-in sales rep and the owner has a private conversation and a personal goal. The coach uses the rep’s accessible accounts, recent activity, calendar, Today’s Plan, Training Center lessons, Support Center and TinkyTown product guides. A linked lesson opens inside Training.
+
+Choose **Set goal** to track prospects added and currently assigned to you, confirmed meetings you host during the period, logged calls or signed agreements credited to you. Set the dates and add a focus such as senior-care admissions. The card counts saved SDR activity in the goal’s time zone.
+
+Ask for a new prospect, call note, follow-up date, email draft or goal. Select **Review** to open the working form, check the details and save or send it there. Conversation history and goals are saved per staff account in the workspace database.
+
+The server runs inference through local Ollama on loopback, using `qwen3:4b-instruct-2507-q4_K_M` by default. Set `SDR_COACH_MODEL` before startup to select another installed Ollama chat model that supports structured output. If the model is unavailable, a labeled workspace guide shows sourced instructions and the rep’s next recorded priority.
+
 ## Overview
 
 From **Overview → Research a business type**, enter a category and select a city or ZIP and state. The search covers all 50 states and D.C. through [OpenStreetMap via Photon](https://github.com/komoot/photon/blob/master/docs/api-v1.md), with [CMS Care Compare](https://data.cms.gov/provider-data/dataset/4pq5-n9py) added for nursing homes and matching records from the project directory. Results link to the public listing and show contact and registry evidence where published. The latest search is saved for that account. Use **Save to Pipeline** to choose the businesses you want to work with. Public source coverage varies by area and category.

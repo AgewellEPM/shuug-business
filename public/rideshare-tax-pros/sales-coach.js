@@ -49,7 +49,7 @@
       editor.elements.target.focus();
     }
     function sourceLink(source) {
-      const isView = /^#view=[a-z-]+$/.test(source.href);
+      const isView = /^#view=[a-z-]+$/.test(source.href) || /^#view=training&(?:section=playbooks|course=[a-z0-9-]+&lesson=[a-z0-9-]+)$/.test(source.href);
       if (!isView && !/^https:\/\/tinkytown\.com\/[a-z-]+\.html$/.test(source.href)) return null;
       const a = node('a', source.title);
       a.href = source.href;
@@ -61,7 +61,8 @@
       group.dataset.id = turn.id;
       group.append(node('p', turn.question, 'coach-question'));
       const response = node('div', undefined, 'coach-answer');
-      response.append(node('strong', turn.mode === 'guide' ? 'Workspace guide · AI unavailable' : 'Tinky', 'coach-author'), node('p', turn.answer));
+      const author = turn.mode === 'guide' ? 'Workspace guide · AI unavailable' : turn.mode === 'workflow' ? 'Workspace guide' : 'Tinky';
+      response.append(node('strong', author, 'coach-author'), node('p', turn.answer));
       if (turn.draft) {
         const labels = { prospect: 'Review prospect form', activity: 'Review activity', followup: 'Review follow-up', email: 'Review email draft', goal: 'Review goal' };
         const button = node('button', labels[turn.draft.type] + (turn.draft.recordName ? ' · ' + turn.draft.recordName : ''), 'coach-review');
