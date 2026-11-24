@@ -250,6 +250,60 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
+  await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
+    const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
+    const document = supportWindow.document;
+    const rail = document.querySelector('.sdr-sidebar');
+    const panel = document.querySelector('[data-tab-panel="support"]');
+    const find = selector => panel.querySelector(selector);
+    await waitFor(() => !document.querySelector('#sales-workspace').hidden && !panel.hidden,
+      'Support Center did not open from its deep link');
+    assert.equal(rail.querySelector('[data-tab="support"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(rail.querySelector('[data-tab="campaigns"]').hidden, false);
+    assert.ok(rail.querySelector('[data-tab="locations"]'));
+    assert.equal(rail.querySelector('[data-tab="contacts"]'), null);
+    await waitFor(() => find('[data-support-service="requests"]').textContent === 'Available',
+      'Support request availability was not reported');
+
+    const search = find('[data-support-search]');
+    search.elements.query.value = 'facilities by state';
+    search.requestSubmit();
+    const library = find('[data-support-library]');
+    assert.equal(library.hidden, false);
+    assert.match(library.textContent, /Find facilities by state/);
+    const contracts = find('[data-support-topic="contracts"]');
+    contracts.click();
+    assert.equal(contracts.getAttribute('aria-pressed'), 'true');
+    const guide = find('[data-support-entry="prepare-agreement-link"]');
+    assert.ok(guide);
+    guide.click();
+    const dialog = find('[data-support-dialog]');
+    assert.equal(dialog.open, true);
+    assert.match(dialog.textContent, /Prepare an agreement for review/);
+    find('[data-support-action="close-dialog"]').click();
+
+    find('[data-support-action="create"]').click();
+    const create = find('[data-support-form="create"]');
+    const subject = 'Question about an office agreement';
+    const message = 'The <office> asked for the agreement link.';
+    create.elements.subject.value = subject;
+    create.elements.category.value = 'contracts';
+    create.elements.message.value = message;
+    create.requestSubmit();
+    const reply = await waitFor(() => find('[data-support-form="reply"]'), 'New support conversation did not open');
+    assert.equal(find('#support-dialog-title').textContent, subject);
+    assert.equal(find('.support-thread-message p').textContent, message);
+    await waitFor(() => find('[data-support-request-rows] [data-state="open"]'), 'New request did not appear as open');
+    reply.elements.status.value = 'resolved';
+    reply.elements.message.value = 'The agreement link is in the office contract record.';
+    reply.requestSubmit();
+    await waitFor(() => find('[data-support-request-rows] [data-state="resolved"]'),
+      'Resolved request did not appear in the support table');
+    assert.match(find('.support-thread').textContent, /The agreement link is in the office contract record/);
+    const { requests } = await owner.api('support-requests');
+    assert.equal(requests.find(request => request.subject === subject)?.messages.length, 2);
+    assert.deepEqual((await differentProject.api('support-requests')).requests, []);
+  });
   pageDocument.querySelector('[data-tab="territories"]').click();
   const territoriesPanel = pageDocument.querySelector('[data-tab-panel="territories"]');
   const territoryHero = territoriesPanel.querySelector('.sdr-territory-hero');

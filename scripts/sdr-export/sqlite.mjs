@@ -2,7 +2,7 @@ import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
 
-const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings']);
+const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests']);
 function kindFor(kind) {
   if (!kinds.has(kind)) throw new Error('Unknown SDR collection.');
   return kind;
