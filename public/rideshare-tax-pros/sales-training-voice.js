@@ -165,10 +165,12 @@
           showReplies();
           report('Speech recognized. You can edit the wording or choose a reply.');
         };
-        run.onerror = () => {
+        run.onerror = event => {
           if (recognition !== run) return;
           stopListening();
-          report('The browser could not use the microphone. Check its permissions, type a phrase, or try an example.');
+          report(event.error === 'audio-capture'
+            ? 'No microphone input was available. Connect a microphone, type your phrase, or try an example.'
+            : 'The browser could not use the microphone. Check its permissions, type a phrase, or try an example.');
         };
         run.onend = () => {
           if (recognition !== run) return;

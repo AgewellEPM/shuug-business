@@ -389,6 +389,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual(spoken, []);
     voice('speak').click();
     assert.match(spoken[0], /water/);
+    voice('listen').click();
+    microphone.onerror({ error: 'audio-capture' });
+    assert.equal(microphone.aborted, true);
+    assert.equal(voice('listen').getAttribute('aria-pressed'), 'false');
+    assert.match(voice('status').textContent, /No microphone input/);
+    voice('form').elements.words.value = 'Can I call my family?';
+    voice('form').requestSubmit();
+    assert.match(voice('choices').textContent, /family/);
     find('[data-training-demo-return]').click();
     find('[data-training-demo="pipeline"]').click();
     const scenario = trainingScenarios.find(item => item.id === 'nursing-home-pipeline');
