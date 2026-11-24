@@ -50,7 +50,7 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
             <p data-prospect-directory-status role="status"></p>
             <div class="prospects-table-scroll prospects-directory-scroll" data-prospect-directory-table hidden>
               <table class="prospects-table">
-                <thead><tr><th scope="col">Office / organization</th><th scope="col">Type</th><th scope="col">Contact</th><th scope="col">Action</th></tr></thead>
+                <thead><tr><th scope="col">Office / organization</th><th scope="col">Type</th><th scope="col">Facility Administrator</th><th scope="col">Action</th></tr></thead>
                 <tbody data-prospect-directory-results></tbody>
               </table>
             </div>

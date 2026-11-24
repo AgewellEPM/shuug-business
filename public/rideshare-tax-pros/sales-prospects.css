@@ -256,3 +256,10 @@
 .prospects-directory-scroll .territory-facility-actions .button { justify-self: start; }
 .prospects-directory-scroll .territory-facility-actions input { box-sizing: border-box; }
 .prospects-directory .prospects-pagination, [data-prospect-directory-retry] { margin-inline: 16px; }
+
+.prospects-administrator { display: flex; align-items: flex-start; gap: 9px; min-width: 142px; }
+.prospects-administrator > div { min-width: 0; }
+.prospects-administrator > div > :is(a, small) { display: block; margin-top: 3px; font-size: 11px; }
+.prospects-administrator-photo { flex: none; display: block; width: 44px; height: 44px; }
+.prospects-administrator-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; border-radius: 8px; }
+.prospects-administrator-sources { display: flex; flex-wrap: wrap; gap: 3px 8px; margin-top: 4px; font-size: 11px; }

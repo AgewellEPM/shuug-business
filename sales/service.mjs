@@ -170,7 +170,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
       async function useExisting(row) {
         if (!visible(user, row)) throw new HttpError(409, 'This office is already in the team pipeline. Ask the owner about its assignment.');
         const info = metadata(row);
-        if (facility && (!info.facilityType || (info.facilityType === facility.facilityType && facility.facilitySource && !info.facilitySource))) {
+        const addsSource = facility?.facilitySource && !info.facilitySource;
+        const addsAdministrator = facility?.facilityAdministrator && !info.facilityAdministrator;
+        if (facility && (!info.facilityType || (info.facilityType === facility.facilityType && (addsSource || addsAdministrator)))) {
           row = await patchReviewed(db, 'offices', row, { notes: JSON.stringify({ ...info, ...facility }) });
         }
         return { office: row, duplicate: true };

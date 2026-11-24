@@ -111,6 +111,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       const url = new URL(address);
       if (url.hostname === 'data.cms.gov') {
         const state = url.searchParams.get('conditions[0][value]');
+        if (state === 'AL') return Response.json({ count: 1, results: [{
+          cms_certification_number_ccn: '015024', provider_name: 'Limestone Nursing and Rehabilitation Center',
+          provider_address: '1600 WEST HOBBS STREET', citytown: 'ATHENS', state: 'AL', zip_code: '35611', telephone_number: '2562323461',
+        }] });
         const cities = state === 'CT' ? ['BRIDGEPORT', ...Array(28).fill('HARTFORD')] : state === 'AK' ? ['ANCHORAGE'] : [];
         const offset = Number(url.searchParams.get('offset') || 0), limit = Number(url.searchParams.get('limit') || 30);
         const rows = cities.map((city, index) => ({ cms_certification_number_ccn: String(index + 1).padStart(6, '0'),
@@ -484,6 +488,20 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     window.location.hash = '#view=prospects&type=nursing-home&state=AK';
     await waitFor(() => listing.textContent.includes('ANCHORAGE Example Home'), 'Prospects link did not load the chosen state');
     assert.match(status.textContent, /Alaska/);
+    assert.match(listing.textContent, /Administrator not sourced/);
+    assert.ok(listing.querySelector('a[href^="https://www.linkedin.com/search/"]'));
+
+    choose('state', 'AL');
+    await waitFor(() => listing.textContent.includes('Sherry Bowling'), 'Published administrator did not populate');
+    const administrator = listing.querySelector('.prospects-administrator');
+    assert.match(administrator.querySelector('img').alt, /Sherry Bowling/);
+    assert.match(administrator.querySelector('img').src, /^https:\/\/static\.wixstatic\.com\//);
+    assert.match(administrator.textContent, /sbowling@limestonehf\.com/);
+    assert.equal(administrator.querySelector('a[title]').href, 'https://www.limestonehf.com/meet-our-team');
+    listing.querySelector('form').requestSubmit();
+    await waitFor(() => listing.querySelector('[data-open-facility]'), 'Administrator facility was not saved');
+    const limestone = (await owner.api('bootstrap')).offices.find(row => /limestone/i.test(row.town));
+    assert.equal(JSON.parse(limestone.notes).facilityAdministrator.name, 'Sherry Bowling');
     find('[data-prospect-clear]').click();
   });
 

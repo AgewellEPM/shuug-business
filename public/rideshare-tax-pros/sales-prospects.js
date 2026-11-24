@@ -57,6 +57,78 @@
     return `<span class="prospects-stage" data-stage="${record.stage}">${label(record.stage)}</span>`;
   }
 
+  function administratorProfile(facility, role) {
+    const profile = document.createElement('div');
+    profile.className = 'prospects-administrator';
+    const details = document.createElement('div');
+    const links = window.SdrTerritoryFacilities?.sourceLink;
+    if (role?.photoURL) {
+      const portrait = links?.(role.photoURL, '');
+      if (portrait) {
+        const photo = document.createElement('img');
+        photo.src = portrait.href;
+        photo.alt = `Headshot of ${role.name}`;
+        photo.loading = 'lazy';
+        photo.referrerPolicy = 'no-referrer';
+        photo.addEventListener('error', () => portrait.remove(), { once: true });
+        portrait.className = 'prospects-administrator-photo';
+        portrait.append(photo);
+        profile.append(portrait);
+      }
+    }
+    const name = document.createElement(role?.name ? 'strong' : 'span');
+    name.textContent = role?.name || 'Administrator not sourced';
+    details.append(name);
+    if (role?.title && role.title !== 'Administrator') {
+      const title = document.createElement('small');
+      title.textContent = role.title;
+      details.append(title);
+    }
+    const rawPhone = role?.phone || facility.phone || '';
+    const phone = rawPhone.replace(/\D/g, '').replace(/^1(?=\d{10}$)/, '');
+    if (phone.length === 10) {
+      const office = document.createElement('a');
+      office.href = 'tel:+1' + phone;
+      office.textContent = `Office (${phone.slice(0, 3)}) ${phone.slice(3, 6)}-${phone.slice(6)}`;
+      details.append(office);
+    } else if (rawPhone) {
+      const office = document.createElement('small');
+      office.textContent = 'Facility phone ' + rawPhone;
+      details.append(office);
+    }
+    const email = role?.email || facility.email;
+    if (email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      const contact = document.createElement('a');
+      contact.href = 'mailto:' + encodeURIComponent(email);
+      contact.textContent = role?.email ? email : 'Facility email';
+      details.append(contact);
+    }
+    const pages = document.createElement('div');
+    pages.className = 'prospects-administrator-sources';
+    if (role?.sourceURL) {
+      const source = links?.(role.sourceURL, 'Role source');
+      if (source) {
+        if (role.checkedOn) source.title = 'Employer source checked ' + role.checkedOn;
+        pages.append(source);
+      }
+    }
+    if (!role?.name || !role.photoURL) {
+      const query = [role?.name, facility.name, facility.city, facility.state, 'administrator'].filter(Boolean).join(' ');
+      const google = new URL('https://www.google.com/search');
+      google.searchParams.set('q', query);
+      if (role?.name) google.searchParams.set('tbm', 'isch');
+      const linkedin = new URL('https://www.linkedin.com/search/results/people/');
+      linkedin.searchParams.set('keywords', query);
+      for (const [url, text] of [[google, role?.name ? 'Find headshot' : 'Google'], [linkedin, 'LinkedIn']]) {
+        const link = links?.(url.href, text);
+        if (link) pages.append(link);
+      }
+    }
+    details.append(pages);
+    profile.append(details);
+    return profile;
+  }
+
   function mountDirectory(panel, { api, refresh, onOpenOffice }) {
     const facilities = window.SdrTerritoryFacilities;
     if (!panel || !facilities?.saveForm) return null;
@@ -70,8 +142,8 @@
       const row = document.createElement('tr');
       row.innerHTML = `<th scope="row"><strong>${escape(facility.name)}</strong>
         <small>${escape([facility.address, [facility.city, facility.state, facility.zip].filter(Boolean).join(' ')].filter(Boolean).join(' · '))}</small></th>
-        <td>${escape(types[page.category])}</td>
-        <td>${escape([facility.phone, facility.email].filter(Boolean).join(' · ') || '—')}</td><td></td>`;
+        <td>${escape(types[page.category])}</td><td data-regular-contact></td><td></td>`;
+      row.querySelector('[data-regular-contact]').append(administratorProfile(facility, facility.administrator));
       const source = facilities.sourceLink(facility.sourceURL, facility.sourceName || 'Source record');
       if (source) row.querySelector('th').append(source);
       row.lastElementChild.append(facilities.saveForm(facility,
@@ -326,6 +398,7 @@
           ${office.contact_phone ? `<p>${escape(office.contact_phone)}</p>` : ''}${office.contact_email ? `<p class="prospects-inline">${icon('mail')}${escape(office.contact_email)}</p>` : ''}</section>
         <section><h4>Next action</h4><p class="prospects-inline">${icon('date')}<strong>${escape(row.due && !paused ? 'Follow up' : row.next || 'Review prospect')}</strong></p>
           ${dateText(row.due, fullDate) ? `<p>${escape(dateText(row.due, fullDate))}</p>` : ''}</section>
+        ${row.metadata.facilityAdministrator ? '<section data-prospect-admin><h4>Facility Administrator</h4></section>' : ''}
         <section class="prospects-detail-notes"><div class="prospects-card-head"><h4>Notes</h4><button type="button" class="prospects-text" data-prospect-action="note">Add note</button></div><p class="prospects-note" data-prospect-note>Loading latest note…</p></section>
         <div class="prospects-detail-actions">
           <button type="button" class="button primary" data-prospect-action="followup" ${paused ? 'disabled' : ''}>${icon('date')} Schedule follow-up</button>
@@ -335,6 +408,8 @@
         <p class="prospects-muted" data-prospect-action-status role="status"></p>
         <div data-prospect-action-form></div>
       </div>`;
+      const role = row.metadata.facilityAdministrator;
+      if (role) $('[data-prospect-admin]').append(administratorProfile({ name: row.name, city: office.locality, state: row.state }, role));
     }
     function showDetails() {
       detailStale = false;
@@ -516,6 +591,7 @@
           lastLink = link;
           const params = new URLSearchParams(link.slice(1));
           if (params.get('view') === 'prospects') {
+            if (params.has('query')) filter.elements.query.value = params.get('query').slice(0, 180);
             for (const field of ['type', 'state']) {
               const select = filter.elements[field], value = params.get(field);
               if (value && [...select.options].some(option => option.value === value)) select.value = value;

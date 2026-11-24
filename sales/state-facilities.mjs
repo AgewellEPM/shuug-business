@@ -1,5 +1,6 @@
 import { HttpError, email, metadata, officeIdentity, state, text, visible } from './model.mjs';
 import { localityAllowed, localityKey, stateAllowed } from './territory-access.mjs';
+import { publishedFacilityAdministrator } from './facility-administrators.mjs';
 import { loadStateFacilities } from './state-facility-sources.mjs';
 
 const categories = new Set(['nursing-home', 'senior-center']);
@@ -54,9 +55,10 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
       if (row.email) {
         try { addressEmail = email(row.email); } catch { /* Keep unstructured source text in the directory. */ }
       }
+      const facilityAdministrator = category === 'nursing-home' ? publishedFacilityAdministrator(row) : null;
       return saveOffice({ ...row, source, email: addressEmail,
         address: row.address || text(input.address, 300, true), city: row.city || text(input.city, 100, true) },
-        { facilityType: category, facilitySource: source });
+        { facilityType: category, facilitySource: source, ...(facilityAdministrator ? { facilityAdministrator } : {}) });
     }
     const offset = input.offset === undefined ? 0 : Number(input.offset);
     if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new HttpError(400, 'Choose a valid facility page.');
@@ -68,7 +70,10 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
       const label = localityKey([row.name, row.city, row.zip].join(' '));
       return terms.every(term => label.includes(term));
     });
-    const page = matches.slice(offset, offset + pageSize);
+    const page = matches.slice(offset, offset + pageSize).map(row => {
+      const administrator = category === 'nursing-home' ? publishedFacilityAdministrator(row) : null;
+      return administrator ? { ...row, administrator } : row;
+    });
     if (db && page.length) {
       const saved = new Map();
       for (const office of await db.list('offices')) {

@@ -43,6 +43,13 @@ Open **Territories** and click a state or D.C. to see a colored county map with 
 
 Below the map, switch between **Nursing homes** and **Senior community centers**, search by facility or city, or browse the pages for that state. Nursing home records come from the [CMS Care Compare certified provider directory](https://data.cms.gov/provider-data/dataset/4pq5-n9py). Senior community center records come from [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) via [QLever](https://qlever.dev/osm-planet). Mapped coverage varies by state, and published contact details vary by facility. Salespeople see facilities within their assigned territory. The owner still assigns town or statewide coverage in the town panel below.
 
+In Prospects, choosing a nursing-home or senior-center office type and a state
+loads directory matches automatically. Each result can be saved to Pipeline.
+Administrator profiles appear where an employer page was checked against the
+exact CMS facility. The profile labels the main facility phone and includes a
+published business email and portrait when available. Google and LinkedIn
+research links are provided for incomplete profiles.
+
 ## Sales teams
 
 Open **Sales team** to invite a member and share their access code privately. The owner can place a new member anywhere in the active reporting tree. Each member can invite their own direct reports and see everyone who reports through them. New reports inherit the manager’s territory by default. A narrower state selection keeps any town restrictions from the manager’s territory, and later changes to the manager’s territory also apply to their branch.
