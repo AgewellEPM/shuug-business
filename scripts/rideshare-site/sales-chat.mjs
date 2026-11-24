@@ -1,11 +1,14 @@
 export function renderTeamChat(icon) {
   return `<section class="chat-workspace" data-tab-panel="chat" aria-labelledby="chat-title" hidden>
     <header class="chat-titlebar">
-      <span class="chat-mark">${icon('chat')}</span><h2 id="chat-title">Team chat</h2>
+      <span class="chat-mark">${icon('supportChat')}</span><h2 id="chat-title">Team chat</h2>
       <span class="chat-audience">${icon('team')} <span id="chat-audience-label">Sales team only</span></span>
     </header>
+    <button type="button" id="chat-nav-toggle" aria-expanded="false" aria-controls="chat-nav">
+      ${icon('chat')} Conversations <span class="chat-chevron" aria-hidden="true"></span>
+    </button>
     <div class="chat-layout">
-      <aside class="chat-rail" aria-label="Conversations">
+      <aside class="chat-rail" id="chat-nav" aria-label="Conversations">
         <div class="chat-rail-heading"><h3>Channels</h3>
           <button type="button" id="chat-add" aria-label="Create channel" title="Create channel" aria-controls="chat-create" aria-expanded="false" hidden>+</button>
         </div>
@@ -27,7 +30,7 @@ export function renderTeamChat(icon) {
           <a href="#view=team&section=invite" id="chat-invite-link" hidden>Invite a sales rep</a>
         </div>
         <nav id="chat-directs" class="chat-conversations" aria-label="Direct messages"></nav>
-        <button type="button" id="chat-first-direct">Message a teammate</button>
+        <button type="button" id="chat-first-direct">${icon('prospects')} Message a teammate</button>
       </aside>
       <div class="chat-room">
         <header class="chat-room-heading">
@@ -36,7 +39,10 @@ export function renderTeamChat(icon) {
         </header>
         <div id="chat-scroll" tabindex="0" aria-label="Channel history">
           <button type="button" class="chat-history-button" id="chat-older" hidden>Load earlier messages</button>
-          <div id="chat-empty" hidden><span class="chat-empty-mark">${icon('chat')}</span><h4></h4><p>Send the first message to your team.</p></div>
+          <div id="chat-empty" hidden>
+            <div class="chat-empty-art"><img src="/sales-chat-express.webp" alt="" width="660" height="322" loading="lazy" decoding="async"></div>
+            <h4></h4><p>Send the first message to your team.</p>
+          </div>
           <div id="chat-messages" role="log" aria-label="Messages" aria-live="polite" aria-relevant="additions"></div>
         </div>
         <div class="chat-compose-area">
@@ -46,9 +52,9 @@ export function renderTeamChat(icon) {
           <div id="chat-reply" hidden><span></span><button type="button" aria-label="Cancel reply">×</button></div>
           <form id="chat-compose">
             <textarea name="message" aria-label="Message" placeholder="Message #general" maxlength="2000" rows="2" required disabled></textarea>
-            <button type="submit" aria-label="Send message" disabled>${icon('chatSend')}<span>Send</span></button>
+            <button type="submit" aria-label="Send message" disabled><span>Send</span>${icon('chatSend')}</button>
           </form>
-          <small class="chat-key-hint">Enter to send · Shift + Enter for a new line</small>
+          <small class="chat-key-hint"><span><kbd>Enter</kbd> to send</span><span><kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line</span></small>
         </div>
       </div>
     </div>
