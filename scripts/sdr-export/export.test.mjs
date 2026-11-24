@@ -264,7 +264,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const today = window.document.querySelector('[data-tab-panel="today"]');
   assert.equal(today.hidden, false);
   assert.equal(window.document.querySelector('[data-tab="today"]').getAttribute('aria-pressed'), 'true');
-  assert.equal(window.document.querySelector('[data-profile-name]').textContent, 'Workspace owner');
+  assert.equal(window.document.querySelector('.sdr-sidebar .sdr-brand').nextElementSibling.className, 'sdr-sidebar-label');
+  assert.equal(window.document.querySelector('.sdr-sidebar [data-sdr-own-profile]'), null);
   assert.equal((await owner.request('/sales-today-hero.webp')).headers.get('content-type'), 'image/webp');
   const firstTask = await waitFor(() => today.querySelector('[data-today-tasks] input[type="checkbox"]'),
     'The opening action plan did not load workspace tasks');
@@ -307,7 +308,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
-  await t.test('training opens from the sidebar above Support and resumes saved onboarding', async t => {
+  await t.test('Training, Certification, and Support open in sidebar order and Training resumes saved onboarding', async t => {
     const trainingWindow = await mountConsole(t, first.origin, owner, html);
     const doc = trainingWindow.document;
     const training = doc.querySelector('[data-tab-panel="training"]');
@@ -315,8 +316,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
     const supportButton = doc.querySelector('.sdr-sidebar [data-tab="support"]');
     const trainingButton = doc.querySelector('.sdr-sidebar [data-tab="training"]');
+    const certificationButton = doc.querySelector('.sdr-sidebar [data-tab="certification"]');
     const trainingLink = doc.querySelector('[data-tab-panel="support"] a[href="#view=training"]');
-    assert.equal(trainingButton.nextElementSibling, supportButton);
+    assert.equal(trainingButton.nextElementSibling, certificationButton);
+    assert.equal(certificationButton.nextElementSibling, supportButton);
+    certificationButton.click();
+    await waitFor(() => !doc.querySelector('[data-tab-panel="certification"]').hidden, 'The sidebar did not open Certification');
+    assert.equal(certificationButton.getAttribute('aria-pressed'), 'true');
     trainingButton.click();
     await waitFor(() => !training.hidden, 'The sidebar did not open Training');
     assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
@@ -1224,7 +1230,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     !profileForm.elements.bio.disabled, 'The rep portrait did not preview');
   profileForm.requestSubmit();
   await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own contact details, bio and headshot');
-  assert.equal(juniorDocument.querySelector('[data-profile-role]').textContent, contact.displayTitle);
+  assert.equal(juniorDocument.querySelector('.sdr-sidebar [data-profile-role]'), null);
   const { progress: initialProgress, ...savedProfile } = (await juniorSession.api('sales-team-profile')).profile;
   assert.deepEqual(savedProfile, { ...contact, photo: portrait, revision: 1 });
   assert.deepEqual(initialProgress, { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 });
@@ -1275,7 +1281,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
   assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Sales team');
   assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Sales team');
-  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Sales agent');
+  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-sdr-own-profile]'), null);
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
   const agentPicker = agentDocument.querySelector('#sales-team-sidebar-section');
@@ -1958,7 +1964,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
     const rail = find('.sdr-nav');
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
-      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'certification', 'training', 'support']);
+      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'certification', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
     const picker = rail.querySelector('select[aria-label="Sales team section"]');
     assert.equal(picker.closest('[hidden]'), null);
