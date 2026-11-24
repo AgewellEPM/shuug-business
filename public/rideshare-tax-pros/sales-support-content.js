@@ -15,7 +15,7 @@ const sdrSupportArticles = [
     steps: [
       'Open Prospects or Pipeline to work with saved businesses and facilities.',
       'Use Facility directory to browse nursing homes and senior community centers. Use the Pipeline facility type filter to focus on care accounts.',
-      'Find product demos and the booking calendar under Tinky Team.',
+      'Find product demos and the booking calendar under Sales team.',
     ],
   },
   {
@@ -102,7 +102,7 @@ const sdrSupportArticles = [
     title: 'Find signed businesses on the Signup locations map',
     description: 'See where signed businesses are located and open their street addresses.',
     steps: [
-      'Open Tinky Team, select Signup locations, and choose a state or leave the filter on All states.',
+      'Open Sales team, select Signup locations, and choose a state or leave the filter on All states.',
       'Select a listed address to see it on the map. The state count reflects signed office agreements.',
     ],
   },

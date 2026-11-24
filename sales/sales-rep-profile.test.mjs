@@ -11,7 +11,7 @@ const origin = 'http://127.0.0.1:8740';
 const ownerCode = 'test-workspace-owner';
 const emptyStoredProfile = { bio: '', photo: '', revision: 0 };
 const startingProgress = { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 };
-const emptyProfile = { name: '', email: '', phone: '', ...emptyStoredProfile };
+const emptyProfile = { name: '', displayTitle: '', email: '', phone: '', ...emptyStoredProfile };
 const portrait = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCoBqK//9k=';
 
 function fixture(t) {
@@ -54,11 +54,13 @@ test('profile edits preserve account credentials and expose contacts only to the
 
   const details = {
     name: 'Test Rep Display', email: 'contact@example.test', phone: '+1 (617) 555-0150 ext. 23',
-    bio: 'I help care teams in Massachusetts.', photo: portrait,
+    displayTitle: 'Care Partnerships Lead', bio: 'I help care teams in Massachusetts.', photo: portrait,
   };
   const changes = { ...details, revision: 0 };
   await owner('set-sales-team-profile', { ...changes, memberId: agent.id }, 400);
   await rep('set-sales-team-profile', { ...changes, id: 'owner' }, 400);
+  await rep('set-sales-team-profile', { ...changes, role: 'owner' }, 400);
+  await rep('set-sales-team-profile', { ...changes, displayTitle: 'a'.repeat(101) }, 400);
   await rep('set-sales-team-profile', { ...changes, email: 'invalid-address' }, 400);
   await rep('set-sales-team-profile', { ...changes, phone: 'bad number' }, 400);
   await rep('set-sales-team-profile', { ...changes, bio: 'a'.repeat(801) }, 400);
@@ -93,6 +95,10 @@ test('profile edits preserve account credentials and expose contacts only to the
   // Older pages still submit only bio and photo.
   assert.deepEqual((await rep('set-sales-team-profile', { bio: '', photo: '', revision: 1 })).profile,
     { ...profile, bio: '', photo: '', revision: 2, progress: startingProgress });
+  const home = await rep('bootstrap');
+  assert.equal(home.repProfile.displayTitle, details.displayTitle);
+  assert.equal(home.user.role, 'agent');
+  assert.equal((await rep('set-sales-team-profile', { displayTitle: '  ', revision: 2 })).profile.displayTitle, '');
   const ownerProfile = (await owner('set-sales-team-profile', changes)).profile;
   assert.deepEqual(ownerProfile, { ...profile, progress: startingProgress });
   const ownerRow = (await owner('sales-team-read')).members.find(row => row.id === 'owner');
@@ -101,5 +107,5 @@ test('profile edits preserve account credentials and expose contacts only to the
   await owner('sales-team-revoke', { id: agent.id });
   await owner('sales-team-member-profile', { id: agent.id }, 404);
   await rep('sales-team-profile', {}, 401);
-  await rep('set-sales-team-profile', { ...changes, revision: 2 }, 401);
+  await rep('set-sales-team-profile', { ...changes, revision: 3 }, 401);
 });

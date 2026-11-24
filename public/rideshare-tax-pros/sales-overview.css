@@ -37,7 +37,7 @@ body.sales-console-page[data-standalone-sdr] {
 [data-standalone-sdr] .sdr-sidebar-profile:focus-visible { outline: 2px solid #74c6ff; outline-offset: 2px; }
 [data-standalone-sdr] .sdr-sidebar-profile > span:last-child { display: grid; min-width: 0; gap: 2px; }
 [data-standalone-sdr] .sdr-sidebar-profile strong { color: #fff; overflow-wrap: anywhere; font-size: 14px; }
-[data-standalone-sdr] .sdr-sidebar-profile small { color: #c8d8ed; font-size: 11px; }
+[data-standalone-sdr] .sdr-sidebar-profile small { color: #c8d8ed; font-size: 11px; overflow-wrap: anywhere; }
 [data-standalone-sdr] .sdr-sidebar-portrait { width: 42px; height: 42px; flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: #294a73; font-size: 13px; font-weight: 700; }
 [data-standalone-sdr] .sdr-sidebar-portrait img { width: 100%; height: 100%; object-fit: cover; }
 [data-standalone-sdr] .sdr-sidebar-label { display: none; }

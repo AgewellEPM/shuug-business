@@ -73,7 +73,7 @@
     serial++;
     picker.hidden = false; receipt.hidden = true;
     $('#bk-title').textContent = moving ? 'Reschedule your meeting' : requestedType === 'demo' ? 'Schedule a product demo' : 'Book a meeting';
-    $('#bk-intro').textContent = moving ? 'Choose a new time with ' + existing.hostName + '.' : requestedType === 'demo' ? 'Choose your Tinky Team agent and a time for your demo.' : 'Choose a sales rep and a time for your appointment or product demo.';
+    $('#bk-intro').textContent = moving ? 'Choose a new time with ' + existing.hostName + '.' : requestedType === 'demo' ? 'Choose your sales agent and a time for your demo.' : 'Choose a sales rep and a time for your appointment or product demo.';
     $('#bk-rep').replaceChildren(...hosts.map(rep => new Option(rep.name, rep.id)));
     $('#bk-rep').value = host; $('#bk-rep').disabled = moving;
     zones($('#bk-zone'), zone); chooseType();
