@@ -98,6 +98,8 @@ Open **Team chat** in the sidebar or on the Sales team page. The owner and activ
 
 Press **Enter** to send, use **Shift + Enter** for a new line, or choose **Reply** on a message to quote it. Unread counts are personal. Each channel keeps its history in this workspace’s SQLite database.
 
+For a one-to-one conversation, choose **+** beside **Direct messages**, search for an active teammate by name, and select them. Your first message adds the conversation to their inbox. Only the two participants can open it in the workspace. Each person has their own unread count. When a teammate loses access, the other participant can still read their conversation.
+
 ## Campaigns
 
 Open **Campaigns** as the workspace owner. Enter your company, offer, desired next step, city, state and prospect keywords. Choose your saved LinkedIn prospects, the project directory, or Connecticut's public business registry. Click **Save campaign** and **Run now**. The runner collects matching companies, checks published roles and business contact channels, and prepares a draft tailored to each company using your offer. Companies with usable business addresses also go to Pipeline. **Repeat every** enables a saved schedule while the server runs, and **Pause schedule** stops future runs.

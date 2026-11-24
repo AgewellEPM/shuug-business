@@ -75,7 +75,11 @@
       if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
-      if (chatUI && params.get('view') === 'chat') { tab('chat', params.get('channel')); return true; }
+      if (chatUI && params.get('view') === 'chat') {
+        tab('chat', params.get('dm') ? '@' + params.get('dm') : params.get('channel'));
+        if (params.get('new') === 'dm') chatUI.startDirect();
+        return true;
+      }
       if (standalone && ['pipeline', 'contacts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
       if (teamUI && params.get('view') === 'team') {

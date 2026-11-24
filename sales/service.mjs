@@ -105,7 +105,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
-    if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal);
+    if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
