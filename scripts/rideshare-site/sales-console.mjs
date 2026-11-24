@@ -383,7 +383,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ...(careWorkspace ? [['mission', 'Mission']] : []), ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
       ...(careWorkspace ? [['demo', 'Demo'], ['products', 'Products']] : []), ['contracts', 'Contracts'], ['team', 'Sales team'], ['email', 'Mailbox'],
-      ...(careWorkspace ? [['resources', 'Prizes']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support'], ['commissions', 'Commissions']]
+      ...(careWorkspace ? [['resources', 'Prizes'], ['commissions', 'Commissions']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support'], ...(careWorkspace ? [] : [['commissions', 'Commissions']])]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => {
