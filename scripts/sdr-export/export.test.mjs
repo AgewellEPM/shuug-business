@@ -298,23 +298,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
-  await t.test('training opens from Support and resumes saved onboarding', async t => {
+  await t.test('training opens from the sidebar above Support and resumes saved onboarding', async t => {
     const trainingWindow = await mountConsole(t, first.origin, owner, html);
     const doc = trainingWindow.document;
     const training = doc.querySelector('[data-tab-panel="training"]');
     const find = selector => training.querySelector(selector);
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
     const supportButton = doc.querySelector('.sdr-sidebar [data-tab="support"]');
+    const trainingButton = doc.querySelector('.sdr-sidebar [data-tab="training"]');
     const trainingLink = doc.querySelector('[data-tab-panel="support"] a[href="#view=training"]');
-    assert.equal(doc.querySelector('.sdr-sidebar [data-tab="training"]'), null);
-    supportButton.click();
-    assert.equal(trainingLink.closest('[hidden]'), null);
-    trainingLink.click();
-    await waitFor(() => !training.hidden, 'Training did not open from Support');
-    assert.equal(supportButton.getAttribute('aria-pressed'), 'true');
+    assert.equal(trainingButton.nextElementSibling, supportButton);
+    trainingButton.click();
+    await waitFor(() => !training.hidden, 'The sidebar did not open Training');
+    assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'false');
     find('a[href="#view=support"]').click();
     await waitFor(() => trainingLink.closest('[hidden]') === null, 'The Support link did not return to Support');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'true');
     trainingLink.click();
+    await waitFor(() => !training.hidden, 'Training did not open from Support');
+    assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
     const planButton = '[data-training-feature] [data-training-plan="sales-onboarding"]';
     const featuredCourse = '[data-training-feature] .training-feature-description [data-training-course="sales-onboarding"]';
     await waitFor(() => find(featuredCourse), 'The featured course did not load');
@@ -382,8 +385,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const before = (await owner.api('bootstrap')).offices;
     find(voiceLink).click();
     const voice = part => find('[data-training-voice-' + part + ']');
-    assert.equal(find('[data-tab-panel="training-demo"]').hidden, false);
-    assert.equal(find('.sdr-sidebar [data-tab="support"]').getAttribute('aria-pressed'), 'true');
+    assert.equal(find('.sdr-sidebar [data-tab="training"]').getAttribute('aria-pressed'), 'true');
+    const trainingDemo = find('[data-tab-panel="training-demo"]');
+    assert.equal(trainingDemo.hidden, false);
+    const customerKiosk = trainingDemo.querySelector('[data-live-customer-kiosk]');
+    assert.equal(customerKiosk.href, 'https://tinkytown.com/biz/healthcare');
+    assert.equal(customerKiosk.target, '_blank');
+    assert.match(trainingDemo.querySelector('[aria-labelledby="training-demo-qr"]').textContent, /Listen for Staff/);
     assert.equal((await owner.request('/care-location-qr-healthcare.png')).headers.get('content-type'), 'image/png');
     voice('listen').click();
     assert.match(voice('status').textContent, /Listening/);
@@ -529,6 +537,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(territoryState.value, '');
   assert.equal(territoryState.options.length, 52);
   assert.equal(territoryState.querySelector('option[value="DC"]').textContent, 'District of Columbia');
+  const territoryMetric = key => territoriesPanel.querySelector(`[data-td-metric="${key}"]`).textContent;
+  await waitFor(() => territoryMetric('total') === '51', 'Nationwide dashboard did not include all states and DC');
+  territoriesPanel.querySelector('[data-td-view-all]').click();
+  assert.equal(territoriesPanel.querySelectorAll('[data-td-row]').length, 51);
+  territoriesPanel.querySelector('[data-td-tool="list"]').click();
+  assert.equal(territoriesPanel.querySelectorAll('[data-td-open]').length, 51);
+  const territorySearch = territoriesPanel.querySelector('[data-td-search]');
+  territorySearch.value = 'Pennsylvania';
+  territorySearch.dispatchEvent(new window.Event('input'));
+  territoriesPanel.querySelector('[data-td-open="PA"]').click();
+  await waitFor(() => territoryMetric('total') === '67', 'The territory list did not drill into Pennsylvania');
+  assert.equal(territoryState.value, 'PA');
   pageDocument.querySelector('[data-territory-state="AK"]').click();
   assert.equal(territoryState.value, 'AK');
   assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
@@ -557,6 +577,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(townPanel.querySelector('h2').textContent, 'Connecticut towns and cities');
   assert.ok(townCanvas.querySelector('.town-map-label'));
   const colors = townPanel.querySelector('[data-map-colors]');
+  await waitFor(() => territoryMetric('total') === '9', 'A previous state overwrote the Connecticut dashboard');
   assert.equal(colors.checked, true);
   assert.equal(townCanvas.querySelectorAll('.town-map-county').length, 9);
   const townSelect = townPanel.querySelector('[data-map-town]');
@@ -633,6 +654,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   leadForm.elements.name.value = 'Example County Lead';
   leadForm.requestSubmit();
   await waitFor(() => townPanel.querySelector('[data-county-row="45027"]').textContent.includes('Example County Lead'), 'County roster did not update');
+  await waitFor(() => territoriesPanel.querySelector('[data-td-stat="lead"]').textContent === 'Example County Lead', 'Dashboard did not refresh the selected county after assignment');
+  assert.equal(territoriesPanel.querySelector('#td-detail-title').textContent, 'Clarendon County');
+  assert.equal(territoriesPanel.querySelector('[data-td-manage]').textContent, 'Manage assignment');
+  assert.equal(territoryMetric('reps'), '1');
   await waitFor(() => mapSelection.querySelector('[data-county-assign]')?.textContent === 'Change rep', 'County assignment action did not switch to Change rep');
   const portrait = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCoBqK//9k=';
   const change = {state:'SC', county:'45027', name:'Example County Lead', photo:portrait, revision:1};
@@ -1242,6 +1267,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   agentDocument.querySelector('#sales-team-territories').click();
   const scopedStatePicker = agentDocument.querySelector('#sales-territory-state');
   assert.deepEqual([...scopedStatePicker.options].filter(option => !option.disabled).map(option => option.value), ['', 'CT']);
+  await waitFor(() => agentDocument.querySelector('[data-td-metric="total"]').textContent === '1', 'Rep dashboard included an inaccessible state');
   scopedStatePicker.value = 'CT';
   scopedStatePicker.dispatchEvent(new agentWindow.Event('change', { bubbles: true }));
   const capitolId = '09110';
@@ -1542,6 +1568,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     demoTool.click();
     assert.equal(panel.closest('[data-team-workspace]').hidden, false);
     await waitFor(() => !panel.hidden, 'The locations lobby did not open');
+    const customerKiosk = panel.querySelector('[data-care-home] [data-live-customer-kiosk]');
+    assert.equal(customerKiosk.href, 'https://tinkytown.com/biz/healthcare');
     for (const id of ['hospital','nursing-home','senior-center','townhall','directory','college','airport','stroke']) {
       assert.ok(panel.querySelector('[data-care-launch="' + id + '"]'), id);
     }
@@ -1551,6 +1579,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       careWindow.location.hash = 'view=demo&venue=' + venue;
       await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
       const voice = panel.querySelector('[data-care-voice]');
+      assert.equal(panel.querySelector('[data-care-customer-example]').hidden, false);
       assert.equal(voice.hidden, false);
       assert.equal(voice.open, false);
       const voiceForm = voice.querySelector('form');
@@ -1575,10 +1604,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     tourAction('Next step').click();
     assert.match(panel.querySelector('.cf-room-head').textContent, /Discharge/);
     tourAction('Discuss a pilot').click();
+    const demoVoice = panel.querySelector('[data-care-voice]');
+    demoVoice.open = true;
+    demoVoice.querySelector('textarea').value = 'A practice phrase';
     tourAction('Open pilot planner').click();
     await waitFor(() => panel.querySelector('[data-care-plan] a[href="https://tinkytown.com/start.html?intent=pilot"]'), 'Planner missing pilot request form');
     const pilot = panel.querySelector('[data-care-plan]');
     assert.equal(pilot.hidden, false);
+    assert.equal(demoVoice.open, false);
+    assert.equal(demoVoice.querySelector('textarea').value, '');
     const lead = pilot.querySelector('input[placeholder="Role or team"]');
     lead.value = 'Practice admissions team';
     lead.dispatchEvent(new careWindow.Event('input', {bubbles: true}));
@@ -1591,6 +1625,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     careWindow.location.hash = 'view=demo&venue=townhall';
     await waitFor(() => panel.querySelector('.cl-board-title'), 'Hartford Town Hall did not load');
     assert.equal(panel.querySelector('[data-care-voice]').hidden, true);
+    assert.equal(panel.querySelector('[data-care-customer-example]').hidden, true);
     assert.match(panel.querySelector('.cl-header h3').textContent, /Hartford/);
     careWindow.location.hash = 'view=demo&venue=home';
     await waitFor(() => panel.querySelector('.care-library [data-tile]') || panel.querySelector('[aria-label="TinkySpeak board library"] [data-tile]'), 'Family board did not load');
@@ -1758,7 +1793,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
     const rail = find('.sdr-nav');
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
-      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'support']);
+      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
     const back = find('[data-team-return]');
     assert.equal(back.closest('[hidden]'), null);

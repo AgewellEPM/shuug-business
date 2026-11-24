@@ -1,0 +1,57 @@
+/* Display preferences apply to the signed-in workspace and its dialogs. */
+body.sales-console-page,
+body.sales-console-page :is(button, input, select, textarea, dialog, h1, h2, h3, h4, h5) {
+  font-family: system-ui, -apple-system, sans-serif;
+}
+html[data-sdr-scale="125"] { --sdr-display-zoom: 1.25; zoom: var(--sdr-display-zoom); }
+html[data-sdr-scale="150"] { --sdr-display-zoom: 1.5; zoom: var(--sdr-display-zoom); }
+html[data-sdr-scale="175"] { --sdr-display-zoom: 1.75; zoom: var(--sdr-display-zoom); }
+html[data-sdr-scale="200"] { --sdr-display-zoom: 2; zoom: var(--sdr-display-zoom); }
+html[data-sdr-scale] body.sales-console-page {
+  min-width: 0;
+  height: calc(100dvh / var(--sdr-display-zoom, 1));
+}
+html[data-sdr-monochrome] { filter: grayscale(1); }
+html[data-sdr-monochrome] body.sales-console-page :focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px Canvas;
+}
+[data-sdr-display-compact] body.sales-console-page #sales-workspace {
+  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr);
+}
+[data-sdr-display-compact] .sales-console-page .sdr-sidebar {
+  max-height: 35vh;
+  overflow: auto;
+}
+[data-sdr-display-compact] .sales-console-page .sdr-topbar,
+[data-sdr-display-compact] .sales-console-page .sdr-topbar-right {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+[data-sdr-display-compact] .sales-console-page :is(.sdr-dashboard-grid, .sales-columns, .today-layout, .today-side, .sdr-overview-grid) {
+  grid-template-columns: minmax(0, 1fr);
+}
+body.sales-console-page .sdr-display {
+  box-sizing: border-box;
+  width: min(24rem, calc(100% - 1rem));
+  max-height: 90%;
+  overflow: auto;
+  padding: 1rem;
+  color: #14243a;
+  background: #fff;
+  border: 2px solid currentColor;
+  border-radius: .75rem;
+}
+.sdr-display::backdrop { background: rgb(15 23 42 / 70%); }
+.sdr-display form, .sdr-display label:not(.sdr-display-check) { display: grid; gap: .65rem; }
+.sdr-display form { gap: 1rem; }
+.sdr-display .sdr-display-check, .sdr-display-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+.sdr-display-actions { justify-content: flex-end; }
+.sdr-display :is(button,select) { min-height: 44px; max-width: 100%; }
+.sdr-reading-status:empty { display: none; }
+.sdr-reading-status { font-size: .85rem; max-width: 16rem; }
+body.sales-console-page [data-display-read][aria-pressed="true"] { border: 2px solid currentColor; }
+body.sales-console-page[data-standalone-sdr] .sdr-topbar-right { flex: 1; }
+body.sales-console-page[data-standalone-sdr] .sdr-workspace-tracker { flex: 1 1 12rem; min-width: 0; }
+body.sales-console-page[data-standalone-sdr] .sdr-xp { flex: 1 1 7rem; width: auto; }

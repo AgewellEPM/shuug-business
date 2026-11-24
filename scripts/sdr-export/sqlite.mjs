@@ -56,6 +56,8 @@ export function sqliteStore(filename) {
   const completeDailyTask = db.prepare('INSERT OR IGNORE INTO daily_plan_completions (member_id, day, task_id) VALUES (?, ?, ?)');
   const reopenDailyTask = db.prepare('DELETE FROM daily_plan_completions WHERE member_id = ? AND day = ? AND task_id = ?');
   const setting = db.prepare('SELECT value FROM settings WHERE name = ?');
+  const assignedCounties = db.prepare(`SELECT substr(name, 13) AS county, json_extract(value, '$.memberId') AS memberId,
+    json_extract(value, '$.name') AS leadName FROM settings WHERE name GLOB 'county-lead:*'`);
   const save = db.prepare('INSERT INTO settings VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = excluded.value');
   const decode = row => row && { ...JSON.parse(row.data), id: row.id };
   const stamped = body => {
@@ -145,6 +147,7 @@ export function sqliteStore(filename) {
     patch: (kind, id, body) => patch(kind, id, body),
     patchIfUnchanged: (kind, id, notes, body) => patch(kind, id, body, notes ?? null),
     countyLead: id => JSON.parse(setting.get('county-lead:' + id)?.value ?? 'null'),
+    countyLeadAssignments: () => new Map(assignedCounties.all().map(row => [row.county, { memberId: row.memberId, name: row.leadName }])),
     saveCountyLead(id, revision, changes) {
       return writeTransaction(() => {
         const before = this.countyLead(id);

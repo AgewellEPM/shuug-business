@@ -14,11 +14,11 @@
   };
   const workAreas = { lessons: 'Lessons', practice: 'Practice', assessment: 'Knowledge Check' };
   const demoLabs = [
-    { surface: 'voice', title: 'Voice and conversation', steps: [
-      'Choose a communication board and say a message.',
-      'Practice one turn as the person speaking and another as the partner acknowledging the message.',
+    { surface: 'voice', title: 'Show the live customer kiosk', steps: [
+      'Start with the facility QR or the live Healthcare kiosk.',
+      'Show a message tile, then use Listen for Staff to bring up choices for the visitor’s next reply.',
     ] },
-    { surface: 'locations', title: 'Location demos', steps: [
+    { surface: 'locations', title: 'Location rehearsals', steps: [
       'Pick a location and identify the first interaction a visitor needs to complete.',
       'Walk through the available communication options and show who can help next.',
     ] },
@@ -37,6 +37,7 @@
   ];
   const courseDemos = {
     'sales-onboarding': 'voice',
+    'tinkytown-tinkyspeak-workflow': 'voice',
     'tinkystroke-demo': 'stroke',
     'hospital-reception-demo': 'hospital',
     'qualify-directory-prospects': 'pipeline',
@@ -283,7 +284,7 @@
     function renderDemoLabs() {
       return `<div class="training-course-grid">${demoLabs.map(lab => `<article class="training-course training-lab">
         <h3>${escape(lab.title)}</h3><ol>${lab.steps.map(step => `<li>${escape(step)}</li>`).join('')}</ol>
-        <div class="training-actions">${demoAction(lab.surface, `Open ${lab.title}`)}</div>
+        <div class="training-actions">${demoAction(lab.surface, lab.surface === 'voice' ? 'Open the product walkthrough' : `Open ${lab.title}`)}</div>
       </article>`).join('')}</div>`;
     }
 

@@ -1,4 +1,4 @@
-import { renderVoicePractice } from './sales-training-demo.mjs';
+import { renderLiveKioskLink, renderVoicePractice } from './sales-training-demo.mjs';
 
 const care = [
   ['hospital','🏥','TinkyTown Hospital','Admissions, bedside care and discharge'],
@@ -49,12 +49,13 @@ export function renderCareDemo() {
   return `<section class="sdr-demo" data-tab-panel="demo" aria-labelledby="sales-demo-title" hidden>
   <div data-care-home>
     <header class="sdr-demo-hero care-demo-hero">
-      <div><h2 id="sales-demo-title">TinkyTown locations</h2>
-        <p>Choose a setting, let your guest try both sides of a conversation, then plan where their team will use it first.</p></div>
+      <div><h2 id="sales-demo-title">TinkyTown Demo</h2>
+        <p>Start in the same Healthcare kiosk a customer opens from the QR code.</p>
+        ${renderLiveKioskLink()}</div>
       <img src="/care-town.webp" alt="" width="590" height="393">
     </header>
     <a class="button" href="#view=training-demo">Open Training Demo Lab</a>
-    <section class="care-destinations"><h3>Care settings</h3>
+    <section class="care-destinations"><h3>Rehearse care settings</h3>
       <div class="care-launch-grid">${links(care)}</div></section>
     <section class="care-destinations"><h3>Explore TinkyTown</h3>
       <div class="care-launch-grid care-compact">${links(places)}</div></section>
@@ -71,13 +72,16 @@ export function renderCareDemo() {
         <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
       </div>
     </nav>
-    <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
+    <div class="training-actions">
+      <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
+      <span data-care-customer-example hidden>${renderLiveKioskLink()}</span>
+    </div>
     <div data-care-plan hidden></div>
     <div data-care-experience>
     <div data-care-tour-shell><div data-care-tour></div></div>
     <div class="care-stage-links" data-care-modes></div>
     <details class="sdr-training care-voice" data-care-voice hidden>
-      <summary>Voice replies</summary>
+      <summary>Practice voice replies</summary>
       ${renderVoicePractice({ id: 'care-voice', heading: 'Listen and choose a reply' })}
     </details>
     <div data-care-mount></div>

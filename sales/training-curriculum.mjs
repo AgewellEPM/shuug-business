@@ -8,6 +8,7 @@ const aphasia = { title: 'NIH National Institute on Deafness and Other Communica
 const residentRights = { title: 'CMS · Nursing home resident rights and quality of care', url: 'https://www.cms.gov/about-cms/what-we-do/nursing-homes/patients-caregivers/rights-quality-care' };
 const seniorCenters = { title: 'Administration for Community Living · Senior centers and supportive services', url: 'https://acl.gov/programs/community-inclusion-integration-and-access/senior-centers-and-supportive-services-older' };
 const product = { title: 'TinkyTown · How the QR communication board works', url: 'https://tinkytown.com/' };
+const liveKiosk = { title: 'TinkyTown · Live Healthcare kiosk', url: 'https://tinkytown.com/biz/healthcare' };
 
 export const fieldTrainingCourses = [
   {
@@ -101,7 +102,7 @@ export const fieldTrainingCourses = [
     id: 'tinkytown-tinkyspeak-workflow', category: 'product-training', title: 'TinkyTown and TinkySpeak in a Real Conversation',
     description: 'Show the QR-to-board workflow, offer a kiosk or another access option, and practice the staff response.',
     durationMinutes: 20,
-    sources: [product, effectiveCommunication],
+    sources: [product, liveKiosk, effectiveCommunication],
     sections: [
       {
         id: 'counter-workflow', title: 'Walk through a service counter request',
@@ -114,9 +115,10 @@ export const fieldTrainingCourses = [
       {
         id: 'demo-options', title: 'Test the phone and shared-device routes',
         steps: [
-          'In Sales team, open Demo and select TinkyTown Hospital. Walk through a reception prompt with an example about directions. Use Speak on tap or confirm the Selected message and press Speak.',
+          'In Sales team, open Demo and select Open live customer kiosk. Choose Nursing Home on the Healthcare board, tap one visitor message and listen to how it plays.',
+          'Select Listen for Staff. Have a teammate say a short practice reply. Review the suggested tiles and let the visitor choose their own response. Try the typed option if the browser cannot listen.',
           'At a site with a kiosk, show how a visitor can reach the board on the shared device. Try the actual phone, browser, language, and audio output before a site review. Offer a staff-supported option when a visitor has no usable phone or asks for another method.',
-          'Use TinkyStroke in the separate bedside or rehabilitation walkthrough. Ask the facility and participant which of the available boards and access options fit the setting they are evaluating.',
+          'Rehearse bedside and rehabilitation scenarios with the TinkyStroke walkthrough. When presenting to a specific facility, use its issued QR and confirm the actual board and access options in that setting.',
         ],
       },
       {
