@@ -6,7 +6,7 @@ import { mailStore } from './mail/store.mjs';
 import { teamChat } from './team-chat.mjs';
 import { coachStore } from './coach-store.mjs';
 
-const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests']);
+const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests', 'contract-drafts']);
 function kindFor(kind) {
   if (!kinds.has(kind)) throw new Error('Unknown SDR collection.');
   return kind;
@@ -102,6 +102,7 @@ export function sqliteStore(filename) {
     booking: bookingStore(db, writeTransaction),
     coach: coachStore(db),
     repMail: mailStore(db, writeTransaction),
+    contractTransaction: writeTransaction,
     chat,
     list: kind => all.all(kindFor(kind)).map(decode),
     get,

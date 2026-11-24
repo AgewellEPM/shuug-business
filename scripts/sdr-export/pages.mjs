@@ -28,6 +28,8 @@ export function renderWorkspace(profile, signIn) {
     let sales = source
       .replace('</head>', '<link rel="stylesheet" href="/sales-coach.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-coach.js" defer></script><script src="/sales.js"')
+      .replace('</head>', '<link rel="stylesheet" href="/sales-contract-center.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-contract-center.js" defer></script><script src="/sales.js"')
       .replace('</head>', careStyles + '</head>')
       .replace('<script src="/sales.js"', careScripts + '<script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"><link rel="stylesheet" href="/facility-reviews.css"><link rel="stylesheet" href="/sales-booking.css"><link rel="stylesheet" href="/sales-chat.css"><link rel="stylesheet" href="/sales-email.css"><link rel="stylesheet" href="/sales-support.css"><link rel="stylesheet" href="/sales-today.css"><link rel="stylesheet" href="/sales-training.css"><link rel="stylesheet" href="/sales-training-demo.css"></head>')

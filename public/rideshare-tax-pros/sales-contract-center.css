@@ -1,0 +1,174 @@
+[data-agreement-only][data-sdr-view="contracts"] .sdr-topbar { display: none; }
+.sdr-contract-center {
+  --ct-ink: #102349;
+  --ct-muted: #405777;
+  --ct-blue: #064daf;
+  --ct-line: #bbd6f6;
+  --ct-panel: linear-gradient(150deg, #fbfdff, #edf5ff);
+  color: var(--ct-ink);
+  container: contract-center / inline-size;
+  display: grid;
+  gap: 12px;
+  padding-bottom: 24px;
+}
+.sdr-contract-center [hidden] { display: none !important; }
+.sdr-contract-center :is(button, input, select, textarea):focus-visible { outline: 2px solid #0664da; outline-offset: 2px; }
+.ct-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.ct-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ct-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: 1;
+  min-width: 0;
+  max-width: 700px;
+  background: #f4f8ff;
+  border: 1px solid #b5ccee;
+  border-radius: 11px;
+  padding: 3px 4px 3px 11px;
+  color: var(--ct-muted);
+}
+.ct-top > .ct-button { flex: none; }
+.ct-search svg { flex: none; }
+.sdr-contract-center .ct-search input { flex: 1; width: 100%; min-width: 0; min-height: 35px; border: 0; background: transparent; color: var(--ct-ink); }
+.ct-hero {
+  background: linear-gradient(90deg, #05173e 0%, #063477 30%, #0354a4a8 48%, #0354a400 70%),
+    #073e85 url('/sales-contracts-hero.webp') 80% 69% / cover;
+  border-radius: 17px;
+  display: flex;
+  align-items: center;
+  min-height: clamp(160px, 21cqw, 253px);
+  padding: clamp(14px, 3cqw, 34px);
+  overflow: hidden;
+  isolation: isolate;
+}
+.ct-hero-copy { width: min(57%, 425px); }
+.sales-console-page .ct-hero :is(h1, p) { color: #fff; margin: 0; text-shadow: 0 1px 3px #041e59a0; }
+.sales-console-page .ct-hero .ct-mark { font-size: clamp(18px, 2.65cqw, 33px); font-weight: 820; letter-spacing: -.035em; }
+.sales-console-page .ct-hero h1 { font-size: clamp(34px, 5.2cqw, 64px); font-weight: 850; line-height: 1; letter-spacing: -.045em; margin-bottom: 6px; }
+.sales-console-page .ct-hero p { font-size: clamp(14px, 1.6cqw, 19px); line-height: 1.27; }
+.ct-tabs {
+  display: grid;
+  grid-template-columns: 1.52fr repeat(6, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--ct-line);
+  border-radius: 11px;
+  background: linear-gradient(#f6fbff,#e1eeff);
+  box-shadow: 0 3px 8px #174c9120;
+}
+.sdr-contract-center .ct-tabs button, .sdr-contract-center .ct-button {
+  color: var(--ct-blue);
+  font: inherit;
+  font-weight: 680;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  border: 1px solid #a9caf6;
+  padding: 6px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+  background: linear-gradient(#fdfefe,#e7f2ff);
+}
+.sdr-contract-center .ct-button { font-size: .86rem; }
+.sdr-contract-center .ct-button svg, .ct-section-heading svg, .ct-tabs svg { flex: none; }
+.sdr-contract-center .ct-button svg { width: 17px; height: 17px; }
+.sdr-contract-center .ct-tabs button { background: transparent; border-color: transparent; color: var(--ct-ink); font-size: clamp(.73rem, 1.3cqw, .94rem); padding-inline: 4px; }
+.ct-tabs svg { width: 19px; height: 19px; }
+.sdr-contract-center :is(.ct-button,.ct-tabs button):hover { filter: brightness(.96); }
+.sdr-contract-center :is(.ct-button.ct-primary,.ct-tabs button[aria-pressed="true"]) {
+  color: #fff;
+  border-color: #0877e9;
+  background: linear-gradient(#008eea,#0648d6);
+  box-shadow: 0 2px 6px #0055cc30;
+}
+.ct-message { margin: 0; color: var(--ct-muted); }
+.ct-message:empty, [data-ct-dialog-note]:empty { display: none; }
+.sdr-contract-center [data-error="true"] { color: #a42232; }
+.ct-content { display: grid; gap: 14px; min-width: 0; }
+.ct-overview-top, .ct-template-row, .ct-records-row { display: grid; gap: 12px; align-items: stretch; min-width: 0; }
+.ct-overview-top { grid-template-columns: 1.9fr 1fr; }
+.ct-template-row { grid-template-columns: minmax(0, 3fr) minmax(0, 1fr); }
+.ct-records-row { grid-template-columns: minmax(0, 2.35fr) minmax(0, 1fr); }
+.ct-card {
+  min-width: 0;
+  border: 1px solid var(--ct-line);
+  background: var(--ct-panel);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px #0c4ea411;
+  padding: 13px 14px;
+}
+.ct-program {
+  min-height: 195px;
+  padding-right: 40%;
+  background: linear-gradient(90deg,#f7fbff 0%,#f7fbff 55%,#f7fbff00 82%), url('/sales-contracts-care.webp') right 54% / auto 130% no-repeat, #f7fbff;
+}
+.ct-section-heading { display: flex; gap: 8px; align-items: flex-start; }
+.ct-section-heading > svg { width: 25px; height: 25px; color: #0060dd; }
+.sales-console-page .ct-section-heading h2 { margin: 1px 0 0; font-size: clamp(17px, 2cqw, 24px); line-height: 1.12; letter-spacing: -.018em; color: var(--ct-ink); }
+.ct-section-heading p, .ct-program > p { margin: 4px 0 0; color: var(--ct-muted); line-height: 1.36; font-size: .89rem; }
+.ct-checks { display: grid; gap: 6px; list-style: none; margin: 11px 0 3px; padding: 0; }
+.ct-checks li { position: relative; padding-inline-start: 21px; line-height: 1.3; font-size: .88rem; }
+.ct-checks li::before { content: '✓'; position: absolute; inset-inline-start: 1px; color: #0d793f; font-weight: 850; }
+.ct-card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px 13px; flex-wrap: wrap; margin-bottom: 10px; }
+.ct-template-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }
+.ct-template { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 5px; padding: 9px 7px 10px; border: 1px solid #c2dbf9; border-radius: 9px; background: linear-gradient(#fbfdff,#edf6ff); }
+.ct-template > svg { width: 33px; height: 33px; color: #0068e7; }
+.sales-console-page .ct-template h3, .sales-console-page .ct-draft-list h3 { margin: 0; font-size: .98rem; color: var(--ct-ink); }
+.ct-template p { flex: 1; color: var(--ct-muted); margin: 0 0 4px; line-height: 1.28; font-size: .82rem; }
+.ct-workflow { list-style: none; display: grid; gap: 2px; padding: 0; margin: 9px 0; counter-reset: ct-step; }
+.ct-workflow li { display: flex; align-items: center; gap: 7px; counter-increment: ct-step; padding: 3px 0; font-size: .86rem; line-height: 1.28; }
+.ct-workflow li::before { content: counter(ct-step); display: grid; place-items: center; flex: 0 0 21px; height: 21px; background: #0b8247; color: #fff; border-radius: 50%; font-weight: 700; }
+.ct-table-wrap { overflow-x: auto; }
+.ct-records table { width: 100%; border-collapse: collapse; text-align: left; font-size: .82rem; }
+.ct-records th, .ct-records td { padding: 7px 6px; border-bottom: 1px solid #d8e6f7; vertical-align: middle; }
+.ct-records th { background: #deeafb; color: #183259; }
+.ct-records td:first-child { min-width: 120px; }
+.ct-records small { display: block; color: var(--ct-muted); }
+.ct-records td:last-child button { min-height: 29px; font-size: .75rem; padding: 3px 6px; margin-block: 1px; }
+.ct-type, .ct-state { white-space: nowrap; }
+.ct-type { font-weight: 660; border-radius: 20px; padding: 2px 8px; background: #dae9fe; color: #063d8b; }
+.ct-type[data-kind="service"] { background: #e9dffc; color: #542896; }
+.ct-type[data-kind="renewal"] { background: #d9f2e4; color: #145d35; }
+.ct-state::before { content: ''; display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-inline-end: 4px; background: #2a6bb3; }
+.ct-state[data-tone="active"]::before { background: #0b8347; }
+.ct-state[data-tone="expired"]::before { background: #c03042; }
+.ct-state[data-tone="pending"]::before { background: #b06a06; }
+.ct-empty { margin: 7px 0; color: var(--ct-muted); }
+.ct-compliance > button { margin-top: 10px; }
+.ct-start { display: flex; justify-content: space-between; align-items: center; gap: 12px 20px; flex-wrap: wrap; background: linear-gradient(110deg,#f8fbff,#ddecff); }
+.ct-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ct-draft-list { margin-top: 9px; }
+.ct-draft-list article { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 9px; padding: 9px 0; border-bottom: 1px solid #d8e6f7; }
+.ct-draft-list article p { color: var(--ct-muted); margin: 2px 0 0; font-size: .85rem; }
+.ct-dialog:not([open]) { display: none; }
+.ct-dialog { border: 1px solid var(--ct-line); border-radius: 15px; width: min(680px, 95vw); max-height: 88vh; overflow: auto; padding: 17px; color: var(--ct-ink); background: #f7fbff; box-shadow: 0 12px 60px #071e504e; }
+.ct-dialog::backdrop { background: #071e506f; }
+.ct-dialog header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ct-dialog h2 { color: var(--ct-ink); }
+.ct-dialog p { margin: 7px 0; }
+.ct-form { display: grid; gap: 9px; }
+.ct-form-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.ct-dialog label { display: grid; gap: 3px; font-size: .88rem; font-weight: 650; }
+.sdr-contract-center .ct-dialog :is(input:not([type="checkbox"]), select, textarea) { width: 100%; min-width: 0; background: #fff; color: var(--ct-ink); }
+.ct-dialog .ct-approve { display: flex; align-items: flex-start; gap: 7px; }
+.ct-dialog .ct-approve input { margin-top: 4px; }
+.ct-terms { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 42vh; overflow: auto; background: white; border: 1px solid var(--ct-line); padding: 12px; border-radius: 8px; font: inherit; }
+[data-ct-link] { margin-block: 4px 10px; }
+
+@container contract-center (max-width: 860px) {
+  .ct-tabs { display: flex; overflow-x: auto; }
+  .ct-tabs button { flex: 0 0 auto; white-space: nowrap; }
+  .ct-template-row, .ct-records-row { grid-template-columns: minmax(0,1fr); }
+}
+@container contract-center (max-width: 595px) {
+  .ct-hero { background-image: linear-gradient(90deg,#05173ef0,#073e85df 50%,#0354a45c),url('/sales-contracts-hero.webp'); }
+  .ct-hero-copy { width: min(90%,350px); }
+  .ct-overview-top { grid-template-columns: minmax(0,1fr); }
+  .ct-template-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .ct-program { background-image: linear-gradient(90deg,#f7fbff 0%,#f7fbff 59%,#f7fbff25 95%),url('/sales-contracts-care.webp'); padding-right: 26%; }
+  .ct-form-pair { grid-template-columns: minmax(0,1fr); }
+}

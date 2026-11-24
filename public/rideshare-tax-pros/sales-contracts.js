@@ -2,7 +2,7 @@
   'use strict';
   const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   const date = value => value ? new Date(value).toLocaleString() : 'Not recorded';
-  const statuses = { awaiting_signature: 'Awaiting owner signature', signed_payment_pending: 'Signed · payment pending', active: 'Paid membership active', expired: 'Link expired', preview: 'Preview only', sending: 'Send attempt in progress', accepted: 'Provider accepted · delivery unconfirmed', delivered: 'Recipient delivery confirmed', rejected: 'Provider rejected', uncertain: 'Outcome uncertain · do not resend', not_sent: 'Not sent', deferred: 'Delivery deferred', failed: 'Delivery failed', manual_sent: 'Sent manually · staff recorded' };
+  const statuses = { awaiting_signature: 'Awaiting owner signature', signed: 'Signed agreement', signed_payment_pending: 'Signed · payment pending', active: 'Paid membership active', expired: 'Link expired', preview: 'Preview only', sending: 'Send attempt in progress', accepted: 'Provider accepted · delivery unconfirmed', delivered: 'Recipient delivery confirmed', rejected: 'Provider rejected', uncertain: 'Outcome uncertain · do not resend', not_sent: 'Not sent', deferred: 'Delivery deferred', failed: 'Delivery failed', manual_sent: 'Sent manually · staff recorded' };
   const title = value => statuses[value] || String(value || '').replaceAll('_', ' ');
   const download = (name, value) => { const url = URL.createObjectURL(new Blob([typeof value === 'string' ? value : JSON.stringify(value, null, 2)], { type: 'text/plain;charset=utf-8' })), anchor = document.createElement('a'); anchor.href = url; anchor.download = name; anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); };
   const run = (status, work) => async event => { event?.preventDefault(); try { await work(event); } catch (error) { status(error.message, true); } };
@@ -17,10 +17,12 @@
     mount({ api, status, onSelect, onNavigate, refresh }) {
       let data, filter = 'all';
       const contractsHost = document.querySelector('#sales-contracts'), mailboxHost = document.querySelector('#sales-mailboxes');
+      const center = window.SdrContractCenter?.mount({ host: contractsHost, api, status, onSelect, onNavigate, refresh });
       function render() {
         if (!data) return;
         const contracts = data.contracts || [], visible = contracts.filter(contract => filter === 'all' || (filter === 'signed' ? contract.signed : filter === 'unsigned' ? !contract.signed : contract.status === filter));
-        if (contractsHost) {
+        if (center) center.render(data);
+        else if (contractsHost) {
           contractsHost.innerHTML = `<div class="sdr-card-head"><div><h2>Office contracts</h2><p>Prepare, send, track signatures and keep the exact signed agreement.</p></div><button type="button" class="button primary" data-contract-start>Open pipeline to prepare a contract</button></div><div class="sdr-contact-summary"><span><strong>${contracts.length}</strong> contracts</span><span><strong>${contracts.filter(c => c.signed).length}</strong> signed</span><span><strong>${contracts.filter(c => !c.signed && c.status !== 'expired').length}</strong> awaiting signature</span><span><strong>${contracts.filter(c => c.active).length}</strong> paid memberships</span></div><label>Show contracts<select data-contract-filter>${[['all', 'All contracts'], ['unsigned', 'Awaiting signature / expired'], ['signed', 'Signed agreements'], ['active', 'Paid active'], ['expired', 'Expired links']].map(([id, name]) => `<option value="${id}" ${filter === id ? 'selected' : ''}>${name}</option>`).join('')}</select></label><div class="sdr-contract-grid">${visible.map(contractCard).join('') || '<div class="sdr-card"><h3>No contracts in this view</h3><p>Open a saved office, verify ownership, choose the owner and prepare its contract link. Sending and signatures appear here.</p></div>'}</div>`;
           contractsHost.querySelector('[data-contract-start]').onclick = () => onNavigate('pipeline');
           contractsHost.querySelector('[data-contract-filter]').onchange = event => { filter = event.target.value; render(); };
@@ -38,7 +40,7 @@
           const form = mailboxHost.querySelector('form'); form.onsubmit = run(status, async () => { await api('save-mailbox', { ...Object.fromEntries(new FormData(form)), approved: form.elements.approved.checked }); await refresh(); status('Sender details saved. Delivery status is shown separately.'); });
         }
       }
-      return { render(value) { data = value; render(); } };
+      return { render(value) { data = value; render(); }, enter() { center?.enter(); } };
     },
 
     office({ office, contracts = [], data, api, status, refresh }) {

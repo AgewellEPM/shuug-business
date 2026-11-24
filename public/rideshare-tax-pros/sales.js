@@ -87,7 +87,7 @@
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
-      $('#sales-stats').hidden = trainingTool || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
+      $('#sales-stats').hidden = trainingTool || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -103,6 +103,7 @@
       careCampaign?.view(name);
       if (name === 'campaigns' && data?.user.role === 'owner') campaignUI?.refresh();
       if (name === 'email') emailUI?.enter();
+      if (name === 'contracts') contractsUI?.enter();
       if (name === 'team') teamUI?.refresh(data.user);
       else teamUI?.closeMemberProfile();
       if (enteringWorkspace) $('.sdr-main').scrollTop = 0;
@@ -533,7 +534,7 @@
       for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:result.website || '', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
       form.scrollIntoView?.({ behavior:'smooth', block:'start' }); form.elements.name.focus(); status('Public business details prepared. Review the office location and owner role before saving. Nothing has been saved yet.');
     } });
-    contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
+    contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: openNavigation, refresh });
     emailUI = window.SdrEmail?.mount({ api, onNavigate: tab, onOpenOffice: showOffice, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, refresh, onSelect: showOffice, onNavigate: tab, onEmail: emailUI && emailContact });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });

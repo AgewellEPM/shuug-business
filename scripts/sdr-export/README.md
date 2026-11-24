@@ -24,6 +24,8 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 - Pipeline list and board, assignments, follow-ups, recorded contact and reply history, suppression preferences, and CSV export.
 - Owner and agent access, territory enforcement, and revocation. An optional shared identity portal can also grant scoped staff and location sessions.
 - Agreement preview and publication, private invitations, signatures, receipts and delivery history. Email can be recorded from an external mail app or sent through a configured Mailgun account following the existing reviewed preview flow.
+
+In the agreement workspace, **Contracts** provides pilot, service, extension and renewal templates. Select a saved facility or business, enter its terms, and submit the draft for workspace-owner approval. After approval, prepare the private signature link or open the facility’s existing contract tools. The invitation uses the exact approved text, including any entered dates and value. Renewals and extensions reference an existing signed agreement. The archive retains signed agreements and expired invitations.
 - The existing Stripe checkout, webhook, billing reconciliation, revenue and commission projections can be used with the optional membership profile. The default agreement profile completes after signature and offers project-defined agreement text.
 - The optional MCP server exposes the same records and role restrictions used by the browser.
 

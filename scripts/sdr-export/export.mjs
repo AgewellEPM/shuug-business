@@ -53,6 +53,7 @@ const assets = [
   'sales-email.css', 'sales-mail-team.js', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
   'sales-coach.css', 'sales-coach.js',
+  'sales-contract-center.css', 'sales-contract-center.js', 'sales-contracts-hero.webp', 'sales-contracts-care.webp',
   'sales-training.css', 'sales-training.js', 'sales-training-demo.css', 'sales-training-voice.js', 'sales-training-pipeline.js',
   'sales-support.css', 'sales-support.js', 'sales-support-content.js',
   'facility-reviews.css', 'facility-reviews.js',
