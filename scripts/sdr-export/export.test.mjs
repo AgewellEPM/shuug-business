@@ -453,11 +453,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(header.querySelector('#sdr-earnings').hidden, false);
     assert.ok(header.querySelector('#sales-logout'));
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
-    const search = header.querySelector('#sdr-header-search');
-    search.querySelector('input').value = 'Solar';
-    search.requestSubmit();
-    assert.equal(document.body.dataset.sdrView, 'pipeline');
-    assert.equal(document.querySelector('#sales-filter').value, 'Solar');
+    assert.equal(header.querySelector('#sdr-header-search'), null);
+    assert.ok(document.querySelector('[data-pipeline-part="board"] #sales-filter'));
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -647,7 +644,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   clarendon.dispatchEvent(new window.MouseEvent('click', {bubbles:true}));
   assert.equal(mapSelection.hidden, false);
   assert.match(mapSelection.textContent, /Clarendon County/);
-  await waitFor(() => /No sales rep currently assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
+  await waitFor(() => /No Tinky Team agent assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
   assert.equal(clarendon.parentElement.getAttribute('display'), 'none');
   assert.equal(atlas.querySelector('.town-map-districts').getAttribute('display'), 'inline');
   assert.equal(atlas.querySelectorAll('.town-map-district[data-district^="45027"]').length, 7);
@@ -689,7 +686,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const tile = townCanvas.querySelector('img.leaflet-tile');
   assert.match(tile.src, /^https:\/\/tile\.openstreetmap\.org\/16\//);
   townCanvas.dispatchEvent(new window.MouseEvent('click', {clientX:400, clientY:240, bubbles:true}));
-  assert.match(mapSelection.textContent, /Checking sales rep/);
+  assert.match(mapSelection.textContent, /Checking agent assignment/);
   await waitFor(() => {
     const selection = townPanel.querySelector('[data-map-selection]');
     return /Manning.*Clarendon County.*Example County Lead/.test(selection.textContent);
@@ -1007,7 +1004,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.elements.body.value, reviewedDraft);
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
-    assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-header-search'));
+    assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-xp-bar'));
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });
@@ -1143,7 +1140,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   window.document.querySelector('[data-tab=team]').click();
   const addRep = pageDocument.querySelector('#sales-team-add-rep');
   assert.equal(addRep.closest('[hidden]'), null);
-  assert.match(addRep.textContent.trim(), /^Add sales rep$/);
+  assert.match(addRep.textContent.trim(), /^Add Tinky Team agent$/);
   addRep.click();
   assert.equal(teamPane('invite').hidden, false);
   assert.equal(teamPane('settings').hidden, true);
@@ -1247,6 +1244,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentNav = agentDocument.querySelector('[data-tab=team]');
   agentWindow.location.hash = 'view=team&section=settings';
   await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
+  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Tinky Team');
+  assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Tinky Team');
+  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Tinky Team agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
   assert.equal(agentDocument.getElementById('sales-team-pane-settings').hidden, true);
@@ -1280,7 +1280,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => agentDocument.querySelector('[data-county-row="09110"]'), 'Team county roster did not load');
   const teamSelection = agentDocument.querySelector('[data-map-selection]');
   agentDocument.querySelector('[data-county-row="09190"]').click();
-  await waitFor(() => /No sales rep currently assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
+  await waitFor(() => /No Tinky Team agent assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
   assert.equal(teamSelection.querySelector('[data-county-assign]'), null);
   agentDocument.querySelector('[data-county-row="09110"]').click();
   assert.equal(agentDocument.querySelector('.county-lead-form'), null);

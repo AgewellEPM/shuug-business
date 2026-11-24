@@ -33,7 +33,7 @@
   const verifiedOwnership = office => { const info = metadata(office); return info.independence === 'independent' && info.independenceVerification?.reviewed === true && info.independenceVerification.finding === 'independent'; };
   let previousMount;
 
-  function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onSearch = () => {}, onTerritory, onExport, matchesFacility = () => true, facilityLabel = () => '' } = {}) {
+  function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onPipelineNavigate = onNavigate, onSearch = () => {}, onTerritory, onExport, matchesFacility = () => true, facilityLabel = () => '' } = {}) {
     previousMount?.();
     let data = { offices: [], agents: [], user: {}, stages: STAGES }, selectedState = '', currentView = 'dashboard', pipelineView = 'board';
     const statePicker = $('#sales-territory-state');
@@ -51,7 +51,7 @@
     };
     const openView = name => { navigate(name); return onNavigate(name); };
     const selectOffice = id => { openView('pipeline'); return onSelect(String(id)); };
-    const pipeline = window.SdrPipelineWorkspace?.mount({ listen, act, onSelect: selectOffice, onNavigate: openView, onMode: setPipelineView, onExport });
+    const pipeline = window.SdrPipelineWorkspace?.mount({ listen, act, onSelect: selectOffice, onNavigate: onPipelineNavigate, onMode: setPipelineView, onExport });
     function stat(title, count, description, action) {
       const card = button('', 'sdr-card sdr-stat', action);
       card.append(node('span','sdr-stat-label',title),node('strong','sdr-stat-value',count),node('span','sdr-stat-description',description));
@@ -183,7 +183,7 @@
       const columns = groups.map(group => {
         const lane = node('section','sdr-lane'); lane.dataset.stage = group.id;
         const head = node('div','sdr-lane-head'); head.append(node('h3','',group.label),node('span','sdr-lane-count',group.rows.length)); lane.append(head);
-        const list = node('div','sdr-lane-cards'); list.append(...group.rows.map(officeCard)); if (!group.rows.length) list.append(node('p','sdr-empty','No opportunities')); lane.append(list); return lane;
+        const list = node('div','sdr-lane-cards'); list.append(...group.rows.map(officeCard)); if (!group.rows.length) list.append(node('p','sdr-empty',pipeline ? 'No opportunities' : 'No offices in this stage.')); lane.append(list); return lane;
       });
       host.classList.toggle('is-stage-filtered', Boolean(stage));
       host.replaceChildren(...columns); setPipelineView(pipelineView);

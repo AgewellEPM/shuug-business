@@ -69,7 +69,7 @@
       const name = el('input'), photo = el('input'), removePhoto = el('input');
       name.value = lead?.name || ''; name.required = true; name.maxLength = 100; name.name = 'name';
       const member = el('select'); member.name = 'memberId'; member.required = true;
-      member.append(new Option('Choose a sales rep', ''));
+      member.append(new Option('Choose a Tinky Team agent', ''));
       const members = data.leadMembers.filter(p => !p.counties || p.counties.includes(county.id));
       for (const person of members) {
         member.append(new Option(person.name, person.id));
@@ -99,7 +99,7 @@
       }
       member.onchange = showPerson;
       showPerson();
-      form.append(label('Sales rep', member), profile, customName, customPhoto, remove);
+      form.append(label('Tinky Team agent', member), profile, customName, customPhoto, remove);
       const actions = el('div', '', 'county-lead-actions');
       const save = el('button', 'Save assignment', 'button primary');
       const clear = el('button', 'Clear assignment', 'button secondary');

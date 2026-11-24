@@ -147,7 +147,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const profileId = result.profile?.id ?? user.id;
       const isRoster = action === 'sales-team-read';
       const account = !isRoster && profileId !== user.id ? rosterUser(await db.get('agents', profileId)) : user;
-      if (!account) throw new HttpError(404, 'Sales team profile not found.');
+      if (!account) throw new HttpError(404, 'Tinky Team profile not found.');
       const [offices, events, enrollments] = await Promise.all([db.list('offices'), db.list('events'), db.list('enrollments')]);
       const scores = teamExperience(isRoster ? result.members : [account], offices, events, enrollments);
       if (!isRoster) return { profile: { ...result.profile, progress: scores.get(profileId) } };

@@ -335,7 +335,7 @@
       } else if (member.active && Array.isArray(member.marketSegments)) {
         coverage.append(element('p', 'No classified facilities assigned'));
       }
-      if (owner && member.id !== rootId) content.append(element('p', `Agent ID ${member.id}`, 'sdr-team-member-meta'));
+      if (owner && member.id !== rootId) content.append(element('p', `Tinky Team agent ID ${member.id}`, 'sdr-team-member-meta'));
       const access = element('div', '', 'sdr-team-member-access');
       access.append(state);
       if (member.canRevoke) access.append(revokeButton(member));
@@ -348,7 +348,7 @@
       const rows = new Map(members.map(member => [member.id, memberRow(member, rootId)]));
       const groups = new Map();
       const tree = element('ul', '', 'sdr-team-tree');
-      tree.setAttribute('aria-label', 'Sales team reporting structure');
+      tree.setAttribute('aria-label', 'Tinky Team reporting structure');
       for (const member of members) {
         const item = rows.get(member.id), parent = rows.get(member.parentId);
         if (!parent) { tree.append(item); continue; }
@@ -377,7 +377,7 @@
       $('sales-team-scope').textContent = owner ? 'See who reports to whom across the workspace.' : 'See your direct reports and the teams they build.';
       const request = ++sequence;
       roster.setAttribute('aria-busy', 'true');
-      if (!ready) roster.textContent = 'Loading your sales team…';
+      if (!ready) roster.textContent = 'Loading Tinky Team…';
       try {
         const team = await api('sales-team-read');
         if (request !== sequence) return;
@@ -386,7 +386,7 @@
         ready = true;
       } catch (error) {
         if (request !== sequence) return;
-        if (!ready) roster.textContent = 'Sales team could not load.';
+        if (!ready) roster.textContent = 'Tinky Team could not load.';
         message(error.message, true);
       } finally {
         if (request === sequence) {

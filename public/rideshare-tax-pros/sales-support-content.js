@@ -102,7 +102,7 @@ const sdrSupportArticles = [
     title: 'Find signed businesses on the Signup locations map',
     description: 'See where signed businesses are located and open their street addresses.',
     steps: [
-      'Open Sales team, select Signup locations, and choose a state or leave the filter on All states.',
+      'Open Tinky Team, select Signup locations, and choose a state or leave the filter on All states.',
       'Select a listed address to see it on the map. The state count reflects signed office agreements.',
     ],
   },

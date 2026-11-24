@@ -262,7 +262,7 @@ function teamNavigation(careWorkspace, seniorCare) {
     ['Communication', [['chat', 'Team chat'], ['email', 'Email'], ['mail', 'Senders']]],
     ['Coverage & contacts', [['territories', 'Territories'], ['locations', 'Signup locations'], ['contacts', seniorCare ? 'Contacts' : 'Owners & Rolodex']]],
   ];
-  return `<nav class="sdr-team-tools" aria-label="Sales team tools" data-team-tools>
+  return `<nav class="sdr-team-tools" aria-label="Tinky Team tools" data-team-tools>
     ${groups.map(([title, tools]) => `<section><h3>${title}</h3><div>${tools.map(([name, label]) =>
       `<button type="button" data-tab="${name}" aria-pressed="false"${name === 'territories' ? ' id="sales-team-territories"' : ''}>${icon(name)}<span>${label}</span></button>`).join('')}</div></section>`).join('')}
   </nav>`;
@@ -276,16 +276,16 @@ function standaloneTeam(legacyTeam, careWorkspace, seniorCare) {
   return `<section class="sdr-team-workspace" data-tab-panel="team" aria-labelledby="sales-team-title" hidden>
     <header class="sdr-team-hero">
       <div class="sdr-team-hero-main">
-        <div class="sdr-team-hero-title"><h2 id="sales-team-title">Sales team</h2><p>Reporting structure, rep profiles, and territory assignments</p></div>
+        <div class="sdr-team-hero-title"><h2 id="sales-team-title">Tinky Team</h2><p>Reporting structure, agent profiles, and territory assignments</p></div>
         <div class="sdr-team-hero-actions">
-          <button type="button" class="button primary" id="sales-team-add-rep">${icon('prospects')} Add sales rep</button>
+          <button type="button" class="button primary" id="sales-team-add-rep">${icon('prospects')} Add Tinky Team agent</button>
         </div>
       </div>
       <img class="sdr-team-hero-art" src="/sales-team-territory-planning.webp" alt="" width="1000" height="500">
     </header>
     ${teamNavigation(careWorkspace, seniorCare)}
     <div class="sdr-team-surface">
-      <div class="sdr-team-tabs" role="tablist" aria-label="Sales team workspace">
+      <div class="sdr-team-tabs" role="tablist" aria-label="Tinky Team workspace">
         ${tabs.map(([key, label], index) => `<button type="button" role="tab" id="sales-team-tab-${key}" data-team-view="${key}" aria-controls="sales-team-pane-${key}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}"${key === 'settings' ? ' data-owner-only hidden' : ''}>${label}</button>`).join('')}
       </div>
       <p id="sales-team-status" role="status" aria-live="polite"></p>
@@ -315,7 +315,7 @@ function standaloneTeam(legacyTeam, careWorkspace, seniorCare) {
         </form>
       </section>
       <section class="sdr-team-pane" id="sales-team-pane-invite" role="tabpanel" aria-labelledby="sales-team-tab-invite" tabindex="0" hidden>
-        <div class="sdr-team-pane-head"><div><h3>Add a sales rep</h3><p>Share the sign-in page and access code privately.</p></div></div>
+        <div class="sdr-team-pane-head"><div><h3>Add a Tinky Team agent</h3><p>Share the sign-in page and access code privately.</p></div></div>
         <form id="sales-create-agent" class="sales-form">
           <label>Name<input name="name" autocomplete="off" maxlength="140" required></label>
           <label>Business email<input name="email" type="email" autocomplete="off" maxlength="200" required></label>
@@ -332,7 +332,7 @@ function standaloneTeam(legacyTeam, careWorkspace, seniorCare) {
           </div>
         </div>
         <div data-owner-only hidden data-team-identity-portal>
-          <p>For shared sign-in, link a staff account to its SDR agent ID.</p>
+          <p>For shared sign-in, link a staff account to its Tinky Team agent ID.</p>
           <button type="button" class="button secondary" id="sales-copy-login-link">Copy shared sign-in link</button>
         </div>
       </section>
@@ -356,7 +356,7 @@ function standaloneTeam(legacyTeam, careWorkspace, seniorCare) {
     <dialog class="sdr-team-member-dialog" data-team-member-profile aria-labelledby="sales-team-member-profile-title">
       <header class="sdr-team-member-dialog-heading">
         <div>
-          <h3 id="sales-team-member-profile-title" data-team-member-profile-title>Sales rep profile</h3>
+          <h3 id="sales-team-member-profile-title" data-team-member-profile-title>Tinky Team agent profile</h3>
           <div data-team-member-profile-progress></div>
         </div>
         <button type="button" class="button secondary" data-team-member-profile-close autofocus>Close</button>
@@ -383,7 +383,7 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ...(seniorCare ? [['facilities', 'Facility directory']] : []), ['team', 'Sales team'], ['training', 'Training'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ...(seniorCare ? [['facilities', 'Facility directory']] : []), ['team', 'Tinky Team'], ['training', 'Training'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const careLabels = { contacts: 'Contacts', discover: 'Local research' };
@@ -407,7 +407,7 @@ ${prospects ? renderPipelineWorkspace({ icon, toolbar, map: territoryMap({ inter
 ${seniorCare ? standaloneFacilities : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
-  <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
+  <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Tinky Team</button>
   ${standaloneTeam(team, careWorkspace, seniorCare)}` : ''}
 ${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}

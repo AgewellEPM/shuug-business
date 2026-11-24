@@ -68,7 +68,7 @@
       host.replaceChildren(heading);
       if (current.pending || current.unconfirmed) {
         const status = document.createElement('span');
-        status.textContent = current.pending ? 'Checking sales rep…' : 'Could not confirm the current assignment.';
+        status.textContent = current.pending ? 'Checking agent assignment…' : 'Could not confirm the current assignment.';
         host.append(status);
         return;
       }
@@ -76,7 +76,7 @@
         const row = document.createElement('div');
         row.className = 'territory-selection-county';
         const text = document.createElement('span');
-        const rep = county.lead?.name ? 'Sales rep · ' + county.lead.name : 'No sales rep currently assigned';
+        const rep = county.lead?.name ? 'Tinky Team agent · ' + county.lead.name : 'No Tinky Team agent assigned';
         text.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
         if (county.lead?.name) row.append(window.SdrCountyLeads.avatar(county.lead));
         row.append(text);

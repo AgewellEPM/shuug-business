@@ -300,7 +300,7 @@
         if (care) {
           const noTerritory = !directoryState.value;
           document.querySelectorAll('[data-browse-facility]').forEach(button => { button.disabled = noTerritory; });
-          $('#care-directory-status').textContent = noTerritory ? 'Ask your sales team manager to assign a territory to browse facilities.' : '';
+          $('#care-directory-status').textContent = noTerritory ? 'Ask your Tinky Team manager to assign a territory to browse facilities.' : '';
           renderCareAccounts(accounts);
           return;
         }
