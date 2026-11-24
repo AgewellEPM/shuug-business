@@ -1,3 +1,4 @@
+[data-standalone-sdr]:is([data-sdr-view="email"], [data-sdr-view="mail"]) .sdr-topbar { display: none; }
 .sdr-email-hero {
   display: flex;
   align-items: center;
@@ -75,7 +76,8 @@
 .sdr-zoho-admin { margin-top: 12px; }
 .sdr-zoho-admin summary { width: fit-content; cursor: pointer; font-size: .9rem; }
 .sdr-zoho-admin form { max-width: 640px; margin-top: 12px; }
-.sdr-zoho-admin code { white-space: normal; overflow-wrap: anywhere; }
+.sdr-zoho-steps { display: grid; gap: 8px; margin: 0; padding-inline-start: 22px; }
+.sdr-zoho-admin code { display: block; white-space: normal; overflow-wrap: anywhere; }
 
 @media (max-width: 720px) {
   .sdr-email-grid { grid-template-columns: minmax(0, 1fr); min-height: 0; }

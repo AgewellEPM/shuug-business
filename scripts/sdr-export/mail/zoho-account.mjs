@@ -35,8 +35,9 @@ export function zohoAssignment(db, user, config) {
   const reserved = address && (user.role !== 'owner' && address === config.ownerAddress ||
     Object.entries(config.mailboxes).some(([id, assignment]) => id !== user.id && addressOf(assignment?.address) === address));
   const refreshToken = override?.refreshToken || config.refreshToken;
+  const hasWorkspaceIdentity = Boolean(refreshToken || config.ownerAddress || config.orgId);
   return { name: db.salesRepProfile?.(user.id)?.name || user.name, address: reserved ? '' : address,
-    configured: Boolean(address && !reserved && config.clientId && config.clientSecret && refreshToken),
+    configured: Boolean(address && !reserved && config.clientId && config.clientSecret && hasWorkspaceIdentity),
     accountId: zohoId(override?.accountId), config: { ...config, orgId: override?.refreshToken ? '' : config.orgId, refreshToken } };
 }
 
@@ -46,9 +47,22 @@ export function zohoSession(fetcher = fetch) {
   const tokens = new Map();
   async function refresh(config) {
     try {
+      const body = new URLSearchParams({ client_id: config.clientId, client_secret: config.clientSecret });
+      if (config.refreshToken) {
+        body.set('grant_type', 'refresh_token');
+        body.set('refresh_token', config.refreshToken);
+      } else {
+        body.set('grant_type', 'client_credentials');
+        const scopes = ['ZohoMail.accounts.READ', 'ZohoMail.folders.READ', 'ZohoMail.messages.ALL'];
+        if (config.orgId) {
+          body.set('soid', 'ZohoMail.' + config.orgId);
+          scopes.push('ZohoMail.organization.accounts.READ');
+        }
+        body.set('scope', scopes.join(','));
+      }
       const result = await fetcher('https://accounts.' + config.host + '/oauth/v2/token', {
         method: 'POST', redirect: 'error', signal: AbortSignal.timeout(12_000),
-        body: new URLSearchParams({ grant_type: 'refresh_token', client_id: config.clientId, client_secret: config.clientSecret, refresh_token: config.refreshToken }),
+        body,
       });
       const data = await result.json();
       if (!result.ok || typeof data.access_token !== 'string' || !data.access_token) throw unavailable();
@@ -56,7 +70,7 @@ export function zohoSession(fetcher = fetch) {
     } catch { throw unavailable(); }
   }
   async function token(config) {
-    const key = createHash('sha256').update(JSON.stringify([config.host, config.clientId, config.clientSecret, config.refreshToken])).digest('hex');
+    const key = createHash('sha256').update(JSON.stringify([config.host, config.clientId, config.clientSecret, config.refreshToken, config.orgId])).digest('hex');
     let entry = tokens.get(key);
     if (!entry || entry.expires <= Date.now()) {
       if (tokens.size > 256) tokens.clear();
