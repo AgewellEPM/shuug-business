@@ -6,7 +6,7 @@ import { listingInput, supportInput } from './directory.mjs';
 import { PROSPECT_ACTIONS, prospectTools, verificationUpdate } from './prospect-tools.mjs';
 import { enrollmentEligibility, initialBilling, reconcileEnrollment } from './billing.mjs';
 import { patchReviewed } from './atomic.mjs';
-import { CONTACT_ACTIONS, contactBook, contactDirectory, contactTools } from './contacts.mjs';
+import { CONTACT_ACTIONS, contactBook, contactDirectory, contactTools, initialOfficeContact } from './contacts.mjs';
 import { progressProjection, progressTools } from './pipeline.mjs';
 import { contractSummary, contractLink, signedContractReceipt } from './contracts.mjs';
 import { DELIVERY_ACTIONS, deliveryTools, deliveryReceipts, safeSalesEvent } from './contract-delivery.mjs';
@@ -153,6 +153,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (PROSPECT_ACTIONS.has(action)) return prospects(user, await leadFor(user, b.id), action, b);
     if (action === 'create-office') {
       const input = officeInput(b);
+      const initial = b.initialContact === undefined ? null : initialOfficeContact(b.initialContact, user);
       if (!facility && tools.facilities && b.facilityType) {
         if (!facilityTypes.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
         facility = { facilityType: b.facilityType };
@@ -181,7 +182,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         if (!agent || !localityAllowed(agent,input.state,input.city)) throw new HttpError(400, 'Choose an active agent covering this town or city.');
         assigned = agent.id;
       }
-      const body = { town: input.name, state: input.state, contact_name: input.contact, contact_email: input.email, contact_phone: input.phone, locality: input.city, assigned_to: assigned, category: 'local_business', status: 'new', notes: JSON.stringify({ address: input.address, postalCode: input.postalCode, website: input.website, source: input.source, ...facility, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, sourceCheckedAt: new Date().toISOString() }) };
+      const body = { town: input.name, state: input.state, contact_name: input.contact, contact_email: input.email, contact_phone: input.phone, ...initial?.fields, locality: input.city, assigned_to: assigned, category: 'local_business', status: 'new', notes: JSON.stringify({ address: input.address, postalCode: input.postalCode, website: input.website, source: input.source, ...facility, independence: 'unverified', contactRole: 'unverified', contactVerified: false, emailVerified: false, sourceCheckedAt: new Date().toISOString(), ...initial?.info }) };
       const saved = db.createOfficeOnce ? db.createOfficeOnce(body, matches) : { office: await db.create('offices', body) };
       if (saved.duplicate) return useExisting(saved.office);
       const row = saved.office;

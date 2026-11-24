@@ -648,6 +648,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const secondCookie = (await doLogin(other.origin, otherCode)).headers.get('set-cookie').split('=')[0];
   assert.notEqual(firstCookie, secondCookie);
 
+  await t.test('the sidebar keeps Signup locations and the Rolodex adds contacts in an empty workspace', async t => {
+    const response = await differentProject.request('/sales');
+    const contactsWindow = await mountConsole(t, other.origin, differentProject, await response.text(), '/sales#view=contacts');
+    const doc = contactsWindow.document;
+    const find = selector => doc.querySelector(selector);
+    await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
+    assert.ok(find('.sdr-sidebar [data-tab="locations"]'));
+    assert.equal(find('.sdr-sidebar [data-tab="discover"]'), null);
+    assert.ok(find('[data-tab-panel="discover"]'));
+    const opener = find('[data-rolodex-add]');
+    opener.click();
+    const form = find('#sales-add-rolodex-contact');
+    const submit = () => form.requestSubmit();
+    function fill(fields) {
+      for (const [key, value] of Object.entries(fields)) form.elements.namedItem(key).value = value;
+    }
+    assert.equal(form.elements.officeId.value, 'new');
+    assert.equal(form.querySelector('fieldset').hidden, false);
+    fill({ name: 'Example First Contact', role: 'manager', title: 'Administrator', email: 'first@example.test',
+      organization: 'Example New Organization', address: '80 Example Street', city: 'Hartford', state: 'CT' });
+    submit();
+    await waitFor(() => find('[data-rolodex-results]').textContent.includes('Example First Contact'), 'New contact did not appear');
+    const data = await differentProject.api('bootstrap');
+    assert.equal(data.offices.length, 1);
+    assert.match(data.offices[0].town, /Example New Organization/);
+    assert.equal(data.rolodex.contacts[0].role, 'manager');
+    assert.equal(data.rolodex.contacts[0].title, 'Administrator');
+    assert.equal(data.rolodex.contacts[0].primary, true);
+
+    opener.click();
+    fill({ officeId: String(data.offices[0].id), name: 'Example Second Contact', role: 'staff', email: 'second@example.test' });
+    form.elements.officeId.dispatchEvent(new contactsWindow.Event('change', { bubbles: true }));
+    assert.equal(form.querySelector('fieldset').hidden, true);
+    submit();
+    await waitFor(() => find('[data-rolodex-results]').textContent.includes('Example Second Contact'), 'Existing office contact did not appear');
+    const saved = await differentProject.api('bootstrap');
+    assert.equal(saved.offices.length, 1);
+    assert.equal(saved.rolodex.contacts.length, 2);
+    assert.ok(!recovered.rolodex.contacts.some(contact => contact.officeName === 'Example New Organization'));
+  });
+
   symlinkSync(resolve('node_modules'), join(root, 'node_modules'), 'dir');
   const client = new Client({ name: 'sdr-export-test', version: '1.0.0' });
   try {

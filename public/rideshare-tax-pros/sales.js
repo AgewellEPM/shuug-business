@@ -63,7 +63,7 @@
       if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
-      if (standalone && params.get('view') === 'pipeline') { tab('pipeline'); return true; }
+      if (standalone && ['pipeline', 'contacts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (teamUI && params.get('view') === 'team') { tab('team'); return true; }
       if (standalone && territoryUI && params.get('view') === 'territories') { tab('territories'); return true; }
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
@@ -134,7 +134,7 @@
       territoryUI?.render(data);
       if ($('[data-tab][aria-pressed="true"]')?.dataset.tab !== 'home') overviewUI?.render(data);
       window.GigTaxWorkflows?.queue({ offices: scopedOffices, facilityView: careCRM, onSelect: id => { tab('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
-      tab($('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
+      tab((standalone && document.body.dataset.sdrView) || $('[data-tab][aria-pressed="true"]')?.dataset.tab || 'pipeline');
       if (selected) await showOffice(selected);
       if (data.user.role === 'owner') await window.GigTaxDirectory?.support({ api, status });
     }
@@ -266,7 +266,7 @@
       form.scrollIntoView?.({ behavior:'smooth', block:'start' }); form.elements.name.focus(); status('Public business details prepared. Review the office location and owner role before saving. Nothing has been saved yet.');
     } });
     contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
-    contactsUI = window.GigTaxContacts?.mount({ api, status, onSelect: showOffice, onNavigate: tab });
+    contactsUI = window.GigTaxContacts?.mount({ api, status, refresh, onSelect: showOffice, onNavigate: tab });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });
     prospectsWorkspace = window.SdrProspects?.mount({ api, refresh, onOpenOffice: showOffice });
     campaignUI = window.SdrCampaigns?.mount({ api, status });

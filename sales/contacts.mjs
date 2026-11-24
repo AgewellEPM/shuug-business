@@ -96,6 +96,14 @@ function primaryPatch(info, contacts, primaryId) {
   return { contact_name: primary?.name || '', contact_email: primary?.email || '', contact_phone: primary?.phone || '' };
 }
 
+export function initialOfficeContact(input, user, now = Date.now()) {
+  if (!uuid(input?.id)) throw new HttpError(400, 'Supply a valid contact ID.');
+  const at = new Date(now).toISOString();
+  const contact = { ...contactInput(input, null, user, now), id: input.id, createdAt: at, updatedAt: at, updatedBy: String(user.id) };
+  const info = { contacts: [contact] };
+  return { info, fields: primaryPatch(info, info.contacts, contact.id) };
+}
+
 export function contactTools(db, audit, now = Date.now) {
   return async (user, office, action, body) => {
     const info = metadata(office);

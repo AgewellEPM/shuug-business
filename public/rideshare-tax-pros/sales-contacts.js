@@ -22,11 +22,135 @@
       <div class="sales-actions">${actions(contact)}${controls}</div></article>`;
   }
 
+  function addContactEditor(host, opener, { api, onSaved }) {
+    host.innerHTML = `<section class="sdr-card sdr-rolodex-editor" aria-labelledby="rolodex-add-title" hidden>
+      <div class="sdr-card-head"><h3 id="rolodex-add-title">Add contact</h3></div>
+      <form class="sales-form" id="sales-add-rolodex-contact">
+        <label>Office or organization<select name="officeId" required></select></label>
+        <fieldset class="sdr-rolodex-new-office" hidden disabled>
+          <legend>New organization</legend>
+          <div class="sdr-contact-form-grid">
+            ${field('organization', 'Organization name', '', 'maxlength="180" required')}
+            ${field('address', 'Street address', '', 'maxlength="300" required')}
+            ${field('city', 'City or town', '', 'maxlength="100" required')}
+            <label>State<select name="state" required></select></label>
+          </div>
+        </fieldset>
+        <div class="sdr-contact-form-grid">
+          ${field('name', 'Full name', '', 'maxlength="140" required autocomplete="name"')}
+          ${select('role', 'Role', roles, 'unverified')}
+          ${field('title', 'Job title', '', 'maxlength="140"')}
+          ${field('email', 'Business email', '', 'type="email" maxlength="240"')}
+          ${field('phone', 'Business phone', '', 'type="tel" maxlength="60"')}
+          ${select('preference', 'Preferred contact method', preferences, 'unspecified')}
+        </div>
+        <div class="sales-actions">
+          <button type="submit" class="button primary">Save contact</button>
+          <button type="button" class="button secondary" data-rolodex-cancel>Cancel</button>
+        </div>
+        <p data-rolodex-editor-status role="status"></p>
+      </form>
+    </section>`;
+    const panel = host.firstElementChild, form = panel.querySelector('form');
+    const org = form.elements.officeId, state = form.elements.state;
+    const organization = form.querySelector('fieldset'), feedback = form.querySelector('[data-rolodex-editor-status]');
+    const save = form.querySelector('button[type=submit]'), cancel = form.querySelector('[data-rolodex-cancel]');
+    let contactId, busy = false;
+
+    function changeOrganization() {
+      organization.disabled = organization.hidden = org.value !== 'new';
+    }
+    function close() {
+      panel.hidden = true;
+      opener.setAttribute('aria-expanded', 'false');
+      opener.focus();
+    }
+    function announce(message, error = false) {
+      feedback.textContent = message;
+      feedback.dataset.error = String(error);
+    }
+    org.onchange = changeOrganization;
+    opener.onclick = () => {
+      if (!panel.hidden) { org.focus(); return; }
+      contactId = crypto.randomUUID();
+      form.reset();
+      changeOrganization();
+      announce('');
+      panel.hidden = false;
+      opener.setAttribute('aria-expanded', 'true');
+      panel.scrollIntoView?.({ block: 'nearest' });
+      org.focus();
+    };
+    cancel.onclick = close;
+    form.onsubmit = async event => {
+      event.preventDefault();
+      if (busy) return;
+      const input = Object.fromEntries(new FormData(form));
+      const contact = { name: input.name, role: input.role, title: input.title, email: input.email,
+        phone: input.phone, preference: input.preference };
+      busy = save.disabled = cancel.disabled = true;
+      announce('Saving contact…');
+      let saved = false;
+      try {
+        let id = input.officeId;
+        if (id === 'new') {
+          const result = await api('create-office', { name: input.organization, address: input.address,
+            city: input.city, state: input.state, initialContact: { id: contactId, ...contact } });
+          id = result.office.id;
+          saved = !result.duplicate;
+        }
+        if (!saved) {
+          const { contacts: book } = await api('office', { id });
+          if (!book.contacts.some(item => item.id === contactId)) {
+            await api('save-contact', { id, contactId, expectedRevision: book.revision, requestId: crypto.randomUUID(), contact });
+          }
+          saved = true;
+        }
+        await onSaved();
+        close();
+      } catch (error) {
+        announce(saved ? 'Contact saved. The Rolodex could not be refreshed. Try again to reload it.' : error.message, true);
+      } finally { busy = save.disabled = cancel.disabled = false; }
+    };
+    return {
+      update(data) {
+        const priorOffice = org.value, priorState = state.value;
+        const offices = data.offices.map(office => new Option(
+          [office.town, office.locality, office.state].filter(Boolean).join(' · '), String(office.id)));
+        org.replaceChildren(...(offices.length ? [new Option('Choose an organization', '')] : []),
+          ...offices, new Option('Add a new organization', 'new'));
+        if (priorOffice && [...org.options].some(option => option.value === priorOffice)) org.value = priorOffice;
+        const user = data.user, areas = user.territory?.version === 1 ? user.territory.areas.map(area => area.state) :
+          user.states?.length ? user.states : data.states;
+        state.replaceChildren(new Option('Choose a state', ''), ...areas.map(region => new Option(region, region)));
+        if (areas.includes(priorState)) state.value = priorState;
+        changeOrganization();
+      },
+    };
+  }
+
   window.GigTaxContacts = {
-    mount({ api, status, onSelect, onNavigate }) {
+    mount({ api, status, refresh, onSelect, onNavigate }) {
       const host = document.querySelector('#sales-rolodex');
       if (!host) return null;
+      const standalone = document.body.hasAttribute('data-standalone-sdr');
       let data, query = '', filter = 'all';
+      host.innerHTML = `<div class="sdr-card-head sdr-rolodex-head"><div><h2>Owners &amp; Rolodex</h2>
+        <p>The people behind each office, with the details your team needs.</p></div>
+        ${standalone ? '<button type="button" class="button primary sdr-rolodex-add" data-rolodex-add aria-expanded="false" aria-controls="sales-rolodex-editor"><span aria-hidden="true">+</span> Add contact</button>' :
+          '<button type="button" class="button primary" data-contact-find>Find offices</button>'}</div>
+        <div id="sales-rolodex-editor"></div><div data-rolodex-results></div>`;
+      const results = host.querySelector('[data-rolodex-results]');
+      const editor = standalone ? addContactEditor(host.querySelector('#sales-rolodex-editor'), host.querySelector('[data-rolodex-add]'), {
+        api, async onSaved() {
+          query = '';
+          filter = 'all';
+          await refresh();
+          status('Contact added to the Rolodex.');
+        },
+      }) : null;
+      const find = host.querySelector('[data-contact-find]');
+      if (find) find.onclick = () => onNavigate('discover');
       const render = () => {
         const directory = data?.rolodex || { contacts: [], coverage: {} }, counts = directory.coverage;
         const input = host.querySelector('[data-contact-search]'), focused = document.activeElement === input, position = input?.selectionStart;
@@ -39,19 +163,17 @@
           if (filter === 'do_not_contact' && !contact.suppressed) return false;
           return [contact.name, contact.role, contact.title, contact.email, contact.phone, contact.mobile, contact.officeName, contact.city, contact.state, contact.address, contact.postalCode].join(' ').toLocaleLowerCase().includes(query.toLocaleLowerCase());
         });
-        host.innerHTML = `<div class="sdr-card-head"><div><h2>Owners & Rolodex</h2><p>The people behind each office, with the details your team needs.</p></div><button type="button" class="button primary" data-contact-find>Find offices</button></div>
-          <div class="sdr-contact-summary" aria-label="Contact coverage"><span><strong>${counts.contacts || 0}</strong> contacts</span><span><strong>${counts.owners || 0}</strong> owners / partners recorded</span><span><strong>${counts.missingOwner || 0}</strong> offices missing an owner</span><span><strong>${counts.missingEmail || 0}</strong> missing email</span><span><strong>${counts.missingPhone || 0}</strong> missing phone</span></div>
+        results.innerHTML = `<div class="sdr-contact-summary" aria-label="Contact coverage"><span><strong>${counts.contacts || 0}</strong> contacts</span><span><strong>${counts.owners || 0}</strong> owners / partners recorded</span><span><strong>${counts.missingOwner || 0}</strong> offices missing an owner</span><span><strong>${counts.missingEmail || 0}</strong> missing email</span><span><strong>${counts.missingPhone || 0}</strong> missing phone</span></div>
           <div class="sales-toolbar"><label>Search people, offices or locations<input type="search" data-contact-search value="${e(query)}" placeholder="Name, email, phone, office, city or ZIP"></label><label>Show<select data-contact-filter>${[['all', 'Active contacts'], ['owners', 'Owners & partners'], ['missing_email', 'Missing email'], ['missing_phone', 'Missing phone'], ['needs_review', 'Needs source check'], ['do_not_contact', 'Contact actions paused'], ['archived', 'Archived']].map(([id, title]) => `<option value="${id}" ${filter === id ? 'selected' : ''}>${title}</option>`).join('')}</select></label></div>
           <p role="status">${contacts.length} ${contacts.length === 1 ? 'contact' : 'contacts'} shown</p><div class="sdr-contact-grid">${contacts.map(contact => `<div>${card(contact, `<button type="button" class="button secondary" data-contact-office="${e(contact.officeId)}">Open ${e(contact.officeName)}</button>`)}<p class="sdr-contact-location">${e(contact.officeName)} · ${e(contact.city)}, ${e(contact.state)} ${e(contact.postalCode)}</p></div>`).join('')}</div>
-          ${contacts.length ? '' : '<div class="sdr-card"><h3>No contacts in this view</h3><p>Open an office below to add its owner and business contacts, or find an office to start your pipeline.</p></div>'}
-          <details class="sdr-card" ${!directory.contacts.length ? 'open' : ''}><summary>Add or update contacts by office</summary><div class="sales-actions">${(data?.offices || []).map(office => `<button type="button" class="button secondary" data-contact-office="${e(office.id)}">${e(office.town)} · ${e(office.locality)}, ${e(office.state)}</button>`).join('') || '<p>No saved offices yet. Find and save an office first.</p>'}</div></details>`;
+          ${contacts.length ? '' : `<div class="sdr-card"><h3>No contacts in this view</h3><p>${standalone ? 'Use Add contact to add someone to the Rolodex.' : 'Open an office below to add its owner and business contacts, or find an office to start your pipeline.'}</p></div>`}
+          <details class="sdr-card" ${!directory.contacts.length ? 'open' : ''}><summary>Add or update contacts by office</summary><div class="sales-actions">${(data?.offices || []).map(office => `<button type="button" class="button secondary" data-contact-office="${e(office.id)}">${e(office.town)} · ${e(office.locality)}, ${e(office.state)}</button>`).join('') || (standalone ? '<p>You can add an organization when you add its first contact.</p>' : '<p>No saved offices yet. Find and save an office first.</p>')}</div></details>`;
         host.querySelector('[data-contact-search]').addEventListener('input', event => { query = event.target.value; render(); });
         host.querySelector('[data-contact-filter]').addEventListener('change', event => { filter = event.target.value; render(); });
-        host.querySelector('[data-contact-find]').onclick = () => onNavigate('discover');
         host.querySelectorAll('[data-contact-office]').forEach(button => button.onclick = async () => { try { await onSelect(button.dataset.contactOffice); } catch (error) { status(error.message, true); } });
         if (focused) { const next = host.querySelector('[data-contact-search]'); next.focus(); if (typeof position === 'number') next.setSelectionRange(position, position); }
       };
-      return { render(value) { data = value; render(); } };
+      return { render(value) { data = value; editor?.update(data); render(); } };
     },
 
     office({ office, book, api, status, refresh }) {
