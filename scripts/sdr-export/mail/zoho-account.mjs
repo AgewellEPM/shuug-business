@@ -35,8 +35,9 @@ export function zohoAssignment(db, user, config) {
   const reserved = address && (user.role !== 'owner' && address === config.ownerAddress ||
     Object.entries(config.mailboxes).some(([id, assignment]) => id !== user.id && addressOf(assignment?.address) === address));
   const refreshToken = override?.refreshToken || config.refreshToken;
+  const hasWorkspaceIdentity = Boolean(refreshToken || config.ownerAddress || config.orgId);
   return { name: db.salesRepProfile?.(user.id)?.name || user.name, address: reserved ? '' : address,
-    configured: Boolean(address && !reserved && config.clientId && config.clientSecret),
+    configured: Boolean(address && !reserved && config.clientId && config.clientSecret && hasWorkspaceIdentity),
     accountId: zohoId(override?.accountId), config: { ...config, orgId: override?.refreshToken ? '' : config.orgId, refreshToken } };
 }
 

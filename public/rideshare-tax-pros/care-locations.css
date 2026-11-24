@@ -1,0 +1,63 @@
+.care-location-app { font-family: inherit; color: #16243a; min-width: 0; background: white; }
+.care-location-app *, .care-location-app *::before, .care-location-app *::after { box-sizing: border-box; }
+.care-location-app .cl-stations, .care-location-app .cl-present, .care-location-app .cl-tools, .care-location-app .cl-crumbs, .care-location-app .cl-panel-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.care-location-app .cl-stations { padding: 12px 15px; background: #f2f6fc; border: 1px solid #d6e2f1; border-radius: 12px 12px 0 0; }
+.care-location-app .cl-stations label, .care-location-app .cl-panel label, .care-location-app .cl-search-label { display: grid; gap: 4px; font-size: .8rem; font-weight: 650; color: #37485e; }
+.care-location-app .cl-present { margin: auto 0 0 auto; }
+.care-location-app .cl-button, .care-location-app input, .care-location-app select { font: inherit; border: 1px solid #c3d3e7; border-radius: 8px; background: white; color: #233955; min-height: 44px; }
+.care-location-app input, .care-location-app select { max-width: 100%; padding: 8px 10px; }
+.care-location-app .cl-button { display:inline-flex; align-items:center; justify-content:center; cursor:pointer; font-size:.875rem; line-height:1.2; font-weight:650; padding:8px 13px; text-decoration:none; }
+.care-location-app .cl-button:hover { background:#eff6ff; }
+.care-location-app .cl-surface { border: 1px solid #d4deeb; border-top: 0; border-radius: 0 0 14px 14px; overflow: hidden; background: white; }
+.care-location-app .cl-header { background:#2e5090; color:white; padding: 14px 18px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.care-location-app .cl-header h3 { color: white; margin:0; font-size:1.25rem; line-height:1.25; }
+.care-location-app .cl-header p { margin:3px 0 0; color:#edf3ff; font-size:.86rem; }
+.care-location-app .cl-header .cl-button { background: #254377; border-color:#7691be; color:white; min-width:78px; }
+.care-location-app .cl-content, .care-location-app .cl-panel { margin:auto; padding: 14px clamp(10px, 2vw, 24px) 20px; max-width: 780px; }
+.care-location-app .cl-crumbs { margin-bottom:10px; }
+.care-location-app .cl-board-title, .care-location-app .cl-panel h4 { color:#14223a; font-size:1.1rem; line-height:1.3; margin:0; }
+.care-location-app .cl-exchange { display:grid; gap:4px; padding:10px 13px; line-height:1.42; border-radius:9px; background:#f1f6ff; margin-bottom:12px; font-size:.95rem; }
+.care-location-app .cl-exchange strong { color:#244e87; margin-right:5px; }
+.care-location-app .cl-search-label { margin:0 0 12px; }
+.care-location-app .cl-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; }
+.care-location-app .cl-tile { --tile:#2563eb; display:flex; flex-direction:column; align-items:stretch; justify-content:space-between; border:2px solid var(--tile); color:#19273a; font:inherit; cursor:pointer; margin:0; padding:0; min-width:0; min-height:105px; overflow:hidden; border-radius:14px; background:white; box-shadow:0 2px 7px rgb(0 0 0 / 8%); }
+.care-location-app .cl-tile:hover { box-shadow:0 3px 12px rgb(0 0 0 / 16%); }
+.care-location-app .cl-tile:active { transform:scale(.98); }
+.care-location-app :focus-visible { outline:3px solid #124fa8; outline-offset:2px; }
+.care-location-app .cl-emoji { flex:1; display:grid; place-items:center; font-size:2.55rem; min-height:61px; line-height:1; }
+.care-location-app .cl-tile-text { background:var(--tile); color:white; padding:8px 5px; font-weight:750; font-size:.78rem; text-align:center; text-transform:uppercase; line-height:1.25; overflow-wrap:anywhere; }
+.care-location-app .cl-tile-text small { display:block; font-size:.73rem; font-weight:500; text-transform:none; margin-top:2px; }
+.care-location-app .cl-green { --tile:#17733b; }
+.care-location-app .cl-red { --tile:#bd2b29; }
+.care-location-app .cl-orange { --tile:#aa450d; }
+.care-location-app .cl-purple { --tile:#7735c7; }
+.care-location-app .cl-pink { --tile:#b22270; }
+.care-location-app .cl-yellow { --tile:#8c6600; }
+.care-location-app .cl-teal { --tile:#10746d; }
+.care-location-app .cl-gray { --tile:#596575; }
+.care-location-app .cl-indigo { --tile:#4338a0; }
+.care-location-app .cl-tools { border-top:1px solid #dfe7f3; margin-top:16px; padding-top:12px; }
+.care-location-app .cl-sheet:not(:empty) { margin-top:10px; border:1px solid #b5cce9; border-radius:12px; background:#f9fcff; }
+.care-location-app .cl-panel-head { justify-content:space-between; margin-bottom:12px; }
+.care-location-app .cl-panel p { line-height:1.5; margin:.4em 0 .75em; }
+.care-location-app .cl-panel .cl-large-message { font-size:1.4rem; font-weight:700; }
+.care-location-app .cl-qr { display:flex; align-items:center; flex-wrap:wrap; gap:18px; }
+.care-location-app .cl-qr img { max-width:100%; object-fit:contain; }
+.care-location-app .cl-qr div { flex:1 1 220px; overflow-wrap:anywhere; }
+.care-location-app .cl-qr a { color:#1555a0; }
+.care-location-app .cl-panel form { display:flex; gap:8px; align-items:end; flex-wrap:wrap; margin-bottom:8px; }
+.care-location-app .cl-panel form label { flex:1 1 240px; }
+.care-location-app .cl-panel input, .care-location-app .cl-panel select { width:100%; }
+.care-location-app .cl-primary { background:#2357a2; color:white; }
+.care-location-app .cl-primary:hover { background:#17457f; }
+.care-location-app .cl-turns { list-style:none; display:grid; gap:6px; padding:0; max-height:240px; overflow:auto; margin:0 0 12px; }
+.care-location-app .cl-turns li { display:flex; align-items:baseline; gap:9px; padding:6px 0; border-bottom:1px solid #dce5f1; overflow-wrap:anywhere; }
+.care-location-app .cl-turns strong { color:#254f81; }
+.care-location-app .cl-message { grid-column:1/-1; color:#384f6a; padding:12px; }
+@media (max-width:650px) {
+  .care-location-app .cl-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .care-location-app .cl-present { margin:0; }
+  .care-location-app .cl-stations label { flex:1 1 135px; min-width:0; }
+  .care-location-app .cl-tile { min-height:92px; }
+  .care-location-app .cl-header { padding:12px 10px; }
+}

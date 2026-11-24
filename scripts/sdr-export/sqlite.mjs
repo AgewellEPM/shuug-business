@@ -37,6 +37,7 @@ export function sqliteStore(filename) {
   `);
   const all = db.prepare('SELECT id, data FROM records WHERE kind = ? ORDER BY id');
   const one = db.prepare('SELECT id, data FROM records WHERE kind = ? AND id = ?');
+  const pilotEvent = db.prepare("SELECT id, data FROM records WHERE kind = 'events' AND json_extract(data, '$.pilotRequest') = ?");
   const insert = db.prepare('INSERT INTO records (kind, data) VALUES (?, ?)');
   const insertProspect = db.prepare("INSERT INTO records (kind, data) VALUES ('prospects', ?) ON CONFLICT DO NOTHING");
   const insertLead = db.prepare("INSERT INTO records (kind, data) VALUES ('campaign-leads', ?) ON CONFLICT DO NOTHING");
@@ -64,6 +65,7 @@ export function sqliteStore(filename) {
   const get = (kind, id) => /^[1-9]\d*$/.test(String(id)) ? decode(one.get(kindFor(kind), String(id))) : undefined;
   const salesRepProfile = id => JSON.parse(setting.get('sales-rep-profile:' + id)?.value ?? 'null') ??
     { bio: '', photo: '', revision: 0 };
+  const trainingProgress = id => JSON.parse(setting.get('training-progress:' + id)?.value ?? 'null');
 
   let writing = false;
   function writeTransaction(work) {
@@ -114,6 +116,18 @@ export function sqliteStore(filename) {
         return existing ? { office: existing, duplicate: true } : { office: this.create('offices', body) };
       });
     },
+    saveCarePilot(user, officeId, requestId, detail) {
+      return writeTransaction(() => {
+        const pilotRequest = user.id + ':' + requestId.toLowerCase();
+        const existing = decode(pilotEvent.get(pilotRequest));
+        if (existing) {
+          if (existing.assigned_to !== String(officeId) || JSON.parse(existing.notes).detail !== detail) throw new HttpError(409, 'This pilot was already saved with different details. Check the facility history.');
+          return existing;
+        }
+        const notes = JSON.stringify({ actorId: user.id, action: 'care_pilot', detail, at: new Date().toISOString() });
+        return this.create('events', { town: 'Nursing-home pilot', assigned_to: String(officeId), contact_name: user.name, status: 'recorded', pilotRequest, notes });
+      });
+    },
     saveProspect(body) {
       const data = stamped(body);
       const result = insertProspect.run(JSON.stringify(data));
@@ -152,6 +166,14 @@ export function sqliteStore(filename) {
         const profile = { ...previous, ...changes, revision: revision + 1 };
         save.run('sales-rep-profile:' + id, JSON.stringify(profile));
         return profile;
+      });
+    },
+    trainingProgress,
+    updateTrainingProgress(id, apply) {
+      return writeTransaction(() => {
+        const progress = apply(trainingProgress(id));
+        save.run('training-progress:' + id, JSON.stringify(progress));
+        return progress;
       });
     },
     writeAgentTeam: writeTransaction,

@@ -1,7 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { renderProspects } from './sales-prospects.mjs';
 import { renderCareDemo } from './sales-demo.mjs';
+import { renderCareCampaign } from './sales-care-campaign.mjs';
 import { renderSupport, renderSupportSidebar } from './sales-support.mjs';
+import { renderTraining } from './sales-training.mjs';
+import { renderTrainingDemo } from './sales-training-demo.mjs';
+import { renderTrainingPipeline } from './sales-training-pipeline.mjs';
 import { bookingOverview, bookingPanel } from './sales-booking.mjs';
 import { renderSalesEmail } from './sales-email.mjs';
 import { renderTeamChat } from './sales-chat.mjs';
@@ -31,12 +35,13 @@ const icons = {
   email: '<path d="M4 4h16l2 9v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6Zm-2 9h6l2 3h4l2-3h6"/>',
   contacts: '<rect x="4" y="3" width="17" height="18" rx="2"/><path d="M2 7h4M2 12h4M2 17h4"/><circle cx="13" cy="9" r="2"/><path d="M9 17v-1a4 4 0 0 1 8 0v1"/>',
   prospects: '<circle cx="9" cy="8" r="3"/><path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8v6m-3-3h6"/>',
+  training: '<path d="m2 9 10-5 10 5-10 5-10-5Zm5 3v5a9 9 0 0 0 10 0v-5m4-2v7"/>',
   support: '<path d="M3 13v-1a9 9 0 0 1 18 0v1m0 4v1a4 4 0 0 1-4 4h-3"/><rect x="2" y="11" width="4" height="7" rx="2"/><rect x="18" y="11" width="4" height="7" rx="2"/><rect x="10" y="20" width="5" height="3" rx="1.5" fill="currentColor"/>',
   campaigns: '<path d="M3 11h5l9-5v12l-9-4H3v-3Zm5 3 2 6m10-11 2-1m-2 7 2 1"/>',
 };
 const icon = name => `<svg class="sdr-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
 
-const quickAction = (label, view, style) => `<button type="button" class="sdr-overview-action ${style}" data-overview-action="${view}"${view === 'campaigns' ? ' data-owner-only hidden' : ''}>${icon(view === 'research' ? 'discover' : view)}<span>${label}</span><span aria-hidden="true">›</span></button>`;
+const quickAction = (label, view, style, ownerOnly = false) => `<button type="button" class="sdr-overview-action ${style}" data-overview-action="${view}"${ownerOnly ? ' data-owner-only hidden' : ''}>${icon(view === 'research' ? 'discover' : view)}<span>${label}</span><span aria-hidden="true">›</span></button>`;
 
 function careOverview(queue) {
   return `<section class="care-hero" aria-labelledby="care-title">
@@ -68,9 +73,9 @@ function careOverview(queue) {
   </details>`;
 }
 
-function standaloneOverview(queue) {
+function standaloneOverview(queue, careWorkspace) {
   return `<div class="sdr-overview-hero"><h2 id="sdr-greeting">Welcome back!</h2><p>Find businesses, build your pipeline, and close new partnerships.</p></div>
-  <div class="sdr-overview-actions">${quickAction('Find businesses', 'research', 'green')}${quickAction('Add prospect', 'prospects', 'blue')}${quickAction('Open campaigns', 'campaigns', 'purple')}${quickAction('Create contract', 'contracts', 'orange')}</div>
+  <div class="sdr-overview-actions">${quickAction('Find businesses', 'research', 'green')}${quickAction('Add prospect', 'prospects', 'blue')}${quickAction('Open campaigns', 'campaigns', 'purple', !careWorkspace)}${quickAction('Create contract', 'contracts', 'orange')}</div>
   ${bookingOverview(icon)}
   <div class="sdr-overview-stats" id="sdr-overview-stats"></div>
   <section class="sdr-card sdr-category-research" id="sdr-category-research" aria-labelledby="sdr-category-title">
@@ -213,8 +218,7 @@ const linkedInProspects = `  <div class="sdr-card">
     </form>
   </div>`;
 
-const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidden aria-label="Outreach campaigns">
-  <div class="sdr-card">
+const outreachCampaigns = `<div class="sdr-card">
     <div class="sdr-card-head"><h2>Campaign settings</h2><button id="sales-new-campaign" type="button" class="button secondary">New campaign</button></div>
     <label>Campaign <select id="sales-campaign-picker"><option value="">New campaign</option></select></label>
     <form id="sales-campaign-form" class="sales-form">
@@ -239,8 +243,8 @@ const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidd
     </form>
     <p id="sales-campaign-connection" role="status"></p>
   </div>
-  <div class="sdr-card"><h2>Collected prospects</h2><div id="sales-campaign-results" aria-live="polite"></div></div>
-</section>`;
+  <div class="sdr-card"><h2>Collected prospects</h2><div id="sales-campaign-results" aria-live="polite"></div></div>`;
+const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidden aria-label="Outreach campaigns">${outreachCampaigns}</section>`;
 
 function teamNavigation(careWorkspace, seniorCare) {
   const groups = [
@@ -369,11 +373,11 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ...(seniorCare ? [['facilities', 'Facility directory']] : []), ['team', 'Sales team'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ...(seniorCare ? [['facilities', 'Facility directory']] : []), ['team', 'Sales team'], ['training', 'Training'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const careLabels = { contacts: 'Contacts', discover: 'Local research' };
-  const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
+  const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${(name === 'campaigns' && !careWorkspace) || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
   const signOut = '<button type="button" class="button secondary" id="sales-logout">Sign out</button>';
   const searchTarget = seniorCare ? 'facilities' : 'businesses';
   const standaloneHeader = `<header class="sdr-topbar">
@@ -387,11 +391,11 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
 <div id="sales-workspace" class="sdr-layout" hidden><aside class="sdr-sidebar"><a class="sdr-brand" href="/" aria-label="Gig Tax Pros public website"><img src="/assets/brand-mark.svg" width="34" height="34" alt="">${seniorCare ? `<span class="care-brand-icon">${icon('center')}</span><span><strong>TinkyTown</strong><small>Senior care sales</small></span>` : prospects ? '<span class="sdr-brand-mark" aria-hidden="true">🚂</span><span><strong>TinkyTown</strong><small>Gig Tax Pros</small></span>' : '<span><strong>Gig Tax Pros</strong><small>OFFICE NETWORK</small></span>'}</a>${prospects ? sidebarProfile : ''}${careWorkspace ? `<a class="care-workspace-switch" href="${seniorCare ? '/sales' : '/sales/senior-care'}">${icon(seniorCare ? 'pipeline' : 'center')}<span>${seniorCare ? 'Universal CRM' : 'Senior Care CRM'}</span>${icon('arrow')}</a>` : ''}<p class="sdr-sidebar-label">Workspace</p><nav class="sdr-nav sales-tabs" aria-label="Sales workspace">${navButtons}</nav><div class="sdr-sidebar-bottom">${prospects ? renderSupportSidebar() : ''}<span class="sdr-workspace-indicator">${prospects ? 'Workspace online' : 'Private team workspace'}</span><a href="/">Open public website ↗</a></div></aside>
 <div class="sdr-main" id="sales-main" tabindex="-1">${prospects ? standaloneHeader : hostedHeader}<p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
-<section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
+<section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue, careWorkspace) : '<div id="sales-dashboard"></div>' + queue}</section>
 <section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section>
 <section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
 ${seniorCare ? standaloneFacilities : ''}
-${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + renderSupport() : team}
+${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
   <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
   ${standaloneTeam(team, careWorkspace, seniorCare)}` : ''}

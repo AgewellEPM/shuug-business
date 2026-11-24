@@ -2,7 +2,7 @@
   'use strict';
   const { $, node, button, link, dateKey, fmtDate, clock, when, zones, renderMonth, request, download, copy } = window.TinkyBooking;
   const api = body => request('/api/booking', body), picker = $('#bk-picker'), receipt = $('#bk-receipt'), form = $('#bk-intake');
-  const requestedRep = new URLSearchParams(location.search).get('rep');
+  const query = new URLSearchParams(location.search), requestedRep = query.get('rep'), requestedType = query.get('type');
   let token = new URLSearchParams(location.hash.slice(1)).get('manage'), existing, moving = false;
   let hosts = [], types, host, type, zone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC', now = Date.now();
   let month, selected, days = {}, chosen, serial = 0, requestId, loaded = false;
@@ -12,7 +12,7 @@
   }
   function chooseType() {
     const active = hosts.find(item => item.id === host);
-    const available = Object.entries(active.durations).filter(([, value]) => value > 0);
+    const available = Object.entries(active.durations).filter(([key, value]) => value > 0 && (moving || !requestedType || key === requestedType));
     if (!active.durations[type]) type = available[0][0];
     $('#bk-types div').replaceChildren(...available.map(([key, duration]) => {
       const label = node('label', undefined, 'bk-type'), radio = node('input');
@@ -72,8 +72,8 @@
   function startPicker() {
     serial++;
     picker.hidden = false; receipt.hidden = true;
-    $('#bk-title').textContent = moving ? 'Reschedule your meeting' : 'Book a meeting';
-    $('#bk-intro').textContent = moving ? 'Choose a new time with ' + existing.hostName + '.' : 'Choose a sales rep and a time for your appointment or product demo.';
+    $('#bk-title').textContent = moving ? 'Reschedule your meeting' : requestedType === 'demo' ? 'Schedule a product demo' : 'Book a meeting';
+    $('#bk-intro').textContent = moving ? 'Choose a new time with ' + existing.hostName + '.' : requestedType === 'demo' ? 'Choose your sales rep and a time for your demo.' : 'Choose a sales rep and a time for your appointment or product demo.';
     $('#bk-rep').replaceChildren(...hosts.map(rep => new Option(rep.name, rep.id)));
     $('#bk-rep').value = host; $('#bk-rep').disabled = moving;
     zones($('#bk-zone'), zone); chooseType();
@@ -142,6 +142,14 @@
     const data = await request('/api/booking/hosts');
     hosts = data.hosts; types = data.types; now = data.now;
     if (token) { display(await api({ action: 'read', token })); return; }
+    if (requestedType) {
+      hosts = hosts.filter(rep => Object.hasOwn(types, requestedType) && rep.durations[requestedType] > 0);
+      if (!hosts.length || (requestedRep && !hosts.some(rep => rep.id === requestedRep))) {
+        status('No published openings for this meeting type with the selected team or rep.');
+        $('#bk-message').append(' ', link('See all booking options', '/book')); return;
+      }
+      type = requestedType;
+    }
     if (!hosts.length) { status('No reps are accepting bookings right now. Please check back or contact your rep.'); return; }
     if (requestedRep && !hosts.some(h => h.id === requestedRep)) {
       status('This rep is no longer accepting bookings.'); $('#bk-message').append(' ', link('Choose another rep', '/book')); return;

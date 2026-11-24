@@ -18,6 +18,7 @@ import { teamMarketSegments } from './sales-market-segments.mjs';
 import { pipelineExperience, teamExperience } from './sales-experience.mjs';
 import { salesTeamTools } from './sales-team.mjs';
 import { SUPPORT_REQUEST_ACTIONS, supportRequests } from './support-requests.mjs';
+import { TRAINING_ACTIONS, trainingTools } from './training-progress.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -70,6 +71,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const salesTeam = tools.salesTeam ? salesTeamTools(db, audit, owner) : null;
   const contacts = contactTools(db, audit, tools.now);
   const support = supportRequests(db, tools.now);
+  const training = trainingTools(db, tools.now);
   const territories = territoryTools(db,audit);
   const progress = progressTools(db, audit, tools.now);
   const delivery = deliveryTools(env, db, salesTeam ? { ...tools, isActiveAgent: row => Boolean(rosterUser(row)) } : tools);
@@ -117,11 +119,22 @@ export function service(env, db, payment = payments(env), tools = {}) {
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
     if (SUPPORT_REQUEST_ACTIONS.has(action)) return support(user, action, b);
+    if (TRAINING_ACTIONS.has(action)) return training(user, action, b);
     if (tools.booking && typeof action === 'string' && action.startsWith('booking-')) return tools.booking(user, action, b);
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
     if (tools.salesCoach?.actions.has(action)) return tools.salesCoach.dispatch(user, action, b);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
+    if (tools.careCampaign && action === 'start-care-pilot') {
+      const office = await leadFor(user, b.id);
+      const requestId = text(b.requestId, 36, true), start = text(b.start, 10, true);
+      if (!/^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i.test(requestId)) throw new HttpError(400, 'Open a new pilot form.');
+      const date = new Date(start + 'T00:00:00Z');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !Number.isFinite(date.valueOf()) || date.toISOString().slice(0, 10) !== start) throw new HttpError(400, 'Choose a valid pilot start date.');
+      const unit = text(b.unit, 120, true), coordinator = text(b.coordinator, 140, true), goal = text(b.goal, 500, true);
+      const detail = `Nursing-home pilot · ${unit}\nTarget start: ${start}\nCoordinator: ${coordinator}\nMeasure: ${goal}`;
+      return { event: db.saveCarePilot(user, office.id, requestId, detail) };
+    }
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (tools.dailyPlan?.actions.has(action)) return tools.dailyPlan.dispatch(user, action, b);
