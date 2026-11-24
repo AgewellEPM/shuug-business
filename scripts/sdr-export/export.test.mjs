@@ -271,8 +271,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(atlas.querySelector('.town-map-county').parentElement.getAttribute('display'), 'none');
   wheel(90);
   await waitFor(() => townCanvas.dataset.layer === 'counties', 'Scrolling out did not restore counties');
+  const mapSelection = townPanel.querySelector('[data-map-selection]');
+  assert.equal(mapSelection.hidden, true);
+  assert.equal(mapSelection.previousElementSibling.className, 'town-map-layout');
   const clarendon = atlas.querySelector('path[data-county="45027"]');
   clarendon.dispatchEvent(new window.MouseEvent('click', {bubbles:true}));
+  assert.equal(mapSelection.hidden, false);
+  assert.match(mapSelection.textContent, /Clarendon County/);
+  await waitFor(() => /No sales rep currently assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
   assert.equal(clarendon.parentElement.getAttribute('display'), 'none');
   assert.equal(atlas.querySelector('.town-map-districts').getAttribute('display'), 'inline');
   assert.equal(atlas.querySelectorAll('.town-map-district[data-district^="45027"]').length, 7);
@@ -297,10 +303,19 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   manningResult.querySelector('button').click();
   assert.equal(townSelect.value, '4544350');
   assert.equal(townCanvas.dataset.layer, 'towns');
+  assert.equal(mapSelection.hidden, false);
+  assert.match(mapSelection.textContent, /Manning/);
+  await waitFor(() => /Clarendon County.*Example County Lead/.test(mapSelection.textContent), 'The town’s assigned rep did not load');
   townPanel.querySelector('[data-map-streets]').click();
   assert.equal(townCanvas.dataset.layer, 'streets');
   const tile = townCanvas.querySelector('img.leaflet-tile');
   assert.match(tile.src, /^https:\/\/tile\.openstreetmap\.org\/16\//);
+  townCanvas.dispatchEvent(new window.MouseEvent('click', {clientX:400, clientY:240, bubbles:true}));
+  assert.match(mapSelection.textContent, /Checking sales rep/);
+  await waitFor(() => {
+    const selection = townPanel.querySelector('[data-map-selection]');
+    return /Manning.*Clarendon County.*Example County Lead/.test(selection.textContent);
+  }, 'A street-map click did not show the matching county assignment');
   const [, , tx, ty] = new URL(tile.src).pathname.split('/');
   assert.ok(Math.abs(Number(tx)-18188) < 150 && Math.abs(parseInt(ty)-26250) < 240, 'street tiles are in South Carolina');
   assert.ok(townCanvas.querySelector('a[href="https://www.openstreetmap.org/copyright"]'));
@@ -309,6 +324,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   townPanel.querySelector('[data-map-reset]').click();
   assert.equal(townCanvas.dataset.layer, 'counties');
   assert.equal(clarendon.parentElement.getAttribute('display'), 'inline');
+  assert.equal(mapSelection.hidden, true);
   const richland = atlas.querySelector('path[data-county="45079"]');
   assert.ok(richland.getAttribute('class').includes('county-'));
   richland.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));

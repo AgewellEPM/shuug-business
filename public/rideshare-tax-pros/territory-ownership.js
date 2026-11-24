@@ -43,6 +43,22 @@
       a.place.county.label.localeCompare(b.place.county.label)).slice(0, 6).map(result => result.place);
   }
 
+  function applyCountyAssignments(counties, updates) {
+    const requested = new Map(counties.map(county => [county.id, county]));
+    let changed = false;
+    for (const update of updates) {
+      const county = requested.get(update.id);
+      if (!county) continue;
+      const prior = county.lead?.revision || 0, next = update.lead?.revision || 0;
+      // A response started before a local save must not replace the saved lead.
+      if (next > prior || (next === prior && update.canEdit !== county.canEdit)) {
+        Object.assign(county, update);
+        changed = true;
+      }
+    }
+    return changed;
+  }
+
   function mount(panel, data, api, openPlace, refreshRoster) {
     const field = panel.querySelector('[data-territory-lookup]');
     const host = panel.querySelector('[data-territory-matches]');
@@ -103,19 +119,7 @@
         try {
           const result = await api('territory-ownership', { state: data.state, query, countyIds });
           if (request !== sequence) return;
-          const refreshed = new Map(result.counties.map(county => [county.id, county]));
-          let rosterChanged = false;
-          for (const id of countyIds) {
-            const county = places.find(place => place.county.id === id).county;
-            const current = refreshed.get(id);
-            if (!current) continue;
-            const revision = county.lead?.revision || 0, nextRevision = current.lead?.revision || 0;
-            if (nextRevision > revision || (nextRevision === revision && current.canEdit !== county.canEdit)) {
-              Object.assign(county, current);
-              rosterChanged = true;
-            }
-          }
-          if (rosterChanged) refreshRoster();
+          if (applyCountyAssignments(places.map(place => place.county), result.counties)) refreshRoster();
           last = [places, result.matches, result.hasMore];
           render(...last);
         } catch (error) {
@@ -140,5 +144,5 @@
     };
   }
 
-  window.SdrTerritoryOwnership = { mount };
+  window.SdrTerritoryOwnership = { mount, applyCountyAssignments };
 })();

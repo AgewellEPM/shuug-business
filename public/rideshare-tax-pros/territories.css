@@ -88,3 +88,7 @@
 .territory-lookup-place { border: 0; padding: 3px 0; background: transparent; color: var(--accent); cursor: pointer; text-align: left; }
 .territory-lookup-assignment { font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
 .territory-lookup-assignment[data-status=unassigned] { color: var(--text-secondary); }
+
+.territory-map-selection { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-top: 10px; padding: 9px 12px; border: 1px solid var(--glass-border-muted); border-radius: 8px; background: var(--glass-fill-muted); }
+.territory-map-selection strong { color: var(--text-primary); }
+.territory-map-selection span { color: var(--text-secondary); font-size: 13px; }

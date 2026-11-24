@@ -40,6 +40,74 @@
     } };
   }
 
+  function boundaryRings(path) {
+    return Array.from(path.matchAll(/M([^Z]+)Z/g), match =>
+      match[1].split(' ').map(pair => pair.split(',').map(Number)));
+  }
+
+  function boundaryHit(boundary, x, y) {
+    const [left, top, right, bottom] = boundary.bounds;
+    if (x < left || x > right || y < top || y > bottom) return false;
+    let inside = false;
+    for (const ring of boundaryRings(boundary.path)) {
+      for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+        const [ax, ay] = ring[i], [bx, by] = ring[j];
+        if ((ay > y) !== (by > y) && x < ax + (bx - ax) * (y - ay) / (by - ay)) inside = !inside;
+      }
+    }
+    return inside;
+  }
+
+  function selectionStatus(panel, state, api, refreshAssignments) {
+    const host = panel.querySelector('[data-map-selection]');
+    let current, revision = 0;
+    function render() {
+      if (!current) return;
+      const heading = document.createElement('strong');
+      heading.textContent = current.name;
+      host.replaceChildren(heading);
+      if (current.pending || current.unconfirmed) {
+        const status = document.createElement('span');
+        status.textContent = current.pending ? 'Checking sales rep…' : 'Could not confirm the current assignment.';
+        host.append(status);
+        return;
+      }
+      for (const county of current.counties) {
+        const row = document.createElement('span');
+        const rep = county.lead?.name ? 'Sales rep · ' + county.lead.name : 'No sales rep currently assigned';
+        row.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
+        host.append(row);
+      }
+      if (!current.counties.length) host.append('County assignment unavailable for this region.');
+    }
+    function clear() {
+      revision++;
+      current = undefined;
+      host.hidden = true;
+      host.replaceChildren();
+    }
+    async function show(name, counties) {
+      const request = ++revision;
+      current = { name, counties, pending: counties.length > 0 };
+      host.hidden = false;
+      render();
+      if (!counties.length) return;
+      try {
+        const result = await api('territory-ownership', { state, countyIds: counties.map(county => county.id) });
+        if (request !== revision) return;
+        refreshAssignments(counties, result.counties);
+        current.pending = false;
+        render();
+      } catch {
+        if (request !== revision) return;
+        current.pending = false;
+        current.unconfirmed = true;
+        render();
+      }
+    }
+    return {show, clear, render};
+  }
+
   function draw(panel, data, onSearch, api, focus) {
     const L = window.L, canvas = panel.querySelector('[data-map-canvas]');
     const picker = panel.querySelector('[data-map-town]'), research = panel.querySelector('[data-map-research]');
@@ -49,6 +117,10 @@
     const latLng = (x, y) => L.CRS.EPSG3857.unproject(L.point(data.origin[0] + x * data.metersPerUnit, data.origin[1] - y * data.metersPerUnit));
     const bounds = ([left, top, right, bottom]) => L.latLngBounds(latLng(left, top), latLng(right, bottom));
     const extent = bounds(data.bounds), initial = bounds(data.fit);
+    const atlasPoint = location => {
+      const projected = L.CRS.EPSG3857.project(location);
+      return [(projected.x - data.origin[0]) / data.metersPerUnit, (data.origin[1] - projected.y) / data.metersPerUnit];
+    };
     const map = L.map(canvas, { minZoom: 2, maxZoom: 19, zoomSnap: 0.25, zoomAnimation: false,
       fadeAnimation: false, maxBounds: extent.pad(0.35) });
     map.attributionControl.setPrefix(false);
@@ -73,15 +145,18 @@
           continue;
         }
         if (existing) continue;
-        const rings = Array.from(feature.path.matchAll(/M([^Z]+)Z/g), match => {
-          const points = match[1].split(' ').map(pair => latLng(...pair.split(',').map(Number)));
-          return [...points, points[0]];
-        });
+        const rings = boundaryRings(feature.path).map(ring => [...ring, ring[0]].map(point => latLng(...point)));
         const line = L.polyline(rings, { color: '#4d6e73', opacity: .7, weight: 1.5, dashArray: '4 3', interactive: false }).addTo(map);
         streetLines.set(feature.id, line);
       }
     }
     let selected, observer, atlas, roster, ownership, atState = true;
+    const selection = selectionStatus(panel, data.state, api, (counties, updates) => {
+      if (window.SdrTerritoryOwnership.applyCountyAssignments(counties, updates)) {
+        roster.refresh();
+        ownership.refresh();
+      }
+    });
     try {
       const [left, top, right, bottom] = data.frame;
       const drawing = svg('svg', { viewBox: [left, top, right - left, bottom - top].join(' '), 'aria-hidden': 'true' });
@@ -194,6 +269,7 @@
       }
 
       function fitState() {
+        selection.clear();
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
@@ -202,7 +278,7 @@
         atState = true;
         annotate();
       }
-      function select(id) {
+      function select(id, countyId) {
         const item = items.get(id);
         if (!item) return fitState();
         selected?.path.classList.remove('is-selected');
@@ -210,6 +286,8 @@
         selected.path.classList.add('is-selected');
         picker.value = id;
         research.disabled = false;
+        const areas = (countyId ? [countyId] : item.feature.counties).map(county => counties.get(county)).filter(Boolean);
+        void selection.show(item.feature.name, areas);
         map.fitBounds(bounds(item.feature.bounds), { padding: [32, 32], maxZoom: streetZoom() - 1, animate: false });
         atState = false;
         annotate();
@@ -223,6 +301,7 @@
       reset.onclick = fitState;
       streetsButton.onclick = () => map.setView(selected ? selected.position : map.getCenter(), Math.max(16, map.getZoom()), { animate: false });
       function zoomCounty(county) {
+        void selection.show(county.label, [county]);
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
@@ -232,9 +311,12 @@
         map.setView(target.getCenter(), Math.min(streetZoom() - 1, Math.max(stateZoom() + 1, fit)), {animate:false});
         annotate();
       }
-      roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty, () => ownership?.refresh());
+      roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty, () => {
+        selection.render();
+        ownership?.refresh();
+      });
       ownership = window.SdrTerritoryOwnership.mount(panel, data, api, place => {
-        if (place.feature) select(place.feature.id);
+        if (place.feature) select(place.feature.id, place.county.id);
         else zoomCounty(place.county);
         roster.select(place.county);
       }, () => roster.refresh());
@@ -249,7 +331,11 @@
         research.disabled = true;
         if (target.dataset.district) {
           const district = data.subdivisions.find(area => area.id === target.dataset.district);
-          if (district) map.fitBounds(bounds(district.bounds), { padding: [16, 16], maxZoom: 14 });
+          if (district) {
+            const county = counties.get(district.id.slice(0, 5));
+            void selection.show(district.label, county ? [county] : []);
+            map.fitBounds(bounds(district.bounds), { padding: [16, 16], maxZoom: 14 });
+          }
           return;
         }
         if (target.dataset.county) {
@@ -264,12 +350,24 @@
         const nearest = [...items.values()].filter(({feature}) => feature.name === place.name)
           .sort((a, b) => Math.hypot(a.feature.x-place.x, a.feature.y-place.y) - Math.hypot(b.feature.x-place.x, b.feature.y-place.y))[0];
         if (nearest) select(nearest.feature.id);
-        else map.setView(latLng(place.x, place.y), Math.max(map.getZoom(), 14));
+        else {
+          const county = data.counties.find(area => boundaryHit(area, place.x, place.y));
+          void selection.show(place.name, county ? [county] : []);
+          map.setView(latLng(place.x, place.y), Math.max(map.getZoom(), 14));
+        }
       });
       atlas = L.svgOverlay(drawing, bounds(data.frame), { interactive: true });
       fitState();
       map.on('movestart', () => { atState = false; });
       map.on('moveend', annotate);
+      map.on('click', event => {
+        if (!map.hasLayer(roads) || event.originalEvent?.target?.closest?.('[data-locality], [data-county], [data-landmark], [data-district]')) return;
+        const point = atlasPoint(event.latlng);
+        const county = data.counties.find(area => boundaryHit(area, ...point));
+        if (!county) return selection.clear();
+        const town = data.features.findLast(feature => feature.counties.includes(county.id) && boundaryHit(feature, ...point));
+        void selection.show(town?.name || county.label, [county]);
+      });
       if (items.has(focus?.place)) {
         select(focus.place);
         if (focus.streets) streetsButton.onclick();
@@ -286,6 +384,7 @@
       }
       return () => {
         observer?.disconnect();
+        selection.clear();
         ownership?.dispose();
         roster?.dispose();
         picker.onchange = research.onclick = reset.onclick = streetsButton.onclick = null;
@@ -293,6 +392,7 @@
       };
     } catch (error) {
       observer?.disconnect();
+      selection.clear();
       ownership?.dispose();
       roster?.dispose();
       map.remove();

@@ -117,6 +117,7 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
       <h3>County leads</h3>
       <div data-county-editor></div><div data-county-list class="county-lead-list"></div>
     </aside></div>
+  <section class="territory-map-selection" data-map-selection aria-label="Selected territory" aria-live="polite" hidden></section>
   <button type="button" class="button secondary" data-map-retry hidden>Retry map</button>
   <div class="town-map-caption" data-map-caption hidden>
     <span class="town-map-legend"><b aria-hidden="true">★</b> Capital <i aria-hidden="true"></i> City or town</span>
