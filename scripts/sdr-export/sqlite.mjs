@@ -36,6 +36,7 @@ export function sqliteStore(filename) {
   `);
   const all = db.prepare('SELECT id, data FROM records WHERE kind = ? ORDER BY id');
   const one = db.prepare('SELECT id, data FROM records WHERE kind = ? AND id = ?');
+  const pilotEvent = db.prepare("SELECT id, data FROM records WHERE kind = 'events' AND json_extract(data, '$.pilotRequest') = ?");
   const insert = db.prepare('INSERT INTO records (kind, data) VALUES (?, ?)');
   const insertProspect = db.prepare("INSERT INTO records (kind, data) VALUES ('prospects', ?) ON CONFLICT DO NOTHING");
   const insertLead = db.prepare("INSERT INTO records (kind, data) VALUES ('campaign-leads', ?) ON CONFLICT DO NOTHING");
@@ -110,6 +111,18 @@ export function sqliteStore(filename) {
       return writeTransaction(() => {
         const existing = this.list('offices').find(matches);
         return existing ? { office: existing, duplicate: true } : { office: this.create('offices', body) };
+      });
+    },
+    saveCarePilot(user, officeId, requestId, detail) {
+      return writeTransaction(() => {
+        const pilotRequest = user.id + ':' + requestId.toLowerCase();
+        const existing = decode(pilotEvent.get(pilotRequest));
+        if (existing) {
+          if (existing.assigned_to !== String(officeId) || JSON.parse(existing.notes).detail !== detail) throw new HttpError(409, 'This pilot was already saved with different details. Check the facility history.');
+          return existing;
+        }
+        const notes = JSON.stringify({ actorId: user.id, action: 'care_pilot', detail, at: new Date().toISOString() });
+        return this.create('events', { town: 'Nursing-home pilot', assigned_to: String(officeId), contact_name: user.name, status: 'recorded', pilotRequest, notes });
       });
     },
     saveProspect(body) {

@@ -21,11 +21,11 @@ export function renderWorkspace(profile, signIn) {
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source, seniorCare = false) {
-    const demoStyle = careWorkspace ? '<link rel="stylesheet" href="/sales-demo.css">' : '';
-    const demoScript = careWorkspace ? '<script src="/sales-demo.js" defer></script>' : '';
+    const careStyles = careWorkspace ? '<link rel="stylesheet" href="/sales-demo.css"><link rel="stylesheet" href="/sales-care-campaign.css">' : '';
+    const careScripts = careWorkspace ? '<script src="/sales-demo.js" defer></script><script src="/sales-care-campaign.js" defer></script>' : '';
     let sales = source
-      .replace('</head>', demoStyle + '</head>')
-      .replace('<script src="/sales.js"', demoScript + '<script src="/sales.js"')
+      .replace('</head>', careStyles + '</head>')
+      .replace('<script src="/sales.js"', careScripts + '<script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"><link rel="stylesheet" href="/facility-reviews.css"><link rel="stylesheet" href="/sales-booking.css"><link rel="stylesheet" href="/sales-chat.css"><link rel="stylesheet" href="/sales-email.css"><link rel="stylesheet" href="/sales-support.css"><link rel="stylesheet" href="/sales-today.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/booking-ui.js" defer></script><script src="/sales-booking.js" defer></script><script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sales-chat.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/facility-reviews.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales-email.js" defer></script><script src="/sales-support-content.js" defer></script><script src="/sales-support.js" defer></script><script src="/sales-today.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
