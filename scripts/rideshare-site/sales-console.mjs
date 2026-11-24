@@ -14,6 +14,7 @@ import { renderSalesCoach } from './sales-coach.mjs';
 import { renderToday } from './sales-today.mjs';
 import { renderTerritoryHeader } from './sales-territory-dashboard.mjs';
 import { renderPipelineWorkspace } from './sales-pipeline-workspace.mjs';
+import { renderMission } from './sales-mission.mjs';
 import { renderProducts } from './sales-products.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
@@ -28,6 +29,7 @@ const icons = {
   arrow: '<path d="M4 12h15m-6-6 6 6-6 6"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18M7 15h4"/>',
   home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-8H9v8H4a1 1 0 0 1-1-1Z"/>',
+  mission: '<path d="M4 21V4m0 1c5-4 9 3 16-1v10c-7 4-11-3-16 1"/>',
   pipeline: '<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/>',
   check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
   forecast: '<path d="M3 3v17h18M7 14l5-5 3 3 5-6m-5 0h5v5"/>',
@@ -248,7 +250,7 @@ const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidd
 function teamNavigation(careWorkspace) {
   const groups = [
     ['Meetings', [['calendar', 'Calendar'], ...(careWorkspace ? [['demo', 'Demo']] : [])]],
-    ['Communication', [['chat', 'Team chat'], ['email', 'Email'], ['mail', 'Senders']]],
+    ['Communication', [['chat', 'Team chat'], ['mail', 'Senders']]],
     ['Coverage & contacts', [['territories', 'Territories'], ['locations', 'Signup locations'], ['contacts', 'Owners & Rolodex']]],
   ];
   return `<nav class="sdr-team-tools" aria-label="Sales team tools" data-team-tools>
@@ -374,8 +376,8 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
       .replace('Office, city or contact', 'Business, facility, city or contact').replace('Anyone / all offices', 'Anyone / all accounts').replace('Office reply', 'Facility reply');
   }
   const sidebarNav = prospects
-    ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
+    ? [['today', 'Today’s Plan'], ['home', 'Overview'], ...(careWorkspace ? [['mission', 'Mission']] : []), ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
+      ...(careWorkspace ? [['demo', 'Demo']] : []), ['contracts', 'Contracts'], ['email', 'Mailbox'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => {
@@ -401,19 +403,21 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
 <div class="sdr-main" id="sales-main" tabindex="-1">${prospects ? standaloneHeader : hostedHeader}<p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
 <section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${prospects ? standaloneOverview(queue, careWorkspace) : '<div id="sales-dashboard"></div>' + queue}</section>
+${prospects && careWorkspace ? renderMission(icon) : ''}
 <section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section>
 ${prospects ? renderPipelineWorkspace({ icon, toolbar, map: territoryMap({ interactive: false }) }) : `<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Manage business and facility contacts, sales stages, and next steps.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>`}
 ${careWorkspace ? standaloneFacilities : ''}
 ${prospects && careWorkspace ? renderProducts(icon) : ''}
 ${prospects ? renderCertification(icon) : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
+${prospects ? renderSalesEmail(icon) : ''}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
   <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
   ${standaloneTeam(team, careWorkspace)}` : ''}
 ${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
-${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
+<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
 <section data-tab-panel="territories"${prospects ? ' data-territory-dashboard' : ''} hidden aria-labelledby="sales-territory-title">
 ${prospects ? renderTerritoryHeader(icon) : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
 <div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>

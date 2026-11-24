@@ -68,15 +68,18 @@
     const trainingUI = window.SdrTraining?.mount({ api, onDemo: openTrainingDemo });
     const certificationUI = window.SdrCertification?.mount({ api, onPlanSaved: () => trainingUI?.reload() });
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
+    const missionUI = window.SdrMission?.mount();
     const productsUI = window.SdrProducts?.mount({ api });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
+    const tourUI = window.SdrGettingStarted?.mount({ api, navigate: href => coachNavigate(href, { replace: true }) });
     if (coachUI) document.addEventListener('click', event => {
       if (event.target.closest('[data-prospect-select],[data-prospect-add],[data-prospect-cancel]')) coachUI.sync();
     });
     const careCampaign = window.SdrCareCampaign?.mount();
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
+    const railTabs = new Set($$('.sdr-sidebar [data-tab]').map(button => button.dataset.tab));
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
       if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
@@ -84,7 +87,7 @@
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
       const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts','products','certification'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts','products','certification','mission'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -92,9 +95,9 @@
         teamUI?.showSidebar(teamArea.hidden ? null : name, data?.user.role);
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
-      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && !railTabs.has(name) && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
-      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification'].includes(name);
+      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification','mission'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -194,6 +197,11 @@
         else if (params.has('section')) trainingUI.show(params.get('section'));
         return true;
       }
+      if (missionUI && params.get('view') === 'mission') {
+        tab('mission');
+        missionUI.show(params.get('section'));
+        return true;
+      }
       if (productsUI && params.get('view') === 'products') {
         const entering = document.body.dataset.sdrView !== 'products';
         tab('products');
@@ -271,7 +279,7 @@
       }
       return out;
     }
-    async function coachNavigate(href) {
+    async function coachNavigate(href, { replace = false } = {}) {
       if (!/^#view=[a-z-]+(?:&[a-z]+=[a-z0-9-]+)*$/.test(href)) throw new Error('That workspace view is unavailable.');
       const params = new URLSearchParams(href.slice(1)), destination = params.get('view');
       const target = $$('[data-tab-panel]').find(el => el.dataset.tabPanel === destination);
@@ -281,7 +289,7 @@
         if (officeHasEdits()) throw new Error('Finish your open account edits, then open this link.');
         closeDetail();
       }
-      if (location.hash !== href) history.pushState(null, '', href);
+      if (location.hash !== href) history[replace ? 'replaceState' : 'pushState'](null, '', href);
       if (!showRequestedView(params)) tab(destination);
       if (destination === 'pipeline' && /^\d+$/.test(params.get('account') || '')) await showOffice(params.get('account'));
     }
@@ -396,6 +404,7 @@
       const identity = $('#sales-identity');
       if (identity) identity.hidden = false;
       renderIdentity();
+      tourUI?.view(data.user);
       todayUI?.render(data);
       if ($('#sales-gate')) $('#sales-gate').hidden = true;
       $$('[data-owner-only]').forEach(el => { el.hidden = data.user.role !== 'owner' || (el.hasAttribute('data-team-identity-portal') && !document.body.dataset.identityPortal); });

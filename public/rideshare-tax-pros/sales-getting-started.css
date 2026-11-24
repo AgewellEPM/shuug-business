@@ -1,0 +1,113 @@
+[data-sdr-tour-open] {
+  white-space: nowrap;
+  font-weight: 650;
+}
+
+.sdr-tour {
+  position: fixed;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  background: transparent;
+  color: #132746;
+}
+.sdr-tour::backdrop { background: transparent; }
+.sdr-tour [hidden] { display: none !important; }
+.sdr-tour-shade { position: absolute; inset: 0; overflow: hidden; background: #07152bd9; }
+.sdr-tour-spot .sdr-tour-shade { background: transparent; }
+.sdr-tour-spot .sdr-tour-shade span {
+  position: absolute;
+  left: var(--spot-x);
+  top: var(--spot-y);
+  width: var(--spot-w);
+  height: var(--spot-h);
+  border-radius: 11px;
+  box-shadow: 0 0 0 3px #77dcff, 0 0 0 9px #307be35e, 0 0 0 150vmax #07152bdb;
+}
+.sdr-tour-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(406px, calc(100% - 24px));
+  max-height: calc(100% - 24px);
+  box-sizing: border-box;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: clamp(15px, 3.5vw, 24px);
+  border: 1px solid #bfcfe7;
+  border-top: 4px solid #287eda;
+  border-radius: 17px;
+  box-shadow: 0 12px 36px #0411266b;
+  background: #fdfefe;
+}
+.sdr-tour-header, .sdr-tour-actions, .sdr-tour-progress { display: flex; align-items: center; gap: 10px; }
+.sdr-tour-header { justify-content: space-between; }
+.sdr-tour-section {
+  color: #305782;
+  font-weight: 750;
+  font-size: .75rem;
+  letter-spacing: .085em;
+  text-transform: uppercase;
+}
+.sdr-tour-close {
+  min-width: 36px;
+  min-height: 36px;
+  border: 1px solid #d6e3f4;
+  border-radius: 10px;
+  background: #f4f8fe;
+  font-size: 1.35rem;
+  line-height: 1;
+  color: #1a375c;
+}
+.sdr-tour-progress { margin-block: 8px 13px; font-size: .8rem; color: #385273; }
+.sdr-tour-progress span { white-space: nowrap; }
+.sdr-tour-progress progress { flex: 1; height: 7px; accent-color: #1c71cc; }
+.sdr-tour-card h2 {
+  margin: 7px 0;
+  font-size: clamp(1.38rem, 4.4vw, 1.78rem);
+  line-height: 1.1;
+  letter-spacing: -.025em;
+  color: #102545;
+}
+.sdr-tour-card h2:focus { outline: none; }
+.sdr-tour-card p { margin-block: 9px 0; line-height: 1.45; }
+.sdr-tour-card .sdr-tour-instruction { color: #385273; font-size: .92rem; }
+.sdr-tour-practice { margin-top: 15px; padding: 12px; background: #edf5ff; border-radius: 12px; }
+.sdr-tour-card .sdr-tour-practice-label { margin: 0 0 7px; color: #235a96; font-size: .74rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
+.sdr-tour-practice fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }
+.sdr-tour-practice legend { margin-bottom: 7px; font-size: .88rem; font-weight: 680; }
+[data-tour-fields] { display: grid; gap: 6px; }
+[data-tour-fields] label { display: grid; gap: 4px; font-size: .86rem; }
+[data-tour-fields] .sdr-tour-choice { display: flex; align-items: center; gap: 7px; min-height: 28px; }
+[data-tour-fields] input:not([type="radio"]), [data-tour-fields] textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  border: 1px solid #a9c0dc;
+  border-radius: 8px;
+  padding: 6px 8px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+.sdr-tour-practice button { margin-top: 10px; }
+.sdr-tour .sdr-tour-status, .sdr-tour [data-tour-feedback] { color: #883337; font-size: .86rem; }
+.sdr-tour [data-correct="true"] { color: #19543f; }
+.sdr-tour :is([data-tour-status],[data-tour-feedback]):empty { display: none; }
+.sdr-tour-actions { justify-content: space-between; flex-wrap: wrap; margin-top: 17px; }
+.sdr-tour-actions button { min-height: 38px; }
+.sdr-tour-actions [data-tour-next] { margin-inline-start: auto; }
+.sdr-tour .button.primary { background: #1263b7; color: #fff; }
+.sdr-tour-later { padding: 6px; background: transparent; border: 0; color: #24547e; text-decoration: underline; }
+.sdr-tour button:focus-visible, .sdr-tour input:focus-visible, .sdr-tour textarea:focus-visible { outline: 2px solid #175fa6; outline-offset: 2px; }
+@media (max-width: 620px) {
+  [data-sdr-tour-open] { font-size: .85rem; padding-inline: 7px; }
+  .sdr-tour-actions { gap: 5px; }
+  [data-tour-fields] input:not([type="radio"]), [data-tour-fields] textarea { font-size: 16px; }
+}

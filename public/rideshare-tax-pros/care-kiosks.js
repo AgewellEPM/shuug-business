@@ -37,13 +37,13 @@
   function mount(root, venue, params, {diet} = {}) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
     let lexicon = indexed({}), lastUtterance, pendingSign = false;
-    let recognition = null, pendingAnswer = null, privacy = false, exchange = null, turns = 0;
+    let recognition = null, privacy = false, exchange = null, turns = 0;
     const app = element('article'); app.className = 'care-venue-kiosk';
     const header = element('header'), about = element('div'), title = element('h3'), address = element('p'), contact = element('p'), boardName = element('p');
     const captions = element('div'), words = element('div'), speaker = element('strong'), message = element('p'), original = element('p');
     const area = element('div'), heading = element('h4'), grid = element('div'), helper = element('div'), dock = element('footer');
     const transcript = element('details'), transcriptTitle = element('summary','Conversation'), transcriptList = element('ol');
-    const selectors = element('div'), status = element('p'), answerStatus = element('p');
+    const selectors = element('div'), status = element('p');
     const back = icon('Back', '←', previous, 'ck-back'); back.dataset.back = '';
     header.className = 'ck-header'; about.className = 'ck-about'; contact.className = 'ck-contact'; boardName.className = 'ck-board';
     about.append(title,address,contact,boardName); header.append(back,about);
@@ -59,27 +59,27 @@
     area.append(heading,emergency,helper,grid);
     const type = element('form'), draft = element('input'), clear = button('Clear', () => { draft.value = ''; draft.focus(); }), send = element('button','↑');
     type.className = 'ck-type'; draft.placeholder = 'Type your question…'; draft.maxLength = 350; draft.setAttribute('aria-label','Type your question');
-    clear.className = 'ck-clear'; send.className = 'ck-send'; send.type = 'submit'; send.setAttribute('aria-label','Ask AI');
+    clear.className = 'ck-clear'; send.className = 'ck-send'; send.type = 'submit'; send.setAttribute('aria-label','Show reply tiles');
     type.append(draft,clear,send);
     type.addEventListener('submit', event => {
       event.preventDefault();
       const question = draft.value.trim();
-      if (!question || pendingAnswer) return;
-      if (exchange) return void heardFrom(question);
-      draft.value = '';
-      show(question, language, 'Visitor');
-      void ask(question, language);
+      if (!question) return;
+      // Typed words get reply tiles, as they do on the public kiosk. The assistant never answers for anyone.
+      if (exchange?.listening) return void heardFrom(question);
+      closeExchange();
+      exchange = { said: '', shown: [], typed: true };
+      void heardFrom(question, 'Typed');
     });
     const staff = button('👂 Listen for Staff', listenForStaff); staff.className = 'ck-staff';
     status.className = 'ck-status'; status.setAttribute('role','status');
-    answerStatus.className = 'ck-status'; answerStatus.setAttribute('role','status');
     transcript.className = 'ck-transcript'; transcript.append(transcriptTitle,transcriptList);
     selectors.className = 'ck-places'; selectors.hidden = true;
     const nav = element('nav'); nav.className = 'ck-nav'; nav.setAttribute('aria-label','Kiosk');
     const tabs = [['Home','🏠',() => { history = []; go('main',false); }],['Numbers','🔢',() => compose('Number',{numeric:true})],
       ['Translate','🌐',() => translateSign()],['Places','📍',() => { selectors.hidden = !selectors.hidden; if (!selectors.hidden) selectors.querySelector('select').focus(); }]];
     for (const [label,glyph,click] of tabs) { const b = icon(label,glyph,click,'ck-tab'); b.append(element('small',label)); nav.append(b); }
-    dock.className = 'ck-dock'; dock.append(type,answerStatus,staff,status,transcript);
+    dock.className = 'ck-dock'; dock.append(type,staff,status,transcript);
     app.append(header,captions,selectors,area,dock,nav);
     root.replaceChildren(app);
     const live = [captions,dock,nav];
@@ -123,7 +123,7 @@
     }
     // Their turn. What staff say and the replies to it share the tile area, as they do in the app.
     function openExchange() {
-      exchange = { said: '', shown: [] };
+      exchange = { said: '', shown: [], listening: true };
       heading.textContent = boardName.textContent = 'Their turn';
       emergency.replaceChildren(...(pack.pool[place.boards[key]].strip || []).map(tileButton));
       draft.placeholder = 'Type what they said…';
@@ -136,14 +136,25 @@
       again.className = 'ck-again'; again.hidden = Boolean(listening);
       panel(Object.assign(element('p','👂'),{className:'ck-big'}), element('p',words), again, element('p','— or type what they said below —'));
     }
-    async function heardFrom(said) {
+    async function heardFrom(said, who = 'Staff') {
       stopListening();
       // Sending a correction replaces what was heard.
-      if (exchange?.said && messages.at(-1)?.who === 'Staff') { messages.pop(); transcriptList.lastElementChild?.remove(); }
+      if (exchange?.said && messages.at(-1)?.who === who) { messages.pop(); transcriptList.lastElementChild?.remove(); }
       draft.value = said;
-      show(said,'en','Staff',null,false);
-      exchange = { said, shown: [] };
+      show(said, who === 'Staff' ? 'en' : language, who, null, false);
+      exchange = { said, shown: [], listening: who === 'Staff', who };
       await replies('reply');
+    }
+    // A wrong picture can mislead someone who cannot read the label. Prefer the picture this
+    // location's own boards use for the word, and never show the same one for different answers.
+    function pictured(tiles) {
+      const known = new Map();
+      for (const board of pack.pool) for (const tile of board.tiles) {
+        const word = normalize(tile.label).replace(/ ›$/,'');
+        if (tile.emoji && !known.has(word)) known.set(word, tile.emoji);
+      }
+      const uses = emoji => tiles.filter(part => part.emoji === emoji).length;
+      return tiles.map(({ emoji, label, say }) => ({ label, say, emoji: /^yes\b/i.test(label) ? '✅' : /^no\b/i.test(label) ? '❌' : known.get(normalize(label)) || (uses(emoji) > 1 ? '💬' : emoji) }));
     }
     async function replies(mode) {
       const turn = ++turns, { said } = exchange;
@@ -151,21 +162,21 @@
       let result;
       try {
         const response = await fetch('/api/sales/care-replies', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ said, mode, shown: exchange.shown, log: messages.slice(-6).map(m => ({ who: m.who === 'Staff' ? 'Staff' : 'Visitor', text: m.english || m.text })) }) });
+          body: JSON.stringify({ said, mode, shown: exchange.shown, log: messages.slice(-6).map(m => ({ who: m.who === 'Staff' ? 'Staff' : 'Visitor', text: m.english || m.text })),
+            place: { name: place.bedside ? place.name + ', where a person who cannot speak clearly is talking with a nurse, carer or family member' : place.name, bedside: Boolean(place.bedside), services: place.bedside ? [] : [...new Set(Object.values(place.boards).flatMap(i => pack.pool[i].tiles.filter(t => t.navigateTo).map(t => t.label)))].slice(0,40) } }) });
         if (!response.ok) throw new Error('Replies unavailable.');
         result = await response.json();
       } catch { result = null; }
       if (closed || turn !== turns || !exchange) return;
       if (!result) { const retry = button('Try again', () => replies(mode)); retry.className = 'ck-again'; panel(element('p','Replies could not load.'), retry); return; }
-      exchange.shown.push(...result.tiles);
+      exchange.shown.push(...result.tiles.map(tile => tile.label));
       helper.replaceChildren();
-      if (mode !== 'continue') helper.append(Object.assign(element('p','They said: ' + said),{className:'ck-prompt'}));
-      if (result.source === 'fixed') helper.append(Object.assign(element('p','The AI is unavailable. These are the app’s saved replies.'),{className:'ck-note'}));
+      if (mode !== 'continue') helper.append(Object.assign(element('p',(exchange.who === 'Typed' ? '' : 'They said: ') + said),{className:'ck-prompt'}));
+      if (result.source === 'fixed') helper.append(Object.assign(element('p','The AI did not respond. These are saved replies.'),{className:'ck-note'}));
       const after = place.boards.ts_after !== undefined ? 'ts_after' : undefined;
-      grid.replaceChildren(...result.tiles.map(words => {
-        const cut = words.indexOf(' '), label = words.slice(cut + 1).trim();
-        return tileButton({ emoji: words.slice(0,cut), label, spokenText: label, color: 'blue', navigateTo: after });
-      }), tileButton({ emoji: '🔄', label: 'More Choices', color: 'gray', action: 'more_choices', wide: true }));
+      heading.textContent = boardName.textContent = 'Choose a reply';
+      grid.replaceChildren(...pictured(result.tiles).map(({ emoji, label, say }) =>
+        tileButton({ emoji, label, spokenText: say, color: /^yes\b/i.test(label) ? 'green' : /^no\b/i.test(label) ? 'red' : 'blue', navigateTo: after })), tileButton({ emoji: '🔄', label: 'More Choices', color: 'gray', action: 'more_choices', wide: true }));
       area.scrollTop = 0;
     }
     // The browser handles recognition. Without it, or without permission, the same words can be typed.
@@ -174,9 +185,8 @@
       stopListening();
       if (active) return;
       cancelVoice();
-      const bedside = Boolean(place.bedside);
-      if (bedside) openExchange();
-      const fallback = () => { stopListening(); if (bedside) waiting('Type what they said below.'); else compose('Staff reply'); };
+      openExchange();
+      const fallback = () => { stopListening(); waiting('Type what they said below.'); };
       const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!Recognition) return fallback();
       recognition = new Recognition();
@@ -188,12 +198,10 @@
         draft.value = heard.slice(0,350);
         if (event.results[event.results.length - 1].isFinal === false) return;
         stopListening();
-        if (bedside && heard) return void heardFrom(heard);
-        draft.value = '';
-        if (heard) show(heard, 'en', 'Staff', null, false);
+        if (heard) void heardFrom(heard);
       };
       recognition.onerror = fallback;
-      recognition.onend = () => { stopListening(); if (bedside) waiting('No words were heard.'); else status.textContent = 'No words were heard. Try again.'; };
+      recognition.onend = () => { stopListening(); waiting('No words were heard.'); };
       [staff,hear].forEach(b => b.setAttribute('data-listening',''));
       status.textContent = 'Listening for staff…';
       try { recognition.start(); } catch { fallback(); }
@@ -212,41 +220,6 @@
       replay.disabled = false;
       if (speakNow) utter(text,lang);
       return {item,words:line,li};
-    }
-    function finishAnswer(message = '') {
-      pendingAnswer = null;
-      send.disabled = false;
-      type.removeAttribute('aria-busy');
-      answerStatus.textContent = message;
-    }
-    function cancelAnswer() {
-      pendingAnswer?.abort();
-      finishAnswer();
-    }
-    async function ask(question, lang) {
-      const request = new AbortController();
-      pendingAnswer = request;
-      send.disabled = true;
-      type.setAttribute('aria-busy', 'true');
-      answerStatus.textContent = 'Thinking…';
-      try {
-        const response = await fetch('/api/sales', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'demo-kiosk-ask', question }),
-          signal: request.signal,
-        });
-        const result = await response.json();
-        if (pendingAnswer !== request) return;
-        if (!response.ok || typeof result.answer !== 'string' || !result.answer.trim()) {
-          finishAnswer(typeof result.error === 'string' ? result.error : 'AI is unavailable. Try again.');
-          return;
-        }
-        show(result.answer, lang, 'AI answer', null, false);
-        finishAnswer();
-      } catch {
-        if (pendingAnswer === request) finishAnswer('AI is unavailable. Try again.');
-      }
     }
     function speak(english, fallback, {who = 'Visitor', aloud = true} = {}) {
       if (!english) return;
@@ -445,7 +418,6 @@
     }
     function setPlace(id, requestedBoard) {
       generation++; pendingSign = false; stopListening(); closeExchange();
-      cancelAnswer();
       place = pack.places.find(p => p.key === id) || pack.places[0];
       key = Object.hasOwn(place.boards,requestedBoard) ? requestedBoard : 'main';
       history = []; messages = []; transcriptList.replaceChildren(); transcript.open = false; transcriptTitle.textContent = 'Conversation';
@@ -477,7 +449,7 @@
         if(!closed) {title.textContent='This location could not load.';helper.replaceChildren(button('Try again',load));}
       }
     }
-    const pause = () => { stopListening(); cancelVoice(); cancelAnswer(); };
+    const pause = () => { stopListening(); cancelVoice(); };
     root.addEventListener('care:pause', pause);
     load();
     return () => {closed=true;generation++;pause();root.removeEventListener('care:pause', pause);app.remove();};

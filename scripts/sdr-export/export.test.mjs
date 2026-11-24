@@ -1045,6 +1045,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal((await mailApi('login')).status, 404);
     assert.deepEqual((await owner.api('rep-email-drafts')).drafts, []);
     pageDocument.querySelector('[data-tab="prospects"]').click();
+    const mailbox = pageDocument.querySelector('.sdr-sidebar [data-tab="email"]');
+    assert.equal(mailbox.textContent.trim(), 'Mailbox');
+    mailbox.click();
+    assert.equal(mailbox.getAttribute('aria-pressed'), 'true');
+    assert.equal(pageDocument.querySelector('[data-tab-panel="email"]').closest('[hidden]'), null);
+    assert.equal(pageDocument.querySelector('[data-team-workspace]').hidden, true);
+    pageDocument.querySelector('[data-tab="prospects"]').click();
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
     assert.equal(profile.open, true);
     assert.equal(reviewPane.open, false);
@@ -1721,8 +1728,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'The signed-in demo entrypoint did not open');
     assert.ok(panel.hidden);
-    assert.equal(doc.querySelector('.sdr-sidebar [data-tab="demo"]'), null);
-    doc.querySelector('.sdr-sidebar [data-tab="team"]').click();
+    const demoRail = doc.querySelector('.sdr-sidebar [data-tab="demo"]');
+    const teamRail = doc.querySelector('.sdr-sidebar [data-tab="team"]');
+    assert.equal(demoRail.textContent.trim(), 'Demo');
+    assert.equal(demoRail.nextElementSibling.dataset.tab, 'contracts');
+    demoRail.click();
+    assert.equal(panel.hidden, false);
+    assert.equal(demoRail.getAttribute('aria-pressed'), 'true');
+    assert.equal(teamRail.getAttribute('aria-pressed'), 'false');
+    teamRail.click();
     const demoTool = doc.querySelector('[data-team-tools] [data-tab="demo"]');
     assert.equal(demoTool.closest('[hidden]'), null);
     demoTool.click();
@@ -1845,6 +1859,38 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const after = await owner.api('bootstrap');
     assert.deepEqual(after.offices, before.offices);
     assert.deepEqual(after.contracts, before.contracts);
+  });
+
+  await t.test('Mission opens directly below Overview, searches its sections, and links to demos and booking', async t => {
+    const missionWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=home');
+    const doc = missionWindow.document;
+    const find = selector => doc.querySelector(selector);
+    await waitFor(() => !find('#sales-workspace').hidden, 'Workspace did not sign in');
+    const nav = find('.sdr-sidebar [data-tab="mission"]');
+    assert.equal(nav.previousElementSibling.dataset.tab, 'home');
+    nav.click();
+    const page = find('[data-tab-panel="mission"]');
+    await waitFor(() => !page.hidden, 'Mission did not open from the sidebar');
+    assert.equal(nav.getAttribute('aria-pressed'), 'true');
+    assert.equal(page.querySelector('h1').textContent, 'Our Mission');
+    for (const asset of ['sales-mission-hero.webp', 'sales-mission-vision.webp']) {
+      const response = await owner.request('/' + asset);
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get('content-type'), 'image/webp');
+    }
+    const form = page.querySelector('[data-mission-search]');
+    const search = form.elements.query;
+    const results = page.querySelector('[data-mission-results]');
+    search.value = 'AngelCare';
+    search.dispatchEvent(new missionWindow.Event('input', { bubbles: true }));
+    const result = results.querySelector('a');
+    assert.equal(result.textContent, 'AngelCare™');
+    result.click();
+    await waitFor(() => doc.activeElement?.id === 'mission-angelcare', 'Search result did not focus its section');
+    assert.equal(results.hidden, true);
+    assert.equal((await owner.request('/book?type=demo')).status, 200);
+    page.querySelector('.mission-footer a[href="#view=demo"]').click();
+    await waitFor(() => !find('[data-tab-panel="demo"]').hidden, 'Mission did not open the Demo workspace');
   });
 
   await t.test('one blue Sales Workspace includes business and facility tools and supports old links', async t => {
