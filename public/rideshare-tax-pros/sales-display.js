@@ -14,12 +14,13 @@
   const scale = value => 'calc((' + value + ') * var(--sdr-text-scale, 1))';
   function scaleFonts(style) {
     const size = style.getPropertyValue('font-size');
+    if (size.includes("--sdr-text-scale")) return;
     if (absoluteSize.test(size)) {
       style.setProperty('font-size', scale(size), style.getPropertyPriority('font-size'));
       return;
     }
     const shorthand = style.getPropertyValue('font');
-    if (absoluteSize.test(shorthand)) {
+    if (!shorthand.includes("--sdr-text-scale") && absoluteSize.test(shorthand)) {
       style.setProperty('font', shorthand.replace(absoluteSize, scale), style.getPropertyPriority('font'));
     }
   }
@@ -29,10 +30,13 @@
       if (rule.cssRules) scaleRules(rule.cssRules);
     }
   }
-  for (const sheet of document.styleSheets) {
-    if (sheet.href && new URL(sheet.href).origin !== location.origin) continue;
-    scaleRules(sheet.cssRules);
+  function scaleLoadedStyles() {
+    for (const sheet of document.styleSheets) {
+      if (sheet.href && new URL(sheet.href).origin !== location.origin) continue;
+      scaleRules(sheet.cssRules);
+    }
   }
+  window.addEventListener('load', scaleLoadedStyles, { once: true });
   const sizeLabel = size.closest('label');
   if (sizeLabel?.firstChild?.nodeType === Node.TEXT_NODE) sizeLabel.firstChild.textContent = 'Text size ';
 
@@ -41,6 +45,7 @@
     root.toggleAttribute('data-sdr-display-compact', Number(size.value) > 100 && window.innerWidth < Number(size.value) * 12);
   }
   function apply(save) {
+    scaleLoadedStyles();
     root.dataset.sdrScale = size.value;
     root.toggleAttribute('data-sdr-monochrome', monochrome.checked);
     reflow();
