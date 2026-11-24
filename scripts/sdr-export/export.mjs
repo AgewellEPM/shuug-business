@@ -74,7 +74,7 @@ for (const directory of ['support-art', 'training-art']) {
     if (filename.endsWith('.png')) copy('public/rideshare-tax-pros/' + directory + '/' + filename, 'site/' + directory + '/' + filename);
   }
 }
-for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'team-chat.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
+for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'care-replies.mjs', 'care-replies.json', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'team-chat.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
 }

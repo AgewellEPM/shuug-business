@@ -20,9 +20,9 @@
     return Object.keys(swatches).reduce((best,name) => gap(swatches[name]) < gap(swatches[best]) ? name : best);
   }
   // A link to a board that did not ship still speaks. It just stays put.
-  function place(boards, key, name, address, main, extra = {}) {
+  function place(boards, key, name, address, main, { keep = [], ...extra } = {}) {
     const named = { main: boards[main] };
-    const queue = [main], seen = new Set(queue);
+    const queue = [main, ...keep], seen = new Set(queue);
     while (queue.length) {
       const id = queue.shift();
       named[id] = boards[id];
@@ -117,7 +117,7 @@
       app.pain.kinds.forEach((kind, i) => add('ts_pain_' + level + '_' + i, level + '/10 ' + kind.descriptor + ' — Where?', app.pain.places.map(where => ({ emoji: where.emoji, label: where.label,
         spokenText: 'I have ' + kind.descriptor + ' pain at level ' + level + ' in ' + where.location + '.', color: 'blue', navigateTo: 'ts_after' })), { unlisted: true }));
     }
-    const actions = [['replay','teal'],['wrong_one','red'],['caption_teller','purple'],['stroke_tool','blue'],['see','teal'],['done','gray']];
+    const actions = [['replay','teal'],['wrong_one','red'],['caption_teller','purple'],['keep_talking','blue'],['see','teal'],['done','gray']];
     add('ts_after', 'What next?', app.after.map((words, i) => ({ emoji: words.split(' ')[0], label: plain(words), color: actions[i][1], action: actions[i][0],
       tool: 'talk', navigateTo: actions[i][0] === 'done' ? 'ts_hospital' : undefined })), { unlisted: true, answers: false });
     const library = [...app.saved.map(board => ['ts_board_' + board.id, board.emoji, board.title, board.tiles]),
@@ -125,8 +125,6 @@
         board.tiles.filter(tile => !/^(GO BACK|ADD NEW)$/.test(tile.label)).map(tile => ({ emoji: tile.emoji, label: tile.label, say: tile.spokenText }))])];
     for (const [id, , title, tiles] of library) add(id, title, tiles.map(tile => say(tile)));
     add('ts_boards', 'Boards', library.map(([id, emoji, title]) => ({ emoji, label: title, spokenText: '', color: 'blue', navigateTo: id })));
-    boards.ts_hospital.tiles.push({ emoji: '🗂️', label: 'Boards ›', spokenText: '', color: 'gray', navigateTo: 'ts_boards' });
-    boards.ts_full.tiles.push({ emoji: '🗂️', label: 'Boards ›', spokenText: '', color: 'gray', navigateTo: 'ts_boards' });
     return boards;
   }
   async function bedside() {
@@ -157,8 +155,8 @@
     async 'nursing-home'() {
       const boards = await bedside(), health = await locations();
       return pack([
-        place(boards, 'resident', 'Nursing Home — In My Room', 'Bedside communication', 'senior_resident'),
-        place(boards, 'stroke', 'Nursing Home — TinkyStroke', 'Bedside communication', 'ts_hospital'),
+        place(boards, 'resident', 'Nursing Home — In My Room', 'Bedside communication', 'senior_resident', { bedside: true, keep: ['ts_boards'] }),
+        place(boards, 'stroke', 'Nursing Home — TinkyStroke', 'Bedside communication', 'ts_hospital', { bedside: true, keep: ['ts_boards'] }),
         place(health, 'visitor', 'Nursing Home — Visitor', 'Front desk', 'loc_visit_biz_nursing_home_arrive'),
         place(health, 'assisted', 'Assisted Living — Visitor', 'Front desk', 'loc_visit_biz_assisted_living_facility_arrive'),
       ]);
@@ -166,16 +164,16 @@
     async bedside() {
       const boards = await bedside();
       return pack([
-        place(boards, 'stroke', 'Bedside — TinkyStroke', 'Stroke communication', 'ts_hospital'),
-        place(boards, 'resident', 'Bedside — In My Room', 'Bedside communication', 'senior_resident'),
+        place(boards, 'stroke', 'Bedside — TinkyStroke', 'Stroke communication', 'ts_hospital', { bedside: true, keep: ['ts_boards'] }),
+        place(boards, 'resident', 'Bedside — In My Room', 'Bedside communication', 'senior_resident', { bedside: true, keep: ['ts_boards'] }),
       ]);
     },
     async stroke() {
       const boards = await tinkyStroke();
       return pack([
-        place(boards, 'ward', 'TinkyStroke — Ward stay', 'Stroke ward', 'ts_hospital'),
-        place(boards, 'acute', 'TinkyStroke — First hours', 'ER and ICU', 'ts_acute'),
-        place(boards, 'recovery', 'TinkyStroke — Recovery', 'Rehab and home', 'ts_full'),
+        place(boards, 'ward', 'TinkyStroke — Ward stay', 'Stroke ward', 'ts_hospital', { bedside: true, keep: ['ts_boards'] }),
+        place(boards, 'acute', 'TinkyStroke — First hours', 'ER and ICU', 'ts_acute', { bedside: true, keep: ['ts_boards'] }),
+        place(boards, 'recovery', 'TinkyStroke — Recovery', 'Rehab and home', 'ts_full', { bedside: true, keep: ['ts_boards'] }),
       ]);
     },
     async 'senior-center'() {

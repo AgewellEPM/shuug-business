@@ -30,6 +30,7 @@ import { territoryDashboard } from '../../sales/territory-dashboard.mjs';
 import { directoryFacility, stateFacilityDirectory } from '../../sales/state-facilities.mjs';
 import { googleFacilityReviews } from '../../sales/facility-reviews.mjs';
 import { facilityOutreach } from './facility-outreach.mjs';
+import { careRepliesRoute } from './care-replies.mjs';
 import { initialize, privateValue } from './setup.mjs';
 import { bookings } from './bookings.mjs';
 import { bookingHTTP } from './booking-http.mjs';
@@ -143,6 +144,8 @@ const sales = createHandler(env, db, {
 const routes = new Map([
   ['/api/sales', sales],
   ['/api/sales/coach/voice', sales],
+  ...(profile.focus === 'senior-care' ? [['/api/sales/care-replies', careRepliesRoute({ identity: service(env, db).identity,
+    cookieName: 'gigtax_sales_' + digest(sessionKey).slice(0, 16), origin: origin.origin, model: process.env.SDR_COACH_MODEL })]] : []),
   ['/api/sales/mail/v1', sales],
   ['/api/offices', createDirectoryHandler(env, db, { defaultBookingURL: () =>
     origin.protocol === 'https:' && booking.publicAction('hosts', {}).hosts.length ? origin.origin + '/book' : '' })],
