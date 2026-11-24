@@ -1,0 +1,343 @@
+(() => {
+  const element = (tag, text, className) => {
+    const node = document.createElement(tag);
+    if (text !== undefined) node.textContent = text;
+    if (className) node.className = className;
+    return node;
+  };
+  const timeFormat = new Intl.DateTimeFormat(undefined, { hour: 'numeric', minute: '2-digit' });
+  const dayFormat = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  const countLabel = n => n > 99 ? '99+' : String(n);
+
+  function mount({ api }) {
+    const panel = document.querySelector('[data-tab-panel="chat"]');
+    if (!panel) return;
+    const $ = selector => panel.querySelector(selector);
+    const nav = document.querySelector('[data-tab="chat"]');
+    const badge = element('span', '', 'chat-nav-count');
+    badge.hidden = true;
+    nav.append(badge);
+    const list = $('#chat-channels'), log = $('#chat-messages'), scroll = $('#chat-scroll');
+    const add = $('#chat-add'), create = $('#chat-create'), compose = $('#chat-compose');
+    const input = compose.elements.message, send = compose.querySelector('button');
+    const older = $('#chat-older'), jump = $('#chat-jump'), empty = $('#chat-empty'), reply = $('#chat-reply');
+    const status = $('#chat-status'), signin = $('#chat-signin');
+    const drafts = new Map();
+    let user, active = false, room, lastChannel = 'general', controller, timer, retry = 1000;
+    let channelList = [], channelSignature = '';
+
+    function showStatus(text = '', kind = '') {
+      status.textContent = text;
+      status.dataset.kind = kind;
+      status.dataset.error = String(kind === 'error' || kind === 'connection');
+    }
+    function renderChannels() {
+      const unread = channelList.reduce((sum, channel) => sum + channel.unread, 0);
+      badge.hidden = !unread;
+      badge.textContent = unread ? countLabel(unread) : '';
+      nav.setAttribute('aria-label', unread ? `Team chat, ${unread} unread messages` : 'Team chat');
+      const signature = JSON.stringify(channelList.map(c => [c.slug, c.unread])) + room?.slug;
+      if (signature === channelSignature) return;
+      channelSignature = signature;
+      const focused = list.contains(document.activeElement) && document.activeElement.dataset.channel;
+      const buttons = channelList.map(channel => {
+        const button = element('button');
+        button.type = 'button';
+        button.dataset.channel = channel.slug;
+        button.setAttribute('aria-current', String(channel.slug === room?.slug));
+        button.setAttribute('aria-label', '#' + channel.slug + (channel.unread ? `, ${channel.unread} unread` : ''));
+        const hash = element('span', '#', 'chat-hash');
+        hash.setAttribute('aria-hidden', 'true');
+        button.append(hash, element('span', channel.slug, 'chat-channel-label'));
+        if (channel.unread) button.append(element('span', countLabel(channel.unread), 'chat-unread'));
+        button.addEventListener('click', () => view(user, 'chat', channel.slug));
+        return button;
+      });
+      list.replaceChildren(...buttons);
+      if (focused) buttons.find(button => button.dataset.channel === focused)?.focus({ preventScroll: true });
+    }
+    function draft(slug) {
+      if (!drafts.has(slug)) drafts.set(slug, { text: '', replyTo: null, requestId: null, sending: false });
+      return drafts.get(slug);
+    }
+    function composer() {
+      const item = room && draft(room.slug);
+      input.disabled = !room?.ready || !user;
+      input.readOnly = Boolean(item?.sending);
+      send.disabled = input.disabled || input.readOnly || !item?.text.trim();
+      const target = item?.replyTo;
+      reply.hidden = !target;
+      reply.querySelector('span').textContent = target ? `Replying to ${target.author} · ${target.body}` : '';
+      reply.querySelector('button').disabled = input.readOnly;
+    }
+    function messageEntry(row, previousDay) {
+      const entry = element('div');
+      const date = new Date(row.sentAt), day = dayFormat.format(date);
+      entry.dataset.day = day;
+      if (day !== previousDay) entry.append(element('div', day, 'chat-day'));
+      const item = element('article', undefined, 'chat-message');
+      item.dataset.messageId = row.id;
+      const initials = row.author.trim().split(/\s+/).slice(0, 2).map(word => Array.from(word)[0]).join('').toUpperCase();
+      const avatar = element('span', initials, 'chat-avatar tone-' + ((Number(row.authorId) || 0) % 4));
+      avatar.setAttribute('aria-hidden', 'true');
+      const content = element('div'), byline = element('div', undefined, 'chat-byline');
+      const time = element('time', timeFormat.format(date));
+      time.dateTime = row.sentAt;
+      time.title = date.toLocaleString();
+      const respond = element('button', 'Reply');
+      respond.type = 'button';
+      respond.setAttribute('aria-label', 'Reply to ' + row.author);
+      respond.addEventListener('click', () => {
+        const item = draft(room.slug);
+        if (item.sending) return;
+        item.replyTo = { id: row.id, author: row.author, body: row.body.slice(0, 160) };
+        item.requestId = null;
+        composer();
+        input.focus();
+      });
+      byline.append(element('strong', row.author), time, respond);
+      content.append(byline);
+      if (row.replyId) content.append(element('blockquote', `${row.replyAuthor} · ${row.replyText}`, 'chat-quote'));
+      content.append(element('p', row.body, 'chat-body'));
+      item.append(avatar, content);
+      entry.append(item);
+      return entry;
+    }
+    function insert(rows, prepend = false) {
+      if (!rows.length) return;
+      const elements = document.createDocumentFragment();
+      let day = prepend ? '' : log.lastElementChild?.dataset.day;
+      for (const row of rows) {
+        const node = messageEntry(row, day);
+        day = node.dataset.day;
+        elements.append(node);
+      }
+      if (prepend) {
+        if (day === log.firstElementChild?.dataset.day) log.firstElementChild.querySelector('.chat-day')?.remove();
+        log.prepend(elements);
+        room.first = rows[0].id;
+      } else {
+        log.append(elements);
+        room.first ||= rows[0].id;
+        room.last = rows.at(-1).id;
+      }
+    }
+    const nearBottom = () => scroll.scrollHeight - scroll.clientHeight - scroll.scrollTop < 45;
+    function markVisible() {
+      const current = room;
+      if (!user || !active || !current?.ready || current.marking || current.last <= current.seen ||
+          document.visibilityState === 'hidden' || !nearBottom()) return;
+      const through = current.last;
+      current.marking = true;
+      api('chat-seen', { channel: current.slug, through }).then(() => {
+        current.seen = Math.max(current.seen, through);
+      }).catch(() => { /* The next authenticated sync retries the read marker. */ })
+        .finally(() => { current.marking = false; if (room === current && current.seen >= through) markVisible(); });
+    }
+    function pause() {
+      clearTimeout(timer);
+      controller?.abort();
+      controller = undefined;
+    }
+    function restart() {
+      pause();
+      if (!user || document.visibilityState === 'hidden') return;
+      const request = new AbortController();
+      controller = request;
+      void sync(request);
+    }
+    async function sync(request) {
+      const current = room, displaying = Boolean(active && current);
+      const initial = displaying && !current.ready;
+      try {
+        const args = displaying ? { channel: current.slug } : {};
+        if (displaying && !initial) args.after = current.last;
+        const data = await api('chat-sync', args, request.signal);
+        if (request !== controller) return;
+        channelList = data.channels;
+        renderChannels();
+        if (displaying) {
+          const channel = channelList.find(c => c.slug === current.slug);
+          current.seen = Math.max(current.seen, channel.seen);
+          $('#chat-topic').textContent = channel.topic;
+          const follow = initial || current.follow || nearBottom();
+          insert(data.messages);
+          if (initial) older.hidden = !data.hasMore;
+          empty.hidden = Boolean(current.last);
+          current.ready = true;
+          composer();
+          if (follow) { scroll.scrollTop = scroll.scrollHeight; jump.hidden = true; }
+          else if (data.messages.length) jump.hidden = false;
+          current.follow = false;
+          markVisible();
+        }
+        if (['loading', 'connection'].includes(status.dataset.kind)) showStatus();
+        retry = 1000;
+        if (displaying && !initial && data.hasMore) {
+          timer = setTimeout(() => sync(request), 0);
+          return;
+        }
+        if (displaying) await api('chat-watch', { version: data.version }, request.signal);
+        if (request === controller) timer = setTimeout(() => sync(request), displaying ? 0 : 12_000);
+      } catch (error) {
+        if (request !== controller) return;
+        if ([401, 403].includes(error.status)) {
+          reset();
+          showStatus(error.message, 'error');
+          signin.hidden = false;
+          return;
+        }
+        if (displaying && error.status === 404 && current.slug !== 'general') {
+          view(user, 'chat', 'general');
+          showStatus('That channel is unavailable. Showing #general.', 'error');
+          return;
+        }
+        if (displaying) showStatus('Chat connection interrupted. Reconnecting…', 'connection');
+        timer = setTimeout(() => sync(request), retry);
+        retry = Math.min(retry * 2, 15_000);
+      }
+    }
+    function hideCreate() {
+      create.hidden = true;
+      add.setAttribute('aria-expanded', 'false');
+      $('#chat-create-status').textContent = '';
+    }
+    function reset() {
+      pause();
+      user = room = undefined;
+      active = false;
+      lastChannel = 'general';
+      drafts.clear();
+      channelList = [];
+      channelSignature = '';
+      log.replaceChildren();
+      renderChannels();
+      input.value = '';
+      create.reset();
+      hideCreate();
+      add.hidden = older.hidden = jump.hidden = empty.hidden = signin.hidden = true;
+      $('#chat-name').textContent = '';
+      $('#chat-topic').textContent = '';
+      composer();
+      showStatus();
+    }
+    function view(identity, name, requested) {
+      const changedUser = user?.id !== identity.id;
+      if (changedUser) reset();
+      user = identity;
+      const entering = name === 'chat';
+      const slug = requested || lastChannel;
+      if (!changedUser && active === entering && (!entering || room?.slug === slug)) return;
+      const wasActive = active;
+      active = entering;
+      room = undefined;
+      log.replaceChildren();
+      hideCreate();
+      showStatus();
+      add.hidden = user.role !== 'owner';
+      if (active) {
+        room = { slug, first: 0, last: 0, seen: 0, ready: false };
+        lastChannel = slug;
+        history.replaceState(null, '', location.pathname + location.search + '#view=chat&channel=' + encodeURIComponent(slug));
+        $('#chat-name').textContent = slug;
+        $('#chat-topic').textContent = channelList.find(c => c.slug === slug)?.topic || '';
+        empty.querySelector('h4').textContent = 'Start the conversation in #' + slug;
+        empty.hidden = older.hidden = jump.hidden = true;
+        older.disabled = false;
+        input.placeholder = 'Message #' + slug;
+        input.setAttribute('aria-label', input.placeholder);
+        input.value = draft(slug).text;
+        showStatus('Loading channel…', 'loading');
+      } else if (wasActive && new URLSearchParams(location.hash.slice(1)).get('view') === 'chat') {
+        history.replaceState(null, '', location.pathname + location.search + '#view=' + encodeURIComponent(name));
+      }
+      renderChannels();
+      composer();
+      restart();
+    }
+    older.addEventListener('click', async () => {
+      const current = room;
+      if (!current?.first || older.disabled) return;
+      older.disabled = true;
+      try {
+        const page = await api('chat-history', { channel: current.slug, before: current.first });
+        if (room !== current) return;
+        const height = scroll.scrollHeight, top = scroll.scrollTop;
+        insert(page.messages, true);
+        older.hidden = !page.hasMore;
+        scroll.scrollTop = top + scroll.scrollHeight - height;
+      } catch (error) { if (room === current) showStatus(error.message, 'error'); }
+      finally { if (room === current) older.disabled = false; }
+    });
+    scroll.addEventListener('scroll', () => { if (nearBottom()) { jump.hidden = true; markVisible(); } }, { passive: true });
+    jump.addEventListener('click', () => { scroll.scrollTop = scroll.scrollHeight; jump.hidden = true; markVisible(); });
+    input.addEventListener('input', () => {
+      if (!room) return;
+      const item = draft(room.slug);
+      item.text = input.value;
+      item.requestId = null;
+      composer();
+    });
+    input.addEventListener('keydown', event => {
+      if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
+        event.preventDefault();
+        if (!send.disabled) compose.requestSubmit();
+      }
+    });
+    reply.querySelector('button').addEventListener('click', () => {
+      const item = draft(room.slug);
+      item.replyTo = item.requestId = null;
+      composer();
+      input.focus();
+    });
+    compose.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (!room?.ready || send.disabled) return;
+      const slug = room.slug, item = draft(slug);
+      item.requestId ||= crypto.randomUUID();
+      item.sending = true;
+      composer();
+      showStatus();
+      try {
+        await api('chat-send', { channel: slug, body: item.text, replyTo: item.replyTo?.id, requestId: item.requestId });
+        if (drafts.get(slug) !== item) return;
+        drafts.delete(slug);
+        if (room?.slug === slug) {
+          room.follow = true;
+          input.value = '';
+          input.focus();
+        }
+        restart();
+      } catch (error) { if (room?.slug === slug) showStatus(error.message + ' Your draft is saved in this tab.', 'error'); }
+      finally { item.sending = false; composer(); }
+    });
+    add.addEventListener('click', () => {
+      if (!create.hidden) { hideCreate(); return; }
+      create.hidden = false;
+      add.setAttribute('aria-expanded', 'true');
+      create.elements.name.focus();
+    });
+    $('#chat-create-cancel').addEventListener('click', () => { hideCreate(); add.focus(); });
+    create.addEventListener('submit', async event => {
+      event.preventDefault();
+      const button = create.querySelector('[type=submit]');
+      if (button.disabled || !user) return;
+      const creator = user.id;
+      button.disabled = true;
+      try {
+        const { slug } = await api('chat-create-channel', { name: create.elements.name.value, topic: create.elements.topic.value });
+        if (user?.id !== creator) return;
+        create.reset();
+        hideCreate();
+        if (active) view(user, 'chat', slug);
+      } catch (error) { $('#chat-create-status').textContent = error.message; }
+      finally { button.disabled = false; }
+    });
+    document.addEventListener('visibilitychange', restart);
+    signin.addEventListener('click', event => { event.preventDefault(); location.reload(); });
+    window.addEventListener('pagehide', pause);
+    window.addEventListener('pageshow', restart);
+    return { view, reset };
+  }
+  window.SdrTeamChat = { mount };
+})();

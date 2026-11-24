@@ -1,11 +1,14 @@
 import { readFileSync } from 'node:fs';
 import { renderProspects } from './sales-prospects.mjs';
 import { renderSalesEmail } from './sales-email.mjs';
+import { renderTeamChat } from './sales-chat.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
 // GigTax forms/API remain the source of truth; no generic tenant key is exposed.
 const icons = {
+  chat: '<path d="M20 11.5a7 7 0 0 1-7 7H8l-5 3 1.3-5.1A7.4 7.4 0 0 1 3 12V9a6 6 0 0 1 6-6h5a6 6 0 0 1 6 6z"/><path d="M7.5 9h8m-8 4h5"/>',
+  chatSend: '<path d="m3 4 18 8-18 8 3-8z"/><path d="M6 12h10"/>',
   nursing: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
   center: '<path d="m2 9 10-6 10 6M4 10v10h16V10M9 20v-5h6v5"/><path d="M7 11h1m3 0h2m3 0h1"/>',
   arrow: '<path d="M4 12h15m-6-6 6 6-6 6"/>',
@@ -239,6 +242,7 @@ function standaloneTeam(legacyTeam) {
         <div class="sdr-team-hero-actions">
           <button type="button" class="button primary" id="sales-team-add-rep">${icon('prospects')} Add sales rep</button>
           <a href="#view=territories" class="button secondary" id="sales-team-territories">${icon('territories')} Assign counties</a>
+          <a href="#view=chat" class="button secondary">${icon('chat')} Team chat</a>
         </div>
       </div>
       <img class="sdr-team-hero-art" src="/sales-team-territory-planning.webp" alt="" width="1000" height="500">
@@ -343,8 +347,8 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
   const nav = [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'], ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   if (prospects) nav.splice(1, 0, ['prospects', 'Prospects'], ['campaigns', 'Campaigns']);
   if (prospects) {
-    nav.push(['email', 'Email']);
-    const order = ['home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'contacts', 'locations', 'email', 'mail'];
+    nav.push(['chat', 'Team chat'], ['email', 'Email']);
+    const order = ['home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'chat', 'contacts', 'locations', 'email', 'mail'];
     nav.sort((first, second) => order.indexOf(first[0]) - order.indexOf(second[0]));
   }
   if (seniorCare) nav.splice(nav.findIndex(([name]) => name === 'territories'), 0, ['facilities', 'Facility directory']);
@@ -367,6 +371,7 @@ ${prospects ? `<header class="sdr-territory-hero">
 </header>` : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
 <div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
 ${seniorCare ? standaloneFacilities : ''}
+${prospects ? renderTeamChat(icon) : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + standaloneTeam(team) : team}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }
