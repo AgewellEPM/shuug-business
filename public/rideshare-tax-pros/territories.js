@@ -6,7 +6,6 @@
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
     const dashboard=window.SdrTerritoryDashboard?.mount(api);
     const townMap=window.SdrTerritoryTownMap?.mount({api,onBack:returnToStates,
-      onMap:map=>dashboard?.setMap(map), onSelect:(counties,name)=>dashboard?.selected(counties,name),
       onAssignment:()=>dashboard?.show(mapState,true)});
     const townAccessState=document.querySelector('#sales-town-access-state');
     let mapState='';
@@ -99,7 +98,7 @@
     return {showStates:returnToStates,enter(){dashboard?.show(mapState);},render(next){
       if(data&&scope(data.user)!==scope(next.user)){returnToStates();dashboard?.reset();}
       data=next;
-      dashboard?.setUser(next.user);dashboard?.show(mapState,true);
+      dashboard?.show(mapState,true);
       if(townAccessState&&owner()&&townAccessState.options.length===0){
         townAccessState.replaceChildren(new Option('Choose a state',''),...data.states.map(region=>new Option(region,region)));
       }
