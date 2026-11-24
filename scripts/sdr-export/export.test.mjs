@@ -794,7 +794,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const profileForm = juniorDocument.getElementById('sales-team-profile');
   assert.equal(profileForm.closest('[role="tabpanel"]').hidden, false);
   await waitFor(() => !profileForm.elements.bio.disabled, 'The self-profile form did not load');
-  profileForm.elements.bio.value = 'Hospital and senior care outreach';
+  assert.equal(profileForm.elements.name.value, juniorInput.name);
+  assert.equal(profileForm.elements.email.value, juniorInput.email);
+  const contact = { name: juniorInput.name, email: 'junior-work@example.test', phone: '+1 860 555 0142', bio: 'Hospital and senior care outreach' };
+  for (const [key, value] of Object.entries(contact)) profileForm.elements[key].value = value;
   const mockFile = new juniorWindow.File(['portrait'], 'portrait.jpg', {type:'image/jpeg'});
   juniorWindow.SdrHeadshots.encode = async file => {
     assert.equal(file, mockFile);
@@ -805,10 +808,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => profileForm.querySelector('[data-team-profile-preview]').getAttribute('src') === portrait &&
     !profileForm.elements.bio.disabled, 'The rep portrait did not preview');
   profileForm.requestSubmit();
-  await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own bio and headshot');
-  assert.deepEqual((await juniorSession.api('sales-team-profile')).profile, {
-    bio:'Hospital and senior care outreach', photo:portrait, revision:1
-  });
+  await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own contact details, bio and headshot');
+  const { progress: initialProgress, ...savedProfile } = (await juniorSession.api('sales-team-profile')).profile;
+  assert.deepEqual(savedProfile, { ...contact, photo: portrait, revision: 1 });
+  assert.deepEqual(initialProgress, { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 });
+  juniorDocument.querySelector('[data-team-view="roster"]').click();
+  const rosterProfile = `[data-team-member-profile-open="${junior.agent.id}"]`;
+  await waitFor(() => juniorDocument.querySelector(`${rosterProfile} img`)?.getAttribute('src') === portrait,
+    'Saving the headshot did not refresh the roster');
   for (const [index, [name, facilityType]] of [
     ['Hartford Example Hospital', ''],
     ['Example Senior Residence', 'assisted-living'],
@@ -856,6 +863,23 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(agentDocument.querySelector('#directory-support-form'), null);
   agentSettings.click();
   assert.equal(agentDocument.querySelector('[data-team-view="roster"]').getAttribute('aria-selected'), 'true');
+  const teammate = await waitFor(() => agentDocument.querySelector(rosterProfile), 'The report profile could not be opened from the roster');
+  assert.equal(teammate.querySelector('img').getAttribute('src'), portrait);
+  const repProgress = teammate.closest('[data-team-member]').querySelector('[data-team-xp]');
+  assert.match(repProgress.textContent, /Level 1/);
+  assert.equal(repProgress.querySelector('progress').value, 30);
+  teammate.focus();
+  teammate.click();
+  const memberDialog = agentDocument.querySelector('[data-team-member-profile]');
+  const memberDetails = memberDialog.querySelector('[data-team-member-profile-content]');
+  await waitFor(() => memberDialog.open && !memberDetails.hidden, 'The report profile did not load');
+  assert.equal(memberDialog.querySelector('[data-team-member-profile-title]').textContent, contact.name);
+  for (const detail of [contact.bio, contact.email, contact.phone]) assert.ok(memberDetails.textContent.includes(detail));
+  assert.equal(memberDetails.querySelector('img').getAttribute('src'), portrait);
+  assert.equal(memberDialog.querySelector('[data-team-xp] progress').value, 30);
+  memberDialog.querySelector('[data-team-member-profile-close]').click();
+  assert.equal(memberDialog.open, false);
+  await waitFor(() => agentDocument.activeElement === teammate, 'Closing the profile did not restore focus to the report');
   agentDocument.querySelector('#sales-team-territories').click();
   const scopedStatePicker = agentDocument.querySelector('#sales-territory-state');
   assert.deepEqual([...scopedStatePicker.options].filter(option => !option.disabled).map(option => option.value), ['', 'CT']);
@@ -958,6 +982,19 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
   assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
+  const signedOffice = await agentSession.api('office', { id });
+  await agentSession.api('record-progress', { id, expectedRevision: signedOffice.pipeline.revision, requestId: randomUUID(), kind: 'replied', channel: 'email', note: 'Synthetic reply recorded.' });
+  await owner.api('create-office', { name: 'Extra XP Example Office', state: 'CT', city: 'Hartford', address: '99 Example Road', assignedTo: agent.id });
+  const levelTwo = { level: 2, xp: 110, xpIntoLevel: 10, xpPerLevel: 100 };
+  assert.deepEqual((await agentSession.api('bootstrap')).progress, levelTwo);
+  assert.deepEqual((await agentSession.api('sales-team-profile')).profile.progress, levelTwo);
+  assert.deepEqual((await owner.api('sales-team-member-profile', { id: agent.id })).profile.progress, levelTwo);
+  assert.deepEqual((await owner.api('sales-team-read')).members.find(member => member.id === agent.id).progress, levelTwo);
+  agentNav.click();
+  agentDocument.querySelector('[data-team-view="profile"]').click();
+  const ownProgress = agentDocument.querySelector('[data-team-profile-progress]');
+  await waitFor(() => ownProgress.textContent.includes('Level 2') && ownProgress.querySelector('progress').value === 10,
+    'Reopening the team did not refresh the rep’s own level and XP');
   await agentSession.api('sales-team-revoke', { id: junior.agent.id });
   await juniorSession.api('bootstrap', {}, 401);
   await traineeSession.api('bootstrap', {}, 401);
