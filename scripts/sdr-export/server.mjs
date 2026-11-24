@@ -18,6 +18,7 @@ import { campaignActions, campaigns } from './campaigns.mjs';
 import { campaignNotifications } from './campaign-mail.mjs';
 import { workspaceResearch } from '../../sales/workspace-research.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
+import { salesDailyPlan } from '../../sales/sales-daily-plan.mjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
 import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
@@ -116,6 +117,7 @@ const sales = createHandler(env, db, {
   booking: booking.staff,
   nextBooking: booking.nextBooking,
   teamChat: db.chat,
+  dailyPlan: salesDailyPlan(db),
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);

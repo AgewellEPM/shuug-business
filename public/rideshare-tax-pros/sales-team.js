@@ -195,7 +195,7 @@
       void work(() => api('set-sales-team-profile', { ...details, revision: saved.revision }), ({ profile }) => {
         show(profile);
         message('Profile saved.');
-        onSaved();
+        onSaved(profile);
       }, { pending: 'Saving your profile…' });
     });
     return {
@@ -212,12 +212,15 @@
     };
   }
 
-  function mount({ api, refreshWorkspace }) {
+  function mount({ api, refreshWorkspace, onProfileSaved }) {
     const form = $('sales-create-agent'), roster = $('sales-team'), status = $('sales-team-status');
     if (!form || !roster || !status) return null;
     const manager = form.elements.parentId, submit = form.querySelector('button[type="submit"]');
     const memberProfile = mountMemberProfile(api);
-    const profile = mountProfile(api, () => { void refresh({ role: owner ? 'owner' : 'agent' }); });
+    const profile = mountProfile(api, saved => {
+      onProfileSaved?.(saved);
+      void refresh({ role: owner ? 'owner' : 'agent' });
+    });
     const reload = $('sales-reload-team'), secret = $('sales-agent-code'), code = $('sales-agent-code-value');
     let owner = false, ready = false, busy = false, sequence = 0;
 

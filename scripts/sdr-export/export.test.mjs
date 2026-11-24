@@ -212,6 +212,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const owner = browserSession(first.origin);
   const differentProject = browserSession(other.origin);
   await owner.api('sales-team-read', {}, 401);
+  await owner.api('sales-daily-plan', {}, 401);
   await owner.api('territory-map', { state: 'CT' }, 401);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home' }, 401);
   await owner.api('facility-reviews', { state: 'AL', category: 'nursing-home' }, 401);
@@ -237,6 +238,38 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sales-workspace').hidden, false);
   assert.equal(window.document.querySelector('[data-tab=team]').hidden, false);
+  const today = window.document.querySelector('[data-tab-panel="today"]');
+  assert.equal(today.hidden, false);
+  assert.equal(window.document.querySelector('[data-tab="today"]').getAttribute('aria-pressed'), 'true');
+  assert.equal(window.document.querySelector('[data-profile-name]').textContent, 'Workspace owner');
+  assert.equal((await owner.request('/sales-today-hero.webp')).headers.get('content-type'), 'image/webp');
+  const firstTask = await waitFor(() => today.querySelector('[data-today-tasks] input[type="checkbox"]'),
+    'The opening action plan did not load workspace tasks');
+  const taskCount = today.querySelectorAll('[data-today-tasks] input[type="checkbox"]').length;
+  assert.ok(taskCount >= 3);
+  assert.equal(today.querySelector('[data-today-metric="totalProspects"]').textContent, '0');
+  assert.equal(today.querySelector('[data-today-schedule-empty]').hidden, false);
+  firstTask.click();
+  await waitFor(() => today.querySelector('[data-today-progress]').value === 1, 'The checklist did not save the completed task');
+  assert.equal(today.querySelector('[data-today-progress]').max, taskCount);
+  today.querySelector('[data-today-filter="follow-ups"]').click();
+  assert.equal(today.querySelector('[data-today-tasks-empty]').hidden, false);
+  today.querySelector('[data-today-filter="all"]').click();
+  assert.equal(today.querySelector('[data-today-tasks] input[type="checkbox"]').checked, true);
+  today.querySelector('[data-today-schedule-link]').click();
+  assert.equal(window.document.querySelector('[data-tab-panel="calendar"]').hidden, false);
+  window.document.querySelector('[data-tab="home"]').click();
+  assert.equal(window.document.querySelector('[data-tab-panel="home"]').hidden, false);
+  window.document.querySelector('[data-tab="today"]').click();
+  await waitFor(() => today.querySelector('[data-today-tasks] input[type="checkbox"]')?.checked,
+    'The daily task did not stay completed when reopening Today');
+  today.querySelector('[data-today-schedule-action]').click();
+  await waitFor(() => window.document.activeElement?.id === 'bk-public-link',
+    'Schedule meeting did not open the owner’s published booking workflow');
+  window.document.querySelector('[data-tab="today"]').click();
+  today.querySelector('[data-today-action="add-prospect"]').click();
+  assert.equal(window.document.querySelector('[data-tab-panel="prospects"]').hidden, false);
+  assert.equal(window.document.activeElement, window.document.querySelector('[data-prospect-editor] input[name="name"]'));
   const ctDirectory = await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home' });
   assert.equal(ctDirectory.total, 29);
   assert.equal(ctDirectory.results.length, 25);
@@ -1261,7 +1294,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   });
   const signedOffice = await agentSession.api('office', { id });
   await agentSession.api('record-progress', { id, expectedRevision: signedOffice.pipeline.revision, requestId: randomUUID(), kind: 'replied', channel: 'email', note: 'Synthetic reply recorded.' });
-  await owner.api('create-office', { name: 'Extra XP Example Office', state: 'CT', city: 'Hartford', address: '99 Example Road', assignedTo: agent.id });
+  const { office: extraOffice } = await owner.api('create-office', { name: 'Extra XP Example Office', state: 'CT', city: 'Hartford', address: '99 Example Road', assignedTo: agent.id });
   const levelTwo = { level: 2, xp: 110, xpIntoLevel: 10, xpPerLevel: 100 };
   assert.deepEqual((await agentSession.api('bootstrap')).progress, levelTwo);
   assert.deepEqual((await agentSession.api('sales-team-profile')).profile.progress, levelTwo);
@@ -1272,6 +1305,36 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const ownProgress = agentDocument.querySelector('[data-team-profile-progress]');
   await waitFor(() => ownProgress.textContent.includes('Level 2') && ownProgress.querySelector('progress').value === 10,
     'Reopening the team did not refresh the rep’s own level and XP');
+  const { date: planDate } = await agentSession.api('sales-daily-plan', { timeZone: new Intl.DateTimeFormat().resolvedOptions().timeZone });
+  await agentSession.api('update-office', { id: String(extraOffice.id), nextFollowup: planDate });
+  const start = Date.now(), appointmentId = randomUUID();
+  const appointment = { id: appointmentId, host: agent.id, start, end: start + 30 * 60_000, status: 'confirmed',
+    title: 'Fixture product demo', type: 'demo', zone: 'America/New_York', revision: 1,
+    client: { name: 'Fixture client', company: 'Fixture Demo Facility', email: 'private@example.test' } };
+  const fixtureDB = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));
+  try {
+    fixtureDB.prepare('INSERT INTO bookings (id, host, request_key, start, end, status, data) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run(appointmentId, agent.id, randomUUID(), start, appointment.end, appointment.status, JSON.stringify(appointment));
+  } finally { fixtureDB.close(); }
+  agentDocument.querySelector('[data-tab="today"]').click();
+  const agentPlan = agentDocument.querySelector('[data-tab-panel="today"]');
+  const followUp = await waitFor(() => [...agentPlan.querySelectorAll('[data-today-schedule] button')].find(button => button.textContent.includes(extraOffice.town)),
+    'A recorded same-day follow-up did not appear on the rep’s schedule');
+  assert.equal(followUp.querySelector('time').dateTime, planDate);
+  assert.equal(agentPlan.querySelector('[data-today-metric="totalProspects"]').textContent, '2');
+  const meeting = [...agentPlan.querySelectorAll('[data-today-schedule] button')].find(button => button.textContent.includes(appointment.title));
+  assert.ok(meeting);
+  assert.match(meeting.textContent, /30 min/);
+  assert.equal(agentPlan.querySelector('[data-today-metric="meetingsSet"]').textContent, '1');
+  meeting.click();
+  await waitFor(() => agentDocument.querySelector('#bk-agenda').textContent.includes(appointment.title),
+    'Opening the scheduled meeting did not show it on the rep’s calendar');
+  agentDocument.querySelector('[data-tab="today"]').click();
+  await waitFor(() => [...agentPlan.querySelectorAll('[data-today-schedule] button')].find(button => button.textContent.includes(extraOffice.town)),
+    'The follow-up was not present when reopening Today').then(button => button.click());
+  await waitFor(() => agentDocument.querySelector('#sales-detail-title').textContent === extraOffice.town,
+    'The schedule entry did not open the real office');
+  agentDocument.querySelector('#sales-detail-close').click();
   await agentSession.api('sales-team-revoke', { id: junior.agent.id });
   await juniorSession.api('chat-sync', { channel: 'deal-desk' }, 401);
   await traineeSession.api('chat-send', { channel: 'general', body: 'Blocked', requestId: randomUUID() }, 401);
@@ -1366,6 +1429,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const careWindow = await mountConsole(t, first.origin, owner, await carePage.text(), path);
     const care = careWindow.document;
     await waitFor(() => !care.querySelector('#sales-workspace').hidden, 'Care view did not reuse the signed-in session');
+    assert.equal(care.querySelector('[data-tab-panel="today"]').hidden, false);
     const directoryState = care.querySelector('#care-directory-state');
     assert.equal(directoryState.options.length, 51);
     care.querySelector('[data-tab="facilities"]').click();
