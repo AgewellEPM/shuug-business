@@ -175,11 +175,11 @@
       });
       host.replaceChildren(...columns); setPipelineView(pipelineView);
     }
-    function chooseState(state, category, query) {
+    function chooseState(state, category, query, focus) {
       if (!permitted(state)) return;
       selectedState = state; renderTerritories();
       const form = $('#sales-discover'), select = form?.elements.namedItem('state'); if (select) select.value = state;
-      if(onTerritory){openView('territories');return onTerritory(state, category, query);}
+      if(onTerritory){openView('territories');return onTerritory(state, category, query, focus);}
       return openView('discover');
     }
     function searchCity(state, city) {

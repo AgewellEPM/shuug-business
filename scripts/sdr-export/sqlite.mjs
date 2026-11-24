@@ -112,6 +112,16 @@ export function sqliteStore(filename) {
     suppressedEmail: address => Boolean(suppressedEmail.get(address)),
     patch: (kind, id, body) => patch(kind, id, body),
     patchIfUnchanged: (kind, id, notes, body) => patch(kind, id, body, notes ?? null),
+    countyLead: id => JSON.parse(setting.get('county-lead:' + id)?.value ?? 'null'),
+    saveCountyLead(id, revision, changes) {
+      return writeTransaction(() => {
+        const before = this.countyLead(id);
+        if ((before?.revision || 0) !== revision) throw new HttpError(409, 'The county lead changed. Reopen this state and review the assignment.');
+        const next = { ...changes, revision: revision + 1 };
+        save.run('county-lead:' + id, JSON.stringify(next));
+        return next;
+      });
+    },
     writeAgentTeam: writeTransaction,
     terms: () => JSON.parse(setting.get('terms')?.value ?? 'null'),
     setTerms: value => save.run('terms', JSON.stringify(value)),

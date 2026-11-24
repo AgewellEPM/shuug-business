@@ -67,7 +67,7 @@
       if (teamUI && params.get('view') === 'team') { tab('team'); return true; }
       if (standalone && territoryUI && params.get('view') === 'territories') {
         tab('territories');
-        if (params.get('state')) consoleUI?.chooseState(params.get('state'));
+        if (params.get('state')) consoleUI?.chooseState(params.get('state'), undefined, undefined, { place: params.get('place'), streets: params.get('layer') === 'streets' });
         else territoryUI.showStates();
         return true;
       }
@@ -81,6 +81,11 @@
       }
       return true;
     }
+    $('#sales-team-territories')?.addEventListener('click', event => {
+      event.preventDefault();
+      history.replaceState(null, '', location.pathname + location.search + '#view=territories');
+      showRequestedView();
+    });
     if (standalone) window.addEventListener('hashchange', () => { if (data) showRequestedView(); });
     function closeDetail() {
       const drawer = $('#sales-detail-drawer'); if (!drawer) return;
@@ -278,7 +283,7 @@
     overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice, onBrowseFacilities: browseFacilities, facilityType });
     territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onOpenOffice: id => { tab('pipeline'); return showOffice(id); },onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
     consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, matchesFacility, facilityLabel: office => careCRM && classified(office) ? facilityLabels[facilityType(office)] : '',
-      onTerritory: territoryUI ? (state, category, query) => territoryUI.selectState(state, category, query) : undefined, onSearch: async input => {
+      onTerritory: territoryUI ? (state, category, query, focus) => territoryUI.selectState(state, category, query, focus) : undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
       tab('discover');
       return findOffices(Object.fromEntries(new FormData(discovery)), 0);

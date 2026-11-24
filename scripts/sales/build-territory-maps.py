@@ -105,6 +105,13 @@ county_records = defaultdict(list)
 for record in county_reader.iterRecords():
     county_records[record.STUSPS].append(record)
 
+subdivision_reader = shapefile.Reader(str(archives / 'cousub.zip'))
+supplements = defaultdict(list)
+for record in subdivision_reader.iterRecords():
+    if record.GEOID not in towns and record.ALAND > 0 and 'not defined' not in record.NAME.lower():
+        supplements[record.STUSPS].append(record)
+
+mercator = Transformer.from_crs('EPSG:4326', 'EPSG:3857', always_xy=True, force_over=True)
 ocean = shapely.union_all([shape(raw.__geo_interface__) for raw in shapefile.Reader(str(archives / 'ocean.zip')).shapes()])
 states = shapefile.Reader(str(archives / 'state.zip'))
 for state in states.iterShapeRecords():
@@ -113,9 +120,9 @@ for state in states.iterShapeRecords():
     if not ids:
         continue
     lon = statistics.median(points[g][0] for g in ids)
-    lat = statistics.median(points[g][1] for g in ids)
-    crs = f'+proj=aeqd +lat_0={lat} +lon_0={lon} +ellps=GRS80 +units=m'
-    project = Transformer.from_crs('EPSG:4269', crs, always_xy=True).transform
+    def project(x, y):
+        # Keep both sides of the Aleutian date line in the same world copy.
+        return mercator.transform(lon + (x - lon + 180) % 360 - 180, y)
 
     def projected(raw):
         return shapely.transform(shape(raw.__geo_interface__), project, interleaved=False)
@@ -129,7 +136,7 @@ for state in states.iterShapeRecords():
         main = [p for p in outline.geoms if p.distance(focus) < 600000]
         focus = shapely.geometry.GeometryCollection(main)
     fx0, fy0, fx1, fy1 = focus.bounds
-    unit = max(fx1 - fx0, fy1 - fy0) / 20000
+    unit = max(fx1 - fx0, fy1 - fy0) / 40000
 
     def xy(x, y):
         return round((x - xmin) / unit), round((ymax - y) / unit)
@@ -159,6 +166,7 @@ for state in states.iterShapeRecords():
                     oceans.append(rings_path(poly.simplify(unit * 4), xy))
     records = sorted(county_records[code], key=lambda r: r.GEOID)
     county_geoms = [projected(county_reader.shape(r.oid)) for r in records]
+    county_index = shapely.STRtree(county_geoms)
     colors = county_colors(county_geoms)
     counties = []
     for i, (record, geom) in enumerate(zip(records, county_geoms, strict=True)):
@@ -170,10 +178,18 @@ for state in states.iterShapeRecords():
         counties.append(dict(id=record.GEOID, name=record.NAME, label=record.NAMELSAD, x=x, y=y,
                              color=colors[i], bounds=box(geom.bounds), path=rings_path(geom.simplify(unit * 2), xy)))
     landmarks = []
-    for name, kind, lon, lat, population in sorted(seats[code], key=lambda row: (row[1] == 'PPLA2', -row[4], row[0])):
-        x, y = xy(*project(lon, lat))
+    for name, kind, place_lon, place_lat, population in sorted(seats[code], key=lambda row: (row[1] == 'PPLA2', -row[4], row[0])):
+        x, y = xy(*project(place_lon, place_lat))
         landmarks.append(dict(name=name, x=x, y=y, capital=kind != 'PPLA2'))
     assert len([m for m in landmarks if m['capital']]) == 1
+    subdivisions = []
+    for record in supplements[code]:
+        geom = projected(subdivision_reader.shape(record.oid)).simplify(unit * 3)
+        main = max(geom.geoms, key=lambda p: p.area) if geom.geom_type == 'MultiPolygon' else geom
+        anchor = main.representative_point()
+        x, y = xy(anchor.x, anchor.y)
+        subdivisions.append(dict(id=record.GEOID, label=record.NAMELSAD, name=record.NAME,
+                                 x=x, y=y, bounds=box(geom.bounds), path=rings_path(geom, xy)))
     features = []
     for geoid in ids:
         reader, index, county = boundaries[geoid]
@@ -187,13 +203,19 @@ for state in states.iterShapeRecords():
         path = rings_path(geom, xy)
         item = dict(id=geoid, name=towns[geoid], label=points[geoid][2], x=x, y=y,
                     bounds=box(geom.bounds), path=path)
+        if len(geoid) == 10:
+            item['counties'] = [geoid[:5]]
+        else:
+            item['counties'] = sorted(records[i].GEOID for i in county_index.query(geom, predicate='intersects')
+                                      if geom.relate_pattern(county_geoms[i], 'T********'))
         if county:
             item['label'] += ', ' + county
         features.append((geom.area, item))
     # Paint smaller places over larger, overlapping municipalities.
     features.sort(key=lambda pair: (-pair[0], pair[1]['id']))
     payload = dict(state=code, name=state.record.NAME, bounds=box(outline.bounds),
-                   metersPerUnit=unit, counties=counties, landmarks=landmarks,
+                   metersPerUnit=unit, origin=[xmin, ymax], counties=counties, landmarks=landmarks,
+                   subdivisions=subdivisions,
                    frame=box(frame.bounds), water="".join(oceans),
                    fit=box(focus.bounds), outline=rings_path(outline.simplify(unit * 2), xy),
                    features=[item for _, item in features])
