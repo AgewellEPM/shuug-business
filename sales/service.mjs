@@ -139,6 +139,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       return { event: db.saveCarePilot(user, office.id, requestId, detail) };
     }
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
+    if (tools.products?.actions.has(action)) return tools.products.dispatch(user, action, b);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (tools.dailyPlan?.actions.has(action)) return tools.dailyPlan.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) {

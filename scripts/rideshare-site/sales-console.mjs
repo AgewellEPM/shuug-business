@@ -12,6 +12,7 @@ import { renderTeamChat } from './sales-chat.mjs';
 import { renderSalesCoach } from './sales-coach.mjs';
 import { renderToday } from './sales-today.mjs';
 import { renderTerritoryHeader } from './sales-territory-dashboard.mjs';
+import { renderProducts } from './sales-products.mjs';
 import { renderPipelineWorkspace } from './sales-pipeline-workspace.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
@@ -30,6 +31,7 @@ const icons = {
   check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
   forecast: '<path d="M3 3v17h18M7 14l5-5 3 3 5-6m-5 0h5v5"/>',
   reports: '<path d="M4 20h16M7 16v-4m5 4V8m5 8V4" stroke-width="2.5"/>',
+  products: '<path d="m2 8 10-5 10 5-10 5-10-5zm3 2v7l7 4 7-4v-7M12 13v8"/>',
   revenue: '<circle cx="12" cy="12" r="9"/><path d="M12 6v12m3-9H11a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3H9"/>',
   download: '<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>',
   facilities: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
@@ -368,7 +370,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ...(careWorkspace ? [['facilities', 'Facility directory']] : []), ['team', 'Tinky Team'], ['training', 'Training'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ...(careWorkspace ? [['facilities', 'Facility directory']] : []), ['team', 'Tinky Team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${(name === 'campaigns' && !careWorkspace) || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
@@ -393,7 +395,7 @@ ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: 
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
   <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Tinky Team</button>
   ${standaloneTeam(team, careWorkspace)}` : ''}
-${careWorkspace ? renderCareDemo() : ''}
+${careWorkspace ? renderProducts(icon) + renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>

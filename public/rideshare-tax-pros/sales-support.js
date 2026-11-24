@@ -274,10 +274,22 @@
         libraryTrigger?.focus();
       }
     });
-    return { show(user, entering) {
-      userId = String(user.id);
-      if (entering || !loaded) void load();
-    } };
+    return {
+      show(user, entering) {
+        userId = String(user.id);
+        if (entering || !loaded) void load();
+      },
+      quote(offer) {
+        find('#support-title').setAttribute('tabindex', '-1');
+        find('#support-title').focus({ preventScroll: true });
+        openCreate('Request a product quote');
+        const { category, subject, message } = find('[data-support-form="create"]').elements;
+        category.value = 'billing';
+        subject.value = offer ? 'Quote request — ' + offer : 'TinkyTown quote request';
+        message.placeholder = 'Facility name and location, number of units, and desired start date';
+        message.focus();
+      },
+    };
   }
 
   window.SdrSalesSupport = { mount };
