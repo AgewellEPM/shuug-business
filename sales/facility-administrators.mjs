@@ -17,6 +17,13 @@ const reviewed = {
     sourceURL: 'https://elbanursingandrehab.com/',
     photoURL: 'https://elbanursingandrehab.com/wp-content/uploads/2021/02/NikkiHalladministrator-scaled.jpg',
   },
+  '015144': {
+    state: 'AL', city: 'Alabaster', phone: '2056633859', name: 'Antonio Alonso',
+    sourceURL: 'https://www.alabamapublichealth.gov/providerstandards/directory.html',
+    photoSourceURL: 'https://www.alabasterconnection.net/2024/11/senior-living-crowning-mr-and-mrs-buck-creek/',
+    photoURL: 'https://www.alabasterconnection.net/wp-content/uploads/2024/11/2-225x300.jpg',
+    photoFrame: 'buck-creek',
+  },
   '015322': {
     state: 'AL', city: 'Monroeville', phone: '2515753285', name: 'Caroline Howell', email: 'cmhowell@crownehealthcare.com',
     sourceURL: 'https://crownehealthcare.com/englewood',
@@ -29,6 +36,16 @@ const reviewed = {
   '075268': {
     state: 'CT', city: 'Hartford', phone: '8609511060', name: 'George Kingston',
     sourceURL: 'https://www.trinity-hill.com/welcome/',
+  },
+  '555141': {
+    state: 'CA', city: 'Santa Ana', phone: '7145477157', name: 'Marissa Preciado', title: 'Skilled Nursing Administrator',
+    email: 'mpreciado@tcmanor.com', sourceURL: 'https://www.tcmanor.com/about-us/meet-the-team/',
+    photoURL: 'https://www.tcmanor.com/wp-content/uploads/2024/10/Marissa-Preciado.jpg',
+  },
+  '676074': {
+    state: 'TX', city: 'Whitney', phone: '2546942233', name: 'Max Rudolph',
+    sourceURL: 'https://www.whitneynursing.com/meet-the-team',
+    photoURL: 'https://images.squarespace-cdn.com/content/v1/676f0462b889fe58175a7894/c0adf462-aaed-4958-a673-b7f141dff3c6/Max%2BRudolph?format=300w',
   },
 };
 
@@ -126,7 +143,8 @@ export function publishedFacilityAdministrator(row) {
   }
   return {
     name: role.name, title: role.title || 'Administrator', phone: role.phone, email: role.email || '',
-    sourceURL: role.sourceURL, photoURL: role.photoURL || '', linkedinURL: role.linkedinURL || '', checkedOn: '2026-11-23',
+    sourceURL: role.sourceURL, photoURL: role.photoURL || '', linkedinURL: role.linkedinURL || '',
+    photoSourceURL: role.photoSourceURL || '', photoFrame: role.photoFrame || '', checkedOn: '2026-11-23',
   };
 }
 

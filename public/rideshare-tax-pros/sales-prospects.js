@@ -57,30 +57,39 @@
     return `<span class="prospects-stage" data-stage="${record.stage}">${label(record.stage)}</span>`;
   }
 
+  function paintPortrait(frame, role, alt = '') {
+    const initials = document.createElement('span');
+    const names = role.name.trim().split(/\s+/);
+    initials.textContent = names.length > 1 ? names[0][0] + names.at(-1)[0] : names[0][0];
+    initials.setAttribute('aria-hidden', 'true');
+    frame.append(initials);
+    const source = role.photoURL && window.SdrTerritoryFacilities?.sourceLink(role.photoURL, '');
+    if (!source) return;
+    const photo = document.createElement('img');
+    photo.src = source.href;
+    photo.alt = alt;
+    photo.loading = 'lazy';
+    photo.referrerPolicy = 'no-referrer';
+    photo.addEventListener('error', () => photo.remove(), { once: true });
+    if (role.photoFrame) frame.dataset.photoFrame = role.photoFrame;
+    frame.append(photo);
+  }
+
   function administratorProfile(facility, role, { open, showTitle = false, showResearch = false } = {}) {
     const profile = document.createElement('div');
     profile.className = 'prospects-administrator';
     const details = document.createElement('div');
     const links = window.SdrTerritoryFacilities?.sourceLink;
-    if (role?.photoURL) {
-      const source = links?.(role.photoURL, '');
-      if (source) {
-        const portrait = open ? document.createElement('button') : source;
-        if (open) {
-          portrait.type = 'button';
-          portrait.setAttribute('aria-label', 'View facility profile for ' + role.name);
-          portrait.onclick = open;
-        }
-        const photo = document.createElement('img');
-        photo.src = source.href;
-        photo.alt = `Headshot of ${role.name}`;
-        photo.loading = 'lazy';
-        photo.referrerPolicy = 'no-referrer';
-        photo.addEventListener('error', () => portrait.remove(), { once: true });
-        portrait.className = 'prospects-administrator-photo';
-        portrait.append(photo);
-        profile.append(portrait);
+    if (role?.name) {
+      const portrait = document.createElement(open ? 'button' : 'span');
+      if (open) {
+        portrait.type = 'button';
+        portrait.setAttribute('aria-label', 'View facility profile for ' + role.name);
+        portrait.onclick = open;
       }
+      portrait.className = 'prospects-administrator-photo';
+      paintPortrait(portrait, role, `Headshot of ${role.name}`);
+      profile.append(portrait);
     }
     const name = document.createElement(role?.name ? (open ? 'button' : 'strong') : 'span');
     name.textContent = role?.name || 'Administrator not sourced';
@@ -123,14 +132,17 @@
         pages.append(source);
       }
     }
-    if (showResearch || !role?.name || !role.photoURL) {
+    if (showResearch && role?.photoSourceURL) {
+      const photoSource = links?.(role.photoSourceURL, 'Photo source');
+      if (photoSource) pages.append(photoSource);
+    }
+    if (showResearch || !role?.name) {
       const query = [role?.name, facility.name, facility.city, facility.state, role?.title || 'administrator'].filter(Boolean).join(' ');
       const google = new URL('https://www.google.com/search');
       google.searchParams.set('q', query);
-      if (role?.name && !role.photoURL) google.searchParams.set('tbm', 'isch');
       const linkedin = new URL('https://www.linkedin.com/search/results/people/');
       linkedin.searchParams.set('keywords', query);
-      for (const [url, text] of [[google.href, role?.name && !role.photoURL ? 'Find headshot' : 'Google'],
+      for (const [url, text] of [[google.href, 'Google'],
         [role?.linkedinURL || linkedin.href, role?.linkedinURL ? 'LinkedIn profile' : 'LinkedIn search']]) {
         const link = links?.(url, text);
         if (link) pages.append(link);
@@ -224,18 +236,9 @@
       button.className = 'facility-person';
       button.dataset.facilityPerson = person.name;
       button.setAttribute('aria-pressed', 'false');
-      const icon = textNode('span', person.name.split(/\s+/).slice(0, 2).map(word => word[0]).join(''));
+      const icon = document.createElement('span');
       icon.className = 'facility-person-avatar';
-      const photo = person.photoURL && link(person.photoURL, '');
-      if (photo) {
-        const image = document.createElement('img');
-        image.src = photo.href;
-        image.alt = '';
-        image.referrerPolicy = 'no-referrer';
-        image.loading = 'lazy';
-        image.addEventListener('error', () => image.remove(), { once: true });
-        icon.append(image);
-      }
+      paintPortrait(icon, person);
       const info = document.createElement('span');
       info.append(textNode('strong', person.name), textNode('small', person.title));
       button.append(icon, info);

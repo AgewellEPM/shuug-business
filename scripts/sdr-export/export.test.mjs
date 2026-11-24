@@ -571,6 +571,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.match(administrator.querySelector('img').src, /^https:\/\/static\.wixstatic\.com\//);
     assert.match(administrator.textContent, /sbowling@limestonehf\.com/);
     assert.equal(administrator.querySelector('a[title]').href, 'https://www.limestonehf.com/meet-our-team');
+    assert.doesNotMatch(panel.textContent, /Find headshot/);
     const profile = find('[data-facility-profile]');
     const facts = find('[data-facility-profile-facts]');
     const contact = find('[data-facility-profile-contact]');
@@ -585,6 +586,11 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(nursing.getAttribute('aria-pressed'), 'true');
     assert.match(contact.textContent, /Director of Nursing.*ateeples@limestonehf\.com/s);
     assert.match(contact.querySelector('img').alt, /Aleshia Teeples/);
+    const portrait = contact.querySelector('img');
+    const fallback = portrait.previousElementSibling;
+    portrait.dispatchEvent(new window.Event('error'));
+    assert.equal(contact.querySelector('img'), null);
+    assert.equal(fallback.textContent, 'AT');
     const quickEmail = find('[data-facility-outreach]');
     assert.equal(quickEmail.hidden, false);
     quickEmail.click();
