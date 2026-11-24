@@ -40,7 +40,7 @@ export function renderWorkspace(profile, signIn) {
       .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '');
     sales = sales
       .replace('</head>', '<link rel="stylesheet" href="/sales-display.css"><script src="/sales-display.js" defer></script></head>')
-      .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Display settings</button>' + button)
+      .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Display settings</button><button type="button" class="button secondary" data-display-read aria-pressed="false">Read aloud</button><span class="sdr-reading-status" role="status" data-display-reading-status></span>' + button)
       .replace('</body>', `<dialog class="sdr-display" aria-labelledby="sdr-display-title">
         <form method="dialog">
           <h2 id="sdr-display-title">Display settings</h2>

@@ -49,3 +49,6 @@ body.sales-console-page .sdr-display {
 .sdr-display .sdr-display-check, .sdr-display-actions { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
 .sdr-display-actions { justify-content: flex-end; }
 .sdr-display :is(button,select) { min-height: 44px; max-width: 100%; }
+.sdr-reading-status:empty { display: none; }
+.sdr-reading-status { font-size: .85rem; max-width: 16rem; }
+body.sales-console-page [data-display-read][aria-pressed="true"] { border: 2px solid currentColor; }
