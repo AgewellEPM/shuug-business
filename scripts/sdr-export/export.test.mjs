@@ -284,6 +284,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
+  await t.test('a Support click during startup survives initial view selection', async t => {
+    let releaseSettings;
+    const settingsReady = new Promise(resolve => { releaseSettings = resolve; });
+    t.after(releaseSettings);
+    const slowSession = {
+      async request(path, options) {
+        if (path === '/api/sales' && options?.body && JSON.parse(options.body).action === 'directory-settings') {
+          await settingsReady;
+        }
+        return owner.request(path, options);
+      },
+    };
+    const { document } = await mountConsole(t, first.origin, slowSession, html, '/sales#view=today');
+    await waitFor(() => !document.querySelector('#sales-workspace').hidden, 'Workspace did not become visible');
+    document.querySelector('[data-tab="support"]').click();
+    releaseSettings();
+    await waitFor(() => document.querySelector('#directory-support-form'), 'Owner settings did not load');
+    assert.equal(document.body.dataset.sdrView, 'support');
+    assert.equal(document.querySelector('[data-tab-panel="support"]').hidden, false);
+  });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
     const document = supportWindow.document;

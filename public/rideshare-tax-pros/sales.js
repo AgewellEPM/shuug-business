@@ -31,6 +31,7 @@
   function link(url, text) { try { const u = new URL(url); if (!['http:', 'https:'].includes(u.protocol)) return ''; return `<a href="${e(u.href)}" target="_blank" rel="noopener noreferrer">${e(text)}</a>`; } catch { return ''; } }
   if ($('[data-sales-app]')) {
     let data, selected, consoleUI, contactsUI, contractsUI, emailUI, localUI, territoryUI, prospectUI, prospectsWorkspace, campaignUI, overviewUI, detailFocus, officeRequest = 0, discoveryRequest = 0, discoveryState = { query: null, offset: 0, limit: 50, total: 0, hasMore: false };
+    let sidebarSelection = 0;
     const careCRM = document.body.hasAttribute('data-care-crm');
     const facilityLabels = { 'nursing-home': 'Nursing home', 'senior-center': 'Senior center' };
     const facilityType = office => meta(office)?.facilityType || '';
@@ -329,13 +330,18 @@
       const input = Object.fromEntries(new FormData(loginForm));
       loginForm.elements.code.value = '';
       await api('login', input);
+      const initialSelection = sidebarSelection;
       await refresh();
+      if (initialSelection !== sidebarSelection) return;
       if (!showRequestedView() && document.body.dataset.sdrView !== defaultView) tab(defaultView);
     }, loginForm);
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
     $('#sales-logout').onclick = run(async () => { await api('logout'); chatUI?.reset(); location.replace(sharedSignIn); });
-    $$('[data-tab]').forEach(b => b.onclick = () => tab(b.dataset.tab));
+    $$('[data-tab]').forEach(button => button.onclick = () => {
+      sidebarSelection++;
+      tab(button.dataset.tab);
+    });
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; $('#sales-facility-kind-filter')?.addEventListener('change', renderList); if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });
     $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download(standalone ? 'sales-workspace-offices.csv' : 'gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
@@ -404,7 +410,9 @@
       try {
         const params = new URLSearchParams(location.hash.slice(1));
         if (params.has('owner-code')) { const code = params.get('owner-code'); history.replaceState(null,'',location.pathname); await api('login',{code}); }
+        const initialSelection = sidebarSelection;
         await refresh();
+        if (initialSelection !== sidebarSelection) return;
         const region = params.get('state'), city = params.get('city');
         if (params.get('view') === 'discover' && city && city.length <= 100 && [...discovery.elements.state.options].some(option => option.value === region)) {
           discovery.elements.city.value = city; discovery.elements.state.value = region; tab('discover'); await findOffices({ city, state:region });
