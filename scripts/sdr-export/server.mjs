@@ -22,6 +22,7 @@ import { workspaceProducts } from '../../sales/workspace-products.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { salesDailyPlan } from '../../sales/sales-daily-plan.mjs';
 import { salesCoach } from './sales-coach.mjs';
+import { salesScripts } from './sales-scripts.mjs';
 import { localCoachSpeech } from './coach-speech.mjs';
 import { demoKioskAI } from './demo-kiosk-ai.mjs';
 import coachArticles from './coach-help.cjs';
@@ -134,6 +135,7 @@ const sales = createHandler(env, db, {
   coachSpeech,
   demoKioskAI: profile.focus === 'senior-care' ? demoKioskAI({ model: process.env.SDR_COACH_MODEL }) : undefined,
   salesCoach: salesCoach(db, dailyPlan, { articles: coachArticles, demo: profile.focus === 'senior-care', model: process.env.SDR_COACH_MODEL, mail: repEmail, localVoice: coachSpeech.available }),
+  salesScripts: profile.focus === 'senior-care' ? salesScripts(db, { model: process.env.SDR_COACH_MODEL }) : undefined,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);

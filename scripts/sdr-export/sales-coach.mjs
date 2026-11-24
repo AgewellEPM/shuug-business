@@ -34,6 +34,7 @@ function manualWorkflow(question) {
 const destinations = {
   today: ['Today’s Plan', 'today', 'todays plan', 'daily plan'], home: ['Overview', 'dashboard'], prospects: ['Prospects', 'prospect list'],
   mission: ['Mission', 'our mission'], products: ['Products', 'product catalog'], certification: ['Certification'],
+  scripts: ['Sales Scripts', 'script library', 'scripts'],
   pipeline: ['Pipeline', 'sales pipeline'], calendar: ['Calendar', 'sales calendar'], training: ['Training', 'training center'],
   demo: ['Demo', 'demos'], email: ['Email', 'inbox', 'mailbox'], chat: ['Team chat', 'staff chat'],
   team: ['Sales team', 'team roster'], contracts: ['Contracts', 'agreements'], contacts: ['Contacts', 'rolodex'],
@@ -55,7 +56,7 @@ function navigationFor(question, user, demo) {
   };
   if (Object.hasOwn(inside, label)) return { title: inside[label][0], href: '#view=' + inside[label][1] };
   for (const [view, names] of Object.entries(destinations)) {
-    if (['demo','facilities','mission','products'].includes(view) && !demo || view === 'campaigns' && !(demo || user.role === 'owner')) continue;
+    if (['demo','facilities','mission','products','scripts'].includes(view) && !demo || view === 'campaigns' && !(demo || user.role === 'owner')) continue;
     if (names.some(name => name.toLowerCase().replace(/[’']/g, '') === label)) return { title: names[0], href: '#view=' + view };
   }
 }

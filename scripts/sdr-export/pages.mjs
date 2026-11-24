@@ -51,6 +51,9 @@ export function renderWorkspace(profile, signIn) {
       .replace('<link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml">', '')
       .replace('<a class="sdr-brand" href="/"', `<a class="sdr-brand" href="${site}"`)
       .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '');
+    if (careWorkspace) sales = sales
+      .replace('</head>', '<link rel="stylesheet" href="/sales-scripts.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-scripts.js" defer></script><script src="/sales-scripts-followup.js" defer></script><script src="/sales.js"');
     sales = sales
       .replace('</head>', '<link rel="stylesheet" href="/sales-display.css"><script src="/sales-display.js" defer></script></head>')
       .replace(/<form id="sdr-header-search"[^>]*>[\s\S]*?<\/form>/, '')

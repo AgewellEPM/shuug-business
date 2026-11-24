@@ -53,6 +53,12 @@ The workspace uses its local `whisper-cli` and `~/.whisper-models/ggml-base.en.b
 
 The server runs inference through local Ollama on loopback, using `qwen3:4b-instruct-2507-q4_K_M` by default. Set `SDR_COACH_MODEL` before startup to select another installed Ollama chat model that supports structured output. If the model is unavailable, a labeled workspace guide shows sourced instructions and the rep’s next recorded priority.
 
+## Sales Scripts
+
+In the TinkyTown workspace, open **Sales Scripts** from the sidebar or ask Tinky to open it. Search the library by audience or sales stage, then select a call script, email, voicemail, talking points, objections, or follow-up. Personalization fields fill the current preview. **Generate Email** opens an editable Mailbox draft for the rep to address and send. **Create Follow-Up** lets the rep select a saved account and date before recording a Pipeline next step.
+
+The script builder uses the local coach model and labels its template fallback when generation is unavailable. Reps can save a private copy, explicitly share a script with the team, and set a personal primary script. The usage counters record script actions. They do not estimate customer response or conversion rates.
+
 ## Overview
 
 From **Overview → Research a business type**, enter a category and select a city or ZIP and state. The search covers all 50 states and D.C. through [OpenStreetMap via Photon](https://github.com/komoot/photon/blob/master/docs/api-v1.md), with [CMS Care Compare](https://data.cms.gov/provider-data/dataset/4pq5-n9py) added for nursing homes and matching records from the project directory. Results link to the public listing and show contact and registry evidence where published. The latest search is saved for that account. Use **Save to Pipeline** to choose the businesses you want to work with. Public source coverage varies by area and category.

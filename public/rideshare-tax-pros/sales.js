@@ -70,6 +70,22 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const missionUI = window.SdrMission?.mount();
     const productsUI = window.SdrProducts?.mount({ api });
+    const scriptFollowup = window.SdrScriptFollowup?.mount({
+      api, offices: () => data?.offices || [],
+      changed: async message => {
+        try { await refresh(); status(message); }
+        catch { status(message + ' Reload the workspace to see the updated Pipeline.'); }
+      },
+    });
+    const scriptsUI = window.SdrSalesScripts?.mount({
+      api, onCompose: draft => {
+        if (!emailUI) throw new Error('The workspace mailbox is unavailable.');
+        emailUI.compose(draft);
+        if (document.body.dataset.sdrView !== 'email') throw new Error('Finish the open Mailbox draft before starting another.');
+        if (location.hash !== '#view=email') history.pushState(null, '', '#view=email');
+      },
+      onFollowUp: scriptFollowup,
+    });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
@@ -97,7 +113,7 @@
       contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Mailbox', mail: 'Senders',
       territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects',
       campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab',
-      'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky', products: 'Products', certification: 'Certification',
+      'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky', products: 'Products', certification: 'Certification', scripts: 'Sales Scripts',
     };
     const workspaceTitle = document.title;
     const tab = (name, chatChannel, calendar) => {
@@ -106,7 +122,7 @@
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
       const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts','products','certification','mission'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts','products','certification','mission','scripts'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -118,7 +134,7 @@
       const viewTitle = viewTitles[name] || 'Workspace';
       if ($('#sales-view-title')) $('#sales-view-title').textContent = viewTitle;
       if (standalone) document.title = viewTitle + ' | ' + workspaceTitle;
-      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification','mission'].includes(name);
+      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification','mission','scripts'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -145,6 +161,7 @@
       if (name === 'certification') certificationUI?.renderEarnings(data);
       if (name === 'training-pipeline') trainingPipeline?.show();
       if (name === 'support') supportUI?.show(data.user, enteringWorkspace);
+      if (name === 'scripts') scriptsUI?.show(data.user);
       if (name === 'home' && data) overviewUI?.render(data);
     };
     async function openTodayAction({ view, action, officeId, appointmentId, date }) {
@@ -223,6 +240,7 @@
         missionUI.show(params.get('section'));
         return true;
       }
+      if (scriptsUI && params.get('view') === 'scripts') { tab('scripts'); return true; }
       if (productsUI && params.get('view') === 'products') {
         const entering = document.body.dataset.sdrView !== 'products';
         tab('products');
@@ -300,7 +318,7 @@
     }
     function coachContext() {
       const view = document.body.dataset.sdrView || defaultView;
-      const label = { today: 'Today’s Plan', home: 'Overview', team: 'Sales team', chat: 'Team chat', mail: 'Senders',
+      const label = { today: 'Today’s Plan', home: 'Overview', team: 'Sales team', chat: 'Team chat', mail: 'Senders', scripts: 'Sales Scripts',
         locations: 'Signup locations', 'training-demo': 'Demo Lab', 'training-pipeline': 'Pipeline practice' }[view] || view.charAt(0).toUpperCase() + view.slice(1);
       const drawer = $('#sales-detail-drawer'), adding = view === 'prospects' && !$('[data-prospect-editor]')?.hidden;
       const id = drawer && !drawer.hidden ? selected : view === 'prospects' && !adding ? $('[data-prospect-select][aria-pressed="true"]')?.dataset.prospectSelect : undefined;
@@ -557,7 +575,7 @@
     }, loginForm);
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
-    $('#sales-logout').onclick = run(async () => { await api('logout'); chatUI?.reset(); coachUI?.reset(); location.replace(sharedSignIn); });
+    $('#sales-logout').onclick = run(async () => { await api('logout'); chatUI?.reset(); coachUI?.reset(); scriptsUI?.reset(); location.replace(sharedSignIn); });
     $$('[data-tab]').forEach(b => b.onclick = () => {
       sidebarSelection++;
       openNavigation(b.dataset.tab);

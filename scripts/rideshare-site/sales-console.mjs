@@ -15,6 +15,7 @@ import { renderToday } from './sales-today.mjs';
 import { renderTerritoryHeader } from './sales-territory-dashboard.mjs';
 import { renderPipelineWorkspace } from './sales-pipeline-workspace.mjs';
 import { renderMission } from './sales-mission.mjs';
+import { renderSalesScripts } from './sales-scripts.mjs';
 import { renderProducts } from './sales-products.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
@@ -50,6 +51,7 @@ const icons = {
   products: '<path d="m12 3 9 5-9 5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/>',
   training: '<path d="m2 9 10-5 10 5-10 5-10-5Zm5 3v5a9 9 0 0 0 10 0v-5m4-2v7"/>',
   certification: '<circle cx="12" cy="9" r="6"/><path d="m9 14-2 7 5-3 5 3-2-7m-5-5 1.5 1.5L14 8"/>',
+  scripts: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8m-8 4h8m-8 4h5"/>',
   support: '<path d="M3 13v-1a9 9 0 0 1 18 0v1m0 4v1a4 4 0 0 1-4 4h-3"/><rect x="2" y="11" width="4" height="7" rx="2"/><rect x="18" y="11" width="4" height="7" rx="2"/><rect x="10" y="20" width="5" height="3" rx="1.5" fill="currentColor"/>',
   campaigns: '<path d="M3 11h5l9-5v12l-9-4H3v-3Zm5 3 2 6m10-11 2-1m-2 7 2 1"/>',
 };
@@ -378,7 +380,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ...(careWorkspace ? [['mission', 'Mission']] : []), ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ['email', 'Mailbox'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ['email', 'Mailbox'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products'], ['scripts', 'Sales Scripts']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => {
@@ -406,6 +408,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
 <section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${prospects ? standaloneOverview(queue, careWorkspace) : '<div id="sales-dashboard"></div>' + queue}</section>
 ${prospects && careWorkspace ? renderMission(icon) : ''}
+${prospects && careWorkspace ? renderSalesScripts(icon) : ''}
 <section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section>
 ${prospects ? renderPipelineWorkspace({ icon, toolbar, map: territoryMap({ interactive: false }) }) : `<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Manage business and facility contacts, sales stages, and next steps.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>`}
 ${careWorkspace ? standaloneFacilities : ''}
