@@ -232,7 +232,9 @@
 
     function showSidebar(section, role) {
       if (!picker) return;
-      picker.parentElement.hidden = !section;
+      const row = picker.parentElement;
+      const opening = row.hidden && section;
+      row.hidden = !section;
       if (!section) return;
       if (!picker.options.length || role !== pickerRole) {
         const groups = [['Tinky Team', tabs]];
@@ -254,6 +256,13 @@
         pickerRole = role;
       }
       picker.value = section === 'team' ? current : section;
+      const rail = row.closest('.sdr-nav');
+      if (opening && rail.scrollWidth > rail.clientWidth) {
+        const bounds = rail.getBoundingClientRect();
+        const group = row.parentElement.getBoundingClientRect();
+        if (group.right > bounds.right) rail.scrollLeft += group.right - bounds.right + 4;
+        else if (group.left < bounds.left) rail.scrollLeft += group.left - bounds.left - 4;
+      }
     }
 
     picker?.addEventListener('change', () => {
