@@ -298,13 +298,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
-  await t.test('training opens from the sidebar and resumes saved onboarding', async t => {
+  await t.test('training opens from the sidebar above Support and resumes saved onboarding', async t => {
     const trainingWindow = await mountConsole(t, first.origin, owner, html);
     const doc = trainingWindow.document;
     const training = doc.querySelector('[data-tab-panel="training"]');
     const find = selector => training.querySelector(selector);
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
-    doc.querySelector('.sdr-sidebar [data-tab="training"]').click();
+    const supportButton = doc.querySelector('.sdr-sidebar [data-tab="support"]');
+    const trainingButton = doc.querySelector('.sdr-sidebar [data-tab="training"]');
+    const trainingLink = doc.querySelector('[data-tab-panel="support"] a[href="#view=training"]');
+    assert.equal(trainingButton.nextElementSibling, supportButton);
+    trainingButton.click();
+    await waitFor(() => !training.hidden, 'The sidebar did not open Training');
+    assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'false');
+    find('a[href="#view=support"]').click();
+    await waitFor(() => trainingLink.closest('[hidden]') === null, 'The Support link did not return to Support');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'true');
+    trainingLink.click();
+    await waitFor(() => !training.hidden, 'Training did not open from Support');
+    assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
     const planButton = '[data-training-feature] [data-training-plan="sales-onboarding"]';
     const featuredCourse = '[data-training-feature] .training-feature-description [data-training-course="sales-onboarding"]';
     await waitFor(() => find(featuredCourse), 'The featured course did not load');
@@ -372,6 +385,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const before = (await owner.api('bootstrap')).offices;
     find(voiceLink).click();
     const voice = part => find('[data-training-voice-' + part + ']');
+    assert.equal(find('.sdr-sidebar [data-tab="training"]').getAttribute('aria-pressed'), 'true');
     const trainingDemo = find('[data-tab-panel="training-demo"]');
     assert.equal(trainingDemo.hidden, false);
     const customerKiosk = trainingDemo.querySelector('[data-live-customer-kiosk]');
@@ -531,6 +545,17 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(territoryState.value, '');
   assert.equal(territoryState.options.length, 52);
   assert.equal(territoryState.querySelector('option[value="DC"]').textContent, 'District of Columbia');
+  const territoryMetric = key => territoriesPanel.querySelector(`[data-td-metric="${key}"]`).textContent;
+  await waitFor(() => territoryMetric('total') === '51', 'Nationwide dashboard did not include all states and DC');
+  const nationalCard = territoriesPanel.querySelector('#sales-territory-national');
+  assert.equal(nationalCard.parentElement, territoriesPanel);
+  assert.equal(nationalCard.previousElementSibling.className, 'td-header');
+  assert.equal(nationalCard.firstElementChild.tagName, 'DETAILS');
+  assert.equal(nationalCard.nextElementSibling.id, 'territory-town-map');
+  assert.equal(territoriesPanel.querySelectorAll('[data-td-metric]').length, 6);
+  chooseTerritory('PA');
+  await waitFor(() => territoryMetric('total') === '67', 'The state picker did not load Pennsylvania totals');
+  assert.equal(territoryState.value, 'PA');
   pageDocument.querySelector('[data-territory-state="AK"]').click();
   assert.equal(territoryState.value, 'AK');
   assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
@@ -551,6 +576,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   stateShape('CT').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   await waitFor(() => townCanvas.querySelectorAll('.town-map-area').length === 169, 'CT town polygons did not open');
   assert.equal(townPanel.hidden, false);
+  assert.equal(townPanel.querySelector('#territory-county-roster').hidden, false);
+  assert.equal(townPanel.querySelector('[data-map-roster]').getAttribute('aria-expanded'), 'true');
   assert.equal(pageDocument.activeElement.id, 'town-map-title');
   assert.equal(stateShape('CT').closest('.sdr-card').hidden, true);
   assert.ok(statePicker.closest('[hidden]'));
@@ -559,6 +586,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(townPanel.querySelector('h2').textContent, 'Connecticut towns and cities');
   assert.ok(townCanvas.querySelector('.town-map-label'));
   const colors = townPanel.querySelector('[data-map-colors]');
+  await waitFor(() => territoryMetric('total') === '9', 'A previous state overwrote the Connecticut dashboard');
   assert.equal(colors.checked, true);
   assert.equal(townCanvas.querySelectorAll('.town-map-county').length, 9);
   const townSelect = townPanel.querySelector('[data-map-town]');
@@ -635,6 +663,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   leadForm.elements.name.value = 'Example County Lead';
   leadForm.requestSubmit();
   await waitFor(() => townPanel.querySelector('[data-county-row="45027"]').textContent.includes('Example County Lead'), 'County roster did not update');
+  await waitFor(() => territoryMetric('reps') === '1', 'Saving a county assignment did not update the header');
   await waitFor(() => mapSelection.querySelector('[data-county-assign]')?.textContent === 'Change rep', 'County assignment action did not switch to Change rep');
   const portrait = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCoBqK//9k=';
   const change = {state:'SC', county:'45027', name:'Example County Lead', photo:portrait, revision:1};
@@ -1244,6 +1273,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   agentDocument.querySelector('#sales-team-territories').click();
   const scopedStatePicker = agentDocument.querySelector('#sales-territory-state');
   assert.deepEqual([...scopedStatePicker.options].filter(option => !option.disabled).map(option => option.value), ['', 'CT']);
+  await waitFor(() => agentDocument.querySelector('[data-td-metric="total"]').textContent === '1', 'Rep dashboard included an inaccessible state');
   scopedStatePicker.value = 'CT';
   scopedStatePicker.dispatchEvent(new agentWindow.Event('change', { bubbles: true }));
   const capitolId = '09110';

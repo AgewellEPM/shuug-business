@@ -272,6 +272,7 @@
 .sdr-training .training-button:disabled { opacity: .65; cursor: wait; }
 .sdr-training .training-link { min-height: 28px; padding: 3px 0; border: 0; background: transparent; }
 .sdr-training .training-link:hover { text-decoration: underline; }
+.training-support-link { justify-self: start; }
 .training-link svg { width: 15px; height: 15px; }
 
 .training-board-grid {

@@ -8,7 +8,7 @@ import { localityAllowed, localityKey, stateAllowed } from './territory-access.m
 
 const decompress = promisify(gunzip);
 
-async function geometry(region) {
+export async function territoryGeometry(region) {
   const file = new URL(`./territory-map-data/${region}.json.gz`, import.meta.url);
   return JSON.parse(await decompress(await readFile(file)));
 }
@@ -57,7 +57,7 @@ async function describeCounties(user, db, map, counties, scope) {
 export async function territoryMap(user, input, db, readTeam) {
   const region = state(input.state);
   if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');
-  const map = await geometry(region), scope = assignmentScope(user, map, readTeam);
+  const map = await territoryGeometry(region), scope = assignmentScope(user, map, readTeam);
   const descriptions = await describeCounties(user, db, map, map.counties, scope);
   map.counties.forEach((county, index) => Object.assign(county, descriptions[index]));
   map.features = map.features.filter(feature => localityAllowed(user, region, feature.name));
@@ -77,7 +77,7 @@ export async function countyOwnership(user, input, db, readTeam) {
     throw new HttpError(400, 'Choose up to 16 counties.');
   }
   if (!ids.length) return { counties: [] };
-  const map = await geometry(region), scope = assignmentScope(user, map, readTeam);
+  const map = await territoryGeometry(region), scope = assignmentScope(user, map, readTeam);
   const requested = new Set(ids);
   const counties = map.counties.filter(county => requested.has(county.id));
   return { counties: await describeCounties(user, db, map, counties, scope) };
@@ -87,7 +87,7 @@ export async function setCountyLead(user, input, db, readTeam) {
   const region = state(input.state);
   if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');
   if (!Number.isSafeInteger(input.revision) || input.revision < 0) throw new HttpError(400, 'Reopen the county assignment.');
-  const map = await geometry(region);
+  const map = await territoryGeometry(region);
   if (!map.counties.some(county => county.id === input.county)) throw new HttpError(400, 'Choose a county in this state.');
   return db.writeAgentTeam(() => {
     const scope = assignmentScope(user, map, readTeam);

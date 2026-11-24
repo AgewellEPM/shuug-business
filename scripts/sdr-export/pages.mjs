@@ -32,12 +32,27 @@ export function renderWorkspace(profile, signIn) {
       .replace('<script src="/sales.js"', careScripts + '<script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"><link rel="stylesheet" href="/facility-reviews.css"><link rel="stylesheet" href="/sales-booking.css"><link rel="stylesheet" href="/sales-chat.css"><link rel="stylesheet" href="/sales-email.css"><link rel="stylesheet" href="/sales-support.css"><link rel="stylesheet" href="/sales-today.css"><link rel="stylesheet" href="/sales-training.css"><link rel="stylesheet" href="/sales-training-demo.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/booking-ui.js" defer></script><script src="/sales-booking.js" defer></script><script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sales-chat.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/facility-reviews.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales-mail-team.js" defer></script><script src="/sales-email.js" defer></script><script src="/sales-support-content.js" defer></script><script src="/sales-support.js" defer></script><script src="/sales-today.js" defer></script><script src="/sales-training.js" defer></script><script src="/sales-training-voice.js" defer></script><script src="/sales-training-pipeline.js" defer></script><script src="/sales.js"')
+      .replace('</head>', '<link rel="stylesheet" href="/territory-dashboard.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/territory-dashboard.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
       .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}${seniorCare ? ' data-care-crm' : ''}>`)
       .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')
       .replace('<link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml">', '')
       .replace('<a class="sdr-brand" href="/"', `<a class="sdr-brand" href="${site}"`)
       .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '');
+    sales = sales
+      .replace('</head>', '<link rel="stylesheet" href="/sales-display.css"><script src="/sales-display.js" defer></script></head>')
+      .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Display settings</button><button type="button" class="button secondary" data-display-read aria-pressed="false">Read aloud</button><span class="sdr-reading-status" role="status" data-display-reading-status></span>' + button)
+      .replace('</body>', `<dialog class="sdr-display" aria-labelledby="sdr-display-title">
+        <form method="dialog">
+          <h2 id="sdr-display-title">Display settings</h2>
+          <label>Text and interface size
+            <select name="scale"><option value="100">100% (default)</option><option value="125">125%</option><option value="150">150%</option><option value="175">175%</option><option value="200">200%</option></select>
+          </label>
+          <label class="sdr-display-check"><input type="checkbox" name="monochrome"> Black and white</label>
+          <div class="sdr-display-actions"><button type="button" class="button secondary" data-display-reset>Reset</button><button class="button primary" autofocus>Done</button></div>
+        </form>
+      </dialog></body>`);
     if (profile.directory === 'project') {
       sales = sales.replace('Find local tax offices', 'Find local businesses');
     }

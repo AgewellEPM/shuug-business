@@ -65,22 +65,27 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
-    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft });
+    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate });
+    if (coachUI) document.addEventListener('click', event => {
+      if (event.target.closest('[data-prospect-select],[data-prospect-add],[data-prospect-cancel]')) coachUI.sync();
+    });
     const careCampaign = window.SdrCareCampaign?.mount();
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
       if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
-      const teamTool = teamTools.has(name);
       const trainingTool = ['training-demo', 'training-pipeline'].includes(name);
-      const enteringWorkspace = standalone && (teamTool || trainingTool || ['today','team','training','support','campaigns','coach'].includes(name)) && document.body.dataset.sdrView !== name;
+      const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
+      const trainingView = name === 'training' || trainingTool || trainingDemo;
+      const teamTool = !trainingDemo && teamTools.has(name);
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
         teamReturn.hidden = !teamTool;
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
-      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingTool && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
       $('#sales-stats').hidden = trainingTool || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
       if (name === 'calendar') {
@@ -90,6 +95,7 @@
       }
       if (data) chatUI?.view(data.user, name, chatChannel);
       if (data) coachUI?.view(data.user, name);
+      if (name === 'territories') territoryUI?.enter();
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') {
         prospectsWorkspace?.enter();
@@ -160,7 +166,11 @@
     }
     $('[data-training-demo-return]')?.addEventListener('click', () => openNavigation('training'));
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
-      if (coachUI && params.get('view') === 'coach') { tab('coach'); return true; }
+      if (coachUI && params.get('view') === 'coach') {
+        const underneath = document.body.dataset.sdrView || defaultView;
+        history.replaceState(null, '', location.pathname + location.search + '#view=' + underneath);
+        tab(underneath); coachUI.open(); return true;
+      }
       if (params.get('view') === 'demo' && $('[data-tab-panel="demo"]')) { tab('demo'); return true; }
       if (trainingPipeline && params.get('view') === 'training-pipeline') { tab('training-pipeline'); return true; }
       if ($('[data-tab-panel="training-demo"]') && params.get('view') === 'training-demo') { tab('training-demo'); return true; }
@@ -214,17 +224,51 @@
       if (location.hash !== hash) history.pushState(null, '', hash);
       if (!showRequestedView()) tab(name);
     }
+    function coachContext() {
+      const view = document.body.dataset.sdrView || defaultView;
+      const label = { today: 'Today’s Plan', home: 'Overview', team: 'Sales team', chat: 'Team chat', mail: 'Senders',
+        locations: 'Signup locations', 'training-demo': 'Demo Lab', 'training-pipeline': 'Pipeline practice' }[view] || view.charAt(0).toUpperCase() + view.slice(1);
+      const drawer = $('#sales-detail-drawer'), adding = view === 'prospects' && !$('[data-prospect-editor]')?.hidden;
+      const id = drawer && !drawer.hidden ? selected : view === 'prospects' && !adding ? $('[data-prospect-select][aria-pressed="true"]')?.dataset.prospectSelect : undefined;
+      const office = id && data?.offices.find(row => String(row.id) === String(id));
+      const out = { view, label, care: careCRM, officeId: office && String(office.id), accountName: office?.town };
+      if (adding && !office) {
+        const fields = $('#sales-business-prospect-form').elements;
+        out.form = 'prospect';
+        out.prospect = Object.fromEntries(['name','address','city','state','postalCode','facilityType'].map(key => [key, fields.namedItem(key).value]));
+      }
+      return out;
+    }
+    async function coachNavigate(href) {
+      if (!/^#view=[a-z-]+(?:&[a-z]+=[a-z0-9-]+)*$/.test(href)) throw new Error('That workspace view is unavailable.');
+      const params = new URLSearchParams(href.slice(1)), destination = params.get('view');
+      const target = $$('[data-tab-panel]').find(el => el.dataset.tabPanel === destination);
+      if (!target || (target.hasAttribute('data-owner-only') && data.user.role !== 'owner')) throw new Error('That workspace view is unavailable for this account.');
+      if (document.querySelector('#sales-workspace dialog[open]')) throw new Error('Finish or close the open dialog, then open this link.');
+      if (!$('#sales-detail-drawer').hidden) {
+        if (officeHasEdits()) throw new Error('Finish your open account edits, then open this link.');
+        closeDetail();
+      }
+      if (location.hash !== href) history.pushState(null, '', href);
+      if (!showRequestedView(params)) tab(destination);
+      if (destination === 'pipeline' && /^\d+$/.test(params.get('account') || '')) await showOffice(params.get('account'));
+    }
+    function officeHasEdits() {
+      return $$('#sales-detail input, #sales-detail textarea').some(field =>
+        field.type !== 'hidden' && (field.type === 'checkbox' ? field.checked !== field.defaultChecked : field.value !== field.defaultValue));
+    }
     async function reviewCoachDraft(draft) {
       let form;
       if (draft.type === 'prospect') {
-        openNavigation('prospects');
+        if (document.body.dataset.sdrView !== 'prospects' || !$('#sales-detail-drawer').hidden) await coachNavigate('#view=prospects');
         $('[data-prospect-add]').click();
         form = $('#sales-business-prospect-form');
-        const edited = [...form.elements].some(field => field.name && field.value && field.value !== (draft.fields[field.name] || ''));
-        if (edited) throw new Error('A prospect draft is already open. Finish reviewing it before filling another one.');
+        if (form.elements.name.value && draft.fields.name && form.elements.name.value.trim().toLowerCase() !== draft.fields.name.trim().toLowerCase()) throw new Error('A different prospect is open. Finish it before reviewing this prospect.');
       } else {
-        openNavigation('pipeline');
-        await showOffice(draft.recordId);
+        if ($('#sales-detail-drawer').hidden || selected !== String(draft.recordId)) {
+          await coachNavigate('#view=pipeline');
+          await showOffice(draft.recordId);
+        }
         if (selected !== String(draft.recordId) || $('#sales-detail-drawer').hidden) throw new Error('Reopen the account to review the draft.');
         const selector = { activity: '#sales-activity', followup: '.sales-quick-followup', email: '.sales-compose-form' }[draft.type];
         form = selector && $('#sales-detail').querySelector(selector);
@@ -232,9 +276,12 @@
         if (['email','followup'].includes(draft.type) && (!account || ['not_interested','do_not_contact'].includes(account.status) || meta(account).primaryContactDoNotContact)) throw new Error('Check the account’s current contact preference before planning outreach.');
       }
       if (!form) throw new Error('This form is unavailable for the selected account.');
+      const kept = [];
       for (const [name, value] of Object.entries(draft.fields)) {
         const field = form.elements.namedItem(name);
         if (!field || field.disabled || (field.options && ![...field.options].some(option => option.value === value))) continue;
+        const initial = field.options ? [...field.options].find(option => option.defaultSelected)?.value ?? field.options[0]?.value : field.defaultValue;
+        if (field.value && field.value !== value && field.value !== initial) { kept.push(name); continue; }
         field.value = value;
         field.dispatchEvent(new Event('input', { bubbles: true }));
       }
@@ -242,7 +289,7 @@
       if (details) details.open = true;
       form.querySelector('input,select,textarea')?.focus({ preventScroll: true });
       form.scrollIntoView?.({ block: 'center' });
-      status('Review the prepared fields and save when ready.');
+      status(kept.length ? 'Your edits were kept in ' + kept.join(', ') + '. Review the form before saving.' : 'Review the prepared fields and save when ready.');
     }
     teamReturn?.addEventListener('click', () => {
       const previous = teamTools.get(document.body.dataset.sdrView);
@@ -259,6 +306,7 @@
       $$('.sdr-sidebar,.sdr-main').forEach(element => element.inert = false);
       const priorOffice = selected;
       selected = undefined; officeRequest++; if (data) renderList();
+      coachUI?.sync();
       const replacement = $$('[data-office]').find(button => button.dataset.office === priorOffice && !button.closest('[hidden]'));
       const priorFocusable = detailFocus?.isConnected && detailFocus.matches('button,a[href],input,select,textarea,[tabindex]') && !detailFocus.closest('#sales-detail-drawer,[hidden]');
       const focusTarget = priorFocusable ? detailFocus : replacement || $('[data-tab][aria-pressed="true"]');
@@ -280,6 +328,8 @@
           const closed = element.closest('details:not([open])');
           return !closed || closed.querySelector(':scope > summary') === element;
         });
+        const widget = $('#coach-widget');
+        if (widget && !widget.hidden) controls.push(...$$('button:not([disabled]),a[href],input,textarea,select', widget).filter(el => !el.closest('[hidden]')));
         const first = controls[0], last = controls.at(-1);
         if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) { event.preventDefault(); (event.shiftKey ? last : first)?.focus(); }
       }
@@ -310,6 +360,7 @@
     async function refresh() {
       data = await api('bootstrap');
       $('#sales-login').hidden = true; $('#sales-workspace').hidden = false;
+      coachUI?.view(data.user);
       const identity = $('#sales-identity');
       if (identity) identity.hidden = false;
       renderIdentity();
@@ -353,7 +404,7 @@
         $$('.sdr-sidebar,.sdr-main').forEach(element => element.inert = true);
         $('#sales-detail-status').textContent = ''; $('#sales-detail-close').focus();
       }
-      selected = String(id); renderList();
+      selected = String(id); renderList(); coachUI?.sync();
       target.setAttribute('aria-busy', 'true'); target.innerHTML = '<h2>Loading office record…</h2>';
       let record;
       try { record = await api('office', { id }); }

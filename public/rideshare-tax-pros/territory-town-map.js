@@ -135,7 +135,7 @@
     return {show, clear, render};
   }
 
-  function draw(panel, data, api, focus) {
+  function draw(panel, data, api, focus, onAssignment) {
     const L = window.L, canvas = panel.querySelector('[data-map-canvas]');
     const picker = panel.querySelector('[data-map-town]');
     const reset = panel.querySelector('[data-map-reset]');
@@ -182,6 +182,7 @@
       if (window.SdrTerritoryOwnership.applyCountyAssignments(counties, updates)) {
         roster.refresh();
         ownership.refresh();
+        onAssignment?.();
       }
     }, county => roster.edit(county));
     function showAssignment(name, counties, reveal = true) {
@@ -337,12 +338,13 @@
       roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty, () => {
         selection.render();
         ownership?.refresh();
+        onAssignment?.();
       });
       ownership = window.SdrTerritoryOwnership.mount(panel, data, api, place => {
         if (place.feature) select(place.feature.id, place.county.id);
         else zoomCounty(place.county);
         roster.select(place.county);
-      }, () => roster.refresh());
+      }, () => { roster.refresh(); onAssignment?.(); });
       drawing.addEventListener('click', event => {
         if (map.dragging.moved()) return;
         const target = event.target.closest('[data-locality], [data-county], [data-landmark], [data-district]');
@@ -422,7 +424,7 @@
     }
   }
 
-  function mount({ api, onBack }) {
+  function mount({ api, onBack, onAssignment }) {
     const panel = document.getElementById('territory-town-map');
     if (!panel) return null;
     const find = name => panel.querySelector('[data-map-' + name + ']');
@@ -464,7 +466,7 @@
         if (request !== sequence) return;
         canvas.hidden = tools.hidden = caption.hidden = false;
         const total = new Set(data.features.map(feature => feature.name)).size;
-        dispose = draw(panel, data, api, focus);
+        dispose = draw(panel, data, api, focus, onAssignment);
         status.textContent = total.toLocaleString() + (region === 'CT' ? ' towns' : total === 1 ? ' locality' : ' localities');
       } catch (error) {
         if (request !== sequence) return;

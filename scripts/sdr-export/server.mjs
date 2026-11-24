@@ -25,6 +25,7 @@ import coachArticles from './coach-help.cjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
 import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
+import { territoryDashboard } from '../../sales/territory-dashboard.mjs';
 import { directoryFacility, stateFacilityDirectory } from '../../sales/state-facilities.mjs';
 import { googleFacilityReviews } from '../../sales/facility-reviews.mjs';
 import { facilityOutreach } from './facility-outreach.mjs';
@@ -116,6 +117,7 @@ const sales = createHandler(env, db, {
   facilityReviews: async (user, input, office) => googleReviews(office || await directoryFacility(facilities, user, input)),
   facilityOutreach: facilityOutreach(db, facilities, { model: process.env.SDR_OUTREACH_MODEL }),
   territoryMap: (user, input, team) => territoryMap(user, input, db, team),
+  territoryDashboard: (user, input) => territoryDashboard(user, input, db),
   territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,

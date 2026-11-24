@@ -4,7 +4,9 @@
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
   window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate,onClearState}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
-    const townMap=window.SdrTerritoryTownMap?.mount({api,onBack:returnToStates});
+    const dashboard=window.SdrTerritoryDashboard?.mount(api);
+    const townMap=window.SdrTerritoryTownMap?.mount({api,onBack:returnToStates,
+      onAssignment:()=>dashboard?.show(mapState,true)});
     const townAccessState=document.querySelector('#sales-town-access-state');
     let mapState='';
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;
@@ -20,9 +22,9 @@
     }
     function returnToStates(focus){
       const previous=townMap?mapState:state;
-      if(!previous)return;
+      if(!previous){dashboard?.show('');return;}
       updateStateLink('');
-      if(townMap){mapState='';townMap.clear();onClearState?.();}
+      if(townMap){mapState='';townMap.clear();onClearState?.();dashboard?.show('');}
       else selectTownAccess('');
       if(focus?.statePicker)return;
       document.querySelector(`#sales-territory-map [data-state="${previous}"]`)?.focus?.({preventScroll:true});
@@ -93,9 +95,10 @@
     }
     if(townAccessState)townAccessState.onchange=()=>{if(owner())selectTownAccess(townAccessState.value);};
     const scope=user=>JSON.stringify([user.id,user.role,user.states,user.territory]);
-    return {showStates:returnToStates,render(next){
-      if((mapState||state)&&data&&scope(data.user)!==scope(next.user))returnToStates();
+    return {showStates:returnToStates,enter(){dashboard?.show(mapState);},render(next){
+      if(data&&scope(data.user)!==scope(next.user)){returnToStates();dashboard?.reset();}
       data=next;
+      dashboard?.show(mapState,true);
       if(townAccessState&&owner()&&townAccessState.options.length===0){
         townAccessState.replaceChildren(new Option('Choose a state',''),...data.states.map(region=>new Option(region,region)));
       }
@@ -105,6 +108,7 @@
       if(townMap){
         if(!region)return returnToStates(focus);
         mapState=region;
+        dashboard?.show(region);
         updateStateLink(region,focus);
         void townMap.open(region,focus);
         if(!focus?.statePicker)townMap.focus();

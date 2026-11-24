@@ -1,19 +1,27 @@
 export function renderSalesCoach(icon) {
-  return `<section data-tab-panel="coach" class="coach-workspace" aria-labelledby="coach-title" hidden>
-    <header class="coach-header"><span class="coach-symbol" aria-hidden="true">${icon('chat')}</span>
-      <div><h2 id="coach-title">Ask Tinky</h2><p>Your private TinkyTown sales coach</p></div>
-    </header>
-    <div class="coach-layout">
-      <div class="coach-conversation">
+  return `<div id="coach-widget" class="coach-widget" hidden>
+    <button type="button" class="coach-launch" id="coach-launch" aria-controls="coach-popup" aria-expanded="false">
+      <span class="coach-launch-symbol" aria-hidden="true">${icon('chat')}</span><span>Ask Tinky</span>
+    </button>
+    <section id="coach-popup" class="coach-workspace" role="dialog" aria-modal="false" aria-labelledby="coach-title" hidden>
+      <header class="coach-header"><span class="coach-symbol" aria-hidden="true">${icon('chat')}</span>
+        <div><h2 id="coach-title">Ask Tinky</h2><p id="coach-context" aria-live="polite">Your private sales coach</p></div>
+        <button type="button" id="coach-minimize" aria-label="Minimize Ask Tinky" title="Minimize">−</button>
+      </header>
+      <div class="coach-switch" role="group" aria-label="Coach view">
+        <button type="button" id="coach-show-chat" aria-controls="coach-conversation" aria-pressed="true">Conversation</button>
+        <button type="button" id="coach-show-goal" aria-controls="coach-side" aria-pressed="false">My goal</button>
+      </div>
+      <div class="coach-conversation" id="coach-conversation">
         <div id="coach-stream" tabindex="0" aria-label="Conversation history">
           <button type="button" id="coach-older" hidden>Earlier messages</button>
           <div id="coach-welcome" hidden>
-            <img src="/sales-chat-express.webp" width="660" height="322" alt="" loading="lazy">
-            <h3>What are you working on?</h3>
+            <img src="/sales-chat-express.webp" width="660" height="322" alt="">
+            <h3>How can I help here?</h3>
             <div class="coach-prompts">
               <button type="button" data-prompt="What should I work on next to reach my sales goal?">Plan my next move</button>
               <button type="button" data-prompt="Help me introduce TinkyTown to a new prospect.">Practice my pitch</button>
-              <button type="button" data-prompt="Help me fill out a new prospect record. What details do you need?">Fill out a prospect</button>
+              <button type="button" data-prompt="Help me with the form on this screen.">Help with this screen</button>
             </div>
           </div>
           <div id="coach-messages" role="log" aria-label="Private conversation" aria-live="polite" aria-relevant="additions"></div>
@@ -24,7 +32,7 @@ export function renderSalesCoach(icon) {
             <button type="submit" disabled>Ask Tinky ${icon('chatSend')}</button></form>
         </div>
       </div>
-      <aside class="coach-side" aria-label="Your goal and priorities">
+      <aside class="coach-side" id="coach-side" aria-label="Your goal and priorities" hidden>
         <section class="coach-card"><div class="coach-card-title"><h3>My sales goal</h3><button type="button" id="coach-edit-goal" aria-controls="coach-goal-form" aria-expanded="false" disabled>Set goal</button></div>
           <div id="coach-goal-summary"></div>
           <form id="coach-goal-form" hidden>
@@ -38,6 +46,6 @@ export function renderSalesCoach(icon) {
         </section>
         <section class="coach-card"><div class="coach-card-title"><h3>From Today’s Plan</h3></div><ul id="coach-next"></ul><a href="#view=today">Open today’s plan →</a></section>
       </aside>
-    </div>
-  </section>`;
+    </section>
+  </div>`;
 }
