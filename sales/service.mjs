@@ -120,6 +120,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.booking && typeof action === 'string' && action.startsWith('booking-')) return tools.booking(user, action, b);
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
+    if (tools.salesCoach?.actions.has(action)) return tools.salesCoach.dispatch(user, action, b);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);

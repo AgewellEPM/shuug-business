@@ -5,6 +5,7 @@ import { renderSupport, renderSupportSidebar } from './sales-support.mjs';
 import { bookingOverview, bookingPanel } from './sales-booking.mjs';
 import { renderSalesEmail } from './sales-email.mjs';
 import { renderTeamChat } from './sales-chat.mjs';
+import { renderSalesCoach } from './sales-coach.mjs';
 import { renderToday } from './sales-today.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
@@ -377,7 +378,7 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
   const searchTarget = seniorCare ? 'facilities' : 'businesses';
   const standaloneHeader = `<header class="sdr-topbar">
     <form id="sdr-header-search" role="search">${icon('discover')}<input aria-label="Search saved ${searchTarget}, contacts, or locations" type="search" placeholder="Search ${searchTarget}, contacts, or locations…" maxlength="180"></form>
-    <div class="sdr-topbar-right">${workspaceTracker}<div id="sales-revenue" hidden></div>${signOut}</div>
+    <div class="sdr-topbar-right"><button type="button" class="coach-launch" data-tab="coach" aria-pressed="false">${icon('chat')} Ask Tinky</button>${workspaceTracker}<div id="sales-revenue" hidden></div>${signOut}</div>
   </header>`;
   const hostedHeader = `<header class="sdr-topbar"><div><p class="eyebrow">Your office network</p><h1 id="sales-view-title">Overview</h1></div><div class="sdr-topbar-right"><div id="sales-revenue" hidden></div><div id="sales-identity" hidden><span class="sdr-user-avatar" aria-hidden="true">G</span><span id="sales-name"></span>${signOut}</div></div></header>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Office workspace | Gig Tax Pros</title><meta name="description" content="Private Gig Tax Pros office recruitment workspace."><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/sales.css"><link rel="stylesheet" href="/sales-console.css"><link rel="stylesheet" href="/vendor/leaflet-1.9.4/leaflet.css"><link rel="stylesheet" href="/local-offices.css"><script src="/directory-admin.js" defer></script><script src="/sales-research.js" defer></script><script src="/sales-workflows.js" defer></script><script src="/sales-console.js" defer></script><script src="/sales-contacts.js" defer></script><script src="/sales-progress.js" defer></script><script src="/sales-contracts.js" defer></script><script src="/vendor/leaflet-1.9.4/leaflet.js" defer></script><script src="/local-contacts.js" defer></script><script src="/local-offices.js" defer></script><link rel="stylesheet" href="/territories.css"><script src="/territories.js" defer></script><script src="/sales.js" defer></script></head>
@@ -404,6 +405,6 @@ ${prospects ? `<header class="sdr-territory-hero">
   <label class="sdr-territory-state-field">State<select id="sales-territory-state"><option value="">All states</option></select></label>
 </header>` : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
 <div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
-${prospects ? renderTeamChat(icon) + '</div>' : ''}</div>
+${prospects ? renderTeamChat(icon) + '</div>' + renderSalesCoach(icon) : ''}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

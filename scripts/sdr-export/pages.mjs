@@ -24,6 +24,8 @@ export function renderWorkspace(profile, signIn) {
     const demoStyle = careWorkspace ? '<link rel="stylesheet" href="/sales-demo.css">' : '';
     const demoScript = careWorkspace ? '<script src="/sales-demo.js" defer></script>' : '';
     let sales = source
+      .replace('</head>', '<link rel="stylesheet" href="/sales-coach.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-coach.js" defer></script><script src="/sales.js"')
       .replace('</head>', demoStyle + '</head>')
       .replace('<script src="/sales.js"', demoScript + '<script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"><link rel="stylesheet" href="/facility-reviews.css"><link rel="stylesheet" href="/sales-booking.css"><link rel="stylesheet" href="/sales-chat.css"><link rel="stylesheet" href="/sales-email.css"><link rel="stylesheet" href="/sales-support.css"><link rel="stylesheet" href="/sales-today.css"></head>')

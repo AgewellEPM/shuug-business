@@ -4,6 +4,7 @@ import { HttpError } from '../../sales/model.mjs';
 import { bookingStore } from './booking-store.mjs';
 import { mailStore } from './mail/store.mjs';
 import { teamChat } from './team-chat.mjs';
+import { coachStore } from './coach-store.mjs';
 
 const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests']);
 function kindFor(kind) {
@@ -97,6 +98,7 @@ export function sqliteStore(filename) {
   const chat = teamChat(db);
   return {
     booking: bookingStore(db, writeTransaction),
+    coach: coachStore(db),
     repMail: mailStore(db, writeTransaction),
     chat,
     list: kind => all.all(kindFor(kind)).map(decode),
