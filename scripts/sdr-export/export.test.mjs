@@ -1539,12 +1539,23 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       assert.equal(entry.headers.get('location'), '/sales/senior-care#view=demo&venue=' + venue + '&present=1');
       careWindow.location.hash = 'view=demo&venue=' + venue;
       await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
+      const voice = panel.querySelector('[data-care-voice]');
+      assert.equal(voice.hidden, false);
+      assert.equal(voice.open, false);
+      const voiceForm = voice.querySelector('form');
+      assert.equal(voiceForm.elements.setting.value, { hospital: 'bedside', 'nursing-home': 'nursing', 'senior-center': 'senior' }[venue]);
+      assert.equal(voiceForm.elements.words.value, '');
+      voice.open = true;
+      voiceForm.elements.words.value = venue === 'senior-center' ? 'Would you like to take a shuttle?' : 'Would you like some water?';
+      voiceForm.requestSubmit();
+      assert.match(voice.querySelector('[data-training-voice-choices]').textContent, venue === 'senior-center' ? /ride|schedule/ : /water|drink/);
       panel.querySelector('.cf-room-card[data-room="' + room + '"]').click();
       panel.querySelector('.cf-tile').click();
       assert.match(panel.querySelector('.cf-history summary').textContent, /1/);
     }
     careWindow.location.hash = 'view=demo&venue=townhall';
     await waitFor(() => panel.querySelector('.cl-board-title'), 'Hartford Town Hall did not load');
+    assert.equal(panel.querySelector('[data-care-voice]').hidden, true);
     assert.match(panel.querySelector('.cl-header h3').textContent, /Hartford/);
     careWindow.location.hash = 'view=demo&venue=home';
     await waitFor(() => panel.querySelector('.care-library [data-tile]') || panel.querySelector('[aria-label="TinkySpeak board library"] [data-tile]'), 'Family board did not load');

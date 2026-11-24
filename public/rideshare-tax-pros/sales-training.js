@@ -83,7 +83,7 @@
   }
 
   function mount({ api, onDemo }) {
-    const root = document.querySelector('.sdr-training');
+    const root = document.querySelector('[data-tab-panel="training"]');
     if (!root) return;
     const find = selector => root.querySelector(selector);
     const feature = find('[data-training-feature]');

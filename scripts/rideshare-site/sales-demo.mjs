@@ -1,3 +1,5 @@
+import { renderVoicePractice } from './sales-training-demo.mjs';
+
 const care = [
   ['hospital','🏥','TinkyTown Hospital','Admissions, bedside care and discharge'],
   ['nursing-home','🏡','Nursing home','Daily care, meals and resident preferences'],
@@ -68,6 +70,10 @@ export function renderCareDemo() {
     </nav>
     <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
     <div class="care-stage-links" data-care-modes></div>
+    <details class="sdr-training care-voice" data-care-voice hidden>
+      <summary>Voice replies</summary>
+      ${renderVoicePractice({ id: 'care-voice', heading: 'Listen and choose a reply' })}
+    </details>
     <div data-care-mount></div>
     <div data-care-stroke hidden></div>
     <div data-care-guide hidden>

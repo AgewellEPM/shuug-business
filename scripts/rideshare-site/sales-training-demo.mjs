@@ -1,3 +1,33 @@
+export function renderVoicePractice({ id, heading }) {
+  return `<section class="training-card training-voice" data-training-voice aria-labelledby="${id}-title">
+      <header><h2 id="${id}-title">${heading}</h2>
+        <p>Use practice words. Your browser handles microphone recognition. The demo uses the resulting text to offer choices.</p></header>
+      <form data-training-voice-form>
+        <div class="training-voice-fields">
+          <label>Setting<select name="setting"><option value="nursing">Nursing home</option><option value="senior">Senior center</option><option value="bedside">Bedside</option></select></label>
+          <label>Listen for<select name="mode"><option value="answer">A question to answer</option><option value="express">Something I want to say</option></select></label>
+        </div>
+        <div class="training-voice-examples" data-training-voice-examples></div>
+        <label for="${id}-words">What did you hear or want to say?</label>
+        <textarea id="${id}-words" name="words" rows="2" maxlength="240" required></textarea>
+        <div class="training-actions">
+          <button type="button" class="training-button" data-training-voice-listen aria-pressed="false">Use microphone</button>
+          <button type="submit" class="training-button training-primary">Show reply choices</button>
+          <button type="button" class="training-button" data-training-voice-clear>Clear</button>
+        </div>
+      </form>
+      <p class="training-voice-status" data-training-voice-status role="status"></p>
+      <section class="training-voice-result" data-training-voice-result aria-labelledby="${id}-result-heading" hidden>
+        <h3 id="${id}-result-heading" data-training-voice-result-heading tabindex="-1">Choose what you want to say</h3>
+        <div class="training-voice-choices" data-training-voice-choices role="group" aria-label="Reply choices"></div>
+        <div data-training-voice-selection hidden>
+          <p data-training-voice-message aria-live="polite"></p>
+          <button type="button" class="training-button training-primary" data-training-voice-speak>Speak selected reply</button>
+        </div>
+      </section>
+    </section>`;
+}
+
 export function renderTrainingDemo({ careWorkspace }) {
   return `<section class="sdr-training sdr-training-demo" data-tab-panel="training-demo" aria-labelledby="training-demo-title" hidden>
     <header class="training-hero">
@@ -19,33 +49,7 @@ export function renderTrainingDemo({ careWorkspace }) {
         <figcaption>tinkytown.com/biz/healthcare</figcaption>
       </figure>
     </section>
-    <section class="training-card training-voice" data-training-voice aria-labelledby="training-demo-voice-title">
-      <header><h2 id="training-demo-voice-title">2. Try voice and suggested replies</h2>
-        <p>Use practice words. Your browser handles microphone recognition. The demo uses the resulting text to offer choices.</p></header>
-      <form data-training-voice-form>
-        <div class="training-voice-fields">
-          <label>Setting<select name="setting"><option value="nursing">Nursing home</option><option value="senior">Senior center</option><option value="bedside">Bedside</option></select></label>
-          <label>Listen for<select name="mode"><option value="answer">A question to answer</option><option value="express">Something I want to say</option></select></label>
-        </div>
-        <div class="training-voice-examples" data-training-voice-examples></div>
-        <label for="training-voice-words">What did you hear or want to say?</label>
-        <textarea id="training-voice-words" name="words" rows="2" maxlength="240" required></textarea>
-        <div class="training-actions">
-          <button type="button" class="training-button" data-training-voice-listen aria-pressed="false">Use microphone</button>
-          <button type="submit" class="training-button training-primary">Show reply choices</button>
-          <button type="button" class="training-button" data-training-voice-clear>Clear</button>
-        </div>
-      </form>
-      <p class="training-voice-status" data-training-voice-status role="status"></p>
-      <section class="training-voice-result" data-training-voice-result aria-labelledby="training-voice-result-heading" hidden>
-        <h3 id="training-voice-result-heading" tabindex="-1">Choose what you want to say</h3>
-        <div class="training-voice-choices" data-training-voice-choices role="group" aria-label="Reply choices"></div>
-        <div data-training-voice-selection hidden>
-          <p data-training-voice-message aria-live="polite"></p>
-          <button type="button" class="training-button training-primary" data-training-voice-speak>Speak selected reply</button>
-        </div>
-      </section>
-    </section>
+    ${renderVoicePractice({ id: 'training-voice', heading: '2. Try voice and suggested replies' })}
     <section class="training-card training-demo-debrief" aria-labelledby="training-demo-debrief-title">
       <h2 id="training-demo-debrief-title">3. Debrief the visit</h2>
       <ol><li>Ask which part of the interaction fit the resident or visitor’s needs.</li>

@@ -6,6 +6,7 @@
   const workspace = document.getElementById('sales-workspace');
   const home = part('home'), stage = part('stage'), surface = part('mount');
   const strokeHost = part('stroke'), guide = part('guide');
+  const voice = part('voice');
   const names = new Map([...home.querySelectorAll('[data-care-launch]')].map(link =>
     [link.dataset.careLaunch, link.querySelector('strong').textContent]));
   const facility = { hospital: 'hospital', 'nursing-home': 'nursing', 'senior-center': null };
@@ -22,6 +23,11 @@
     cleanup?.();
     cleanup = null;
     stroke?.deactivate();
+    if (voice) {
+      voice.open = false;
+      voice.hidden = true;
+      voice.querySelector('[data-training-voice]')?.dispatchEvent(new Event('training-voice:reset'));
+    }
     window.speechSynthesis?.cancel();
     surface.replaceChildren();
   }
@@ -88,6 +94,12 @@
     if (!venue) {
       if (lastLaunch) home.querySelector('[data-care-launch="' + lastLaunch + '"]')?.focus({ preventScroll: true });
       return;
+    }
+    if (voice && ['hospital', 'nursing-home', 'senior-center', 'stroke', 'guide'].includes(venue)) {
+      const setting = voice.querySelector('select[name="setting"]');
+      setting.value = venue === 'senior-center' ? 'senior' : venue === 'nursing-home' ? 'nursing' : 'bedside';
+      setting.dispatchEvent(new Event('change'));
+      voice.hidden = false;
     }
     if (names.has(venue)) lastLaunch = venue;
     if (venue === 'guide' || (venue === 'stroke' && mode === 'boards')) {
