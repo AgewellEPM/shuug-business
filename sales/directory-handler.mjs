@@ -1,7 +1,7 @@
 import { backend } from './backend.mjs';
 import { publicDirectory } from './directory.mjs';
 
-export function createDirectoryHandler(env = process.env, adapter) {
+export function createDirectoryHandler(env = process.env, adapter, { defaultBookingURL } = {}) {
   return async (req, res) => {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('X-Content-Type-Options', 'nosniff');
@@ -12,6 +12,7 @@ export function createDirectoryHandler(env = process.env, adapter) {
     try {
       if (!adapter && !env.GIGTAX_TINKY_KEY) throw new Error('Directory unavailable');
       const result = await publicDirectory(adapter || backend(env));
+      if (!result.support.appointmentURL && defaultBookingURL) result.support.appointmentURL = defaultBookingURL();
       res.statusCode = 200; res.end(JSON.stringify(result));
     } catch {
       res.statusCode = 503;

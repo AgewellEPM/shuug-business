@@ -66,11 +66,15 @@
     const source = role.photoURL && window.SdrTerritoryFacilities?.sourceLink(role.photoURL, '');
     if (!source) return;
     const photo = document.createElement('img');
-    photo.src = source.href;
     photo.alt = alt;
     photo.loading = 'lazy';
     photo.referrerPolicy = 'no-referrer';
-    photo.addEventListener('error', () => photo.remove(), { once: true });
+    const fallback = role.fallbackPhotoURL && window.SdrTerritoryFacilities?.sourceLink(role.fallbackPhotoURL, '');
+    photo.addEventListener('error', () => {
+      if (fallback && photo.src !== fallback.href) photo.src = fallback.href;
+      else photo.remove();
+    });
+    photo.src = source.href;
     if (role.photoFrame) frame.dataset.photoFrame = role.photoFrame;
     frame.append(photo);
   }
@@ -126,13 +130,13 @@
     const pages = document.createElement('div');
     pages.className = 'prospects-administrator-sources';
     if (role?.sourceURL) {
-      const source = links?.(role.sourceURL, role.sourceName || 'Role source');
+      const source = links?.(role.sourceURL, showResearch && role.photoSourceURL === role.sourceURL ? 'Role and photo source' : role.sourceName || 'Role source');
       if (source) {
         if (role.checkedOn) source.title = 'Role source dated ' + role.checkedOn;
         pages.append(source);
       }
     }
-    if (showResearch && role?.photoSourceURL) {
+    if (showResearch && role?.photoSourceURL && role.photoSourceURL !== role.sourceURL) {
       const photoSource = links?.(role.photoSourceURL, 'Photo source');
       if (photoSource) pages.append(photoSource);
     }
@@ -153,7 +157,7 @@
     return profile;
   }
 
-  function facilityProfile(dialog, api) {
+  function facilityProfile(dialog, api, onCompose) {
     const find = name => dialog.querySelector(`[data-facility-profile-${name}]`);
     const team = find('team'), contact = find('contact');
     const outreach = dialog.querySelector('[data-facility-outreach]');
@@ -185,6 +189,14 @@
       content.addEventListener('input', updateEmail);
       updateEmail();
       content.prepend(sendTo);
+      if (onCompose) {
+        const compose = textNode('button', 'Open in Email');
+        compose.type = 'button';
+        compose.className = 'button primary';
+        compose.dataset.openWorkspaceEmail = '';
+        compose.onclick = () => onCompose({ to: draft.to, subject: subject.value, body: body.value }, () => dialog.close());
+        content.append(compose);
+      }
       content.append(email);
       card.append(summary, content);
       return card;
@@ -463,7 +475,7 @@
     };
   }
 
-  function mount({ api, refresh, onOpenOffice }) {
+  function mount({ api, refresh, onOpenOffice, onCompose }) {
     const root = document.querySelector('.sdr-prospects');
     if (!root) return null;
     const $ = selector => root.querySelector(selector);
@@ -478,7 +490,7 @@
     let workspace, records = [], visible = [], selected = '', view = 'list', index = 0, descending = false;
     let storageKey, detailRequest = 0, detailStale = true, saving = false;
     let stages = new Set(), lastLink, searchDelay = 0;
-    const profileDialog = facilityProfile($('[data-facility-profile]'), api);
+    const profileDialog = facilityProfile($('[data-facility-profile]'), api, onCompose);
     const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice, openProfile: profileDialog.open });
 
     function writeStatus(target, message, error = false) {

@@ -36,6 +36,8 @@ const reviewed = {
   '075268': {
     state: 'CT', city: 'Hartford', phone: '8609511060', name: 'George Kingston',
     sourceURL: 'https://www.trinity-hill.com/welcome/',
+    photoSourceURL: 'https://www.icarehn.com/blog/administrators-week-2025-highlight-george-kingston-trinity-hill-care-center/',
+    photoURL: 'https://www.icarehn.com/site/assets/files/4657/george_kingston.600x0.jpg',
   },
   '555141': {
     state: 'CA', city: 'Santa Ana', phone: '7145477157', name: 'Marissa Preciado', title: 'Skilled Nursing Administrator',
@@ -104,10 +106,16 @@ const profiles = {
     people: [
       ['Laurie Pompa', 'Director of Nursing Services', 'Nursing', '', 'https://arkstcamillus.com/wp-content/uploads/2025/06/346456.jpg'],
       ['Jasmin Linares', 'Director of Admissions', 'Admissions', '', 'https://arkstcamillus.com/wp-content/uploads/2025/06/Jasmin-Linares-sq.png'],
-      ['Minette Zambo', 'Corporate Director of Marketing and Business Development', 'Business Development'],
-      ['Farah Pasard', 'Assistant Director of Nursing', 'Nursing'],
-      ['Erica Hagenow', 'Social Worker', 'Social Services'],
-      ['Jean Ormond', 'Social Worker', 'Social Services'],
+      ['Minette Zambo', 'Corporate Director of Marketing and Business Development', 'Business Development', '',
+        'https://media.licdn.com/dms/image/v2/C4D03AQH4ZRLVuJuNEQ/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1642728126391?e=2147483647&v=beta&t=c1mevGVB6cPsypzeOX6aAQt3IKMx8j4VkmGAk-HazVM',
+        '', 'https://www.linkedin.com/in/minette-zambo-b71286106', {
+          photoSourceURL: 'https://www.linkedin.com/posts/minette-zambo-b71286106_firstinct-renaldialysisclinic-activity-6863507586688274432-CO3Z',
+          fallbackPhotoURL: 'https://arkstcamillus.com/wp-content/uploads/2025/06/minette-zambo-sq.png',
+          roleSourceURL: 'https://arkstcamillus.com/about-us/',
+        }],
+      ['Farah Pasard', 'Assistant Director of Nursing', 'Nursing', '', 'https://arkstcamillus.com/wp-content/uploads/2025/06/564545645.jpg'],
+      ['Erica Hagenow', 'Social Worker', 'Social Services', '', 'https://arkstcamillus.com/wp-content/uploads/2026/07/IMG_0589.jpg'],
+      ['Jean Ormond', 'Social Worker', 'Social Services', '', 'https://arkstcamillus.com/wp-content/uploads/2026/07/IMG_0590-1.jpg'],
       // The facility's staff page predates her publicly announced corporate role.
       ['Julia Olenechuk', 'Corporate Director of Special Projects', 'Corporate leadership', '',
         'https://arkstcamillus.com/wp-content/uploads/2025/06/Julia-Olenechuk-sq.png', '',
@@ -130,7 +138,7 @@ function matchedRecordId(row) {
 
 export const administratorPhotoOrigins = [...new Set([
   ...Object.values(reviewed).map(role => role.photoURL),
-  ...Object.values(profiles).flatMap(profile => (profile.people || []).map(person => person[4])),
+  ...Object.values(profiles).flatMap(profile => (profile.people || []).flatMap(person => [person[4], person[7]?.fallbackPhotoURL])),
 ].filter(Boolean).map(url => new URL(url).origin))];
 
 export function publishedFacilityAdministrator(row) {
@@ -155,9 +163,10 @@ export function publishedFacilityProfile(row) {
   const identity = reviewed[id] || profile.identity;
   return {
     description: profile.description, website: profile.website, facts: profile.facts || [],
-    people: (profile.people || []).map(([name, title, group, email = '', photoURL = '', phone = '', linkedinURL = '']) => ({
+    people: (profile.people || []).map(([name, title, group, email = '', photoURL = '', phone = '', linkedinURL = '', sources = {}]) => ({
       name, title, group, email, photoURL, phone: phone || identity.phone, linkedinURL,
-      directPhone: Boolean(phone), sourceURL: linkedinURL || profile.website, checkedOn: '2026-11-23',
+      directPhone: Boolean(phone), sourceURL: sources.roleSourceURL || linkedinURL || profile.website, checkedOn: '2026-11-23',
+      photoSourceURL: photoURL ? sources.photoSourceURL || profile.website : '', fallbackPhotoURL: sources.fallbackPhotoURL || '',
     })),
   };
 }
