@@ -63,7 +63,8 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
   if (process.env[variable]) env[variable] = process.env[variable];
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
-const booking = bookings(process.env, db, origin.origin, sessionKey);
+const repEmail = repEmailWorkspace(db, sessionKey, process.env);
+const booking = bookings(process.env, db, origin.origin, sessionKey, { repMail: repEmail });
 const publicBooking = bookingHTTP(booking, origin.origin);
 const facilities = stateFacilityDirectory({ db });
 const googleReviews = googleFacilityReviews({
@@ -100,7 +101,7 @@ const sales = createHandler(env, db, {
   localDiscovery: catalogue ? { catalogue, placeLookup: async () => null } : undefined,
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
-  repEmail: repEmailWorkspace(db, sessionKey, process.env),
+  repEmail,
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
