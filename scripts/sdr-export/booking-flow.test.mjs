@@ -158,9 +158,9 @@ test('reps use Campaigns for guides and materials, facility records for pilots, 
     assert.equal(el('[data-care-campaign] [download]').closest('[role="tabpanel"]').id, 'cc-topic-materials');
     assert.equal(rep.actions.some(r => r.action === 'campaign-read'), false);
     await rep.api('campaign-read', {}, 403);
-    const search = el('#sdr-header-search input');
+    const search = el('[data-cc-search] input');
     search.value = 'worksheet';
-    el('#sdr-header-search').requestSubmit();
+    search.form.requestSubmit();
     const result = el('[data-cc-search-results] button');
     assert.equal(result.textContent, 'Sales Materials');
     result.click();

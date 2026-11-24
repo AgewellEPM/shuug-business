@@ -63,7 +63,7 @@
 #coach-form textarea:focus-visible { outline: none; }
 #coach-form button, #coach-goal-form [type="submit"] { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 10px; padding: 9px 12px; background: var(--coach-accent); color: #fff; font-size: 14px; font-weight: 650; }
 #coach-form button:disabled { background: #e4ebf2; color: #54697d; opacity: 1; }
-#coach-form #coach-mic { flex: none; justify-content: center; width: 34px; min-height: 35px; padding: 5px; color: #235d68; background: #e6f3f2; }
+#coach-form #coach-mic { flex: none; justify-content: center; min-height: 38px; padding: 7px 9px; color: #235d68; background: #e6f3f2; }
 #coach-form #coach-mic[aria-pressed="true"] { background: #185d60; color: white; }
 .coach-mail-preview { margin: 9px 0; padding: 10px; background: #f2f7fb; border: 1px solid var(--coach-line); border-radius: 9px; overflow-wrap: anywhere; font-size: 13px; }
 .coach-mail-preview details { padding: 6px 0; }

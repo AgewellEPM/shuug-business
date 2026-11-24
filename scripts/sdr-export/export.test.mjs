@@ -453,11 +453,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(header.querySelector('#sdr-earnings').hidden, false);
     assert.ok(header.querySelector('#sales-logout'));
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
-    const search = header.querySelector('#sdr-header-search');
-    search.querySelector('input').value = 'Solar';
-    search.requestSubmit();
+    document.querySelector('#coach-launch').click();
+    await waitFor(() => !document.querySelector('#coach-form textarea').disabled, 'Coach did not finish opening over Support');
+    assert.equal(document.body.dataset.sdrView, 'support');
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
+    document.querySelector('.sdr-nav [data-tab="pipeline"]').click();
     assert.equal(document.body.dataset.sdrView, 'pipeline');
-    assert.equal(document.querySelector('#sales-filter').value, 'Solar');
+    assert.match(document.querySelector('#coach-context').textContent, /Pipeline/);
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -1007,7 +1010,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.elements.body.value, reviewedDraft);
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
-    assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-header-search'));
+    assert.ok(pageDocument.querySelector('#sales-filter'));
+    assert.ok(pageDocument.querySelector('#coach-launch'));
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });

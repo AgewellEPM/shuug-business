@@ -32,7 +32,7 @@ export function renderSalesCoach(icon) {
         <div class="coach-compose"><p id="coach-status" role="status"></p>
           <button type="button" id="coach-reload" hidden>Reload conversation</button>
           <form id="coach-form"><textarea name="question" rows="2" maxlength="2400" required disabled aria-label="Ask Tinky a question" placeholder="Ask about TinkyTown, a prospect, or your next step…"></textarea>
-            <button type="button" id="coach-mic" aria-label="Speak to Tinky" aria-pressed="false" title="Speak to Tinky" hidden><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg></button>
+            <button type="button" id="coach-mic" aria-label="Speak to Tinky" aria-pressed="false" title="Speak to Tinky" disabled><svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8"/></svg><span>Speak</span></button>
             <button type="submit" disabled>Ask Tinky ${icon('chatSend')}</button></form>
         </div>
       </div>
