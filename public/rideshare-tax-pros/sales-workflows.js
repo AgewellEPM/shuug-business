@@ -57,7 +57,7 @@
       return counts;
     },
 
-    mount({ office, api, status = () => {}, refresh = async () => {}, drafts = {}, events = [] }) {
+    mount({ office, api, status = () => {}, refresh = async () => {}, drafts = {}, events = [], onCompose }) {
       const parent = document.querySelector('#sales-detail'); if (!parent) return;
       let host = parent.querySelector('#sales-contact-tools');
       if (!host) { host = document.createElement('section'); host.id = 'sales-contact-tools'; parent.append(host); }
@@ -86,6 +86,19 @@
       };
       compose.addEventListener('submit', event => event.preventDefault());
       compose.addEventListener('input', event => { if (event.target !== compose.elements.draftReviewed) compose.elements.draftReviewed.checked = false; updateEmail(); }); updateEmail();
+      if (onCompose) {
+        host.querySelector('.sales-contact-provenance + .field-hint').textContent = 'Review the draft below, then open it in Email to send from your connected business mailbox.';
+        const external = compose.querySelector('[data-open-email]');
+        if (external) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'button primary';
+          button.textContent = 'Open in Email';
+          button.onclick = () => onCompose({ to: address, subject: compose.elements.subject.value, body: compose.elements.body.value });
+          external.classList.replace('primary', 'secondary');
+          external.before(button);
+        }
+      }
       host.querySelector('[data-restore-draft]')?.addEventListener('click', () => { compose.elements.subject.value = latestDraft.subject || ''; compose.elements.body.value = latestDraft.message || ''; compose.elements.draftReviewed.checked = false; updateEmail(); announce('Last saved draft restored for review. Nothing was marked as sent.'); });
       host.querySelector('[data-save-draft]').addEventListener('click', async () => {
         if (blocked || !address) return;

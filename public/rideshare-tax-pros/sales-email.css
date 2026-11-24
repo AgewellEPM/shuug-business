@@ -1,0 +1,83 @@
+[data-standalone-sdr][data-sdr-view="email"] .sdr-topbar > div:first-child,
+[data-standalone-sdr][data-sdr-view="email"] .sdr-workspace-tracker { display: none; }
+
+.sdr-email-hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: 112px;
+  padding: 18px clamp(16px, 3vw, 32px);
+  border-radius: 18px;
+  background: linear-gradient(105deg, #0a3284 0%, #0872c2 64%, #36a9ed 100%);
+  color: #fff;
+}
+.sdr-email-hero > div { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 4px 14px; min-width: 0; }
+.sdr-email-hero .sdr-icon { grid-row: 1 / span 2; width: 30px; height: 30px; }
+.sales-console-page .sdr-email-hero h2 { font-size: clamp(28px, 3.5vw, 42px); letter-spacing: -.045em; line-height: 1.05; color: #fff; }
+.sales-console-page .sdr-email-hero p { color: #edf7ff; overflow-wrap: anywhere; }
+.sales-console-page .sdr-email-hero .button.primary { flex: none; background: #fff; color: #0a428c; border-color: #fff; }
+.sales-console-page .sdr-email-hero .button.primary:hover { background: #e7f4ff; }
+.sales-console-page .sdr-email-setup { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 16px; }
+.sales-console-page .sdr-email-workspace { margin-top: 16px; padding: 0; overflow: hidden; }
+.sdr-email-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px; border-bottom: 1px solid var(--glass-border-muted); }
+.sdr-email-folders { display: flex; gap: 3px; padding: 3px; border-radius: 11px; background: #e8eff9; }
+.sales-console-page .sdr-email-folders button { min-height: 38px; padding: 6px 12px; border: none; border-radius: 8px; background: transparent; color: #334969; font: inherit; font-size: .9rem; cursor: pointer; }
+.sales-console-page .sdr-email-folders button[aria-pressed="true"] { background: #d2e8fc; color: #06478f; font-weight: 700; box-shadow: 0 1px 2px #073a7622; }
+.sales-console-page .sdr-email-folders button:hover { background: #deebfa; }
+.sdr-email-search { display: flex; flex: 1 1 260px; gap: 6px; min-width: 0; }
+.sdr-email-search input { width: 100%; min-width: 0; padding: 8px 11px; border: 1px solid var(--glass-border-muted); border-radius: 10px; background: var(--glass-fill-muted); color: var(--text-primary); font: inherit; }
+.sdr-email-contact-filter { display: flex; justify-content: space-between; gap: 10px; align-items: center; flex-wrap: wrap; padding: 8px 14px; background-color: #eaf3ff; color: #184b7f; overflow-wrap: anywhere; }
+.sales-console-page .sdr-email-status { margin: 0; padding: 9px 14px; border-bottom: 1px solid var(--glass-border-muted); color: var(--text-secondary); }
+.sdr-email-status:empty, [data-mail-settings-status]:empty, [data-email-editor-status]:empty { display: none; }
+.sales-console-page :is(.sdr-email-status, [data-mail-settings-status], [data-email-editor-status])[data-error="true"] { color: #a52d27; }
+.sdr-email-grid { display: grid; grid-template-columns: minmax(204px, 32%) minmax(0, 1fr); min-height: 420px; }
+.sdr-email-index { min-width: 0; background: #edf3fb; border-right: 1px solid var(--glass-border-muted); }
+.sdr-email-index ul { display: grid; margin: 0; padding: 0; list-style: none; }
+.sales-console-page .sdr-email-index li button {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  min-height: 76px;
+  padding: 12px 14px 12px 16px;
+  border: none;
+  border-left: 3px solid transparent;
+  border-bottom: 1px solid var(--glass-border-muted);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.sales-console-page .sdr-email-index li button:hover,
+.sales-console-page .sdr-email-index li button[aria-current="true"] { background: #dcecff; border-left-color: #1885da; }
+.sales-console-page .sdr-email-index li button:focus-visible { outline-offset: -3px; }
+.sdr-email-index li :is(strong, span:not(.sdr-email-unread), time) { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sdr-email-index li strong { display: block; color: #122b4c; }
+.sdr-email-index li span { font-size: .87rem; }
+.sdr-email-index li time { color: var(--text-secondary); font-size: .76rem; }
+.sdr-email-unread { display: inline-block; width: 7px; height: 7px; margin-inline-end: 7px; border-radius: 50%; background: #0874d6; vertical-align: 1px; }
+.sdr-email-pages { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px; }
+.sdr-email-reader, .sdr-email-editor { display: grid; align-content: start; gap: 13px; min-width: 0; padding: clamp(14px, 2vw, 26px); background: #f9fbff; overflow-wrap: anywhere; }
+.sales-console-page .sdr-email-reader h3, .sales-console-page .sdr-email-editor h3 { font-size: clamp(18px, 2vw, 25px); line-height: 1.2; }
+.sales-console-page .sdr-email-reader .sdr-email-meta { padding-bottom: 11px; border-bottom: 1px solid var(--glass-border-muted); font-size: .86rem; }
+.sales-console-page .sdr-email-reader .sdr-email-placeholder { color: var(--text-tertiary); }
+.sdr-email-body { max-height: 60vh; overflow: auto; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; color: var(--text-primary); font: inherit; line-height: 1.55; }
+.sdr-email-attachments { border-top: 1px solid var(--glass-border-muted); padding-top: 9px; font-size: .88rem; }
+.sdr-email-attachments ul { display: flex; flex-wrap: wrap; gap: 8px; margin: 7px 0 0; padding: 0; list-style: none; }
+.sdr-email-editor .sdr-card-head { margin-bottom: 0; }
+.sdr-email-editor .sdr-email-from { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.sdr-email-editor .sdr-email-choose { justify-self: start; }
+.sdr-email-choices { display: grid; gap: 5px; margin-top: 7px; }
+.sales-console-page .sdr-email-choices .button { display: grid; justify-items: start; gap: 3px; text-align: left; white-space: normal; }
+.sdr-email-settings { margin-bottom: 20px; }
+.sdr-email-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.sdr-email-fields label { min-width: 0; }
+
+@media (max-width: 720px) {
+  .sdr-email-grid { grid-template-columns: minmax(0, 1fr); min-height: 0; }
+  .sdr-email-index { max-height: 260px; overflow: auto; border-right: 0; border-bottom: 1px solid var(--glass-border-muted); }
+  .sdr-email-reader, .sdr-email-editor { min-height: 142px; }
+  .sdr-email-fields { grid-template-columns: minmax(0, 1fr); }
+  .sdr-email-hero .sdr-icon { width: 24px; height: 24px; }
+}

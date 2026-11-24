@@ -1,0 +1,10 @@
+{
+  "name": "universal-sdr-mail",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "imapflow": "2.12.2",
+    "mailparser": "3.15.0",
+    "nodemailer": "10.6.1"
+  }
+}

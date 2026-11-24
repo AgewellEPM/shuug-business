@@ -104,6 +104,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
+    if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
@@ -139,7 +140,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
       const activeAgents = salesTeam ? salesTeam.roster(user, agents) : agents.filter(r => r.status === 'active')
         .map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [], ...agentTerritory(r) }));
-      return { user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents, terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES, ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}) };
+      return { user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents, terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES, ...(tools.repEmail ? { repEmail: tools.repEmail.summary(user) } : {}), ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}) };
     }
     if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
     if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);

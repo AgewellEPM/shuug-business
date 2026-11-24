@@ -21,8 +21,8 @@ export function renderWorkspace(profile, signIn) {
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source, seniorCare = false) {
     let sales = source
-      .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"></head>')
-      .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales.js"')
+      .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"><link rel="stylesheet" href="/sales-email.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales-email.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
       .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}${seniorCare ? ' data-care-crm' : ''}>`)
       .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')

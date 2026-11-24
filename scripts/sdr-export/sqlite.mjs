@@ -1,6 +1,7 @@
 import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
+import { mailStore } from './mail/store.mjs';
 
 const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings']);
 function kindFor(kind) {
@@ -85,6 +86,7 @@ export function sqliteStore(filename) {
   }
 
   return {
+    repMail: mailStore(db, writeTransaction),
     list: kind => all.all(kindFor(kind)).map(decode),
     get,
     create(kind, body) {

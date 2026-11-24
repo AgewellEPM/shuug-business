@@ -8,18 +8,28 @@
   const select = (name, title, options, value) => `<label>${title}<select name="${name}">${options.map(([id, text]) => `<option value="${id}" ${id === value ? 'selected' : ''}>${text}</option>`).join('')}</select></label>`;
   const phone = value => { const digits = String(value || '').replace(/[^\d+]/g, ''); return /^\+?\d{7,15}$/.test(digits) ? digits : ''; };
   function source(value) { try { const u = new URL(value); return ['http:', 'https:'].includes(u.protocol) && !u.username && !u.password ? u.href : ''; } catch { return ''; } }
-  function actions(contact) {
-    if (contact.suppressed) return '<span class="sdr-contact-muted">Contact actions paused</span>';
+  function actions(contact, integrated) {
+    const key = e(contact.officeId + ':' + contact.id);
+    const history = integrated && contact.email && !contact.archived
+      ? `<button type="button" class="button secondary" data-rolodex-email="history" data-email-contact="${key}">Email history</button>` : '';
+    if (contact.suppressed) return '<span class="sdr-contact-muted">Contact actions paused</span>' + history;
     const number = phone(contact.phone || contact.mobile);
-    return `${contact.email ? `<a class="button secondary" href="mailto:${e(encodeURIComponent(contact.email))}">Email</a>` : ''}${number ? `<a class="button secondary" href="tel:${e(number)}${contact.extension && contact.phone ? `;ext=${e(contact.extension)}` : ''}">Call</a>` : ''}`;
+    const email = integrated ? `<button type="button" class="button secondary" data-rolodex-email="compose" data-email-contact="${key}">Email</button>` :
+      `<a class="button secondary" href="mailto:${e(encodeURIComponent(contact.email))}">Email</a>`;
+    return `${contact.email ? email + history : ''}${number ? `<a class="button secondary" href="tel:${e(number)}${contact.extension && contact.phone ? `;ext=${e(contact.extension)}` : ''}">Call</a>` : ''}`;
   }
-  function card(contact, controls = '') {
+  function bindEmail(host, contacts, onEmail) {
+    if (!onEmail) return;
+    const people = new Map(contacts.map(contact => [contact.officeId + ':' + contact.id, contact]));
+    host.querySelectorAll('[data-rolodex-email]').forEach(button => button.onclick = () => onEmail(button.dataset.rolodexEmail, people.get(button.dataset.emailContact)));
+  }
+  function card(contact, controls = '', integrated = false) {
     const checked = Boolean(contact.verification);
     return `<article class="sdr-contact-card${contact.archived ? ' sdr-contact-archived' : ''}"><div class="sdr-contact-heading"><div><h4>${e(contact.name || 'Office contact')}</h4><p>${e(label(contact.role))}${contact.title ? ` · ${e(contact.title)}` : ''}</p></div>${contact.primary ? '<span class="sdr-contact-badge">Primary</span>' : ''}</div>
       <p class="sdr-contact-evidence">${contact.archived ? 'Archived' : checked ? 'Name and role source checked' : 'Name and role need checking'}${contact.verification?.at ? ` · ${e(new Date(contact.verification.at).toLocaleDateString())}` : ''}</p>
       <dl class="sdr-contact-facts"><div><dt>Business email</dt><dd>${e(contact.email || 'Missing')}</dd></div><div><dt>Phone</dt><dd>${e(contact.phone || 'Missing')}${contact.extension ? ` ext. ${e(contact.extension)}` : ''}</dd></div>${contact.mobile ? `<div><dt>Mobile</dt><dd>${e(contact.mobile)}</dd></div>` : ''}<div><dt>Preference</dt><dd>${e(preferences.find(([id]) => id === contact.preference)?.[1] || 'Not recorded')}</dd></div></dl>
       ${contact.sourceURL && source(contact.sourceURL) ? `<a href="${e(source(contact.sourceURL))}" target="_blank" rel="noopener noreferrer">Contact source ↗</a>` : ''}${contact.sourceNote ? `<p>${e(contact.sourceNote)}</p>` : ''}${contact.notes ? `<p class="sdr-contact-notes">${e(contact.notes)}</p>` : ''}
-      <div class="sales-actions">${actions(contact)}${controls}</div></article>`;
+      <div class="sales-actions">${actions(contact, integrated)}${controls}</div></article>`;
   }
 
   function addContactEditor(host, opener, { api, onSaved }) {
@@ -130,7 +140,7 @@
   }
 
   window.GigTaxContacts = {
-    mount({ api, status, refresh, onSelect, onNavigate }) {
+    mount({ api, status, refresh, onSelect, onNavigate, onEmail }) {
       const host = document.querySelector('#sales-rolodex');
       if (!host) return null;
       const standalone = document.body.hasAttribute('data-standalone-sdr');
@@ -165,23 +175,24 @@
         });
         results.innerHTML = `<div class="sdr-contact-summary" aria-label="Contact coverage"><span><strong>${counts.contacts || 0}</strong> contacts</span><span><strong>${counts.owners || 0}</strong> owners / partners recorded</span><span><strong>${counts.missingOwner || 0}</strong> offices missing an owner</span><span><strong>${counts.missingEmail || 0}</strong> missing email</span><span><strong>${counts.missingPhone || 0}</strong> missing phone</span></div>
           <div class="sales-toolbar"><label>Search people, offices or locations<input type="search" data-contact-search value="${e(query)}" placeholder="Name, email, phone, office, city or ZIP"></label><label>Show<select data-contact-filter>${[['all', 'Active contacts'], ['owners', 'Owners & partners'], ['missing_email', 'Missing email'], ['missing_phone', 'Missing phone'], ['needs_review', 'Needs source check'], ['do_not_contact', 'Contact actions paused'], ['archived', 'Archived']].map(([id, title]) => `<option value="${id}" ${filter === id ? 'selected' : ''}>${title}</option>`).join('')}</select></label></div>
-          <p role="status">${contacts.length} ${contacts.length === 1 ? 'contact' : 'contacts'} shown</p><div class="sdr-contact-grid">${contacts.map(contact => `<div>${card(contact, `<button type="button" class="button secondary" data-contact-office="${e(contact.officeId)}">Open ${e(contact.officeName)}</button>`)}<p class="sdr-contact-location">${e(contact.officeName)} · ${e(contact.city)}, ${e(contact.state)} ${e(contact.postalCode)}</p></div>`).join('')}</div>
+          <p role="status">${contacts.length} ${contacts.length === 1 ? 'contact' : 'contacts'} shown</p><div class="sdr-contact-grid">${contacts.map(contact => `<div>${card(contact, `<button type="button" class="button secondary" data-contact-office="${e(contact.officeId)}">Open ${e(contact.officeName)}</button>`, Boolean(onEmail))}<p class="sdr-contact-location">${e(contact.officeName)} · ${e(contact.city)}, ${e(contact.state)} ${e(contact.postalCode)}</p></div>`).join('')}</div>
           ${contacts.length ? '' : `<div class="sdr-card"><h3>No contacts in this view</h3><p>${standalone ? 'Use Add contact to add someone to the Rolodex.' : 'Open an office below to add its owner and business contacts, or find an office to start your pipeline.'}</p></div>`}
           <details class="sdr-card" ${!directory.contacts.length ? 'open' : ''}><summary>Add or update contacts by office</summary><div class="sales-actions">${(data?.offices || []).map(office => `<button type="button" class="button secondary" data-contact-office="${e(office.id)}">${e(office.town)} · ${e(office.locality)}, ${e(office.state)}</button>`).join('') || (standalone ? '<p>You can add an organization when you add its first contact.</p>' : '<p>No saved offices yet. Find and save an office first.</p>')}</div></details>`;
         host.querySelector('[data-contact-search]').addEventListener('input', event => { query = event.target.value; render(); });
         host.querySelector('[data-contact-filter]').addEventListener('change', event => { filter = event.target.value; render(); });
         host.querySelectorAll('[data-contact-office]').forEach(button => button.onclick = async () => { try { await onSelect(button.dataset.contactOffice); } catch (error) { status(error.message, true); } });
+        bindEmail(results, contacts, onEmail);
         if (focused) { const next = host.querySelector('[data-contact-search]'); next.focus(); if (typeof position === 'number') next.setSelectionRange(position, position); }
       };
       return { render(value) { data = value; editor?.update(data); render(); } };
     },
 
-    office({ office, book, api, status, refresh }) {
+    office({ office, book, api, status, refresh, onEmail }) {
       if (!book) return;
       const host = document.createElement('section'); host.id = 'sales-office-contacts'; host.className = 'sdr-office-contacts';
       const parent = document.querySelector('#sales-detail'); parent.insertBefore(host, parent.querySelector('#sales-update-office'));
       let editing = null, busy = false;
-      const contacts = book.contacts || [];
+      const contacts = (book.contacts || []).map(contact => ({ ...contact, officeId: String(office.id), officeName: office.town }));
       const localStatus = message => { const target = host.querySelector('[data-contact-status]'); if (target) target.textContent = message; };
       async function command(action, contactId, extra = {}) {
         if (busy) return;
@@ -205,9 +216,10 @@
         form.elements.name.focus();
       }
       host.innerHTML = `<h3>Owners & contacts</h3><p>Keep owners, partners and staff as separate people. The primary contact is used by the office’s conversation tools.</p><div class="sales-actions"><button type="button" class="button secondary" data-add-owner>Add owner</button><button type="button" class="button secondary" data-add-contact>Add contact</button></div><p role="status" aria-live="polite" data-contact-status></p><div data-contact-editor hidden></div>
-        ${contacts.filter(c => !c.archived).map(contact => card(contact, `<button type="button" class="button secondary" data-edit-contact="${e(contact.id)}">Edit</button>${!contact.primary ? `<button type="button" class="button secondary" data-primary-contact="${e(contact.id)}">Make primary</button>` : ''}<button type="button" class="button secondary" data-archive-contact="${e(contact.id)}">Archive</button>`)).join('') || '<p>No contacts saved. Add the owner or a public business contact.</p>'}
+        ${contacts.filter(c => !c.archived).map(contact => card(contact, `<button type="button" class="button secondary" data-edit-contact="${e(contact.id)}">Edit</button>${!contact.primary ? `<button type="button" class="button secondary" data-primary-contact="${e(contact.id)}">Make primary</button>` : ''}<button type="button" class="button secondary" data-archive-contact="${e(contact.id)}">Archive</button>`, Boolean(onEmail))).join('') || '<p>No contacts saved. Add the owner or a public business contact.</p>'}
         ${contacts.some(c => c.archived) ? `<details><summary>Archived contacts</summary>${contacts.filter(c => c.archived).map(contact => card(contact, `<button type="button" class="button secondary" data-restore-contact="${e(contact.id)}">Restore</button>`)).join('')}</details>` : ''}`;
       host.querySelector('[data-add-owner]').onclick = () => edit(null, true);
+      bindEmail(host, contacts, onEmail);
       host.querySelector('[data-add-contact]').onclick = () => edit();
       host.querySelectorAll('[data-edit-contact]').forEach(button => button.onclick = () => edit(contacts.find(c => c.id === button.dataset.editContact)));
       for (const [key, action] of [['primaryContact', 'set-primary-contact'], ['archiveContact', 'archive-contact'], ['restoreContact', 'restore-contact']]) {
