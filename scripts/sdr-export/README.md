@@ -73,6 +73,10 @@ The owner can revoke any member. Each member can revoke a direct report, which e
 
 Members on other devices use the workspace’s hosted HTTPS address. An address beginning with `127.0.0.1` opens the workspace on the Mac running it.
 
+Open **Team chat** in the sidebar or on the Sales team page. The owner and active sales reps share the same channels in Universal CRM and Senior Care CRM. Start in **#general**, **#field-notes**, or **#wins**. The owner can use **+** beside Channels to create a channel and give it a topic. All channels are visible to the sales team.
+
+Press **Enter** to send, use **Shift + Enter** for a new line, or choose **Reply** on a message to quote it. Unread counts are personal. Each channel keeps its history in this workspace’s SQLite database.
+
 ## Campaigns
 
 Open **Campaigns** as the workspace owner. Enter your company, offer, desired next step, city, state and prospect keywords. Choose your saved LinkedIn prospects, the project directory, or Connecticut's public business registry. Click **Save campaign** and **Run now**. The runner collects matching companies, checks published roles and business contact channels, and prepares a draft tailored to each company using your offer. Companies with usable business addresses also go to Pipeline. **Repeat every** enables a saved schedule while the server runs, and **Pause schedule** stops future runs.

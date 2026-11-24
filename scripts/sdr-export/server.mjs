@@ -97,6 +97,7 @@ const sales = createHandler(env, db, {
   territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,
+  teamChat: db.chat,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -168,5 +169,6 @@ const scheduler = setInterval(() => {
 scheduler.unref();
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
   clearInterval(scheduler);
+  db.chat.close();
   server.close(async () => { await scheduledRun; db.close(); });
 });
