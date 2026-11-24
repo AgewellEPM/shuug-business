@@ -93,3 +93,4 @@ body[data-care-present] .care-venue-kiosk { height:calc(100dvh - 78px); }
 .ck-thinking span { font-size:2.2rem; animation:ck-pulse 1.2s ease-in-out infinite; }
 @keyframes ck-pulse { 50% { transform:scale(1.18); opacity:.65; } }
 @media (prefers-reduced-motion:reduce) { .ck-thinking span { animation:none; } }
+.care-kiosk-tile[data-reply] .ck-label strong { font-size:.95rem; font-weight:700; letter-spacing:0; line-height:1.22; text-transform:none; }

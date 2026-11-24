@@ -83,6 +83,8 @@ const emojiOf = value => /\p{Extended_Pictographic}(?:[️‍]|\p{Emoji_Modifier
 function usable(raw, { bedside, allowed, options }) {
   if (!raw || typeof raw.label !== 'string' || typeof raw.sentence !== 'string') return null;
   const say = raw.sentence.replace(/[\u0000-\u001f*_`]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200), label = raw.label.replace(/[\u0000-\u001f*_`]/g, ' ').trim().slice(0, 40);
+  // Words that belong to the person across the counter are never offered to the visitor.
+  if (/\b(how (can|may) i help|help you|assist you|welcome to|i can help with)\b/i.test(say)) return null;
   if (!/\p{L}/u.test(say) || !/\p{L}/u.test(label) || /https?:|@/i.test(say)) return null;
   const authored = options.find(option => option.say.toLowerCase().replace(/[.!?]+$/, '') === say.toLowerCase().replace(/[.!?]+$/, ''));
   if (authored) return { ...authored };
@@ -102,7 +104,7 @@ const asks = {
   more: (said, shown) => 'The person asked: "' + said + '".\n\nGenerate 9 DIFFERENT response tiles than any previous set — fresh angles, alternate phrasings, variations in tone. Avoid repeating labels or sentences from prior turns.\nPrior labels: ' + shown.join(', '),
   continue: said => 'I just said: "' + said + '".\n\nGenerate 9 more things I might want to add or say next, before the other person responds. I want to keep talking.',
 };
-const easy = 'The visitor is an adult patient whose speech is affected, talking with a nurse, carer or family member. Use short, simple, everyday words: at most 8 words a sentence. Never state a symptom, diagnosis, body side, medicine name or past event the staff did not mention. Offer choices and feelings instead.';
+const easy = 'The visitor is an adult patient whose speech is affected, talking with a nurse, carer or family member. Use short, simple, everyday words: at most 8 words a sentence. Never state a symptom, diagnosis, body side, medicine name or past event the staff did not mention. Offer choices and feelings instead. Every tile must be a direct, natural reply to what was just said. There is no venue goal to return to.';
 const tileShape = { type: 'object', properties: { emoji: { type: 'string' }, label: { type: 'string' }, sentence: { type: 'string' } }, required: ['emoji', 'label', 'sentence'] };
 
 function message(said, mode, shown, place, options) {
@@ -116,11 +118,16 @@ export async function* careReplies({ said, mode = 'reply', log = [], shown = [],
     if (choices) { for (const words of choices) yield { tile: asTile(words) }; return yield { done: true, source: 'question' }; }
   }
   const care = place.bedside ? careOptions(said) : [];
-  const options = [...care, ...place.options.map(say => ({ emoji: '💬', label: say, say }))].slice(0, 18);
+  // Authored words are offered only when they fit what was said, or when staff ask an open question.
+  const spoken = new Set(said.toLowerCase().match(/[a-z]{4,}/g) || []), open = /\b(help you|looking for|need today|do for you|bring you|what would you like)\b/i.test(said);
+  const fitting = place.bedside ? [] : place.options.filter(say => open || (say.toLowerCase().match(/[a-z]{4,}/g) || []).some(word => spoken.has(word) && !/^(have|need|want|your|with|that|this|like|what)$/.test(word)));
+  const options = [...care, ...fitting.map(say => ({ emoji: '💬', label: say, say }))].slice(0, 18);
   const allowed = [said, ...log.map(turn => turn.text), ...care.flatMap(option => [option.say, option.label])].join(' ');
-  const lower = said.toLowerCase(), kind = app.feelings.some(word => lower.includes(word)) ? 'helper' : 'job';
+  const lower = said.toLowerCase(), kind = place.bedside || app.feelings.some(word => lower.includes(word)) ? 'helper' : 'job';
   const seen = new Set(shown.map(label => label.toLowerCase()));
-  let count = 0;
+  let count = 0, made = 0;
+  // The app's own answers to a care question are on screen at once. The AI adds to them.
+  if (mode === 'reply') for (const tile of care.slice(0, 6)) { seen.add(tile.label.toLowerCase()); count++; yield { tile }; }
   try {
     const limit = AbortSignal.timeout(timeout);
     const response = await fetcher('http://127.0.0.1:11434/api/chat', {
@@ -129,7 +136,7 @@ export async function* careReplies({ said, mode = 'reply', log = [], shown = [],
         format: { type: 'object', properties: { tiles: { type: 'array', minItems: 9, maxItems: 9, items: tileShape } }, required: ['tiles'] },
         messages: [{ role: 'system', content: app[kind] + (place.bedside ? '\n\n' + easy : '') },
           ...log.slice(-6).map(turn => ({ role: turn.who === 'Staff' ? 'user' : 'assistant', content: (turn.who === 'Staff' ? 'Staff said: ' : 'I said: ') + turn.text })),
-          { role: 'user', content: message(said, mode, shown, place, place.bedside ? care : options) }] }),
+          { role: 'user', content: message(said, mode, shown, place, options) }] }),
     });
     if (!response.ok) throw new Error('Model unavailable');
     const decoder = new TextDecoder();
@@ -145,15 +152,15 @@ export async function* careReplies({ said, mode = 'reply', log = [], shown = [],
         const tile = usable(raw, { bedside: place.bedside, allowed, options });
         if (!tile || seen.has(tile.label.toLowerCase()) || count >= 9) continue;
         seen.add(tile.label.toLowerCase());
-        count++;
+        count++; made++;
         yield { tile };
       }
     }
   } catch { /* saved replies below */ }
-  if (count >= 3) {
+  if (made >= 2 || count >= 6) {
     // Care answers the model left out are still offered.
     for (const tile of care) if (count < 9 && !seen.has(tile.label.toLowerCase())) { count++; yield { tile }; }
-    return yield { done: true, source: 'ai' };
+    return yield { done: true, source: made ? 'ai' : 'app' };
   }
   const saved = care.length ? care : (place.bedside && mode === 'reply' && yesNo(said)?.map(asTile)) || fixedReplies(said, place.bedside ? mode : 'venue').map(asTile);
   for (const tile of saved) if (!seen.has(tile.label.toLowerCase())) yield { tile };

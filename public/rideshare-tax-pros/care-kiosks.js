@@ -155,7 +155,8 @@
       }
       return used.has(tile.emoji) ? { ...tile, emoji: '💬' } : tile;
     }
-    const replyTile = ({ emoji, label, say }, color = 'blue') => ({ emoji, label, spokenText: say, color, reply: true, navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined });
+    // The tile shows the words it will say, as the demo does.
+    const replyTile = ({ emoji, label, say }, color = 'blue') => ({ emoji, label: /^(yes|no)$/i.test(label) ? label : say, spokenText: say, color, reply: true, navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined });
     // Yes and No stay first and stay put while the AI writes the rest.
     function replyGrid() {
       heading.textContent = boardName.textContent = 'Choose a reply';
@@ -422,6 +423,7 @@
       if (tile.subtitle) label.append(localized(element('small'),tile.subtitle));
       b.append(emoji,label);
       if (tile.wide) b.dataset.wide = '';
+      if (tile.reply) b.dataset.reply = '';
       return b;
     }
     function draw() {
