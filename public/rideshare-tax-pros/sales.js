@@ -242,6 +242,11 @@
       }
       return true;
     }
+    $('[data-sdr-own-profile]')?.addEventListener('click', () => {
+      sidebarSelection++;
+      openNavigation('team', 'profile');
+      teamUI?.view('profile', true);
+    });
     function openNavigation(name, section) {
       if (!standalone) return tab(name);
       const params = new URLSearchParams({ view: name });
@@ -370,8 +375,19 @@
       if (data) { consoleUI?.render(data); contactsUI?.render(data); contractsUI?.render(data); emailUI?.render(data); window.GigTaxProgress?.locations(data, showOffice); }
     }
     function renderIdentity() {
+      const name = data.repProfile?.name || data.user.name;
       const label = $('#sales-name');
-      if (label) label.textContent = data.repProfile?.name || data.user.name;
+      if (label) label.textContent = name;
+      const profile = $('[data-sdr-own-profile]');
+      if (!profile) return;
+      $('[data-profile-name]', profile).textContent = name;
+      $('[data-profile-role]', profile).textContent = data.repProfile?.displayTitle || (data.user.role === 'owner' ? 'Owner' : 'Sales agent');
+      const image = $('img', profile), initials = $('[data-profile-initials]', profile), photo = data.repProfile?.photo;
+      initials.textContent = name.trim().split(/\s+/).slice(0, 2).map(word => Array.from(word)[0] || '').join('').toUpperCase();
+      image.hidden = !photo;
+      initials.hidden = Boolean(photo);
+      if (photo) image.src = photo;
+      else image.removeAttribute('src');
     }
     async function refresh() {
       data = await api('bootstrap');
