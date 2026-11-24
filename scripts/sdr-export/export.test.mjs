@@ -265,6 +265,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(rail.querySelector('[data-tab="contacts"]'), null);
     await waitFor(() => find('[data-support-service="requests"]').textContent === 'Available',
       'Support request availability was not reported');
+    const metric = name => find(`[data-support-metric="${name}"]`).textContent;
+    assert.equal(metric('response'), '—');
+    assert.equal(metric('satisfaction'), '—');
+    const sidebarResources = rail.querySelector('[data-support-sidebar-resources]');
+    sidebarResources.click();
+    assert.match(find('#support-library-title').textContent, /User guides/i);
+    find('[data-support-action="clear-library"]').click();
+    assert.equal(document.activeElement, sidebarResources);
 
     const search = find('[data-support-search]');
     search.elements.query.value = 'facilities by state';
@@ -283,7 +291,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.match(dialog.textContent, /Prepare an agreement for review/);
     find('[data-support-action="close-dialog"]').click();
 
-    find('[data-support-action="create"]').click();
+    const startChat = find('[data-support-action="chat"]');
+    startChat.click();
+    assert.equal(find('#support-dialog-title').textContent, 'Start a support conversation');
     const create = find('[data-support-form="create"]');
     const subject = 'Question about an office agreement';
     const message = 'The <office> asked for the agreement link.';
@@ -291,16 +301,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     create.elements.category.value = 'contracts';
     create.elements.message.value = message;
     create.requestSubmit();
-    const reply = await waitFor(() => find('[data-support-form="reply"]'), 'New support conversation did not open');
+    await waitFor(() => find('[data-support-form="reply"]'), 'New support conversation did not open');
     assert.equal(find('#support-dialog-title').textContent, subject);
     assert.equal(find('.support-thread-message p').textContent, message);
     await waitFor(() => find('[data-support-request-rows] [data-state="open"]'), 'New request did not appear as open');
+    assert.equal(find('[data-support-request-rows] tr').cells.length, 4);
+    find('[data-support-action="close-dialog"]').click();
+    startChat.click();
+    const reply = find('[data-support-form="reply"]');
+    assert.equal(find('#support-dialog-title').textContent, subject);
     reply.elements.status.value = 'resolved';
     reply.elements.message.value = 'The agreement link is in the office contract record.';
     reply.requestSubmit();
     await waitFor(() => find('[data-support-request-rows] [data-state="resolved"]'),
       'Resolved request did not appear in the support table');
     assert.match(find('.support-thread').textContent, /The agreement link is in the office contract record/);
+    const rating = find('[data-support-form="rating"]');
+    rating.elements.rating.value = '4';
+    rating.requestSubmit();
+    await waitFor(() => /^4[.,]0 \/ 5$/.test(metric('satisfaction')), 'Saved rating did not update the satisfaction metric');
+    assert.equal(metric('response'), '—', 'An owner replying to their own request must not create a response time');
     const { requests } = await owner.api('support-requests');
     assert.equal(requests.find(request => request.subject === subject)?.messages.length, 2);
     assert.deepEqual((await differentProject.api('support-requests')).requests, []);

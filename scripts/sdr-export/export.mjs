@@ -47,6 +47,9 @@ const assets = [
   ...['layers-2x', 'layers', 'marker-icon-2x', 'marker-icon', 'marker-shadow'].map(name => 'vendor/leaflet-1.9.4/images/' + name + '.png'),
 ];
 for (const path of assets) copy('public/rideshare-tax-pros/' + path, 'site/' + path);
+for (const filename of readdirSync(join(root, 'public/rideshare-tax-pros/support-art'))) {
+  if (filename.endsWith('.png')) copy('public/rideshare-tax-pros/support-art/' + filename, 'site/support-art/' + filename);
+}
 for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'team-chat.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
