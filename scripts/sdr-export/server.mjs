@@ -24,6 +24,7 @@ import { salesDailyPlan } from '../../sales/sales-daily-plan.mjs';
 import { salesCoach } from './sales-coach.mjs';
 import { localCoachSpeech } from './coach-speech.mjs';
 import { demoKioskAI } from './demo-kiosk-ai.mjs';
+import { monthlyPrizes } from './monthly-prizes.mjs';
 import coachArticles from './coach-help.cjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
@@ -116,6 +117,7 @@ const sales = createHandler(env, db, {
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   careCampaign: profile.focus === 'senior-care',
+  monthlyPrizes: profile.focus === 'senior-care' ? monthlyPrizes(db, { zone: process.env.SDR_BOOKING_TIME_ZONE || 'America/New_York' }) : undefined,
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
   products: profile.focus === 'senior-care' ? workspaceProducts(db) : null,
