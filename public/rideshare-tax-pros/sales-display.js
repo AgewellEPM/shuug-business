@@ -8,6 +8,35 @@
   const key = 'tinkytown.workspace.display.v1';
   let opener;
 
+  // Scale authored font sizes in place, preserving selector order and media queries.
+  // Relative em/percentage text already follows the scaled parent.
+  const absoluteSize = /(?:\d*\.)?\d+(?:px|rem|vw|vh|pt)\b/;
+  const scale = value => 'calc((' + value + ') * var(--sdr-text-scale, 1))';
+  function scaleFonts(style) {
+    const size = style.getPropertyValue('font-size');
+    if (absoluteSize.test(size)) {
+      style.setProperty('font-size', scale(size), style.getPropertyPriority('font-size'));
+      return;
+    }
+    const shorthand = style.getPropertyValue('font');
+    if (absoluteSize.test(shorthand)) {
+      style.setProperty('font', shorthand.replace(absoluteSize, scale), style.getPropertyPriority('font'));
+    }
+  }
+  function scaleRules(rules) {
+    for (const rule of rules) {
+      if (rule.selectorText && rule.style) scaleFonts(rule.style);
+      if (rule.cssRules) scaleRules(rule.cssRules);
+    }
+  }
+  for (const sheet of document.styleSheets) {
+    if (sheet.href && new URL(sheet.href).origin !== location.origin) continue;
+    scaleRules(sheet.cssRules);
+  }
+  const sizeLabel = size.closest('label');
+  if (sizeLabel?.firstChild?.nodeType === Node.TEXT_NODE) sizeLabel.firstChild.textContent = 'Text size ';
+
+
   function reflow() {
     root.toggleAttribute('data-sdr-display-compact', Number(size.value) > 100 && window.innerWidth < Number(size.value) * 12);
   }
