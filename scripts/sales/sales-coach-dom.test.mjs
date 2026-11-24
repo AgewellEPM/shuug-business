@@ -5,6 +5,7 @@ import { JSDOM } from 'jsdom';
 import { renderSalesCoach } from '../rideshare-site/sales-coach.mjs';
 
 const script = readFileSync(new URL('../../public/rideshare-tax-pros/sales-coach.js', import.meta.url), 'utf8');
+const controlsScript = readFileSync(new URL('../../public/rideshare-tax-pros/sales-coach-controls.js', import.meta.url), 'utf8');
 
 test('opening and minimizing the coach preserves the underlying screen and navigation runs once', async t => {
   const dom = new JSDOM('<main id="sales-workspace"><section id="work"></section>' + renderSalesCoach(() => '') + '</main>', {
@@ -38,4 +39,21 @@ test('opening and minimizing the coach preserves the underlying screen and navig
   el('#coach-launch').click(); await new Promise(resolve => setImmediate(resolve));
   assert.equal(navigations, 1);
   coach.reset(); assert.equal(el('#coach-widget').hidden, true); assert.equal(el('#coach-messages').children.length, 0);
+});
+
+test('voice capture stops before a reply is read and resumes only while the rep is in voice mode', () => {
+  const dom = new JSDOM('<button id="mic" hidden></button>', { runScripts: 'outside-only' });
+  const w = dom.window, submitted = [];
+  let listening, spoken;
+  w.SpeechRecognition = class { start() { listening = this; } stop() { listening = null; } abort() { this.stop(); } };
+  w.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+  w.speechSynthesis = { speak(u) { spoken = u; }, cancel() {} };
+  w.eval(controlsScript);
+  const mic = w.document.querySelector('#mic'), voice = w.SdrCoachControls.voice(mic, text => submitted.push(text), () => {});
+  mic.click(); assert.equal(mic.hidden, false);
+  listening.onresult({ results: [{ isFinal: true, 0: { transcript: 'Open my pipeline' } }] });
+  assert.deepEqual(submitted, ['Open my pipeline']); assert.equal(listening, null);
+  voice.answer({ answer: 'Opened Pipeline.' }); assert.equal(spoken.text, 'Opened Pipeline.'); assert.equal(listening, null);
+  spoken.onend(); assert.ok(listening); voice.stop(); assert.equal(listening, null);
+  dom.window.close();
 });

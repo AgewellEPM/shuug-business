@@ -6,10 +6,10 @@
     const find = selector => root.querySelector(selector);
     const buttons = [...root.querySelectorAll('[data-cc-tab]')];
     const pane = button => document.getElementById(button.getAttribute('aria-controls'));
-    const header = document.getElementById('sdr-header-search'), search = header.querySelector('input');
-    const original = { label: search.getAttribute('aria-label'), placeholder: search.placeholder };
+    const searchForm = find('[data-cc-search]');
+    const search = searchForm?.querySelector('input');
     const results = find('[data-cc-search-results]');
-    let active = false, oldQuery = '', campaignQuery = '';
+    let active = false;
 
     function select(button, focus = false) {
       for (const other of buttons) {
@@ -56,28 +56,17 @@
         results.append(link);
       }
     }
-    header.addEventListener('submit', event => {
+    searchForm?.addEventListener('submit', event => {
       if (!active) return;
       event.preventDefault(); event.stopImmediatePropagation();
       searchTopics();
       if (!results.hidden) results.scrollIntoView?.({ block: 'nearest' });
     }, true);
-    search.addEventListener('input', () => { if (active) searchTopics(); });
+    search?.addEventListener('input', () => { if (active) searchTopics(); });
     function view(name) {
       const entering = name === 'campaigns';
-      if (entering !== active) {
-        active = entering;
-        if (active) {
-          oldQuery = search.value;
-          search.value = campaignQuery;
-          search.placeholder = 'Search nursing home campaigns, materials, or sales guides…';
-          search.setAttribute('aria-label', search.placeholder.slice(0, -1));
-          searchTopics();
-        } else {
-          campaignQuery = search.value; search.value = oldQuery;
-          search.placeholder = original.placeholder; search.setAttribute('aria-label', original.label);
-        }
-      }
+      if (entering && !active && search) searchTopics();
+      active = entering;
       if (active) {
         const params = new URLSearchParams(location.hash.slice(1));
         const id = params.get('view') === 'campaigns' && params.get('topic');

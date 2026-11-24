@@ -52,3 +52,6 @@ body.sales-console-page .sdr-display {
 .sdr-reading-status:empty { display: none; }
 .sdr-reading-status { font-size: .85rem; max-width: 16rem; }
 body.sales-console-page [data-display-read][aria-pressed="true"] { border: 2px solid currentColor; }
+body.sales-console-page[data-standalone-sdr] .sdr-topbar-right { flex: 1; }
+body.sales-console-page[data-standalone-sdr] .sdr-workspace-tracker { flex: 1 1 12rem; min-width: 0; }
+body.sales-console-page[data-standalone-sdr] .sdr-xp { flex: 1 1 7rem; width: auto; }

@@ -27,7 +27,7 @@ export function renderWorkspace(profile, signIn) {
       .map(name => `<script src="/${name}.js" defer></script>`).join('') : '';
     let sales = source
       .replace('</head>', '<link rel="stylesheet" href="/sales-coach.css"></head>')
-      .replace('<script src="/sales.js"', '<script src="/sales-coach.js" defer></script><script src="/sales.js"')
+      .replace('<script src="/sales.js"', '<script src="/sales-coach-controls.js" defer></script><script src="/sales-coach.js" defer></script><script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-contract-center.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-contract-center.js" defer></script><script src="/sales.js"')
       .replace('</head>', careStyles + '</head>')
@@ -44,14 +44,18 @@ export function renderWorkspace(profile, signIn) {
       .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '');
     sales = sales
       .replace('</head>', '<link rel="stylesheet" href="/sales-display.css"><script src="/sales-display.js" defer></script></head>')
-      .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Display settings</button><button type="button" class="button secondary" data-display-read aria-pressed="false">Read aloud</button><span class="sdr-reading-status" role="status" data-display-reading-status></span>' + button)
+      .replace(/<form id="sdr-header-search"[^>]*>[\s\S]*?<\/form>/, '')
+      .replace('<section class="cc-search-results', '<form class="cc-card" data-cc-search role="search"><label>Search campaign materials <input type="search" maxlength="180"></label></form><section class="cc-search-results')
+      .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Settings</button>' + button)
       .replace('</body>', `<dialog class="sdr-display" aria-labelledby="sdr-display-title">
         <form method="dialog">
-          <h2 id="sdr-display-title">Display settings</h2>
+          <h2 id="sdr-display-title">Settings</h2>
           <label>Text and interface size
             <select name="scale"><option value="100">100% (default)</option><option value="125">125%</option><option value="150">150%</option><option value="175">175%</option><option value="200">200%</option></select>
           </label>
           <label class="sdr-display-check"><input type="checkbox" name="monochrome"> Black and white</label>
+          <button type="button" class="button secondary" data-display-read aria-pressed="false">Read aloud</button>
+          <span class="sdr-reading-status" role="status" data-display-reading-status></span>
           <div class="sdr-display-actions"><button type="button" class="button secondary" data-display-reset>Reset</button><button class="button primary" autofocus>Done</button></div>
         </form>
       </dialog></body>`);
