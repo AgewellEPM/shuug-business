@@ -86,7 +86,6 @@ function standaloneOverview(queue) {
   <div class="sdr-overview-column"><section class="sdr-card" id="sdr-overview-territory"></section><section class="sdr-card" id="sdr-overview-tasks"></section></div></div>`;
 }
 
-const standaloneHeader = `<form id="sdr-header-search" role="search">${icon('discover')}<input aria-label="Search saved businesses, contacts, or locations" type="search" placeholder="Search businesses, contacts, or locations…" maxlength="180"></form>`;
 const workspaceTracker = `<div class="sdr-workspace-tracker"><div class="sdr-xp" title="10 XP per saved business, 20 per first contact, 30 per reply, and 40 per signed agreement"><div><strong id="sdr-xp-level">Level 1</strong><span id="sdr-xp-label">0 / 100 XP</span></div><progress id="sdr-xp-bar" aria-label="XP toward the next level" max="100" value="0"></progress></div>
 <details id="sdr-earnings" hidden><summary><span>Earned to date</span><strong id="sdr-earning-amount">$0.00</strong></summary><div class="sdr-earnings-panel"><h2>Recorded earnings</h2><form id="sdr-earnings-form" class="sales-form"><label>Payment description<input name="label" maxlength="140" required></label><label>Amount received (USD)<input name="amount" inputmode="decimal" maxlength="12" placeholder="0.00" required></label><button class="button primary" type="submit">Record payment</button></form><div id="sdr-earnings-receipts"></div></div></details></div>`;
 const sidebarProfile = `<button type="button" class="sdr-sidebar-profile" data-sdr-own-profile aria-label="Open My profile">
@@ -242,7 +241,19 @@ const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidd
   <div class="sdr-card"><h2>Collected prospects</h2><div id="sales-campaign-results" aria-live="polite"></div></div>
 </section>`;
 
-function standaloneTeam(legacyTeam) {
+function teamNavigation(careWorkspace, seniorCare) {
+  const groups = [
+    ['Meetings', [['calendar', 'Calendar'], ...(careWorkspace ? [['demo', 'Demo']] : [])]],
+    ['Communication', [['chat', 'Team chat'], ['email', 'Email'], ['mail', 'Senders']]],
+    ['Coverage & contacts', [['territories', 'Territories'], ['locations', 'Signup locations'], ['contacts', seniorCare ? 'Contacts' : 'Owners & Rolodex']]],
+  ];
+  return `<nav class="sdr-team-tools" aria-label="Sales team tools" data-team-tools>
+    ${groups.map(([title, tools]) => `<section><h3>${title}</h3><div>${tools.map(([name, label]) =>
+      `<button type="button" data-tab="${name}" aria-pressed="false"${name === 'territories' ? ' id="sales-team-territories"' : ''}>${icon(name)}<span>${label}</span></button>`).join('')}</div></section>`).join('')}
+  </nav>`;
+}
+
+function standaloneTeam(legacyTeam, careWorkspace, seniorCare) {
   const terms = section(legacyTeam, '<section id="sales-enrollment-terms"')
     .replace('<section id="sales-enrollment-terms">', '<section id="sales-enrollment-terms" class="sdr-team-setting-content" data-owner-only hidden>')
     .replace('<h3>Enrollment terms</h3>', '');
@@ -253,12 +264,11 @@ function standaloneTeam(legacyTeam) {
         <div class="sdr-team-hero-title"><h2 id="sales-team-title">Sales team</h2><p>Reporting structure, rep profiles, and territory assignments</p></div>
         <div class="sdr-team-hero-actions">
           <button type="button" class="button primary" id="sales-team-add-rep">${icon('prospects')} Add sales rep</button>
-          <a href="#view=territories" class="button secondary" id="sales-team-territories">${icon('territories')} Assign counties</a>
-          <a href="#view=chat" class="button secondary">${icon('chat')} Team chat</a>
         </div>
       </div>
       <img class="sdr-team-hero-art" src="/sales-team-territory-planning.webp" alt="" width="1000" height="500">
     </header>
+    ${teamNavigation(careWorkspace, seniorCare)}
     <div class="sdr-team-surface">
       <div class="sdr-team-tabs" role="tablist" aria-label="Sales team workspace">
         ${tabs.map(([key, label], index) => `<button type="button" role="tab" id="sales-team-tab-${key}" data-team-view="${key}" aria-controls="sales-team-pane-${key}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}"${key === 'settings' ? ' data-owner-only hidden' : ''}>${label}</button>`).join('')}
@@ -356,42 +366,39 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
     toolbar = toolbar.replace('<label>Waiting on', '<label>Facility type<select id="sales-facility-kind-filter" data-facility-kind-filter><option value="">All facilities</option><option value="nursing-home">Nursing homes</option><option value="senior-center">Senior centers</option><option value="unclassified">Unclassified CRM records</option><option value="all">All CRM records</option></select></label><label>Waiting on')
       .replace('Office, city or contact', 'Facility, city or contact').replace('Anyone / all offices', 'Anyone / all accounts').replace('Office reply', 'Facility reply');
   }
-  const nav = [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'], ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
-  if (prospects) nav.splice(1, 0, ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['calendar', 'Calendar']);
-  if (prospects) {
-    nav.push(['chat', 'Team chat'], ['email', 'Email']);
-    const order = ['home', 'calendar', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'chat', 'contacts', 'locations', 'email', 'mail'];
-    nav.sort((first, second) => order.indexOf(first[0]) - order.indexOf(second[0]));
-  }
-  if (seniorCare) nav.splice(nav.findIndex(([name]) => name === 'territories'), 0, ['facilities', 'Facility directory']);
-  if (prospects) {
-    nav.unshift(['today', 'Today’s Plan']);
-    nav.push(['support', 'Support']);
-  }
-  if (careWorkspace) nav.splice(2, 0, ['demo', 'Demo']);
+  const sidebarNav = prospects
+    ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
+      ['contracts', 'Contracts'], ...(seniorCare ? [['facilities', 'Facility directory']] : []), ['team', 'Sales team'], ['support', 'Support']]
+    : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
+      ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const careLabels = { contacts: 'Contacts', discover: 'Local research' };
-  const sidebarNav = prospects ? nav.filter(([name]) => !['discover', 'contacts'].includes(name)) : nav;
   const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
+  const signOut = '<button type="button" class="button secondary" id="sales-logout">Sign out</button>';
+  const hostedHeader = `<header class="sdr-topbar"><div><p class="eyebrow">Your office network</p><h1 id="sales-view-title">Overview</h1></div><div class="sdr-topbar-right"><div id="sales-revenue" hidden></div><div id="sales-identity" hidden><span class="sdr-user-avatar" aria-hidden="true">G</span><span id="sales-name"></span>${signOut}</div></div></header>`;
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Office workspace | Gig Tax Pros</title><meta name="description" content="Private Gig Tax Pros office recruitment workspace."><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/sales.css"><link rel="stylesheet" href="/sales-console.css"><link rel="stylesheet" href="/vendor/leaflet-1.9.4/leaflet.css"><link rel="stylesheet" href="/local-offices.css"><script src="/directory-admin.js" defer></script><script src="/sales-research.js" defer></script><script src="/sales-workflows.js" defer></script><script src="/sales-console.js" defer></script><script src="/sales-contacts.js" defer></script><script src="/sales-progress.js" defer></script><script src="/sales-contracts.js" defer></script><script src="/vendor/leaflet-1.9.4/leaflet.js" defer></script><script src="/local-contacts.js" defer></script><script src="/local-offices.js" defer></script><link rel="stylesheet" href="/territories.css"><script src="/territories.js" defer></script><script src="/sales.js" defer></script></head>
 <body class="sales-console-page"><a class="sdr-skip" href="#sales-main">Skip to workspace</a><div class="sdr-ambient" aria-hidden="true"><i></i><i></i><i></i></div><div class="sales-console" data-sales-app${seniorCare ? ' data-senior-care' : ''}>
 <div id="sales-gate" class="sdr-gate"><div class="sdr-gate-brand"><img src="/assets/brand-mark.svg" width="42" height="42" alt=""><strong>Gig Tax Pros</strong></div>${login}<p id="sales-login-status" role="status" aria-live="polite"></p></div>
-<div id="sales-workspace" class="sdr-layout" hidden><aside class="sdr-sidebar"><a class="sdr-brand" href="/" aria-label="Gig Tax Pros public website"><img src="/assets/brand-mark.svg" width="34" height="34" alt="">${seniorCare ? `<span class="care-brand-icon">${icon('center')}</span><span><strong>TinkyTown</strong><small>Senior care sales</small></span>` : prospects ? '<span class="sdr-brand-mark" aria-hidden="true">🚂</span><span><strong>TinkyTown</strong><small>Gig Tax Pros</small></span>' : '<span><strong>Gig Tax Pros</strong><small>OFFICE NETWORK</small></span>'}</a>${prospects ? sidebarProfile : ''}${careWorkspace ? `<a class="care-workspace-switch" href="${seniorCare ? '/sales' : '/sales/senior-care'}">${icon(seniorCare ? 'pipeline' : 'center')}<span>${seniorCare ? 'Universal CRM' : 'Senior Care CRM'}</span>${icon('arrow')}</a>` : ''}<p class="sdr-sidebar-label">Workspace</p><nav class="sdr-nav sales-tabs" aria-label="Sales workspace">${navButtons}</nav><div class="sdr-sidebar-bottom">${prospects ? renderSupportSidebar() : ''}<span class="sdr-workspace-indicator">${prospects ? 'Workspace online' : 'Private team workspace'}</span><a href="/">Open public website ↗</a></div></aside>
-<div class="sdr-main" id="sales-main" tabindex="-1"><header class="sdr-topbar"><div>${prospects ? '' : '<p class="eyebrow">Your office network</p>'}<h1 id="sales-view-title">Overview</h1></div>${seniorCare ? standaloneHeader.replaceAll('businesses, contacts, or locations', 'facilities, contacts, or locations') : prospects ? standaloneHeader : ''}<div class="sdr-topbar-right">${prospects ? workspaceTracker : ''}<div id="sales-revenue" hidden></div><div id="sales-identity" hidden><span class="sdr-user-avatar" aria-hidden="true">G</span><span id="sales-name"></span><button class="button secondary" id="sales-logout">Sign out</button></div></div></header><p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
+<div id="sales-workspace" class="sdr-layout" hidden><aside class="sdr-sidebar"><a class="sdr-brand" href="/" aria-label="Gig Tax Pros public website"><img src="/assets/brand-mark.svg" width="34" height="34" alt="">${seniorCare ? `<span class="care-brand-icon">${icon('center')}</span><span><strong>TinkyTown</strong><small>Senior care sales</small></span>` : prospects ? '<span class="sdr-brand-mark" aria-hidden="true">🚂</span><span><strong>TinkyTown</strong><small>Gig Tax Pros</small></span>' : '<span><strong>Gig Tax Pros</strong><small>OFFICE NETWORK</small></span>'}</a>${prospects ? sidebarProfile : ''}${careWorkspace ? `<a class="care-workspace-switch" href="${seniorCare ? '/sales' : '/sales/senior-care'}">${icon(seniorCare ? 'pipeline' : 'center')}<span>${seniorCare ? 'Universal CRM' : 'Senior Care CRM'}</span>${icon('arrow')}</a>` : ''}<p class="sdr-sidebar-label">Workspace</p><nav class="sdr-nav sales-tabs" aria-label="Sales workspace">${navButtons}</nav><div class="sdr-sidebar-bottom">${prospects ? renderSupportSidebar() + signOut : ''}<span class="sdr-workspace-indicator">${prospects ? 'Workspace online' : 'Private team workspace'}</span><a href="/">Open public website ↗</a></div></aside>
+<div class="sdr-main" id="sales-main" tabindex="-1">${prospects ? '' : hostedHeader}<p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
-<section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
+<section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}${prospects ? workspaceTracker + '<div id="sales-revenue" hidden></div>' : ''}</section>
+<section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section>
+<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
+${seniorCare ? standaloneFacilities : ''}
+${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + renderSupport() : team}
+${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
+  <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
+  ${standaloneTeam(team, careWorkspace, seniorCare)}` : ''}
 ${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
-<section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
+<section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
-<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
 <section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title">
 ${prospects ? `<header class="sdr-territory-hero">
   <div class="sdr-territory-hero-title">${icon('territories')}<div><h2 id="sales-territory-title">Territories</h2><p>Explore territories and see who covers each area</p></div></div>
   <label class="sdr-territory-state-field">State<select id="sales-territory-state"><option value="">All states</option></select></label>
 </header>` : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
 <div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
-${seniorCare ? standaloneFacilities : ''}
-${prospects ? renderTeamChat(icon) : ''}
-${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + standaloneTeam(team) + renderSupport() : team}</div>
+${prospects ? renderTeamChat(icon) + '</div>' : ''}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

@@ -160,21 +160,20 @@ test('reps can attach their own API and only owners can share an endpoint across
 });
 test('a verified rep mailbox sends booking invitations only for the account connection the rep enabled', async t => {
   const { db } = project(t), key = randomBytes(32).toString('hex'), sent = [];
-  const repMail = repEmailWorkspace(db, key, {}, {
-    async verify() {},
-    async send(account, provider, message) { sent.push({ from: account.address, message }); return { saveCopy: async () => true }; },
-  });
+  const mailEnv = { ZOHO_CLIENT_ID: 'fixture-client', ZOHO_CLIENT_SECRET: 'fixture-secret' };
+  const repMail = repEmailWorkspace(db, key, mailEnv, { transport: {
+    async prepare(account, message, files) { return async () => { sent.push({ from: account.address, message, files }); }; },
+  } });
   const repRow = db.create('agents', { status: 'active', contact_name: 'Rep', contact_email: 'rep@example.invalid', notes: '{}' });
   const rep = { id: String(repRow.id), name: 'Rep', role: 'agent', email: repRow.contact_email };
   const app = bookings({}, db, origin, key, { now: () => fixed, repMail });
   const dashboard = () => app.staff(rep, 'booking-dashboard', {});
   await assert.rejects(app.staff(rep, 'booking-mailbox', { enabled: true }), fails(409));
-  const account = await repMail.dispatch(rep, 'rep-email-connect', {
-    name: 'Rep', address: rep.email, provider: 'gmail', password: 'fixture-mailbox-credential', revision: '' });
+  mailEnv.ZOHO_REFRESH_TOKEN = 'fixture-grant';
   assert.equal((await dashboard()).connections.email, 'unconfigured');
   await assert.rejects(app.staff(owner, 'booking-mailbox', { host: rep.id, enabled: true }), fails(403));
   await app.staff(rep, 'booking-mailbox', { enabled: true });
-  assert.equal((await dashboard()).connections.email, 'smtp');
+  assert.equal((await dashboard()).connections.email, 'zoho');
   await app.staff(rep, 'booking-settings', { ...(await dashboard()).policy, published: true });
   const days = await app.publicAction('slots', { host: rep.id, type: 'demo', zone: 'UTC', month: '2027-03' });
   const slots = Object.values(days.days).flat();
@@ -183,12 +182,11 @@ test('a verified rep mailbox sends booking invitations only for the account conn
   assert.equal(app.publicAction('read', { token }).email, 'accepted');
   assert.deepEqual(sent.map(row => row.from), [rep.email, rep.email]);
   assert.equal(sent[0].message.to, event.booking.client.email);
-  assert.match(sent[0].message.icalEvent.content, /METHOD:REQUEST/);
+  assert.match(Buffer.from(sent[0].files[0].base64, 'base64').toString(), /METHOD:REQUEST/);
   assert.match(sent[0].message.body, /#manage=/);
   assert.doesNotMatch(sent[1].message.body, /#manage=/);
   await app.publicAction('reschedule', { token, revision: 1, start: slots[4], zone: 'UTC' });
-  await repMail.dispatch(rep, 'rep-email-disconnect', { revision: account.revision });
-  await repMail.dispatch(rep, 'rep-email-connect', { name: 'Rep', address: rep.email, provider: 'gmail', password: 'replacement-fixture', revision: '' });
+  mailEnv.ZOHO_REFRESH_TOKEN = 'replacement-fixture';
   await app.tick(); assert.equal(sent.length, 2);
   assert.equal(app.publicAction('read', { token }).email, 'setup-changed');
   assert.equal((await dashboard()).connections.email, 'unconfigured');

@@ -15,7 +15,8 @@
     targets.filter(Boolean).forEach(el => { el.textContent = message; el.dataset.error = error; });
   };
   async function api(action, body = {}, signal) {
-    const r = await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', signal, body: JSON.stringify({ ...body, action }) });
+    const endpoint = action.startsWith('rep-email-') ? '/api/sales/mail/v1' : '/api/sales';
+    const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', signal, body: JSON.stringify({ ...body, action }) });
     const result = await r.json();
     if (!r.ok) { const error = new Error(result.error || 'The request did not finish.'); error.status = r.status; throw error; }
     return result;
@@ -62,12 +63,19 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
+    const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
+    const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
-      const enteringWorkspace = standalone && ['today','demo','team','territories','chat','support'].includes(name) && document.body.dataset.sdrView !== name;
+      const teamTool = teamTools.has(name);
+      const enteringWorkspace = standalone && (teamTool || ['today','team','support'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
+      if (teamArea) {
+        teamArea.hidden = name !== 'team' && !teamTool;
+        teamReturn.hidden = !teamTool;
+      }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
-      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', support: 'Support Center' })[name] || 'Workspace';
       $('#sales-stats').hidden = ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','support'].includes(name);
       if (name === 'calendar') {
@@ -139,7 +147,7 @@
         if (document.body.dataset.sdrView !== params.get('view')) tab(params.get('view'));
         return true;
       }
-      if (standalone && ['pipeline', 'contacts', 'calendar'].includes(params.get('view'))) { tab(params.get('view')); return true; }
+      if (standalone && ['pipeline', 'contacts', 'calendar', 'locations', 'contracts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (emailUI && ['email', 'mail'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
       if (teamUI && params.get('view') === 'team') {
@@ -167,12 +175,20 @@
       tab('team');
       teamUI?.view('profile', true);
     });
-    $('#sales-team-territories')?.addEventListener('click', event => {
-      event.preventDefault();
-      history.replaceState(null, '', location.pathname + location.search + '#view=territories');
-      showRequestedView();
+    function openNavigation(name) {
+      if (!standalone) return tab(name);
+      const hash = '#view=' + encodeURIComponent(name);
+      if (location.hash !== hash) history.pushState(null, '', hash);
+      if (!showRequestedView()) tab(name);
+    }
+    teamReturn?.addEventListener('click', () => {
+      const previous = teamTools.get(document.body.dataset.sdrView);
+      openNavigation('team');
+      previous?.focus({ preventScroll: true });
     });
-    if (standalone) window.addEventListener('hashchange', () => { if (data) showRequestedView(); });
+    if (standalone) window.addEventListener('hashchange', () => {
+      if (data && !showRequestedView() && !location.hash) tab(defaultView);
+    });
     function closeDetail() {
       const drawer = $('#sales-detail-drawer'); if (!drawer) return;
       drawer.hidden = true; $('#sales-detail-backdrop').hidden = true;
@@ -215,7 +231,8 @@
     }
     function renderIdentity() {
       const name = data.repProfile?.name || data.user.name;
-      $('#sales-name').textContent = name;
+      const label = $('#sales-name');
+      if (label) label.textContent = name;
       const profile = $('[data-sdr-own-profile]');
       if (!profile) return;
       $('[data-profile-name]', profile).textContent = name;
@@ -229,7 +246,9 @@
     }
     async function refresh() {
       data = await api('bootstrap');
-      $('#sales-login').hidden = true; $('#sales-workspace').hidden = false; $('#sales-identity').hidden = false;
+      $('#sales-login').hidden = true; $('#sales-workspace').hidden = false;
+      const identity = $('#sales-identity');
+      if (identity) identity.hidden = false;
       renderIdentity();
       todayUI?.render(data);
       if ($('#sales-gate')) $('#sales-gate').hidden = true;
@@ -338,9 +357,10 @@
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
     $('#sales-logout').onclick = run(async () => { await api('logout'); chatUI?.reset(); location.replace(sharedSignIn); });
-    $$('[data-tab]').forEach(button => button.onclick = () => {
+    $$('[data-tab]').forEach(b => b.onclick = () => {
       sidebarSelection++;
-      tab(button.dataset.tab);
+      openNavigation(b.dataset.tab);
+      if (teamTools.has(b.dataset.tab)) teamReturn.focus({ preventScroll: true });
     });
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; $('#sales-facility-kind-filter')?.addEventListener('change', renderList); if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });

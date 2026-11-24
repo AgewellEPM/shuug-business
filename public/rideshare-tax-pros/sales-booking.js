@@ -53,15 +53,16 @@
           cal.append(details);
         }
       }
-      const mail = group('Booking email', email === 'smtp' ? 'Confirmations and change notices go out from the rep’s business mailbox.' :
+      const ownMailbox = email === 'zoho' || email === 'smtp';
+      const mail = group('Booking email', ownMailbox ? 'Confirmations and change notices go out from the rep’s business mailbox.' :
         email === 'live' ? 'Mailgun and an approved sender are connected. Each appointment shows its email status.' :
         email === 'test' ? 'Mailgun test mode is active. Live email requires switching the configured sender to live mode.' :
-          'Send client confirmations and rep notifications from a connected business mailbox or an approved Mailgun sender.');
-      if (own && data.connections.businessMailbox) mail.append(button(email === 'smtp' ? 'Stop using my mailbox' : 'Use my mailbox for bookings', safe(async () => {
-        await api('booking-mailbox', { enabled: email !== 'smtp' }); await load();
+          'Send client confirmations and rep notifications from the assigned business mailbox or an approved Mailgun sender.');
+      if (own && data.connections.businessMailbox) mail.append(button(ownMailbox ? 'Stop using my mailbox' : 'Use my mailbox for bookings', safe(async () => {
+        await api('booking-mailbox', { enabled: !ownMailbox }); await load();
       })));
       else if (own) {
-        const setup = node('a', 'Connect my business mailbox'); setup.href = '/sales#view=mail'; mail.append(setup);
+        const setup = node('a', 'Open sales email'); setup.href = '/sales#view=email'; mail.append(setup);
       }
       const feed = group('Calendar subscription', 'Subscribe in Apple Calendar or another iCalendar app to view this schedule. Anyone with the private link can read the appointments.');
       if (own && data.feedURL) {

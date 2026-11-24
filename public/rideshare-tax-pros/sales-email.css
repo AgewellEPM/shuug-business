@@ -1,6 +1,3 @@
-[data-standalone-sdr][data-sdr-view="email"] .sdr-topbar > div:first-child,
-[data-standalone-sdr][data-sdr-view="email"] .sdr-workspace-tracker { display: none; }
-
 .sdr-email-hero {
   display: flex;
   align-items: center;
@@ -18,10 +15,9 @@
 .sales-console-page .sdr-email-hero p { color: #edf7ff; overflow-wrap: anywhere; }
 .sales-console-page .sdr-email-hero .button.primary { flex: none; background: #fff; color: #0a428c; border-color: #fff; }
 .sales-console-page .sdr-email-hero .button.primary:hover { background: #e7f4ff; }
-.sales-console-page .sdr-email-setup { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin-top: 16px; }
 .sales-console-page .sdr-email-workspace { margin-top: 16px; padding: 0; overflow: hidden; }
 .sdr-email-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 14px; border-bottom: 1px solid var(--glass-border-muted); }
-.sdr-email-folders { display: flex; gap: 3px; padding: 3px; border-radius: 11px; background: #e8eff9; }
+.sdr-email-folders { display: flex; flex-wrap: wrap; gap: 3px; padding: 3px; border-radius: 11px; background: #e8eff9; }
 .sales-console-page .sdr-email-folders button { min-height: 38px; padding: 6px 12px; border: none; border-radius: 8px; background: transparent; color: #334969; font: inherit; font-size: .9rem; cursor: pointer; }
 .sales-console-page .sdr-email-folders button[aria-pressed="true"] { background: #d2e8fc; color: #06478f; font-weight: 700; box-shadow: 0 1px 2px #073a7622; }
 .sales-console-page .sdr-email-folders button:hover { background: #deebfa; }
@@ -70,14 +66,20 @@
 .sdr-email-editor .sdr-email-choose { justify-self: start; }
 .sdr-email-choices { display: grid; gap: 5px; margin-top: 7px; }
 .sales-console-page .sdr-email-choices .button { display: grid; justify-items: start; gap: 3px; text-align: left; white-space: normal; }
+.sdr-email-file-list { margin: 0; padding: 0; list-style: none; }
+.sdr-email-file-list:empty { display: none; }
+.sdr-email-file-list li { display: flex; align-items: center; gap: 8px; padding-block: 3px; }
+.sdr-email-copy summary { width: fit-content; cursor: pointer; color: var(--text-secondary); }
+.sdr-email-copy label { margin-top: 8px; }
 .sdr-email-settings { margin-bottom: 20px; }
-.sdr-email-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.sdr-email-fields label { min-width: 0; }
+.sdr-zoho-admin { margin-top: 12px; }
+.sdr-zoho-admin summary { width: fit-content; cursor: pointer; font-size: .9rem; }
+.sdr-zoho-admin form { max-width: 640px; margin-top: 12px; }
+.sdr-zoho-admin code { white-space: normal; overflow-wrap: anywhere; }
 
 @media (max-width: 720px) {
   .sdr-email-grid { grid-template-columns: minmax(0, 1fr); min-height: 0; }
   .sdr-email-index { max-height: 260px; overflow: auto; border-right: 0; border-bottom: 1px solid var(--glass-border-muted); }
   .sdr-email-reader, .sdr-email-editor { min-height: 142px; }
-  .sdr-email-fields { grid-template-columns: minmax(0, 1fr); }
   .sdr-email-hero .sdr-icon { width: 24px; height: 24px; }
 }

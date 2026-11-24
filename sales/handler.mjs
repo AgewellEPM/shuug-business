@@ -36,22 +36,33 @@ export function createHandler(env = process.env, adapter, tools = {}) {
       if (req.method !== 'POST') throw new HttpError(405, 'Use the sales workspace to make this request.');
       if (!sharedEntry && !origins.includes(req.headers.origin)) throw new HttpError(403, 'Open the sales workspace on its configured website.');
       if (!req.headers['content-type']?.startsWith('application/json')) throw new HttpError(415, 'Use a JSON request.');
+      const mailApi = Boolean(tools.repEmail && req.url?.split('?')[0] === '/api/sales/mail/v1');
+      const cookie = (req.headers.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith(cookiePrefix))?.slice(cookiePrefix.length);
+      const mailApp = mailApi ? service(env, adapter, undefined, tools) : null;
+      if (mailApi && sharedEntry) throw new HttpError(403, 'Use your workspace session for email.');
+      const mailUser = mailApi ? await mailApp.identity(cookie) : null;
+      if (mailApi && !['agent', 'owner'].includes(mailUser?.role)) throw new HttpError(403, 'A sales workspace account is required.');
+      const limit = mailApi ? 6 * 1024 * 1024 : 16000;
       let body;
       if (req.body !== undefined) {
         const raw = typeof req.body === 'string' || Buffer.isBuffer(req.body) ? req.body.toString() : JSON.stringify(req.body);
-        if (Buffer.byteLength(raw) > 16000) throw new HttpError(413, 'This request is too large.');
+        if (Buffer.byteLength(raw) > limit) throw new HttpError(413, 'This request is too large.');
         body = JSON.parse(raw);
       } else {
         const chunks = [];
         let size = 0;
         for await (const chunk of req) {
           size += Buffer.byteLength(chunk);
-          if (size > 16000) throw new HttpError(413, 'This request is too large.');
+          if (size > limit) throw new HttpError(413, 'This request is too large.');
           chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
         }
         body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
       }
       if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400, 'Invalid request.');
+      if (mailApi) {
+        if (!tools.repEmail.actions.has(body.action)) throw new HttpError(404, 'Unknown email action.');
+        return reply(200, await mailApp.dispatch(mailUser, body.action, body));
+      }
       const disconnect = body.action === 'chat-watch' && tools.teamChat ? new AbortController() : null;
       if (disconnect) res.once('close', () => disconnect.abort());
       const app = service(env, adapter || backend(env), undefined, disconnect ? { ...tools, requestSignal: disconnect.signal } : tools);
@@ -69,7 +80,6 @@ export function createHandler(env = process.env, adapter, tools = {}) {
         }
         throw new HttpError(403, 'Use your assigned workspace to continue.');
       }
-      const cookie = (req.headers.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith(cookiePrefix))?.slice(cookiePrefix.length);
       if (body.action === 'login') {
         await tools.beforeLogin?.(req);
         const result = await app.login(body);

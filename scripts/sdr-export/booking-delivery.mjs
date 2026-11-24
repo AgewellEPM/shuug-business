@@ -15,7 +15,7 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     const setting = 'booking-mail:' + host;
     if (enabled) {
       const box = personalMailbox(host);
-      if (!box) throw new HttpError(409, 'Connect your business mailbox in Senders first.');
+      if (!box) throw new HttpError(409, 'Zoho Mail is awaiting workspace authorization for this rep.');
       store.save(setting, box.revision);
     } else store.clear(setting);
     return { enabled };
@@ -60,7 +60,7 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
       organizer: guest ? row.repEmail || mailbox.replyTo : '', attendee: guest ? to : '' });
     const subject = 'TinkyTown · ' + row.title + ' ' + verb, text = body.filter(Boolean).join('\n\n');
     const replyTo = guest ? row.repEmail || mailbox.replyTo : row.client.email;
-    if (mode === 'smtp') {
+    if (mode === 'zoho' || mode === 'smtp') {
       return repMail.sendBooking(mailUser(row.host), mailbox.revision, { to, replyTo, subject, body: text,
         date: new Date(row.changed).toISOString(), messageId: '<' + row.id + '.' + row.revision + '.' + job.channel + '@' + mailbox.from.split('@')[1] + '>',
         icalEvent: attachment ? { filename: 'appointment.ics', method, content: attachment } : undefined });

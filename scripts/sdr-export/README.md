@@ -37,13 +37,13 @@ The Overview header awards 10 XP per saved business, 20 for its first recorded c
 
 Add `"focus": "senior-care"` to the existing `workspace.json` and restart the workspace to enable a second sales view at `/sales/senior-care`. Switch between **Universal CRM** and **Senior Care CRM** in the sidebar. Both views use the same sign-in, account records, team assignments, and follow-ups. In Senior Care, choose a state and a facility type to browse the directory. Save a facility to Pipeline to track your contact, stage, and next follow-up. The facility type filter also lets you find and classify existing CRM records.
 
-Open **Demo** in either sidebar to present **TinkyStroke** in a nursing home, hospital ward, or rehab, or **TinkyTown Hospital** at reception. Follow the staff prompts and select patient messages to display and speak. Access options include larger tiles, pointer dwell, and switch scanning with Space or Enter. Demo notes and saved phrases last for the current walkthrough in the browser.
+Open **Sales team → Demo** in either workspace to present **TinkyStroke** in a nursing home, hospital ward, or rehab, or **TinkyTown Hospital** at reception. Follow the staff prompts and select patient messages to display and speak. Access options include larger tiles, pointer dwell, and switch scanning with Space or Enter. Demo notes and saved phrases last for the current walkthrough in the browser.
 
 The bundled demo boards come from `TinkySpeak-Web/js/verticals/hospital.js` and the TinkyStroke iOS `Resources/Boards` and `BoardService.swift`. The 12 resource boards match the Android source in `AgewellEPM/tinkystroke`. The walkthrough adds a quick-answer board and an interactive version of TinkyStroke's 0–10 pain scale. Training uses the browser's speech engine and sample staff prompts.
 
 ## Territory maps and assignments
 
-Open **Territories** and choose a state or D.C. from the **State** dropdown or the national map. Use the same dropdown to switch directly between states. Use **Check territory availability** to look up a town, county, or saved facility by name or street address. Town results show the lead for each county they overlap. Facility results show the rep assigned to the saved account and its market segment. The map and Sales team derive market counts from assigned accounts using saved facility types and recognizable facility names. The county view counts accounts whose recorded town maps to a single county. Select a county, town, or point on the street map to see the region and its sales rep beneath the map. Choose a town or county search result to move the map. Click a county or zoom in to reveal more town names and boundaries. Click a town or choose one by name to zoom to it. At closer zoom the county fills give way to municipal limits and local subdivisions. Continue zooming for named OpenStreetMap streets, or choose **Show streets**. Street tiles require an internet connection. Select a county on the map or in **County leads**, then choose **Assign county** or **Change rep** below the map. Select a sales rep and save the assignment. Their headshot comes from **Sales team → My profile** and updates when they edit their profile. A manually entered lead can have a separate photo. The workspace owner can select a team member or enter a name. Team leads can assign available counties in their territory to active members of their own reporting team and update their team’s county assignments. County lead records are independent of sign-in permissions. Clear **Map colors** for grayscale. The browser remembers your choice across states and reloads. **Fit state** shows the full state again, and **All states** returns to the U.S. map. The map uses Census cartographic boundaries with TIGER/Line supplements for newer localities. Connecticut shows its 169 municipal towns. Other states show the places and local subdivisions in their territory catalogs.
+Open **Sales team → Territories** and choose a state or D.C. from the **State** dropdown or the national map. Use the same dropdown to switch directly between states. Use **Check territory availability** to look up a town, county, or saved facility by name or street address. Town results show the lead for each county they overlap. Facility results show the rep assigned to the saved account and its market segment. The map and Sales team derive market counts from assigned accounts using saved facility types and recognizable facility names. The county view counts accounts whose recorded town maps to a single county. Select a county, town, or point on the street map to see the region and its sales rep beneath the map. Choose a town or county search result to move the map. Click a county or zoom in to reveal more town names and boundaries. Click a town or choose one by name to zoom to it. At closer zoom the county fills give way to municipal limits and local subdivisions. Continue zooming for named OpenStreetMap streets, or choose **Show streets**. Street tiles require an internet connection. Select a county on the map or in **County leads**, then choose **Assign county** or **Change rep** below the map. Select a sales rep and save the assignment. Their headshot comes from **Sales team → My profile** and updates when they edit their profile. A manually entered lead can have a separate photo. The workspace owner can select a team member or enter a name. Team leads can assign available counties in their territory to active members of their own reporting team and update their team’s county assignments. County lead records are independent of sign-in permissions. Clear **Map colors** for grayscale. The browser remembers your choice across states and reloads. **Fit state** shows the full state again, and **All states** returns to the U.S. map. The map uses Census cartographic boundaries with TIGER/Line supplements for newer localities. Connecticut shows its 169 municipal towns. Other states show the places and local subdivisions in their territory catalogs.
 
 In **Senior Care CRM → Facility directory**, switch between **Nursing homes** and **Senior community centers**. Search by facility, city, or ZIP, or browse by state. Nursing home records come from the [CMS Care Compare certified provider directory](https://data.cms.gov/provider-data/dataset/4pq5-n9py). Senior community center records come from [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) via [QLever](https://qlever.dev/osm-planet). Mapped coverage varies by state, and published contact details vary by facility. Salespeople see facilities within their assigned territory. The owner manages sign-in territory permissions under **Sales team → Workspace settings → Town access**.
 
@@ -98,7 +98,7 @@ The owner can revoke any member. Each member can revoke a direct report, which e
 
 Members on other devices use the workspace’s hosted HTTPS address. An address beginning with `127.0.0.1` opens the workspace on the Mac running it.
 
-Open **Team chat** in the sidebar or on the Sales team page. The owner and active sales reps share the same channels in Universal CRM and Senior Care CRM. Start in **#general**, **#field-notes**, or **#wins**. The owner can use **+** beside Channels to create a channel and give it a topic. All channels are visible to the sales team.
+Open **Sales team → Team chat**. The owner and active sales reps share the same channels in Universal CRM and Senior Care CRM. Start in **#general**, **#field-notes**, or **#wins**. The owner can use **+** beside Channels to create a channel and give it a topic. All channels are visible to the sales team.
 
 Press **Enter** to send, use **Shift + Enter** for a new line, or choose **Reply** on a message to quote it. Unread counts are personal. Each channel keeps its history in this workspace’s SQLite database.
 
@@ -106,7 +106,7 @@ For a one-to-one conversation, choose **+** beside **Direct messages**, search f
 
 ## Booking calendar
 
-Open **Overview → Open calendar** or **Calendar** in the sidebar. Clients use `/book` to choose a rep, meeting type and available time in their own time zone. **Copy booking link** gives a rep-specific address. A confirmation includes a private link to reschedule or cancel, and a calendar download. Client intake and changes appear in the rep’s schedule. The hosted app directory uses the built-in booking page when the owner has left the alternative appointment link blank and a rep is accepting bookings.
+Open **Overview → Open calendar** or **Sales team → Calendar**. Clients use `/book` to choose a rep, meeting type and available time in their own time zone. **Copy booking link** gives a rep-specific address. A confirmation includes a private link to reschedule or cancel, and a calendar download. Client intake and changes appear in the rep’s schedule. The hosted app directory uses the built-in booking page when the owner has left the alternative appointment link blank and a rep is accepting bookings.
 
 The owner calendar starts with 30-minute sales appointments and 45-minute demos, Monday–Friday, 9 a.m.–5 p.m. Eastern, with two hours’ notice and a 60-day window. `SDR_BOOKING_TIME_ZONE` sets the initial IANA time zone for new calendars. In **Availability**, reps or the owner can publish a rep, adjust hours, disable a meeting type, set durations, time off, buffers, notice, a client question, a notification email and meeting instructions or a video link. Individual rep calendars begin unpublished. Calendar edits take effect on the next availability check.
 
@@ -114,41 +114,50 @@ The owner calendar starts with 30-minute sales appointments and 45-minute demos,
 
 - **Google Calendar and Microsoft Outlook.** Register a web OAuth app and its exact redirect URI, `<SDR_ORIGIN>/book/connect`. Enable the Google Calendar API with the Calendar events scope, or Microsoft Graph delegated `Calendars.ReadWrite` with offline access. Configure `SDR_GOOGLE_CALENDAR_CLIENT_ID` and `SDR_GOOGLE_CALENDAR_CLIENT_SECRET`, or `SDR_MICROSOFT_CALENDAR_CLIENT_ID` and `SDR_MICROSOFT_CALENDAR_CLIENT_SECRET`, on the server. Each rep signs into their own provider from Connections. One primary calendar per rep supplies busy times and receives appointment changes and client invitations. Connecting also queues future bookings already on the schedule. When the provider cannot confirm availability, the connected rep’s booking page asks the client to retry. [Google Calendar events](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert) · [Microsoft calendar view](https://learn.microsoft.com/en-us/graph/api/user-list-calendarview?view=graph-rest-1.0) · [Microsoft events](https://learn.microsoft.com/en-us/graph/api/user-post-events?view=graph-rest-1.0)
 - **Apple Calendar and other subscriptions.** Create a private iCalendar feed in Connections. The subscriber controls its refresh frequency. Turning off the feed invalidates the link.
-- **Email.** Connect a business mailbox in **Senders**, then select **Use my mailbox for bookings** in the rep’s Calendar connections. Reconnecting an account requires turning booking emails on for that account again. Alternatively, configure Mailgun and approve a sender in **Senders**. A rep-specific Mailgun sender takes priority over a shared one. Clients and reps receive confirmation, reschedule and cancellation messages. Without a connected calendar provider, booking email includes an ICS attachment. The calendar shows provider acceptance and signed Mailgun delivery receipts separately.
+- **Email.** With the assigned Zoho mailbox authorized, select **Use my mailbox for bookings** in Calendar connections. If the assigned sender changes, re-enable booking email for the new address. Alternatively, configure Mailgun and approve a sender in **Senders**. A rep-specific Mailgun sender takes priority over a shared one. Clients and reps receive confirmation, reschedule and cancellation messages. Without a connected calendar provider, booking email includes an ICS attachment. The calendar shows provider acceptance and signed Mailgun delivery receipts separately.
 - **Other APIs.** In **Connections → Add an API connection**, enter an HTTPS webhook and an optional bearer token. Copy the signing secret into the receiving service. A rep can subscribe to their own bookings and the owner can subscribe the whole workspace. Open `/book/api` for public availability, booking operations, webhook payloads, signature verification, retries and server-managed endpoints. Each appointment shows its current delivery status.
 
 Use the workspace’s hosted HTTPS origin for clients on other devices. Keep the workspace database and its session key together during backup and restore. The key protects private links, saved webhook credentials and calendar refresh tokens.
 
-## Rep email
+## Business email
 
-For a new export install the mail dependencies with
-`npm ci --prefix scripts/sdr-export/mail --ignore-scripts`. Sign in as yourself,
-open **Senders → My business mailbox**, and choose your provider. Reps connect
-the business address they use to sign in. Enter a provider-generated app
-password and select **Verify and connect**. Gmail and Google Workspace accounts
-need to allow app passwords. iCloud Mail and Fastmail also have built-in
-presets. [Google instructions](https://support.google.com/accounts/answer/185833) ·
-[iCloud instructions](https://support.apple.com/en-us/102654) ·
-[Fastmail instructions](https://www.fastmail.help/hc/en-us/articles/360058752854)
+**Sales team → Email** opens the signed-in rep’s assigned Zoho Mail account. Inbox, Sent, Trash and Zoho drafts come from Zoho. The workspace also keeps private, editable drafts across CRM and desktop-client sessions. **Owners & Rolodex** and facility **Quick Email** open the same composer. It supports replies, forwarding, Cc, Bcc, attachments up to 4 MB combined, and downloads up to 5 MB each. Accepted submissions to linked contacts appear in office history.
 
-**Email** opens Inbox, Sent and workspace Drafts. Choose a recipient from the
-Rolodex in the composer, or select **Email** or **Email history** on a saved
-contact. Reading and sending use the signed-in rep’s verified mailbox over
-TLS. The workspace saves unfinished drafts privately and records provider
-acceptance in the linked office history. Check Sent or the provider’s webmail
-for an unconfirmed submission. Email displays plain text and supports
-attachment downloads on messages up to 6 MB. Open provider webmail
-for larger messages or to attach a file to an outgoing email.
+The owner can authorize the installation once in **Senders → Workspace mail authorization**. In the Zoho API Console, use **Self Client → Generate Code**, request the scopes below, and download the JSON. The CRM exchanges the short-lived code, verifies the owner’s actual Inbox, and saves the grant in the private workspace directory. A local operator can also import the same file with `npm run mail:authorize -- /path/to/self_client.json owner@example.com`. [Zoho Self Client authorization](https://www.zoho.com/developer/oauth/self-client/authorization-code-flow.html)
 
-For another app-password provider, the server operator can set
-`SDR_MAIL_IMAP_HOST`, `SDR_MAIL_SMTP_HOST`, optional `SDR_MAIL_IMAP_PORT`
-(default 993), and optional `SDR_MAIL_SMTP_PORT` (implicit TLS by default,
-STARTTLS on port 587).
-Use `SDR_MAIL_SMTP_SAVES_SENT=1` if the provider automatically stores a copy
-of SMTP submissions in Sent. Accounts that require OAuth-only access,
-including Microsoft 365 and Outlook.com, require a separate integration.
-The **Contract & campaign senders** section continues to use the
-configured Mailgun provider or the reviewed external email flow.
+For a centrally managed installation, the workspace operator supplies the company’s existing Zoho OAuth client and an authorized offline grant on the server. Use the grant’s region and scopes `ZohoMail.accounts.READ`, `ZohoMail.folders.READ`, and `ZohoMail.messages.ALL`. An organization account lookup also needs `ZohoMail.organization.accounts.READ`. Zoho must permit the grant to access the particular mailbox and send as that address. Use an authorized mailbox-specific grant when the company grant has insufficient access. [Zoho Mail OAuth](https://www.zoho.com/mail/help/api/using-oauth-2.html) · [Zoho Mail delegation](https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html)
+
+Place the configuration in `workspace-data/zoho-mail.json` with mode `0600`, or set `SDR_ZOHO_CONFIG_FILE` to its private location. The server reads it on demand. The following example uses placeholders.
+
+```json
+{
+  "region": "us",
+  "clientId": "<Zoho OAuth client ID>",
+  "clientSecret": "<Zoho OAuth client secret>",
+  "refreshToken": "<company-authorized refresh token>",
+  "ownerAddress": "office@example.com"
+}
+```
+
+The server also accepts `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, `SDR_ZOHO_REGION`, `SDR_ZOHO_OWNER_ADDRESS` and optional `SDR_ZOHO_ORG_ID`. Owner-issued rep accounts automatically use their business sign-in email. For a different assigned address, a team-lead invitation, or a mailbox-specific grant, add an entry under `mailboxes` keyed by the immutable CRM member ID, for example `"42": {"address":"rep@example.com","refreshToken":"<authorized grant>"}`. An optional `accountId` selects a specific Zoho account. The server verifies the primary address before accessing any mail. Reps only sign into the CRM.
+
+### Mailbox API
+
+A native client can reuse its existing CRM session with `POST /api/sales/mail/v1`. Send the workspace Origin, its private sales session cookie and an `application/json` body. Account selection is server-side. The browser uses this same endpoint.
+
+| Action | Request fields | Result |
+| --- | --- | --- |
+| `rep-email-settings` | — | Assigned address, configured state, API version |
+| `rep-email-list` | `folder` (inbox, sent, drafts, trash), optional `query`, `contact`, `cursor` | Messages and next cursor |
+| `rep-email-read` | `folder`, `id` | Message, attachment metadata, optional reply fields |
+| `rep-email-download` | `folder`, `id`, zero-based `index` | Filename and Base64 content |
+| `rep-email-change` | `folder`, `id`, `operation` (read, unread, trash, restore) | Confirmed change |
+| `rep-email-drafts` | — | Private workspace drafts |
+| `rep-email-save` | UUID `id`, `revision` (0 for new), `to`, `subject`, `body`, optional `cc`, `bcc`, `files`, `link`, `replyToken` | Saved draft and next revision |
+| `rep-email-discard` | Workspace draft `id`, `revision` | Discard confirmation |
+| `rep-email-send` | Workspace draft `id`, `revision` | Accepted by Zoho, rejected, or unconfirmed |
+
+Send new files as `{ "name": "notes.txt", "base64": "SGVsbG8=" }`. Reuse the returned file IDs on subsequent saves. A linked Rolodex contact uses `{ "officeId": "...", "contactId": "..." }`. To reply, pass the recipient, subject and reply token returned by reading that message. After an unconfirmed submission, review Sent before attempting another send. [Zoho Mail message APIs](https://www.zoho.com/mail/help/api/email-api.html)
 
 ## Campaigns
 

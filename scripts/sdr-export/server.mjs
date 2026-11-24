@@ -64,7 +64,7 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
   if (process.env[variable]) env[variable] = process.env[variable];
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
-const repEmail = repEmailWorkspace(db, sessionKey, process.env);
+const repEmail = repEmailWorkspace(db, sessionKey, process.env, { directory });
 const booking = bookings(process.env, db, origin.origin, sessionKey, { repMail: repEmail });
 const publicBooking = bookingHTTP(booking, origin.origin);
 const facilities = stateFacilityDirectory({ db });
@@ -131,6 +131,7 @@ const sales = createHandler(env, db, {
 });
 const routes = new Map([
   ['/api/sales', sales],
+  ['/api/sales/mail/v1', sales],
   ['/api/offices', createDirectoryHandler(env, db, { defaultBookingURL: () =>
     origin.protocol === 'https:' && booking.publicAction('hosts', {}).hosts.length ? origin.origin + '/book' : '' })],
   ['/api/sales-webhook', createWebhookHandler(env, db)],

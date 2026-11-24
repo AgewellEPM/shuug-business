@@ -2,6 +2,34 @@ import { nationalFacilityAdministrator } from './national-facility-leadership.mj
 
 const cmsPath = '/provider-data/dataset/4pq5-n9py';
 
+// Keep the government role record and its date. Each portrait publisher names
+// the person and the facility. A changed incumbent must not inherit a portrait.
+const directoryPortraits = {
+  '055268': {
+    incumbent: 'JON D OLSON',
+    linkedinURL: 'https://www.linkedin.com/in/jon-olson-253213133',
+    photoSourceURL: 'https://www.linkedin.com/posts/jon-olson-253213133_three-years-ago-my-skilled-nursing-facility-activity-7284410181357051904-feX8',
+    photoURL: 'https://media.licdn.com/dms/image/v2/D5603AQHjudGEjHIILQ/profile-displayphoto-scale_400_400/B56Z1juJPFHMAg-/0/1775494535224?e=2147483647&v=beta&t=C1usMYd2YHjKuOufDei0MbuSzFUI7WQ0x-yy5dQn7Jc',
+  },
+  '075117': {
+    incumbent: 'JOHN MASTRONARDI',
+    linkedinURL: 'https://www.linkedin.com/in/johnmastronardi',
+    photoSourceURL: 'https://www.thenathanielwitherell.org/about-us/',
+    photoURL: 'https://www.thenathanielwitherell.org/wp-content/uploads/2021/04/leader-mastronardi.jpg',
+  },
+  '075314': {
+    incumbent: 'PATRICK J NEAGLE',
+    photoSourceURL: 'https://www.icarehn.com/blog/administrators-week-2025-highlight-patrick-neagle-touchpoints-at-manchester/',
+    photoURL: 'https://www.icarehn.com/site/assets/files/4643/patrick_neagle.600x0.jpg',
+  },
+  '155761': {
+    incumbent: 'Paige Metzler',
+    linkedinURL: 'https://www.linkedin.com/in/paige-metzler-6b373a51',
+    photoSourceURL: 'https://www.linkedin.com/posts/paige-metzler-6b373a51_at-the-end-of-march-i-said-goodbye-to-the-activity-7449114086572834816-NmpG',
+    photoURL: 'https://media.licdn.com/dms/image/v2/D4D03AQGhY2_Wkyx2KA/profile-displayphoto-scale_400_400/B4DZ2N8J1fGUAg-/0/1776202851246?e=2147483647&v=beta&t=f2293k6-WYm12tTE3TaZBD5T56xGshGhyDkAYbTWCzA',
+  },
+};
+
 // Employer-published role evidence, matched against the CMS facility ID,
 // state, city and published facility phone. Keep portraits tied to pages
 // where the employer identifies the person pictured.
@@ -138,6 +166,7 @@ function matchedRecordId(row) {
 
 export const administratorPhotoOrigins = [...new Set([
   ...Object.values(reviewed).map(role => role.photoURL),
+  ...Object.values(directoryPortraits).map(role => role.photoURL),
   ...Object.values(profiles).flatMap(profile => (profile.people || []).flatMap(person => [person[4], person[7]?.fallbackPhotoURL])),
 ].filter(Boolean).map(url => new URL(url).origin))];
 
@@ -147,7 +176,10 @@ export function publishedFacilityAdministrator(row) {
   if (!role) {
     // The former Stamford administrator publicly announced a different role.
     const latest = nationalFacilityAdministrator(row);
-    return id === '075320' && latest?.name.toLowerCase().includes('olenechuk') ? null : latest;
+    if (id === '075320' && latest?.name.toLowerCase().includes('olenechuk')) return null;
+    const portrait = directoryPortraits[row.cms?.id];
+    if (!latest || !portrait || latest.name !== portrait.incumbent) return latest;
+    return { ...latest, photoURL: portrait.photoURL, photoSourceURL: portrait.photoSourceURL, linkedinURL: portrait.linkedinURL || '' };
   }
   return {
     name: role.name, title: role.title || 'Administrator', phone: role.phone, email: role.email || '',
