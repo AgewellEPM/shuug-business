@@ -28,7 +28,7 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);
   }
 }
-const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-today.mjs'];
+const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-today.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
@@ -41,6 +41,7 @@ const assets = [
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-email.css', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js',
+  'sales-support.css', 'sales-support.js', 'sales-support-content.js',
   'facility-reviews.css', 'facility-reviews.js',
   'sales-team.css', 'sales-team.js', 'sales-team-territory-planning.webp', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js', 'territory-town-map.js', 'territory-county-leads.js', 'territory-ownership.js', 'sdr-headshots.js',
   'vendor/leaflet-1.9.4/LICENSE', 'vendor/leaflet-1.9.4/leaflet.js', 'vendor/leaflet-1.9.4/leaflet.css',

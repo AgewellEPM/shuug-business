@@ -58,16 +58,17 @@
       renderIdentity();
       todayUI?.render(data);
     } });
+    const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const tab = (name, chatChannel, calendar) => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
-      const enteringWorkspace = standalone && ['today','team','territories','chat'].includes(name) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && ['today','team','territories','chat','support'].includes(name) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat' })[name] || 'Workspace';
-      $('#sales-stats').hidden = ['today','home','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email'].includes(name);
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', support: 'Support Center' })[name] || 'Workspace';
+      $('#sales-stats').hidden = ['today','home','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','support'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -86,6 +87,7 @@
       if (enteringWorkspace) $('.sdr-main').scrollTop = 0;
       if (name === 'facilities') facilitiesUI?.show();
       if (name === 'today') todayUI?.open();
+      if (name === 'support') supportUI?.show(data.user, enteringWorkspace);
       if (name === 'home' && data) overviewUI?.render(data);
     };
     async function openTodayAction({ view, action, officeId, appointmentId, date }) {
@@ -125,7 +127,12 @@
       }
     }
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
-      if (chatUI && params.get('view') === 'chat') { tab('chat', params.get('channel')); return true; }
+      if (supportUI && params.get('view') === 'support') { tab('support'); return true; }
+      if (chatUI && params.get('view') === 'chat') {
+        tab('chat', params.get('dm') ? '@' + params.get('dm') : params.get('channel'));
+        if (params.get('new') === 'dm') chatUI.startDirect();
+        return true;
+      }
       if (standalone && (params.get('view') === 'home' || (todayUI && params.get('view') === 'today'))) {
         if (document.body.dataset.sdrView !== params.get('view')) tab(params.get('view'));
         return true;

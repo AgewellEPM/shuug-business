@@ -98,6 +98,8 @@ Open **Team chat** in the sidebar or on the Sales team page. The owner and activ
 
 Press **Enter** to send, use **Shift + Enter** for a new line, or choose **Reply** on a message to quote it. Unread counts are personal. Each channel keeps its history in this workspace’s SQLite database.
 
+For a one-to-one conversation, choose **+** beside **Direct messages**, search for an active teammate by name, and select them. Your first message adds the conversation to their inbox. Only the two participants can open it in the workspace. Each person has their own unread count. When a teammate loses access, the other participant can still read their conversation.
+
 ## Booking calendar
 
 Open **Overview → Open calendar** or **Calendar** in the sidebar. Clients use `/book` to choose a rep, meeting type and available time in their own time zone. **Copy booking link** gives a rep-specific address. A confirmation includes a private link to reschedule or cancel, and a calendar download. Client intake and changes appear in the rep’s schedule. The hosted app directory uses the built-in booking page when the owner has left the alternative appointment link blank and a rep is accepting bookings.
