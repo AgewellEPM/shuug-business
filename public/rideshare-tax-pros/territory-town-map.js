@@ -58,6 +58,49 @@
     return inside;
   }
 
+  function neighborBackdrop(map, states, atlasPoint, latLng) {
+    if (!states?.length) return null;
+    const L = window.L, pane = 'territory-context';
+    map.createPane(pane);
+    const drawing = svg('svg', { 'aria-hidden': 'true', preserveAspectRatio: 'none' });
+    const names = svg('g', { class: 'town-map-context-names' });
+    for (const state of states) {
+      const [x, y] = state.offset;
+      drawing.append(svg('path', { class: 'town-map-neighbor', 'data-context-state': state.state, d: state.path,
+        transform: `translate(${x} ${y}) scale(${state.scale})` }));
+    }
+    drawing.append(names);
+    let layer;
+    return { hide() { layer?.remove(); }, draw(scale, showNames) {
+      // Keep the SVG near screen size even for small territories bordering
+      // large states. Its paths stay in the same Mercator space as the atlas.
+      const frame = map.getBounds().pad(.55);
+      const [left, top] = atlasPoint(frame.getNorthWest()), [right, bottom] = atlasPoint(frame.getSouthEast());
+      drawing.setAttribute('viewBox', [left, top, right-left, bottom-top].join(' '));
+      if (!layer) layer = L.svgOverlay(drawing, frame, { pane, interactive: false, className: 'town-map-backdrop' });
+      else layer.setBounds(frame);
+      if (!map.hasLayer(layer)) layer.addTo(map);
+      names.replaceChildren();
+      if (!showNames) return;
+      const size = map.getSize();
+      for (const state of states) {
+        for (const text of [state.name.toUpperCase(), state.state]) {
+          const half = text.length * 3.9 + 3;
+          const anchor = state.anchors.find(([x,y,r]) => {
+            if (r * scale < Math.hypot(half, 7)) return false;
+            const p = map.latLngToContainerPoint(latLng(x,y));
+            return p.x > half && p.x < size.x-half && p.y > 12 && p.y < size.y-12;
+          });
+          if (!anchor) continue;
+          const [x,y] = anchor, label = svg('text', { x, y, 'font-size': 11/scale });
+          label.textContent = text;
+          names.append(label);
+          break;
+        }
+      }
+    } };
+  }
+
   function selectionStatus(panel, state, api, refreshAssignments, editCounty) {
     const host = panel.querySelector('[data-map-selection]');
     let current, revision = 0;
@@ -192,7 +235,9 @@
     try {
       const [left, top, right, bottom] = data.frame;
       const drawing = svg('svg', { viewBox: [left, top, right - left, bottom - top].join(' '), 'aria-hidden': 'true' });
-      drawing.append(svg('path', { class: 'town-map-water', d: data.water }),
+      const backdrop = neighborBackdrop(map, data.context, atlasPoint, latLng);
+      const shadow = svg('path', { class: 'town-map-state-shadow', d: data.outline });
+      drawing.append(svg('path', { class: 'town-map-water', d: data.water }), shadow,
         svg('path', { class: 'town-map-outline', d: data.outline }));
       const counties = new Map(), countyShapes = svg('g', {});
       for (const county of data.counties) {
@@ -237,6 +282,7 @@
         mode.textContent = street ? 'Streets' : detail ? 'Town limits and local subdivisions' : 'County boundaries';
         streetsButton.disabled = street && zoom >= 16;
         if (street) {
+          backdrop?.hide();
           if (atlas && map.hasLayer(atlas)) atlas.remove();
           if (!map.hasLayer(roads)) roads.addTo(map);
           updateStreetLines();
@@ -249,6 +295,8 @@
         shapes.setAttribute('display', detail ? 'inline' : 'none');
         localAreas.setAttribute('display', detail ? 'inline' : 'none');
         const scale = map.options.crs.scale(zoom) * data.metersPerUnit / 40075016.68557849;
+        shadow.setAttribute('transform', `translate(${1.1/scale} ${2.4/scale})`);
+        backdrop?.draw(scale, !detail);
         const layout = labelLayout(map, scale, latLng), dots = [], landmarkNames = new Set();
         const viewport = map.getBounds().pad(0.04);
         const visible = item => viewport.contains(latLng(item.x, item.y));
