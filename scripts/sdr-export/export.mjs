@@ -34,10 +34,11 @@ for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('scripts/rideshare-site/sales-products.mjs');
 copy('scripts/rideshare-site/sales-mission.mjs');
 copy('scripts/rideshare-site/sales-certification.mjs');
+copy('scripts/rideshare-site/sales-prizes.mjs');
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
 copy('public/rideshare-tax-pros/sales-support-content.js', 'scripts/sdr-export/coach-help.cjs');
-for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge', 'coach-mail', 'coach-save', 'coach-speech', 'demo-kiosk-ai']) copy('scripts/sdr-export/' + file + '.mjs');
+for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge', 'coach-mail', 'coach-save', 'coach-speech', 'demo-kiosk-ai', 'monthly-prizes']) copy('scripts/sdr-export/' + file + '.mjs');
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
   'booking-ui.js', 'booking-client.js', 'booking-connect.js', 'sales-booking.js', 'sales-booking.css',
@@ -51,6 +52,8 @@ const assets = [
   'sales-products.css', 'sales-products.js', 'sales-products-hero.webp', 'sales-products-tablet.webp', 'sales-products-phone.webp',
   'sales-mission.css', 'sales-mission.js', 'sales-mission-hero.webp', 'sales-mission-vision.webp',
   'sales-certification.css', 'sales-certification.js', 'sales-certification-hero.webp',
+  'sales-prizes.css', 'sales-prizes.js', 'sales-prizes-hero.webp', 'sales-prizes/laptop.webp', 'sales-prizes/tablet.webp',
+  'sales-prizes/watch.webp', 'sales-prizes/earbuds.webp', 'sales-prizes/gift-card.webp',
   'sales-display.css', 'sales-display.js',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
   ...['care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot'].flatMap(name => [name + '.js', name + '.css']),
