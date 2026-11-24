@@ -248,7 +248,7 @@ const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidd
 function teamNavigation(careWorkspace) {
   const groups = [
     ['Meetings', [['calendar', 'Calendar'], ...(careWorkspace ? [['demo', 'Demo']] : [])]],
-    ['Communication', [['chat', 'Team chat'], ['email', 'Email'], ['mail', 'Senders']]],
+    ['Communication', [['chat', 'Team chat'], ['mail', 'Senders']]],
     ['Coverage & contacts', [['territories', 'Territories'], ['locations', 'Signup locations'], ['contacts', 'Owners & Rolodex']]],
   ];
   return `<nav class="sdr-team-tools" aria-label="Sales team tools" data-team-tools>
@@ -375,7 +375,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ['email', 'Mailbox'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => {
@@ -407,13 +407,14 @@ ${careWorkspace ? standaloneFacilities : ''}
 ${prospects && careWorkspace ? renderProducts(icon) : ''}
 ${prospects ? renderCertification(icon) : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
+${prospects ? renderSalesEmail(icon) : ''}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
   <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
   ${standaloneTeam(team, careWorkspace)}` : ''}
 ${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
-${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
+<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
 <section data-tab-panel="territories"${prospects ? ' data-territory-dashboard' : ''} hidden aria-labelledby="sales-territory-title">
 ${prospects ? renderTerritoryHeader(icon) : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
 <div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
