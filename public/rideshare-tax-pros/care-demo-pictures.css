@@ -1,0 +1,38 @@
+/* A square window onto one illustration. The containing tile owns its responsive layout. */
+.care-demo-picture {
+  --picture-size: 3.5rem;
+  display: inline-grid;
+  place-items: center;
+  vertical-align: middle;
+}
+.care-demo-picture::before {
+  content: "";
+  display: block;
+  inline-size: var(--picture-size);
+  aspect-ratio: 1;
+  max-inline-size: 100%;
+  border-radius: 16%;
+  background: #fff8ec no-repeat;
+  background-size: 400% var(--picture-atlas-height, 800%);
+  background-position: var(--picture-x, 0%) calc(var(--picture-row, 0) * var(--picture-step, 14.285714%));
+}
+.care-demo-picture[data-sheet="care"] { --picture-atlas-height: 1200%; --picture-step: 9.090909%; }
+.care-demo-picture[data-sheet="care"]::before { background-image: url('/care-demo-care.webp'); }
+.care-demo-picture[data-sheet="places"]::before { background-image: url('/care-demo-places.webp'); }
+.care-demo-picture[data-column="1"] { --picture-x: 33.333333%; }
+.care-demo-picture[data-column="2"] { --picture-x: 66.666667%; }
+.care-demo-picture[data-column="3"] { --picture-x: 100%; }
+.care-demo-picture[data-row="1"] { --picture-row: 1; }
+.care-demo-picture[data-row="2"] { --picture-row: 2; }
+.care-demo-picture[data-row="3"] { --picture-row: 3; }
+.care-demo-picture[data-row="4"] { --picture-row: 4; }
+.care-demo-picture[data-row="5"] { --picture-row: 5; }
+.care-demo-picture[data-row="6"] { --picture-row: 6; }
+.care-demo-picture[data-row="7"] { --picture-row: 7; }
+.care-demo-picture[data-row="8"] { --picture-row: 8; }
+.care-demo-picture[data-row="9"] { --picture-row: 9; }
+.care-demo-picture[data-row="10"] { --picture-row: 10; }
+.care-demo-picture[data-row="11"] { --picture-row: 11; }
+.care-kiosk-tile .care-demo-picture { --picture-size: clamp(3.75rem, 8vw, 5rem); }
+.ck-strip .care-demo-picture, .care-kiosk-tile[data-wide] .care-demo-picture { --picture-size: 3rem; }
+.sdr-demo-tiles[data-large="true"] .care-demo-picture { --picture-size: 4.5rem; }

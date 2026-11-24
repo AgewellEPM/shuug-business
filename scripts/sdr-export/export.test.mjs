@@ -85,8 +85,7 @@ async function mountConsole(t, origin, session, html, path = '/sales') {
       const abort = () => controller.abort();
       if (options.signal.aborted) abort();
       else options.signal.addEventListener('abort', abort, { once: true });
-      return session.request(path, { ...options, signal: controller.signal })
-        .finally(() => options.signal.removeEventListener('abort', abort));
+      return session.request(path, { ...options, signal: controller.signal });
     };
     const dialog = window.HTMLDialogElement.prototype;
     dialog.showModal ??= function () { this.open = true; };
@@ -128,12 +127,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     globalThis.fetch = async (address, options) => {
       const url = new URL(address);
       if (url.href === 'http://127.0.0.1:11434/api/chat') {
-        const { messages } = JSON.parse(options.body);
-        if (messages[0].content.includes('TinkyTown communication demo')) {
-          const question = messages.at(-1).content;
-          if (question === 'Simulate an unavailable model') return new Response('', { status: 503 });
-          if (question === 'What is five plus seven?') return Response.json({ message: { content: 'Five plus seven is twelve.' } });
-          throw new Error('Unexpected demo question.');
+        const { format } = JSON.parse(options.body);
+        if (format?.properties?.tiles) {
+          // Hold the model until the visitor chooses a tile. The initial illustrated
+          // choices must be visible and usable during a slow model request.
+          return new Promise((resolve, reject) => {
+            const timer = setTimeout(() => resolve(new Response('', { status: 503 })), 5000);
+            options.signal.addEventListener('abort', () => { clearTimeout(timer); reject(options.signal.reason); }, { once: true });
+          });
         }
       }
       if (url.hostname === 'places.googleapis.com') {
@@ -1701,27 +1702,43 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
 
-  await t.test('the Senior center kiosk sends typed questions to AI and keeps only staff listening', async t => {
-    const anonymous = browserSession(first.origin);
-    await anonymous.api('demo-kiosk-ask', { question: 'What is five plus seven?' }, 401);
-    await owner.api('demo-kiosk-ask', { question: ' ' }, 400);
-    const demoWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=demo&venue=senior-center');
-    const find = selector => demoWindow.document.querySelector(selector);
-    await waitFor(() => !find('[data-tab-panel="demo"]').hidden && find('.care-kiosk-tiles button'), 'Senior center kiosk did not load');
-    assert.equal(find('.ck-talk'), null);
-    assert.match(find('.ck-staff').textContent, /Listen for Staff/);
-    const field = find('.ck-type input'), form = field.form, send = find('.ck-type button[type="submit"]');
-    field.value = 'What is five plus seven?';
-    form.requestSubmit();
-    assert.equal(send.disabled, true);
-    await waitFor(() => find('.care-kiosk-message').textContent === 'Five plus seven is twelve.', 'The AI answer did not reach the kiosk');
-    assert.equal(find('.ck-words strong').textContent, 'AI answer:');
-    assert.equal(find('.ck-transcript summary').textContent, 'Conversation (2)');
-    assert.equal(send.disabled, false);
-    field.value = 'Simulate an unavailable model';
-    form.requestSubmit();
-    await waitFor(() => [...demoWindow.document.querySelectorAll('.ck-status')].some(node => node.textContent.includes('AI is unavailable')), 'The model error was not displayed');
-    assert.equal(send.disabled, false);
+  await t.test('the nursing home kiosk shows illustrated sleep choices and quick needs while the model is pending', async t => {
+    const endpoint = '/api/sales/care-replies';
+    const post = said => ({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ said }) });
+    assert.equal((await browserSession(first.origin).request(endpoint, post('How did you sleep?'))).status, 401);
+    assert.equal((await owner.request(endpoint, post(' '))).status, 400);
+    const win = await mountConsole(t, first.origin, owner, html, '/sales#view=demo&venue=nursing-home&place=resident');
+    win.TextDecoder = TextDecoder;
+    const find = selector => win.document.querySelector(selector);
+    const spoken = [];
+    win.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+    win.speechSynthesis = { cancel() {}, speak: utterance => spoken.push(utterance.text) };
+    await waitFor(() => find('.care-venue-kiosk h3')?.textContent === 'Nursing Home — In My Room', 'Resident kiosk did not open');
+    assert.equal(find('.ck-quick-needs').hidden, true);
+    const field = find('.ck-type input');
+    const ask = () => { field.value = 'How did you sleep?'; field.form.requestSubmit(); };
+    ask();
+    assert.equal(find('.care-kiosk-message').textContent, 'How did you sleep?');
+    assert.equal(find('.ck-quick-needs').hidden, false);
+    const needs = [...find('.ck-quick-needs').querySelectorAll('button[data-quick-need]')];
+    assert.deepEqual(needs.map(button => button.dataset.quickNeed), ['bathroom', 'thirsty', 'help']);
+    assert.ok(needs.every(button => button.querySelector('.care-demo-picture[data-picture]') && button.querySelector('strong').textContent));
+    const choice = await waitFor(() => find('.care-kiosk-tiles [data-picture="hard-night"]')?.closest('button'), 'Sleep choices did not appear');
+    assert.ok(find('.ck-thinking'), 'Authored sleep choices must appear before the model finishes');
+    assert.equal(choice.querySelector('strong').textContent, 'I had a hard night');
+    assert.equal(choice.dataset.responseTone, 'negative');
+    const sleepPictures = ['rested', 'hard-night', 'interrupted-sleep', 'awake', 'early', 'tired'];
+    for (const picture of sleepPictures) assert.ok(find('.care-kiosk-tiles button[data-reply] [data-picture="' + picture + '"]'), picture);
+    choice.click();
+    assert.equal(find('.care-kiosk-message').textContent, 'I had a hard night');
+    assert.equal(spoken.at(-1), 'I had a hard night');
+    assert.equal(find('.ck-quick-needs').hidden, true);
+    assert.equal(find('.ck-thinking'), null);
+    ask();
+    find('.ck-quick-needs [data-quick-need="thirsty"]').click();
+    assert.equal(find('.care-kiosk-message').textContent, 'I am thirsty.');
+    assert.equal(spoken.at(-1), 'I am thirsty.');
+    assert.equal(find('.ck-quick-needs').hidden, true);
   });
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
@@ -1763,7 +1780,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     for (const [venue, room] of [['hospital','reception'], ['nursing-home','resident-room'], ['senior-center','transportation']]) {
       const entry = await owner.request('/demo/' + venue, { redirect: 'manual' });
       assert.equal(entry.headers.get('location'), '/sales#view=demo&venue=' + venue + '&present=1');
-      careWindow.location.hash = 'view=demo&venue=' + venue;
+      careWindow.location.hash = 'view=demo&venue=' + venue + '&mode=rooms';
       await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
       const voice = panel.querySelector('[data-care-voice]');
       assert.equal(panel.querySelector('[data-care-customer-example]').hidden, false);
@@ -1780,7 +1797,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       panel.querySelector('.cf-tile').click();
       assert.match(panel.querySelector('.cf-history summary').textContent, /1/);
     }
-    careWindow.location.hash = 'view=demo&venue=hospital';
+    careWindow.location.hash = 'view=demo&venue=hospital&mode=rooms';
     const tourAction = text => [...panel.querySelectorAll('[data-care-tour] button')].find(b => b.textContent === text);
     await waitFor(() => panel.querySelector('[data-room="discharge"]'), 'Presenter did not reach the hospital directory');
     tourAction('Start guided demo').click();
@@ -1809,12 +1826,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !pilot.hidden, 'Planner could not reopen');
     assert.equal(pilot.querySelector('input[placeholder="Role or team"]').value, 'Practice admissions team');
 
-    careWindow.location.hash = 'view=demo&venue=townhall';
+    careWindow.location.hash = 'view=demo&venue=townhall&mode=tools';
     await waitFor(() => panel.querySelector('.cl-board-title'), 'Hartford Town Hall did not load');
     assert.equal(panel.querySelector('[data-care-voice]').hidden, true);
     assert.equal(panel.querySelector('[data-care-customer-example]').hidden, true);
     assert.match(panel.querySelector('.cl-header h3').textContent, /Hartford/);
-    careWindow.location.hash = 'view=demo&venue=home';
+    careWindow.location.hash = 'view=demo&venue=home&mode=tools';
     await waitFor(() => panel.querySelector('.care-library [data-tile]') || panel.querySelector('[aria-label="TinkySpeak board library"] [data-tile]'), 'Family board did not load');
     careWindow.location.hash = 'view=demo&venue=college';
     await waitFor(() => panel.querySelector('.care-kiosk-tile[data-board-target="uni_academics"]'), 'Campus boards did not open');

@@ -153,6 +153,7 @@
       signature = null;
       delete document.body.dataset.carePresent;
       document.body.removeAttribute('data-care-open');
+      document.body.removeAttribute('data-care-clear');
       return;
     }
     wasVisible = true;
@@ -175,6 +176,11 @@
     const room = args.get('room');
     const rooms = Object.hasOwn(facility, venue) && (mode === 'rooms' || Boolean(room));
     const bedside = venue === 'stroke' && (mode === 'tools' || args.has('strokeView'));
+    // Care kiosks show only the patient's screen. The rep's tools stay with the other views.
+    const clear = ['bedside','hospital','nursing-home','senior-center','stroke'].includes(venue) && ['','counter','assisted','clinic'].includes(mode)
+      && !rooms && !bedside && args.get('pilot') !== '1' && !args.get('training');
+    repTools.hidden = clear;
+    document.body.toggleAttribute('data-care-clear', clear);
     const next = [venue, mode, rooms, args.get('place'), args.get('board'), args.get('strokeView')].join('|');
     if (rooms && next === signature && lastRoom !== room) window.CareFacility.showRoom(surface, room);
     lastRoom = room;

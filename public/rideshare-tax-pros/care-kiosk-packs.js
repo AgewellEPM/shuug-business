@@ -201,8 +201,8 @@
     },
   };
   async function load(family) {
-    if (['hospital','nursing-home','bedside','stroke'].includes(family)) return { ...await sources[family](), diet: (await read('/care-tinkystroke.json')).diet };
-    return Object.hasOwn(sources, family) ? sources[family]() : read('/care-kiosks/' + encodeURIComponent(family) + '.json');
+    const [loaded, app] = await Promise.all([Object.hasOwn(sources, family) ? sources[family]() : read('/care-kiosks/' + encodeURIComponent(family) + '.json'), read('/care-tinkystroke.json')]);
+    return { ...loaded, diet: app.diet, controls: app.controls };
   }
   window.CareKioskPacks = { load, read };
 })();

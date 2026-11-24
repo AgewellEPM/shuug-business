@@ -22,9 +22,9 @@ export function renderWorkspace(profile, signIn) {
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source) {
-    const careStyles = careWorkspace ? ['sales-demo','care-hub','care-kiosks','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot','sales-care-campaign','sales-products','sales-mission']
+    const careStyles = careWorkspace ? ['care-demo-pictures','sales-demo','care-hub','care-kiosks','care-demo-responses','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot','sales-care-campaign','sales-products','sales-mission']
       .map(name => `<link rel="stylesheet" href="/${name}.css">`).join('') : '';
-    const careScripts = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosk-packs','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign','sales-products','sales-mission']
+    const careScripts = careWorkspace ? ['care-demo-pictures','care-demo-responses','care-locations','care-facility','care-stroke','care-library','care-kiosk-packs','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign','sales-products','sales-mission']
       .map(name => `<script src="/${name}.js" defer></script>`).join('') : '';
     let sales = source
       .replace('</head>', '<link rel="stylesheet" href="/sales-commissions.css"></head>')

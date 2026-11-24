@@ -173,11 +173,18 @@
       if (key !== station.board && mode !== 'gmb') return reset(stationKey());
     }
 
-    function tileMarkup(tile, i) {
+    function locationTile(tile, i) {
       const color = colors.has(tile.color) ? tile.color : tile.action === 'back' ? 'gray' : /emergency|urgent/i.test(tile.label) ? 'red' : 'blue';
-      return '<button type="button" class="cl-tile cl-' + color + '" data-tile="' + i + '"><span class="cl-emoji" aria-hidden="true">' +
-        escape(tile.emoji || '💬') + '</span><span class="cl-tile-text">' + escape(tile.label) +
-        (tile.detail ? '<small>' + escape(tile.detail) + '</small>' : '') + '</span></button>';
+      const button = document.createElement('button');
+      button.type = 'button'; button.className = 'cl-tile cl-' + color; button.dataset.tile = i;
+      const label = document.createElement('span');
+      label.className = 'cl-tile-text'; label.textContent = tile.label;
+      if (tile.detail) {
+        const detail = document.createElement('small');
+        detail.textContent = tile.detail; label.append(detail);
+      }
+      button.append(window.CareDemoResponses.illustration(button, tile), label);
+      return button;
     }
 
     function drawOptions() {
@@ -222,7 +229,7 @@
       const grid = find('.cl-grid');
       if (!grid) return;
       if (!search.trim() || station !== stations.directory) {
-        grid.innerHTML = screen().tiles.map(tileMarkup).join('');
+        grid.replaceChildren(...screen().tiles.map(locationTile));
         return;
       }
       const text = search.trim().toLowerCase();

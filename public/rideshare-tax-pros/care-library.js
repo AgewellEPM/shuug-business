@@ -130,8 +130,7 @@
         label: pair[0] || tile.label,
         say: pair[1] || tile.spokenText || tile.label,
         labelLang: pair[0] ? language : 'en',
-        sayLang: pair[1] ? language : 'en',
-        icon: tile.emoji || '💬'
+        sayLang: pair[1] ? language : 'en'
       };
     }
     function remember(text, lang = 'en') {
@@ -425,8 +424,7 @@
         tiles.forEach((tile, i) => {
           const shown = visibleTile(tile, i);
           const b = btn('', () => recordTile(tile, i), 'cl-tile');
-          const icon = el('span', 'cl-icon', shown.icon);
-          icon.setAttribute('aria-hidden', 'true');
+          const icon = window.CareDemoResponses.illustration(b, tile);
           const title = el('span', null, shown.label);
           title.dir = 'auto';
           title.lang = shown.labelLang;

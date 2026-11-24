@@ -1951,5 +1951,49 @@
     "message": "This patient is on PUREED diet only. No solid foods."
    }
   ]
- }
+ },
+ "controls": [
+  {
+   "emoji": "🔊",
+   "label": "SAY THAT AGAIN",
+   "say": "",
+   "action": "repeat"
+  },
+  {
+   "emoji": "🙅",
+   "label": "WAIT NO",
+   "say": "Sorry, wrong one",
+   "action": "undo"
+  },
+  {
+   "emoji": "👂",
+   "label": "YOUR TURN",
+   "say": "Go ahead",
+   "action": "their_turn"
+  },
+  {
+   "emoji": "💬",
+   "label": "AND ALSO",
+   "say": "And one more thing",
+   "action": "keep_talking"
+  },
+  {
+   "emoji": "💡",
+   "label": "SOMETHING ELSE",
+   "say": "Actually, let me ask something else",
+   "action": "new_question"
+  },
+  {
+   "emoji": "👋",
+   "label": "I'M GOOD",
+   "say": "I'm all set, thanks",
+   "action": "im_done"
+  },
+  {
+   "emoji": "🏠",
+   "label": "HOME",
+   "say": "",
+   "action": "go_home"
+  }
+ ]
 }

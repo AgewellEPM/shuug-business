@@ -397,8 +397,7 @@
         const list = node("div", undefined, "cts-replies");
         replies[state.category].forEach(([emoji, label, phrase]) => {
           const b = action("", () => { speak(phrase, "Conversation"); refreshHistory(); }, "cts-reply");
-          const mark = node("span", emoji);
-          mark.setAttribute("aria-hidden", "true");
+          const mark = window.CareDemoResponses.illustration(b, { emoji, label, spokenText:phrase, reply:true });
           b.append(mark, node("strong", label), node("small", phrase));
           list.append(b);
         });
@@ -658,7 +657,7 @@
         function say(text) { log("Care partner", text, "Nurse speech board"); voiceText(text); }
         clinical.nursePhrases.filter(row => row[3] === state.nurseCategory).forEach(([emoji, label, phrase]) => {
           const button = action("", () => say(phrase), "cts-reply");
-          button.append(node("strong", emoji + " " + label), node("small", phrase));
+          button.append(window.CareDemoResponses.illustration(button, { emoji, label, spokenText:phrase }), node("strong", label), node("small", phrase));
           phrases.append(button);
         });
         const free = form((f, values) => {
