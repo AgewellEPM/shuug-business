@@ -1045,6 +1045,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal((await mailApi('login')).status, 404);
     assert.deepEqual((await owner.api('rep-email-drafts')).drafts, []);
     pageDocument.querySelector('[data-tab="prospects"]').click();
+    const mailbox = pageDocument.querySelector('.sdr-sidebar [data-tab="email"]');
+    assert.equal(mailbox.textContent.trim(), 'Mailbox');
+    mailbox.click();
+    assert.equal(mailbox.getAttribute('aria-pressed'), 'true');
+    assert.equal(pageDocument.querySelector('[data-tab-panel="email"]').closest('[hidden]'), null);
+    assert.equal(pageDocument.querySelector('[data-team-workspace]').hidden, true);
+    pageDocument.querySelector('[data-tab="prospects"]').click();
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
     assert.equal(profile.open, true);
     assert.equal(reviewPane.open, false);
