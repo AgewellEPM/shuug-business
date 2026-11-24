@@ -20,6 +20,8 @@ import { campaignNotifications } from './campaign-mail.mjs';
 import { workspaceResearch } from '../../sales/workspace-research.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { salesDailyPlan } from '../../sales/sales-daily-plan.mjs';
+import { salesCoach } from './sales-coach.mjs';
+import coachArticles from './coach-help.cjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
 import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
@@ -94,6 +96,7 @@ if (searchEndpoint) db.search = async query => {
 };
 
 let attempts = [];
+const dailyPlan = salesDailyPlan(db);
 const sales = createHandler(env, db, {
   cookieName: 'gigtax_sales_' + digest(sessionKey).slice(0, 16),
   localHttp: origin.origin === localOrigin,
@@ -119,7 +122,8 @@ const sales = createHandler(env, db, {
   booking: booking.staff,
   nextBooking: booking.nextBooking,
   teamChat: db.chat,
-  dailyPlan: salesDailyPlan(db),
+  dailyPlan,
+  salesCoach: salesCoach(db, dailyPlan, { articles: coachArticles, demo: profile.focus === 'senior-care', model: process.env.SDR_COACH_MODEL }),
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);

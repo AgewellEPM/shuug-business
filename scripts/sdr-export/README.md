@@ -27,6 +27,16 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 - The existing Stripe checkout, webhook, billing reconciliation, revenue and commission projections can be used with the optional membership profile. The default agreement profile completes after signature and offers project-defined agreement text.
 - The optional MCP server exposes the same records and role restrictions used by the browser.
 
+## Ask Tinky
+
+Open **Ask Tinky** in the workspace sidebar. Each signed-in sales rep and the owner has a private conversation and a personal goal. The coach uses the rep’s accessible accounts, recent activity, calendar, Today’s Plan, Training Center lessons, Support Center and TinkyTown product guides. A linked lesson opens inside Training.
+
+Choose **Set goal** to track prospects added and currently assigned to you, confirmed meetings you host during the period, logged calls or signed agreements credited to you. Set the dates and add a focus such as senior-care admissions. The card counts saved SDR activity in the goal’s time zone.
+
+Ask for a new prospect, call note, follow-up date, email draft or goal. Select **Review** to open the working form, check the details and save or send it there. Conversation history and goals are saved per staff account in the workspace database.
+
+The server runs inference through local Ollama on loopback, using `qwen3:4b-instruct-2507-q4_K_M` by default. Set `SDR_COACH_MODEL` before startup to select another installed Ollama chat model that supports structured output. If the model is unavailable, a labeled workspace guide shows sourced instructions and the rep’s next recorded priority.
+
 ## Overview
 
 From **Overview → Research a business type**, enter a category and select a city or ZIP and state. The search covers all 50 states and D.C. through [OpenStreetMap via Photon](https://github.com/komoot/photon/blob/master/docs/api-v1.md), with [CMS Care Compare](https://data.cms.gov/provider-data/dataset/4pq5-n9py) added for nursing homes and matching records from the project directory. Results link to the public listing and show contact and registry evidence where published. The latest search is saved for that account. Use **Save to Pipeline** to choose the businesses you want to work with. Public source coverage varies by area and category.
@@ -140,6 +150,10 @@ Place the configuration in `workspace-data/zoho-mail.json` with mode `0600`, or 
 
 The server also accepts `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, `SDR_ZOHO_REGION`, `SDR_ZOHO_OWNER_ADDRESS` and optional `SDR_ZOHO_ORG_ID`. Owner-issued rep accounts automatically use their business sign-in email. For a different assigned address, a team-lead invitation, or a mailbox-specific grant, add an entry under `mailboxes` keyed by the immutable CRM member ID, for example `"42": {"address":"rep@example.com","refreshToken":"<authorized grant>"}`. An optional `accountId` selects a specific Zoho account. The server verifies the primary address before accessing any mail. Reps only sign into the CRM.
 
+**Sales team → Senders → Rep mailboxes** lets the owner allocate company addresses. Select an active CRM rep and choose **Assign existing** or **Create new**. Creation uses one available Zoho license on the selected verified company domain. The SDR can generate the initial password, or the owner can supply one. **Assigned** means the workspace verified access to that specific primary mailbox and Inbox. If Zoho requires delegation, grant the workspace account access and choose **Check access**. **Release SDR assignment** removes that rep’s CRM access and preserves the Zoho account. The directory uses organization account and domain read permissions. Only creation uses the separate organization account creation permission. [Zoho organization users](https://www.zoho.com/mail/help/api/users-api.html) · [Zoho mailbox delegation](https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html)
+
+Open an **Inbox** message and choose **Assign to rep** to give one teammate that message in **Email → Assigned**. The recipient can read it, download available original attachments, reply from their own mailbox, and mark the assignment complete. Switch to **Assigned by me** to track outgoing assignments. The original mailbox holder can change the assignee from the incoming message. A handoff stores an encrypted copy of the selected message in the SDR.
+
 ### Mailbox API
 
 A native client can reuse its existing CRM session with `POST /api/sales/mail/v1`. Send the workspace Origin, its private sales session cookie and an `application/json` body. Account selection is server-side. The browser uses this same endpoint.
@@ -155,6 +169,13 @@ A native client can reuse its existing CRM session with `POST /api/sales/mail/v1
 | `rep-email-save` | UUID `id`, `revision` (0 for new), `to`, `subject`, `body`, optional `cc`, `bcc`, `files`, `link`, `replyToken` | Saved draft and next revision |
 | `rep-email-discard` | Workspace draft `id`, `revision` | Discard confirmation |
 | `rep-email-send` | Workspace draft `id`, `revision` | Accepted by Zoho, rejected, or unconfirmed |
+| `rep-email-allocations` | Optional directory `offset` | Owner’s rep roster, assignment revisions, verified domains and Zoho mailbox page |
+| `rep-email-bind` / `rep-email-provision` | `memberId`, `address`, `revision` (0 for first assignment), optional initial `password` for creation | Owner-only assignment with its verified or pending state |
+| `rep-email-release` | `memberId`, `revision` | Updated local assignment |
+| `rep-email-handoff-options` / `rep-email-handoff` | Incoming `messageId`, plus `memberId` and `revision` to assign | Eligible recipients and current assignment, or saved handoff |
+| `rep-email-handoffs` | `view` (`to-me` or `by-me`), optional `offset` | Participant’s assignment page and next offset |
+| `rep-email-handoff-read` / `rep-email-handoff-download` | Assignment `id`, add attachment `index` to download | Shared message or file |
+| `rep-email-handoff-status` | Assignment `id`, `revision`, `status` (`open` or `done`) | Updated assignment |
 
 Send new files as `{ "name": "notes.txt", "base64": "SGVsbG8=" }`. Reuse the returned file IDs on subsequent saves. A linked Rolodex contact uses `{ "officeId": "...", "contactId": "..." }`. To reply, pass the recipient, subject and reply token returned by reading that message. After an unconfirmed submission, review Sent before attempting another send. [Zoho Mail message APIs](https://www.zoho.com/mail/help/api/email-api.html)
 

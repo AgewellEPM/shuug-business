@@ -1,4 +1,4 @@
-window.SdrSupportContent = [
+const sdrSupportArticles = [
   {
     id: 'sign-in', kind: 'article', topic: 'Login & Access',
     title: 'Sign in to the Sales Workspace',
@@ -145,3 +145,5 @@ window.SdrSupportContent = [
     ],
   },
 ];
+if (typeof window !== 'undefined') window.SdrSupportContent = sdrSupportArticles;
+if (typeof module !== 'undefined') module.exports = sdrSupportArticles;

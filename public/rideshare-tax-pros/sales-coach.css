@@ -1,0 +1,80 @@
+.sales-console-page .coach-launch {
+  display: inline-flex; align-items: center; justify-content: flex-start; gap: 9px; flex: none; white-space: nowrap;
+  min-height: 39px; margin-inline: 5px; padding: 7px 13px; border: 1px solid #497c94; border-radius: 11px;
+  background: linear-gradient(110deg, #244575, #175869); color: #f2fcff; font: inherit; font-weight: 650;
+}
+.sales-console-page .coach-launch:is(:hover, [aria-pressed="true"]) { border-color: #95d4dc; background: #185e72; }
+.coach-launch svg { width: 17px; height: 17px; }
+.coach-launch:focus-visible { outline: 3px solid #94dbef; outline-offset: 2px; }
+.coach-workspace {
+  --coach-ink: #142e4d; --coach-muted: #50677d; --coach-line: #cfdeea; --coach-accent: #20569c; --coach-tint: #eaf3fc;
+  container: tinkycoach / inline-size; overflow: hidden; border-radius: 20px; border: 1px solid #c6d7e6;
+  background: #fff; color: var(--coach-ink); box-shadow: 0 8px 26px -15px #163a6559;
+}
+[data-care-crm] .coach-workspace { --coach-accent: #246252; --coach-tint: #e4f2ec; }
+.coach-workspace [hidden] { display: none !important; }
+.coach-header { display: flex; align-items: center; gap: 15px; padding: 20px 26px; color: white;
+  background: radial-gradient(ellipse at 90% 140%, #24858a 0%, transparent 56%), linear-gradient(115deg, #112d4e, #164b79 70%, #16616e); }
+.coach-symbol { display: grid; place-items: center; width: 46px; height: 46px; flex: none; border: 1px solid #ffffff55; border-radius: 15px; background: #ffffff17; }
+.coach-workspace .coach-symbol svg { width: 26px; height: 26px; }
+#coach-title { color: #fff; font-size: clamp(27px, 3.3cqi, 36px); font-weight: 680; letter-spacing: -.044em; }
+.coach-workspace .coach-header p { margin-top: 3px; font-size: 14px; color: #e1f6ff; }
+.coach-layout { display: grid; grid-template-columns: minmax(0, 1fr) clamp(205px, 29%, 310px); }
+.coach-conversation { display: flex; flex-direction: column; min-width: 0; height: clamp(400px, calc(100dvh - 225px), 790px); background: linear-gradient(145deg, #fff 30%, #f7fbff); }
+#coach-stream { flex: 1; min-height: 0; overflow: auto; overflow-anchor: none; overscroll-behavior: contain; padding: 15px clamp(14px, 2.5cqi, 28px); }
+#coach-stream:focus-visible { outline-offset: -4px; }
+#coach-welcome { display: grid; min-height: 100%; align-content: center; justify-items: center; text-align: center; gap: 12px; }
+#coach-welcome img { width: min(48%, 205px); height: auto; }
+#coach-welcome h3 { font-size: clamp(22px, 2.8cqi, 30px); letter-spacing: -.04em; }
+.coach-prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; max-width: 460px; }
+.coach-workspace button { cursor: pointer; }
+.coach-workspace :is(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid #3882bb; outline-offset: 2px; }
+.coach-prompts button, .coach-workspace .coach-review, #coach-edit-goal, #coach-older, #coach-reload, #coach-goal-form button {
+  padding: 7px 10px; border: 1px solid #bad0e2; border-radius: 9px; background: #fff; color: var(--coach-accent); font-size: 13px; font-weight: 600;
+}
+.coach-prompts button:hover, .coach-workspace .coach-review:hover, #coach-edit-goal:hover { border-color: #719bb8; background: var(--coach-tint); }
+#coach-older { display: block; margin: 0 auto 10px; }
+.coach-workspace .coach-question { width: fit-content; max-width: 85%; margin: 7px 0 12px auto; padding: 10px 14px; border-radius: 15px 4px 15px 15px; background: var(--coach-accent); color: #fff; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.48; }
+.coach-answer { margin-bottom: 20px; padding-left: 12px; border-left: 3px solid #86bdc5; }
+.coach-author { display: block; margin-bottom: 5px; color: #1e626a; font-size: 13px; }
+.coach-workspace .coach-answer p { color: var(--coach-ink); white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px; line-height: 1.52; }
+.coach-workspace .coach-review { margin-top: 9px; text-align: left; }
+.coach-sources { display: flex; flex-wrap: wrap; gap: 5px 12px; margin-top: 8px; }
+.coach-workspace a { color: var(--coach-accent); font-size: 13px; text-underline-offset: 3px; }
+.coach-compose { padding: 12px clamp(12px, 2.5cqi, 25px); background: white; border-top: 1px solid var(--coach-line); }
+#coach-status, #coach-goal-status { color: var(--coach-muted); font-size: 13px; }
+#coach-status:not(:empty), #coach-reload { margin: 0 0 7px; }
+#coach-status[data-error="true"] { color: #922d3e; }
+#coach-form { display: flex; align-items: flex-end; gap: 7px; border: 1px solid #b6ccdf; border-radius: 14px; background: #fbfdff; padding: 7px; }
+#coach-form:focus-within { border-color: #377daf; box-shadow: 0 0 0 3px #3379ad22; }
+#coach-form textarea { flex: 1; min-width: 0; min-height: 48px; max-height: 150px; resize: vertical; border: 0; border-radius: 6px; color: var(--coach-ink); background: transparent; padding: 5px; font: inherit; font-size: 15px; }
+#coach-form textarea:focus-visible { outline: none; }
+#coach-form button, #coach-goal-form [type="submit"] { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 10px; padding: 9px 12px; background: var(--coach-accent); color: #fff; font-size: 14px; font-weight: 650; }
+#coach-form button:disabled { background: #e4ebf2; color: #54697d; opacity: 1; }
+.coach-side { display: grid; align-content: start; gap: 14px; max-height: clamp(400px, calc(100dvh - 225px), 790px); overflow: auto; padding: 17px 13px; border-left: 1px solid var(--coach-line); background: #f2f6fa; }
+.coach-card { padding: 13px; border: 1px solid var(--coach-line); border-radius: 13px; background: #fff; }
+.coach-card-title { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-bottom: 10px; }
+.coach-workspace .coach-card-title h3 { font-size: 16px; font-weight: 680; }
+#coach-edit-goal { padding: 4px 7px; font-size: 12px; }
+#coach-goal-summary p, #coach-next { color: var(--coach-muted); font-size: 13px; line-height: 1.5; }
+#coach-goal-summary progress { width: 100%; height: 9px; margin-top: 6px; accent-color: #247876; }
+#coach-goal-summary small { display: block; color: var(--coach-muted); font-size: 11px; }
+#coach-goal-summary .coach-goal-numbers { color: var(--coach-ink); font-size: 17px; }
+.coach-goal-numbers strong { font-size: 27px; }
+#coach-goal-summary .coach-focus { margin-top: 6px; color: var(--coach-ink); }
+#coach-goal-form { display: grid; gap: 8px; margin-top: 12px; }
+#coach-goal-form label { display: grid; gap: 3px; font-size: 12px; font-weight: 600; }
+#coach-goal-form :is(input,select) { min-width: 0; max-width: 100%; width: 100%; padding: 7px; border: 1px solid #b8cbdc; border-radius: 8px; color: var(--coach-ink); background: #fff; font: inherit; font-size: 14px; }
+#coach-goal-form > div { display: flex; gap: 7px; flex-wrap: wrap; }
+#coach-goal-status:not(:empty) { margin-top: 7px; }
+#coach-next { margin: 0 0 9px; padding-inline-start: 18px; }
+#coach-next li + li { margin-top: 5px; }
+@container tinkycoach (max-width: 640px) {
+  .coach-layout { grid-template-columns: minmax(0, 1fr); }
+  .coach-header { padding: 14px 16px; }
+  .coach-conversation { height: clamp(370px, 62dvh, 620px); }
+  .coach-side { grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr)); max-height: none; border-left: 0; border-top: 1px solid var(--coach-line); padding: 10px; gap: 9px; }
+  #coach-form textarea, #coach-goal-form :is(input,select) { font-size: 16px; }
+  #coach-stream { padding: 11px; }
+  .coach-prompts button { min-height: 36px; }
+}

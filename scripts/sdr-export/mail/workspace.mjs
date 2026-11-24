@@ -7,6 +7,9 @@ import { emailOutreachBlocked, officeOutreachBlocked } from '../../../sales/outr
 import { zohoAssignment, zohoConfig, zohoId } from './zoho-account.mjs';
 import { authorizeZoho } from './authorize.mjs';
 import { zohoMail } from './zoho-mail.mjs';
+import { zohoOrganization } from './organization.mjs';
+import { mailboxAllocations } from './allocations.mjs';
+import { messageHandoffs } from './handoffs.mjs';
 
 const draftId = value => {
   if (typeof value !== 'string' || !/^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(value)) {
@@ -38,7 +41,7 @@ function addressList(value) {
   return [...new Set(parts)].join(', ');
 }
 
-export function repEmailWorkspace(db, sessionKey, env, { directory, transport = zohoMail() } = {}) {
+export function repEmailWorkspace(db, sessionKey, env, { directory, transport = zohoMail(), organization = zohoOrganization() } = {}) {
   const store = db.repMail;
   const key = digest('Universal SDR rep email:' + sessionKey);
   const protect = (owner, value) => seal({ owner, value, exp: 8.64e15 }, key);
@@ -47,7 +50,11 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
     if (data?.owner !== owner) throw new HttpError(502, 'A saved email record could not be unlocked.');
     return data.value;
   }
-  function accountFor(user) { return zohoAssignment(db, user, zohoConfig(env, directory)); }
+  const config = () => zohoConfig(env, directory);
+  function accountFor(user) { return zohoAssignment(db, user, config()); }
+  const roster = salesTeamTools(db, undefined, { id: 'owner', name: 'Workspace owner', role: 'owner' });
+  const allocations = mailboxAllocations({ db, roster, config, organization, accountFor, mailAddress });
+  const handoffs = messageHandoffs({ db, roster, accountFor, transport, protect, recover });
   function summary(user) {
     let account;
     try { account = accountFor(user); }
@@ -147,7 +154,6 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
       checkRecipients();
       // A slow upload must not outlive the rep's access or an owner changing the assignment.
       if (user.role === 'agent') {
-        const roster = salesTeamTools(db, undefined, { id: 'owner', role: 'owner' });
         if (!roster.rosterUser(db.get('agents', user.id))) throw new HttpError(403, 'Sales access has changed.');
       }
       if (accountFor(user).address !== account.address) throw new HttpError(409, 'The mailbox assignment changed.');
@@ -175,8 +181,11 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
     return value;
   }
   const actions = new Set(['rep-email-list', 'rep-email-read', 'rep-email-download', 'rep-email-change',
-    'rep-email-drafts', 'rep-email-save', 'rep-email-discard', 'rep-email-send', 'rep-email-settings', 'rep-email-authorize']);
+    'rep-email-drafts', 'rep-email-save', 'rep-email-discard', 'rep-email-send', 'rep-email-settings', 'rep-email-authorize',
+    ...allocations.actions, ...handoffs.actions]);
   async function dispatch(user, action, body = {}) {
+    if (allocations.actions.includes(action)) return allocations.dispatch(user, action, body);
+    if (handoffs.actions.includes(action)) return handoffs.dispatch(user, action, body);
     switch (action) {
       case 'rep-email-settings': return summary(user);
       case 'rep-email-authorize':

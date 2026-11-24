@@ -224,3 +224,86 @@ test('owner grant import verifies the Zoho owner and Inbox before installing a p
   assert.equal(app.summary(owner).mailbox.configured, true);
   assert.ok(!JSON.stringify(app.summary(owner)).includes(grant.client_secret));
 });
+
+test('the owner assigns and releases an exact Zoho mailbox while preserving rep and owner isolation', async t => {
+  const { db, rep, peer, reopen } = fixture(t);
+  const org = { orgId: '202', list: async () => ({ accounts:[], next:null }), domains:async () => ['example.test'],
+    lookup: async address => ({ address, accountId:'303' }), canOpen:async () => true };
+  const organization = { context: async () => org };
+  let app = repEmailWorkspace(db,key,env,{organization});
+  const body = { memberId:rep.id, address:'regional@example.test', revision:0 };
+  for (const action of ['rep-email-allocations','rep-email-bind','rep-email-release','rep-email-provision']) {
+    await assert.rejects(app.dispatch(rep,action,body),{status:403});
+  }
+  assert.equal((await app.dispatch(owner,'rep-email-allocations')).members.length,2);
+  await assert.rejects(app.dispatch(owner,'rep-email-bind',{...body,address:env.SDR_ZOHO_OWNER_ADDRESS}),{status:409});
+  await assert.rejects(app.dispatch(owner,'rep-email-bind',{...body,address:peer.email}),{status:409});
+  const {mailbox} = await app.dispatch(owner,'rep-email-bind',body);
+  assert.equal(mailbox.status,'ready');
+  assert.equal(app.summary(rep).mailbox.address,body.address);
+  await assert.rejects(app.dispatch(owner,'rep-email-bind',{...body,memberId:peer.id}),{status:409});
+  await assert.rejects(app.dispatch(owner,'rep-email-release',body),{status:409});
+  org.canOpen=async()=>false;
+  await assert.rejects(app.dispatch(owner,'rep-email-bind',{...body,address:'new@example.test',revision:1}),{status:409});
+  app=repEmailWorkspace(reopen(),key,env,{organization});
+  assert.equal(app.summary(rep).mailbox.address,body.address);
+  await app.dispatch(owner,'rep-email-release',{memberId:rep.id,revision:mailbox.revision});
+  assert.equal(app.summary(rep).mailbox.configured,false);
+  assert.equal(app.summary(rep).mailbox.address,'');
+  assert.equal(app.summary(owner).mailbox.address,env.SDR_ZOHO_OWNER_ADDRESS);
+});
+
+test('provisioning reserves one seat request, reconciles an uncertain create, and checks real mailbox access before enabling it', async t => {
+  const { db, rep, peer } = fixture(t);
+  const request=Promise.withResolvers(), started=Promise.withResolvers();
+  let creates=0, accessible=false;
+  const org={orgId:'203',domains:async()=>['example.test'],
+    create:async()=>{creates++;started.resolve();await request.promise;throw new Error('Response lost');},
+    lookup:async address=>({address,accountId:'305'}),canOpen:async()=>accessible};
+  const app=repEmailWorkspace(db,key,env,{organization:{context:async()=>org}});
+  const body={memberId:rep.id,address:'first.last@example.test',revision:0};
+  await assert.rejects(app.dispatch(owner,'rep-email-provision',{...body,address:'outside@other.test'}),{status:400});
+  const creating=app.dispatch(owner,'rep-email-provision',body);
+  await started.promise;
+  await assert.rejects(app.dispatch(owner,'rep-email-provision',body),{status:409});
+  await assert.rejects(app.dispatch(owner,'rep-email-provision',{...body,memberId:peer.id}),{status:409});
+  assert.equal(app.summary(rep).mailbox.configured,false);
+  request.resolve();
+  await assert.rejects(creating,{status:502});
+  const unconfirmed=db.repMail.allocation(rep.id);
+  assert.equal(unconfirmed.status,'check');
+  await assert.rejects(app.dispatch(owner,'rep-email-provision',{...body,revision:unconfirmed.revision}),{status:409});
+  const pending=await app.dispatch(owner,'rep-email-bind',{...body,revision:unconfirmed.revision});
+  assert.equal(pending.mailbox.status,'pending');
+  accessible=true;
+  const ready=await app.dispatch(owner,'rep-email-bind',{...body,revision:pending.mailbox.revision});
+  assert.equal(ready.mailbox.status,'ready');
+  assert.equal(creates,1);
+});
+
+test('one encrypted incoming message follows its assigned rep, supports completion, and never grants the rest of the source mailbox', async t => {
+  const { db, rep, peer, reopen }=fixture(t);
+  const id='1889999999999999999', from={address:'person@example.test',name:'Contact'};
+  const original={id,subject:'Private inquiry',body:'Only the assigned rep can read this.',from:[from],to:[],cc:[],replyTo:from.address,date:'2026-11-24',
+    attachments:[{name:'agenda.txt',size:5}]};
+  const transport={async read(box,req){assert.equal(box.address,env.SDR_ZOHO_OWNER_ADDRESS);assert.deepEqual(req,{folder:'inbox',id,markRead:false});return original;},
+    async download(box,req){assert.equal(box.address,env.SDR_ZOHO_OWNER_ADDRESS);assert.deepEqual(req,{folder:'inbox',id,index:0});return {name:'agenda.txt',base64:'aGVsbG8='};}};
+  let app=repEmailWorkspace(db,key,env,{transport});
+  const input={messageId:id,memberId:rep.id,revision:0,body:'forged message'};
+  const {assignment:a}=await app.dispatch(owner,'rep-email-handoff',input);
+  assert.equal((await app.dispatch(owner,'rep-email-handoff',input)).assignment.id,a.id);
+  assert.ok(!JSON.stringify(db.repMail.handoff(a.id)).includes(original.subject));
+  await assert.rejects(app.dispatch(peer,'rep-email-handoff-read',{id:a.id}),{status:404});
+  await assert.rejects(app.dispatch(peer,'rep-email-handoff-download',{id:a.id,index:0}),{status:404});
+  app=repEmailWorkspace(reopen(),key,env,{transport});
+  assert.equal((await app.dispatch(rep,'rep-email-handoffs',{view:'to-me'})).assignments[0].subject,original.subject);
+  assert.equal((await app.dispatch(rep,'rep-email-handoff-read',{id:a.id})).message.body,original.body);
+  assert.equal((await app.dispatch(rep,'rep-email-handoff-download',{id:a.id,index:0})).name,'agenda.txt');
+  const done=await app.dispatch(rep,'rep-email-handoff-status',{id:a.id,revision:a.revision,status:'done'});
+  assert.equal(done.assignment.status,'done');
+  const moved=await app.dispatch(owner,'rep-email-handoff',{...input,memberId:peer.id,revision:done.assignment.revision});
+  assert.equal(moved.assignment.assigneeId,peer.id);
+  assert.equal((await app.dispatch(rep,'rep-email-handoffs',{view:'to-me'})).assignments.length,0);
+  await assert.rejects(app.dispatch(rep,'rep-email-handoff-read',{id:a.id}),{status:404});
+  assert.equal((await app.dispatch(owner,'rep-email-handoffs',{view:'by-me'})).assignments[0].assigneeId,peer.id);
+});

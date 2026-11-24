@@ -65,15 +65,15 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
-    const careCampaign = window.SdrCareCampaign?.mount({ api, refresh, getOffices: () => data?.offices || [],
-      openOffice: id => { openNavigation('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
+    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft });
+    const careCampaign = window.SdrCareCampaign?.mount();
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
       if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
       const teamTool = teamTools.has(name);
       const trainingTool = ['training-demo', 'training-pipeline'].includes(name);
-      const enteringWorkspace = standalone && (teamTool || trainingTool || ['today','team','training','support','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingTool || ['today','team','training','support','campaigns','coach'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -81,14 +81,15 @@
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingTool && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center' })[name] || 'Workspace';
-      $('#sales-stats').hidden = trainingTool || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support'].includes(name);
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
+      $('#sales-stats').hidden = trainingTool || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
         $('.sdr-main').scrollTop = 0;
       }
       if (data) chatUI?.view(data.user, name, chatChannel);
+      if (data) coachUI?.view(data.user, name);
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') {
         prospectsWorkspace?.enter();
@@ -159,12 +160,14 @@
     }
     $('[data-training-demo-return]')?.addEventListener('click', () => openNavigation('training'));
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
+      if (coachUI && params.get('view') === 'coach') { tab('coach'); return true; }
       if (params.get('view') === 'demo' && $('[data-tab-panel="demo"]')) { tab('demo'); return true; }
       if (trainingPipeline && params.get('view') === 'training-pipeline') { tab('training-pipeline'); return true; }
       if ($('[data-tab-panel="training-demo"]') && params.get('view') === 'training-demo') { tab('training-demo'); return true; }
       if (trainingUI && params.get('view') === 'training') {
         tab('training');
-        if (params.has('section')) trainingUI.show(params.get('section'));
+        if (params.has('course')) void trainingUI.openLesson(params.get('course'), params.get('lesson'));
+        else if (params.has('section')) trainingUI.show(params.get('section'));
         return true;
       }
       if (supportUI && params.get('view') === 'support') { tab('support'); return true; }
@@ -210,6 +213,36 @@
       const hash = '#view=' + encodeURIComponent(name);
       if (location.hash !== hash) history.pushState(null, '', hash);
       if (!showRequestedView()) tab(name);
+    }
+    async function reviewCoachDraft(draft) {
+      let form;
+      if (draft.type === 'prospect') {
+        openNavigation('prospects');
+        $('[data-prospect-add]').click();
+        form = $('#sales-business-prospect-form');
+        const edited = [...form.elements].some(field => field.name && field.value && field.value !== (draft.fields[field.name] || ''));
+        if (edited) throw new Error('A prospect draft is already open. Finish reviewing it before filling another one.');
+      } else {
+        openNavigation('pipeline');
+        await showOffice(draft.recordId);
+        if (selected !== String(draft.recordId) || $('#sales-detail-drawer').hidden) throw new Error('Reopen the account to review the draft.');
+        const selector = { activity: '#sales-activity', followup: '.sales-quick-followup', email: '.sales-compose-form' }[draft.type];
+        form = selector && $('#sales-detail').querySelector(selector);
+        const account = data.offices.find(row => String(row.id) === String(draft.recordId));
+        if (['email','followup'].includes(draft.type) && (!account || ['not_interested','do_not_contact'].includes(account.status) || meta(account).primaryContactDoNotContact)) throw new Error('Check the account’s current contact preference before planning outreach.');
+      }
+      if (!form) throw new Error('This form is unavailable for the selected account.');
+      for (const [name, value] of Object.entries(draft.fields)) {
+        const field = form.elements.namedItem(name);
+        if (!field || field.disabled || (field.options && ![...field.options].some(option => option.value === value))) continue;
+        field.value = value;
+        field.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      const details = form.closest('details');
+      if (details) details.open = true;
+      form.querySelector('input,select,textarea')?.focus({ preventScroll: true });
+      form.scrollIntoView?.({ block: 'center' });
+      status('Review the prepared fields and save when ready.');
     }
     teamReturn?.addEventListener('click', () => {
       const previous = teamTools.get(document.body.dataset.sdrView);
@@ -368,7 +401,15 @@
       const renew = $('#sales-renew-invitation');
       if (renew) renew.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(renew)); const result = await api('renew-invitation', { id, reason: values.reason, reviewed: values.reviewed === 'on' }); await refresh(); showInvitation(result); status('Fresh private invitation ready to copy. No message was sent.'); }, renew);
 
-      const activity = $('#sales-activity'); activity.onsubmit = run(async () => { await api('activity',{id,...Object.fromEntries(new FormData(activity))}); await showOffice(id); status('Activity saved.'); }, activity);
+      const activity = $('#sales-activity');
+      if (['nursing-home', 'long-term-care', 'assisted-living'].includes(m.facilityType)) careCampaign?.addPilotActivity(activity);
+      activity.onsubmit = run(async () => {
+        const entry = Object.fromEntries(new FormData(activity)), pilot = entry.kind === 'care_pilot';
+        await api(pilot ? 'start-care-pilot' : 'activity', { id, ...entry });
+        if (!activity.isConnected || selected !== String(id)) return;
+        await showOffice(id);
+        status(pilot ? 'Pilot plan saved to facility history.' : 'Activity saved.');
+      }, activity);
       const invite = $('#sales-invite');
       if (invite.elements.savedOwner) invite.elements.savedOwner.onchange = () => { const person = savedOwners.find(c => c.id === invite.elements.savedOwner.value); if (person) { invite.elements.ownerName.value = person.name; invite.elements.email.value = person.email || ''; } };
       invite.onsubmit = run(async () => { const result = await api('invite',{id,...Object.fromEntries(new FormData(invite))}); await refresh(); showInvitation(result); status('Contract prepared. Review its email in the Office contract section.'); }, invite);
@@ -386,7 +427,7 @@
     }, loginForm);
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
-    $('#sales-logout').onclick = run(async () => { await api('logout'); chatUI?.reset(); location.replace(sharedSignIn); });
+    $('#sales-logout').onclick = run(async () => { await api('logout'); chatUI?.reset(); coachUI?.reset(); location.replace(sharedSignIn); });
     $$('[data-tab]').forEach(b => b.onclick = () => {
       sidebarSelection++;
       openNavigation(b.dataset.tab);
