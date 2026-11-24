@@ -64,10 +64,7 @@
     const trainingPipeline = window.SdrTrainingPipeline?.mount({ api });
     const trainingUI = window.SdrTraining?.mount({ api, onDemo: openTrainingDemo });
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
-    const productsUI = window.SdrProducts?.mount({ api, onQuote: offer => {
-      openNavigation('support');
-      supportUI?.quote(offer);
-    } });
+    const productsUI = window.SdrProducts?.mount({ api });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
@@ -110,7 +107,6 @@
       if (name === 'campaigns' && data?.user.role === 'owner') campaignUI?.refresh();
       if (name === 'email') emailUI?.enter();
       if (name === 'contracts') contractsUI?.enter();
-      if (name === 'products') productsUI?.show();
       if (name === 'team') teamUI?.refresh(data.user);
       else teamUI?.closeMemberProfile();
       if (enteringWorkspace) $('.sdr-main').scrollTop = 0;
@@ -187,8 +183,19 @@
         else if (params.has('section')) trainingUI.show(params.get('section'));
         return true;
       }
-      if (productsUI && params.get('view') === 'products') { tab('products'); return true; }
-      if (supportUI && params.get('view') === 'support') { tab('support'); return true; }
+      if (productsUI && params.get('view') === 'products') {
+        tab('products');
+        productsUI.show(params.get('section'));
+        return true;
+      }
+      if (supportUI && params.get('view') === 'support') {
+        tab('support');
+        if (productsUI && params.get('request') === 'quote') {
+          history.replaceState(null, '', '#view=support');
+          supportUI.openQuote(productsUI.offerName(params.get('offer')));
+        }
+        return true;
+      }
       if (chatUI && params.get('view') === 'chat') {
         tab('chat', params.get('dm') ? '@' + params.get('dm') : params.get('channel'));
         if (params.get('new') === 'dm') chatUI.startDirect();

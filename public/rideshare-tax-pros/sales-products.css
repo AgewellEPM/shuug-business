@@ -37,7 +37,7 @@
 .product-board-tiles span { display: grid; justify-items: center; background: #f1f7ff; color: #0f3381; padding: 4px 2px; font-size: clamp(.65rem, 1.3cqw, .83rem); border-radius: 7px; text-align: center; }
 .product-board-tiles b { font-size: clamp(18px, 2.7cqw, 29px); line-height: 1.16; }
 .product-tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; padding: 4px; background: #e9f3ff; border: 1px solid var(--product-line); border-radius: 11px; }
-.sdr-products .product-tabs button, .sdr-products .product-button {
+.sdr-products .product-tabs a, .sdr-products .product-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -56,9 +56,9 @@
   border-radius: 8px;
   cursor: pointer;
 }
-.sdr-products .product-tabs button { border-color: transparent; background: transparent; color: var(--product-ink); }
-.sdr-products .product-primary, .sdr-products .product-tabs [aria-pressed="true"] { color: #fff; background: linear-gradient(#008aeb, #0645db); border-color: #0871e9; box-shadow: 0 2px 7px #0055c93a; }
-.sdr-products :is(.product-button,.product-board,.product-tabs button):hover { filter: brightness(.95); }
+.sdr-products .product-tabs a { border-color: transparent; background: transparent; color: var(--product-ink); }
+.sdr-products .product-primary, .sdr-products .product-tabs [aria-current="page"] { color: #fff; background: linear-gradient(#008aeb, #0645db); border-color: #0871e9; box-shadow: 0 2px 7px #0055c93a; }
+.sdr-products :is(.product-button,.product-board,.product-tabs a):hover { filter: brightness(.95); }
 .sdr-products :is(button,a,input,select,summary):focus-visible { outline: 2px solid #147ff5; outline-offset: 3px; }
 .product-overview, .product-rate-grid, .product-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .product-card { padding: 16px 18px; min-width: 0; border: 1px solid var(--product-line); border-radius: 13px; background: linear-gradient(135deg, #fcfeff, #eef6ff); box-shadow: 0 2px 7px #13458a12; }
@@ -91,3 +91,4 @@
   .product-hero, .product-overview, .product-form { grid-template-columns: minmax(0, 1fr); }
   .product-tabs svg { display: none; }
 }
+.product-card .product-commission { margin: 0 0 12px; font-size: .9rem; }

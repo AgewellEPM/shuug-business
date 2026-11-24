@@ -2,8 +2,8 @@ const coverage = 'https://www.cms.gov/training-education/medicare-learning-netwo
 const boardTiles = [['👋', 'Hello'], ['🤕', 'I am in pain'], ['📊', 'Pain level'], ['💊', 'Medications'], ['📄', 'Insurance'], ['💧', 'Water']];
 
 export function renderProducts(icon) {
-  const tab = (view, label, glyph) => `<button type="button" data-product-view="${view}" aria-pressed="${view === 'overview'}">${icon(glyph)}${label}</button>`;
-  const quote = (offer = '') => `<button type="button" class="product-button" data-product-quote="${offer}">Request a quote</button>`;
+  const tab = (view, label, glyph) => `<a href="#view=products${view === 'overview' ? '' : '&amp;section=' + view}" data-product-view="${view}"${view === 'overview' ? ' aria-current="page"' : ''}>${icon(glyph)}${label}</a>`;
+  const quote = (offer = '') => `<a href="#view=support&amp;request=quote${offer ? '&amp;offer=' + offer : ''}" class="product-button" data-product-quote>Request a quote</a>`;
   return `<section class="sdr-products" data-tab-panel="products" hidden aria-labelledby="sales-products-title">
     <header class="product-hero">
       <div><span class="product-brand">🚂 TinkyTown</span>
@@ -24,14 +24,15 @@ export function renderProducts(icon) {
         <p>A preconfigured tablet gives residents a dedicated place to use picture and text-to-speech communication boards.</p>
         <ul class="product-checks"><li>Tap picture choices to speak everyday requests.</li><li>Use familiar phrases for routine care.</li><li>Try the bedside conversation and pain scale in the stroke demo.</li></ul>
         <p class="product-price" data-product-price>Loading rental pricing…</p>
-        <div class="product-actions"><a class="product-button" href="#view=demo&amp;product=stroke&amp;setting=nursing-home">Try the bedside demo</a>${quote('TinkySpeak facility hardware rental')}</div>
+        <p class="product-commission">Rep commission <strong data-product-commission>Loading…</strong></p>
+        <div class="product-actions"><a class="product-button" href="#view=demo&amp;product=stroke&amp;setting=nursing-home">Try the bedside demo</a>${quote('facility-rental')}</div>
       </article>
       <article class="product-card">
         <h2>${icon('demo')} TinkyTown Healthcare</h2>
         <p>QR and kiosk communication boards for healthcare reception and other points of care.</p>
         <ul class="product-checks"><li>Open a board on the visitor’s phone with a QR code.</li><li>Offer a shared board at reception or check-in.</li><li>Choose picture tiles that speak the selected message.</li></ul>
         <p class="product-price">Pricing by quote</p>
-        <div class="product-actions"><a class="product-button" href="#view=demo&amp;product=hospital">Try the hospital demo</a>${quote('TinkyTown Healthcare')}</div>
+        <div class="product-actions"><a class="product-button" href="#view=demo&amp;product=hospital">Try the hospital demo</a>${quote('healthcare')}</div>
       </article>
     </section>
     <section data-product-panel="pricing" class="product-card" hidden aria-labelledby="products-pricing-title">

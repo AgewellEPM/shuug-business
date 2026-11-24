@@ -180,6 +180,16 @@
       openDialog(title, find('[data-support-create]').content.cloneNode(true));
     }
 
+    function openQuote(offer) {
+      find('#support-requests-title').focus();
+      openCreate('Request a product quote');
+      const form = dialogBody.querySelector('[data-support-form]');
+      form.elements.category.value = 'billing';
+      form.elements.subject.value = offer ? 'Quote request — ' + offer : 'TinkyTown quote request';
+      form.elements.message.placeholder = 'Include the facility name, devices and quantities, rollout date, and follow-up contact.';
+      form.elements.message.focus();
+    }
+
     async function startChat(button) {
       if (!loaded) {
         button.disabled = true;
@@ -274,22 +284,10 @@
         libraryTrigger?.focus();
       }
     });
-    return {
-      show(user, entering) {
-        userId = String(user.id);
-        if (entering || !loaded) void load();
-      },
-      quote(offer) {
-        find('#support-title').setAttribute('tabindex', '-1');
-        find('#support-title').focus({ preventScroll: true });
-        openCreate('Request a product quote');
-        const { category, subject, message } = find('[data-support-form="create"]').elements;
-        category.value = 'billing';
-        subject.value = offer ? 'Quote request — ' + offer : 'TinkyTown quote request';
-        message.placeholder = 'Facility name and location, number of units, and desired start date';
-        message.focus();
-      },
-    };
+    return { openQuote, show(user, entering) {
+      userId = String(user.id);
+      if (entering || !loaded) void load();
+    } };
   }
 
   window.SdrSalesSupport = { mount };
