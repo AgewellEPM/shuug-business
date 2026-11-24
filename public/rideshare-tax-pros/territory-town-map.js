@@ -9,11 +9,11 @@
 
   // Try several label positions at screen scale. County names stay inside their
   // areas where space permits. Town names can sit on either side of a dot.
-  function labelLayout(map, scale) {
+  function labelLayout(map, scale, latLng) {
     const size = map.getSize(), occupied = new Set(), nodes = [];
     return { nodes, place(item, kind, action) {
       const { name, x, y } = item;
-      const location = map.latLngToContainerPoint([-y, x]);
+      const location = map.latLngToContainerPoint(latLng(x, y));
       const capital = kind === 'capital', county = kind === 'county';
       const text = county ? name.toUpperCase() : name;
       const font = capital ? 15 : county ? 11.5 : 12;
@@ -40,17 +40,48 @@
     } };
   }
 
-  function draw(panel, data, onSearch) {
+  function draw(panel, data, onSearch, api, focus) {
     const L = window.L, canvas = panel.querySelector('[data-map-canvas]');
     const picker = panel.querySelector('[data-map-town]'), research = panel.querySelector('[data-map-research]');
     const reset = panel.querySelector('[data-map-reset]');
-    const items = new Map(), bounds = ([left, top, right, bottom]) => L.latLngBounds([-bottom, left], [-top, right]);
+    const items = new Map(), streetsButton = panel.querySelector('[data-map-streets]');
+    const mode = panel.querySelector('[data-map-layer]'), tileStatus = panel.querySelector('[data-map-tiles]');
+    const latLng = (x, y) => L.CRS.EPSG3857.unproject(L.point(data.origin[0] + x * data.metersPerUnit, data.origin[1] - y * data.metersPerUnit));
+    const bounds = ([left, top, right, bottom]) => L.latLngBounds(latLng(left, top), latLng(right, bottom));
     const extent = bounds(data.bounds), initial = bounds(data.fit);
-    const crs = Object.create(L.CRS.Simple);
-    crs.distance = (a, b) => L.CRS.Simple.distance(a, b) * data.metersPerUnit;
-    const map = L.map(canvas, { crs, minZoom: -10, maxZoom: 4, zoomSnap: 0.25,
-      attributionControl: false, zoomAnimation: false, maxBounds: extent.pad(0.3) });
-    let selected, observer, atState = true;
+    const map = L.map(canvas, { minZoom: 2, maxZoom: 19, zoomSnap: 0.25, zoomAnimation: false,
+      fadeAnimation: false, maxBounds: extent.pad(0.35) });
+    map.attributionControl.setPrefix(false);
+    const roads = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, referrerPolicy: 'origin', updateWhenIdle: true, keepBuffer: 1,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'
+    });
+    roads.on('loading', () => { tileStatus.textContent = 'Loading streets…'; });
+    roads.on('tileerror', () => { tileStatus.textContent = 'Some streets could not load. Check your connection or zoom out for the local map.'; });
+    roads.on('load', () => {
+      if (!roads.getContainer()?.querySelector('img:not(.leaflet-tile-loaded)')) tileStatus.textContent = '';
+    });
+    const stateZoom = () => map.getBoundsZoom(initial, false, L.point(28, 28));
+    const streetZoom = () => Math.min(15, Math.max(12, Math.ceil(stateZoom() + 2)));
+    const streetLines = new Map();
+    function updateStreetLines() {
+      const viewport = map.getBounds(), draw = map.hasLayer(roads) && map.getZoom() < 16 && L.Browser.svg;
+      for (const feature of data.features) {
+        const existing = streetLines.get(feature.id);
+        if (!draw || !viewport.intersects(bounds(feature.bounds))) {
+          if (existing) { existing.remove(); streetLines.delete(feature.id); }
+          continue;
+        }
+        if (existing) continue;
+        const rings = Array.from(feature.path.matchAll(/M([^Z]+)Z/g), match => {
+          const points = match[1].split(' ').map(pair => latLng(...pair.split(',').map(Number)));
+          return [...points, points[0]];
+        });
+        const line = L.polyline(rings, { color: '#4d6e73', opacity: .7, weight: 1.5, dashArray: '4 3', interactive: false }).addTo(map);
+        streetLines.set(feature.id, line);
+      }
+    }
+    let selected, observer, atlas, roster, atState = true;
     try {
       const [left, top, right, bottom] = data.frame;
       const drawing = svg('svg', { viewBox: [left, top, right - left, bottom - top].join(' '), 'aria-hidden': 'true' });
@@ -66,18 +97,24 @@
         counties.set(county.id, county);
       }
       const shapes = svg('g', {}), markers = svg('g', {}), labels = svg('g', {});
-      drawing.append(countyShapes, shapes, svg('path', { class: 'town-map-state-line', d: data.outline }), markers, labels);
+      const localAreas = svg('g', { class: 'town-map-districts' });
+      for (const [index, area] of data.subdivisions.entries()) {
+        const path = svg('path', { class: 'town-map-district district-' + index % 5, d: area.path, 'data-district': area.id });
+        const title = svg('title', {}); title.textContent = area.label; path.append(title);
+        localAreas.append(path);
+      }
+      drawing.append(countyShapes, localAreas, shapes, svg('path', { class: 'town-map-state-line', d: data.outline }), markers, labels);
       L.control.scale({ maxWidth: 95 }).addTo(map);
       const names = new Set(), duplicates = new Set();
       for (const feature of data.features) {
         if (names.has(feature.name)) duplicates.add(feature.name);
         names.add(feature.name);
-        const path = svg('path', { class: 'town-map-area', d: feature.path, 'data-locality': feature.id });
+        const path = svg('path', { class: 'town-map-area local-' + Number(feature.id.slice(-4)) % 7, d: feature.path, 'data-locality': feature.id });
         const title = svg('title', {});
         title.textContent = feature.label;
         path.append(title);
         shapes.append(path);
-        items.set(feature.id, { feature, path, position: L.latLng(-feature.y, feature.x) });
+        items.set(feature.id, { feature, path, position: latLng(feature.x, feature.y) });
       }
       const option = (value, text) => new Option(text, value);
       const ordered = [...data.features].sort((a, b) => a.name.localeCompare(b.name) || a.label.localeCompare(b.label));
@@ -87,15 +124,28 @@
       research.disabled = true;
 
       function annotate() {
-        const zoom = map.getZoom(), scale = map.options.crs.scale(zoom);
-        const stateZoom = map.getBoundsZoom(initial, false, L.point(28, 28));
-        const detail = Boolean(selected) || zoom >= stateZoom + 0.75;
-        const showTownBorders = detail || data.state === 'CT';
-        shapes.setAttribute('display', showTownBorders ? 'inline' : 'none');
-        drawing.dataset.detail = detail ? 'towns' : 'counties';
-        const layout = labelLayout(map, scale), dots = [], landmarkNames = new Set();
+        const zoom = map.getZoom(), street = zoom >= streetZoom();
+        const detail = zoom >= stateZoom() + 0.65;
+        drawing.dataset.detail = street ? 'streets' : detail ? 'towns' : 'counties';
+        canvas.dataset.layer = drawing.dataset.detail;
+        mode.textContent = street ? 'Streets' : detail ? 'Town limits and local subdivisions' : 'County boundaries';
+        streetsButton.disabled = street && zoom >= 16;
+        if (street) {
+          if (atlas && map.hasLayer(atlas)) atlas.remove();
+          if (!map.hasLayer(roads)) roads.addTo(map);
+          updateStreetLines();
+          return;
+        }
+        if (map.hasLayer(roads)) { roads.remove(); updateStreetLines(); }
+        tileStatus.textContent = '';
+        if (atlas && !map.hasLayer(atlas)) atlas.addTo(map);
+        countyShapes.setAttribute('display', detail ? 'none' : 'inline');
+        shapes.setAttribute('display', detail ? 'inline' : 'none');
+        localAreas.setAttribute('display', detail ? 'inline' : 'none');
+        const scale = map.options.crs.scale(zoom) * data.metersPerUnit / 40075016.68557849;
+        const layout = labelLayout(map, scale, latLng), dots = [], landmarkNames = new Set();
         const viewport = map.getBounds().pad(0.04);
-        const visible = item => viewport.contains([-item.y, item.x]);
+        const visible = item => viewport.contains(latLng(item.x, item.y));
 
         function dot(item, kind, action, radius) {
           const marker = svg('circle', { class: 'town-map-point point-' + kind, cx: item.x, cy: item.y, r: radius/scale, ...action });
@@ -119,7 +169,7 @@
           layout.place(selected.feature, 'selected', { 'data-locality': selected.feature.id });
         }
         for (const county of data.counties) {
-          if (visible(county)) layout.place(county, 'county', { 'data-county': county.id });
+          if (!detail && visible(county)) layout.place(county, 'county', { 'data-county': county.id });
         }
         for (const place of places.filter(p => !p.capital)) {
           const action = { 'data-landmark': place.name };
@@ -127,11 +177,16 @@
           layout.place(place, 'city', action);
           landmarkNames.add(place.name);
         }
-        if (detail || data.state === 'CT') {
+        if (detail) {
           for (const {feature} of items.values()) {
             if (!visible(feature) || landmarkNames.has(feature.name)) continue;
             const action = { 'data-locality': feature.id };
             if (layout.place(feature, 'town', action)) dot(feature, 'town', action, 1.9);
+          }
+        }
+        if (detail) {
+          for (const area of data.subdivisions) {
+            if (visible(area)) layout.place({ ...area, name: area.label }, 'district', { 'data-district': area.id });
           }
         }
         markers.replaceChildren(...dots);
@@ -155,7 +210,7 @@
         selected.path.classList.add('is-selected');
         picker.value = id;
         research.disabled = false;
-        map.fitBounds(bounds(item.feature.bounds), { padding: [32, 32], maxZoom: 3, animate: false });
+        map.fitBounds(bounds(item.feature.bounds), { padding: [32, 32], maxZoom: streetZoom() - 1, animate: false });
         atState = false;
         annotate();
       }
@@ -166,19 +221,36 @@
         catch (error) { panel.querySelector('[data-map-status]').textContent = error.message; }
       };
       reset.onclick = fitState;
+      streetsButton.onclick = () => map.setView(selected ? selected.position : map.getCenter(), Math.max(16, map.getZoom()), { animate: false });
+      function zoomCounty(county) {
+        selected?.path.classList.remove('is-selected');
+        selected = null;
+        picker.value = '';
+        research.disabled = true;
+        const target = bounds(county.bounds);
+        const fit = map.getBoundsZoom(target, false, L.point(40, 40));
+        map.setView(target.getCenter(), Math.min(streetZoom() - 1, Math.max(stateZoom() + 1, fit)), {animate:false});
+        annotate();
+      }
+      roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty);
       drawing.addEventListener('click', event => {
         if (map.dragging.moved()) return;
-        const target = event.target.closest('[data-locality], [data-county], [data-landmark]');
+        const target = event.target.closest('[data-locality], [data-county], [data-landmark], [data-district]');
         if (!target) return;
         if (target.dataset.locality) return select(target.dataset.locality);
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
         research.disabled = true;
+        if (target.dataset.district) {
+          const district = data.subdivisions.find(area => area.id === target.dataset.district);
+          if (district) map.fitBounds(bounds(district.bounds), { padding: [16, 16], maxZoom: 14 });
+          return;
+        }
         if (target.dataset.county) {
           const county = counties.get(target.dataset.county);
-          map.fitBounds(bounds(county.bounds), { padding: [20, 20], maxZoom: 2, animate: false });
-          annotate();
+          zoomCounty(county);
+          roster.select(county);
           return;
         }
         const place = data.landmarks.find(p => p.name === target.dataset.landmark &&
@@ -187,12 +259,16 @@
         const nearest = [...items.values()].filter(({feature}) => feature.name === place.name)
           .sort((a, b) => Math.hypot(a.feature.x-place.x, a.feature.y-place.y) - Math.hypot(b.feature.x-place.x, b.feature.y-place.y))[0];
         if (nearest) select(nearest.feature.id);
-        else map.setView([-place.y, place.x], Math.min(3, Math.max(map.getZoom(), map.getBoundsZoom(initial) + 3)));
+        else map.setView(latLng(place.x, place.y), Math.max(map.getZoom(), 14));
       });
+      atlas = L.svgOverlay(drawing, bounds(data.frame), { interactive: true });
       fitState();
-      L.svgOverlay(drawing, bounds(data.frame), { interactive: true }).addTo(map);
       map.on('movestart', () => { atState = false; });
       map.on('moveend', annotate);
+      if (items.has(focus?.place)) {
+        select(focus.place);
+        if (focus.streets) streetsButton.onclick();
+      }
       if (window.ResizeObserver) {
         observer = new ResizeObserver(() => {
           if (!canvas.clientWidth || !canvas.clientHeight) return;
@@ -205,11 +281,13 @@
       }
       return () => {
         observer?.disconnect();
-        picker.onchange = research.onclick = reset.onclick = null;
+        roster?.dispose();
+        picker.onchange = research.onclick = reset.onclick = streetsButton.onclick = null;
         map.remove();
       };
     } catch (error) {
       observer?.disconnect();
+        roster?.dispose();
       map.remove();
       throw error;
     }
@@ -241,7 +319,7 @@
       national.forEach(element => { element.hidden = false; });
     }
     find('back').onclick = onBack;
-    async function open(region) {
+    async function open(region, focus) {
       const request = ++sequence;
       dispose?.();
       dispose = null;
@@ -251,13 +329,13 @@
       const stateName = document.querySelector(`[data-territory-state="${region}"] strong`)?.textContent || region;
       heading.textContent = stateName + ' towns and cities';
       status.textContent = 'Loading town boundaries…';
-      retry.onclick = () => open(region);
+      retry.onclick = () => open(region, focus);
       try {
         const data = await api('territory-map', { state: region });
         if (request !== sequence) return;
         canvas.hidden = tools.hidden = caption.hidden = false;
         const total = new Set(data.features.map(feature => feature.name)).size;
-        dispose = draw(panel, data, onSearch);
+        dispose = draw(panel, data, onSearch, api, focus);
         status.textContent = total.toLocaleString() + (region === 'CT' ? ' towns' : total === 1 ? ' locality' : ' localities');
       } catch (error) {
         if (request !== sequence) return;

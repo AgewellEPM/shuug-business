@@ -81,11 +81,11 @@
     return {showStates:returnToStates,render(next){
       if(state&&data&&scope(data.user)!==scope(next.user))returnToStates();
       data=next;if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';resetSelection();paint();},
-      selectState(region, category, facilityQuery){
+      selectState(region, category, facilityQuery, focus){
         clearTimeout(timer);state=region;query='';offset=0;report=undefined;
         resetSelection();paint();void load();
         updateStateLink(region);
-        void townMap?.open(region);
+        void townMap?.open(region, focus);
         const directory=facilities?.selectState(region, category, facilityQuery);
         if(townMap&&!category)townMap.focus();
         else (directory||host).scrollIntoView?.({block:'start',behavior:'smooth'});

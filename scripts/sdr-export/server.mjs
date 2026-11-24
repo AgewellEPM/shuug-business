@@ -18,7 +18,7 @@ import { campaignActions, campaigns } from './campaigns.mjs';
 import { campaignNotifications } from './campaign-mail.mjs';
 import { workspaceResearch } from '../../sales/workspace-research.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
-import { territoryMap } from '../../sales/territory-map.mjs';
+import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
 import { stateFacilityDirectory } from '../../sales/state-facilities.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
@@ -88,7 +88,8 @@ const sales = createHandler(env, db, {
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
   facilities: stateFacilityDirectory({ db }),
-  territoryMap,
+  territoryMap: (user, input, team) => territoryMap(user, input, db, team),
+  setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,
   beforeLogin() {
     const now = Date.now();

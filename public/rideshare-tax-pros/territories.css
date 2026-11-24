@@ -53,3 +53,26 @@
 @media (max-width: 650px) {
   .town-map-tools .town-map-color-control, .town-map-caption small { margin-left: 0; }
 }
+
+.town-map-district { stroke: #797768; stroke-width: 1.2px; stroke-dasharray: 4 2; vector-effect: non-scaling-stroke; fill-rule: evenodd; cursor: pointer; }
+.district-0 { fill: #e2eccf; } .district-1 { fill: #d9e7ed; } .district-2 { fill: #eee0c6; } .district-3 { fill: #e2ddd1; } .district-4 { fill: #dfecde; }
+.town-map-area { stroke: #4f6461; stroke-width: 1.1px; }
+.local-0 { fill: #b0cebd; } .local-1 { fill: #b0d2dd; } .local-2 { fill: #edc6af; } .local-3 { fill: #d2c9df; }
+.local-4 { fill: #ead4a7; } .local-5 { fill: #bfce9f; } .local-6 { fill: #a8d0c6; }
+.town-map-label.label-district { fill: #625d52; font-style: italic; }
+.town-map-caption [data-map-layer] { font-size: 12px; }
+.map-grayscale .town-map-district { fill: #f5f5f5; stroke: #777; }
+.map-grayscale .town-map-area { fill: #ddd; stroke: #444; }
+.town-map-canvas .leaflet-control-attribution { font-size: 10px; }
+
+.town-map-layout { display: grid; gap: 12px; align-items: stretch; grid-template-columns: minmax(0, 1fr); }
+@media(min-width:1200px) { .town-map-layout:has(.town-map-roster:not([hidden])) { grid-template-columns: minmax(0,1fr) minmax(208px,24%); } }
+.town-map-roster { display: flex; flex-direction: column; gap: 8px; padding: 12px; min-width: 0; max-height: clamp(350px,60vh,640px); box-sizing: border-box; overflow: auto; background: var(--glass-fill-muted); border: 1px solid var(--glass-border-muted); border-radius: 12px; }
+.town-map-roster h3 { font-size: 15px; }
+.town-map-roster label { display: grid; gap: 4px; font-size: 12px; }
+.town-map-roster input:not([type=checkbox]) { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px; border: 1px solid var(--glass-border-muted); border-radius: 6px; color: var(--text-primary); background: var(--glass-fill-strong); }
+.county-lead-form { display: grid; gap: 6px; margin: 6px 0; }
+.county-lead-row { display: flex; align-items: center; text-align: left; width: 100%; min-height: 46px; gap: 8px; border: 0; border-bottom: 1px solid var(--glass-border-muted); padding: 5px 3px; background: transparent; color: var(--text-primary); cursor: pointer; }
+.county-lead-row[aria-pressed=true] { background: var(--accent-soft); }
+.county-lead-row small { display: block; color: var(--text-secondary); }
+.county-avatar { flex: 0 0 28px; width: 28px; height: 28px; display: inline-grid; place-items:center; border-radius: 50%; object-fit: cover; background: var(--accent-soft); font-size: 11px; }

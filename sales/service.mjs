@@ -109,7 +109,10 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) return salesTeam.dispatch(user, action, b);
-    if (tools.territoryMap && action === 'territory-map') return tools.territoryMap(user, b);
+    if (tools.territoryMap && (action === 'territory-map' || action === 'set-county-lead')) {
+      const readTeam = () => salesTeam.dispatch(user, 'sales-team-read', {});
+      return action === 'territory-map' ? tools.territoryMap(user, b, readTeam) : tools.setCountyLead(user, b, readTeam);
+    }
     if (tools.facilities && action === 'territory-facilities') return tools.facilities(user, b);
     if (tools.facilities && action === 'territory-facility-save') return tools.facilities(user, b,
       (input, classification) => dispatch(user, 'create-office', input, classification));

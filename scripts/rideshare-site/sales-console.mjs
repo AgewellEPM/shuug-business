@@ -104,13 +104,19 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
   <div class="sdr-card-head"><div><h2 id="town-map-title" tabindex="-1"></h2><p data-map-status role="status"></p></div><button type="button" class="button secondary" data-map-back>All states</button></div>
   <div class="town-map-tools" data-map-tools hidden><label>Town or city<select data-map-town></select></label>
     <button type="button" class="button secondary" data-map-research disabled>Find offices</button>
+    <button type="button" class="button secondary" data-map-streets>Show streets</button>
     <button type="button" class="button secondary" data-map-reset>Fit state</button>
+    <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="true">County leads</button>
     <label class="town-map-color-control"><input type="checkbox" data-map-colors checked>Map colors</label></div>
-  <div class="town-map-canvas" data-map-canvas hidden></div>
+  <div class="town-map-layout"><div class="town-map-canvas" data-map-canvas hidden></div>
+    <aside id="territory-county-roster" class="town-map-roster" aria-label="County leads" hidden>
+      <h3>County leads</h3><label>Find a county<input type="search" data-county-query></label>
+      <div data-county-editor></div><div data-county-list class="county-lead-list"></div>
+    </aside></div>
   <button type="button" class="button secondary" data-map-retry hidden>Retry map</button>
   <div class="town-map-caption" data-map-caption hidden>
     <span class="town-map-legend"><b aria-hidden="true">★</b> Capital <i aria-hidden="true"></i> City or town</span>
-    <span>Zoom in for more towns.</span>
+    <strong data-map-layer></strong><span role="status" data-map-tiles></span>
     <small>U.S. Census Bureau · Natural Earth · Cities adapted from <a href="https://www.geonames.org/" target="_blank" rel="noopener">GeoNames</a> (<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>)</small>
   </div>
 </section>`;
@@ -214,7 +220,7 @@ function standaloneTeam(legacyTeam) {
   return `<section data-tab-panel="team" aria-labelledby="sales-team-title" hidden>
     <div class="sdr-team-layout">
       <section class="sales-panel sdr-team-roster">
-        <div class="sdr-card-head"><div><h2 id="sales-team-title">Reporting structure</h2><p id="sales-team-scope"></p></div><button type="button" id="sales-reload-team" class="button secondary">Refresh team</button></div>
+        <div class="sdr-card-head"><div><h2 id="sales-team-title">Reporting structure</h2><p id="sales-team-scope"></p></div><a href="#view=territories" class="button secondary" id="sales-team-territories">Assign counties</a><button type="button" id="sales-reload-team" class="button secondary">Refresh team</button></div>
         <div id="sales-team"></div>
       </section>
       <div class="sdr-team-controls">
