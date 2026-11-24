@@ -57,3 +57,35 @@ test('voice capture stops before a reply is read and resumes only while the rep 
   spoken.onend(); assert.ok(listening); voice.stop(); assert.equal(listening, null);
   dom.window.close();
 });
+
+test('Speak explains a disconnected microphone and leaves typing available', async t => {
+  const dom = new JSDOM('<form><textarea name="question"></textarea><button type="button" id="mic"><span>Speak</span></button></form>', { runScripts: 'outside-only' });
+  const w = dom.window, messages = [], constraints = [];
+  t.after(() => dom.window.close());
+  w.AudioContext = class { resume() { return Promise.resolve(); } close() { return Promise.resolve(); } };
+  w.AudioWorkletNode = class {};
+  w.navigator.mediaDevices = { async getUserMedia(request) { constraints.push(request); throw new w.DOMException('No inputs', 'NotFoundError'); } };
+  w.eval(controlsScript);
+  const mic = w.document.querySelector('#mic');
+  w.SdrCoachControls.voice(mic, () => assert.fail('No command was spoken'), text => messages.push(text), () => true);
+  mic.click(); await new Promise(resolve => setImmediate(resolve));
+  assert.equal(constraints.length, 1); assert.equal(constraints[0].video, false);
+  assert.match(messages.at(-1), /No microphone.*power on.*Sound → Input/);
+  assert.equal(mic.getAttribute('aria-pressed'), 'false'); assert.equal(mic.textContent, 'Speak');
+  assert.equal(mic.form.elements.question.disabled, false);
+});
+
+test('closing voice while permission is pending releases a late microphone without recording', async t => {
+  const dom = new JSDOM('<button type="button" id="mic"></button>', { runScripts: 'outside-only' });
+  const w = dom.window; t.after(() => w.close());
+  let allow, stopped = 0;
+  w.AudioContext = class { resume() { return Promise.resolve(); } close() { this.state = 'closed'; return Promise.resolve(); } };
+  w.AudioWorkletNode = class { constructor() { assert.fail('Cancelled microphone started recording'); } };
+  w.navigator.mediaDevices = { getUserMedia() { return new Promise(resolve => { allow = resolve; }); } };
+  w.eval(controlsScript);
+  const mic = w.document.querySelector('#mic');
+  const voice = w.SdrCoachControls.voice(mic, () => assert.fail('Cancelled command submitted'), () => {}, () => true);
+  mic.click(); voice.stop(); allow({ getTracks: () => [{ stop() { stopped++; } }] });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(stopped, 1); assert.equal(mic.getAttribute('aria-pressed'), 'false');
+});

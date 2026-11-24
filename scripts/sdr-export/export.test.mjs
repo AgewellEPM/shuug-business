@@ -455,6 +455,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
     assert.equal(header.querySelector('#sdr-header-search'), null);
     assert.ok(document.querySelector('[data-pipeline-part="board"] #sales-filter'));
+    document.querySelector('#coach-launch').click();
+    await waitFor(() => !document.querySelector('#coach-form textarea').disabled, 'Coach did not finish opening over Support');
+    assert.equal(document.body.dataset.sdrView, 'support');
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
+    document.querySelector('.sdr-nav [data-tab="pipeline"]').click();
+    assert.equal(document.body.dataset.sdrView, 'pipeline');
+    assert.match(document.querySelector('#coach-context').textContent, /Pipeline/);
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -1012,6 +1020,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
     assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-xp-bar'));
     assert.equal(pageDocument.querySelector('.sdr-topbar #sdr-header-search'), null);
+    assert.ok(pageDocument.querySelector('#sales-filter'));
+    assert.ok(pageDocument.querySelector('#coach-launch'));
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });
@@ -1584,6 +1594,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
+
+  await t.test('Products opens from the rail, searches catalog sections, compares devices, and starts a quote request', async t => {
+    const productsWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=products&section=phones');
+    const find = selector => productsWindow.document.querySelector(selector);
+    const pane = find('[data-tab-panel="products"]');
+    await waitFor(() => !pane.hidden, 'Products did not open from its deep link');
+    assert.equal(find('[data-product-device="phones"]').hidden, false);
+    assert.ok(find('[data-product-device="tablets"]').hidden);
+    find('.sdr-nav [data-tab="products"]').click();
+    assert.equal(find('[data-product-device="tablets"]').hidden, false);
+    const search = find('[data-product-search] input');
+    search.value = 'charging dock';
+    search.dispatchEvent(new productsWindow.Event('input', { bubbles: true }));
+    const results = [...pane.querySelectorAll('[data-product-result]:not([hidden]) a')];
+    const accessories = results.find(link => link.textContent.trim() === 'Accessories');
+    assert.ok(accessories);
+    accessories.click();
+    assert.equal(find('[data-product-pane="accessories"]').hidden, false);
+    assert.ok(find('[data-product-results]').hidden);
+    find('[data-product-tab="compare"]').click();
+    assert.equal(find('[data-product-pane="compare"]').hidden, false);
+    assert.match(find('.products-table-wrap table').textContent, /Larger landscape touchscreen/);
+    assert.equal(find('.products-cta a').getAttribute('href'), '/book?type=demo');
+
+    const before = (await owner.api('support-requests')).requests.length;
+    find('[data-product-tab="packages"]').click();
+    find('[data-product-package-open="care"]').click();
+    assert.ok(find('[data-product-dialog]').open);
+    assert.equal(find('#products-dialog-title').textContent, 'Care Package');
+    find('[data-product-package-detail="care"] [data-product-dialog-quote]').click();
+    const quote = await waitFor(() => find('[data-support-form="create"]'), 'Quote request form did not open');
+    assert.equal(quote.elements.subject.value, 'Quote request for the Care Package');
+    assert.equal(quote.elements.category.value, 'billing');
+    assert.equal((await owner.api('support-requests')).requests.length, before);
+    quote.elements.message.value = 'Synthetic facility needs a tablet and two bedside devices.';
+    quote.requestSubmit();
+    await waitFor(() => find('.support-thread')?.textContent.includes('two bedside devices'), 'Quote request was not recorded');
+    const { requests } = await owner.api('support-requests');
+    assert.equal(requests.length, before + 1);
+    assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
+  });
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
     const path = '/sales';

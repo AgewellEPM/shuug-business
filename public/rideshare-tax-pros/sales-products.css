@@ -1,0 +1,237 @@
+.sdr-products {
+  --product-ink: #0e2042;
+  --product-muted: #415674;
+  --product-border: #bfd8f5;
+  --product-blue: #075bd2;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  color: var(--product-ink);
+}
+.sdr-products .sdr-icon { flex: none; vertical-align: middle; }
+.products-search {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  max-width: 710px;
+  min-height: 43px;
+  padding: 1px 12px;
+  border: 1px solid #9cbfe9;
+  border-radius: 11px;
+  background: #edf5ff;
+  color: var(--product-muted);
+}
+.products-search:focus-within { outline: 2px solid #5a9ff4; outline-offset: 2px; }
+.products-search input {
+  flex: 1;
+  width: 0;
+  padding: 5px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--product-ink);
+  font: inherit;
+}
+.products-search button, .products-text-link {
+  border: 0;
+  background: none;
+  color: var(--product-blue);
+  font: inherit;
+  font-weight: 700;
+}
+.products-search button { padding: 5px; }
+.products-text-link { display: inline-flex; align-items: center; gap: 5px; font-size: .86em; }
+.products-text-link:hover { text-decoration: underline; }
+
+.products-hero {
+  display: grid;
+  align-items: center;
+  min-height: clamp(224px, 21vw, 310px);
+  padding: clamp(18px, 2.2vw, 32px);
+  border-radius: 17px;
+  background: linear-gradient(90deg, #061b44 15%, #092d62b8 38%, transparent 65%), url('/sales-products-hero.webp') center right / cover no-repeat;
+  background-color: #082553;
+  color: #fff;
+}
+.products-hero > div { max-width: 46%; }
+.sdr-products .products-hero p { margin: 5px 0 0; color: #f3f8ff; line-height: 1.28; }
+.sdr-products .products-hero .products-brand { display: flex; align-items: center; gap: 5px; font-size: 1.26em; font-weight: 780; }
+.sdr-products .products-hero h1 {
+  margin: 3px 0;
+  color: inherit;
+  font-size: clamp(2.35em, 4.3vw, 3.9em);
+  line-height: 1;
+  letter-spacing: -.045em;
+}
+.sdr-products .products-hero .products-hero-subtitle { font-size: 1.25em; font-weight: 730; }
+.products-nav {
+  display: grid;
+  grid-template-columns: 1.18fr 1fr 1.18fr repeat(4, 1fr);
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid var(--product-border);
+  border-radius: 12px;
+  background: linear-gradient(#f9fcff, #e3f0ff);
+  box-shadow: 0 2px 6px #153b7820;
+}
+.products-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 40px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  color: var(--product-ink);
+  font-size: .87em;
+  font-weight: 700;
+  line-height: 1.15;
+  text-decoration: none;
+}
+.products-nav a:hover { background: #d6e9ff; }
+.products-nav a[aria-current="page"] { background: linear-gradient(#008ff4, #0844cf); color: #fff; box-shadow: 0 2px 7px #0b54d44f; }
+
+.products-devices, .products-highlights, .products-offers { display: grid; gap: 10px; min-width: 0; }
+.products-devices { grid-template-columns: 1.06fr 1fr; }
+.products-highlights { grid-template-columns: 1.15fr .94fr 1fr; }
+.products-offers { grid-template-columns: minmax(0, 3fr) minmax(185px, 1.05fr); }
+.sdr-products:is([data-product-section="tablets"], [data-product-section="phones"]) .products-devices,
+.sdr-products[data-product-section="packages"] .products-offers { grid-template-columns: minmax(0, 1fr); }
+.product-panel {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--product-border);
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fcfdff, #f1f7ff);
+  box-shadow: 0 2px 5px #285f9c19;
+}
+.sdr-products .product-panel h2, .products-dialog h2 {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 7px;
+  color: var(--product-ink);
+  font-size: 1.29em;
+  font-weight: 810;
+  letter-spacing: -.022em;
+  line-height: 1.18;
+}
+.sdr-products .product-panel h2 .sdr-icon { width: 25px; height: 25px; color: var(--product-blue); }
+.sdr-products .product-panel p { margin: 3px 0 8px; font-size: .95em; line-height: 1.35; }
+.product-device header, .products-cta, .products-dialog-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 7px;
+}
+.sdr-products .product-device h2 { margin: 0; }
+.product-device-badge {
+  padding: 4px 9px;
+  border-radius: 8px;
+  background: #075bd2;
+  color: white;
+  font-size: .79em;
+  font-weight: 700;
+}
+.product-device-body { display: grid; grid-template-columns: 1.08fr 1fr; align-items: center; gap: 6px; margin-top: 8px; }
+.sdr-products .product-device-body p { font-weight: 650; }
+.product-device-body img { display: block; width: 100%; height: auto; max-height: 214px; object-fit: contain; }
+[data-product-device="phones"] .product-device-body img { justify-self: center; width: auto; max-width: 100%; height: 200px; }
+.products-checklist { display: grid; gap: 5px; margin: 8px 0; padding: 0; list-style: none; font-size: .88em; line-height: 1.3; }
+.products-checklist li { position: relative; padding-inline-start: 19px; }
+.products-checklist li::before {
+  content: '';
+  position: absolute;
+  inset: 3px auto auto 2px;
+  width: 9px;
+  height: 5px;
+  border: solid #147e32;
+  border-width: 0 0 2px 2px;
+  transform: rotate(-45deg);
+}
+.products-feature-grid, .products-option-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 0; padding: 0; list-style: none; }
+.products-feature-grid li, .products-option-grid article {
+  min-width: 0;
+  padding: 8px 6px;
+  border: 1px solid #c9dff8;
+  border-radius: 9px;
+  background: linear-gradient(#f8fbff, #eaf4ff);
+}
+.products-feature-grid li { display: grid; align-content: start; justify-items: center; gap: 4px; text-align: center; font-size: .8em; line-height: 1.2; }
+.products-feature-grid .sdr-icon, .products-option-grid .sdr-icon { color: var(--product-blue); width: 27px; height: 27px; }
+.sdr-products[data-product-section="overview"] .products-feature-grid p { display: none; }
+.sdr-products[data-product-section="features"] .products-highlights { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+.sdr-products[data-product-section="features"] .products-lifestyle { display: none; }
+.products-lifestyle { position: relative; overflow: hidden; margin: 0; border-radius: 14px; min-height: 154px; }
+.products-lifestyle img { display: block; width: 100%; height: 100%; position: absolute; inset: 0; object-fit: cover; }
+.products-option-grid article { display: grid; justify-items: start; align-content: start; padding: 10px; }
+.products-option-grid article[data-product-package="care"] { border-color: #2d82ed; background: linear-gradient(#fbfdff, #dfefff); }
+.products-option-grid header { display: flex; align-items: flex-start; gap: 7px; }
+.sdr-products .products-option-grid h3 { margin: 0; color: inherit; font-size: .96em; line-height: 1.2; }
+.products-option-grid small { display: block; margin-top: 2px; color: var(--product-muted); line-height: 1.25; }
+.sdr-products .product-intro { color: var(--product-muted); }
+.products-compare-promo { display: grid; align-content: space-between; gap: 7px; }
+.products-compare-images { display: flex; align-items: end; justify-content: center; gap: 3px; }
+.products-compare-images img { width: auto; height: min(7vw, 91px); object-fit: contain; }
+.products-compare-images img:first-child { max-width: 65%; }
+.products-compare-images img:last-child { max-width: 31%; }
+.products-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 35px;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid #94bdf2;
+  border-radius: 9px;
+  text-decoration: none;
+  font: inherit;
+  font-size: .89em;
+  font-weight: 730;
+  line-height: 1.2;
+  text-align: center;
+}
+.products-button.primary { border-color: #166adc; background: linear-gradient(#0086ef, #0346ca); color: #fff; }
+.products-button.primary:hover { filter: brightness(.93); }
+.products-button.secondary { background: linear-gradient(#fdfefe, #e5f2ff); color: #064fbb; }
+.products-button.secondary:hover { background: #d8ebff; }
+.products-cta { padding: 14px; background: linear-gradient(112deg, #f9fcff, #cce7ff); }
+.products-cta > div:last-child { display: flex; flex-wrap: wrap; gap: 7px; }
+.products-cta .products-button { min-height: 42px; }
+.sdr-products .products-cta p { margin: 0; }
+.products-table-wrap { overflow: auto; }
+.products-table-wrap table { width: 100%; min-width: 480px; border-collapse: collapse; text-align: start; }
+.products-table-wrap :is(th, td) { padding: 9px; border-bottom: 1px solid #d1e2f8; text-align: start; }
+.products-table-wrap thead { background: #e2efff; }
+.products-results li + li { margin-top: 7px; }
+.products-results a { color: var(--product-blue); font-weight: 650; }
+.products-dialog { width: min(490px, calc(100% - 30px)); padding: 19px; border: 1px solid var(--product-border); border-radius: 15px; background: #fbfdff; color: var(--product-ink); }
+.products-dialog::backdrop { background: #081a3c80; }
+.products-dialog-heading h2 { margin: 0; }
+.products-dialog p { margin: 12px 0; }
+.products-sr-only { position: absolute; width: 1px; height: 1px; clip-path: inset(50%); overflow: hidden; white-space: nowrap; }
+
+@media (max-width: 1110px) {
+  .products-nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .products-highlights { grid-template-columns: 1fr 1fr; }
+  .products-lifestyle { order: 3; grid-column: 1 / -1; min-height: 195px; }
+}
+@media (max-width: 740px) {
+  .products-devices, .products-highlights, .products-offers,
+  .sdr-products[data-product-section="features"] .products-highlights { grid-template-columns: minmax(0, 1fr); }
+  .products-lifestyle { order: 0; }
+  .products-compare-images img { height: 80px; }
+}
+@media (max-width: 550px) {
+  .products-hero { padding-top: 156px; background: url('/sales-products-hero.webp') top right / auto 174px no-repeat, #082553; }
+  .products-hero > div { max-width: 100%; }
+  .products-nav { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .products-option-grid { grid-template-columns: minmax(0, 1fr); }
+  .product-device-body { grid-template-columns: 1.3fr 1fr; }
+  .product-device-body img, [data-product-device="phones"] .product-device-body img { max-height: 140px; }
+}
+@media (forced-colors: active) {
+  .products-nav a[aria-current="page"] { outline: 2px solid Highlight; }
+  .products-hero, .product-panel, .products-button { border: 1px solid CanvasText; }
+}
