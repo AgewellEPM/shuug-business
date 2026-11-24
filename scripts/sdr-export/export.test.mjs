@@ -769,6 +769,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   for (let retry = 0; retry < 100 && window.document.querySelector('#sdr-earning-amount').textContent === '$0.00'; retry++) await delay(20);
   assert.equal(window.document.querySelector('#sdr-earning-amount').textContent, '$125.50');
   assert.equal((await differentProject.api('bootstrap')).earnings.totalCents, 0);
+  const commissionRail = pageDocument.querySelector('.sdr-sidebar [data-tab="commissions"]');
+  assert.equal(commissionRail.textContent.trim(), 'Commissions');
+  commissionRail.click();
+  await waitFor(() => pageDocument.querySelector('[data-com-receipts]').textContent.includes('Example payment'), 'Recorded earnings did not load');
+  assert.equal(pageDocument.querySelector('[data-com-total]').textContent, '$125.50');
+  assert.equal(pageDocument.querySelector('[data-com-year]').textContent, '$125.50');
+  assert.equal(pageDocument.querySelector('[data-com-pending]').textContent, '—');
+  assert.deepEqual((await differentProject.api('earnings-history')).rows, []);
+
   window.document.querySelector('[data-tab=campaigns]').click();
   assert.equal(window.document.querySelector('[data-tab-panel=campaigns]').hidden, false);
   const campaignForm = window.document.querySelector('#sales-campaign-form');
@@ -1101,6 +1110,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await agentSession.api('create-agent', { name: 'Denied', email: 'denied@example.test', states: [] }, 403);
   await agentSession.api('facility-reviews', { state: 'AL', category: 'nursing-home', sourceURL: 'https://example.test/outside-territory' }, 403);
   await agentSession.api('record-earnings', {}, 403);
+  await agentSession.api('earnings-history', {}, 403);
   await agentSession.api('business-research', { type: 'senior center', locality: 'Portland', state: 'ME' }, 403);
   assert.equal((await agentSession.api('business-research-last')).research, null);
   assert.deepEqual((await agentSession.api('list-prospects')).records, []);

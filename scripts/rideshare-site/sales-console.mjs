@@ -1,3 +1,4 @@
+import { renderCommissions } from './sales-commissions.mjs';
 import { readFileSync } from 'node:fs';
 import { renderProspects } from './sales-prospects.mjs';
 import { renderCareDemo } from './sales-demo.mjs';
@@ -47,6 +48,7 @@ const icons = {
   email: '<path d="M4 4h16l2 9v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6Zm-2 9h6l2 3h4l2-3h6"/>',
   contacts: '<rect x="4" y="3" width="17" height="18" rx="2"/><path d="M2 7h4M2 12h4M2 17h4"/><circle cx="13" cy="9" r="2"/><path d="M9 17v-1a4 4 0 0 1 8 0v1"/>',
   prospects: '<circle cx="9" cy="8" r="3"/><path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8v6m-3-3h6"/>',
+  commissions: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 4 16 4 16 0V6M4 10c0 4 16 4 16 0M4 14c0 4 16 4 16 0"/>',
   products: '<path d="m12 3 9 5-9 5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/>',
   training: '<path d="m2 9 10-5 10 5-10 5-10-5Zm5 3v5a9 9 0 0 0 10 0v-5m4-2v7"/>',
   certification: '<circle cx="12" cy="9" r="6"/><path d="m9 14-2 7 5-3 5 3-2-7m-5-5 1.5 1.5L14 8"/>',
@@ -381,7 +383,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ...(careWorkspace ? [['mission', 'Mission']] : []), ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
       ...(careWorkspace ? [['demo', 'Demo'], ['products', 'Products']] : []), ['contracts', 'Contracts'], ['team', 'Sales team'], ['email', 'Mailbox'],
-      ...(careWorkspace ? [['resources', 'Prizes']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support']]
+      ...(careWorkspace ? [['resources', 'Prizes']] : []), ['training', 'Training'], ['certification', 'Certification'], ['support', 'Support'], ['commissions', 'Commissions']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => {
@@ -416,6 +418,7 @@ ${prospects && careWorkspace ? renderProducts(icon) : ''}
 ${prospects && careWorkspace ? renderMonthlyPrizes(icon) : ''}
 ${prospects ? renderCertification(icon) : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
+${prospects ? renderCommissions(icon) : ''}
 ${prospects ? renderSalesEmail(icon) : ''}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
   <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>

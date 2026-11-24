@@ -27,6 +27,8 @@ export function renderWorkspace(profile, signIn) {
     const careScripts = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosk-packs','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign','sales-products','sales-mission']
       .map(name => `<script src="/${name}.js" defer></script>`).join('') : '';
     let sales = source
+      .replace('</head>', '<link rel="stylesheet" href="/sales-commissions.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-commissions.js" defer></script><script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-getting-started.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-tour-steps.js" defer></script><script src="/sales-getting-started.js" defer></script><script src="/sales.js"')
       .replace('</body>', gettingStarted + '</body>')

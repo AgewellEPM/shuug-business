@@ -35,6 +35,7 @@ copy('scripts/rideshare-site/sales-products.mjs');
 copy('scripts/rideshare-site/sales-mission.mjs');
 copy('scripts/rideshare-site/sales-certification.mjs');
 copy('scripts/rideshare-site/sales-prizes.mjs');
+copy('scripts/rideshare-site/sales-commissions.mjs');
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
 copy('public/rideshare-tax-pros/sales-support-content.js', 'scripts/sdr-export/coach-help.cjs');
@@ -49,6 +50,7 @@ const assets = [
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-pipeline-workspace.css', 'sales-pipeline-workspace.js', 'sales-pipeline-hero.webp',
+  'sales-commissions.css', 'sales-commissions.js',
   'sales-products.css', 'sales-products.js', 'sales-products-hero.webp', 'sales-products-tablet.webp', 'sales-products-phone.webp',
   'sales-mission.css', 'sales-mission.js', 'sales-mission-hero.webp', 'sales-mission-vision.webp',
   'sales-certification.css', 'sales-certification.js', 'sales-certification-hero.webp',
