@@ -15,6 +15,7 @@ import { localDiscovery } from './local-discovery.mjs';
 import {agentTerritory, territoryTools} from './territories.mjs';
 import {localityAllowed} from './territory-access.mjs';
 import { teamMarketSegments } from './sales-market-segments.mjs';
+import { pipelineExperience, teamExperience } from './sales-experience.mjs';
 import { salesTeamTools } from './sales-team.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
@@ -110,9 +111,18 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) {
       const result = salesTeam.dispatch(user, action, b);
-      return action === 'sales-team-read'
-        ? { ...result, members: teamMarketSegments(user, result.members, await db.list('offices')) }
-        : result;
+      if (action !== 'sales-team-read' && !result.profile) return result;
+      const profileId = result.profile?.id ?? user.id;
+      const isRoster = action === 'sales-team-read';
+      const account = !isRoster && profileId !== user.id ? rosterUser(await db.get('agents', profileId)) : user;
+      if (!account) throw new HttpError(404, 'Sales team profile not found.');
+      const [offices, events, enrollments] = await Promise.all([db.list('offices'), db.list('events'), db.list('enrollments')]);
+      const scores = teamExperience(isRoster ? result.members : [account], offices, events, enrollments);
+      if (!isRoster) return { profile: { ...result.profile, progress: scores.get(profileId) } };
+      const members = teamMarketSegments(user, result.members, offices).map(member => member.active
+        ? { ...member, progress: scores.get(member.id) }
+        : member);
+      return { ...result, members };
     }
     if (tools.territoryOwnership && action === 'territory-ownership') {
       return tools.territoryOwnership(user, b, () => salesTeam.dispatch(user, 'sales-team-read', {}));
@@ -122,6 +132,12 @@ export function service(env, db, payment = payments(env), tools = {}) {
       return action === 'territory-map' ? tools.territoryMap(user, b, readTeam) : tools.setCountyLead(user, b, readTeam);
     }
     if (tools.facilities && action === 'territory-facilities') return tools.facilities(user, b);
+    if (tools.facilityReviews && action === 'facility-reviews') {
+      if (b.officeId === undefined) return tools.facilityReviews(user, b);
+      const office = await leadFor(user, text(b.officeId, 40, true));
+      const info = metadata(office);
+      return tools.facilityReviews(user, b, { name: office.town, address: info.address, city: office.locality, state: office.state, zip: info.postalCode });
+    }
     if (tools.facilityOutreach && action === 'facility-outreach-drafts') return tools.facilityOutreach(user, b);
     if (tools.facilities && action === 'territory-facility-save') return tools.facilities(user, b,
       (input, classification) => dispatch(user, 'create-office', input, classification));
@@ -140,7 +156,15 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
       const activeAgents = salesTeam ? salesTeam.roster(user, agents) : agents.filter(r => r.status === 'active')
         .map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [], ...agentTerritory(r) }));
-      return { user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms), mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents, terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null, paymentsConfigured:payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES, ...(tools.repEmail ? { repEmail: tools.repEmail.summary(user) } : {}), ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}) };
+      return {
+        user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms),
+        mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents,
+        terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null,
+        paymentsConfigured: payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES,
+        ...(salesTeam ? { progress: pipelineExperience(offices) } : {}),
+        ...(tools.repEmail ? { repEmail: tools.repEmail.summary(user) } : {}),
+        ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}),
+      };
     }
     if (action === 'rolodex') return contactDirectory((await db.list('offices')).filter(row => visible(user, row)));
     if (CONTACT_ACTIONS.has(action)) return contacts(user, await leadFor(user, b.id), action, b);

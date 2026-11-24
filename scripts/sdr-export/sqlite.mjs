@@ -129,8 +129,9 @@ export function sqliteStore(filename) {
     salesRepProfile,
     setSalesRepProfile(id, revision, changes) {
       return writeTransaction(() => {
-        if (salesRepProfile(id).revision !== revision) throw new HttpError(409, 'Your profile changed. Reopen it before saving.');
-        const profile = { ...changes, revision: revision + 1 };
+        const previous = salesRepProfile(id);
+        if (previous.revision !== revision) throw new HttpError(409, 'Your profile changed. Reopen it before saving.');
+        const profile = { ...previous, ...changes, revision: revision + 1 };
         save.run('sales-rep-profile:' + id, JSON.stringify(profile));
         return profile;
       });

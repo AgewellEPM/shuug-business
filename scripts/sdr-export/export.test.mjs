@@ -22,11 +22,11 @@ async function freePort() {
   return port;
 }
 
-async function run(root) {
+async function run(root, googlePlacesKey = '') {
   const port = await freePort();
   const origin = 'http://127.0.0.1:' + port;
   const child = spawn(process.execPath, ['--import', './public-source-fixture.mjs', 'scripts/sdr-export/server.mjs'], {
-    cwd: root, env: { PATH: process.env.PATH, SDR_PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'],
+    cwd: root, env: { PATH: process.env.PATH, SDR_PORT: String(port), SDR_GOOGLE_PLACES_API_KEY: googlePlacesKey }, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stderr = '';
   child.stderr.on('data', chunk => { stderr += chunk; });
@@ -112,12 +112,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const fetchNetwork = globalThis.fetch;
     globalThis.fetch = async (address, options) => {
       const url = new URL(address);
+      if (url.hostname === 'places.googleapis.com') {
+        if (options.headers['X-Goog-Api-Key'] !== 'fixture-places-key') throw new Error('Places key must stay in the request header.');
+        if (url.pathname === '/v1/places:searchText') {
+          const { textQuery } = JSON.parse(options.body);
+          if (!textQuery.includes('Limestone Nursing and Rehabilitation Center') || !textQuery.includes('1600 WEST HOBBS STREET')) return Response.json({});
+          const part = (type, longText, shortText = longText) => ({ types: [type], longText, shortText });
+          const listing = (id, number) => ({ id, displayName: { text: 'Limestone Nursing & Rehabilitation' }, addressComponents: [
+            part('country', 'United States', 'US'), part('administrative_area_level_1', 'Alabama', 'AL'), part('locality', 'Athens'),
+            part('postal_code', '35611'), part('street_number', number), part('route', 'W Hobbs St'),
+          ] });
+          return Response.json({ places: [listing('WrongGooglePlaceId', '1601'), listing('LimestoneGooglePlaceId', '1600')] });
+        }
+        if (url.pathname === '/v1/places/LimestoneGooglePlaceId') {
+          const review = (rating, name, text) => ({ rating, text: { text }, relativePublishTimeDescription: 'a week ago',
+            authorAttribution: { displayName: name, uri: 'https://www.google.com/maps/contrib/1234', photoUri: 'https://lh3.googleusercontent.com/a/example' },
+            googleMapsUri: 'https://www.google.com/maps/reviews/' + rating });
+          return Response.json({
+            id: 'LimestoneGooglePlaceId', rating: 4.2, userRatingCount: 137,
+            googleMapsLinks: { reviewsUri: 'https://www.google.com/maps/place/Limestone/reviews' },
+            reviews: [
+              review(5, 'Fixture Reviewer One', 'Front desk directions were helpful.'),
+              review(4, 'Fixture Reviewer Two', 'Friendly check-in.'),
+              review(1, 'Fixture Reviewer Three', 'We had questions about visiting hours.'),
+              review(3, 'Fixture Reviewer Four', 'Our experience was mixed.'),
+              review(5, 'Fixture Reviewer Five', 'Staff gave us a clear answer.'),
+            ],
+            reviewSummary: { text: { text: 'Fixture summary of visitor feedback.' }, disclosureText: { text: 'Summarized with Gemini' },
+              flagContentUri: 'https://www.google.com/maps/report/fixture', reviewsUri: 'https://www.google.com/maps/place/Limestone/reviews' },
+          });
+        }
+        throw new Error('Places lookup did not select the matched street address.');
+      }
       if (url.origin === 'http://127.0.0.1:11434' && url.pathname === '/api/chat') {
         const { messages } = JSON.parse(options.body);
-        const { roles } = JSON.parse(messages[1].content);
+        const { roles, communicationFocus } = JSON.parse(messages[1].content);
+        if (messages.some(message => message.content.includes('Fixture Reviewer') || message.content.includes('questions about visiting hours'))) {
+          throw new Error('Review content reached the outreach model.');
+        }
         if (roles.length < 5) return Response.json({}, { status: 503 });
         return Response.json({ message: { content: JSON.stringify({
-          examples: roles.map(role => 'A front-desk use case relevant to ' + role + '.'),
+          examples: roles.map(role => communicationFocus || ('A front-desk use case relevant to ' + role + '.')),
         }) } });
       }
       if (url.hostname === 'data.cms.gov') {
@@ -166,7 +201,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   writeFileSync(join(root, 'workspace.json'), JSON.stringify({ name: 'Solar Partners SDR', directory: 'project', contracts: 'agreement', focus: 'senior-care' }));
   writeFileSync(join(root, 'business-directory.json'), JSON.stringify([office, directoryLead]));
 
-  const first = await run(root);
+  const first = await run(root, 'fixture-places-key');
   servers.push(first);
   const other = await run(second);
   servers.push(other);
@@ -178,6 +213,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-read', {}, 401);
   await owner.api('territory-map', { state: 'CT' }, 401);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home' }, 401);
+  await owner.api('facility-reviews', { state: 'AL', category: 'nursing-home' }, 401);
   await differentProject.api('login', { code, email: 'agent@example.test' }, 401);
   await differentProject.api('login', { code: otherCode });
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
@@ -215,8 +251,19 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
   pageDocument.querySelector('[data-tab="territories"]').click();
-  pageDocument.querySelector('[data-territory-state="AK"]').click();
   const territoriesPanel = pageDocument.querySelector('[data-tab-panel="territories"]');
+  const territoryHero = territoriesPanel.querySelector('.sdr-territory-hero');
+  const territoryState = territoryHero.querySelector('#sales-territory-state');
+  const chooseTerritory = code => {
+    territoryState.focus();
+    territoryState.value = code;
+    territoryState.dispatchEvent(new window.Event('change', { bubbles: true }));
+  };
+  assert.equal(territoryState.value, '');
+  assert.equal(territoryState.options.length, 52);
+  assert.equal(territoryState.querySelector('option[value="DC"]').textContent, 'District of Columbia');
+  pageDocument.querySelector('[data-territory-state="AK"]').click();
+  assert.equal(territoryState.value, 'AK');
   assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
   assert.equal(territoriesPanel.querySelector('#sales-territory-cities'), null);
   assert.ok(territoriesPanel.querySelector('[data-territory-lookup]'));
@@ -229,14 +276,17 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     offsetWidth: { value: 800 }, offsetHeight: { value: 480 } });
   townCanvas.getBoundingClientRect = () => ({left:0, top:0, right:800, bottom:480, width:800, height:480});
   townPanel.querySelector('[data-map-back]').click();
-  assert.equal(statePicker.hidden, false);
+  assert.equal(territoryState.value, '');
+  assert.equal(statePicker.closest('[hidden]'), null);
   stateShape('NC').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
   stateShape('CT').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   await waitFor(() => townCanvas.querySelectorAll('.town-map-area').length === 169, 'CT town polygons did not open');
   assert.equal(townPanel.hidden, false);
   assert.equal(pageDocument.activeElement.id, 'town-map-title');
   assert.equal(stateShape('CT').closest('.sdr-card').hidden, true);
-  assert.equal(statePicker.hidden, true);
+  assert.ok(statePicker.closest('[hidden]'));
+  assert.equal(territoryHero.closest('[hidden]'), null);
+  assert.equal(territoryState.value, 'CT');
   assert.equal(townPanel.querySelector('h2').textContent, 'Connecticut towns and cities');
   assert.ok(townCanvas.querySelector('.town-map-label'));
   const colors = townPanel.querySelector('[data-map-colors]');
@@ -267,14 +317,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   townPanel.querySelector('[data-map-back]').click();
   assert.equal(townPanel.hidden, true);
   assert.equal(stateShape('CT').closest('.sdr-card').hidden, false);
+  assert.equal(territoryState.value, '');
   assert.equal(pageDocument.activeElement, stateShape('CT'));
   stateShape('NC').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
   await waitFor(() => townCanvas.querySelector('.town-map-area'), 'NC town polygons did not open');
   assert.ok([...townSelect.options].some(option => option.text === 'Raleigh' || option.text.startsWith('Raleigh ')));
   assert.equal(townPanel.querySelector('h2').textContent, 'North Carolina towns and cities');
-  townPanel.querySelector('[data-map-back]').click();
-  stateShape('SC').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-  await waitFor(() => townCanvas.querySelectorAll('.town-map-county').length === 46, 'SC counties did not open');
+  chooseTerritory('SC');
+  await waitFor(() => townCanvas.querySelectorAll('.town-map-county').length === 46, 'Switching states in the dropdown did not open South Carolina');
+  assert.equal(territoryHero.closest('[hidden]'), null);
+  assert.equal(pageDocument.activeElement, territoryState);
+  assert.equal(territoryState.value, 'SC');
+  assert.equal(window.location.hash, '#view=territories&state=SC');
   assert.equal(colors.checked, false);
   const atlas = townCanvas.querySelector('svg[data-detail]');
   assert.equal(atlas.dataset.detail, 'counties');
@@ -360,9 +414,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   colors.click();
   assert.equal(townPanel.classList.contains('map-grayscale'), false);
   assert.equal(window.localStorage.getItem('sdr.territoryMap.colors'), 'on');
-  townPanel.querySelector('[data-map-back]').click();
+  chooseTerritory('');
+  assert.equal(townPanel.hidden, true);
+  assert.equal(statePicker.closest('[hidden]'), null);
+  assert.equal(pageDocument.activeElement, territoryState);
+  assert.equal(window.location.hash, '#view=territories');
   window.location.hash = 'view=territories&state=CT';
   await waitFor(() => townCanvas.querySelectorAll('.town-map-area').length === 169, 'CT state link did not open');
+  assert.equal(territoryState.value, 'CT');
   const ctSenior = await owner.api('territory-facilities', { state: 'CT', category: 'senior-center' });
   assert.deepEqual(ctSenior.results.map(record => record.city), ['', 'Hartford', 'Hartford']);
   assert.equal(ctSenior.sources[0].url, 'https://www.openstreetmap.org/copyright');
@@ -520,6 +579,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => pageDocument.querySelector('#sales-detail .sales-compose-form'),
       'Draft email did not open the existing reviewable composer');
     pageDocument.querySelector('#sales-detail-close').click();
+    find('[data-prospect-action="facility-profile"]').click();
+    const manualReviews = find('[data-facility-reviews]');
+    assert.equal(manualReviews.open, true);
+    await waitFor(() => find('[data-facility-review-status]').textContent.includes('could not be matched'), 'A saved business should have its own review lookup');
+    assert.match(new URL(find('[data-facility-review-link]').href).searchParams.get('query'), /Example Care Prospect/);
+    find('[data-facility-profile-close]').click();
   });
 
   await t.test('selecting a facility type and state loads sourced prospects before saving', async () => {
@@ -571,6 +636,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.match(administrator.querySelector('img').src, /^https:\/\/static\.wixstatic\.com\//);
     assert.match(administrator.textContent, /sbowling@limestonehf\.com/);
     assert.equal(administrator.querySelector('a[title]').href, 'https://www.limestonehf.com/meet-our-team');
+    assert.doesNotMatch(panel.textContent, /Find headshot/);
     const profile = find('[data-facility-profile]');
     const facts = find('[data-facility-profile-facts]');
     const contact = find('[data-facility-profile-contact]');
@@ -579,12 +645,33 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(profile.open, true);
     assert.match(facts.textContent, /Certified beds170/);
     assert.match(facts.textContent, /Call for Champion Rehab visiting times/);
+    const reviewPane = find('[data-facility-reviews]');
+    const reviewStatus = find('[data-facility-review-status]');
+    const reviewRating = find('[data-facility-review-rating]');
+    assert.equal(reviewPane.open, false);
+    assert.equal(reviewStatus.textContent, '');
+    reviewPane.querySelector('summary').click();
+    await waitFor(() => reviewRating.textContent.includes('137 Google ratings'), 'Google rating and review count did not render');
+    assert.match(reviewRating.textContent, /4\.2 \/ 5/);
+    assert.match(reviewStatus.textContent, /5 reviews.*relevance-ordered sample/);
+    assert.equal(reviewPane.querySelectorAll('[data-tone="positive"] li').length, 3);
+    assert.equal(reviewPane.querySelectorAll('[data-tone="negative"] li').length, 1);
+    assert.equal(reviewPane.querySelectorAll('[data-tone="mixed"] li').length, 1);
+    assert.match(reviewPane.querySelector('[data-tone="negative"]').textContent, /questions about visiting hours/);
+    assert.ok(reviewPane.querySelector('[data-tone="negative"] a[href="https://www.google.com/maps/reviews/1"]'));
+    assert.match(reviewPane.querySelector('.facility-review-summary').textContent, /Fixture summary.*Summarized with Gemini/s);
+    assert.equal(find('[data-facility-review-link]').href, 'https://www.google.com/maps/place/Limestone/reviews');
     assert.ok(contact.querySelector('a[href="https://www.linkedin.com/in/sherry-bowling-565401bb"]'));
     const nursing = find('[data-facility-person="Aleshia Teeples"]');
     nursing.click();
     assert.equal(nursing.getAttribute('aria-pressed'), 'true');
     assert.match(contact.textContent, /Director of Nursing.*ateeples@limestonehf\.com/s);
     assert.match(contact.querySelector('img').alt, /Aleshia Teeples/);
+    const portrait = contact.querySelector('img');
+    const fallback = portrait.previousElementSibling;
+    portrait.dispatchEvent(new window.Event('error'));
+    assert.equal(contact.querySelector('img'), null);
+    assert.equal(fallback.textContent, 'AT');
     const quickEmail = find('[data-facility-outreach]');
     assert.equal(quickEmail.hidden, false);
     quickEmail.click();
@@ -602,11 +689,23 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     formBody.value = 'Reviewed message';
     formBody.dispatchEvent(new window.Event('input', { bubbles: true }));
     assert.equal(new URL(drafts.querySelector('a').href).searchParams.get('body'), 'Reviewed message');
+    const focus = find('[data-facility-review-focus]');
+    focus.value = 'family-visits';
+    focus.dispatchEvent(new window.Event('change', { bubbles: true }));
+    assert.match(find('[data-facility-review-example]').textContent, /visiting hours/);
+    assert.match(find('[data-facility-review-question]').textContent, /families to get oriented/);
+    assert.equal(find('[data-facility-review-draft]').hidden, false);
+    find('[data-facility-review-draft]').click();
+    await waitFor(() => draftStatus.textContent.includes('Focus · Family visits and contacts'), 'Review focus did not reach the draft composer');
+    assert.match(drafts.querySelector('textarea').value, /families to get oriented/);
+    assert.doesNotMatch(drafts.querySelector('textarea').value, /Fixture Reviewer|questions about visiting hours/);
     assert.equal((await owner.api('bootstrap')).offices.length, before + 1);
     close.click();
     assert.equal(profile.open, false);
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
     assert.equal(profile.open, true);
+    assert.equal(reviewPane.open, false);
+    assert.equal(reviewRating.textContent, '');
     assert.match(facts.textContent, /Certified beds75/);
     assert.match(facts.textContent, /52,000 sq ft/);
     assert.ok(facts.querySelector('a[href^="https://www.maxusconstruction.com/"]'));
@@ -623,6 +722,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(profile.open, true);
     await waitFor(() => find('[data-facility-person="Aleshia Teeples"]'), 'Saved facility did not reload its leadership');
     const sourceURL = JSON.parse(limestone.notes).facilitySource;
+    assert.equal((await differentProject.api('facility-reviews', { sourceURL, state: 'AL', category: 'nursing-home' })).status, 'unconfigured');
+    await owner.api('facility-reviews', { sourceURL: 'https://example.test/different-office', state: 'AL', category: 'nursing-home' }, 404);
     const scratch = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));
     try {
       scratch.prepare('INSERT INTO outreach_suppression(email) VALUES (?)').run('ateeples@limestonehf.com');
@@ -648,6 +749,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentSession = browserSession(first.origin);
   await agentSession.api('login', { email: agentEmail, code: accessCode });
   await agentSession.api('create-agent', { name: 'Denied', email: 'denied@example.test', states: [] }, 403);
+  await agentSession.api('facility-reviews', { state: 'AL', category: 'nursing-home', sourceURL: 'https://example.test/outside-territory' }, 403);
   await agentSession.api('record-earnings', {}, 403);
   await agentSession.api('business-research', { type: 'senior center', locality: 'Portland', state: 'ME' }, 403);
   assert.equal((await agentSession.api('business-research-last')).research, null);
@@ -724,10 +826,19 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.deepEqual(townCenters.results.map(record => record.name), ['Hartford Example Senior Center', 'Second Example Senior Center']);
   await agentSession.api('territory-facilities', { state: 'AK', category: 'nursing-home' }, 403);
   window.document.querySelector('[data-tab=team]').click();
-  teamTab('invite').click();
+  const addRep = pageDocument.querySelector('#sales-team-add-rep');
+  assert.equal(addRep.closest('[hidden]'), null);
+  assert.match(addRep.textContent.trim(), /^Add sales rep$/);
+  addRep.click();
   assert.equal(teamPane('invite').hidden, false);
   assert.equal(teamPane('settings').hidden, true);
-  const ownerInvite = window.document.querySelector('#sales-create-agent');
+  const ownerInvite = pageDocument.querySelector('#sales-create-agent');
+  assert.equal(pageDocument.activeElement, ownerInvite.elements.name);
+  const teamArtwork = pageDocument.querySelector('.sdr-team-hero img');
+  assert.equal(teamArtwork.getAttribute('src'), '/sales-team-territory-planning.webp');
+  const artworkResponse = await owner.request(teamArtwork.getAttribute('src'));
+  assert.equal(artworkResponse.status, 200);
+  assert.match(artworkResponse.headers.get('content-type'), /^image\/webp\b/);
   const submitInvite = ownerInvite.querySelector('button[type=submit]');
   for (let retry = 0; retry < 100 && submitInvite.disabled; retry++) await delay(20);
   assert.equal(submitInvite.disabled, false);
@@ -756,7 +867,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const profileForm = juniorDocument.getElementById('sales-team-profile');
   assert.equal(profileForm.closest('[role="tabpanel"]').hidden, false);
   await waitFor(() => !profileForm.elements.bio.disabled, 'The self-profile form did not load');
-  profileForm.elements.bio.value = 'Hospital and senior care outreach';
+  assert.equal(profileForm.elements.name.value, juniorInput.name);
+  assert.equal(profileForm.elements.email.value, juniorInput.email);
+  const contact = { name: juniorInput.name, email: 'junior-work@example.test', phone: '+1 860 555 0142', bio: 'Hospital and senior care outreach' };
+  for (const [key, value] of Object.entries(contact)) profileForm.elements[key].value = value;
   const mockFile = new juniorWindow.File(['portrait'], 'portrait.jpg', {type:'image/jpeg'});
   juniorWindow.SdrHeadshots.encode = async file => {
     assert.equal(file, mockFile);
@@ -767,10 +881,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => profileForm.querySelector('[data-team-profile-preview]').getAttribute('src') === portrait &&
     !profileForm.elements.bio.disabled, 'The rep portrait did not preview');
   profileForm.requestSubmit();
-  await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own bio and headshot');
-  assert.deepEqual((await juniorSession.api('sales-team-profile')).profile, {
-    bio:'Hospital and senior care outreach', photo:portrait, revision:1
-  });
+  await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own contact details, bio and headshot');
+  const { progress: initialProgress, ...savedProfile } = (await juniorSession.api('sales-team-profile')).profile;
+  assert.deepEqual(savedProfile, { ...contact, photo: portrait, revision: 1 });
+  assert.deepEqual(initialProgress, { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 });
+  juniorDocument.querySelector('[data-team-view="roster"]').click();
+  const rosterProfile = `[data-team-member-profile-open="${junior.agent.id}"]`;
+  await waitFor(() => juniorDocument.querySelector(`${rosterProfile} img`)?.getAttribute('src') === portrait,
+    'Saving the headshot did not refresh the roster');
   for (const [index, [name, facilityType]] of [
     ['Hartford Example Hospital', ''],
     ['Example Senior Residence', 'assisted-living'],
@@ -818,8 +936,28 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(agentDocument.querySelector('#directory-support-form'), null);
   agentSettings.click();
   assert.equal(agentDocument.querySelector('[data-team-view="roster"]').getAttribute('aria-selected'), 'true');
+  const teammate = await waitFor(() => agentDocument.querySelector(rosterProfile), 'The report profile could not be opened from the roster');
+  assert.equal(teammate.querySelector('img').getAttribute('src'), portrait);
+  const repProgress = teammate.closest('[data-team-member]').querySelector('[data-team-xp]');
+  assert.match(repProgress.textContent, /Level 1/);
+  assert.equal(repProgress.querySelector('progress').value, 30);
+  teammate.focus();
+  teammate.click();
+  const memberDialog = agentDocument.querySelector('[data-team-member-profile]');
+  const memberDetails = memberDialog.querySelector('[data-team-member-profile-content]');
+  await waitFor(() => memberDialog.open && !memberDetails.hidden, 'The report profile did not load');
+  assert.equal(memberDialog.querySelector('[data-team-member-profile-title]').textContent, contact.name);
+  for (const detail of [contact.bio, contact.email, contact.phone]) assert.ok(memberDetails.textContent.includes(detail));
+  assert.equal(memberDetails.querySelector('img').getAttribute('src'), portrait);
+  assert.equal(memberDialog.querySelector('[data-team-xp] progress').value, 30);
+  memberDialog.querySelector('[data-team-member-profile-close]').click();
+  assert.equal(memberDialog.open, false);
+  await waitFor(() => agentDocument.activeElement === teammate, 'Closing the profile did not restore focus to the report');
   agentDocument.querySelector('#sales-team-territories').click();
-  agentDocument.querySelector('[data-territory-state="CT"]').click();
+  const scopedStatePicker = agentDocument.querySelector('#sales-territory-state');
+  assert.deepEqual([...scopedStatePicker.options].filter(option => !option.disabled).map(option => option.value), ['', 'CT']);
+  scopedStatePicker.value = 'CT';
+  scopedStatePicker.dispatchEvent(new agentWindow.Event('change', { bubbles: true }));
   const capitolId = '09110';
   await waitFor(() => agentDocument.querySelector('[data-county-row="09110"]'), 'Team county roster did not load');
   const teamSelection = agentDocument.querySelector('[data-map-selection]');
@@ -917,6 +1055,19 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
   assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
+  const signedOffice = await agentSession.api('office', { id });
+  await agentSession.api('record-progress', { id, expectedRevision: signedOffice.pipeline.revision, requestId: randomUUID(), kind: 'replied', channel: 'email', note: 'Synthetic reply recorded.' });
+  await owner.api('create-office', { name: 'Extra XP Example Office', state: 'CT', city: 'Hartford', address: '99 Example Road', assignedTo: agent.id });
+  const levelTwo = { level: 2, xp: 110, xpIntoLevel: 10, xpPerLevel: 100 };
+  assert.deepEqual((await agentSession.api('bootstrap')).progress, levelTwo);
+  assert.deepEqual((await agentSession.api('sales-team-profile')).profile.progress, levelTwo);
+  assert.deepEqual((await owner.api('sales-team-member-profile', { id: agent.id })).profile.progress, levelTwo);
+  assert.deepEqual((await owner.api('sales-team-read')).members.find(member => member.id === agent.id).progress, levelTwo);
+  agentNav.click();
+  agentDocument.querySelector('[data-team-view="profile"]').click();
+  const ownProgress = agentDocument.querySelector('[data-team-profile-progress]');
+  await waitFor(() => ownProgress.textContent.includes('Level 2') && ownProgress.querySelector('progress').value === 10,
+    'Reopening the team did not refresh the rep’s own level and XP');
   await agentSession.api('sales-team-revoke', { id: junior.agent.id });
   await juniorSession.api('bootstrap', {}, 401);
   await traineeSession.api('bootstrap', {}, 401);

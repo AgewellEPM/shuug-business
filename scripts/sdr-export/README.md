@@ -39,7 +39,7 @@ Add `"focus": "senior-care"` to the existing `workspace.json` and restart the wo
 
 ## Territory maps and assignments
 
-Open **Territories** and click a state or D.C. Use **Check territory availability** to look up a town, county, or saved facility by name or street address. Town results show the lead for each county they overlap. Facility results show the rep assigned to the saved account and its market segment. The map and Sales team derive market counts from assigned accounts using saved facility types and recognizable facility names. The county view counts accounts whose recorded town maps to a single county. Select a county, town, or point on the street map to see the region and its sales rep beneath the map. Choose a town or county search result to move the map. Click a county or zoom in to reveal more town names and boundaries. Click a town or choose one by name to zoom to it. At closer zoom the county fills give way to municipal limits and local subdivisions. Continue zooming for named OpenStreetMap streets, or choose **Show streets**. Street tiles require an internet connection. Select a county on the map or in **County leads**, then choose **Assign county** or **Change rep** below the map. Select a sales rep and save the assignment. Their headshot comes from **Sales team → My profile** and updates when they edit their profile. A manually entered lead can have a separate photo. The workspace owner can select a team member or enter a name. Team leads can assign available counties in their territory to active members of their own reporting team and update their team’s county assignments. County lead records are independent of sign-in permissions. Clear **Map colors** for grayscale. The browser remembers your choice across states and reloads. **Fit state** shows the full state again, and **All states** returns to the U.S. map. The map uses Census cartographic boundaries with TIGER/Line supplements for newer localities. Connecticut shows its 169 municipal towns. Other states show the places and local subdivisions in their territory catalogs.
+Open **Territories** and choose a state or D.C. from the **State** dropdown or the national map. Use the same dropdown to switch directly between states. Use **Check territory availability** to look up a town, county, or saved facility by name or street address. Town results show the lead for each county they overlap. Facility results show the rep assigned to the saved account and its market segment. The map and Sales team derive market counts from assigned accounts using saved facility types and recognizable facility names. The county view counts accounts whose recorded town maps to a single county. Select a county, town, or point on the street map to see the region and its sales rep beneath the map. Choose a town or county search result to move the map. Click a county or zoom in to reveal more town names and boundaries. Click a town or choose one by name to zoom to it. At closer zoom the county fills give way to municipal limits and local subdivisions. Continue zooming for named OpenStreetMap streets, or choose **Show streets**. Street tiles require an internet connection. Select a county on the map or in **County leads**, then choose **Assign county** or **Change rep** below the map. Select a sales rep and save the assignment. Their headshot comes from **Sales team → My profile** and updates when they edit their profile. A manually entered lead can have a separate photo. The workspace owner can select a team member or enter a name. Team leads can assign available counties in their territory to active members of their own reporting team and update their team’s county assignments. County lead records are independent of sign-in permissions. Clear **Map colors** for grayscale. The browser remembers your choice across states and reloads. **Fit state** shows the full state again, and **All states** returns to the U.S. map. The map uses Census cartographic boundaries with TIGER/Line supplements for newer localities. Connecticut shows its 169 municipal towns. Other states show the places and local subdivisions in their territory catalogs.
 
 In **Senior Care CRM → Facility directory**, switch between **Nursing homes** and **Senior community centers**. Search by facility, city, or ZIP, or browse by state. Nursing home records come from the [CMS Care Compare certified provider directory](https://data.cms.gov/provider-data/dataset/4pq5-n9py). Senior community center records come from [OpenStreetMap contributors](https://www.openstreetmap.org/copyright) via [QLever](https://qlever.dev/osm-planet). Mapped coverage varies by state, and published contact details vary by facility. Salespeople see facilities within their assigned territory. The owner manages sign-in territory permissions under **Sales team → Workspace settings → Town access**.
 
@@ -58,6 +58,27 @@ the local Ollama service with `qwen3:4b-instruct-2507-q4_K_M` by default.
 `SDR_OUTREACH_MODEL` selects another local model. When the model is unavailable,
 the drafts use role-specific templates.
 
+### Google reviews
+
+Open **Google reviews** inside a facility profile to look up that location’s
+Google rating, total rating count, and review summary when available. Up to five
+reviews appear in equal-width positive and negative columns. Three-star reviews
+appear below as mixed. The column counts describe Google’s relevance-ordered
+sample. Each review links to its original on Google Maps.
+
+Use **Communication opportunities** to choose a focus such as language access,
+visitor directions, or admissions. The workspace shows a concrete example and a
+conversation starter. **Draft outreach with this focus** prepares reviewable
+email drafts for eligible contacts using the selected focus.
+
+Connect a server-side Places API (New) key with `SDR_GOOGLE_PLACES_API_KEY` or a
+private `workspace-data/google-places-key` file with permissions `0600`. The
+key stays on the server. Google lookups run when a user opens a profile’s
+reviews, and review text stays in the current display. Without the connection,
+use the profile’s **Open Google Maps** link. See Google’s
+[Place Details documentation](https://developers.google.com/maps/documentation/places/web-service/place-details)
+and [Places API usage policies](https://developers.google.com/maps/documentation/places/web-service/policies).
+
 The nursing-home directory reads administrator listings from matched CMS
 enrollments and state licensure rosters. Each name links to its publisher.
 Directory results show administrator coverage for the current filters.
@@ -67,7 +88,7 @@ published by the California Department of Public Health under [CC BY](https://pu
 
 ## Sales teams
 
-Open **Sales team → Invite member** to invite a member and share their access code privately. The owner can place a new member anywhere in the active reporting tree. Each member can invite their own direct reports and see everyone who reports through them. New reports inherit the manager’s territory by default. A narrower state selection keeps any town restrictions from the manager’s territory, and later changes to the manager’s territory also apply to their branch.
+Use **Add sales rep** on the Sales team page to invite a member and share their access code privately. The owner can place a new member anywhere in the active reporting tree. Each member can invite their own direct reports and see everyone who reports through them. New reports inherit the manager’s territory by default. A narrower state selection keeps any town restrictions from the manager’s territory, and later changes to the manager’s territory also apply to their branch.
 
 The owner can revoke any member. Each member can revoke a direct report, which ends that report’s access and blocks sign-in for their branch. The workspace retains their assignments and reporting history. The owner can reassign saved prospects through the existing pipeline controls.
 

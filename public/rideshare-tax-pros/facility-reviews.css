@@ -1,0 +1,74 @@
+.facility-reviews {
+  border: 1px solid #ceddf1;
+  border-radius: 14px;
+  background: #f1f6fd;
+}
+.facility-reviews > summary {
+  padding: 13px 16px;
+  color: #1c4576;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.facility-reviews[open] > summary { border-bottom: 1px solid #ceddf1; }
+.facility-reviews-body { display: grid; gap: 16px; padding: 14px; }
+.facility-maps-reviews, .facility-review-outreach {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid #cbd9ec;
+  border-radius: 12px;
+  background: #fff;
+}
+.facility-review-heading, .facility-review-column-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.facility-review-heading .button { flex-shrink: 0; }
+.facility-maps-attribution {
+  color: #5e5e5e;
+  font: 400 13px Roboto, Arial, sans-serif;
+  white-space: nowrap;
+}
+[data-facility-review-rating] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 9px; color: #415778; font-size: 13px; }
+[data-facility-review-rating] .facility-review-stars { color: #172b4c; font-size: 23px; }
+.facility-review-stars { display: inline-flex; align-items: baseline; gap: 5px; font-weight: 700; white-space: nowrap; }
+.facility-review-stars > span:first-child { color: #916300; }
+.facility-reviews [data-facility-review-status] { margin: 10px 0 12px; }
+[data-facility-review-content] { display: grid; gap: 11px; }
+.facility-review-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
+.facility-review-column, .facility-review-summary {
+  padding: 10px;
+  border: 1px solid #cfdae9;
+  border-radius: 10px;
+  background: #f7f9fc;
+}
+.facility-review-column[data-tone="positive"] { border-color: #bcdcca; background: #f1faf4; }
+.facility-review-column[data-tone="negative"] { border-color: #ebc6c2; background: #fff6f5; }
+.facility-review-column-head h4 { margin: 0; }
+.facility-review-column-head > span { font-size: 12px; color: #4b5e73; white-space: nowrap; }
+.facility-review-column ul { display: grid; gap: 8px; margin: 9px 0 0; padding: 0; list-style: none; }
+.facility-review-column > p { margin-top: 8px; }
+.facility-review-card {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid #dbe3ec;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+}
+.facility-review-author { display: flex; align-items: flex-start; gap: 7px; }
+.facility-review-author > div { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.facility-review-author > img { width: 30px; height: 30px; flex: none; border-radius: 50%; object-fit: cover; }
+.facility-review-author small { display: block; margin-top: 2px; color: #526881; }
+.facility-review-text { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.47; }
+.facility-review-card > p { margin: 8px 0; }
+.facility-review-original { margin: 7px 0; }
+.facility-review-original summary { cursor: pointer; }
+.facility-review-source-links { display: flex; flex-wrap: wrap; gap: 5px 11px; margin-top: 5px; font-size: 12px; }
+.facility-reviews .facility-review-policies { margin: 10px 0 0; font-size: 12px; }
+.facility-review-outreach label { display: block; margin: 8px 0 4px; color: #344b67; font-size: 13px; }
+.facility-review-outreach select { max-width: 100%; padding: 6px 9px; border: 1px solid #b3c9e6; border-radius: 7px; background: #f9fbff; color: #19365a; font: inherit; }
+.facility-review-outreach-preview { display: grid; gap: 8px; margin-top: 10px; }
+.facility-review-outreach-preview h4 { margin-bottom: 3px; }
+.facility-review-outreach-preview button { justify-self: start; }
+.facility-reviews [hidden] { display: none; }
+@media (max-width: 650px) {
+  .facility-review-split { grid-template-columns: minmax(0, 1fr); }
+}
