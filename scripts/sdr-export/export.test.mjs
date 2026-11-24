@@ -22,11 +22,11 @@ async function freePort() {
   return port;
 }
 
-async function run(root) {
+async function run(root, googlePlacesKey = '') {
   const port = await freePort();
   const origin = 'http://127.0.0.1:' + port;
   const child = spawn(process.execPath, ['--import', './public-source-fixture.mjs', 'scripts/sdr-export/server.mjs'], {
-    cwd: root, env: { PATH: process.env.PATH, SDR_PORT: String(port) }, stdio: ['ignore', 'pipe', 'pipe'],
+    cwd: root, env: { PATH: process.env.PATH, SDR_PORT: String(port), SDR_GOOGLE_PLACES_API_KEY: googlePlacesKey }, stdio: ['ignore', 'pipe', 'pipe'],
   });
   let stderr = '';
   child.stderr.on('data', chunk => { stderr += chunk; });
@@ -113,12 +113,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const fetchNetwork = globalThis.fetch;
     globalThis.fetch = async (address, options) => {
       const url = new URL(address);
+      if (url.hostname === 'places.googleapis.com') {
+        if (options.headers['X-Goog-Api-Key'] !== 'fixture-places-key') throw new Error('Places key must stay in the request header.');
+        if (url.pathname === '/v1/places:searchText') {
+          const { textQuery } = JSON.parse(options.body);
+          if (!textQuery.includes('Limestone Nursing and Rehabilitation Center') || !textQuery.includes('1600 WEST HOBBS STREET')) return Response.json({});
+          const part = (type, longText, shortText = longText) => ({ types: [type], longText, shortText });
+          const listing = (id, number) => ({ id, displayName: { text: 'Limestone Nursing & Rehabilitation' }, addressComponents: [
+            part('country', 'United States', 'US'), part('administrative_area_level_1', 'Alabama', 'AL'), part('locality', 'Athens'),
+            part('postal_code', '35611'), part('street_number', number), part('route', 'W Hobbs St'),
+          ] });
+          return Response.json({ places: [listing('WrongGooglePlaceId', '1601'), listing('LimestoneGooglePlaceId', '1600')] });
+        }
+        if (url.pathname === '/v1/places/LimestoneGooglePlaceId') {
+          const review = (rating, name, text) => ({ rating, text: { text }, relativePublishTimeDescription: 'a week ago',
+            authorAttribution: { displayName: name, uri: 'https://www.google.com/maps/contrib/1234', photoUri: 'https://lh3.googleusercontent.com/a/example' },
+            googleMapsUri: 'https://www.google.com/maps/reviews/' + rating });
+          return Response.json({
+            id: 'LimestoneGooglePlaceId', rating: 4.2, userRatingCount: 137,
+            googleMapsLinks: { reviewsUri: 'https://www.google.com/maps/place/Limestone/reviews' },
+            reviews: [
+              review(5, 'Fixture Reviewer One', 'Front desk directions were helpful.'),
+              review(4, 'Fixture Reviewer Two', 'Friendly check-in.'),
+              review(1, 'Fixture Reviewer Three', 'We had questions about visiting hours.'),
+              review(3, 'Fixture Reviewer Four', 'Our experience was mixed.'),
+              review(5, 'Fixture Reviewer Five', 'Staff gave us a clear answer.'),
+            ],
+            reviewSummary: { text: { text: 'Fixture summary of visitor feedback.' }, disclosureText: { text: 'Summarized with Gemini' },
+              flagContentUri: 'https://www.google.com/maps/report/fixture', reviewsUri: 'https://www.google.com/maps/place/Limestone/reviews' },
+          });
+        }
+        throw new Error('Places lookup did not select the matched street address.');
+      }
       if (url.origin === 'http://127.0.0.1:11434' && url.pathname === '/api/chat') {
         const { messages } = JSON.parse(options.body);
-        const { roles } = JSON.parse(messages[1].content);
+        const { roles, communicationFocus } = JSON.parse(messages[1].content);
+        if (messages.some(message => message.content.includes('Fixture Reviewer') || message.content.includes('questions about visiting hours'))) {
+          throw new Error('Review content reached the outreach model.');
+        }
         if (roles.length < 5) return Response.json({}, { status: 503 });
         return Response.json({ message: { content: JSON.stringify({
-          examples: roles.map(role => 'A front-desk use case relevant to ' + role + '.'),
+          examples: roles.map(role => communicationFocus || ('A front-desk use case relevant to ' + role + '.')),
         }) } });
       }
       if (url.hostname === 'data.cms.gov') {
@@ -167,7 +202,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   writeFileSync(join(root, 'workspace.json'), JSON.stringify({ name: 'Solar Partners SDR', directory: 'project', contracts: 'agreement', focus: 'senior-care' }));
   writeFileSync(join(root, 'business-directory.json'), JSON.stringify([office, directoryLead]));
 
-  const first = await run(root);
+  const first = await run(root, 'fixture-places-key');
   servers.push(first);
   const other = await run(second);
   servers.push(other);
@@ -179,6 +214,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-read', {}, 401);
   await owner.api('territory-map', { state: 'CT' }, 401);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home' }, 401);
+  await owner.api('facility-reviews', { state: 'AL', category: 'nursing-home' }, 401);
   await differentProject.api('login', { code, email: 'agent@example.test' }, 401);
   await differentProject.api('login', { code: otherCode });
   assert.deepEqual((await differentProject.api('bootstrap')).offices, []);
@@ -544,6 +580,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => pageDocument.querySelector('#sales-detail .sales-compose-form'),
       'Draft email did not open the existing reviewable composer');
     pageDocument.querySelector('#sales-detail-close').click();
+    find('[data-prospect-action="facility-profile"]').click();
+    const manualReviews = find('[data-facility-reviews]');
+    assert.equal(manualReviews.open, true);
+    await waitFor(() => find('[data-facility-review-status]').textContent.includes('could not be matched'), 'A saved business should have its own review lookup');
+    assert.match(new URL(find('[data-facility-review-link]').href).searchParams.get('query'), /Example Care Prospect/);
+    find('[data-facility-profile-close]').click();
   });
 
   await t.test('selecting a facility type and state loads sourced prospects before saving', async () => {
@@ -604,6 +646,22 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(profile.open, true);
     assert.match(facts.textContent, /Certified beds170/);
     assert.match(facts.textContent, /Call for Champion Rehab visiting times/);
+    const reviewPane = find('[data-facility-reviews]');
+    const reviewStatus = find('[data-facility-review-status]');
+    const reviewRating = find('[data-facility-review-rating]');
+    assert.equal(reviewPane.open, false);
+    assert.equal(reviewStatus.textContent, '');
+    reviewPane.querySelector('summary').click();
+    await waitFor(() => reviewRating.textContent.includes('137 Google ratings'), 'Google rating and review count did not render');
+    assert.match(reviewRating.textContent, /4\.2 \/ 5/);
+    assert.match(reviewStatus.textContent, /5 reviews.*relevance-ordered sample/);
+    assert.equal(reviewPane.querySelectorAll('[data-tone="positive"] li').length, 3);
+    assert.equal(reviewPane.querySelectorAll('[data-tone="negative"] li').length, 1);
+    assert.equal(reviewPane.querySelectorAll('[data-tone="mixed"] li').length, 1);
+    assert.match(reviewPane.querySelector('[data-tone="negative"]').textContent, /questions about visiting hours/);
+    assert.ok(reviewPane.querySelector('[data-tone="negative"] a[href="https://www.google.com/maps/reviews/1"]'));
+    assert.match(reviewPane.querySelector('.facility-review-summary').textContent, /Fixture summary.*Summarized with Gemini/s);
+    assert.equal(find('[data-facility-review-link]').href, 'https://www.google.com/maps/place/Limestone/reviews');
     assert.ok(contact.querySelector('a[href="https://www.linkedin.com/in/sherry-bowling-565401bb"]'));
     const nursing = find('[data-facility-person="Aleshia Teeples"]');
     nursing.click();
@@ -632,11 +690,23 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     formBody.value = 'Reviewed message';
     formBody.dispatchEvent(new window.Event('input', { bubbles: true }));
     assert.equal(new URL(drafts.querySelector('a').href).searchParams.get('body'), 'Reviewed message');
+    const focus = find('[data-facility-review-focus]');
+    focus.value = 'family-visits';
+    focus.dispatchEvent(new window.Event('change', { bubbles: true }));
+    assert.match(find('[data-facility-review-example]').textContent, /visiting hours/);
+    assert.match(find('[data-facility-review-question]').textContent, /families to get oriented/);
+    assert.equal(find('[data-facility-review-draft]').hidden, false);
+    find('[data-facility-review-draft]').click();
+    await waitFor(() => draftStatus.textContent.includes('Focus · Family visits and contacts'), 'Review focus did not reach the draft composer');
+    assert.match(drafts.querySelector('textarea').value, /families to get oriented/);
+    assert.doesNotMatch(drafts.querySelector('textarea').value, /Fixture Reviewer|questions about visiting hours/);
     assert.equal((await owner.api('bootstrap')).offices.length, before + 1);
     close.click();
     assert.equal(profile.open, false);
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
     assert.equal(profile.open, true);
+    assert.equal(reviewPane.open, false);
+    assert.equal(reviewRating.textContent, '');
     assert.match(facts.textContent, /Certified beds75/);
     assert.match(facts.textContent, /52,000 sq ft/);
     assert.ok(facts.querySelector('a[href^="https://www.maxusconstruction.com/"]'));
@@ -653,6 +723,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(profile.open, true);
     await waitFor(() => find('[data-facility-person="Aleshia Teeples"]'), 'Saved facility did not reload its leadership');
     const sourceURL = JSON.parse(limestone.notes).facilitySource;
+    assert.equal((await differentProject.api('facility-reviews', { sourceURL, state: 'AL', category: 'nursing-home' })).status, 'unconfigured');
+    await owner.api('facility-reviews', { sourceURL: 'https://example.test/different-office', state: 'AL', category: 'nursing-home' }, 404);
     const scratch = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));
     try {
       scratch.prepare('INSERT INTO outreach_suppression(email) VALUES (?)').run('ateeples@limestonehf.com');
@@ -678,6 +750,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentSession = browserSession(first.origin);
   await agentSession.api('login', { email: agentEmail, code: accessCode });
   await agentSession.api('create-agent', { name: 'Denied', email: 'denied@example.test', states: [] }, 403);
+  await agentSession.api('facility-reviews', { state: 'AL', category: 'nursing-home', sourceURL: 'https://example.test/outside-territory' }, 403);
   await agentSession.api('record-earnings', {}, 403);
   await agentSession.api('business-research', { type: 'senior center', locality: 'Portland', state: 'ME' }, 403);
   assert.equal((await agentSession.api('business-research-last')).research, null);

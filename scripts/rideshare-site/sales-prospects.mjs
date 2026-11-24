@@ -1,3 +1,38 @@
+import { facilityReviewTopics } from '../../sales/facility-review-topics.mjs';
+import { escape } from './layout.mjs';
+
+function renderFacilityReviews() {
+  return `<details class="facility-reviews" data-facility-reviews>
+    <summary>Google reviews</summary>
+    <div class="facility-reviews-body">
+      <section class="facility-maps-reviews" aria-label="Google Maps reviews">
+        <div class="facility-review-heading">
+          <div><span class="facility-maps-attribution" translate="no">Google Maps</span><div data-facility-review-rating></div></div>
+          <a class="button secondary" data-facility-review-link target="_blank" rel="noopener noreferrer">Open Google Maps</a>
+        </div>
+        <p data-facility-review-status role="status"></p>
+        <div data-facility-review-content></div>
+        <button type="button" class="button secondary" data-facility-review-retry hidden>Try again</button>
+        <p class="facility-review-policies"><a href="/sales/review-data" target="_blank" rel="noopener">Review data and privacy</a></p>
+      </section>
+      <section class="facility-review-outreach" aria-labelledby="facility-review-outreach-title">
+        <h3 id="facility-review-outreach-title">Communication opportunities</h3>
+        <label for="facility-review-focus">Choose a focus for outreach</label>
+        <select id="facility-review-focus" data-facility-review-focus>
+          <option value="">Select a communication need</option>
+          ${Object.entries(facilityReviewTopics).map(([id, topic]) =>
+            `<option value="${id}" data-example="${escape(topic.example)}" data-question="${escape(topic.question)}">${escape(topic.label)}</option>`).join('')}
+        </select>
+        <div class="facility-review-outreach-preview" data-facility-review-preview hidden>
+          <div><h4>How TinkyTown can help</h4><p data-facility-review-example></p></div>
+          <div><h4>Conversation starter</h4><p data-facility-review-question></p></div>
+          <button type="button" class="button primary" data-facility-review-draft hidden>Draft outreach with this focus</button>
+        </div>
+      </section>
+    </div>
+  </details>`;
+}
+
 export function renderProspects({ icon, map, linkedIn, seniorCare }) {
   const metrics = [
     ['total', 'Saved prospects', 'team', 'blue'],
@@ -110,6 +145,7 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
         <dl class="facility-facts" data-facility-profile-facts></dl>
         <div class="facility-profile-links" data-facility-profile-links></div>
       </section>
+      ${renderFacilityReviews()}
       <section class="facility-team" aria-labelledby="facility-team-title">
         <div><h3 id="facility-team-title">Organization chart</h3><p data-facility-profile-team-status></p></div>
         <div class="facility-team-layout">

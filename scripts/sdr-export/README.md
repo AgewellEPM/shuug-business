@@ -58,6 +58,27 @@ the local Ollama service with `qwen3:4b-instruct-2507-q4_K_M` by default.
 `SDR_OUTREACH_MODEL` selects another local model. When the model is unavailable,
 the drafts use role-specific templates.
 
+### Google reviews
+
+Open **Google reviews** inside a facility profile to look up that location’s
+Google rating, total rating count, and review summary when available. Up to five
+reviews appear in equal-width positive and negative columns. Three-star reviews
+appear below as mixed. The column counts describe Google’s relevance-ordered
+sample. Each review links to its original on Google Maps.
+
+Use **Communication opportunities** to choose a focus such as language access,
+visitor directions, or admissions. The workspace shows a concrete example and a
+conversation starter. **Draft outreach with this focus** prepares reviewable
+email drafts for eligible contacts using the selected focus.
+
+Connect a server-side Places API (New) key with `SDR_GOOGLE_PLACES_API_KEY` or a
+private `workspace-data/google-places-key` file with permissions `0600`. The
+key stays on the server. Google lookups run when a user opens a profile’s
+reviews, and review text stays in the current display. Without the connection,
+use the profile’s **Open Google Maps** link. See Google’s
+[Place Details documentation](https://developers.google.com/maps/documentation/places/web-service/place-details)
+and [Places API usage policies](https://developers.google.com/maps/documentation/places/web-service/policies).
+
 The nursing-home directory reads administrator listings from matched CMS
 enrollments and state licensure rosters. Each name links to its publisher.
 Directory results show administrator coverage for the current filters.
