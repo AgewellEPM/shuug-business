@@ -106,6 +106,7 @@ const sales = createHandler(env, db, {
   repEmail,
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
+  careCampaign: profile.focus === 'senior-care',
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
   facilities,
@@ -147,7 +148,7 @@ for (const path of readdirSync(staticRoot, { recursive: true, withFileTypes: tru
   files.set('/' + filename.slice(staticRoot.length + 1), filename);
 }
 const mimes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png',
-  '.svg': 'image/svg+xml', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json; charset=utf-8' };
+  '.svg': 'image/svg+xml', '.webp': 'image/webp', '.pdf': 'application/pdf', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json; charset=utf-8' };
 const csp = `default-src 'self'; script-src 'self'; style-src 'self'; ${profile.focus === 'senior-care' ? "media-src 'self' blob:; " : ''}img-src 'self' data: ${profile.focus === 'senior-care' ? 'blob: ' : ''}https://tile.openstreetmap.org https://*.googleusercontent.com ${administratorPhotoOrigins.join(' ')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`;
 const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, async (request, response) => {
   const finish = (status, body = '') => { response.statusCode = status; response.end(body); };

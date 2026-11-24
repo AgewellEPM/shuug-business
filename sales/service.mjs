@@ -124,6 +124,16 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
+    if (tools.careCampaign && action === 'start-care-pilot') {
+      const office = await leadFor(user, b.id);
+      const requestId = text(b.requestId, 36, true), start = text(b.start, 10, true);
+      if (!/^[a-f\d]{8}-(?:[a-f\d]{4}-){3}[a-f\d]{12}$/i.test(requestId)) throw new HttpError(400, 'Open a new pilot form.');
+      const date = new Date(start + 'T00:00:00Z');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !Number.isFinite(date.valueOf()) || date.toISOString().slice(0, 10) !== start) throw new HttpError(400, 'Choose a valid pilot start date.');
+      const unit = text(b.unit, 120, true), coordinator = text(b.coordinator, 140, true), goal = text(b.goal, 500, true);
+      const detail = `Nursing-home pilot · ${unit}\nTarget start: ${start}\nCoordinator: ${coordinator}\nMeasure: ${goal}`;
+      return { event: db.saveCarePilot(user, office.id, requestId, detail) };
+    }
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (tools.dailyPlan?.actions.has(action)) return tools.dailyPlan.dispatch(user, action, b);

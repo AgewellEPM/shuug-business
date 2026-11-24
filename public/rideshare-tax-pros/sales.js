@@ -65,13 +65,15 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
+    const careCampaign = window.SdrCareCampaign?.mount({ api, refresh, getOffices: () => data?.offices || [],
+      openOffice: id => { openNavigation('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
-      if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
+      if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
       const teamTool = teamTools.has(name);
       const trainingTool = ['training-demo', 'training-pipeline'].includes(name);
-      const enteringWorkspace = standalone && (teamTool || trainingTool || ['today','team','training','support'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingTool || ['today','team','training','support','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -92,7 +94,8 @@
         prospectsWorkspace?.enter();
         prospectUI?.refresh();
       }
-      if (name === 'campaigns') campaignUI?.refresh();
+      careCampaign?.view(name);
+      if (name === 'campaigns' && data?.user.role === 'owner') campaignUI?.refresh();
       if (name === 'email') emailUI?.enter();
       if (name === 'team') teamUI?.refresh(data.user);
       else teamUI?.closeMemberProfile();
