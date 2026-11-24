@@ -38,3 +38,24 @@ test('reviewed portraits stay attached to the named person and the matched CMS f
   assert.match(george.photoURL, /george_kingston/);
   for (const url of [minette.photoURL, minette.fallbackPhotoURL, george.photoURL]) assert.ok(administratorPhotoOrigins.includes(new URL(url).origin));
 });
+
+test('directory photos supplement only the sourced facility and keep the published role attribution', () => {
+  for (const [id, city, state, name, publisher] of [
+    ['155761', 'Brownsburg', 'IN', 'Paige Metzler', 'media.licdn.com'],
+    ['055268', 'Sonoma', 'CA', 'JON D OLSON', 'media.licdn.com'],
+    ['075117', 'Greenwich', 'CT', 'JOHN MASTRONARDI', 'www.thenathanielwitherell.org'],
+    ['075314', 'Manchester', 'CT', 'PATRICK J NEAGLE', 'www.icarehn.com'],
+  ]) {
+    const row = { cms: { id }, state, city };
+    const person = publishedFacilityAdministrator(row);
+    assert.equal(person.name, name);
+    assert.equal(new URL(person.photoURL).hostname, publisher);
+    assert.notEqual(person.sourceURL, person.photoSourceURL);
+    assert.ok(administratorPhotoOrigins.includes(new URL(person.photoURL).origin));
+    assert.equal(publishedFacilityAdministrator({ ...row, city: 'Wrong city' }), null);
+  }
+  // The employer article only identifies Touchpoints at Manchester.
+  const other = publishedFacilityAdministrator({ cms: { id: '075252' }, state: 'CT', city: 'Manchester' });
+  assert.equal(other.name, 'PATRICK J NEAGLE');
+  assert.equal(other.photoURL, undefined);
+});

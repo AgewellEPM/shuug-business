@@ -26,6 +26,7 @@ function requestSummary(row, info = metadata(row)) {
     createdAt: info.createdAt,
     updatedAt: info.updatedAt,
     resolvedAt: info.resolvedAt,
+    rating: info.rating ?? null,
     requester: info.requester,
     messages: info.messages,
   };
@@ -63,21 +64,30 @@ export function supportRequests(db, now = Date.now) {
     if (!/^[1-9]\d*$/.test(id)) throw new HttpError(404, 'Support request not found.');
     const message = body.message === undefined ? '' : text(body.message, 5000);
     const status = body.status;
-    // Retry conditional writes so simultaneous replies append to the same conversation.
+    const rating = body.rating;
+    // Retry conditional writes so simultaneous updates preserve the conversation and rating.
     for (let attempt = 0; attempt < 3; attempt++) {
       const row = await db.get(collection, id);
       if (!row || !canSee(row)) throw new HttpError(404, 'Support request not found.');
       if (status !== undefined && !canManage) throw new HttpError(403, 'Only the workspace owner can change support request status.');
       if (status !== undefined && !statuses.has(status)) throw new HttpError(400, 'Choose a valid support status.');
-      if (!message && status === undefined) throw new HttpError(400, 'Enter a reply or choose a status.');
-      const info = metadata(row);
       const nextStatus = status ?? row.status;
-      if (!message && nextStatus === row.status) return { request: requestSummary(row, info) };
+      if (rating !== undefined) {
+        if (row.assigned_to !== String(user.id)) throw new HttpError(403, 'Only the requester can rate this conversation.');
+        if (row.status !== 'resolved' || nextStatus !== 'resolved') throw new HttpError(409, 'Wait until this support request is resolved to rate it.');
+        if (!Number.isInteger(rating) || rating < 1 || rating > 5) throw new HttpError(400, 'Choose a rating from 1 to 5.');
+      }
+      if (!message && status === undefined && rating === undefined) throw new HttpError(400, 'Enter a reply or choose a status.');
+      const info = metadata(row);
+      if (!message && nextStatus === row.status && (rating === undefined || rating === info.rating)) {
+        return { request: requestSummary(row, info) };
+      }
       const updatedAt = new Date(now()).toISOString();
       const next = {
         ...info,
         updatedAt,
         resolvedAt: nextStatus === 'resolved' ? (info.resolvedAt ?? updatedAt) : null,
+        rating: rating ?? info.rating ?? null,
         messages: message ? [...info.messages, messageFrom(user, message, updatedAt)] : info.messages,
       };
       try {

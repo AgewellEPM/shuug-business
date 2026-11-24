@@ -138,3 +138,29 @@ test('support requests validate input and preserve concurrent replies', async t 
     new Set([input.message, 'Reply from owner', 'Reply from rep']));
   assert.equal(new Set(current.messages.map(item => item.id)).size, 3);
 });
+
+test('only the requester can save a rating after resolution', async t => {
+  const f = fixture(t);
+  const owner = f.session();
+  await owner('login', { code: ownerCode });
+  const rep = await f.createRep(owner, 'Sales Rep', 'rep@example.test');
+  const other = await f.createRep(owner, 'Other Rep', 'other@example.test');
+  const { request } = await rep.api('support-request-create', { ...input, rating: 5 });
+  const { id } = request;
+  assert.equal(request.rating, null);
+  await rep.api('support-request-update', { id, rating: 5 }, 409);
+  await owner('support-request-update', { id, status: 'resolved' });
+  await owner('support-request-update', { id, rating: 5 }, 403);
+  await other.api('support-request-update', { id, rating: 5 }, 404);
+  for (const rating of ['5', 0, 6, 2.5, null]) {
+    await rep.api('support-request-update', { id, rating }, 400);
+  }
+  const updatedAt = f.advance();
+  const { request: rated } = await rep.api('support-request-update', { id, rating: 4 });
+  assert.equal(rated.rating, 4);
+  assert.equal(rated.updatedAt, updatedAt);
+  assert.deepEqual(rated.messages, request.messages);
+  f.reopen();
+  assert.equal((await owner('support-requests')).requests[0].rating, 4);
+  assert.equal((await rep.api('support-request-update', { id, rating: 5 })).request.rating, 5);
+});

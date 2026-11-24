@@ -9,7 +9,29 @@
   const dateTime = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
   const localTime = new Intl.DateTimeFormat(undefined, { timeStyle: 'short' });
   const month = new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'numeric' });
+  const durationNumber = new Intl.NumberFormat(undefined, { maximumFractionDigits: 1 });
+  const ratingNumber = new Intl.NumberFormat(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const ratingOptions = [1, 2, 3, 4, 5];
   const badge = status => `<span class="support-status" data-state="${escape(status)}">${escape(labels[status])}</span>`;
+
+  function firstResponseMinutes(request) {
+    if (request.requester.id === 'owner') return null;
+    const reply = request.messages.find(message => message.author.id === 'owner');
+    const minutes = (Date.parse(reply?.createdAt) - Date.parse(request.createdAt)) / 60_000;
+    return Number.isFinite(minutes) && minutes >= 0 ? minutes : null;
+  }
+
+  function average(values) {
+    return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+  }
+
+  function formatResponseTime(minutes) {
+    if (minutes === null) return '—';
+    if (minutes < 1) return '< 1 min';
+    if (minutes < 60) return `${durationNumber.format(minutes)} min`;
+    if (minutes < 1440) return `${durationNumber.format(minutes / 60)} hr`;
+    return `${durationNumber.format(minutes / 1440)} d`;
+  }
 
   function mount({ api, navigate }) {
     const root = document.querySelector('.sdr-support');
@@ -53,15 +75,25 @@
       libraryTitle.focus();
     }
 
+    function openLibrary(button, options) {
+      libraryTrigger = button;
+      search.elements.query.value = '';
+      renderLibrary(options);
+    }
+
     function renderRequests() {
-      const mine = requests.filter(request => request.requester.id === userId);
       const thisMonth = month.format(new Date());
-      metric('open').textContent = String(mine.filter(request => request.status !== 'resolved').length);
-      metric('resolved').textContent = String(mine.filter(request => request.resolvedAt && month.format(new Date(request.resolvedAt)) === thisMonth).length);
+      const response = average(requests.map(firstResponseMinutes).filter(value => value !== null));
+      const satisfaction = average(requests.map(request => request.rating).filter(value => ratingOptions.includes(value)));
+      metric('open').textContent = String(requests.filter(request => request.requester.id === userId && request.status !== 'resolved').length);
+      metric('response').textContent = formatResponseTime(response);
+      metric('resolved').textContent = String(requests.filter(request => request.resolvedAt && month.format(new Date(request.resolvedAt)) === thisMonth).length);
+      metric('satisfaction').textContent = satisfaction === null ? '—' : `${ratingNumber.format(satisfaction)} / 5`;
       find('#support-requests-title span').textContent = canManage ? 'Workspace Support Requests' : 'My Support Requests';
       find('[data-support-request-rows]').innerHTML = (expanded ? requests : requests.slice(0, 3)).map(request => `<tr>
+        <td class="support-request-id">${escape(request.id)}</td>
         <td><button type="button" class="support-request-subject" data-support-request="${escape(request.id)}">
-          ${escape(request.subject)}<small>#${escape(request.id)}${canManage ? ' · ' + escape(request.requester.name) : ''}</small></button></td>
+          ${escape(request.subject)}${canManage ? `<small>${escape(request.requester.name)}</small>` : ''}</button></td>
         <td>${badge(request.status)}</td>
         <td><time datetime="${escape(request.updatedAt)}">${dateTime.format(new Date(request.updatedAt))}</time></td>
       </tr>`).join('');
@@ -101,7 +133,7 @@
       return pending;
     }
 
-    function openDialog(title, body, state) {
+    function openDialog(title, body, state = {}) {
       dialogTitle.textContent = title;
       dialogBody.replaceChildren();
       if (typeof body === 'string') dialogBody.innerHTML = body;
@@ -118,11 +150,11 @@
       if (!entry) return;
       openDialog(entry.title, `<p>${escape(entry.description)}</p><ol class="support-step-list">
         ${entry.steps.map(step => `<li>${escape(step)}</li>`).join('')}
-        </ol>${views[entry.view] ? `<button type="button" class="support-button support-primary" data-support-view="${entry.view}">Open ${views[entry.view]}</button>` : ''}`,
-      { type: 'entry' });
+        </ol>${views[entry.view] ? `<button type="button" class="support-button support-primary" data-support-view="${entry.view}">Open ${views[entry.view]}</button>` : ''}`);
     }
 
-    function openRequest(request, notice = '') {
+    function openRequest(request, { notice = '', form = 'reply' } = {}) {
+      const canRate = request.status === 'resolved' && request.requester.id === userId;
       openDialog(request.subject, `<p>#${escape(request.id)} · ${escape(categories[request.category] || 'Other')} · ${badge(request.status)}</p>
         <ol class="support-thread" aria-label="Request messages">${request.messages.map(message => `
           <li class="support-thread-message"><header><strong>${escape(message.author.name)}</strong>
@@ -131,9 +163,33 @@
         <form class="support-form" data-support-form="reply">
           ${canManage ? `<label>Status<select name="status">${Object.entries(labels).map(([key, label]) => `<option value="${key}"${key === request.status ? ' selected' : ''}>${label}</option>`).join('')}</select></label>` : ''}
           <label>Reply<textarea name="message" maxlength="5000" rows="4"${canManage ? '' : ' required'}></textarea></label>
-          <p role="status" data-support-form-note>${escape(notice)}</p>
+          <p role="status" data-support-form-note>${form === 'reply' ? escape(notice) : ''}</p>
           <button type="submit" class="support-button support-primary">${canManage ? 'Save update' : 'Add reply'}</button>
-        </form>`, { type: 'reply', request });
+        </form>
+        ${canRate ? `<form class="support-form support-rating-form" data-support-form="rating">
+          <label>Support rating<select name="rating" required>
+            <option value="" disabled${request.rating === null ? ' selected' : ''}>Choose a rating</option>
+            ${ratingOptions.map(value => `<option value="${value}"${request.rating === value ? ' selected' : ''}>${value} of 5</option>`).join('')}
+          </select></label>
+          <p role="status" data-support-form-note>${form === 'rating' ? escape(notice) : ''}</p>
+          <button type="submit" class="support-button">Save rating</button>
+        </form>` : ''}`, { request });
+    }
+
+    function openCreate(title) {
+      openDialog(title, find('[data-support-create]').content.cloneNode(true));
+    }
+
+    async function startChat(button) {
+      if (!loaded) {
+        button.disabled = true;
+        await load();
+        button.disabled = false;
+      }
+      if (root.hidden || dialog.open) return;
+      const active = requests.find(request => request.requester.id === userId && request.status !== 'resolved');
+      if (active) openRequest(active);
+      else openCreate('Start a support conversation');
     }
 
     async function save(form) {
@@ -141,9 +197,11 @@
       const submit = form.querySelector('button[type="submit"]');
       const note = form.querySelector('[data-support-form-note]');
       const input = Object.fromEntries(new FormData(form));
-      const creating = state.type === 'create';
-      if (!creating) {
-        input.id = state.request.id;
+      const kind = form.dataset.supportForm;
+      const creating = kind === 'create';
+      if (!creating) input.id = state.request.id;
+      if (kind === 'rating') input.rating = Number(input.rating);
+      if (kind === 'reply') {
         if (input.status === state.request.status) delete input.status;
         if (!input.message.trim() && !input.status) {
           note.textContent = 'Add a reply or choose a different status.';
@@ -154,7 +212,10 @@
       note.textContent = 'Saving…';
       try {
         const { request } = await api(creating ? 'support-request-create' : 'support-request-update', input);
-        if (dialog.open && activeDialog === state) openRequest(request, creating ? 'Request submitted.' : 'Update saved.');
+        if (dialog.open && activeDialog === state) {
+          const notice = { create: 'Request submitted.', reply: 'Update saved.', rating: 'Rating saved.' }[kind];
+          openRequest(request, { notice, form: creating ? 'reply' : kind });
+        }
         await pending;
         await load();
       } catch (error) {
@@ -168,6 +229,9 @@
       event.preventDefault();
       libraryTrigger = search.elements.query;
       renderLibrary({ query: search.elements.query.value });
+    });
+    document.querySelector('[data-support-sidebar-resources]')?.addEventListener('click', event => {
+      openLibrary(event.currentTarget, { kind: 'guide' });
     });
     root.addEventListener('submit', event => {
       if (!event.target.matches('[data-support-form]')) return;
@@ -183,9 +247,7 @@
       if (!button) return;
       const { supportTopic, supportEntry, supportRequest, supportView, supportAction } = button.dataset;
       if (supportTopic || kinds[supportAction]) {
-        libraryTrigger = button;
-        search.elements.query.value = '';
-        renderLibrary(supportTopic ? { topic: button.textContent.trim() } : { kind: supportAction });
+        openLibrary(button, supportTopic ? { topic: button.textContent.trim() } : { kind: supportAction });
       } else if (supportEntry) {
         openEntry(supportEntry);
       } else if (supportRequest) {
@@ -195,7 +257,9 @@
         dialog.close();
         navigate(supportView);
       } else if (supportAction === 'create') {
-        openDialog('Submit a support request', find('[data-support-create]').content.cloneNode(true), { type: 'create' });
+        openCreate('Submit a support request');
+      } else if (supportAction === 'chat') {
+        void startChat(button);
       } else if (supportAction === 'close-dialog') {
         dialog.close();
       } else if (supportAction === 'refresh') {
@@ -210,7 +274,6 @@
         libraryTrigger?.focus();
       }
     });
-    metric('library').textContent = String(library.length);
     return { show(user, entering) {
       userId = String(user.id);
       if (entering || !loaded) void load();
