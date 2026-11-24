@@ -73,8 +73,19 @@ function browserSession(origin) {
 
 async function mountConsole(t, origin, session, html, path = '/sales') {
   const dom = new JSDOM(html, { url: origin + path, runScripts: 'outside-only', beforeParse(window) {
-    window.AbortController = AbortController;
-    window.fetch = (path, options) => session.request(path, options);
+    window.fetch = (input, options) => {
+      const url = new URL(input, window.location.href);
+      assert.equal(url.origin, origin);
+      const path = url.pathname + url.search;
+      if (!options?.signal) return session.request(path, options);
+      // Keep DOM event subscriptions in the document realm and bridge fetch cancellation into Node.
+      const controller = new AbortController();
+      const abort = () => controller.abort();
+      if (options.signal.aborted) abort();
+      else options.signal.addEventListener('abort', abort, { once: true });
+      return session.request(path, { ...options, signal: controller.signal })
+        .finally(() => options.signal.removeEventListener('abort', abort));
+    };
     const dialog = window.HTMLDialogElement.prototype;
     dialog.showModal ??= function () { this.open = true; };
     dialog.close ??= function () { this.open = false; this.dispatchEvent(new window.Event('close')); };
@@ -1414,6 +1425,29 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(demoTool.closest('[hidden]'), null);
     demoTool.click();
     assert.equal(panel.closest('[data-team-workspace]').hidden, false);
+    await waitFor(() => !panel.hidden, 'The locations lobby did not open');
+    for (const id of ['hospital','nursing-home','senior-center','townhall','directory','college','airport','stroke']) {
+      assert.ok(panel.querySelector('[data-care-launch="' + id + '"]'), id);
+    }
+    for (const [venue, room] of [['hospital','reception'], ['nursing-home','resident-room'], ['senior-center','transportation']]) {
+      const entry = await owner.request('/demo/' + venue, { redirect: 'manual' });
+      assert.equal(entry.headers.get('location'), '/sales/senior-care#view=demo&venue=' + venue + '&present=1');
+      careWindow.location.hash = 'view=demo&venue=' + venue;
+      await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
+      panel.querySelector('.cf-room-card[data-room="' + room + '"]').click();
+      panel.querySelector('.cf-tile').click();
+      assert.match(panel.querySelector('.cf-history summary').textContent, /1/);
+    }
+    careWindow.location.hash = 'view=demo&venue=townhall';
+    await waitFor(() => panel.querySelector('.cl-board-title'), 'Hartford Town Hall did not load');
+    assert.match(panel.querySelector('.cl-header h3').textContent, /Hartford/);
+    careWindow.location.hash = 'view=demo&venue=home';
+    await waitFor(() => panel.querySelector('.care-library [data-tile]') || panel.querySelector('[aria-label="TinkySpeak board library"] [data-tile]'), 'Family board did not load');
+    careWindow.location.hash = 'view=demo&venue=college';
+    await waitFor(() => panel.querySelector('.care-kiosk-tile[data-board-target="uni_academics"]'), 'Campus boards did not open');
+    panel.querySelector('.care-kiosk-tile[data-board-target="uni_academics"]').click();
+    assert.notEqual(panel.querySelector('[data-board] select').value, 'main');
+    careWindow.location.hash = 'view=demo&venue=stroke&mode=boards';
     await waitFor(() => !find('session').hidden, 'The exported demo boards did not load');
     assert.equal(find('setting').textContent, 'Nursing home');
     assert.equal(find('board-picker').options.length, 19);

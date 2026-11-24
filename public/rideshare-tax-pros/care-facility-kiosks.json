@@ -1,0 +1,359 @@
+{
+    "loc_hospital_arrive": {"name": "Hospital arrival", "icon": "🏥", "tiles": [
+      {"label": "Er / urgent", "say": "I need the emergency room", "icon": "🏥", "next": "loc_hospital_er", "ink": "#C62828"},
+      {"label": "Appointment", "say": "I am here for a scheduled appointment", "icon": "📅", "next": "loc_hospital_appointment"},
+      {"label": "Pharmacy", "say": "I am here to pick up a prescription", "icon": "💊", "next": "loc_hospital_pharmacy_only"},
+      {"label": "Lab work", "say": "I am here for lab work", "icon": "🩸", "next": "loc_hospital_lab"},
+      {"label": "Imaging", "say": "I am here for imaging", "icon": "📸", "next": "loc_hospital_imaging"},
+      {"label": "Visiting", "say": "I am here to visit a patient", "icon": "👪", "next": "loc_hospital_visitor"},
+      {"label": "More", "say": "MORE", "icon": "🧠", "next": "loc_hospital_arrive_more"}
+    ]},
+    "loc_hospital_arrive_more": {"name": "More hospital services", "icon": "🔪", "tiles": [
+      {"label": "Surgery", "say": "I am here for outpatient surgery", "icon": "🔪", "next": "loc_hospital_surgery"},
+      {"label": "Labor / delivery", "say": "I am here for labor and delivery", "icon": "🤰", "next": "loc_hospital_delivery"},
+      {"label": "Mental health", "say": "I am here for mental health or behavioral care", "icon": "🧘", "next": "loc_hospital_mental"},
+      {"label": "Discharge", "say": "I am being discharged and leaving today", "icon": "🏠", "next": "loc_hospital_discharge"},
+      {"label": "Billing", "say": "I need the billing or insurance department", "icon": "💳", "next": "loc_hospital_billing"},
+      {"label": "Records", "say": "I need to request my medical records", "icon": "📄", "next": "loc_hospital_records"},
+      {"label": "Infusion / dialysis", "say": "I am here for my infusion or dialysis treatment", "icon": "💉", "next": "loc_hospital_infusion"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_reception": {"name": "Front desk", "icon": "🗣️", "tiles": [
+      {"label": "Can't speak", "say": "I cannot speak. I am using this device to communicate. Please read the screen.", "icon": "🗣️"},
+      {"label": "My id", "say": "Here is my photo ID", "icon": "🆔"},
+      {"label": "Insurance", "say": "Here is my insurance card", "icon": "📄", "next": "loc_hospital_insurance"},
+      {"label": "My name", "say": "Let me show you my name and date of birth", "icon": "👤"},
+      {"label": "Paperwork", "say": "I need help filling out the paperwork", "icon": "📝"},
+      {"label": "Wheelchair", "say": "I need a wheelchair please", "icon": "♿"},
+      {"label": "Check in", "say": "I am ready to check in", "icon": "🏥", "next": "loc_hospital_waiting"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_insurance": {"name": "Insurance", "icon": "💳", "tiles": [
+      {"label": "Have card", "say": "Here is my insurance card, let me hand it over", "icon": "💳"},
+      {"label": "On my phone", "say": "My insurance is on my phone, let me show you", "icon": "📱"},
+      {"label": "Medicare", "say": "I have Medicare", "icon": "📄"},
+      {"label": "Medicaid", "say": "I have Medicaid", "icon": "🏛️"},
+      {"label": "No insurance", "say": "I do not have insurance right now", "icon": "❌"},
+      {"label": "Not sure", "say": "I am not sure about my coverage", "icon": "🤔"},
+      {"label": "Under parent", "say": "I am on my parent or spouse insurance", "icon": "👪"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_triage": {"name": "Nurse triage", "icon": "🫀", "tiles": [
+      {"label": "Chest pain", "say": "I have chest pain", "icon": "🫀", "ink": "#C62828"},
+      {"label": "Can't breathe", "say": "I am having trouble breathing", "icon": "😵", "ink": "#C62828"},
+      {"label": "Bleeding", "say": "I am bleeding", "icon": "🩸", "ink": "#C62828"},
+      {"label": "Pain level", "say": "Let me tell you my pain level", "icon": "🤕", "next": "loc_hospital_pain"},
+      {"label": "Where hurts", "say": "Let me point to where it hurts", "icon": "📍"},
+      {"label": "Started when", "say": "Let me tell you when this started", "icon": "⏰"},
+      {"label": "Meds / allergies", "say": "Here are my medications and allergies", "icon": "💊"},
+      {"label": "Ready for exam", "say": "I am ready to see the doctor", "icon": "➡️", "next": "loc_hospital_exam"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_pain": {"name": "Describe pain", "icon": "🙂", "tiles": [
+      {"label": "1 - mild", "say": "My pain is a one out of ten. Barely noticeable.", "icon": "🙂", "next": "loc_hospital_triage", "ink": "#388E3C"},
+      {"label": "3 - uncomfortable", "say": "My pain is a three out of ten.", "icon": "😕", "next": "loc_hospital_triage", "ink": "#F9A825"},
+      {"label": "5 - distracting", "say": "My pain is a five out of ten.", "icon": "😣", "next": "loc_hospital_triage", "ink": "#EF6C00"},
+      {"label": "7 - hard to manage", "say": "My pain is a seven out of ten, very hard to manage.", "icon": "😢", "next": "loc_hospital_triage", "ink": "#D84315"},
+      {"label": "8 - intense", "say": "My pain is an eight out of ten, intense.", "icon": "😭", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "10 - worst ever", "say": "My pain is a ten. This is the worst pain I have ever felt.", "icon": "😱", "next": "loc_hospital_triage", "ink": "#880E4F"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_waiting": {"name": "Waiting room", "icon": "⏱️", "tiles": [
+      {"label": "How long", "say": "How long is the wait?", "icon": "⏱️"},
+      {"label": "Bathroom", "say": "I need to use the bathroom", "icon": "🚽"},
+      {"label": "Water", "say": "Can I have some water please?", "icon": "💧"},
+      {"label": "Getting worse", "say": "I am feeling worse, I need someone now", "icon": "🤕", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Call family", "say": "Can you call my family for me?", "icon": "👪"},
+      {"label": "My turn?", "say": "Is it my turn yet?", "icon": "🧍"},
+      {"label": "Ready", "say": "I am ready to be seen", "icon": "➡️", "next": "loc_hospital_exam"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_exam": {"name": "Examination", "icon": "👨‍⚕️", "tiles": [
+      {"label": "Ready", "say": "I am ready for the exam", "icon": "👨‍⚕️"},
+      {"label": "Still hurts", "say": "It still hurts right there", "icon": "🤕"},
+      {"label": "History", "say": "Let me share my medical history", "icon": "📋"},
+      {"label": "What is it", "say": "What do you think is wrong?", "icon": "❓"},
+      {"label": "More tests", "say": "Do I need more tests?", "icon": "🔍"},
+      {"label": "Write it down", "say": "Please write down what you said so I can remember", "icon": "📝"},
+      {"label": "Go home?", "say": "When can I go home?", "icon": "🏠", "next": "loc_hospital_discharge"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_discharge": {"name": "Going home", "icon": "📄", "tiles": [
+      {"label": "Instructions", "say": "Please give me written discharge instructions", "icon": "📄"},
+      {"label": "Prescriptions", "say": "Do I have any new prescriptions?", "icon": "💊", "next": "loc_hospital_pharmacy"},
+      {"label": "Follow up", "say": "Do I need a follow up appointment?", "icon": "📅"},
+      {"label": "Warning signs", "say": "What warning signs should I watch for?", "icon": "⚠️"},
+      {"label": "Ride home", "say": "I need help arranging a ride home", "icon": "🚗"},
+      {"label": "Wheelchair out", "say": "I need a wheelchair to get to the car", "icon": "♿"},
+      {"label": "Thank you", "say": "Thank you for taking care of me", "icon": "🙏"}
+    ]},
+    "loc_hospital_pharmacy": {"name": "Prescriptions", "icon": "💊", "tiles": [
+      {"label": "Pick up", "say": "I am here to pick up a prescription", "icon": "💊"},
+      {"label": "My name", "say": "Let me show you my name and date of birth", "icon": "👤"},
+      {"label": "Insurance", "say": "Here is my insurance card", "icon": "💳", "next": "loc_hospital_insurance"},
+      {"label": "How to take", "say": "How do I take this medication?", "icon": "❓"},
+      {"label": "Side effects", "say": "What side effects should I watch for?", "icon": "⚠️"},
+      {"label": "Interactions", "say": "Will this interact with my other medications?", "icon": "💊"},
+      {"label": "How much", "say": "How much does this cost?", "icon": "💰"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_er": {"name": "Emergency room", "icon": "🫀", "tiles": [
+      {"label": "Chest pain", "say": "I have chest pain right now", "icon": "🫀", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Can't breathe", "say": "I cannot breathe well", "icon": "😵", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Bleeding bad", "say": "I am bleeding badly", "icon": "🩸", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Injured", "say": "I am hurt and need to be seen", "icon": "🩹", "next": "loc_hospital_triage", "ink": "#E65100"},
+      {"label": "Stroke signs", "say": "I think I am having a stroke", "icon": "🧠", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Overdose", "say": "I may have taken too much medication", "icon": "💊", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Severe pain", "say": "I am in severe pain", "icon": "🤕", "next": "loc_hospital_pain", "ink": "#C62828"},
+      {"label": "Emergency", "say": "This is an emergency, I need help now", "icon": "🚨", "next": "er1", "ink": "#C62828"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_appointment": {"name": "Scheduled appointment", "icon": "🏥", "tiles": [
+      {"label": "Check in", "say": "I need to check in for my appointment", "icon": "🏥", "next": "loc_hospital_reception"},
+      {"label": "With doctor", "say": "I have an appointment with my doctor", "icon": "👨‍⚕️"},
+      {"label": "Appt time", "say": "Let me show you my appointment time", "icon": "🕐"},
+      {"label": "Insurance", "say": "Here is my insurance information", "icon": "📄", "next": "loc_hospital_insurance"},
+      {"label": "Waiting", "say": "I am waiting to be called", "icon": "🧍", "next": "loc_hospital_waiting"},
+      {"label": "Feel worse", "say": "I feel worse than when I booked this", "icon": "🤮", "next": "loc_hospital_triage"},
+      {"label": "Exam", "say": "They called me back for my exam", "icon": "➡️", "next": "loc_hospital_exam"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_pharmacy_only": {"name": "Pharmacy visit", "icon": "💊", "tiles": [
+      {"label": "Pick up", "say": "I am here to pick up a prescription", "icon": "💊", "next": "loc_hospital_pharmacy"},
+      {"label": "My name", "say": "Here is my name and date of birth", "icon": "👤"},
+      {"label": "Dr called in", "say": "My doctor called in a prescription for me", "icon": "📞"},
+      {"label": "Refill", "say": "I need to refill my prescription", "icon": "🔄"},
+      {"label": "Insurance", "say": "Here is my insurance card", "icon": "💳", "next": "loc_hospital_insurance"},
+      {"label": "Ready?", "say": "Is my prescription ready yet?", "icon": "❓"},
+      {"label": "Cost", "say": "How much will this cost me?", "icon": "💰"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_lab": {"name": "Blood work & labs", "icon": "🩸", "tiles": [
+      {"label": "Blood draw", "say": "I am here for a blood draw", "icon": "🩸"},
+      {"label": "Urine test", "say": "I am here for a urine test", "icon": "🧪"},
+      {"label": "Lab order", "say": "Here is my lab order from my doctor", "icon": "📄"},
+      {"label": "Fasting", "say": "I am fasting for this test", "icon": "🍝"},
+      {"label": "Blood thinner", "say": "I take a blood thinner, please be careful", "icon": "💊"},
+      {"label": "Scared needles", "say": "I am scared of needles, please go slow", "icon": "🤺"},
+      {"label": "When results", "say": "When will my results be ready?", "icon": "📅"},
+      {"label": "Done", "say": "Am I finished? Can I leave?", "icon": "➡️", "next": "loc_hospital_discharge"}
+    ]},
+    "loc_hospital_imaging": {"name": "Scans & imaging", "icon": "🦴", "tiles": [
+      {"label": "X-ray", "say": "I am here for an X-ray", "icon": "🦴"},
+      {"label": "MRI", "say": "I am here for an MRI", "icon": "🧲"},
+      {"label": "Ct scan", "say": "I am here for a CT scan", "icon": "📸"},
+      {"label": "Ultrasound", "say": "I am here for an ultrasound", "icon": "🦢"},
+      {"label": "Metal in me", "say": "I have metal in my body from surgery", "icon": "⚠️"},
+      {"label": "Claustrophobic", "say": "I am claustrophobic, the tube scares me", "icon": "😬"},
+      {"label": "Pregnant", "say": "I am pregnant, is this safe?", "icon": "🤰"},
+      {"label": "Done", "say": "Am I finished? Can I go?", "icon": "➡️", "next": "loc_hospital_discharge"}
+    ]},
+    "loc_hospital_surgery": {"name": "Surgical visit", "icon": "🔪", "tiles": [
+      {"label": "Here for surgery", "say": "I am here for my scheduled surgery", "icon": "🔪", "next": "loc_hospital_reception"},
+      {"label": "Npo / fasting", "say": "I have not eaten or drunk anything since last night", "icon": "🍝"},
+      {"label": "Meds taken", "say": "Let me tell you which medications I took this morning", "icon": "💊"},
+      {"label": "Anesthesia", "say": "I have had reactions to anesthesia before", "icon": "🎭", "ink": "#C62828"},
+      {"label": "Ride home", "say": "My family is here to drive me home after", "icon": "👪"},
+      {"label": "Nervous", "say": "I am very nervous about this", "icon": "😬"},
+      {"label": "Consent form", "say": "I need help with the consent form", "icon": "📝"},
+      {"label": "Recovery", "say": "I am done, how is recovery going?", "icon": "➡️", "next": "loc_hospital_discharge"}
+    ]},
+    "loc_hospital_visitor": {"name": "Visiting a patient", "icon": "👤", "tiles": [
+      {"label": "Patient name", "say": "Let me show you the name of the patient I am visiting", "icon": "👤"},
+      {"label": "Room number", "say": "What room are they in?", "icon": "🏨"},
+      {"label": "My id", "say": "Here is my ID for the visitor badge", "icon": "🆔"},
+      {"label": "Family", "say": "I am their family", "icon": "👪"},
+      {"label": "Flowers ok?", "say": "Am I allowed to bring flowers in?", "icon": "💐"},
+      {"label": "Visiting hours", "say": "What are the visiting hours?", "icon": "⏰"},
+      {"label": "Directions", "say": "Can you show me the way to their room?", "icon": "🚶"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_delivery": {"name": "Labor & delivery", "icon": "🤰", "tiles": [
+      {"label": "In labor", "say": "I am in labor right now", "icon": "🤰", "next": "loc_hospital_triage", "ink": "#C62828"},
+      {"label": "Contractions", "say": "My contractions are close together", "icon": "⏱️", "ink": "#C62828"},
+      {"label": "Water broke", "say": "My water broke", "icon": "💧", "ink": "#C62828"},
+      {"label": "Due date", "say": "Let me show you my due date", "icon": "📅"},
+      {"label": "Birth plan", "say": "Here is my birth plan", "icon": "📋"},
+      {"label": "Partner here", "say": "My partner is coming, please let them in", "icon": "👨"},
+      {"label": "My ob", "say": "Let me tell you my OBs name", "icon": "👨‍⚕️"},
+      {"label": "Pain", "say": "The pain is getting bad", "icon": "🤕", "next": "loc_hospital_pain"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_mental": {"name": "Behavioral health", "icon": "🧘", "tiles": [
+      {"label": "Need help", "say": "I am here because I need mental health help", "icon": "🧘"},
+      {"label": "Not safe", "say": "I do not feel safe with myself right now", "icon": "😢", "ink": "#C62828"},
+      {"label": "Anxiety", "say": "I am having severe anxiety or a panic attack", "icon": "😰"},
+      {"label": "Depression", "say": "I have been severely depressed", "icon": "😭"},
+      {"label": "My meds", "say": "Here are my psychiatric medications", "icon": "💊"},
+      {"label": "My therapist", "say": "Let me tell you my therapist or psychiatrist name", "icon": "👤"},
+      {"label": "Quiet room", "say": "Can I wait somewhere quiet? Crowds are hard", "icon": "🤐"},
+      {"label": "Support person", "say": "I have a support person with me", "icon": "👪"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_records": {"name": "Medical records", "icon": "📄", "tiles": [
+      {"label": "Request records", "say": "I need to request a copy of my medical records", "icon": "📄"},
+      {"label": "My id", "say": "Here is my photo ID", "icon": "🆔"},
+      {"label": "Release form", "say": "I need help with the release of information form", "icon": "📝"},
+      {"label": "Date range", "say": "Let me show you the date range I need", "icon": "📅"},
+      {"label": "Send where", "say": "Please send them to this address or fax", "icon": "📧"},
+      {"label": "How long", "say": "How long will this take?", "icon": "⏳"},
+      {"label": "Copy fee", "say": "Is there a fee for the copies?", "icon": "💰"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_billing": {"name": "Billing questions", "icon": "💳", "tiles": [
+      {"label": "Billing dept", "say": "I need the billing department", "icon": "💳"},
+      {"label": "My bill", "say": "I have a question about this bill", "icon": "📄"},
+      {"label": "Payment plan", "say": "I need to set up a payment plan", "icon": "💰"},
+      {"label": "Cant afford", "say": "I cannot afford to pay this right now", "icon": "🚫"},
+      {"label": "Financial aid", "say": "I want to apply for financial assistance", "icon": "🤝"},
+      {"label": "Insurance issue", "say": "My insurance did not cover this, I need help", "icon": "📦", "next": "loc_hospital_insurance"},
+      {"label": "Dispute", "say": "I want to dispute a charge", "icon": "📝"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_hospital_infusion": {"name": "Infusion & dialysis", "icon": "💉", "tiles": [
+      {"label": "Infusion", "say": "I am here for my infusion treatment", "icon": "💉"},
+      {"label": "Dialysis", "say": "I am here for my dialysis session", "icon": "🩸"},
+      {"label": "Chemo", "say": "I am here for chemotherapy", "icon": "🎀"},
+      {"label": "Port / line", "say": "I have a port or central line installed", "icon": "🩹"},
+      {"label": "Feel sick", "say": "I feel nauseous, worse than usual", "icon": "🤢"},
+      {"label": "Very tired", "say": "I am extremely tired today", "icon": "🥵"},
+      {"label": "Need blanket", "say": "Can I have a warm blanket please?", "icon": "🧶"},
+      {"label": "All done", "say": "I am all done, ready to go home", "icon": "➡️", "next": "loc_hospital_discharge"}
+    ]},
+    "loc_senior_arrive": {"name": "Senior center check-in", "icon": "🍽️", "tiles": [
+      {"label": "Lunch", "say": "I am here for lunch", "icon": "🍽️", "next": "loc_senior_lunch"},
+      {"label": "Ride", "say": "I need to arrange a ride", "icon": "🚐", "next": "loc_senior_ride"},
+      {"label": "Activity", "say": "I want to join an activity", "icon": "🎨", "next": "loc_senior_activity"},
+      {"label": "Benefits", "say": "I need help with benefits", "icon": "📋", "next": "loc_senior_benefits"},
+      {"label": "Health", "say": "I want to see the nurse / health clinic", "icon": "👩‍⚕️", "next": "loc_senior_health"},
+      {"label": "Memory", "say": "I need help with memory care programs", "icon": "🧩", "next": "loc_senior_benefits"},
+      {"label": "Caregiver", "say": "I am a caregiver looking for help", "icon": "📞", "next": "loc_senior_benefits"},
+      {"label": "Check in", "say": "I am checking in for today", "icon": "✅"}
+    ]},
+    "loc_senior_lunch": {"name": "Lunch program", "icon": "📝", "tiles": [
+      {"label": "Sign up", "say": "I want to sign up for lunch", "icon": "📝"},
+      {"label": "When?", "say": "What time is lunch served?", "icon": "📅"},
+      {"label": "Cost?", "say": "How much does lunch cost?", "icon": "💵"},
+      {"label": "Menu", "say": "What is on the menu today?", "icon": "🥗"},
+      {"label": "Allergy", "say": "I have a food allergy", "icon": "🚫"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_senior_ride": {"name": "Arrange a ride", "icon": "🏥", "tiles": [
+      {"label": "To doctor", "say": "I need a ride to a doctor appointment", "icon": "🏥"},
+      {"label": "Shopping", "say": "I need a ride to the grocery store", "icon": "🛒"},
+      {"label": "Errands", "say": "I need a ride for errands", "icon": "🏦"},
+      {"label": "Schedule", "say": "I want to schedule a ride", "icon": "📅"},
+      {"label": "Cancel", "say": "I need to cancel a ride", "icon": "❌"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_senior_activity": {"name": "Join an activity", "icon": "🎲", "tiles": [
+      {"label": "Games", "say": "I want to join the games group", "icon": "🎲"},
+      {"label": "Art", "say": "I want to join the art class", "icon": "🎨"},
+      {"label": "Exercise", "say": "I want to join the exercise class", "icon": "💪"},
+      {"label": "Music", "say": "I want to join the music program", "icon": "🎵"},
+      {"label": "Book club", "say": "I want to join the book club", "icon": "📚"},
+      {"label": "Day trip", "say": "I want to sign up for a day trip", "icon": "✈️"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_senior_benefits": {"name": "Benefits & caregiver help", "icon": "🍲", "tiles": [
+      {"label": "Snap", "say": "I need help applying for SNAP / food help", "icon": "🍲"},
+      {"label": "Medicare", "say": "I need help with Medicare", "icon": "🏥"},
+      {"label": "Housing", "say": "I need help with housing assistance", "icon": "🏠"},
+      {"label": "Heat/liheap", "say": "I need help applying for energy assistance", "icon": "🔥"},
+      {"label": "Tax rebate", "say": "I need help with the senior tax rebate", "icon": "🧾"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "loc_senior_health": {"name": "Health clinic", "icon": "🩺", "tiles": [
+      {"label": "Bp check", "say": "I would like to get my blood pressure checked", "icon": "🩺"},
+      {"label": "Flu shot", "say": "I am here for a flu shot", "icon": "💉"},
+      {"label": "Hearing", "say": "I would like a hearing check", "icon": "👁️"},
+      {"label": "Foot care", "say": "I would like foot care", "icon": "🦶"},
+      {"label": "Question", "say": "I have a health question for the nurse", "icon": "❓"},
+      {"label": "Thank you", "say": "Thank you for your help", "icon": "✅"}
+    ]},
+    "health_main": {"name": "Health communication", "icon": "📊", "tiles": [
+      {"label": "Pain level", "say": "Let me tell you about my pain level", "icon": "📊", "next": "health_pain"},
+      {"label": "Symptoms", "say": "I want to describe my symptoms", "icon": "🤒", "next": "health_symptoms"},
+      {"label": "Medications", "say": "I want to talk about my medications", "icon": "💊", "next": "meds"},
+      {"label": "Appointment", "say": "I have an appointment", "icon": "📅"},
+      {"label": "Insurance", "say": "Here is my insurance information", "icon": "📋", "next": "loc_hospital_insurance"},
+      {"label": "Bathroom", "say": "I need to use the bathroom", "icon": "🚽"},
+      {"label": "Water", "say": "Can I have some water please?", "icon": "💧"},
+      {"label": "Cold", "say": "I am cold, can I have a blanket?", "icon": "🥶"},
+      {"label": "Questions", "say": "I have some questions", "icon": "❓", "next": "health_questions"}
+    ]},
+    "health_pain": {"name": "Express pain", "icon": "😊", "tiles": [
+      {"label": "0 - no pain", "say": "I have no pain right now. Zero out of ten.", "icon": "😊", "ink": "#2E7D32"},
+      {"label": "1 - barely there", "say": "My pain is a one out of ten. Barely noticeable.", "icon": "🙂", "ink": "#388E3C"},
+      {"label": "2 - mild", "say": "My pain is a two out of ten. Mild discomfort.", "icon": "😐", "ink": "#558B2F"},
+      {"label": "3 - uncomfortable", "say": "My pain is a three out of ten. Uncomfortable but manageable.", "icon": "😕", "ink": "#F9A825"},
+      {"label": "4 - moderate", "say": "My pain is a four out of ten. It is moderate.", "icon": "😣", "ink": "#FF8F00"},
+      {"label": "5 - distracting", "say": "My pain is a five out of ten. It is distracting and hard to ignore.", "icon": "😖", "ink": "#EF6C00"},
+      {"label": "6 - distressing", "say": "My pain is a six out of ten. It is really bothering me.", "icon": "😫", "ink": "#E65100"},
+      {"label": "7 - hard to manage", "say": "My pain is a seven out of ten. It is very hard to manage.", "icon": "😢", "ink": "#D84315"},
+      {"label": "8 - intense", "say": "My pain is an eight out of ten. The pain is intense.", "icon": "😭", "ink": "#C62828"},
+      {"label": "9 - severe", "say": "My pain is a nine out of ten. It is severe and I can barely function.", "icon": "🤮", "ink": "#B71C1C"},
+      {"label": "10 - worst ever", "say": "My pain is a ten out of ten. This is the worst pain I have ever felt. I need help now.", "icon": "😱", "ink": "#880E4F"}
+    ]},
+    "health_symptoms": {"name": "Describe symptoms", "icon": "🧠", "tiles": [
+      {"label": "Head", "say": "The problem is in my head area", "icon": "🧠", "next": "health_head"},
+      {"label": "Chest", "say": "The problem is in my chest", "icon": "🫁", "next": "health_chest"},
+      {"label": "Stomach", "say": "The problem is in my stomach area", "icon": "🤢", "next": "health_abdomen"},
+      {"label": "Arms / legs", "say": "The problem is in my arms or legs", "icon": "🦵", "next": "health_limbs"},
+      {"label": "General", "say": "I have general symptoms", "icon": "🌡️", "next": "health_general"},
+      {"label": "Point to it", "say": "Let me point to where it hurts", "icon": "📍"}
+    ]},
+    "health_head": {"name": "Head & face", "icon": "🤕", "tiles": [
+      {"label": "Headache", "say": "I have a bad headache", "icon": "🤕"},
+      {"label": "Nauseous", "say": "I feel nauseous", "icon": "🤢"},
+      {"label": "Dizzy", "say": "I feel very dizzy", "icon": "😵"},
+      {"label": "Vision problem", "say": "I am having trouble with my vision", "icon": "👁️"},
+      {"label": "Hearing", "say": "I am having trouble hearing", "icon": "👂"},
+      {"label": "Congested", "say": "My nose is congested", "icon": "🤧"},
+      {"label": "Tooth pain", "say": "I have a toothache", "icon": "🦷"}
+    ]},
+    "health_chest": {"name": "Chest & breathing", "icon": "💔", "tiles": [
+      {"label": "Chest pain", "say": "I have pain in my chest", "icon": "💔"},
+      {"label": "Hard to breathe", "say": "I am having difficulty breathing", "icon": "😮‍💨"},
+      {"label": "Heart racing", "say": "My heart is racing", "icon": "💓"},
+      {"label": "Coughing", "say": "I have a bad cough", "icon": "🫁"},
+      {"label": "Tightness", "say": "I feel tightness in my chest", "icon": "🤒"},
+      {"label": "Coughing blood", "say": "I am coughing up blood. This is urgent.", "icon": "🩸", "ink": "#C62828"}
+    ]},
+    "health_abdomen": {"name": "Abdomen", "icon": "🤢", "tiles": [
+      {"label": "Stomach pain", "say": "My stomach hurts", "icon": "🤢"},
+      {"label": "Vomiting", "say": "I have been vomiting", "icon": "🤮"},
+      {"label": "Diarrhea", "say": "I have diarrhea", "icon": "🚽"},
+      {"label": "Constipated", "say": "I am constipated", "icon": "😣"},
+      {"label": "No appetite", "say": "I have no appetite", "icon": "🍽️"},
+      {"label": "Heartburn", "say": "I have severe heartburn", "icon": "🔥"}
+    ]},
+    "health_limbs": {"name": "Arms & legs", "icon": "🦵", "tiles": [
+      {"label": "Leg pain", "say": "I have pain in my leg", "icon": "🦵"},
+      {"label": "Arm pain", "say": "I have pain in my arm", "icon": "💪"},
+      {"label": "Foot pain", "say": "My foot hurts", "icon": "🦶"},
+      {"label": "Hand pain", "say": "My hand hurts", "icon": "✋"},
+      {"label": "Swelling", "say": "I have swelling", "icon": "🔄"},
+      {"label": "Bruise", "say": "I have a bruise", "icon": "🟣"},
+      {"label": "Broken", "say": "I think something might be broken", "icon": "🦴"}
+    ]},
+    "health_general": {"name": "General symptoms", "icon": "🤒", "tiles": [
+      {"label": "Fever", "say": "I have a fever", "icon": "🤒"},
+      {"label": "Exhausted", "say": "I am extremely tired and exhausted", "icon": "😴"},
+      {"label": "Chills", "say": "I have chills", "icon": "🥶"},
+      {"label": "Sweating", "say": "I am sweating a lot", "icon": "😰"},
+      {"label": "Allergic reaction", "say": "I think I am having an allergic reaction", "icon": "🤧", "ink": "#C62828"},
+      {"label": "Side effects", "say": "I think I am having a side effect from my medication", "icon": "💊"}
+    ]},
+    "health_questions": {"name": "Questions for staff", "icon": "⏰", "tiles": [
+      {"label": "Wait time", "say": "How long is the wait?", "icon": "⏰"},
+      {"label": "What test", "say": "What kind of test are you doing?", "icon": "📋"},
+      {"label": "What next", "say": "What happens next?", "icon": "➡️"},
+      {"label": "Go home", "say": "When can I go home?", "icon": "🏠"},
+      {"label": "Prescriptions", "say": "Will I need any prescriptions?", "icon": "💊"},
+      {"label": "Follow up", "say": "Do I need a follow-up appointment?", "icon": "📅"},
+      {"label": "Call someone", "say": "Can someone call my family for me?", "icon": "📞"},
+      {"label": "Yes", "say": "Yes", "icon": "✅"},
+      {"label": "No", "say": "No", "icon": "🚫"}
+    ]}
+}

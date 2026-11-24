@@ -62,7 +62,8 @@
   const state = { product: 'stroke', setting: scenarios.stroke[0], step: 0 };
   let catalog, loading, speechRun = 0, scanTimer, scanIndex = -1, dwellTimer, dwellTile;
 
-  const visible = () => !panel.hidden && !workspace.hidden;
+  const guide = panel.querySelector('[data-care-guide]');
+  const visible = () => !panel.hidden && !workspace.hidden && !guide.hidden;
   const text = (part, value) => { find(part).textContent = value; };
   const step = () => state.setting.steps[state.step];
   const boards = () => state.saved.length
@@ -233,6 +234,7 @@
     }
     const message = messageOf(tile);
     if (message.text) {
+      if (state.product === 'stroke') panel.dispatchEvent(new CustomEvent('care:stroke-message', {detail: message.text}));
       state.message = { ...message, emoji: tile.emoji, colorHex: tile.colorHex };
       state.history = [...state.history.slice(-19), message];
       if (state.board === 'pain_body_board') state.pain.location = tile.label;
@@ -354,7 +356,7 @@
     if (visible()) load();
     else { setScan(false); clearDwell(); if (state.message) stopSpeech(); }
   });
-  for (const element of [panel, workspace]) observe.observe(element, { attributes: true, attributeFilter: ['hidden'] });
+  for (const element of [panel, workspace, guide]) observe.observe(element, { attributes: true, attributeFilter: ['hidden'] });
   window.addEventListener('hashchange', () => {
     if (!catalog) return;
     const args = new URLSearchParams(location.hash.slice(1));
