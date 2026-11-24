@@ -126,6 +126,8 @@ export async function* careReplies({ said, mode = 'reply', log = [], shown = [],
   const lower = said.toLowerCase(), kind = place.bedside || app.feelings.some(word => lower.includes(word)) ? 'helper' : 'job';
   const seen = new Set(shown.map(label => label.toLowerCase()));
   let count = 0, made = 0;
+  // The body board is complete as it is. Cutting it would hide where it hurts.
+  if (mode === 'reply' && care.length > 9) { for (const tile of care) yield { tile }; return yield { done: true, source: 'app' }; }
   // The app's own answers to a care question are on screen at once. The AI adds to them.
   if (mode === 'reply') for (const tile of care.slice(0, 6)) { seen.add(tile.label.toLowerCase()); count++; yield { tile }; }
   try {
