@@ -262,17 +262,19 @@
         if (!care) $('#sdr-greeting').textContent = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
         const offices = data.offices;
         currentOffices = offices;
-        const started = offices.filter(office => office.pipeline?.lastContact).length;
-        const replied = offices.filter(office => office.pipeline?.lastReply).length;
+        const started = offices.some(office => office.pipeline?.lastContact);
         const signed = offices.filter(office => office.pipeline?.converted).length;
         const scheduled = offices.filter(office => office.meeting_date).length;
         const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
         const accounts = care ? offices.filter(office => ['nursing-home', 'senior-center'].includes(facilityType(office))) : offices;
         const due = accounts.filter(office => office.meeting_date && office.meeting_date <= today && !['active', 'not_interested', 'do_not_contact'].includes(office.status));
-        const xp = offices.length * 10 + started * 20 + replied * 30 + signed * 40;
-        $('#sdr-xp-level').textContent = 'Level ' + (Math.floor(xp / 100) + 1);
-        $('#sdr-xp-bar').value = xp % 100;
-        $('#sdr-xp-label').textContent = (xp % 100) + ' / 100 XP';
+        if (data.progress) {
+          const { level, xpIntoLevel, xpPerLevel } = data.progress;
+          $('#sdr-xp-level').textContent = 'Level ' + level;
+          $('#sdr-xp-bar').max = xpPerLevel;
+          $('#sdr-xp-bar').value = xpIntoLevel;
+          $('#sdr-xp-label').textContent = xpIntoLevel + ' / ' + xpPerLevel + ' XP';
+        }
         renderEarnings(data.earnings);
         const stats = care ? [
           ['Nursing homes saved', accounts.filter(office => facilityType(office) === 'nursing-home').length, 'pipeline', () => openCarePipeline('nursing-home'), 'green'],
