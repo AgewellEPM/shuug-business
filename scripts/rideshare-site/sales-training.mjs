@@ -6,6 +6,8 @@ const glyphs = {
   live: '<rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18M8 15h4"/>',
   faqs: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 3.9 2.1c-1.1.7-1.4 1.2-1.4 2.4M12 17h.01"/>',
+  playbooks: '<path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/>',
+  demo: '<circle cx="12" cy="12" r="9"/><path d="m10 8 6 4-6 4Z"/>',
   plan: '<path d="M6 4h12v17l-6-4-6 4V4Z"/>',
   arrow: '<path d="M4 12h15m-6-6 6 6-6 6"/>',
 };
@@ -23,6 +25,7 @@ const metrics = [
 const menu = [
   ['home', 'Training Home'], ['catalog', 'Course Catalog'], ['paths', 'Learning Paths'],
   ['certificates', 'Certifications'], ['live', 'Live Training'], ['faqs', 'FAQs'], ['plan', 'My Plan'],
+  ['playbooks', 'Field Playbooks'], ['demo', 'Demo Lab'],
 ];
 
 const sections = [

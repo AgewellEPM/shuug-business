@@ -1,3 +1,7 @@
+import { fieldTrainingCourses } from './training-curriculum.mjs';
+
+export { trainingCourseExercises, trainingPlaybooks } from './training-curriculum.mjs';
+
 export const featuredTrainingCourseId = 'sales-onboarding';
 
 export const trainingCategories = [
@@ -236,23 +240,27 @@ export const trainingCourses = [
       },
     ],
   },
+  ...fieldTrainingCourses,
 ];
 
 export const trainingPaths = [
   {
     id: 'new-sales-rep', title: 'New Sales Rep',
     description: 'Complete onboarding and learn how to qualify, track, and follow through with a prospect.',
-    courseIds: ['sales-onboarding', 'qualify-directory-prospects', 'pipeline-follow-ups', 'booking-and-contracts'],
+    courseIds: ['sales-onboarding', 'qualify-directory-prospects', 'tinkytown-tinkyspeak-workflow', 'ethical-care-communication',
+      'sell-to-senior-centers-and-nursing-homes', 'pipeline-follow-ups', 'booking-and-contracts'],
   },
   {
     id: 'healthcare-senior-living', title: 'Healthcare & Senior Living Specialist',
     description: 'Prepare for nursing home, hospital, rehab, and senior community center conversations.',
-    courseIds: ['senior-care-discovery', 'tinkystroke-demo', 'hospital-reception-demo', 'facility-demo-follow-up'],
+    courseIds: ['aging-and-dementia', 'ethical-care-communication', 'senior-care-discovery', 'tinkystroke-demo',
+      'hospital-reception-demo', 'sell-to-senior-centers-and-nursing-homes', 'facility-demo-follow-up'],
   },
   {
     id: 'ada-accessibility', title: 'ADA & Accessibility Solutions',
     description: 'Gather communication requirements and demonstrate the available access options.',
-    courseIds: ['accessible-communication-discovery', 'accessibility-demo-check', 'tinkystroke-demo'],
+    courseIds: ['ada-title-ii-and-iii', 'accessible-communication-discovery', 'accessibility-demo-check',
+      'tinkytown-tinkyspeak-workflow', 'tinkystroke-demo'],
   },
 ];
 
@@ -278,7 +286,7 @@ export const trainingFaqs = [
   },
   {
     question: 'How are course completion and training time counted?',
-    answer: 'Mark a course complete after working through its lessons. Training time totals the estimated minutes of courses you have completed.',
+    answer: 'Work through the lessons, complete the practice checklist, and pass the knowledge check. Training time totals the estimated minutes of completed courses.',
   },
   {
     question: 'How do I earn a certificate?',
@@ -287,6 +295,10 @@ export const trainingFaqs = [
   {
     question: 'Where can I practice the product demos?',
     answer: 'Open Sales team and choose Demo in a workspace that has the care demos enabled. The walkthroughs include sample prompts and communication boards.',
+  },
+  {
+    question: 'What should I say if a facility asks whether a setup meets the ADA?',
+    answer: 'Explain the specific interaction you can demonstrate and share the DOJ effective communication resource in the ADA course. Ask the facility’s accessibility or legal lead to review the setup alongside its other communication supports.',
   },
   {
     question: 'Where do I find live training?',
