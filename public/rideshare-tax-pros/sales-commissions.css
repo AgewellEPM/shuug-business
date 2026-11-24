@@ -1,0 +1,52 @@
+.sdr-commissions { display: grid; gap: 14px; padding-bottom: 18px; }
+.sdr-commissions [hidden] { display: none !important; }
+.com-hero {
+  display: flex; align-items: center; gap: clamp(12px, 3vw, 28px); min-height: 126px;
+  padding: 20px clamp(16px, 3vw, 32px); border-radius: 17px; color: white;
+  background: radial-gradient(ellipse at 80% 150%, #05b8f0 0, transparent 52%), linear-gradient(110deg,#071a70,#0751cb 75%,#3727a5);
+}
+.com-hero > span { font-size: clamp(2.1rem, 5vw, 4.65rem); line-height: 1; }
+.sales-console-page .com-hero h2 { color: white; font-size: clamp(1.8rem, 3.8vw, 3.1rem); font-weight: 760; }
+.sales-console-page .com-hero p { color: #f0f7ff; font-size: 1rem; margin-top: 5px; }
+.com-metrics, .com-grid { display: grid; gap: 12px; }
+.com-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.com-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.com-card, .com-metrics article {
+  min-width: 0; padding: 14px; border-radius: 16px; border: 1px solid #c6d9fb; background: #f8fbff;
+  box-shadow: 0 2px 5px #12284b0e; overflow-wrap: anywhere;
+}
+.com-metrics article { display: flex; align-items: start; gap: 10px; background: linear-gradient(145deg,#fff,#eaf4ff); }
+.com-metrics article:nth-child(2) { background: linear-gradient(145deg,#fff,#f2edff); }
+.com-metrics article:nth-child(4) { background: linear-gradient(145deg,#fff,#fef1f4); }
+.com-metrics article > span {
+  display: grid; place-content: center; flex: 0 0 auto; width: 40px; height: 40px; border-radius: 50%; background: #dceafe;
+  color: #064bb9; font-weight: 800; font-size: 1.3rem;
+}
+.com-metrics article strong { display: block; font-size: clamp(1.2rem, 2.25vw, 1.85rem); color: #102052; font-variant-numeric: tabular-nums; }
+.sales-console-page .com-metrics h3 { font-size: .88rem; margin: 2px 0; }
+.com-metrics p, .com-card p { color: #315072; font-size: .86rem; }
+.com-metrics progress { width: 100%; height: 11px; accent-color: #0b7e35; }
+.com-card header { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
+.com-card header svg { color: #0756d4; flex: 0 0 auto; width: 25px; height: 25px; }
+.com-breakdown { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.com-ring { display: grid; place-content: center; width: 108px; aspect-ratio: 1; border: 8px solid #80b5ff; border-radius: 50%; text-align: center; font-variant-numeric: tabular-nums; }
+.com-breakdown dl { flex: 1 1 160px; }
+.com-card dl { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 7px 10px; padding: 9px; margin: 4px 0; background: #edf4ff; border-radius: 10px; }
+.com-card dd { margin: 0; font-weight: 700; }
+.com-chart { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); list-style: none; gap: 7px; margin: 12px 0; padding: 0; }
+.com-chart li { display: grid; gap: 4px; font-size: .76rem; text-align: center; overflow-wrap: anywhere; }
+.com-chart meter { width: 100%; min-width: 0; height: 13px; }
+.com-chart meter::-webkit-meter-optimum-value { background: #1978e9; }
+.com-search, .com-controls, .com-settings form { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+.com-search input, .com-settings input { min-height: 42px; min-width: 0; max-width: 100%; border: 1px solid #b5cced; border-radius: 8px; background: white; padding: 7px 10px; color: #172c4e; }
+.com-search input { flex: 1 1 12rem; }
+.com-settings label { display: grid; gap: 4px; }
+.com-settings { margin-top: 12px; }
+.com-table-scroll { max-width: 100%; overflow-x: auto; }
+.com-ledger table { border-collapse: collapse; width: 100%; margin: 5px 0; }
+.com-ledger th, .com-ledger td { padding: 7px 6px; border-bottom: 1px solid #dbe7fa; text-align: start; }
+.com-ledger th { color: #102052; background: #e6effd; }
+.com-ledger :is(th,td):last-child { text-align: end; white-space: nowrap; }
+@media (max-width: 1110px) { .com-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 680px) { .com-grid { grid-template-columns: minmax(0, 1fr); } .com-metrics article > span { display: none; } }
+@media (max-width: 370px) { .com-metrics { grid-template-columns: minmax(0, 1fr); } }
