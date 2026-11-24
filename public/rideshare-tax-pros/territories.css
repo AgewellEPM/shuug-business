@@ -32,7 +32,8 @@
 .town-map-neighbor:nth-child(3n+2) { fill: #e8e9e0; }
 .town-map-neighbor:nth-child(3n) { fill: #e0e8e5; }
 .town-map-context-names { font-family: var(--f-sans), sans-serif; font-weight: 620; letter-spacing: .06em; fill: #738478; text-anchor: middle; dominant-baseline: central; }
-.town-map-state-shadow { fill: #435a4d; fill-opacity: .24; fill-rule: evenodd; stroke: #435a4d; stroke-opacity: .16; stroke-width: 2px; vector-effect: non-scaling-stroke; pointer-events: none; }
+.town-map-state-shadow { fill: #435a4d; fill-opacity: .24; fill-rule: evenodd; stroke: #435a4d; stroke-opacity: .16; stroke-width: 2px; vector-effect: non-scaling-stroke; }
+.leaflet-image-layer.leaflet-interactive .town-map-state-shadow { pointer-events: none; }
 .town-map-outline { fill: #f6f0d8; fill-rule: evenodd; }
 .town-map-county { stroke: #745f47; stroke-width: .9px; vector-effect: non-scaling-stroke; fill-rule: evenodd; cursor: pointer; }
 .town-map-county:hover { stroke: #3e342d; stroke-width: 1.4px; }

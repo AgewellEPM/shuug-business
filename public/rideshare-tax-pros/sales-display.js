@@ -8,10 +8,44 @@
   const key = 'tinkytown.workspace.display.v1';
   let opener;
 
+  // Scale authored font sizes in place, preserving selector order and media queries.
+  // Relative em/percentage text already follows the scaled parent.
+  const absoluteSize = /(?:\d*\.)?\d+(?:px|rem|vw|vh|pt)\b/;
+  const scale = value => 'calc((' + value + ') * var(--sdr-text-scale, 1))';
+  function scaleFonts(style) {
+    const size = style.getPropertyValue('font-size');
+    if (size.includes("--sdr-text-scale")) return;
+    if (absoluteSize.test(size)) {
+      style.setProperty('font-size', scale(size), style.getPropertyPriority('font-size'));
+      return;
+    }
+    const shorthand = style.getPropertyValue('font');
+    if (!shorthand.includes("--sdr-text-scale") && absoluteSize.test(shorthand)) {
+      style.setProperty('font', shorthand.replace(absoluteSize, scale), style.getPropertyPriority('font'));
+    }
+  }
+  function scaleRules(rules) {
+    for (const rule of rules) {
+      if (rule.selectorText && rule.style) scaleFonts(rule.style);
+      if (rule.cssRules) scaleRules(rule.cssRules);
+    }
+  }
+  function scaleLoadedStyles() {
+    for (const sheet of document.styleSheets) {
+      if (sheet.href && new URL(sheet.href).origin !== location.origin) continue;
+      scaleRules(sheet.cssRules);
+    }
+  }
+  window.addEventListener('load', scaleLoadedStyles, { once: true });
+  const sizeLabel = size.closest('label');
+  if (sizeLabel?.firstChild?.nodeType === Node.TEXT_NODE) sizeLabel.firstChild.textContent = 'Text size ';
+
+
   function reflow() {
     root.toggleAttribute('data-sdr-display-compact', Number(size.value) > 100 && window.innerWidth < Number(size.value) * 12);
   }
   function apply(save) {
+    scaleLoadedStyles();
     root.dataset.sdrScale = size.value;
     root.toggleAttribute('data-sdr-monochrome', monochrome.checked);
     reflow();
