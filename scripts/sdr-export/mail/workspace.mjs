@@ -209,5 +209,21 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
       default: throw new HttpError(404, 'Email action unavailable.');
     }
   }
-  return { actions, dispatch, summary };
+  function bookingSender(user) {
+    if (!user) return null;
+    const { mailbox, revision } = summary(user);
+    return mailbox.configured ? { from: mailbox.address, fromName: mailbox.name, replyTo: mailbox.address, revision, mode: 'zoho' } : null;
+  }
+  async function sendBooking(user, revision, message) {
+    if (!user || bookingSender(user)?.revision !== revision) return 'setup-changed';
+    const files = message.icalEvent ? [{ name: message.icalEvent.filename, base64: Buffer.from(message.icalEvent.content).toString('base64') }] : [];
+    const deliver = await transport.prepare(accountFor(user), message, files);
+    if (bookingSender(user)?.revision !== revision) return 'setup-changed';
+    try { await deliver(); return 'accepted'; }
+    catch (error) {
+      if (error instanceof HttpError && error.status === 422) return 'failed';
+      throw error;
+    }
+  }
+  return { actions, dispatch, summary, bookingSender, sendBooking };
 }

@@ -2,10 +2,10 @@ export function renderTeamChat(icon) {
   return `<section class="chat-workspace" data-tab-panel="chat" aria-labelledby="chat-title" hidden>
     <header class="chat-titlebar">
       <span class="chat-mark">${icon('chat')}</span><h2 id="chat-title">Team chat</h2>
-      <span class="chat-audience">${icon('team')} Sales team only</span>
+      <span class="chat-audience">${icon('team')} <span id="chat-audience-label">Sales team only</span></span>
     </header>
     <div class="chat-layout">
-      <aside class="chat-rail" aria-label="Team channels">
+      <aside class="chat-rail" aria-label="Conversations">
         <div class="chat-rail-heading"><h3>Channels</h3>
           <button type="button" id="chat-add" aria-label="Create channel" title="Create channel" aria-controls="chat-create" aria-expanded="false" hidden>+</button>
         </div>
@@ -15,7 +15,19 @@ export function renderTeamChat(icon) {
           <div><button type="submit">Create</button><button type="button" id="chat-create-cancel">Cancel</button></div>
           <p id="chat-create-status" role="status"></p>
         </form>
-        <nav id="chat-channels" aria-label="Channels"></nav>
+        <nav id="chat-channels" class="chat-conversations" aria-label="Channels"></nav>
+        <div class="chat-rail-heading chat-direct-heading"><h3>Direct messages</h3>
+          <button type="button" id="chat-new-direct" aria-label="New direct message" title="New direct message" aria-expanded="false" aria-controls="chat-people">+</button>
+        </div>
+        <div id="chat-people" hidden>
+          <label for="chat-person-search">Find a teammate</label>
+          <input type="search" id="chat-person-search" placeholder="Search by name" autocomplete="off">
+          <div id="chat-person-results" aria-label="Matching teammates"></div>
+          <p id="chat-person-status" role="status"></p>
+          <a href="#view=team&section=invite" id="chat-invite-link" hidden>Invite a sales rep</a>
+        </div>
+        <nav id="chat-directs" class="chat-conversations" aria-label="Direct messages"></nav>
+        <button type="button" id="chat-first-direct">Message a teammate</button>
       </aside>
       <div class="chat-room">
         <header class="chat-room-heading">

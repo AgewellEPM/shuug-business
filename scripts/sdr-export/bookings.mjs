@@ -26,7 +26,8 @@ export function bookings(env, db, origin, key, options = {}) {
   const defaultZone = timeZone(env.SDR_BOOKING_TIME_ZONE || 'America/New_York');
   const team = salesTeamTools(db, null, owner);
   const calendars = calendarConnections(env, store, origin, key, options);
-  const delivery = bookingDelivery(env, db, calendars, origin, key, options);
+  const mailUser = host => host === owner.id ? owner : team.rosterUser(db.get('agents', host));
+  const delivery = bookingDelivery(env, db, calendars, origin, key, { ...options, mailUser });
   const roster = () => team.dispatch(owner, 'sales-team-read', {}).members;
   function policy(host, members = roster()) {
     const member = members.find(r => r.id === host);
@@ -174,6 +175,7 @@ export function bookings(env, db, origin, key, options = {}) {
       return delivery.changeWebhook(user, host, input, action === 'booking-webhook-remove');
     }
     if (host !== user.id || !p.active) throw new HttpError(403, 'Sign in as this rep to manage their calendar connections.');
+    if (action === 'booking-mailbox') return delivery.enableMailbox(host, input.enabled);
     if (action === 'booking-connect') return calendars.begin(host, input.provider);
     if (action === 'booking-connected') {
       const conn = await calendars.complete(host, input.state, input.code);

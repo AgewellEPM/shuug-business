@@ -134,7 +134,7 @@ export function zohoMail(fetcher = fetch) {
       }
       return () => api(draft.reply?.zohoId ? 'messages/' + ref(draft.reply.zohoId) : 'messages', { method: 'POST', sending: true,
         json: { fromAddress: account.address, toAddress: draft.to, ccAddress: draft.cc || undefined, bccAddress: draft.bcc || undefined,
-          subject: draft.subject, content: draft.body, encoding: 'UTF-8', mailFormat: 'plaintext',
+          subject: draft.subject, content: draft.body, replyTo: draft.replyTo || undefined, encoding: 'UTF-8', mailFormat: 'plaintext',
           ...(draft.reply?.zohoId ? { action: 'reply' } : {}), ...(attachments.length ? { attachments } : {}) } });
     },
   };

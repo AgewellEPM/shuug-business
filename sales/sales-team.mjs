@@ -89,6 +89,12 @@ export function salesTeamTools(db, audit, owner) {
       .map(({ id, name, states, territory, territoryRevision }) => ({ id, name, states, territory, territoryRevision }));
   }
 
+  function messagingMembers() {
+    const rows = list();
+    const members = [owner, ...[...rows.values()].map(row => rosterUser(row, rows)).filter(Boolean)];
+    return members.map(({ id, name }) => ({ id, name: db.salesRepProfile(id).name || name }));
+  }
+
   function read(user) {
     const records = list(), rootId = user.id;
     if (rootId !== OWNER && !account(records.get(rootId), records).active) throw new HttpError(401, 'Your sales access was revoked.');
@@ -165,5 +171,5 @@ export function salesTeamTools(db, audit, owner) {
     return ['sales-team-profile', 'sales-team-member-profile'].includes(action) ? work() : db.writeAgentTeam(work);
   }
 
-  return { actions, dispatch, roster, rosterUser };
+  return { actions, dispatch, roster, rosterUser, messagingMembers };
 }

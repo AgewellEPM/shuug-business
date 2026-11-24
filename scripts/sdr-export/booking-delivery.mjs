@@ -4,9 +4,24 @@ import { mailConfig, sendProviderMail } from '../../sales/mail-provider.mjs';
 import { calendarFile, manageURL } from './booking-invitations.mjs';
 import { bookingWebhooks, postPublicWebhook } from './booking-webhooks.mjs';
 
-export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fetch, now = Date.now, publicPost = postPublicWebhook } = {}) {
+export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fetch, now = Date.now, publicPost = postPublicWebhook, repMail, mailUser } = {}) {
   const store = db.booking, config = mailConfig(env), hooks = bookingWebhooks(env, store, key);
-  function sender(host) {
+  function personalMailbox(host) {
+    const user = repMail && mailUser(host);
+    return user && repMail.bookingSender(user);
+  }
+  function enableMailbox(host, enabled) {
+    if (typeof enabled !== 'boolean') throw new HttpError(400, 'Choose whether to send booking emails from your mailbox.');
+    const setting = 'booking-mail:' + host;
+    if (enabled) {
+      const box = personalMailbox(host);
+      if (!box) throw new HttpError(409, 'Zoho Mail is awaiting workspace authorization for this rep.');
+      store.save(setting, box.revision);
+    } else store.clear(setting);
+    return { enabled };
+  }
+  function sender(host, personal = personalMailbox(host)) {
+    if (personal && store.setting('booking-mail:' + host) === personal.revision) return personal;
     if (!config.ready) return null;
     const profiles = db.list('agents').filter(r => r.status === 'mailbox' && [host, 'shared'].includes(String(r.assigned_to)) &&
       metadata(r).mailbox && metadata(r).mode === 'provider' && metadata(r).approvedAt && r.contact_email.split('@')[1] === config.domain);
@@ -14,7 +29,8 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     return row && { from: row.contact_email, fromName: row.contact_name, replyTo: metadata(row).replyTo || row.contact_email };
   }
   function connections(host) {
-    return { email: sender(host) ? config.mode : 'unconfigured',
+    const personal = personalMailbox(host), mailbox = sender(host, personal);
+    return { email: mailbox ? mailbox.mode || config.mode : 'unconfigured', businessMailbox: Boolean(personal),
       webhooks: [...hooks.forHost(host).values()].map(h => ({ name: h.name, scope: h.scope, hostname: new URL(h.url).hostname })) };
   }
   function enqueueCalendar(row, conn) {
@@ -25,14 +41,14 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     enqueueCalendar(row, conn);
     const recipients = { clientEmail: row.client.email, repEmail: row.repEmail || mailbox?.replyTo };
     for (const [channel, to] of Object.entries(recipients)) {
-      store.enqueue(row, channel, mailbox && to ? 'pending' : 'unconfigured', { row, event, to, mailbox, providerInvites: Boolean(conn), mode: config.mode });
+      store.enqueue(row, channel, mailbox && to ? 'pending' : 'unconfigured', { row, event, to, mailbox, providerInvites: Boolean(conn), mode: mailbox?.mode || config.mode });
     }
     for (const [name, hook] of hooks.forHost(row.host)) store.enqueue(row, 'webhook:' + name, 'pending', { row, event, endpointHash: digest(hook.url + hook.key) });
   }
   async function email(job) {
     const { row, event, to, mailbox, providerInvites, mode } = job.data;
     const current = sender(row.host);
-    if (!current || current.from !== mailbox.from || config.mode !== mode) return 'setup-changed';
+    if (!current || current.from !== mailbox.from || (current.mode || config.mode) !== mode || current.revision !== mailbox.revision) return 'setup-changed';
     const guest = job.channel === 'clientEmail';
     const fmt = new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'long', timeZone: guest ? row.zone : row.hostZone });
     const verb = { 'booking.created': 'confirmed', 'booking.rescheduled': 'rescheduled', 'booking.cancelled': 'cancelled' }[event];
@@ -42,8 +58,14 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     const method = row.status === 'cancelled' ? 'CANCEL' : guest ? 'REQUEST' : 'PUBLISH';
     const attachment = providerInvites ? null : calendarFile([row], { method,
       organizer: guest ? row.repEmail || mailbox.replyTo : '', attendee: guest ? to : '' });
-    const result = await sendProviderMail(config, { ...mailbox, to, replyTo: guest ? row.repEmail || mailbox.replyTo : row.client.email,
-      subject: 'TinkyTown · ' + row.title + ' ' + verb, text: body.filter(Boolean).join('\n\n') }, job.id, fetcher, { method, calendar: attachment });
+    const subject = 'TinkyTown · ' + row.title + ' ' + verb, text = body.filter(Boolean).join('\n\n');
+    const replyTo = guest ? row.repEmail || mailbox.replyTo : row.client.email;
+    if (mode === 'zoho' || mode === 'smtp') {
+      return repMail.sendBooking(mailUser(row.host), mailbox.revision, { to, replyTo, subject, body: text,
+        date: new Date(row.changed).toISOString(), messageId: '<' + row.id + '.' + row.revision + '.' + job.channel + '@' + mailbox.from.split('@')[1] + '>',
+        icalEvent: attachment ? { filename: 'appointment.ics', method, content: attachment } : undefined });
+    }
+    const result = await sendProviderMail(config, { ...mailbox, to, replyTo, subject, text }, job.id, fetcher, { method, calendar: attachment });
     if (result.providerId) store.save('mail-receipt:' + job.id, result.providerId);
     return result.status === 'accepted' && mode === 'test' ? 'test-accepted' : result.status;
   }
@@ -104,5 +126,5 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     if (event.event === 'failed' && event.severity === 'permanent' && job.status !== 'delivered') store.receipt(job.id, 'failed');
     return true;
   }
-  return { connections, changeWebhook: hooks.change, enqueue, enqueueCalendar, tick, mailNotification };
+  return { connections, enableMailbox, changeWebhook: hooks.change, enqueue, enqueueCalendar, tick, mailNotification };
 }
