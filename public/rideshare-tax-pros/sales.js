@@ -67,7 +67,7 @@
     const trainingPipeline = window.SdrTrainingPipeline?.mount({ api });
     const trainingUI = window.SdrTraining?.mount({ api, onDemo: openTrainingDemo });
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
-    const productsUI = window.SdrProducts?.mount();
+    const productsUI = window.SdrProducts?.mount({ api });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
@@ -189,8 +189,9 @@
         return true;
       }
       if (productsUI && params.get('view') === 'products') {
+        const entering = document.body.dataset.sdrView !== 'products';
         tab('products');
-        productsUI.show(params.get('section'));
+        productsUI.show(params.get('section'), false, entering);
         return true;
       }
       if (supportUI && params.get('view') === 'support') {

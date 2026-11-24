@@ -235,3 +235,28 @@
   .products-nav a[aria-current="page"] { outline: 2px solid Highlight; }
   .products-hero, .product-panel, .products-button { border: 1px solid CanvasText; }
 }
+
+.product-rates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 16px;
+  margin: 10px 0;
+  padding: 7px 9px;
+  border-radius: 8px;
+  background: #e9f3ff;
+}
+.product-rates dt { font-size: .82em; color: var(--product-muted); }
+.product-rates dd { margin: 1px 0 0; color: var(--product-blue); font-weight: 750; }
+.sdr-products .products-pricing-settings p { margin-block: 6px; }
+.products-pricing-settings summary { margin-block: 9px 5px; cursor: pointer; font-weight: 700; }
+.products-pricing-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  align-items: end;
+  max-width: 46rem;
+  gap: 8px;
+}
+.products-pricing-form label { display: grid; gap: 4px; }
+.products-pricing-form :is(input, select) { width: 100%; min-width: 0; }
+.products-pricing-form > button { justify-self: start; }
+.products-pricing-settings [data-product-pricing-status]:empty { display: none; }

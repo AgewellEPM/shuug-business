@@ -1602,18 +1602,20 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.notEqual(replacement.agent.id, trainee.agent.id);
   const replacementSession = browserSession(first.origin);
   await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
-  await owner.api('sales-team-revoke', { id: peer.id });
-  await replacementSession.api('bootstrap', {}, 401);
-
   await t.test('Products opens from the rail, searches catalog sections, compares devices, and starts a quote request', async t => {
     const productsWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=products&section=phones');
     const find = selector => productsWindow.document.querySelector(selector);
     const pane = find('[data-tab-panel="products"]');
-    await waitFor(() => !pane.hidden, 'Products did not open from its deep link');
+    await waitFor(() => !pane.hidden && find('[data-product-device="phones"] [data-product-rate]').textContent.includes('$75'),
+      'Products and its rental price did not open from the deep link');
+    assert.match(find('[data-product-device="phones"] [data-product-commission]').textContent, /Pending owner approval/);
+    assert.equal(find('[data-product-device="phones"] img').getAttribute('src'), '/sales-products-phone.webp');
     assert.equal(find('[data-product-device="phones"]').hidden, false);
     assert.ok(find('[data-product-device="tablets"]').hidden);
     find('.sdr-nav [data-tab="products"]').click();
     assert.equal(find('[data-product-device="tablets"]').hidden, false);
+    assert.equal(find('[data-product-device="tablets"] [data-product-rate]').textContent, '$75 / month');
+    assert.equal(find('[data-product-device="tablets"] img').getAttribute('src'), '/sales-products-tablet.webp');
     const search = find('[data-product-search] input');
     search.value = 'charging dock';
     search.dispatchEvent(new productsWindow.Event('input', { bubbles: true }));
@@ -1626,13 +1628,41 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     find('[data-product-tab="compare"]').click();
     assert.equal(find('[data-product-pane="compare"]').hidden, false);
     assert.match(find('.products-table-wrap table').textContent, /Larger landscape touchscreen/);
+    assert.equal(find('[data-product-pane="compare"] [data-product-rate]').textContent, '$75 / month');
     assert.equal(find('.products-cta a').getAttribute('href'), '/book?type=demo');
 
     const before = (await owner.api('support-requests')).requests.length;
     find('[data-product-tab="packages"]').click();
+    assert.equal(find('[data-product-pane="overview packages"] [data-product-rate]').textContent, '$75 / month');
+    const editor = find('[data-product-owner]');
+    const form = find('[data-products-pricing-form]');
+    await waitFor(() => !editor.hidden && form.elements.rental.value === '75.00', 'Owner editor did not load');
+    editor.open = true;
+    form.elements.hardwareCost.value = '120';
+    form.elements.kind.value = 'percent';
+    form.elements.kind.dispatchEvent(new productsWindow.Event('change'));
+    form.elements.amount.value = '12.5';
+    form.elements.frequency.value = 'each';
+    form.requestSubmit();
+    await waitFor(() => find('[data-product-pricing-status]').textContent === 'Pricing saved.', 'Pricing did not save');
+    const { pricing, canEdit } = await peerSession.api('products-read');
+    assert.equal(canEdit, false);
+    assert.equal(pricing.commissionCents, 938);
+    assert.equal(pricing.hardwareCostCents, undefined);
+    assert.equal((await owner.api('products-read')).pricing.hardwareCostCents, 12000);
+    const changes = { revision: 0, rental: '75', hardwareCost: '120', kind: 'fixed', amount: '8', frequency: 'first' };
+    await peerSession.api('products-save', changes, 403);
+    await owner.api('products-save', changes, 409);
+    const repWindow = await mountConsole(t, first.origin, peerSession, html, '/sales#view=products&section=packages');
+    await waitFor(() => repWindow.document.querySelector('[data-product-pane="overview packages"] [data-product-commission]').textContent.includes('$9.38 each paid month'),
+      'The rep could not see the approved commission');
+    assert.equal(repWindow.document.querySelector('[data-product-owner]').hidden, true);
+    assert.equal(repWindow.document.querySelector('[name="hardwareCost"]').value, '');
+    editor.open = false;
     find('[data-product-package-open="care"]').click();
     assert.ok(find('[data-product-dialog]').open);
     assert.equal(find('#products-dialog-title').textContent, 'Care Package');
+    assert.match(find('[data-product-package-detail="care"] [data-product-commission]').textContent, /\$9\.38 each paid month/);
     find('[data-product-package-detail="care"] [data-product-dialog-quote]').click();
     const quote = await waitFor(() => find('[data-support-form="create"]'), 'Quote request form did not open');
     assert.equal(quote.elements.subject.value, 'Quote request for the Care Package');
@@ -1645,6 +1675,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(requests.length, before + 1);
     assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
   });
+
+  await owner.api('sales-team-revoke', { id: peer.id });
+  await replacementSession.api('bootstrap', {}, 401);
 
   await t.test('the Senior center kiosk sends typed questions to AI and keeps only staff listening', async t => {
     const anonymous = browserSession(first.origin);
@@ -1893,6 +1926,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const reopen = browserSession(restarted.origin);
   await reopen.api('login', { code });
   const recovered = await reopen.api('bootstrap');
+  assert.equal((await reopen.api('products-read')).pricing.commissionCents, 938);
   assert.deepEqual((await reopen.api('chat-sync', { channel: 'deal-desk' })).messages.map(m => m.author), ['Example Agent', 'Example Junior']);
   const recoveredLead = (await reopen.api('territory-map',{state:'SC'})).counties.find(county => county.id === '45027').lead;
   assert.deepEqual(recoveredLead, {name:'Example County Lead', photo:portrait, revision:2});
