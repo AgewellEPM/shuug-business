@@ -1,6 +1,7 @@
 import { HttpError } from '../../../sales/model.mjs';
 
 const MAX_SOURCE = 6 * 1024 * 1024;
+const MAX_HTML = 512 * 1024;
 const MAX_TEXT = 90_000;
 const PAGE = 25;
 const TLS = { minVersion: 'TLSv1.2', rejectUnauthorized: true };
@@ -26,7 +27,7 @@ export function mailProviders(env) {
 
 let dependencies;
 function libraries() {
-  dependencies ??= Promise.all([import('imapflow'), import('nodemailer'), import('mailparser')]).catch(() => {
+  dependencies ??= Promise.all([import('imapflow'), import('nodemailer'), import('mailparser'), import('html-to-text')]).catch(() => {
     throw new HttpError(503, 'Mailbox support needs the Universal SDR mail dependencies installed.');
   });
   return dependencies;
@@ -88,7 +89,7 @@ async function parseMessage(client, uid) {
   const raw = await client.fetchOne(uid, { source: { start: 0, maxLength: MAX_SOURCE } }, { uid: true });
   if (!raw?.source) throw new HttpError(404, 'This message is no longer in the folder.');
   const [, , { simpleParser }] = await libraries();
-  return simpleParser(raw.source, { skipImageLinks: true, skipTextToHtml: true, maxHtmlLengthToParse: MAX_SOURCE });
+  return simpleParser(raw.source, { skipImageLinks: true, skipTextToHtml: true, skipHtmlToText: true });
 }
 function attachmentName(file) {
   return String(file.filename || 'Attachment').replace(/[\\/\x00-\x1F\x7F]/g, '_').slice(0, 180);
@@ -127,8 +128,17 @@ export const mailTransport = {
       const view = message(item, validity);
       const parsed = item.size <= MAX_SOURCE ? await parseMessage(client, id.uid) : null;
       if (view.unread && await client.messageFlagsAdd(id.uid, ['\\Seen'], { uid: true })) view.unread = false;
-      const body = parsed?.text || '';
-      return { ...view, body: body.slice(0, MAX_TEXT), limited: !parsed || body.length > MAX_TEXT,
+      let body = parsed?.text?.trim() || '';
+      let limited = !parsed;
+      if (!body && parsed?.html) {
+        const [, , , { convert }] = await libraries();
+        body = convert(parsed.html.slice(0, MAX_HTML), {
+          wordwrap: false, selectors: [{ selector: 'img', format: 'skip' }, { selector: 'a', options: { ignoreHref: true } }],
+          limits: { maxDepth: 80, maxChildNodes: 4096 },
+        });
+        limited = parsed.html.length > MAX_HTML;
+      }
+      return { ...view, body: body.slice(0, MAX_TEXT), limited: limited || body.length > MAX_TEXT,
         attachments: (parsed?.attachments || []).slice(0, 30).map(file => ({ name: attachmentName(file), size: file.size })),
         replyTo: parties(item.envelope?.replyTo)[0]?.address || view.from[0]?.address || '',
         messageId: item.envelope?.messageId, references: parsed?.references };
