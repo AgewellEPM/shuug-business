@@ -1714,14 +1714,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     win.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
     win.speechSynthesis = { cancel() {}, speak: utterance => spoken.push(utterance.text) };
     await waitFor(() => find('.care-venue-kiosk h3')?.textContent === 'Nursing Home — In My Room', 'Resident kiosk did not open');
-    assert.equal(find('.ck-quick-needs').hidden, true);
+    assert.equal(find('.ck-quick-needs').hidden, false);
     const field = find('.ck-type input');
     const ask = () => { field.value = 'How did you sleep?'; field.form.requestSubmit(); };
     ask();
     assert.equal(find('.care-kiosk-message').textContent, 'How did you sleep?');
     assert.equal(find('.ck-quick-needs').hidden, false);
     const needs = [...find('.ck-quick-needs').querySelectorAll('button[data-quick-need]')];
-    assert.deepEqual(needs.map(button => button.dataset.quickNeed), ['bathroom', 'thirsty', 'help']);
+    assert.deepEqual(needs.map(button => button.dataset.quickNeed), ['back', 'bathroom', 'help', 'water']);
     assert.ok(needs.every(button => button.querySelector('.care-demo-picture[data-picture]') && button.querySelector('strong').textContent));
     const choice = await waitFor(() => find('.care-kiosk-tiles [data-picture="hard-night"]')?.closest('button'), 'Sleep choices did not appear');
     assert.ok(find('.ck-thinking'), 'Authored sleep choices must appear before the model finishes');
@@ -1732,13 +1732,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     choice.click();
     assert.equal(find('.care-kiosk-message').textContent, 'I had a hard night');
     assert.equal(spoken.at(-1), 'I had a hard night');
-    assert.equal(find('.ck-quick-needs').hidden, true);
+    assert.equal(find('.ck-quick-needs').hidden, false);
     assert.equal(find('.ck-thinking'), null);
     ask();
-    find('.ck-quick-needs [data-quick-need="thirsty"]').click();
-    assert.equal(find('.care-kiosk-message').textContent, 'I am thirsty.');
-    assert.equal(spoken.at(-1), 'I am thirsty.');
-    assert.equal(find('.ck-quick-needs').hidden, true);
+    find('.ck-quick-needs [data-quick-need="water"]').click();
+    assert.equal(find('.care-kiosk-message').textContent, 'I need water.');
+    assert.equal(spoken.at(-1), 'I need water.');
+    find('.ck-quick-needs [data-quick-need="back"]').click();
+    assert.ok(find('.care-kiosk-tiles [data-board-target="ts_hospital"]'));
   });
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {

@@ -19,6 +19,14 @@
     rows.forEach((row, y) => row.split(' ').forEach((name, x) => positions.set(name, { sheet, x, y })));
   }
 
+  const symbols = new Map([
+    ['er / urgent', '🏥'], ['appointment', '📅'], ['lab work', '🧪'], ['imaging', '📸'],
+    ['visiting', '👪'], ['can\'t breathe', '🫁'], ['bleeding bad', '🩸'], ['injured', '🩹'],
+    ['stroke signs', '🧠'], ['i had a stroke', '🧠'], ['overdose', '💊'], ['in my room', 'bed'], ['ice skating', '⛸️'],
+    ['call 911','☎️'], ['medical emergency','🚑'], ['report abuse or neglect','🛡️'], ['private help','🤫'],
+    ['fire','🔥'], ['police','🚓'], ["i'm in crisis",'💭'], ['get staff','🙋'],
+  ]);
+
   // Use the visitor's original words before a board's symbolic hint. A hint is often
   // reused on an entire set of possible replies and can imply the wrong answer.
   const meanings = [
@@ -106,30 +114,39 @@
 
   function identify(tile) {
     if (typeof tile === 'string') tile = { label: tile };
-    if (!tile) return 'speech';
+    if (!tile) return '';
     const label = normalize(tile.label);
     const phrase = normalize(tile.spokenText || tile.say || tile.sentence);
     if (label === 'back' && /\bmy back\b/.test(phrase)) return 'back';
-    if (tile.action === 'back' || tile.action === 'go_back') return 'directions';
+    if (tile.action === 'back' || tile.action === 'go_back' || /^(go )?back$/.test(label)) return '⬅️';
     if (tile.action === 'more_choices') return 'choices';
+    if (symbols.has(label)) return symbols.get(label);
     if (label === 'no safe place tonight' || label === 'a friend is in crisis') return 'help';
     for (const words of [label, phrase]) {
       const match = meanings.find(([, pattern]) => pattern.test(words));
       if (match) return match[0];
     }
-    return hints.get(String(tile.emoji || tile.icon || '').replace(/\uFE0F/g, '')) || 'speech';
+    const hint = String(tile.emoji || tile.icon || '').trim().replace(/\uFE0F/g, '');
+    return hints.get(hint) || (/^(💬|🗣|🗨|)$/.test(hint) ? '' : hint);
   }
 
   function create(tile) {
     const name = identify(tile);
-    const { sheet, x, y } = positions.get(name);
+    const position = positions.get(name);
     const picture = document.createElement('span');
     picture.className = 'care-demo-picture';
     picture.setAttribute('aria-hidden', 'true');
-    picture.dataset.picture = name;
-    picture.dataset.sheet = sheet;
-    picture.dataset.column = x;
-    picture.dataset.row = y;
+    if (position) {
+      picture.dataset.picture = name;
+      picture.dataset.sheet = position.sheet;
+      picture.dataset.column = position.x;
+      picture.dataset.row = position.y;
+    } else {
+      const words = normalize(typeof tile === 'string' ? tile : tile?.label).match(/[\p{L}\p{N}]+/gu) || [];
+      const initials = words.length > 1 ? words.slice(0, 2).map(word => Array.from(word)[0]).join('') : Array.from(words[0] || '').slice(0, 2).join('');
+      picture.dataset.picture = name || 'initials';
+      picture.dataset.symbol = name || initials.toUpperCase();
+    }
     return picture;
   }
 

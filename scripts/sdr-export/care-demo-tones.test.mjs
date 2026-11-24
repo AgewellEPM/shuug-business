@@ -26,5 +26,18 @@ test('sleep answers and the three bedside requests keep distinct pictures', () =
   const { offline } = JSON.parse(readFileSync(new URL('./care-replies.json', import.meta.url), 'utf8'));
   const sleep = offline.sets.sleep.map(words => identify({ label:words.slice(words.indexOf(' ') + 1), emoji:'👍' }));
   assert.deepEqual(sleep, ['rested','hard-night','interrupted-sleep','awake','early','tired']);
-  assert.deepEqual(['Bathroom','Thirsty','Help'].map(label => identify({label})), ['bathroom','water','help']);
+  assert.deepEqual(['Bathroom','Water','Help'].map(label => identify({label})), ['bathroom','water','help']);
+});
+
+test('Hospital Arrival and ER use distinct pictures for services and symptoms', () => {
+  const { identify } = window.CareDemoPictures;
+  const boards = JSON.parse(readFileSync(new URL('../../public/rideshare-tax-pros/care-facility-kiosks.json', import.meta.url), 'utf8'));
+  for (const id of ['loc_hospital_arrive', 'loc_hospital_er']) {
+    const pictures = boards[id].tiles.map(tile => identify(tile));
+    assert.ok(pictures.every(Boolean), id);
+    assert.equal(new Set(pictures).size, pictures.length, id);
+  }
+  assert.equal(identify({ label:'Back', action:'back' }), '⬅️');
+  assert.equal(identify({ label:'Karaoke', emoji:'🎤' }), '🎤');
+  assert.equal(identify({ label:'Other details', emoji:'💬' }), '');
 });

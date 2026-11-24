@@ -19,6 +19,15 @@
 .care-demo-picture[data-sheet="care"] { --picture-atlas-height: 1200%; --picture-step: 9.090909%; }
 .care-demo-picture[data-sheet="care"]::before { background-image: url('/care-demo-care.webp'); }
 .care-demo-picture[data-sheet="places"]::before { background-image: url('/care-demo-places.webp'); }
+.care-demo-picture[data-symbol]::before {
+  content: attr(data-symbol);
+  display: grid;
+  place-items: center;
+  background: #f6f8fc;
+  color: #173c68;
+  font-size: calc(var(--picture-size) * .58);
+  font-weight: 750;
+}
 .care-demo-picture[data-column="1"] { --picture-x: 33.333333%; }
 .care-demo-picture[data-column="2"] { --picture-x: 66.666667%; }
 .care-demo-picture[data-column="3"] { --picture-x: 100%; }

@@ -200,9 +200,52 @@
       return pack([place(boards, 'boards', 'All Picture Boards', 'TinkyTown board library', 'all')]);
     },
   };
+  function quickHelp(boards) {
+    const tile = (label, emoji, spokenText, color, extras = {}) => ({label, emoji, spokenText, color, ...extras});
+    const from = (board, label, color) => {
+      const original = boards[board].tiles.find(item => item.label === label);
+      return tile(original.label, original.emoji, original.say, color);
+    };
+    const privateNote = (label, emoji, text) => tile(label, emoji, text, 'purple', {action:'show_for_staff', silent:true});
+    const call911 = from('civic_emergency', 'Call 911', 'red');
+    return {
+      kiosk_help: { title:'Help & safety', tiles:[
+        call911,
+        tile('Medical emergency','🚑','I need medical help.','red',{navigateTo:'kiosk_help_medical'}),
+        tile('Report abuse or neglect','🛡️','','purple',{navigateTo:'kiosk_help_private'}),
+        tile('Get staff','🙋','Please get a staff member to help me.','blue'),
+        from('civic_help','Interpreter','blue'),
+        from('civic_help','Wheelchair / Mobility','blue'),
+        from('civic_emergency','Fire','red'),
+        from('civic_emergency','Police','red'),
+        from('civic_help',"I'm in Crisis",'purple'),
+        tile('Private help','🤫','','purple',{navigateTo:'kiosk_help_private'}),
+      ] },
+      kiosk_help_medical: { title:'Medical emergency', tiles:[
+        call911,
+        ...["Can't breathe","Bleeding","Unconscious","Severe pain","Seizure"].map(label => from('civic_emergency_medical',label,'red')),
+        ...['Heart attack','Injury','Choking','Stroke'].map(label => from('civic_emergency',label,'red')),
+      ] },
+      kiosk_help_private: { title:'Private help', private:true, answers:false, tiles:[
+        privateNote('Talk privately','🤫','Please take me somewhere private so I can ask for help.'),
+        privateNote('Abuse','🛡️','Someone is hurting me. I need to talk to someone I trust in private.'),
+        privateNote('Neglect','🤲','I am not getting the care or help I need. Please help me speak to someone in private.'),
+        privateNote('Someone else is being hurt','👥','I am worried that someone else is being hurt or neglected. I need to speak to someone in private.'),
+        privateNote('In danger now','⚠️','I am in immediate danger and cannot speak freely. Please call 911.'),
+      ] },
+    };
+  }
+
   async function load(family) {
-    const [loaded, app] = await Promise.all([Object.hasOwn(sources, family) ? sources[family]() : read('/care-kiosks/' + encodeURIComponent(family) + '.json'), read('/care-tinkystroke.json')]);
-    return { ...loaded, diet: app.diet, controls: app.controls };
+    const [loaded, app, location] = await Promise.all([Object.hasOwn(sources, family) ? sources[family]() : read('/care-kiosks/' + encodeURIComponent(family) + '.json'),
+      read('/care-tinkystroke.json'), read('/care-location-boards.json')]);
+    const pool = [...loaded.pool];
+    const safety = {};
+    for (const [id, board] of Object.entries(quickHelp(location.boards))) {
+      safety[id] = pool.push({ ...board, unlisted:true }) - 1;
+    }
+    const places = loaded.places.map(place => ({ ...place, boards:{ ...place.boards, ...safety } }));
+    return { ...loaded, pool, places, diet: app.diet, controls: app.controls };
   }
   window.CareKioskPacks = { load, read };
 })();

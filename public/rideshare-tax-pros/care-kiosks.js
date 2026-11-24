@@ -5,6 +5,19 @@
   // Care settings keep the patient's screen clear: no bottom bar, and the pickers open only when asked for.
   const careSettings = new Set(['bedside','hospital','nursing-home','senior-center','stroke']);
   const published = new Set(['airport','bank','grocery','hotel','pharmacy','dmv','usps']);
+  const quickNeeds = [
+    { id:'bathroom', label:'Bathroom', spokenText:'I need to use the bathroom.' },
+    { id:'help', label:'Help', spokenText:'I need help.', navigateTo:'kiosk_help' },
+    { id:'water', label:'Water', spokenText:'I need water.', diet:'drink' },
+  ];
+  const needsTranslations = {
+    es: ['Agua', 'Necesito agua.', 'Necesito usar el baño.'],
+    fr: ['Eau', "J’ai besoin d’eau.", "J’ai besoin d’aller aux toilettes."],
+    ar: ['ماء', 'أحتاج إلى الماء.', 'أحتاج إلى استخدام الحمام.'],
+    pt: ['Água', 'Preciso de água.', 'Preciso usar o banheiro.'],
+    zh: ['水', '我需要喝水。', '我需要上洗手间。'],
+    vi: ['Nước', 'Tôi cần nước.', 'Tôi cần đi vệ sinh.'],
+  };
   const normalize = s => String(s || '').normalize('NFKC').toLocaleLowerCase().replace(/[’‘]/g,"'").replace(/[.!?…]+$/g,'').trim();
   const read = name => window.CareKioskPacks.read('/care-kiosks/' + name + '.json');
   const element = (tag, value) => Object.assign(document.createElement(tag), {textContent:value ?? ''});
@@ -39,7 +52,7 @@
   function mount(root, venue, params, {diet} = {}) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
     let lexicon = indexed({}), lastUtterance, pendingSign = false;
-    let recognition = null, privacy = false, exchange = null, lastExchange = null, request = null;
+    let recognition = null, privacy = false, exchange = null, lastExchange = null, request = null, afterReplyScreen = false;
     const client = window.crypto?.randomUUID?.() || '';
     const app = element('article'); app.className = 'care-venue-kiosk';
     const header = element('header'), about = element('div'), title = element('h3'), address = element('p'), contact = element('p'), boardName = element('p');
@@ -86,7 +99,7 @@
     const patientScreen = careSettings.has(venue);
     const needs = element('div'); needs.className = 'ck-quick-needs'; needs.hidden = true;
     needs.setAttribute('role','group'); needs.setAttribute('aria-label','Quick needs');
-    app.append(header,captions,...(patientScreen ? [] : [selectors]),area,...(patientScreen ? [needs] : []),dock,...(patientScreen ? [] : [nav]));
+    app.append(header,captions,...(patientScreen ? [] : [selectors]),area,needs,dock,...(patientScreen ? [] : [nav]));
     root.replaceChildren(app);
     const openPlaces = () => { selectors.hidden = false; if (patientScreen) { helper.append(selectors); area.scrollTop = 0; } };
     const live = [captions,dock,nav];
@@ -136,12 +149,13 @@
       emergency.replaceChildren(...(pack.pool[place.boards[key]].strip || []).map(tileButton));
       draft.placeholder = 'Type what they said…';
       waiting('Waiting for their response…', true);
+      drawQuickNeeds();
     }
     function cancelReplies() {
       request?.abort();
       request = null;
     }
-    function closeExchange() { needs.hidden = true; cancelReplies(); if (exchange) draft.value = ''; exchange = null; draft.placeholder = 'Type your question…'; }
+    function closeExchange() { cancelReplies(); if (exchange) draft.value = ''; exchange = null; draft.placeholder = 'Type your question…'; }
     function panel(...parts) { grid.replaceChildren(); helper.replaceChildren(); const box = element('div'); box.className = 'ck-exchange'; box.append(...parts); grid.append(box); area.scrollTop = 0; return box; }
     function waiting(words, listening) {
       const again = button('🎤  Tap When They Speak', listenForStaff);
@@ -170,23 +184,14 @@
         if (known.emoji && known.spokenText && same(known.spokenText) === same(tile.say)) return { ...tile, emoji: known.emoji, label: known.label.replace(/ ›$/,'') };
         if (known.emoji && same(known.label) === same(tile.label)) return { ...tile, emoji: known.emoji };
       }
-      return used.has(tile.emoji) ? { ...tile, emoji: '💬' } : tile;
+      return used.has(tile.emoji) ? { ...tile, emoji: undefined } : tile;
     }
     // The tile shows the words it will say, as the demo does.
     const replyTile = ({ emoji, say, tone }, color = 'blue') => ({ emoji, tone, label: say, spokenText: say, color, reply: true, navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined });
     // Yes and No stay first and stay put while the AI writes the rest.
     function replyGrid() {
       heading.textContent = boardName.textContent = 'Choose a reply';
-      if (patientScreen && !privacy) {
-        const shortcuts = [
-          { id:'bathroom', label:'Bathroom', spokenText:'I need to use the bathroom.' },
-          { id:'thirsty', label:'Thirsty', spokenText:'I am thirsty.' },
-          { id:'help', label:'Help', spokenText:'I need help.' },
-        ];
-        needs.replaceChildren(...shortcuts.map(shortcut => tileButton({ ...shortcut, quickNeed:true, reply:true,
-          navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined })));
-        needs.hidden = false;
-      }
+      drawQuickNeeds();
       helper.replaceChildren();
       if (exchange.mode !== 'continue') helper.append(Object.assign(element('p',(exchange.who === 'Typed' ? '' : 'They said: ') + exchange.said),{className:'ck-prompt'}));
       grid.replaceChildren(tileButton(replyTile({ emoji:'✅', label:'Yes', say:'Yes' },'green')), tileButton(replyTile({ emoji:'❌', label:'No', say:'No' },'red')),
@@ -252,8 +257,9 @@
     }
     // What happens after a reply is spoken, as on demo.tinkytown.com.
     function afterReply() {
-      needs.hidden = true;
+      afterReplyScreen = true;
       heading.textContent = boardName.textContent = 'What next?';
+      drawQuickNeeds();
       helper.replaceChildren();
       const tones = { repeat:'teal', undo:'red', their_turn:'purple', keep_talking:'blue', new_question:'orange', im_done:'gray', go_home:'yellow' };
       const acts = { repeat:'replay', undo:'wrong_one', their_turn:'caption_teller', keep_talking:'keep_talking', new_question:'new_question', im_done:'done', go_home:'go_home' };
@@ -346,7 +352,9 @@
       pendingSign = false; stopListening(); selectors.hidden = true; key = id; setAddress(); draw(); area.scrollTop = 0; heading.focus({preventScroll:true});
     }
     function previous(fallback) {
-      if (exchange) { stopListening(); closeExchange(); draw(); return; }
+      if (exchange || afterReplyScreen) {
+        stopListening(); closeExchange(); draw(); heading.focus({preventScroll:true}); return;
+      }
       if (key === 'main' && !history.length && typeof fallback !== 'string') return root.dispatchEvent(new CustomEvent('care:leave',{bubbles:true}));
       go(history.pop() || (typeof fallback === 'string' && fallback !== key ? fallback : 'main'),false);
     }
@@ -407,20 +415,25 @@
       const chooseDirection = picker('Translate', [['fromEnglish','English → ' + langs[lang]],['toEnglish',langs[lang] + ' → English']], direction, value => {direction = value;pass++;result.textContent='';});
       f.prepend(chooseDirection); helper.append(result);
     }
-    function dietBlocks(tile) {
+    function dietBlocks(tile, proceed) {
       const status = tile.diet && diet?.();
       if (!status) return false;
       const rule = pack.diet.warnings.find(item => item.status === status && item.kind === tile.diet);
       if (status !== 'npo' && !rule) return false;
       helper.replaceChildren(element('blockquote', status === 'npo' ? pack.diet.npo.message : rule.message));
       if (status === 'npo') utter(pack.diet.npo.say, 'en');
-      else helper.append(button('Yes, Proceed', () => go(tile.navigateTo)), button('Cancel', () => helper.replaceChildren()));
+      else helper.append(button('Yes, Proceed', proceed), button('Cancel', () => helper.replaceChildren()));
       area.scrollTop = 0;
       return true;
     }
     function choose(tile) {
       const action = tile.action;
-      if (dietBlocks(tile)) return;
+      if (dietBlocks(tile, () => tile.quickNeed ? choose({ ...tile, diet:undefined }) : go(tile.navigateTo))) return;
+      if (tile.quickNeed && action !== 'back' && recognition) stopListening();
+      if (tile.quickNeed && action !== 'back' && exchange?.listening && !exchange.said) {
+        closeExchange();
+        draw();
+      }
       if (action === 'replay') { const m = messages.at(-1); if (m) utter(m.text,m.lang); return; }
       if (action === 'wrong_one') { messages.pop(); transcriptList.lastElementChild?.remove(); transcriptTitle.textContent = 'Conversation (' + messages.length + ')'; utter('Sorry, wrong one','en');
         if (lastExchange) { if (key === 'ts_after') { key = history.pop() || 'main'; setAddress(); draw(); } exchange = lastExchange; replyGrid(); moreChoices(); return; }
@@ -477,10 +490,26 @@
       else if (tile.reply) b.dataset.reply = '';
       return b;
     }
+    function drawQuickNeeds() {
+      const shortcuts = [];
+      if (key !== 'main' || exchange || afterReplyScreen) {
+        shortcuts.push(tileButton({ id:'back', label:'Back', color:'gray', action:'back', quickNeed:true }));
+      }
+      const reply = Boolean(exchange?.said);
+      if (!privacy) for (const need of quickNeeds) {
+        const useAsReply = reply && !need.navigateTo;
+        shortcuts.push(tileButton({ ...need, quickNeed:true, reply:useAsReply,
+          navigateTo: need.navigateTo || (useAsReply && Object.hasOwn(place.boards,'ts_after') ? 'ts_after' : undefined) }));
+      }
+      needs.replaceChildren(...shortcuts);
+      needs.hidden = !shortcuts.length;
+    }
     function draw() {
-      needs.hidden = true;
+      afterReplyScreen = false;
       const board = pack.pool[place.boards[key]];
-      privacy = key === 'senior_private';
+      privacy = key === 'senior_private' || Boolean(board.private);
+      captions.hidden = dock.hidden = Boolean(board.private);
+      drawQuickNeeds();
       localized(heading,board.title || place.name);
       boardName.textContent = key === 'main' ? '' : heading.textContent;
       // The kiosk keeps Yes and No on every board.
@@ -502,7 +531,9 @@
       try {
         const dictionary = value === 'en' ? {} : await read('lang-' + value);
         if (seq !== generation || closed) return;
-        language = value; lexicon = indexed(dictionary);
+        const [Water, water, bathroom] = needsTranslations[value] || [];
+        language = value;
+        lexicon = indexed(Water ? { ...dictionary, Water, 'I need water.':water, 'I need to use the bathroom.':bathroom } : dictionary);
         selectors.querySelector('[data-language] select').value = value;
         setAddress(); draw();
         if (pendingSign && value !== 'en') { pendingSign = false; translateSign(); }

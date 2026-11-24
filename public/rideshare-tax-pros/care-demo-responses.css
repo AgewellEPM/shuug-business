@@ -16,7 +16,7 @@
   background:linear-gradient(white,white) center / 2px 8px no-repeat,linear-gradient(white,white) center / 8px 2px no-repeat,var(--response-ink);
 }
 .ck-quick-needs {
-  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; flex:none;
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(0,1fr); gap:10px; flex:none;
   box-sizing:border-box; width:min(624px,100%); padding:8px 12px; margin:0 auto;
 }
 .ck-quick-needs .care-kiosk-tile {
@@ -29,7 +29,7 @@
 @media(max-width:530px) {
   .ck-quick-needs { gap:6px; padding:5px 8px; }
   .ck-quick-needs .care-kiosk-tile { flex-direction:column; gap:2px; padding:4px; }
-  .ck-quick-needs .care-demo-picture::before { inline-size:1.9rem; }
+  .ck-quick-needs .care-kiosk-tile > .care-demo-picture { --picture-size:1.9rem; }
   .ck-quick-needs .ck-label strong { font-size:.78rem; }
 }
 
