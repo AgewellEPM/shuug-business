@@ -55,6 +55,18 @@
 }
 .training-voice-result [data-training-voice-message] { margin: 0; font-weight: 730; }
 .training-demo-debrief ol { padding-inline-start: 22px; }
+.sdr-training.care-voice { display: block; padding: 0; margin: 10px 0; }
+.care-voice > summary {
+  min-height: 42px;
+  padding: 10px 13px;
+  border: 1px solid var(--training-border);
+  border-radius: 10px;
+  background: #e7f1ff;
+  color: var(--training-text);
+  cursor: pointer;
+  font-weight: 700;
+}
+.care-voice > .training-voice { margin-top: 8px; }
 .sdr-training-pipeline > .training-link { justify-self: start; }
 .training-pipeline-card { padding: clamp(17px, 2.1cqw, 28px); }
 .training-pipeline-card > p { margin: 7px 0 14px; color: var(--training-muted); }

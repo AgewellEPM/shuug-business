@@ -8,10 +8,14 @@ export function renderSalesEmail(icon) {
       <div class="sdr-email-toolbar">
         <div class="sdr-email-folders" role="group" aria-label="Mail folders">
           <button type="button" data-email-folder="inbox" aria-pressed="true">Inbox</button>
+          <button type="button" data-email-folder="assigned" aria-pressed="false">Assigned</button>
           <button type="button" data-email-folder="sent" aria-pressed="false">Sent</button>
           <button type="button" data-email-folder="drafts" aria-pressed="false">Drafts</button>
           <button type="button" data-email-folder="trash" aria-pressed="false">Trash</button>
         </div>
+        <label class="sdr-email-assignment-view" data-email-assignment-filter hidden>Show
+          <select data-email-assignment-view><option value="to-me">Assigned to me</option><option value="by-me">Assigned by me</option></select>
+        </label>
         <form class="sdr-email-search" role="search" aria-label="Search email">
           <input type="search" name="query" maxlength="160" aria-label="Search mail" placeholder="Search mail">
           <button type="submit" class="button secondary">Search</button>

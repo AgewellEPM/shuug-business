@@ -1,3 +1,5 @@
+import { renderVoicePractice } from './sales-training-demo.mjs';
+
 const care = [
   ['hospital','🏥','TinkyTown Hospital','Admissions, bedside care and discharge'],
   ['nursing-home','🏡','Nursing home','Daily care, meals and resident preferences'],
@@ -48,7 +50,7 @@ export function renderCareDemo() {
   <div data-care-home>
     <header class="sdr-demo-hero care-demo-hero">
       <div><h2 id="sales-demo-title">TinkyTown locations</h2>
-        <p>Choose a place to open its visitor kiosk or explore TinkyStroke at the bedside.</p></div>
+        <p>Choose a setting, let your guest try both sides of a conversation, then plan where their team will use it first.</p></div>
       <img src="/care-town.webp" alt="" width="590" height="393">
     </header>
     <a class="button" href="#view=training-demo">Open Training Demo Lab</a>
@@ -64,10 +66,20 @@ export function renderCareDemo() {
     <nav class="care-stage-header" aria-label="Demo navigation">
       <a href="#view=demo" data-care-return>← Demo locations</a>
       <strong id="care-stage-title" data-care-place></strong>
-      <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
+      <div class="care-stage-actions">
+        <a href="#view=demo" data-care-plan-toggle>Plan a pilot</a>
+        <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
+      </div>
     </nav>
     <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
+    <div data-care-plan hidden></div>
+    <div data-care-experience>
+    <div data-care-tour-shell><div data-care-tour></div></div>
     <div class="care-stage-links" data-care-modes></div>
+    <details class="sdr-training care-voice" data-care-voice hidden>
+      <summary>Voice replies</summary>
+      ${renderVoicePractice({ id: 'care-voice', heading: 'Listen and choose a reply' })}
+    </details>
     <div data-care-mount></div>
     <div data-care-stroke hidden></div>
     <div data-care-guide hidden>
@@ -146,6 +158,7 @@ export function renderCareDemo() {
       </aside>
     </div>
   </div>
+    </div>
     </div>
   </section>
 </section>`;

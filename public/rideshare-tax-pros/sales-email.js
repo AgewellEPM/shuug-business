@@ -14,6 +14,9 @@
       const list = find('list'), reader = find('reader'), editor = find('editor');
       const search = host.querySelector('.sdr-email-search');
       const pages = host.querySelector('.sdr-email-pages');
+      const teamMail = window.SdrMailTeam.mount({ api, escape, onNavigate });
+      const assignmentView = find('assignment-view');
+      let assignments = [];
       let owner = false, state, contacts = [], folder = 'inbox', query = '', contactFilter = null;
       let cursors = [''], next = '', messages = [], drafts = [], editing, dirty = false, working = false, loaded = false;
       let listRequest = 0, readRequest = 0, selected = '';
@@ -48,13 +51,19 @@
       }
       function configureFolder() {
         host.querySelectorAll('[data-email-folder]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.emailFolder === folder)));
-        search.hidden = folder === 'drafts';
+        search.hidden = folder === 'drafts' || folder === 'assigned';
+        find('assignment-filter').hidden = folder !== 'assigned';
         search.elements.query.value = query;
         const filter = find('contact-filter');
-        filter.hidden = !contactFilter || folder === 'drafts';
+        filter.hidden = !contactFilter || folder === 'drafts' || folder === 'assigned';
         filter.querySelector('strong').textContent = contactFilter ? 'Conversation with ' + (contactFilter.name || contactFilter.email) : '';
       }
       function showRows() {
+        if (folder === 'assigned') {
+          list.innerHTML = assignments.map(item => `<li><button type="button" data-email-handoff="${escape(item.id)}" ${selected === item.id ? 'aria-current="true"' : ''}>
+            <strong>${escape(item.subject)}</strong><span>${escape(assignmentView.value === 'by-me' ? 'To ' + item.assignee : 'From ' + item.source)} · ${item.status === 'done' ? 'Completed' : 'Open'}</span><time>${escape(date(item.updatedAt))}</time></button></li>`).join('');
+          return;
+        }
         if (folder === 'drafts') {
           list.innerHTML = drafts.map(draft => `<li><button type="button" data-email-draft="${escape(draft.id)}" ${selected === draft.id ? 'aria-current="true"' : ''}><strong>${escape(draft.subject || '(No subject)')}</strong><span>${escape(draft.to || 'No recipient')}${draft.status === 'uncertain' ? ' · Submission unconfirmed' : ''}</span><time>${escape(date(draft.updatedAt))}</time></button></li>`).join('');
         } else list.replaceChildren();
@@ -73,6 +82,8 @@
         announce('Checking your mail…');
         messages = [];
         drafts = [];
+        assignments = [];
+        next = '';
         try {
           if (folder === 'drafts' && cursors.length === 1) {
             const result = await api('rep-email-drafts');
@@ -80,18 +91,21 @@
             drafts = result.drafts;
             showRows();
           }
-          if (!state.mailbox.configured) {
+          if (!state.mailbox.configured && folder !== 'assigned') {
             announce(folder === 'drafts' ? (drafts.length ? '' : 'No saved drafts yet.') : 'Zoho Mail is awaiting workspace authorization. You can compose and save drafts.');
             return;
           }
-          const result = await api('rep-email-list', { folder, query: folder === 'drafts' ? '' : query, contact: folder === 'drafts' ? '' : contactFilter?.email, cursor: cursors.at(-1) });
+          const result = folder === 'assigned'
+            ? await api('rep-email-handoffs', { view: assignmentView.value, offset: Number(cursors.at(-1) || 0) })
+            : await api('rep-email-list', { folder, query: folder === 'drafts' ? '' : query, contact: folder === 'drafts' ? '' : contactFilter?.email, cursor: cursors.at(-1) });
           if (request !== listRequest) return;
-          messages = result.messages;
+          messages = result.messages || [];
+          assignments = result.assignments || [];
           next = result.next;
           find('older').disabled = !next;
           find('newer').disabled = cursors.length < 2;
           pages.hidden = !next && cursors.length < 2;
-          announce(messages.length || drafts.length ? '' : (query || contactFilter) ? 'No matching messages.' : 'This folder is empty.');
+          announce(messages.length || drafts.length || assignments.length ? '' : folder === 'assigned' ? 'No email assignments here yet.' : (query || contactFilter) ? 'No matching messages.' : 'This folder is empty.');
           showRows();
         } catch (error) {
           if (request === listRequest) announce(error.message, true);
@@ -145,6 +159,7 @@
               <p role="status" data-zoho-status></p>
             </form></details><p role="status" data-zoho-result></p>` : ''}</section>`;
         settings.querySelector('[data-open-mailbox]').onclick = () => onNavigate('email');
+        if (owner) teamMail.management(settings);
         const form = settings.querySelector('[data-zoho-admin]');
         if (form) form.onsubmit = async event => {
           event.preventDefault();
@@ -353,20 +368,36 @@
         showRows();
         reader.textContent = 'Opening message…';
         try {
-          const { message, reply } = await api('rep-email-read', { id, folder });
+          const assigned = folder === 'assigned';
+          const { message, reply: originalReply, assignment } = assigned ? await api('rep-email-handoff-read', { id }) : await api('rep-email-read', { id, folder });
           if (request !== readRequest || selected !== id) return;
+          const reply = originalReply || (assigned && message.replyTo ? { to: message.replyTo, subject: /^re:/i.test(message.subject) ? message.subject : 'Re: ' + message.subject } : null);
+          const downloadFile = index => assigned ? api('rep-email-handoff-download', { id, index }) : api('rep-email-download', { folder, id, index });
           const corresponding = folder === 'sent' || folder === 'drafts' ? message.to : message.from;
           const contact = contacts.find(value => !value.archived && corresponding.some(part => address(part.address) === address(value.email)));
           const item = messages.find(row => row.id === id);
           if (item) item.unread = message.unread;
           showRows();
           reader.innerHTML = `<h3 tabindex="-1">${escape(message.subject)}</h3><p class="sdr-email-meta"><strong>From</strong> ${escape(message.from.map(person).join(', '))}<br><strong>To</strong> ${escape(message.to.map(person).join(', '))}${message.cc?.length ? '<br><strong>Cc</strong> ' + escape(message.cc.map(person).join(', ')) : ''}<br>${escape(date(message.date))}</p>
-          <div class="sales-actions">${reply ? '<button type="button" class="button primary" data-email-reply>Reply</button>' : ''}<button type="button" class="button secondary" data-email-forward>${folder === 'drafts' ? 'Copy to composer' : 'Forward'}</button><button type="button" class="button secondary" data-email-unread>Mark unread</button>
-            <button type="button" class="button secondary" data-email-move>${folder === 'trash' ? 'Move to Inbox' : 'Move to Trash'}</button>${contact ? `<button type="button" class="button secondary" data-email-office>${escape(contact.officeName)}</button>` : ''}</div>
+          ${assigned ? `<p class="sdr-handoff-detail">${escape(assignment.source)} assigned this email to ${escape(assignment.assignee)} · ${assignment.status === 'done' ? 'Completed' : 'Open'}</p>` : ''}
+          <div class="sales-actions">${reply ? `<button type="button" class="button primary" data-email-reply>${assigned ? 'Reply from my mailbox' : 'Reply'}</button>` : ''}<button type="button" class="button secondary" data-email-forward>${folder === 'drafts' ? 'Copy to composer' : 'Forward'}</button>
+            ${assigned ? `<button type="button" class="button secondary" data-email-complete>${assignment.status === 'done' ? 'Reopen assignment' : 'Mark complete'}</button>` :
+              `<button type="button" class="button secondary" data-email-unread>Mark unread</button><button type="button" class="button secondary" data-email-move>${folder === 'trash' ? 'Move to Inbox' : 'Move to Trash'}</button>`}
+            ${contact ? `<button type="button" class="button secondary" data-email-office>${escape(contact.officeName)}</button>` : ''}</div>
+          ${folder === 'inbox' ? '<div class="sdr-email-route" data-email-route></div>' : ''}
           <pre class="sdr-email-body">${escape(message.body || (message.limited ? '' : 'This message has no text preview.'))}</pre>
           ${message.attachments.length ? `<div class="sdr-email-attachments"><strong>Attachments</strong><ul>${message.attachments.map((file, index) =>
             `<li><button type="button" class="button secondary" data-email-attachment="${index}">Download ${escape(file.name)}</button></li>`).join('')}</ul></div>` : ''}`;
           reader.querySelector('h3').focus();
+          if (folder === 'inbox') teamMail.incoming(reader.querySelector('[data-email-route]'), id, owner);
+          reader.querySelector('[data-email-complete]')?.addEventListener('click', async event => {
+            const button = event.currentTarget;
+            button.disabled = true;
+            try {
+              await api('rep-email-handoff-status', { id, revision: assignment.revision, status: assignment.status === 'done' ? 'open' : 'done' });
+              if (request === readRequest) await firstPage();
+            } catch (error) { announce(error.message, true); button.disabled = false; }
+          });
           reader.querySelector('[data-email-reply]')?.addEventListener('click', () => {
             if (!canClose()) return;
             const matches = contacts.filter(value => !value.archived && !value.suppressed && address(value.email) === address(reply.to));
@@ -381,7 +412,7 @@
                 if (!window.confirm('These attachments exceed the compose limit. Continue with the message text only?')) return;
               } else {
                 for (const [index, file] of message.attachments.entries()) {
-                  const data = await api('rep-email-download', { folder, id, index });
+                  const data = await downloadFile(index);
                   if (request !== readRequest || editing) return;
                   files.push({ ...data, size: file.size });
                 }
@@ -393,18 +424,18 @@
             finally { button.disabled = false; }
           };
           for (const [selector, operation] of [['[data-email-unread]', 'unread'], ['[data-email-move]', folder === 'trash' ? 'restore' : 'trash']]) {
-            reader.querySelector(selector).onclick = async event => {
+            reader.querySelector(selector)?.addEventListener('click', async event => {
               const button = event.currentTarget;
               button.disabled = true;
               try { await api('rep-email-change', { id, folder, operation }); if (selected === id) await firstPage(); }
               catch (error) { announce(error.message, true); button.disabled = false; }
-            };
+            });
           }
           reader.querySelector('[data-email-office]')?.addEventListener('click', () => onOpenOffice(contact.officeId).catch(error => announce(error.message, true)));
           reader.querySelectorAll('[data-email-attachment]').forEach(button => button.onclick = async () => {
             button.disabled = true;
             try {
-              const file = await api('rep-email-download', { folder, id, index: Number(button.dataset.emailAttachment) });
+              const file = await downloadFile(Number(button.dataset.emailAttachment));
               if (request !== readRequest) return;
               const download = document.createElement('a');
               const bytes = Uint8Array.from(atob(file.base64), character => character.charCodeAt(0));
@@ -426,6 +457,7 @@
         openEditor();
       };
       find('refresh').onclick = refreshMail;
+      assignmentView.onchange = () => { if (folder === 'assigned') void firstPage(); };
       find('older').onclick = () => { if (next) { cursors.push(next); void load(); } };
       find('newer').onclick = () => { if (cursors.length > 1) { cursors.pop(); void load(); } };
       find('contact-filter').querySelector('button').onclick = () => { contactFilter = null; void firstPage(); };
@@ -446,11 +478,12 @@
         clearEditor();
         if (button.dataset.emailDraft) openEditor(drafts.find(draft => draft.id === button.dataset.emailDraft));
         if (button.dataset.emailMessage) void openMessage(button.dataset.emailMessage);
+        if (button.dataset.emailHandoff) void openMessage(button.dataset.emailHandoff);
       };
 
       function checkInbox() {
-        if (!host.hidden && document.visibilityState === 'visible' && loaded && folder === 'inbox' && !selected && !editing &&
-            !working && state?.mailbox.configured && cursors.length === 1 && list.getAttribute('aria-busy') !== 'true') void load();
+        if (!host.hidden && document.visibilityState === 'visible' && loaded && (folder === 'assigned' || (folder === 'inbox' && state?.mailbox.configured)) &&
+            !selected && !editing && !working && cursors.length === 1 && list.getAttribute('aria-busy') !== 'true') void load();
       }
       window.setInterval(checkInbox, 60_000);
       document.addEventListener('visibilitychange', checkInbox);

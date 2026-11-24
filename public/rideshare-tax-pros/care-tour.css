@@ -1,0 +1,25 @@
+.ctour { color:#17304f; margin:0 0 14px; padding:16px clamp(15px,2.2vw,25px); border:1px solid #c4d7ef; border-left:4px solid #1979bf; border-radius:13px; background:#f4f9ff; }
+.ctour [hidden] { display:none!important; }
+.ctour-head { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.ctour-head>div { min-width:0; }
+.ctour small { color:#265785; font-weight:650; }
+.ctour h3,.ctour h4 { color:#16365f; margin:2px 0 0; line-height:1.28; }
+.ctour h3 { font-size:1.13rem; }
+.ctour h4 { font-size:1.06rem; }
+.ctour p { color:#334c67; line-height:1.48; margin:0; }
+.ctour-body { display:grid; gap:10px; padding-top:12px; }
+.ctour-body>small { margin-bottom:-8px; }
+.ctour-body>button { justify-self:start; }
+.ctour-copy { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr)); gap:12px; }
+.ctour-copy strong { display:block; color:#204b73; margin-bottom:2px; }
+.ctour-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.ctour button { min-height:38px; padding:7px 12px; border-radius:8px; background:white; color:#184878; border:1px solid #adcae5; cursor:pointer; line-height:1.25; font:inherit; font-weight:600; }
+.ctour button:hover { background:#e1effc; }
+.ctour .ctour-primary { background:#095aa9; border-color:#095aa9; color:white; }
+.ctour .ctour-primary:hover { background:#09477d; }
+.ctour :focus-visible { outline:3px solid #1973c5; outline-offset:2px; }
+@media(max-width:520px) {
+  .ctour-head { align-items:flex-start; }
+  .ctour-head button { flex-shrink:0; }
+  .ctour-copy { grid-template-columns:1fr; }
+}

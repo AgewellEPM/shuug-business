@@ -6,6 +6,7 @@
   const workspace = document.getElementById('sales-workspace');
   const home = part('home'), stage = part('stage'), surface = part('mount');
   const strokeHost = part('stroke'), guide = part('guide');
+  const voice = part('voice');
   const names = new Map([...home.querySelectorAll('[data-care-launch]')].map(link =>
     [link.dataset.careLaunch, link.querySelector('strong').textContent]));
   const facility = { hospital: 'hospital', 'nursing-home': 'nursing', 'senior-center': null };
@@ -18,10 +19,88 @@
   };
   let signature, cleanup, stroke, lastLaunch, wasVisible = false;
 
+  let tourVenue, tourCleanup, planVenue, planCleanup, lastRoom;
+
+  function route(args, replace = false) {
+    if (replace) {
+      window.history.replaceState(null, '', '#' + args);
+      render();
+    } else {
+      location.hash = args.toString();
+    }
+  }
+
+  function clearCompanions() {
+    tourCleanup?.();
+    planCleanup?.();
+    tourVenue = planVenue = tourCleanup = planCleanup = null;
+  }
+
+  function companions(venue, args) {
+    const planning = args.get('pilot') === '1';
+    const available = Boolean(venue && venue !== 'guide');
+    const toggle = part('plan-toggle');
+    toggle.hidden = !available;
+    const target = new URLSearchParams(args);
+    if (planning) target.delete('pilot');
+    else target.set('pilot', '1');
+    toggle.href = '#' + target;
+    toggle.textContent = planning ? 'Return to demo' : 'Plan a pilot';
+    part('plan').hidden = !available || !planning;
+    part('experience').hidden = available && planning;
+    part('tour-shell').hidden = !available;
+    part('present').hidden = available && planning;
+    if (tourVenue !== venue) {
+      tourCleanup?.();
+      tourCleanup = null;
+      tourVenue = venue;
+      if (available) {
+        const presenter = Object.hasOwn(modes, venue) ? window.CareTour : window.CareVenueTour;
+        tourCleanup = presenter.mount(part('tour'), venue, {
+          plan() {
+            const next = new URLSearchParams(location.hash.slice(1));
+            next.set('pilot', '1');
+            route(next);
+          },
+          showStep(step) {
+            const next = new URLSearchParams(location.hash.slice(1));
+            for (const key of ['room', 'mode', 'strokeView', 'place', 'board']) {
+              if (step[key]) next.set(key, step[key]);
+              else next.delete(key);
+            }
+            route(next, true);
+          },
+        });
+      }
+    }
+    const nextPlan = available && planning ? venue : null;
+    if (planVenue !== nextPlan) {
+      planCleanup?.();
+      planCleanup = null;
+      planVenue = nextPlan;
+      if (nextPlan) {
+        stroke?.deactivate();
+        window.speechSynthesis?.cancel();
+        surface.dispatchEvent(new Event('care:pause'));
+        const kioskRoom = surface.querySelector('.cf-room-head h3')?.textContent;
+        planCleanup = window.CarePilot.mount(part('plan'), venue, {
+          room: args.get('room') || kioskRoom,
+          venueLabel: names.get(venue),
+        });
+        part('plan').querySelector('h2,h3')?.focus({preventScroll:true});
+      }
+    }
+  }
+
   function stop() {
     cleanup?.();
     cleanup = null;
     stroke?.deactivate();
+    if (voice) {
+      voice.open = false;
+      voice.hidden = true;
+      voice.querySelector('[data-training-voice]')?.dispatchEvent(new Event('training-voice:reset'));
+    }
     window.speechSynthesis?.cancel();
     surface.replaceChildren();
   }
@@ -55,7 +134,8 @@
 
   function render() {
     if (workspace.hidden || panel.hidden) {
-      if (wasVisible) stop();
+      if (wasVisible) { stop(); clearCompanions(); }
+      if (workspace.hidden) window.CarePilot?.reset();
       if (workspace.hidden && stroke) {
         stroke.destroy();
         stroke = null;
@@ -78,7 +158,12 @@
     panel.setAttribute('aria-labelledby', venue ? 'care-stage-title' : 'sales-demo-title');
     chrome(venue, mode, Boolean(venue && args.get('present') === '1'));
 
-    const next = [venue, mode, args.get('place'), args.get('board'), args.get('room')].join('|');
+    companions(venue, args);
+    const rooms = Object.hasOwn(facility, venue) && !mode;
+    const room = args.get('room');
+    const next = [venue, mode, args.get('place'), args.get('board'), args.get('strokeView')].join('|');
+    if (rooms && next === signature && lastRoom !== room) window.CareFacility.showRoom(surface, room);
+    lastRoom = room;
     if (next === signature) return;
     stop();
     signature = next;
@@ -89,6 +174,12 @@
       if (lastLaunch) home.querySelector('[data-care-launch="' + lastLaunch + '"]')?.focus({ preventScroll: true });
       return;
     }
+    if (voice && ['hospital', 'nursing-home', 'senior-center', 'stroke', 'guide'].includes(venue)) {
+      const setting = voice.querySelector('select[name="setting"]');
+      setting.value = venue === 'senior-center' ? 'senior' : venue === 'nursing-home' ? 'nursing' : 'bedside';
+      setting.dispatchEvent(new Event('change'));
+      voice.hidden = false;
+    }
     if (names.has(venue)) lastLaunch = venue;
     if (venue === 'guide' || (venue === 'stroke' && mode === 'boards')) {
       surface.hidden = true;
@@ -98,6 +189,7 @@
       surface.hidden = true;
       strokeHost.hidden = false;
       stroke ||= window.CareStroke.mount(strokeHost);
+      if (args.get('strokeView')) stroke.open(args.get('strokeView'));
     } else if (Object.hasOwn(facility, venue) && !mode) {
       window.CareFacility.mount(surface, venue, args.get('room'));
       cleanup = () => window.CareFacility.unmount(surface);
@@ -152,7 +244,7 @@
   });
   for (const node of [panel, workspace]) observer.observe(node, { attributes: true, attributeFilter: ['hidden'] });
   window.addEventListener('hashchange', render);
-  window.addEventListener('pagehide', () => { stop(); wasVisible = false; signature = null; });
+  window.addEventListener('pagehide', () => { stop(); clearCompanions(); wasVisible = false; signature = null; });
   window.addEventListener('pageshow', event => { if (event.persisted) render(); });
   render();
 })();

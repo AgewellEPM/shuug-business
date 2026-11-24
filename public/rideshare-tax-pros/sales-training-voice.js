@@ -46,9 +46,7 @@
     return match ? match[mode === 'express' ? 2 : 1] : fallback[mode] || fallback.answer;
   }
 
-  function mount() {
-    const root = document.querySelector('[data-training-voice]');
-    if (!root) return;
+  function mount(root) {
     const find = name => root.querySelector('[data-training-voice-' + name + ']');
     const panel = root.closest('[data-tab-panel]');
     const form = find('form');
@@ -116,7 +114,7 @@
         choices.append(button);
       }
       output.hidden = false;
-      if (moveFocus) root.querySelector('#training-voice-result-heading').focus();
+      if (moveFocus) find('result-heading').focus();
     }
 
     function renderExamples() {
@@ -235,16 +233,25 @@
       report('');
     });
     speak.addEventListener('click', say);
+    function suspend() {
+      stopListening();
+      cancelVoice();
+      report('');
+    }
     new MutationObserver(() => {
-      if (panel.hidden) {
-        stopListening();
-        cancelVoice();
-        report('');
-      }
+      if (panel.hidden) suspend();
     }).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
-    window.addEventListener('pagehide', () => { stopListening(); cancelVoice(); });
+    const drawer = root.closest('[data-care-voice]');
+    drawer?.addEventListener('toggle', () => { if (!drawer.open) suspend(); });
+    root.addEventListener('training-voice:reset', () => {
+      suspend();
+      words.value = '';
+      clearReply();
+      renderExamples();
+    });
+    window.addEventListener('pagehide', suspend);
     renderExamples();
   }
 
-  mount();
+  document.querySelectorAll('[data-training-voice]').forEach(mount);
 })();
