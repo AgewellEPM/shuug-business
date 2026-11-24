@@ -371,7 +371,15 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
       ['contracts', 'Contracts'], ...(careWorkspace ? [['facilities', 'Facility directory']] : []), ['team', 'Tinky Team'], ['training', 'Training'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
-  const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${(name === 'campaigns' && !careWorkspace) || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
+  const navButtons = sidebarNav.map(([name, label]) => {
+    const button = `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${(name === 'campaigns' && !careWorkspace) || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`;
+    if (name !== 'team' || !prospects) return button;
+    return `<div class="sdr-team-sidebar-group">${button}
+      <div class="sdr-team-sidebar-child" hidden>
+        <select id="sales-team-sidebar-section" aria-label="Tinky Team section"></select>
+      </div>
+    </div>`;
+  }).join('');
   const signOut = '<button type="button" class="button secondary" id="sales-logout">Sign out</button>';
   const searchTarget = 'businesses';
   const standaloneHeader = `<header class="sdr-topbar">

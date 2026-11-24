@@ -212,7 +212,7 @@
     };
   }
 
-  function mount({ api, refreshWorkspace, onProfileSaved }) {
+  function mount({ api, refreshWorkspace, onProfileSaved, onNavigate }) {
     const form = $('sales-create-agent'), roster = $('sales-team'), status = $('sales-team-status');
     if (!form || !roster || !status) return null;
     const manager = form.elements.parentId, submit = form.querySelector('button[type="submit"]');
@@ -226,14 +226,48 @@
 
     const tablist = roster.closest('.sdr-team-surface').querySelector('[role="tablist"]');
     const tabs = [...tablist.querySelectorAll('[data-team-view]')];
+    const picker = $('sales-team-sidebar-section');
     let current = 'roster';
+    let pickerRole;
+
+    function showSidebar(section, role) {
+      if (!picker) return;
+      picker.parentElement.hidden = !section;
+      if (!section) return;
+      if (!picker.options.length || role !== pickerRole) {
+        const groups = [['Tinky Team', tabs]];
+        for (const group of document.querySelectorAll('[data-team-tools] section')) {
+          groups.push([group.querySelector('h3').textContent, group.querySelectorAll('[data-tab]')]);
+        }
+        picker.replaceChildren();
+        for (const [label, controls] of groups) {
+          const options = element('optgroup');
+          options.label = label;
+          for (const control of controls) {
+            if (control.hasAttribute('data-owner-only') && role !== 'owner') continue;
+            const option = element('option', (control.querySelector('span') || control).textContent);
+            option.value = control.dataset.teamView || control.dataset.tab;
+            options.append(option);
+          }
+          if (options.children.length) picker.append(options);
+        }
+        pickerRole = role;
+      }
+      picker.value = section === 'team' ? current : section;
+    }
+
+    picker?.addEventListener('change', () => {
+      const key = picker.value;
+      if (tabs.some(control => control.dataset.teamView === key)) onNavigate('team', key);
+      else onNavigate(key);
+    });
 
     function view(key, focus = false) {
       if (key === 'settings' && !owner) key = 'roster';
-      const next = tabs.find(control => control.dataset.teamView === key);
-      if (!next) return;
-      current = key;
-      if (key !== 'roster') memberProfile.close();
+      const next = tabs.find(control => control.dataset.teamView === key) || tabs[0];
+      current = next.dataset.teamView;
+      if (current !== 'roster') memberProfile.close();
+      if (picker && document.body.dataset.sdrView === 'team') picker.value = current;
       for (const control of tabs) {
         const active = control === next;
         control.setAttribute('aria-selected', String(active));
@@ -242,13 +276,17 @@
       }
       if (focus) next.focus();
     }
+    function choose(key, focus = false) {
+      onNavigate('team', key);
+      if (focus) tabs.find(control => control.dataset.teamView === current).focus();
+    }
     $('sales-team-add-rep')?.addEventListener('click', () => {
-      view('invite');
+      choose('invite');
       form.elements.name.focus();
     });
     tablist.addEventListener('click', event => {
       const control = event.target.closest('[data-team-view]');
-      if (control && !control.hidden) view(control.dataset.teamView);
+      if (control && !control.hidden) choose(control.dataset.teamView);
     });
     tablist.addEventListener('keydown', event => {
       const available = tabs.filter(control => !control.hidden);
@@ -258,7 +296,7 @@
       const target = { ArrowLeft: index ? index - 1 : last, ArrowRight: index === last ? 0 : index + 1, Home: 0, End: last }[event.key];
       if (target === undefined) return;
       event.preventDefault();
-      view(available[target].dataset.teamView, true);
+      choose(available[target].dataset.teamView, true);
     });
 
     function message(text, error = false) {
@@ -436,7 +474,7 @@
       message('');
       void refresh({ role: owner ? 'owner' : 'agent' });
     });
-    return { refresh, view, closeMemberProfile: memberProfile.close };
+    return { refresh, view, showSidebar, closeMemberProfile: memberProfile.close };
   }
   window.SdrSalesTeam = { mount };
 })();

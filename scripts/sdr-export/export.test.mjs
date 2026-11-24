@@ -1099,6 +1099,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(teamPane('settings').hidden, true);
   teamTab('roster').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
   assert.equal(pageDocument.activeElement, teamTab('profile'));
+  assert.equal(pageDocument.querySelector('#sales-team-sidebar-section').value, 'profile');
+  assert.equal(window.location.hash, '#view=team&section=profile');
   assert.equal(teamPane('profile').hidden, false);
   assert.equal(teamPane('roster').hidden, true);
   teamTab('profile').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
@@ -1256,6 +1258,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Tinky Team agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
+  const agentPicker = agentDocument.querySelector('#sales-team-sidebar-section');
+  assert.equal(agentPicker.value, 'roster');
+  assert.equal(agentPicker.querySelector('option[value="settings"]'), null);
   assert.equal(agentDocument.getElementById('sales-team-pane-settings').hidden, true);
   assert.equal(agentDocument.querySelector('#directory-support-form'), null);
   agentSettings.click();
@@ -1600,6 +1605,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(demoTool.closest('[hidden]'), null);
     demoTool.click();
     assert.equal(panel.closest('[data-team-workspace]').hidden, false);
+    assert.equal(doc.querySelector('#sales-team-sidebar-section').value, 'demo');
     await waitFor(() => !panel.hidden, 'The locations lobby did not open');
     const customerKiosk = panel.querySelector('[data-care-home] [data-live-customer-kiosk]');
     assert.equal(customerKiosk.href, 'https://tinkytown.com/biz/healthcare');
@@ -1835,6 +1841,29 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
       ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
+    const picker = rail.querySelector('select[aria-label="Tinky Team section"]');
+    assert.equal(picker.closest('[hidden]'), null);
+    assert.equal(picker.selectedOptions[0].textContent, 'Owners & Rolodex');
+    assert.equal(picker.multiple, false);
+    assert.equal(picker.size, 0);
+    const select = key => {
+      picker.value = key;
+      picker.dispatchEvent(new contactsWindow.Event('change', { bubbles: true }));
+    };
+    select('calendar');
+    assert.equal(find('[data-tab-panel="calendar"]').closest('[hidden]'), null);
+    select('profile');
+    assert.equal(find('#sales-team-pane-profile').closest('[hidden]'), null);
+    assert.equal(contactsWindow.location.hash, '#view=team&section=profile');
+    contactsWindow.history.back();
+    await waitFor(() => picker.value === 'calendar', 'Back did not restore the calendar section');
+    contactsWindow.history.forward();
+    await waitFor(() => picker.value === 'profile', 'Forward did not restore My profile');
+    rail.querySelector('[data-tab="home"]').click();
+    assert.ok(picker.closest('[hidden]'));
+    rail.querySelector('[data-tab="team"]').click();
+    assert.equal(picker.selectedOptions[0].textContent, 'Team roster');
+    select('contacts');
     const back = find('[data-team-return]');
     assert.equal(back.closest('[hidden]'), null);
     back.click();
@@ -1844,6 +1873,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       assert.equal(button.closest('[hidden]'), null);
       button.click();
       assert.equal(find('[data-tab-panel="' + name + '"]').closest('[hidden]'), null);
+      assert.equal(picker.value, name);
       assert.equal(new URLSearchParams(contactsWindow.location.hash.slice(1)).get('view'), name);
       assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
       if (name !== 'contacts') back.click();

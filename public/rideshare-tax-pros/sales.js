@@ -56,7 +56,10 @@
     } });
     const todayUI = window.SdrToday?.mount({ api, onAction: openTodayAction });
     const defaultView = todayUI ? 'today' : 'home';
-    const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh, onProfileSaved: profile => {
+    const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh, onNavigate: (name, section) => {
+      sidebarSelection++;
+      openNavigation(name, section);
+    }, onProfileSaved: profile => {
       data.repProfile = { name: profile.name || data.user.name, photo: profile.photo };
       renderIdentity();
       todayUI?.render(data);
@@ -84,6 +87,7 @@
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
         teamReturn.hidden = !teamTool;
+        teamUI?.showSidebar(teamArea.hidden ? null : name, data?.user.role);
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
@@ -218,13 +222,17 @@
       return true;
     }
     $('[data-sdr-own-profile]')?.addEventListener('click', () => {
-      tab('team');
+      sidebarSelection++;
+      openNavigation('team', 'profile');
       teamUI?.view('profile', true);
     });
-    function openNavigation(name) {
+    function openNavigation(name, section) {
       if (!standalone) return tab(name);
-      const hash = '#view=' + encodeURIComponent(name);
+      const params = new URLSearchParams({ view: name });
+      if (section && section !== 'roster') params.set('section', section);
+      const hash = '#' + params;
       if (location.hash !== hash) history.pushState(null, '', hash);
+      if (name === 'team' && section && document.body.dataset.sdrView === 'team' && teamUI) return teamUI.view(section);
       if (!showRequestedView()) tab(name);
     }
     function coachContext() {
