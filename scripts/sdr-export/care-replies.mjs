@@ -142,6 +142,7 @@ export async function careReplies({ said, mode = 'reply', log = [], shown = [], 
     const answers = yesNo(said);
     if (answers) return { source: 'question', tiles: answers.map(asTile) };
   }
+  if (mode === 'more' && medicalReplies(said)) return { source: 'authored', tiles: [...app.offline.sets.universal, ...app.offline.sets.yes_no].filter((tile, i, all) => all.indexOf(tile) === i && !shown.includes(asTile(tile).label)).slice(0, 6).map(asTile) };
   try {
     const { situation, ask, temperature } = modes[mode](said, shown);
     const recent = log.slice(-6).map(turn => (turn.who === 'Staff' ? 'Other person said: ' : 'I said: ') + turn.text).join('\n');
