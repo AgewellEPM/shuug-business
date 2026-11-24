@@ -78,7 +78,7 @@
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
       const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -87,7 +87,7 @@
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
-      $('#sales-stats').hidden = trainingTool || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
+      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -335,9 +335,9 @@
       }
     });
     function renderList() {
-      const filter = $('#sales-filter').value.toLowerCase(), stage = $('#sales-stage-filter').value, attention = $('#sales-attention-filter')?.value || '';
+      const filter = $('#sales-filter').value.trim().toLowerCase(), stage = $('#sales-stage-filter').value, attention = $('#sales-attention-filter')?.value || '';
       if ($('#sales-nav-count')) $('#sales-nav-count').textContent = careCRM ? data.offices.filter(classified).length : data.offices.length;
-      const offices = data.offices.filter(o => matchesFacility(o) && (!attention || o.pipeline?.waitingOn === attention) && (!stage || (o.pipeline?.stage || o.status) === stage) && [o.town,o.locality,o.state,o.contact_name,o.contact_email].join(' ').toLowerCase().includes(filter));
+      const offices = data.offices.filter(o => matchesFacility(o) && (!attention || o.pipeline?.waitingOn === attention) && (!stage || (o.pipeline?.stage || o.status) === stage) && [o.town,o.locality,o.state,o.contact_name,o.contact_email,meta(o).address,o.pipeline?.nextAction].join(' ').toLowerCase().includes(filter));
       $('#sales-offices').innerHTML = offices.length ? offices.map(o => `<button class="sales-office" data-office="${e(o.id)}" aria-pressed="${String(o.id) === selected}"><strong>${e(o.town)}</strong>${careCRM && classified(o) ? `<small>${facilityLabels[facilityType(o)]}</small>` : ''}<small>${e(o.locality)}, ${e(o.state)} · ${e(title(o.pipeline?.stage || o.status))}</small>${o.pipeline ? `<small>Waiting on ${e(({us:'our team',office:'office reply',delivery:'email delivery',signature:'signature',payment:'payment',none:'nothing pending',other:'other'})[o.pipeline.waitingOn] || o.pipeline.waitingOn)} · ${e(o.pipeline.nextAction)}</small>` : ''}<small>${e(o.contact_name || 'Public contact needed')}${o.meeting_date ? ` · Follow up ${e(o.meeting_date)}` : ''}</small></button>`).join('') : '<p class="sales-empty">No offices in this view. Find an office to start your pipeline.</p>';
       $$('[data-office]').forEach(b => b.onclick = run(() => showOffice(b.dataset.office)));
       if (data) { consoleUI?.render(data); contactsUI?.render(data); contractsUI?.render(data); emailUI?.render(data); window.GigTaxProgress?.locations(data, showOffice); }
@@ -486,7 +486,12 @@
     });
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; $('#sales-facility-kind-filter')?.addEventListener('change', renderList); if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });
-    $('#sales-export').onclick = () => { const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`; download(standalone ? 'sales-workspace-offices.csv' : 'gig-tax-pros-offices.csv',[['Office','Address','City','State','Contact','Email','Phone','Stage','Followup'],...data.offices.map(o => [o.town,meta(o).address,o.locality,o.state,o.contact_name,o.contact_email,o.contact_phone,o.status,o.meeting_date])].map(r=>r.map(cell).join(',')).join('\r\n'),'text/csv'); };
+    function exportOffices(offices, name) {
+      const cell = v => `"${String(v ?? '').replace(/^[=+@\-]/,'\t$&').replaceAll('"','""')}"`;
+      const rows = offices.map(office => [office.town, meta(office).address, office.locality, office.state, office.contact_name, office.contact_email, office.pipeline?.stage || office.status, office.meeting_date]);
+      download(name, [['Office', 'Address', 'City', 'State', 'Contact', 'Email', 'Phone', 'Stage', 'Followup'], ...rows].map(row => row.map(cell).join(',')).join('\r\n'), 'text/csv');
+    }
+    $('#sales-export').onclick = () => exportOffices(data.offices, standalone ? 'sales-workspace-offices.csv' : 'gig-tax-pros-offices.csv');
     const discovery = $('#sales-discover');
     async function findOffices(input, offset = 0) {
       if (localUI) return localUI.search(input);
@@ -542,7 +547,7 @@
     campaignUI = window.SdrCampaigns?.mount({ api, status });
     overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice, onBrowseFacilities: browseFacilities, facilityType });
     territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onClearState:()=>consoleUI?.clearState(),onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
-    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, matchesFacility, facilityLabel: office => careCRM && classified(office) ? facilityLabels[facilityType(office)] : '',
+    consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, onExport: offices => exportOffices(offices, 'pipeline-opportunities.csv'), matchesFacility, facilityLabel: office => careCRM && classified(office) ? facilityLabels[facilityType(office)] : '',
       onTerritory: territoryUI ? (state, _category, _query, focus) => territoryUI.selectState(state, focus) : undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
       tab('discover');

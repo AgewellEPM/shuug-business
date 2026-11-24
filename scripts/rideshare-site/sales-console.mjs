@@ -12,6 +12,7 @@ import { renderTeamChat } from './sales-chat.mjs';
 import { renderSalesCoach } from './sales-coach.mjs';
 import { renderToday } from './sales-today.mjs';
 import { renderTerritoryHeader } from './sales-territory-dashboard.mjs';
+import { renderPipelineWorkspace } from './sales-pipeline-workspace.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
@@ -26,6 +27,11 @@ const icons = {
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18M7 15h4"/>',
   home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-8H9v8H4a1 1 0 0 1-1-1Z"/>',
   pipeline: '<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  forecast: '<path d="M3 3v17h18M7 14l5-5 3 3 5-6m-5 0h5v5"/>',
+  reports: '<path d="M4 20h16M7 16v-4m5 4V8m5 8V4" stroke-width="2.5"/>',
+  revenue: '<circle cx="12" cy="12" r="9"/><path d="M12 6v12m3-9H11a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3H9"/>',
+  download: '<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>',
   facilities: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
   territories: '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/>',
   discover: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10.5h5M10.5 8v5"/>',
@@ -113,15 +119,18 @@ function section(markup, marker) {
   throw new Error(`Unclosed private sales section: ${marker}`);
 }
 
-function territoryMap() {
+function territoryMap({ interactive = true } = {}) {
   const original = readFileSync(new URL('../../public/rideshare-tax-pros/assets/us-national-vision.svg', import.meta.url), 'utf8');
   const states = [...original.matchAll(/<path\s+data-state="([A-Z]{2})"\s+d="([^"]+)"/g)];
   if (states.length !== 51 || new Set(states.map(match => match[1])).size !== 51) throw new Error('The territory map must contain all 50 states and DC.');
   const paths = states.map(([, state, geometry]) => {
     if (!/^[MmLlHhVvCcSsQqTtAaZz\d.,+\-\s]+$/.test(geometry)) throw new Error('Unexpected territory map geometry.');
-    return `<path data-state="${state}" d="${geometry}" role="button" tabindex="0" aria-label="${state}: choose territory" aria-pressed="false"><title>${state}</title></path>`;
+    const controls = interactive ? ` role="button" tabindex="0" aria-label="${state}: choose territory" aria-pressed="false"` : '';
+    return `<path data-state="${state}" d="${geometry}"${controls}><title>${state}</title></path>`;
   }).join('');
-  return `<svg data-sales-state-map viewBox="0 0 1000 650" role="group" aria-label="United States territory map, including Alaska and Hawaii">${paths}</svg>`;
+  return interactive
+    ? `<svg data-sales-state-map viewBox="0 0 1000 650" role="group" aria-label="United States territory map, including Alaska and Hawaii">${paths}</svg>`
+    : `<svg viewBox="0 0 1000 650" role="img" aria-label="United States opportunity map">${paths}</svg>`;
 }
 
 const townMap = `<section id="territory-town-map" class="sdr-card territory-town-map" hidden aria-labelledby="town-map-title">
@@ -394,7 +403,7 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
 <section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue, careWorkspace) : '<div id="sales-dashboard"></div>' + queue}</section>
 <section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section>
-<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
+${prospects ? renderPipelineWorkspace({ icon, toolbar, map: territoryMap({ interactive: false }), seniorCare }) : `<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>`}
 ${seniorCare ? standaloneFacilities : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
