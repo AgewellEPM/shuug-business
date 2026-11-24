@@ -43,16 +43,22 @@
       return facilityType(office) === filter.value;
     }
     function browseFacilities({ state, category, query }) {
-      if (state) consoleUI?.chooseState(state, category, query);
+      if (!state || !facilitiesUI) return;
+      facilitiesUI.selectState(state, category, query);
+      tab('facilities');
     }
+    const facilitiesUI = window.SdrTerritoryFacilities?.mount({ api, refresh, onOpenOffice: id => {
+      tab('pipeline');
+      return showOffice(id);
+    } });
     const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh });
     const tab = name => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
       if (standalone) document.body.dataset.sdrView = name;
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team' })[name] || 'Workspace';
-      $('#sales-stats').hidden = ['home','discover','prospects','campaigns'].includes(name);
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team' })[name] || 'Workspace';
+      $('#sales-stats').hidden = ['home','discover','prospects','campaigns','facilities','territories'].includes(name);
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') {
         prospectsWorkspace?.enter();
@@ -60,10 +66,12 @@
       }
       if (name === 'campaigns') campaignUI?.refresh();
       if (name === 'team') teamUI?.refresh(data.user);
+      if (name === 'facilities') facilitiesUI?.show();
       if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
       if (standalone && ['pipeline', 'contacts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
+      if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
       if (teamUI && params.get('view') === 'team') { tab('team'); return true; }
       if (standalone && territoryUI && params.get('view') === 'territories') {
         tab('territories');
@@ -281,9 +289,9 @@
     prospectsWorkspace = window.SdrProspects?.mount({ api, refresh, onOpenOffice: showOffice });
     campaignUI = window.SdrCampaigns?.mount({ api, status });
     overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice, onBrowseFacilities: browseFacilities, facilityType });
-    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onOpenOffice: id => { tab('pipeline'); return showOffice(id); },onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
+    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
     consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, matchesFacility, facilityLabel: office => careCRM && classified(office) ? facilityLabels[facilityType(office)] : '',
-      onTerritory: territoryUI ? (state, category, query, focus) => territoryUI.selectState(state, category, query, focus) : undefined, onSearch: async input => {
+      onTerritory: territoryUI ? (state, _category, _query, focus) => territoryUI.selectState(state, focus) : undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
       tab('discover');
       return findOffices(Object.fromEntries(new FormData(discovery)), 0);

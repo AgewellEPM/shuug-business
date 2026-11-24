@@ -40,21 +40,19 @@
     return badge;
   }
 
-  function mount(panel, data, api, zoomCounty) {
+  function mount(panel, data, api, zoomCounty, onAssignment) {
     const aside = panel.querySelector('#territory-county-roster'), toggle = panel.querySelector('[data-map-roster]');
-    const list = aside.querySelector('[data-county-list]'), query = aside.querySelector('[data-county-query]');
+    const list = aside.querySelector('[data-county-list]');
     const editor = aside.querySelector('[data-county-editor]');
     const counties = [...data.counties].sort((a,b) => a.label.localeCompare(b.label));
     let current, active = true;
-    query.value = '';
     editor.replaceChildren();
     aside.hidden = toggle.getAttribute('aria-expanded') === 'false';
     const show = visible => { aside.hidden = !visible; toggle.setAttribute('aria-expanded', String(visible)); };
     toggle.onclick = () => show(aside.hidden);
 
     function renderList() {
-      const matches = counties.filter(c => (c.label+' '+(c.lead?.name || '')).toLowerCase().includes(query.value.trim().toLowerCase()));
-      list.replaceChildren(...matches.map(county => {
+      list.replaceChildren(...counties.map(county => {
         const row = el('button', '', 'county-lead-row');
         row.type = 'button'; row.dataset.countyRow = county.id;
         row.setAttribute('aria-pressed', String(current === county));
@@ -64,7 +62,6 @@
         row.onclick = () => { zoomCounty(county); select(county); };
         return row;
       }));
-      if (!matches.length) list.append(el('p', 'No matching counties.'));
     }
 
     function select(county) {
@@ -111,6 +108,7 @@
             name:clearing ? '' : name.value.trim(), memberId: member.value, photo:image, clear:clearing});
           county.lead = result.lead;
           if (!active) return;
+          onAssignment();
           if (current === county) {
             select(county);
             editor.querySelector('[role=status]').textContent = clearing ? 'Lead cleared.' : 'County lead saved.';
@@ -122,12 +120,11 @@
       clear.onclick = () => submit(true);
       editor.append(form);
     }
-    query.oninput = renderList;
     renderList();
-    return { select, dispose() {
+    return { select, refresh: renderList, dispose() {
       active = false;
       aside.hidden = true;
-      toggle.onclick = query.oninput = null;
+      toggle.onclick = null;
       list.replaceChildren(); editor.replaceChildren();
     } };
   }

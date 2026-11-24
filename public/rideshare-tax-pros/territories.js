@@ -2,10 +2,11 @@
   'use strict';
   const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
-  window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate,onOpenOffice}){
+  window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
     const townMap=window.SdrTerritoryTownMap?.mount({api,onSearch,onBack:returnToStates});
-    const facilities=window.SdrTerritoryFacilities?.mount({api,refresh,onOpenOffice,onBack:returnToStates});
+    const townAccessState=document.querySelector('#sales-town-access-state');
+    let mapState='';
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;
     const agent=()=>data?.agents.find(row=>String(row.id)===agentId);
     const owner=()=>data?.user.role==='owner';
@@ -14,10 +15,11 @@
       history.replaceState(null,'',location.pathname+location.search+'#view=territories'+(region?'&state='+region:''));
     }
     function returnToStates(){
-      if(!state)return;
+      const previous=townMap?mapState:state;
+      if(!previous)return;
       updateStateLink('');
-      const previous=state;
-      state='';sequence++;clearTimeout(timer);townMap?.clear();facilities?.clear();paint();
+      if(townMap){mapState='';townMap.clear();}
+      else selectTownAccess('');
       document.querySelector(`#sales-territory-map [data-state="${previous}"]`)?.focus?.({preventScroll:true});
       document.querySelector('#sales-territory-map')?.scrollIntoView?.({block:'start'});
     }
@@ -34,10 +36,11 @@
     }
     function paint(){
       if(!data)return;
+      if(townAccessState){host.hidden=!state||!owner();if(host.hidden)return;}
       const queryFocused=document.activeElement?.hasAttribute('data-territory-query'),caret=queryFocused?document.activeElement.selectionStart:null;
       if(!state){host.innerHTML='<div class="sdr-card"><h3>Assign towns and cities</h3><p>Choose any state on the map to browse its towns, cities and communities.</p></div>';return;}
       const person=agent(),own=owner();
-      host.innerHTML=`<section class="sdr-card territory-drilldown"><div class="sdr-card-head"><div><h3>${e(state)} · Towns & cities</h3><p>${report?`${report.stateTotal.toLocaleString()} available · Census ${e(report.version)}`:'Loading the town catalog…'}</p></div><button type="button" class="button secondary" data-territory-back>All states</button></div>
+      host.innerHTML=`<section class="sdr-card territory-drilldown"><div class="sdr-card-head"><div><h3>${e(state)} · Towns & cities</h3><p>${report?`${report.stateTotal.toLocaleString()} available · Census ${e(report.version)}`:'Loading the town catalog…'}</p></div>${townAccessState?'':'<button type="button" class="button secondary" data-territory-back>All states</button>'}</div>
         <p>Assignments follow the town or city recorded on an office’s address. Identically named localities within a state share coverage.</p>
         ${own?`<div class="territory-controls"><label>Salesperson<select data-territory-agent><option value="">Choose a salesperson</option>${data.agents.map(row=>`<option value="${e(row.id)}" ${String(row.id)===agentId?'selected':''}>${e(row.name)}</option>`).join('')}</select></label><label>Coverage in ${e(state)}<select data-territory-mode><option value="selected">Selected towns & cities</option><option value="state">Whole state</option><option value="none">No coverage</option></select></label></div>${!data.agents.length?'<p>Create a salesperson in Sales team, then assign their towns here. <button type="button" class="button secondary" data-territory-team>Open Sales team</button></p>':''}${person&&!person.territory&&!person.states?.length?'<p class="local-owner-note">This salesperson currently has nationwide access. Saving here starts a restricted territory with this state’s selection.</p>':''}<div class="sales-actions"><strong data-territory-selected></strong><button type="button" class="button primary" data-territory-save>Save territory</button></div>`:'<p>Your assigned towns and cities are listed below. Choose a town to find offices.</p>'}
         <label>Find a town or city<input type="search" data-territory-query placeholder="Search town or city name" value="${e(query)}"></label>
@@ -47,7 +50,7 @@
         <div class="sales-actions"><button type="button" class="button secondary" data-territory-prev ${!offset?'disabled':''}>Previous towns</button><span>${report?.total?`${offset+1}–${Math.min(offset+100,report.total)} of ${report.total}`:'0'}</span><button type="button" class="button secondary" data-territory-next ${!report?.hasMore?'disabled':''}>Next towns</button></div>
         <p class="local-map-coverage">Territory coverage controls discovery and which offices can be assigned to a salesperson. Existing offices keep their individual assignments. Review and save to change coverage.</p></section>`;
       const $=selector=>host.querySelector(selector);
-      $('[data-territory-back]').onclick=returnToStates;
+      const back=$('[data-territory-back]');if(back)back.onclick=returnToStates;
       if(own){
         $('[data-territory-agent]').onchange=event=>{agentId=event.target.value;resetSelection();paint();};
         $('[data-territory-mode]').value=mode;
@@ -77,18 +80,31 @@
       catch(error){status(error.message,true);}
       finally{saving=false;paint();}
     }
+    function selectTownAccess(region){
+      sequence++;clearTimeout(timer);state=region;query='';offset=0;report=undefined;
+      resetSelection();paint();
+      if(state)void load();
+    }
+    if(townAccessState)townAccessState.onchange=()=>{if(owner())selectTownAccess(townAccessState.value);};
     const scope=user=>JSON.stringify([user.id,user.role,user.states,user.territory]);
     return {showStates:returnToStates,render(next){
-      if(state&&data&&scope(data.user)!==scope(next.user))returnToStates();
-      data=next;if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';resetSelection();paint();},
-      selectState(region, category, facilityQuery, focus){
-        clearTimeout(timer);state=region;query='';offset=0;report=undefined;
-        resetSelection();paint();void load();
+      if((mapState||state)&&data&&scope(data.user)!==scope(next.user))returnToStates();
+      data=next;
+      if(townAccessState&&owner()&&townAccessState.options.length===0){
+        townAccessState.replaceChildren(new Option('Choose a state',''),...data.states.map(region=>new Option(region,region)));
+      }
+      if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';
+      resetSelection();paint();
+    },selectState(region, focus){
+      if(townMap){
+        mapState=region;
         updateStateLink(region);
-        void townMap?.open(region, focus);
-        const directory=facilities?.selectState(region, category, facilityQuery);
-        if(townMap&&!category)townMap.focus();
-        else (directory||host).scrollIntoView?.({block:'start',behavior:'smooth'});
-      }};
+        void townMap.open(region,focus);
+        townMap.focus();
+        return;
+      }
+      selectTownAccess(region);
+      host.scrollIntoView?.({block:'start',behavior:'smooth'});
+    }};
   }};
 })();

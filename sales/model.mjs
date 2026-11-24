@@ -3,6 +3,7 @@ import {localityAllowed} from './territory-access.mjs';
 
 export const STATES = 'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY'.split(' ');
 export const STAGES = ['new', 'researching', 'contacted', 'replied', 'waiting', 'meeting', 'interested', 'invited', 'contract_sent', 'contract_signed', 'active', 'not_interested', 'do_not_contact'];
+export const FACILITY_TYPES = new Set(['nursing-home', 'senior-center', 'assisted-living', 'independent-living', 'long-term-care']);
 export const CONTACT_ROLES = ['unverified', 'owner', 'partner', 'manager', 'accountant', 'staff', 'other'];
 export class HttpError extends Error { constructor(status, message) { super(message); this.status = status; } }
 export const digest = value => createHash('sha256').update(value).digest('hex');

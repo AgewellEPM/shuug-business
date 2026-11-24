@@ -76,3 +76,19 @@
 .county-lead-row[aria-pressed=true] { background: var(--accent-soft); }
 .county-lead-row small { display: block; color: var(--text-secondary); }
 .county-avatar { flex: 0 0 28px; width: 28px; height: 28px; display: inline-grid; place-items:center; border-radius: 50%; object-fit: cover; background: var(--accent-soft); font-size: 11px; }
+
+.town-map-tools .territory-lookup { flex: 1 1 245px; max-width: 420px; }
+.territory-lookup input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 11px; color: var(--text-primary); background: var(--glass-fill-strong); border: 1px solid var(--glass-border-muted); border-radius: 8px; }
+.territory-lookup-results { margin: 0 0 14px; padding: 8px 12px; border: 1px solid var(--glass-border-muted); background: var(--glass-fill-muted); border-radius: 10px; }
+.territory-lookup-results > p { margin: 0; color: var(--text-secondary); font-size: 13px; }
+.territory-lookup-list { list-style: none; margin: 0; padding: 0; max-height: 265px; overflow: auto; }
+.territory-lookup-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 4px 12px; min-height: 40px; padding: 6px 0; }
+.territory-lookup-row + .territory-lookup-row { border-top: 1px solid var(--glass-border-muted); }
+.territory-lookup-row small { display: block; color: var(--text-secondary); }
+.territory-lookup-place { border: 0; padding: 3px 0; background: transparent; color: var(--accent); cursor: pointer; text-align: left; }
+.territory-lookup-assignment { font-size: 13px; font-weight: 650; overflow-wrap: anywhere; }
+.territory-lookup-assignment[data-status=unassigned] { color: var(--text-secondary); }
+
+.territory-map-selection { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; margin-top: 10px; padding: 9px 12px; border: 1px solid var(--glass-border-muted); border-radius: 8px; background: var(--glass-fill-muted); }
+.territory-map-selection strong { color: var(--text-primary); }
+.territory-map-selection span { color: var(--text-secondary); font-size: 13px; }

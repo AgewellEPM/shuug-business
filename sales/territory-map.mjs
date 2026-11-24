@@ -50,6 +50,24 @@ export async function territoryMap(user, input, db, readTeam) {
   return map;
 }
 
+export async function countyOwnership(user, input, db, readTeam) {
+  const region = state(input.state);
+  if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');
+  const ids = input.countyIds ?? [];
+  if (!Array.isArray(ids) || ids.length > 16 || ids.some(id => typeof id !== 'string' || !/^\d{5}$/.test(id))) {
+    throw new HttpError(400, 'Choose up to 16 counties.');
+  }
+  if (!ids.length) return { counties: [] };
+  const map = await geometry(region), scope = assignmentScope(user, map, readTeam);
+  const requested = new Set(ids);
+  return {
+    counties: map.counties.filter(county => requested.has(county.id)).map(county => {
+      const lead = db.countyLead(county.id) || null;
+      return { id: county.id, lead, canEdit: scope.canEdit(county.id, lead) };
+    })
+  };
+}
+
 export async function setCountyLead(user, input, db, readTeam) {
   const region = state(input.state);
   if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');

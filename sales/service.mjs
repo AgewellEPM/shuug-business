@@ -1,4 +1,4 @@
-import { HttpError, STATES, STAGES, digest, secret, text, email, state, https, seal, unseal, visible, metadata, officeInput, officeIdentity, independenceVerified, termsValid, outreach } from './model.mjs';
+import { FACILITY_TYPES, HttpError, STATES, STAGES, digest, secret, text, email, state, https, seal, unseal, visible, metadata, officeInput, officeIdentity, independenceVerified, termsValid, outreach } from './model.mjs';
 import { requestWorkspaceSession } from './workspace-session.mjs';
 import { agreement } from './terms.mjs';
 import { payments } from './payments.mjs';
@@ -15,8 +15,6 @@ import { localDiscovery } from './local-discovery.mjs';
 import {agentTerritory, territoryTools} from './territories.mjs';
 import {localityAllowed} from './territory-access.mjs';
 import { salesTeamTools } from './sales-team.mjs';
-
-const facilityTypes = new Set(['nursing-home', 'senior-center', 'assisted-living', 'independent-living', 'long-term-care']);
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -109,6 +107,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) return salesTeam.dispatch(user, action, b);
+    if (tools.territoryOwnership && action === 'territory-ownership') {
+      return tools.territoryOwnership(user, b, () => salesTeam.dispatch(user, 'sales-team-read', {}));
+    }
     if (tools.territoryMap && (action === 'territory-map' || action === 'set-county-lead')) {
       const readTeam = () => salesTeam.dispatch(user, 'sales-team-read', {});
       return action === 'territory-map' ? tools.territoryMap(user, b, readTeam) : tools.setCountyLead(user, b, readTeam);
@@ -159,7 +160,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const input = officeInput(b);
       const initial = b.initialContact === undefined ? null : initialOfficeContact(b.initialContact, user);
       if (!facility && tools.facilities && b.facilityType) {
-        if (!facilityTypes.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
+        if (!FACILITY_TYPES.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
         facility = { facilityType: b.facilityType };
       }
       if (!localityAllowed(user,input.state,input.city)) throw new HttpError(403, 'Choose a town or city in your assigned territory.');
@@ -221,7 +222,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       }
       let info = verificationUpdate(b, before, user);
       if (tools.facilities && b.facilityType !== undefined) {
-        if (b.facilityType !== '' && !facilityTypes.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
+        if (b.facilityType !== '' && !FACILITY_TYPES.has(b.facilityType)) throw new HttpError(400, 'Choose a listed facility type.');
         info = { ...(info || metadata(before)), facilityType: b.facilityType };
       }
       if (b.independence !== undefined) {
