@@ -1553,6 +1553,30 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       panel.querySelector('.cf-tile').click();
       assert.match(panel.querySelector('.cf-history summary').textContent, /1/);
     }
+    careWindow.location.hash = 'view=demo&venue=hospital';
+    const tourAction = text => [...panel.querySelectorAll('[data-care-tour] button')].find(b => b.textContent === text);
+    await waitFor(() => panel.querySelector('[data-room="discharge"]'), 'Presenter did not reach the hospital directory');
+    tourAction('Start guided demo').click();
+    await waitFor(() => panel.querySelector('.cf-tile'), 'Presenter did not open admissions');
+    panel.querySelector('.cf-tile').click();
+    tourAction('Next step').click();
+    assert.match(panel.querySelector('.cf-history summary').textContent, /1/);
+    tourAction('Next step').click();
+    assert.match(panel.querySelector('.cf-room-head').textContent, /Discharge/);
+    tourAction('Discuss a pilot').click();
+    tourAction('Open pilot planner').click();
+    await waitFor(() => panel.querySelector('[data-care-plan] a[href="https://tinkytown.com/start.html?intent=pilot"]'), 'Planner missing pilot request form');
+    const pilot = panel.querySelector('[data-care-plan]');
+    assert.equal(pilot.hidden, false);
+    const lead = pilot.querySelector('input[placeholder="Role or team"]');
+    lead.value = 'Practice admissions team';
+    lead.dispatchEvent(new careWindow.Event('input', {bubbles: true}));
+    panel.querySelector('[data-care-plan-toggle]').click();
+    await waitFor(() => pilot.hidden, 'Planner did not return to the live demo');
+    panel.querySelector('[data-care-plan-toggle]').click();
+    await waitFor(() => !pilot.hidden, 'Planner could not reopen');
+    assert.equal(pilot.querySelector('input[placeholder="Role or team"]').value, 'Practice admissions team');
+
     careWindow.location.hash = 'view=demo&venue=townhall';
     await waitFor(() => panel.querySelector('.cl-board-title'), 'Hartford Town Hall did not load');
     assert.equal(panel.querySelector('[data-care-voice]').hidden, true);

@@ -426,31 +426,41 @@
       else if (focus === 'sound') voiceButton.focus({ preventScroll: true });
     }
 
-    const start = facility.rooms.find(item => item.id === directRoom);
-    if (start) openRoom(start);
-    else directory();
-    return () => { stopSpeech(); clearTools(); };
+    function showRoom(id) {
+      const target = facility.rooms.find(item => item.id === id);
+      if (target) openRoom(target);
+      else directory();
+    }
+    showRoom(directRoom);
+    return {showRoom, cleanup() { stopSpeech(); clearTools(); }};
+
   }
 
   function unmount(host) {
     const active = mounts.get(host);
-    if (active && active.cleanup) active.cleanup();
+    active?.view?.cleanup();
     mounts.delete(host);
   }
   async function mount(host, setting = 'hospital', roomId) {
     if (!host) return;
     unmount(host);
-    const active = {};
+    const active = { roomId };
     mounts.set(host, active);
     host.replaceChildren(node('p', 'cf-empty', 'Opening the facility directory…'));
     try {
       const data = await catalog();
       if (mounts.get(host) !== active) return;
-      active.cleanup = facilityView(host, data, setting, roomId);
+      active.view = facilityView(host, data, setting, active.roomId);
     } catch {
       if (mounts.get(host) !== active) return;
       host.replaceChildren(node('p', 'cf-empty','The facility directory could not open.'), button('Try again', () => mount(host, setting, roomId)));
     }
   }
-  window.CareFacility = Object.freeze({ mount, unmount });
+  function showRoom(host, id) {
+    const active = mounts.get(host);
+    if (!active) return;
+    active.roomId = id;
+    active.view?.showRoom(id);
+  }
+  window.CareFacility = Object.freeze({ mount, unmount, showRoom });
 })();
