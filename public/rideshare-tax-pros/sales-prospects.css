@@ -260,8 +260,10 @@
 .prospects-administrator { display: flex; align-items: flex-start; gap: 9px; min-width: 142px; }
 .prospects-administrator > div { min-width: 0; }
 .prospects-administrator > div > :is(a, small) { display: block; margin-top: 3px; font-size: 11px; }
-.prospects-administrator-photo { flex: none; display: block; width: 44px; height: 44px; }
-.prospects-administrator-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; border-radius: 8px; }
+.prospects-administrator-photo, .facility-person-avatar { position: relative; display: grid; place-items: center; flex: none; overflow: hidden; border-radius: 8px; background: #e2ecfa; color: #244d85; font-size: 13px; font-weight: 750; text-transform: uppercase; }
+.prospects-administrator-photo { width: 52px; height: 52px; }
+:is(.prospects-administrator-photo, .facility-person-avatar) img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+[data-photo-frame="buck-creek"] img { object-position: center top; transform-origin: 64% 43%; transform: scale(5) translate(-2.8%, 1.4%); }
 .prospects-administrator-sources { display: flex; flex-wrap: wrap; gap: 3px 8px; margin-top: 4px; font-size: 11px; }
 
 .facility-profile-open {
@@ -338,8 +340,7 @@ button.prospects-administrator-photo:is(:hover,:focus-visible) { outline: 2px so
 .facility-person + .facility-person { margin-top: 5px; }
 .facility-person:hover { border-color: #6aa2e2; background: #f5faff; }
 .facility-person[aria-pressed="true"] { border-color: #4587d8; background: #e2f1ff; }
-.facility-person-avatar { position: relative; display: grid; place-items: center; flex: none; width: 36px; height: 36px; border-radius: 8px; background: #d7e6fb; color: #244d85; overflow: hidden; font-size: 12px; font-weight: 700; }
-.facility-person-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 25%; }
+.facility-person-avatar { width: 42px; height: 42px; }
 .facility-person strong, .facility-person small { display: block; font-size: 12px; overflow-wrap: anywhere; }
 .facility-person small { margin-top: 3px; color: #4b6282; }
 .facility-team-contact .prospects-administrator { margin-top: 10px; overflow-wrap: anywhere; }
