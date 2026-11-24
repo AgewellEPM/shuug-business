@@ -78,7 +78,7 @@
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
       const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','contracts'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -535,7 +535,8 @@
       for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:result.website || '', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
       form.scrollIntoView?.({ behavior:'smooth', block:'start' }); form.elements.name.focus(); status('Public business details prepared. Review the office location and owner role before saving. Nothing has been saved yet.');
     } });
-    contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: openNavigation, refresh });
+    contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: openNavigation,
+      onCompose: draft => emailUI?.compose(draft), refresh });
     emailUI = window.SdrEmail?.mount({ api, onNavigate: tab, onOpenOffice: showOffice, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, refresh, onSelect: showOffice, onNavigate: tab, onEmail: emailUI && emailContact });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });

@@ -53,7 +53,7 @@
   const heading = (label, glyph, sub = '') => `<div class="ct-section-heading">${icon(glyph)}<div><h2>${label}</h2>${sub ? `<p>${sub}</p>` : ''}</div></div>`;
   const checks = items => '<ul class="ct-checks">' + items.map(item => '<li>' + escape(item) + '</li>').join('') + '</ul>';
 
-  window.SdrContractCenter = { mount({ host, api, onSelect, onNavigate, refresh }) {
+  window.SdrContractCenter = { mount({ host, api, onSelect, onNavigate, onCompose, refresh }) {
     if (!host || !document.body.hasAttribute('data-agreement-only')) return;
     const care = document.body.hasAttribute('data-care-crm');
     const facility = care ? 'facility' : 'business';
@@ -62,7 +62,8 @@
     host.innerHTML = `
       <div class="ct-top"><form class="ct-search" role="search">${icon('search')}<label class="ct-sr-only" for="contract-center-search">Search contracts</label>
         <input id="contract-center-search" type="search" maxlength="160" placeholder="Search contracts, templates, or ${care ? 'facilities' : 'businesses'}…">
-        <button class="ct-button" type="submit">Search</button></form>${button('Sign out','logout')}</div>
+        <button class="ct-button" type="submit">Search</button></form><div class="ct-actions">
+        ${document.querySelector('[data-display-open]') ? button('Display settings','display') : ''}${button('Sign out','logout')}</div></div>
       <header class="ct-hero"><div class="ct-hero-copy"><p class="ct-mark"><span aria-hidden="true">🚂</span> TinkyTown</p><h1>Contracts</h1>
         <p>Create, manage, and track ${care ? 'nursing home' : 'business'} agreements from pilot to long-term partnership.</p></div></header>
       <nav class="ct-tabs" aria-label="Contracts workspace">${routes.map(([id,glyph,label]) =>
@@ -75,7 +76,7 @@
     const content = host.querySelector('[data-ct-content]'), message = host.querySelector('[data-ct-message]');
     const dialog = host.querySelector('.ct-dialog'), dialogBody = host.querySelector('[data-ct-dialog-body]');
     const dialogNote = host.querySelector('[data-ct-dialog-note]'), search = host.querySelector('#contract-center-search');
-    let data, workspace, view = 'overview', query = '', pending, working = false, returnFocus;
+    let data, workspace, view = 'overview', query = '', pending, working = false, returnFocus, preparedEmail;
     function alert(value, error = false) {
       const element = dialog.open ? dialogNote : message;
       element.textContent = value;
@@ -285,8 +286,9 @@
         await refresh();
         await load();
         const link = await api('contract-link',{id:draft.officeId,enrollmentId:next.enrollmentId});
+        preparedEmail = { to:draft.ownerEmail, subject:draft.title, body:`Hi ${draft.ownerName},\n\nPlease review and sign your agreement using this private link.\n\n${link.link}` };
         showDialog('Private signature link',`<p>Review the recipient and share the link with the authorized signer.</p><label>Signature link<input readonly value="${escape(link.link)}" data-ct-link></label>
-          <div class="ct-actions">${button('Copy Link','copy','ct-primary')}${button('Open Facility Record','office:'+draft.officeId)}</div>`);
+          <div class="ct-actions">${button('Copy Link','copy','ct-primary')}${data.repEmail ? button('Compose Email','compose') : ''}${button(care ? 'Open Facility Record' : 'Open Business Record','office:'+draft.officeId)}</div>`);
         return;
       }
       await load();
@@ -314,9 +316,11 @@
       if (routes.some(([route]) => route === operation) && !id) { setView(operation); return; }
       if (['calendar','pipeline','prospects'].includes(operation)) { if (dialog.open) closeDialog(); onNavigate(operation); return; }
       if (operation === 'close') { closeDialog(); return; }
+      if (operation === 'display') { document.querySelector('[data-display-open]')?.click(); return; }
       if (operation === 'logout') { document.getElementById('sales-logout')?.click(); return; }
       if (operation === 'checklist') { downloadChecklist(); return; }
       if (operation === 'copy') { await navigator.clipboard.writeText(dialogBody.querySelector('[data-ct-link]').value); alert('Private signature link copied.'); return; }
+      if (operation === 'compose' && preparedEmail) { closeDialog(); onCompose(preparedEmail); return; }
       if (operation === 'office') { if (dialog.open) closeDialog(); await onSelect(id); return; }
       if (operation === 'template' || operation === 'renew') {
         await load();

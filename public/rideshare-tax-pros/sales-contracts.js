@@ -14,10 +14,10 @@
   }
 
   window.GigTaxContracts = {
-    mount({ api, status, onSelect, onNavigate, refresh }) {
+    mount({ api, status, onSelect, onNavigate, onCompose, refresh }) {
       let data, filter = 'all';
       const contractsHost = document.querySelector('#sales-contracts'), mailboxHost = document.querySelector('#sales-mailboxes');
-      const center = window.SdrContractCenter?.mount({ host: contractsHost, api, status, onSelect, onNavigate, refresh });
+      const center = window.SdrContractCenter?.mount({ host: contractsHost, api, onSelect, onNavigate, onCompose, refresh });
       function render() {
         if (!data) return;
         const contracts = data.contracts || [], visible = contracts.filter(contract => filter === 'all' || (filter === 'signed' ? contract.signed : filter === 'unsigned' ? !contract.signed : contract.status === filter));
