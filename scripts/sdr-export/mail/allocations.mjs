@@ -19,7 +19,7 @@ export function mailboxAllocations({ db, roster, config, organization, accountFo
   const actions = ['rep-email-allocations', 'rep-email-bind', 'rep-email-provision', 'rep-email-release'];
   function member(id) {
     const rep = roster.rosterUser(db.get('agents', id));
-    if (!rep) throw new HttpError(404, 'Choose an active Tinky Team agent.');
+    if (!rep) throw new HttpError(404, 'Choose an active sales agent.');
     return rep;
   }
   function available(id, address, company) {

@@ -28,10 +28,10 @@
           const status = (box?.address ? box.address + ' · ' : '') + (box?.label || '');
           content.innerHTML = `<div class="sdr-mail-allocation-head">
           <p>${escape(data.directoryError || (data.domains.length ? 'Company email · ' + data.domains.join(', ') : 'Company email'))}</p>
-          <button type="button" class="button secondary" data-add-rep>${members.length ? 'Tinky Team' : 'Add a Tinky Team agent'}</button></div>
+          <button type="button" class="button secondary" data-add-rep>${members.length ? 'Sales team' : 'Add a sales agent'}</button></div>
           ${
             member
-              ? `<label>Tinky Team agent<select data-allocation-member>${members.map((m) => opt(m.id, m.name + ' · ' + m.login)).join('')}</select></label>
+              ? `<label>Sales agent<select data-allocation-member>${members.map((m) => opt(m.id, m.name + ' · ' + m.login)).join('')}</select></label>
           <p class="sdr-allocation-current">${escape(status)}</p>
           ${box?.status === 'pending' ? '<p>Grant the workspace account access to this mailbox, then choose Check access. <a href="https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html" target="_blank" rel="noopener noreferrer">Zoho delegation instructions</a></p>' : ''}
           <form class="sales-form sdr-allocation-form" data-allocation-form>
@@ -51,7 +51,7 @@
               ${box?.address && ['pending', 'check', 'creating'].includes(box.status) ? '<button class="button secondary" type="button" data-check-mail>Check access</button>' : ''}
               ${box?.address ? '<button class="button secondary" type="button" data-release-mail>Release SDR assignment</button>' : ''}</div>
           </form>`
-              : '<p>Add a Tinky Team agent to assign or create their company mailbox.</p>'
+              : '<p>Add a sales agent to assign or create their company mailbox.</p>'
           }
           ${retired.map((row) => `<div class="sdr-mail-allocation-head"><span>${escape(row.address)} · Former rep</span><button class="button secondary" type="button" data-release-former="${escape(row.memberId)}">Release SDR assignment</button></div>`).join('')}
           <p role="status" data-allocation-status>${escape(note)}</p><button type="button" class="button secondary" data-directory-refresh>Refresh directory</button>`;
@@ -178,8 +178,8 @@
             if (!host.isConnected) return;
             if (!result.members.length) {
               fields.innerHTML =
-                '<p>No other active Tinky Team agents are available.</p>' +
-                (owner ? '<button type="button" class="button secondary">Add a Tinky Team agent</button>' : '');
+                '<p>No other active sales agents are available.</p>' +
+                (owner ? '<button type="button" class="button secondary">Add a sales agent</button>' : '');
               fields.querySelector('button')?.addEventListener('click', () => onNavigate('team'));
               return;
             }

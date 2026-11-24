@@ -18,7 +18,7 @@
       const badge = element('span', '', 'chat-nav-count');
       badge.hidden = true;
       button.append(badge);
-      return { button, badge, label: button.dataset.tab === 'chat' ? 'Team chat' : 'Tinky Team' };
+      return { button, badge, label: button.dataset.tab === 'chat' ? 'Team chat' : 'Sales team' };
     });
     const list = $('#chat-channels'), log = $('#chat-messages'), scroll = $('#chat-scroll');
     const railToggle = $('#chat-nav-toggle');
@@ -129,7 +129,7 @@
       $('#chat-name').textContent = name;
       $('.chat-channel-mark').textContent = direct ? (channel ? initialsOf(name) : '…') : '#';
       $('.chat-channel-mark').classList.toggle('chat-private-mark', direct);
-      $('#chat-audience-label').textContent = direct ? 'Participants only' : 'Tinky Team only';
+      $('#chat-audience-label').textContent = direct ? 'Participants only' : 'Sales team only';
       $('#chat-topic').textContent = direct ? (channel?.active === false ? 'This teammate no longer has sales workspace access.' : 'Private direct message') : channel?.topic || '';
       empty.querySelector('h4').textContent = direct ? 'Message ' + name : 'Start the conversation in ' + label;
       empty.querySelector('p').textContent = direct ? 'Only the two of you can see this conversation.' : 'Send the first message to your team.';
