@@ -133,12 +133,13 @@ test('a client books, moves and cancels a rep demo through the packaged public p
     assert.ok((await (await client.call('/book/api')).text()).includes('X-Booking-Signature'));
   }));
 
-test('the nursing-home campaign connects searchable guides, a facility pilot, public demos and the sales kit', () =>
+test('reps use Campaigns for guides and materials, facility records for pilots, and the calendar for demos', () =>
   withWorkspace('senior-care', async ({ session, dataDir }) => {
     const owner = session(), rep = session(), client = session();
     await owner.api('login', { code: readFileSync(join(dataDir, 'owner-code'), 'utf8').trim() });
     const invite = await owner.api('sales-team-invite', { name: 'Example rep', email: 'rep@example.invalid' });
     await rep.api('login', { code: invite.code, email: invite.agent.email });
+    const { office } = await rep.api('create-office', { name: 'Example Care', address: '12 Test Way', city: 'Hartford', state: 'CT', facilityType: 'nursing-home' });
     const admin = await owner.page('/sales#view=campaigns');
     await waitFor(() => !admin.document.querySelector('[data-care-campaign]').hidden, 'owner campaign landing');
     const settings = admin.document.querySelector('.cc-outreach');
@@ -152,6 +153,9 @@ test('the nursing-home campaign connects searchable guides, a facility pilot, pu
     assert.equal(el('.sdr-nav [data-tab="campaigns"]').hidden, false);
     assert.equal(el('.cc-outreach').hidden, true);
     assert.equal(el('#cc-tab-benefits').getAttribute('aria-selected'), 'true');
+    assert.doesNotMatch(el('[data-care-campaign]').textContent, /Ready to Bring|Start a Pilot|Schedule a Demo/);
+    assert.equal(el('[data-care-campaign] a[href^="/book"]'), null);
+    assert.equal(el('[data-care-campaign] [download]').closest('[role="tabpanel"]').id, 'cc-topic-materials');
     assert.equal(rep.actions.some(r => r.action === 'campaign-read'), false);
     await rep.api('campaign-read', {}, 403);
     const search = el('#sdr-header-search input');
@@ -169,14 +173,15 @@ test('the nursing-home campaign connects searchable guides, a facility pilot, pu
     assert.equal(kit.headers.get('content-type'), 'application/pdf');
     assert.equal(Buffer.from(await kit.arrayBuffer()).subarray(0, 5).toString(), '%PDF-');
 
-    el('[data-cc-start]').click();
-    const form = el('[data-cc-pilot]');
-    assert.equal(el('[data-cc-dialog]').open, true);
-    assert.equal(form.elements.office.value, 'new');
-    for (const [key, value] of Object.entries({ name: 'Example Care', address: '12 Test Way', city: 'Hartford', state: 'CT',
-      unit: 'Activities', start: '2027-02-01', coordinator: 'Unit lead', goal: 'Count choices at lunch.' })) form.elements.namedItem(key).value = value;
+    el('.sdr-nav [data-tab="pipeline"]').click();
+    el('[data-office="' + office.id + '"]').click();
+    const form = await waitFor(() => el('#sales-activity'), 'facility follow-up form');
+    form.elements.kind.value = 'care_pilot';
+    form.elements.kind.dispatchEvent(new w.Event('change'));
+    assert.equal(form.elements.note.disabled, true);
+    for (const [key, value] of Object.entries({ unit: 'Activities', start: '2027-02-01', coordinator: 'Unit lead', goal: 'Count choices at lunch.' })) form.elements.namedItem(key).value = value;
     form.requestSubmit();
-    await waitFor(() => !el('[data-cc-open-office]').hidden, 'pilot saved to a new facility');
+    await waitFor(() => el('#sales-detail .sales-event') && el('#sales-detail').textContent.includes('Count choices at lunch.'), 'pilot in facility history');
     const written = rep.actions.find(body => body.action === 'start-care-pilot');
     assert.ok(written);
     await rep.api('start-care-pilot', written);
@@ -188,13 +193,14 @@ test('the nursing-home campaign connects searchable guides, a facility pilot, pu
     const record = await owner.api('office', { id: written.id });
     assert.equal(record.events.filter(row => JSON.parse(row.notes).action === 'care_pilot').length, 1);
     assert.equal(JSON.parse(record.office.notes).facilityType, 'nursing-home');
-    el('[data-cc-open-office]').click();
-    await waitFor(() => el('#sales-detail').textContent.includes('Count choices at lunch.'), 'pilot in the facility drawer');
-    assert.equal(el('[data-cc-dialog]').open, false);
+    assert.equal(el('#sales-activity').elements.note.disabled, false);
     assert.doesNotMatch(search.placeholder, /sales guides/);
 
-    const demoURL = el('.cc-banner a[href^="/book"]').getAttribute('href');
-    const booking = (await client.page(demoURL)).document;
+    el('#sales-detail-close').click();
+    el('.sdr-nav [data-tab="team"]').click();
+    el('[data-team-tools] [data-tab="calendar"]').click();
+    await waitFor(() => !el('[data-tab-panel="calendar"]').hidden, 'calendar in Sales team');
+    const booking = (await client.page('/book?type=demo')).document;
     await waitFor(() => !booking.querySelector('#bk-picker').hidden, 'demo booking picker');
     assert.equal(booking.querySelector('#bk-types input:checked').value, 'demo');
     assert.equal(booking.querySelectorAll('#bk-types input').length, 1);

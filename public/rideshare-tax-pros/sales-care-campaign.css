@@ -21,13 +21,13 @@
 .cc-hero-list { align-self: center; display: grid; gap: .85em; max-width: 23%; padding: 17px 13px; list-style: none; border-radius: 18px 0 0 18px; background: #032650e8; }
 .cc-hero-list li { display: flex; align-items: center; gap: 7px; font-size: clamp(12px,1.25cqw,17px); font-weight: 650; }
 .cc-hero-list .cc-icon { width: 19px; height: 19px; padding: 3px; color: #fff; stroke-width: 3; border-radius: 50%; background: #008c60; }
-.cc-tabs, .cc-card, .cc-banner, .cc-hands, .cc-outreach { border: 1px solid var(--cc-edge); border-radius: 14px; box-shadow: 0 2px 4px #123d6b15; }
+.cc-tabs, .cc-card, .cc-hands, .cc-outreach { border: 1px solid var(--cc-edge); border-radius: 14px; box-shadow: 0 2px 4px #123d6b15; }
 .cc-tabs { display: grid; grid-template-columns: 1.35fr 1.12fr .93fr 1fr 1.12fr 1.15fr; gap: 1px; padding: 2px; background: linear-gradient(#fff,#e3efff); }
 .cc-tabs button { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; min-height: 42px; padding: 4px 7px; border: 0; border-radius: 9px; background: transparent; color: #0b2551; font: inherit; font-size: clamp(12px,1.28cqw,16px); font-weight: 700; cursor: pointer; }
 .cc-tabs button + button::before { position: absolute; left: -1px; height: 50%; border-left: 1px solid #bdd5f2; content: ""; }
 .cc-tabs button:is([aria-selected="true"],:hover)::before, .cc-tabs button[aria-selected="true"] + button::before { display: none; }
 .cc-tabs button:hover { background: #d9eaff; }
-.cc-tabs button[aria-selected="true"], .cc-action.cc-primary { color: #fff; background: linear-gradient(#007af2,#004acb); box-shadow: 0 2px 5px #0756c535; }
+.cc-tabs button[aria-selected="true"] { color: #fff; background: linear-gradient(#007af2,#004acb); box-shadow: 0 2px 5px #0756c535; }
 .cc-tabs .cc-icon { width: 20px; height: 20px; color: inherit; }
 .cc-topic, .cc-left-stack, .cc-right-stack { display: grid; gap: 12px; min-width: 0; }
 .cc-lead-grid, .cc-detail-grid, .cc-topic-grid { display: grid; align-items: stretch; gap: 12px; min-width: 0; }
@@ -37,7 +37,7 @@
 .cc-card { min-width: 0; padding: clamp(13px,1.55cqw,23px); background: linear-gradient(138deg,#fff 63%,#f4f9ff); }
 .cc-card h3 { display: flex; gap: 9px; align-items: center; margin-bottom: 10px; font-size: clamp(17px,1.95cqw,27px); }
 .cc-card h3 .cc-icon { width: 1.4em; height: 1.4em; stroke-width: 2.4; }
-.cc-card p, .cc-card li, .cc-banner p { color: #192d4a; font-size: clamp(13px,1.29cqw,17px); }
+.cc-card p, .cc-card li { color: #192d4a; font-size: clamp(13px,1.29cqw,17px); }
 .cc-opportunity { min-height: 135px; background: linear-gradient(90deg,#fff 0%,#fffffff5 39%,#e8f4ff72 58%,#e8f4ff00 77%),url('/sales-prospects-community.webp') no-repeat right 55% / auto 115%,#eaf5ff; }
 .cc-opportunity p { max-width: 52%; }
 .cc-benefits { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 7px; }
@@ -67,17 +67,9 @@
 .cc-hands { display: flex; flex-direction: column; justify-content: flex-end; gap: 5px; min-height: 108px; padding: 15px; overflow: hidden; background: linear-gradient(90deg,#053873db,transparent 85%),url('/sales-campaign-hands.webp') center 54% / cover; color: white; }
 .cc-hands .cc-icon { color: white; }
 .cc-hands figcaption { color: white; font-size: clamp(14px,1.45cqw,21px); font-weight: 750; line-height: 1.2; text-shadow: 0 1px 4px #143653; }
-.cc-banner { display: flex; align-items: center; gap: 12px; padding: clamp(14px,1.9cqw,26px); background: linear-gradient(115deg,#f8fcff,#e6f3ff 65%,#cee4ff); }
-.cc-banner > .cc-icon { width: 40px; height: 40px; }
-.cc-banner h2, .cc-dialog h2 { font-size: clamp(18px,1.9cqw,26px); }
-.cc-banner p, .cc-topic-grid .cc-actions { margin-top: 6px; }
-.cc-actions { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; }
-.cc-banner .cc-actions { flex: none; margin-left: auto; }
 .cc-action, .cc-search-results button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 42px; padding: 8px 12px; border: 1px solid #8fb9ef; border-radius: 9px; background: linear-gradient(#fff,#e8f2ff); color: #07499d; text-decoration: none; font: inherit; font-weight: 700; font-size: clamp(13px,1.3cqw,16px); cursor: pointer; }
 .cc-action .cc-icon { width: 19px; height: 19px; color: inherit; }
 .cc-action:hover, .cc-search-results button:hover { color: #003275; border-color: #3588e4; background: #d9eaff; }
-.cc-action.cc-primary:hover { color: white; background: #0649bc; }
-.cc-action:disabled { opacity: .6; cursor: wait; }
 .cc-steps, .cc-resource-links { padding-left: 1.3em; }
 .cc-steps li, .cc-resource-links li { margin: 8px 0; }
 .cc-resource-links a { color: #0752a7; }
@@ -87,18 +79,8 @@
 .cc-outreach[open] > .sdr-card { margin: 12px 0 0; }
 .cc-search-results h2 { margin-bottom: 8px; font-size: 18px; }
 .cc-search-results button { min-height: 36px; margin: 2px 5px 2px 0; }
-.cc-dialog { width: min(94vw,520px); max-height: 88dvh; overflow: auto; padding: 22px; border-radius: 16px; border: 1px solid var(--cc-edge); color: #10233f; background: white; box-shadow: 0 15px 64px #061b3950; }
-.cc-dialog::backdrop { background: #07183390; }
-.cc-dialog-head, .cc-fields { display: flex; align-items: center; gap: 12px; }
-.cc-dialog-head { margin-bottom: 14px; justify-content: space-between; }
-.cc-close { width: 36px; height: 36px; border: 1px solid #c5d9f0; border-radius: 50%; background: #f1f7ff; color: #19446c; font: 23px/1 system-ui; cursor: pointer; }
-.cc-dialog .sales-form, .cc-dialog fieldset { display: grid; gap: 10px; }
-.cc-dialog fieldset { min-width: 0; margin: 0; padding: 10px 12px; border: 1px solid var(--cc-edge); border-radius: 8px; }
-.cc-dialog .cc-fields > label { flex: 1; min-width: 0; }
-.cc-dialog [role=status]:not(:empty) { margin: 10px 0; }
+.cc-record-pilot { display: grid; min-width: 0; gap: 10px; margin: 0; padding: 12px; border: 1px solid var(--glass-border); border-radius: 10px; }
 @container (max-width: 900px) {
-  .cc-banner { flex-wrap: wrap; }
-  .cc-banner .cc-actions { margin-left: 0; }
   .cc-hero-copy { width: 47%; }
 }
 @container (max-width: 720px) {
@@ -123,9 +105,5 @@
   .cc-detail-grid, .cc-right-stack { grid-template: auto / 1fr; }
   .cc-benefits { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .cc-opportunity p { max-width: 63%; }
-  .cc-banner > div:first-of-type { flex: 1; }
-  .cc-actions, .cc-banner .cc-actions { width: 100%; }
-  .cc-banner .cc-action { flex: 1 1 110px; }
   .cc-hands { min-height: 145px; }
-  .cc-fields { flex-wrap: wrap; }
 }
