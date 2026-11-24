@@ -1,0 +1,68 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { test } from 'node:test';
+import { STATES } from '../../sales/model.mjs';
+import { territoryDashboard } from '../../sales/territory-dashboard.mjs';
+import { sqliteStore } from './sqlite.mjs';
+
+test('national and county metrics count visible offices, signed agreements and assigned towns once', async t => {
+  const dir = mkdtempSync(join(tmpdir(), 'territory-metrics-'));
+  const db = sqliteStore(join(dir, 'test.sqlite'));
+  t.after(() => { db.close(); rmSync(dir, { recursive: true, force: true }); });
+  const now = Date.parse('2026-11-12T16:00:00Z'), owner = { role: 'owner' };
+  const office = (locality, assigned_to, created_at, extras) => {
+    const row = db.create('offices', { state: 'CT', locality, assigned_to, status: 'new', ...extras });
+    db.patch('offices', row.id, { created_at });
+    return row;
+  };
+  const signed = office('Hartford', '7', '2026-11-09T12:00:00Z', { meeting_date: '2026-11-17' });
+  db.create('enrollments', { notes: JSON.stringify({ leadId: signed.id, signature: 'Example', acceptedAt: '2026-11-10' }) });
+  db.create('enrollments', { notes: JSON.stringify({ leadId: signed.id }) });
+  office('Hartford', '7', '2026-10-11T00:00:00Z');
+  office('Hartford', '8', '2026-10-12T19:00:00Z');
+  office('New Haven', '7', '2026-11-10T00:00:00Z');
+  office('Unknown address', '8', '2026-11-01T00:00:00Z', { status: 'not_interested' });
+  db.saveCountyLead('09110', 0, { name: 'Example lead', memberId: '7' });
+  const state = () => territoryDashboard(owner, { state: 'CT' }, db, now);
+  const ct = await state();
+  assert.equal(ct.rows.length, 9);
+  assert.equal(ct.total.towns, 169);
+  assert.equal(ct.total.offices, 5);
+  assert.equal(ct.total.prospects, 3);
+  assert.equal(ct.total.followups, 1);
+  assert.equal(ct.total.signed, 1);
+  assert.equal(ct.total.added, 3);
+  assert.equal(ct.total.trend, 2);
+  assert.equal(ct.unmappedOffices, 1);
+  const capitol = ct.rows.find(row => row.id === '09110');
+  assert.equal(capitol.offices, 3);
+  assert.equal(capitol.coverage, 100);
+  assert.equal(ct.total.covered, capitol.towns);
+  assert.equal(ct.total.working, 1);
+  const national = await territoryDashboard(owner, {}, db, now);
+  assert.deepEqual(national.rows.map(row => row.id).sort(), [...STATES].sort());
+  assert.equal(national.total.offices, 5);
+  assert.equal(national.total.repCount, 1);
+  for (const row of [national.total, ...national.rows]) assert.equal(row.covered + row.working + row.available, row.towns);
+  for (const [state, expected] of [['PA', 67], ['CA', 58], ['HI', 5], ['DC', 1]]) {
+    const scoped = await territoryDashboard(owner, { state }, db, now);
+    assert.equal(scoped.rows.length, expected);
+    assert.deepEqual(scoped.total, national.rows.find(row => row.id === state));
+  }
+  const rep = { role: 'agent', id: '7', territory: { version: 1, areas: [{ state: 'CT', cities: ['hartford'] }] } };
+  const restricted = await territoryDashboard(rep, {}, db, now);
+  assert.deepEqual(restricted.rows.map(row => row.id), ['CT']);
+  assert.deepEqual([restricted.total.towns, restricted.total.offices, restricted.total.prospects, restricted.total.signed], [1, 2, 1, 1]);
+  assert.deepEqual((await territoryDashboard(rep, { state: 'CT' }, db, now)).rows.map(row => row.id), ['09110']);
+  await assert.rejects(territoryDashboard(rep, { state: 'PA' }, db), { status: 403 });
+  const empty = await territoryDashboard({ ...rep, territory: { version: 1, areas: [] } }, {}, db);
+  assert.deepEqual(empty.rows, []);
+  assert.equal(empty.total.coverage, null);
+  db.saveCountyLead('09110', 1, { name: '', memberId: '' });
+  const cleared = await state();
+  assert.equal(cleared.total.repCount, 0);
+  assert.equal(cleared.total.covered, 0);
+  assert.equal(cleared.total.working, 2);
+});

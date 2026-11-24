@@ -156,6 +156,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         : member);
       return { ...result, members };
     }
+    if (tools.territoryDashboard && action === 'territory-dashboard') return tools.territoryDashboard(user, b);
     if (tools.territoryOwnership && action === 'territory-ownership') {
       return tools.territoryOwnership(user, b, () => salesTeam.dispatch(user, 'sales-team-read', {}));
     }
