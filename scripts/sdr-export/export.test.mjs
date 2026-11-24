@@ -127,6 +127,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const fetchNetwork = globalThis.fetch;
     globalThis.fetch = async (address, options) => {
       const url = new URL(address);
+      if (url.href === 'http://127.0.0.1:11434/api/chat') {
+        const { messages } = JSON.parse(options.body);
+        if (messages[0].content.includes('TinkyTown communication demo')) {
+          const question = messages.at(-1).content;
+          if (question === 'Simulate an unavailable model') return new Response('', { status: 503 });
+          if (question === 'What is five plus seven?') return Response.json({ message: { content: 'Five plus seven is twelve.' } });
+          throw new Error('Unexpected demo question.');
+        }
+      }
       if (url.hostname === 'places.googleapis.com') {
         if (options.headers['X-Goog-Api-Key'] !== 'fixture-places-key') throw new Error('Places key must stay in the request header.');
         if (url.pathname === '/v1/places:searchText') {
@@ -656,7 +665,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   clarendon.dispatchEvent(new window.MouseEvent('click', {bubbles:true}));
   assert.equal(mapSelection.hidden, false);
   assert.match(mapSelection.textContent, /Clarendon County/);
-  await waitFor(() => /No Tinky Team agent assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
+  await waitFor(() => /No sales agent assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
   assert.equal(clarendon.parentElement.getAttribute('display'), 'none');
   assert.equal(atlas.querySelector('.town-map-districts').getAttribute('display'), 'inline');
   assert.equal(atlas.querySelectorAll('.town-map-district[data-district^="45027"]').length, 7);
@@ -1159,7 +1168,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   window.document.querySelector('[data-tab=team]').click();
   const addRep = pageDocument.querySelector('#sales-team-add-rep');
   assert.equal(addRep.closest('[hidden]'), null);
-  assert.match(addRep.textContent.trim(), /^Add Tinky Team agent$/);
+  assert.match(addRep.textContent.trim(), /^Add sales agent$/);
   addRep.click();
   assert.equal(teamPane('invite').hidden, false);
   assert.equal(teamPane('settings').hidden, true);
@@ -1202,7 +1211,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => !profileForm.elements.bio.disabled, 'The self-profile form did not load');
   assert.equal(profileForm.elements.name.value, juniorInput.name);
   assert.equal(profileForm.elements.email.value, juniorInput.email);
-  const contact = { name: juniorInput.name, email: 'junior-work@example.test', phone: '+1 860 555 0142', bio: 'Hospital and senior care outreach' };
+  const contact = { name: juniorInput.name, email: 'junior-work@example.test', phone: '+1 860 555 0142', displayTitle: 'Care Partnerships Lead', bio: 'Hospital and senior care outreach' };
   for (const [key, value] of Object.entries(contact)) profileForm.elements[key].value = value;
   const mockFile = new juniorWindow.File(['portrait'], 'portrait.jpg', {type:'image/jpeg'});
   juniorWindow.SdrHeadshots.encode = async file => {
@@ -1215,6 +1224,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     !profileForm.elements.bio.disabled, 'The rep portrait did not preview');
   profileForm.requestSubmit();
   await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own contact details, bio and headshot');
+  assert.equal(juniorDocument.querySelector('[data-profile-role]').textContent, contact.displayTitle);
   const { progress: initialProgress, ...savedProfile } = (await juniorSession.api('sales-team-profile')).profile;
   assert.deepEqual(savedProfile, { ...contact, photo: portrait, revision: 1 });
   assert.deepEqual(initialProgress, { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 });
@@ -1263,9 +1273,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentNav = agentDocument.querySelector('[data-tab=team]');
   agentWindow.location.hash = 'view=team&section=settings';
   await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
-  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Tinky Team');
-  assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Tinky Team');
-  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Tinky Team agent');
+  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Sales team');
+  assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Sales team');
+  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Sales agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
   const agentPicker = agentDocument.querySelector('#sales-team-sidebar-section');
@@ -1302,7 +1312,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => agentDocument.querySelector('[data-county-row="09110"]'), 'Team county roster did not load');
   const teamSelection = agentDocument.querySelector('[data-map-selection]');
   agentDocument.querySelector('[data-county-row="09190"]').click();
-  await waitFor(() => /No Tinky Team agent assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
+  await waitFor(() => /No sales agent assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
   assert.equal(teamSelection.querySelector('[data-county-assign]'), null);
   agentDocument.querySelector('[data-county-row="09110"]').click();
   assert.equal(agentDocument.querySelector('.county-lead-form'), null);
@@ -1636,6 +1646,29 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
   });
 
+  await t.test('the Senior center kiosk sends typed questions to AI and keeps only staff listening', async t => {
+    const anonymous = browserSession(first.origin);
+    await anonymous.api('demo-kiosk-ask', { question: 'What is five plus seven?' }, 401);
+    await owner.api('demo-kiosk-ask', { question: ' ' }, 400);
+    const demoWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=demo&venue=senior-center');
+    const find = selector => demoWindow.document.querySelector(selector);
+    await waitFor(() => !find('[data-tab-panel="demo"]').hidden && find('.care-kiosk-tiles button'), 'Senior center kiosk did not load');
+    assert.equal(find('.ck-talk'), null);
+    assert.match(find('.ck-staff').textContent, /Listen for Staff/);
+    const field = find('.ck-type input'), form = field.form, send = find('.ck-type button[type="submit"]');
+    field.value = 'What is five plus seven?';
+    form.requestSubmit();
+    assert.equal(send.disabled, true);
+    await waitFor(() => find('.care-kiosk-message').textContent === 'Five plus seven is twelve.', 'The AI answer did not reach the kiosk');
+    assert.equal(find('.ck-words strong').textContent, 'AI answer:');
+    assert.equal(find('.ck-transcript summary').textContent, 'Conversation (2)');
+    assert.equal(send.disabled, false);
+    field.value = 'Simulate an unavailable model';
+    form.requestSubmit();
+    await waitFor(() => [...demoWindow.document.querySelectorAll('.ck-status')].some(node => node.textContent.includes('AI is unavailable')), 'The model error was not displayed');
+    assert.equal(send.disabled, false);
+  });
+
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
     const path = '/sales';
     const before = await owner.api('bootstrap');
@@ -1792,9 +1825,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(care.querySelector('[data-tab-panel="today"]').hidden, false);
     const directoryState = care.querySelector('#care-directory-state');
     assert.equal(directoryState.options.length, 51);
-    care.querySelector('[data-tab="facilities"]').click();
+    assert.equal(care.querySelector('.sdr-sidebar [data-tab="facilities"]'), null);
+    careWindow.location.hash = 'view=facilities';
     const facilitiesPanel = care.querySelector('[data-tab-panel="facilities"]');
-    assert.equal(facilitiesPanel.hidden, false);
+    await waitFor(() => !facilitiesPanel.hidden, 'The facility directory deep link did not open');
     assert.equal(care.querySelector('[data-tab-panel="territories"] #sales-territory-facilities'), null);
     const results = facilitiesPanel.querySelector('[data-facility-results]');
     const facilityState = facilitiesPanel.querySelector('[data-facility-state]');
@@ -1892,7 +1926,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
       ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
-    const picker = rail.querySelector('select[aria-label="Tinky Team section"]');
+    const picker = rail.querySelector('select[aria-label="Sales team section"]');
     assert.equal(picker.closest('[hidden]'), null);
     assert.equal(picker.selectedOptions[0].textContent, 'Owners & Rolodex');
     assert.equal(picker.multiple, false);

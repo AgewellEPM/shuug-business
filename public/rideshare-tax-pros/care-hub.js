@@ -6,16 +6,21 @@
   const workspace = document.getElementById('sales-workspace');
   const home = part('home'), stage = part('stage'), surface = part('mount');
   const strokeHost = part('stroke'), guide = part('guide');
-  const voice = part('voice');
+  const voice = part('voice'), repTools = part('rep-tools');
   const names = new Map([...home.querySelectorAll('[data-care-launch]')].map(link =>
     [link.dataset.careLaunch, link.querySelector('strong').textContent]));
   const facility = { hospital: 'hospital', 'nursing-home': 'nursing', 'senior-center': null };
   const stations = { townhall: 'townhall', library: 'townhall', police: 'townhall', clinic: 'clinic', directory: 'directory' };
+  const libraries = { home: 'home', school: 'school', restaurants: 'restaurants', boards: 'library' };
+  // Every location opens on the customer kiosk. The other views are one step away under Rep tools.
+  const kiosk = ['', 'Customer kiosk'];
   const modes = {
-    hospital: [['', 'Rooms & services'], ['counter', 'Front desk kiosk'], ['clinic', 'Medical office']],
-    'nursing-home': [['', 'Rooms & services'], ['counter', 'Front desk kiosk'], ['assisted', 'Assisted living']],
-    'senior-center': [['', 'Rooms & services'], ['counter', 'Visitor conversation']],
-    stroke: [['', 'Bedside tools'], ['boards', 'Communication boards']],
+    hospital: [kiosk, ['rooms', 'Rooms & services']],
+    'nursing-home': [kiosk, ['assisted', 'Assisted living kiosk'], ['rooms', 'Rooms & services']],
+    'senior-center': [kiosk, ['rooms', 'Rooms & services']],
+    stroke: [kiosk, ['tools', 'Bedside tools'], ['boards', 'Guided boards']],
+    ...Object.fromEntries(Object.keys(stations).map(id => [id, [kiosk, ['tools', 'QR code & phone conversations']]])),
+    ...Object.fromEntries(Object.keys(libraries).map(id => [id, [kiosk, ['tools', 'Full board library']]])),
   };
   let signature, cleanup, stroke, lastLaunch, wasVisible = false;
 
@@ -165,9 +170,10 @@
     chrome(venue, mode, Boolean(venue && args.get('present') === '1'));
 
     companions(venue, args);
-    const rooms = Object.hasOwn(facility, venue) && !mode;
     const room = args.get('room');
-    const next = [venue, mode, args.get('place'), args.get('board'), args.get('strokeView')].join('|');
+    const rooms = Object.hasOwn(facility, venue) && (mode === 'rooms' || Boolean(room));
+    const bedside = venue === 'stroke' && (mode === 'tools' || args.has('strokeView'));
+    const next = [venue, mode, rooms, args.get('place'), args.get('board'), args.get('strokeView')].join('|');
     if (rooms && next === signature && lastRoom !== room) window.CareFacility.showRoom(surface, room);
     lastRoom = room;
     if (next === signature) return;
@@ -180,38 +186,35 @@
       if (lastLaunch) home.querySelector('[data-care-launch="' + lastLaunch + '"]')?.focus({ preventScroll: true });
       return;
     }
-    if (voice && ['hospital', 'nursing-home', 'senior-center', 'stroke', 'guide'].includes(venue)) {
+    if (voice && ['bedside', 'hospital', 'nursing-home', 'senior-center', 'stroke', 'guide'].includes(venue)) {
       const setting = voice.querySelector('select[name="setting"]');
       setting.value = venue === 'senior-center' ? 'senior' : venue === 'nursing-home' ? 'nursing' : 'bedside';
       setting.dispatchEvent(new Event('change'));
       voice.hidden = false;
     }
     if (names.has(venue)) lastLaunch = venue;
+    repTools.open = Boolean(mode || rooms || bedside || args.get('training') || venue === 'guide');
     if (venue === 'guide' || (venue === 'stroke' && mode === 'boards')) {
       surface.hidden = true;
       guide.hidden = false;
       if (venue === 'stroke') guide.querySelector('[data-demo-product="stroke"]').click();
-    } else if (venue === 'stroke') {
+    } else if (bedside) {
       surface.hidden = true;
       strokeHost.hidden = false;
       stroke ||= window.CareStroke.mount(strokeHost);
       if (args.get('strokeView')) stroke.open(args.get('strokeView'));
-    } else if (Object.hasOwn(facility, venue) && !mode) {
+    } else if (rooms) {
       window.CareFacility.mount(surface, venue, args.get('room'));
       cleanup = () => window.CareFacility.unmount(surface);
-    } else if (['home', 'school', 'restaurants', 'boards'].includes(venue)) {
-      window.CareLibrary.mount(surface, venue === 'boards' ? 'library' : venue);
+    } else if (mode === 'tools' && Object.hasOwn(libraries, venue)) {
+      window.CareLibrary.mount(surface, libraries[venue]);
       cleanup = () => window.CareLibrary.unmount(surface);
-    } else if (venue === 'senior-center') {
-      args.set('place', 'senior');
-      cleanup = window.CareKiosks.mount(surface, 'community', args);
-    } else if (Object.hasOwn(facility, venue) || Object.hasOwn(stations, venue)) {
-      const id = stations[venue] || (['clinic', 'assisted'].includes(mode) ? mode : facility[venue]);
+    } else if (mode === 'tools' && Object.hasOwn(stations, venue)) {
       const board = ['library', 'police'].includes(venue) ? 'civic_' + venue : undefined;
-      window.CareLocations.mount(surface, id, board);
+      window.CareLocations.mount(surface, stations[venue], board);
       cleanup = () => window.CareLocations.unmount(surface);
     } else {
-      cleanup = window.CareKiosks.mount(surface, venue, args);
+      cleanup = window.CareKiosks.mount(surface, venue, args, { diet: () => stroke?.diet() });
     }
     part('return').focus({ preventScroll: true });
   }
@@ -236,6 +239,9 @@
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
+  });
+  panel.addEventListener('care:stroke-tool', event => {
+    route(new URLSearchParams({ view: 'demo', venue: 'stroke', mode: 'tools', strokeView: event.detail }));
   });
   panel.addEventListener('care:stroke-message', event => {
     stroke ||= window.CareStroke.mount(strokeHost);

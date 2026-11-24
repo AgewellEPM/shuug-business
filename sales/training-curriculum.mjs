@@ -76,7 +76,7 @@ export const fieldTrainingCourses = [
   },
   {
     id: 'ethical-care-communication', category: 'healthcare-sales', title: 'Dignity, Privacy, and Ethical Communication',
-    description: 'Run a respectful walkthrough, represent the product accurately, and record only the information the Tinky Team needs.',
+    description: 'Run a respectful walkthrough, represent the product accurately, and record only the information the Sales team needs.',
     durationMinutes: 18,
     sources: [residentRights, alzheimers, effectiveCommunication],
     sections: [
@@ -115,7 +115,7 @@ export const fieldTrainingCourses = [
       {
         id: 'demo-options', title: 'Test the phone and shared-device routes',
         steps: [
-          'In Tinky Team, open Demo and select Open live customer kiosk. Choose Nursing Home on the Healthcare board, tap one visitor message and listen to how it plays.',
+          'In Sales team, open Demo and select Open live customer kiosk. Choose Nursing Home on the Healthcare board, tap one visitor message and listen to how it plays.',
           'Select Listen for Staff. Have a teammate say a short practice reply. Review the suggested tiles and let the visitor choose their own response. Try the typed option if the browser cannot listen.',
           'At a site with a kiosk, show how a visitor can reach the board on the shared device. Try the actual phone, browser, language, and audio output before a site review. Offer a staff-supported option when a visitor has no usable phone or asks for another method.',
           'Rehearse bedside and rehabilitation scenarios with the TinkyStroke walkthrough. When presenting to a specific facility, use its issued QR and confirm the actual board and access options in that setting.',
@@ -327,7 +327,7 @@ export const trainingCourseExercises = {
         ['A state-operated recreation program', 'The town department that operates a senior center', 'A privately operated healthcare facility serving patients'],
         2, 'Title III applies to qualifying public accommodations operated by private businesses or nonprofits. Verify coverage with the organization.'),
       question('primary-consideration', 'A person requests a particular aid for a town program. How should the town start?',
-        ['Give primary consideration to the person’s requested aid', 'Use its newest device for all visitors', 'Send the request directly to a Tinky Team agent to decide'],
+        ['Give primary consideration to the person’s requested aid', 'Use its newest device for all visitors', 'Send the request directly to a sales agent to decide'],
         0, 'Under Title II the public entity gives primary consideration to the person’s request, subject to the applicable limits.'),
       question('different-context', 'A board helped with directions. What should staff do when the same visitor needs a complex discussion?',
         ['Assume the directions result covers the new task', 'Check the person’s preferred method and arrange support suited to the new conversation', 'Ask the visitor to use only a short phrase'],

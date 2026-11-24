@@ -127,6 +127,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
     if (tools.salesCoach?.actions.has(action)) return tools.salesCoach.dispatch(user, action, b, dispatch);
+    if (action === 'demo-kiosk-ask' && tools.demoKioskAI) return tools.demoKioskAI(user, b);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.careCampaign && action === 'start-care-pilot') {
       const office = await leadFor(user, b.id);
@@ -147,7 +148,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const profileId = result.profile?.id ?? user.id;
       const isRoster = action === 'sales-team-read';
       const account = !isRoster && profileId !== user.id ? rosterUser(await db.get('agents', profileId)) : user;
-      if (!account) throw new HttpError(404, 'Tinky Team profile not found.');
+      if (!account) throw new HttpError(404, 'Sales team profile not found.');
       const [offices, events, enrollments] = await Promise.all([db.list('offices'), db.list('events'), db.list('enrollments')]);
       const scores = teamExperience(isRoster ? result.members : [account], offices, events, enrollments);
       if (!isRoster) return { profile: { ...result.profile, progress: scores.get(profileId) } };
@@ -190,7 +191,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const activeAgents = salesTeam ? salesTeam.roster(user, agents) : agents.filter(r => r.status === 'active')
         .map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [], ...agentTerritory(r) }));
       const profile = salesTeam ? db.salesRepProfile(user.id) : null;
-      const repProfile = profile ? { name: profile.name || user.name, photo: profile.photo } : null;
+      const repProfile = profile ? { name: profile.name || user.name, photo: profile.photo, displayTitle: profile.displayTitle ?? '' } : null;
       return {
         user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms),
         mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents,

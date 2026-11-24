@@ -1,0 +1,1955 @@
+{
+ "strip": [
+  {
+   "emoji": "🆘",
+   "label": "HELP",
+   "say": "Help! I need help right now!"
+  },
+  {
+   "emoji": "💨",
+   "label": "CAN'T BREATHE",
+   "say": "I can't breathe! I need help now!"
+  },
+  {
+   "emoji": "❤️‍🔥",
+   "label": "CHEST PAIN",
+   "say": "I'm having chest pain! Please help!"
+  },
+  {
+   "emoji": "🪫",
+   "label": "CHOKING",
+   "say": "I'm choking! Help me!"
+  }
+ ],
+ "tiers": {
+  "acute": [
+   {
+    "emoji": "✅",
+    "label": "Yes",
+    "say": "Yes"
+   },
+   {
+    "emoji": "❌",
+    "label": "No",
+    "say": "No"
+   },
+   {
+    "emoji": "👩‍⚕️",
+    "label": "Nurse",
+    "open": "nurse"
+   },
+   {
+    "emoji": "💧",
+    "label": "Thirsty",
+    "open": "drinks"
+   },
+   {
+    "emoji": "🚻",
+    "label": "Bathroom",
+    "say": "I need to use the bathroom"
+   },
+   {
+    "emoji": "🍽️",
+    "label": "Hungry",
+    "open": "food"
+   },
+   {
+    "emoji": "😟",
+    "label": "Feelings",
+    "open": "feelings"
+   },
+   {
+    "emoji": "👨‍⚕️",
+    "label": "Doctor",
+    "say": "I need to speak with my doctor"
+   }
+  ],
+  "hospital": [
+   {
+    "emoji": "✅",
+    "label": "Yes",
+    "say": "Yes"
+   },
+   {
+    "emoji": "❌",
+    "label": "No",
+    "say": "No"
+   },
+   {
+    "emoji": "👩‍⚕️",
+    "label": "Nurse",
+    "open": "nurse"
+   },
+   {
+    "emoji": "💧",
+    "label": "Thirsty",
+    "open": "drinks"
+   },
+   {
+    "emoji": "🚻",
+    "label": "Bathroom",
+    "say": "I need to use the bathroom"
+   },
+   {
+    "emoji": "🍽️",
+    "label": "Hungry",
+    "open": "food"
+   },
+   {
+    "emoji": "😟",
+    "label": "Feelings",
+    "open": "feelings"
+   },
+   {
+    "emoji": "👨‍⚕️",
+    "label": "Doctor",
+    "say": "I need to speak with my doctor"
+   },
+   {
+    "emoji": "🗣️",
+    "label": "Talk Together",
+    "tool": "talk_together"
+   },
+   {
+    "emoji": "🎁",
+    "label": "I Want",
+    "open": "i_want"
+   },
+   {
+    "emoji": "🛋️",
+    "label": "Comfort",
+    "open": "comfort"
+   },
+   {
+    "emoji": "🚶",
+    "label": "Move Me",
+    "open": "mobility"
+   },
+   {
+    "emoji": "👨‍👩‍👧",
+    "label": "People",
+    "open": "people"
+   },
+   {
+    "emoji": "❓",
+    "label": "Questions",
+    "open": "questions"
+   },
+   {
+    "emoji": "📈",
+    "label": "Vitals",
+    "tool": "vitals"
+   }
+  ],
+  "full": [
+   {
+    "emoji": "✅",
+    "label": "Yes",
+    "say": "Yes"
+   },
+   {
+    "emoji": "❌",
+    "label": "No",
+    "say": "No"
+   },
+   {
+    "emoji": "👩‍⚕️",
+    "label": "Nurse",
+    "open": "nurse"
+   },
+   {
+    "emoji": "💧",
+    "label": "Thirsty",
+    "open": "drinks"
+   },
+   {
+    "emoji": "🚻",
+    "label": "Bathroom",
+    "say": "I need to use the bathroom"
+   },
+   {
+    "emoji": "🍽️",
+    "label": "Hungry",
+    "open": "food"
+   },
+   {
+    "emoji": "😟",
+    "label": "Feelings",
+    "open": "feelings"
+   },
+   {
+    "emoji": "👨‍⚕️",
+    "label": "Doctor",
+    "say": "I need to speak with my doctor"
+   },
+   {
+    "emoji": "🗣️",
+    "label": "Talk Together",
+    "tool": "talk_together"
+   },
+   {
+    "emoji": "🎁",
+    "label": "I Want",
+    "open": "i_want"
+   },
+   {
+    "emoji": "🛋️",
+    "label": "Comfort",
+    "open": "comfort"
+   },
+   {
+    "emoji": "🚶",
+    "label": "Move Me",
+    "open": "mobility"
+   },
+   {
+    "emoji": "👨‍👩‍👧",
+    "label": "People",
+    "open": "people"
+   },
+   {
+    "emoji": "❓",
+    "label": "Questions",
+    "open": "questions"
+   },
+   {
+    "emoji": "📈",
+    "label": "Vitals",
+    "tool": "vitals"
+   },
+   {
+    "emoji": "🏥",
+    "label": "Medical",
+    "topic": "my medical information and conditions"
+   },
+   {
+    "emoji": "🦴",
+    "label": "Show Where",
+    "open": "body_part_picker"
+   },
+   {
+    "emoji": "⚠️",
+    "label": "Symptoms",
+    "topic": "stroke symptoms I'm experiencing right now"
+   },
+   {
+    "emoji": "🍽️",
+    "label": "Eating",
+    "open": "swallowing"
+   },
+   {
+    "emoji": "🧩",
+    "label": "Find Words",
+    "open": "words"
+   },
+   {
+    "emoji": "📋",
+    "label": "My Info",
+    "tool": "patient_info"
+   },
+   {
+    "emoji": "🔢",
+    "label": "Numbers",
+    "tool": "number_picker"
+   },
+   {
+    "emoji": "📞",
+    "label": "Call",
+    "tool": "call_pad"
+   }
+  ]
+ },
+ "boards": {
+  "food": {
+   "title": "I'm Hungry",
+   "tiles": [
+    {
+     "emoji": "🔊",
+     "label": "I'm hungry. Can I eat something?",
+     "say": "I'm hungry. Can I eat something?"
+    },
+    {
+     "emoji": "🍞",
+     "label": "TOAST",
+     "say": "Can I have some toast please?"
+    },
+    {
+     "emoji": "🥚",
+     "label": "EGGS",
+     "say": "Can I have eggs please?"
+    },
+    {
+     "emoji": "🍜",
+     "label": "SOUP",
+     "say": "Can I have soup please?"
+    },
+    {
+     "emoji": "🍚",
+     "label": "RICE",
+     "say": "Can I have rice please?"
+    },
+    {
+     "emoji": "🍝",
+     "label": "PASTA",
+     "say": "Can I have pasta please?"
+    },
+    {
+     "emoji": "🥪",
+     "label": "SANDWICH",
+     "say": "Can I have a sandwich please?"
+    },
+    {
+     "emoji": "🍗",
+     "label": "CHICKEN",
+     "say": "Can I have chicken please?"
+    },
+    {
+     "emoji": "🥩",
+     "label": "MEAT",
+     "say": "Can I have meat please?"
+    },
+    {
+     "emoji": "🥗",
+     "label": "SALAD",
+     "say": "Can I have a salad please?"
+    },
+    {
+     "emoji": "🍌",
+     "label": "FRUIT",
+     "say": "Can I have some fruit please?"
+    },
+    {
+     "emoji": "🍎",
+     "label": "APPLE",
+     "say": "Can I have an apple please?"
+    },
+    {
+     "emoji": "🍊",
+     "label": "ORANGE",
+     "say": "Can I have an orange please?"
+    },
+    {
+     "emoji": "🍮",
+     "label": "PUDDING",
+     "say": "Can I have pudding please?"
+    },
+    {
+     "emoji": "🍨",
+     "label": "ICE CREAM",
+     "say": "Can I have ice cream please?"
+    },
+    {
+     "emoji": "🍪",
+     "label": "CRACKERS",
+     "say": "Can I have crackers please?"
+    },
+    {
+     "emoji": "🧁",
+     "label": "JELLO",
+     "say": "Can I have jello please?"
+    },
+    {
+     "emoji": "🥣",
+     "label": "OATMEAL",
+     "say": "Can I have oatmeal please?"
+    },
+    {
+     "emoji": "🍳",
+     "label": "BREAKFAST",
+     "say": "Can I have breakfast please?"
+    },
+    {
+     "emoji": "❌",
+     "label": "NOT HUNGRY",
+     "say": "Actually, I'm not hungry right now."
+    },
+    {
+     "emoji": "❓",
+     "label": "WHAT'S AVAILABLE?",
+     "say": "What food is available? Can I see a menu?"
+    }
+   ]
+  },
+  "drinks": {
+   "title": "I'm Thirsty",
+   "tiles": [
+    {
+     "emoji": "🔊",
+     "label": "I'm thirsty. Can I have a drink?",
+     "say": "I'm thirsty. Can I have a drink please?"
+    },
+    {
+     "emoji": "💧",
+     "label": "WATER",
+     "say": "Can I have water please?"
+    },
+    {
+     "emoji": "🧊",
+     "label": "ICE WATER",
+     "say": "Can I have ice water please?"
+    },
+    {
+     "emoji": "🧃",
+     "label": "JUICE",
+     "say": "Can I have juice please?"
+    },
+    {
+     "emoji": "🍊",
+     "label": "ORANGE JUICE",
+     "say": "Can I have orange juice please?"
+    },
+    {
+     "emoji": "🍎",
+     "label": "APPLE JUICE",
+     "say": "Can I have apple juice please?"
+    },
+    {
+     "emoji": "🧃",
+     "label": "CRANBERRY",
+     "say": "Can I have cranberry juice please?"
+    },
+    {
+     "emoji": "☕",
+     "label": "COFFEE",
+     "say": "Can I have coffee please?"
+    },
+    {
+     "emoji": "🍵",
+     "label": "TEA",
+     "say": "Can I have tea please?"
+    },
+    {
+     "emoji": "🍵",
+     "label": "HOT CHOCOLATE",
+     "say": "Can I have hot chocolate please?"
+    },
+    {
+     "emoji": "🥛",
+     "label": "MILK",
+     "say": "Can I have milk please?"
+    },
+    {
+     "emoji": "🧋",
+     "label": "GINGER ALE",
+     "say": "Can I have ginger ale please?"
+    },
+    {
+     "emoji": "🍹",
+     "label": "SPRITE",
+     "say": "Can I have Sprite or 7-Up please?"
+    },
+    {
+     "emoji": "🥤",
+     "label": "STRAW",
+     "say": "Can I have a straw please?"
+    },
+    {
+     "emoji": "🥃",
+     "label": "THICKENED",
+     "say": "I need thickened liquids please"
+    },
+    {
+     "emoji": "❌",
+     "label": "NOT THIRSTY",
+     "say": "Actually, I'm not thirsty right now."
+    },
+    {
+     "emoji": "❓",
+     "label": "WHAT'S AVAILABLE?",
+     "say": "What drinks do you have?"
+    }
+   ]
+  },
+  "nurse": {
+   "title": "Nurse",
+   "tiles": [
+    {
+     "emoji": "💊",
+     "label": "MORE MEDS",
+     "say": "I need my medication please"
+    },
+    {
+     "emoji": "⏰",
+     "label": "WHEN MEDS?",
+     "say": "When is my next medication?"
+    },
+    {
+     "emoji": "🩺",
+     "label": "PAIN MEDS",
+     "say": "I'm in pain. Can I have pain medication?"
+    },
+    {
+     "emoji": "🧣",
+     "label": "BLANKET",
+     "say": "Can I have another blanket please?"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "PILLOW",
+     "say": "Can I have a pillow please?"
+    },
+    {
+     "emoji": "💧",
+     "label": "WATER",
+     "say": "I need water please"
+    },
+    {
+     "emoji": "🍽️",
+     "label": "FOOD",
+     "say": "When can I eat? I'm hungry."
+    },
+    {
+     "emoji": "🚻",
+     "label": "BATHROOM",
+     "say": "I need help getting to the bathroom"
+    },
+    {
+     "emoji": "🚶",
+     "label": "WALK",
+     "say": "I want to go for a walk. Can you help?"
+    },
+    {
+     "emoji": "⬆️",
+     "label": "SIT UP",
+     "say": "Can you help me sit up please?"
+    },
+    {
+     "emoji": "🔄",
+     "label": "TURN ME",
+     "say": "Can you help me turn over?"
+    },
+    {
+     "emoji": "🥵",
+     "label": "TOO HOT",
+     "say": "I'm too hot. Can you help?"
+    },
+    {
+     "emoji": "🥶",
+     "label": "TOO COLD",
+     "say": "I'm too cold. Can I have a blanket?"
+    },
+    {
+     "emoji": "💡",
+     "label": "LIGHTS",
+     "say": "Can you adjust the lights?"
+    },
+    {
+     "emoji": "📺",
+     "label": "TV",
+     "say": "Can you turn on the TV?"
+    },
+    {
+     "emoji": "🤢",
+     "label": "SICK",
+     "say": "I feel nauseous. I might throw up."
+    },
+    {
+     "emoji": "🩸",
+     "label": "BLEEDING",
+     "say": "I think I'm bleeding"
+    },
+    {
+     "emoji": "👨‍⚕️",
+     "label": "DOCTOR",
+     "say": "I need to see my doctor please"
+    },
+    {
+     "emoji": "📞",
+     "label": "CALL FAMILY",
+     "say": "Can you call my family for me?"
+    },
+    {
+     "emoji": "❓",
+     "label": "QUESTION",
+     "say": "I have a question for you"
+    }
+   ]
+  },
+  "questions": {
+   "title": "My Questions",
+   "tiles": [
+    {
+     "emoji": "🧠",
+     "label": "WHAT HAPPENED?",
+     "say": "What happened to me?"
+    },
+    {
+     "emoji": "🏥",
+     "label": "WHY AM I HERE?",
+     "say": "Why am I in the hospital?"
+    },
+    {
+     "emoji": "📅",
+     "label": "HOW LONG?",
+     "say": "How long will I be here?"
+    },
+    {
+     "emoji": "👨‍⚕️",
+     "label": "WHAT'S THE PLAN?",
+     "say": "What is my treatment plan?"
+    },
+    {
+     "emoji": "💊",
+     "label": "WHAT MEDS?",
+     "say": "What medications am I taking?"
+    },
+    {
+     "emoji": "⚠️",
+     "label": "SIDE EFFECTS?",
+     "say": "Are there any side effects I should know about?"
+    },
+    {
+     "emoji": "🩺",
+     "label": "WILL I RECOVER?",
+     "say": "Will I recover? What should I expect?"
+    },
+    {
+     "emoji": "🚶",
+     "label": "CAN I WALK?",
+     "say": "Will I be able to walk again?"
+    },
+    {
+     "emoji": "🗣️",
+     "label": "CAN I TALK?",
+     "say": "Will my speech come back?"
+    },
+    {
+     "emoji": "🏠",
+     "label": "WHEN HOME?",
+     "say": "When can I go home?"
+    },
+    {
+     "emoji": "💆",
+     "label": "WHAT'S THERAPY?",
+     "say": "What therapy will I need?"
+    },
+    {
+     "emoji": "🍽️",
+     "label": "CAN I EAT?",
+     "say": "Can I eat regular food? Are there restrictions?"
+    },
+    {
+     "emoji": "🚿",
+     "label": "CAN I SHOWER?",
+     "say": "Can I take a shower?"
+    },
+    {
+     "emoji": "🚗",
+     "label": "CAN I DRIVE?",
+     "say": "When can I drive again?"
+    },
+    {
+     "emoji": "💼",
+     "label": "CAN I WORK?",
+     "say": "When can I go back to work?"
+    },
+    {
+     "emoji": "❓",
+     "label": "OTHER QUESTION",
+     "say": "I have another question. Can someone help me?"
+    }
+   ]
+  },
+  "feelings": {
+   "title": "How I Feel",
+   "tiles": [
+    {
+     "emoji": "😨",
+     "label": "SCARED",
+     "say": "I'm feeling scared"
+    },
+    {
+     "emoji": "😟",
+     "label": "WORRIED",
+     "say": "I'm feeling worried"
+    },
+    {
+     "emoji": "😢",
+     "label": "SAD",
+     "say": "I'm feeling sad"
+    },
+    {
+     "emoji": "😠",
+     "label": "ANGRY",
+     "say": "I'm feeling angry"
+    },
+    {
+     "emoji": "😤",
+     "label": "FRUSTRATED",
+     "say": "I'm frustrated"
+    },
+    {
+     "emoji": "🥴",
+     "label": "DIZZY",
+     "say": "I feel dizzy"
+    },
+    {
+     "emoji": "😴",
+     "label": "TIRED",
+     "say": "I'm very tired"
+    },
+    {
+     "emoji": "🤢",
+     "label": "NAUSEOUS",
+     "say": "I feel sick to my stomach"
+    },
+    {
+     "emoji": "😵",
+     "label": "CONFUSED",
+     "say": "I feel confused"
+    },
+    {
+     "emoji": "😔",
+     "label": "LONELY",
+     "say": "I feel lonely"
+    },
+    {
+     "emoji": "😰",
+     "label": "ANXIOUS",
+     "say": "I'm feeling anxious"
+    },
+    {
+     "emoji": "😭",
+     "label": "WANT TO CRY",
+     "say": "I need to cry"
+    },
+    {
+     "emoji": "😊",
+     "label": "BETTER",
+     "say": "I'm feeling a little better"
+    },
+    {
+     "emoji": "😌",
+     "label": "OK",
+     "say": "I'm okay right now"
+    },
+    {
+     "emoji": "😄",
+     "label": "HAPPY",
+     "say": "I'm feeling happy"
+    },
+    {
+     "emoji": "🙏",
+     "label": "GRATEFUL",
+     "say": "I'm grateful. Thank you."
+    }
+   ]
+  },
+  "i_want": {
+   "title": "I Want",
+   "tiles": [
+    {
+     "emoji": "📺",
+     "label": "TV",
+     "say": "Can you turn on the TV please?"
+    },
+    {
+     "emoji": "📱",
+     "label": "PHONE",
+     "say": "Can I have my phone please?"
+    },
+    {
+     "emoji": "📚",
+     "label": "BOOK",
+     "say": "Can I have a book please?"
+    },
+    {
+     "emoji": "🎵",
+     "label": "MUSIC",
+     "say": "Can you play some music please?"
+    },
+    {
+     "emoji": "💧",
+     "label": "WATER",
+     "say": "I need water please"
+    },
+    {
+     "emoji": "🍽️",
+     "label": "FOOD",
+     "say": "I'm hungry. Can I eat?"
+    },
+    {
+     "emoji": "☕",
+     "label": "COFFEE",
+     "say": "Can I have coffee please?"
+    },
+    {
+     "emoji": "🧣",
+     "label": "BLANKET",
+     "say": "I need a blanket please"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "PILLOW",
+     "say": "Can I have another pillow?"
+    },
+    {
+     "emoji": "👓",
+     "label": "GLASSES",
+     "say": "Can you get my glasses please?"
+    },
+    {
+     "emoji": "🦻",
+     "label": "HEARING AID",
+     "say": "I need my hearing aid"
+    },
+    {
+     "emoji": "🦷",
+     "label": "TEETH",
+     "say": "I need my dentures please"
+    },
+    {
+     "emoji": "👨‍👩‍👧",
+     "label": "FAMILY",
+     "say": "I want to see my family"
+    },
+    {
+     "emoji": "👫",
+     "label": "VISITOR",
+     "say": "Can someone visit me?"
+    },
+    {
+     "emoji": "🚿",
+     "label": "WASH UP",
+     "say": "I'd like to wash up please"
+    },
+    {
+     "emoji": "🚪",
+     "label": "GO OUT",
+     "say": "I want to go outside"
+    },
+    {
+     "emoji": "🤗",
+     "label": "HUG",
+     "say": "I need a hug"
+    },
+    {
+     "emoji": "🙏",
+     "label": "PRAY",
+     "say": "I want to pray"
+    }
+   ]
+  },
+  "people": {
+   "title": "People",
+   "tiles": [
+    {
+     "emoji": "👩",
+     "label": "WIFE",
+     "say": "I want to talk to my wife"
+    },
+    {
+     "emoji": "👨",
+     "label": "HUSBAND",
+     "say": "I want to talk to my husband"
+    },
+    {
+     "emoji": "👧",
+     "label": "DAUGHTER",
+     "say": "I want to see my daughter"
+    },
+    {
+     "emoji": "👦",
+     "label": "SON",
+     "say": "I want to see my son"
+    },
+    {
+     "emoji": "👵",
+     "label": "MOM",
+     "say": "I want to talk to my mom"
+    },
+    {
+     "emoji": "👴",
+     "label": "DAD",
+     "say": "I want to talk to my dad"
+    },
+    {
+     "emoji": "👶",
+     "label": "GRANDKIDS",
+     "say": "I want to see my grandchildren"
+    },
+    {
+     "emoji": "👫",
+     "label": "BROTHER/ SISTER",
+     "say": "I want to talk to my brother or sister"
+    },
+    {
+     "emoji": "🧑‍🤝‍🧑",
+     "label": "FRIEND",
+     "say": "Can you call my friend?"
+    },
+    {
+     "emoji": "🏠",
+     "label": "NEIGHBOR",
+     "say": "Can you call my neighbor?"
+    },
+    {
+     "emoji": "⛪",
+     "label": "PASTOR",
+     "say": "I want to speak with my pastor"
+    },
+    {
+     "emoji": "👨‍⚖️",
+     "label": "LAWYER",
+     "say": "I need to speak with my lawyer"
+    },
+    {
+     "emoji": "👨‍⚕️",
+     "label": "MY DOCTOR",
+     "say": "Can you call my regular doctor?"
+    },
+    {
+     "emoji": "📞",
+     "label": "CALL SOMEONE",
+     "say": "I need to call someone. Can you help?"
+    },
+    {
+     "emoji": "💔",
+     "label": "MISS THEM",
+     "say": "I miss my family so much"
+    },
+    {
+     "emoji": "👋",
+     "label": "WHO'S HERE?",
+     "say": "Who is here to see me?"
+    }
+   ]
+  },
+  "mobility": {
+   "title": "Move Me",
+   "tiles": [
+    {
+     "emoji": "⬆️",
+     "label": "SIT UP",
+     "say": "Can you help me sit up please?"
+    },
+    {
+     "emoji": "⬇️",
+     "label": "LIE DOWN",
+     "say": "Can you help me lie down?"
+    },
+    {
+     "emoji": "🔄",
+     "label": "TURN OVER",
+     "say": "Can you help me turn over?"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "PROP ME UP",
+     "say": "Can you prop me up with pillows?"
+    },
+    {
+     "emoji": "🚶",
+     "label": "WALK",
+     "say": "I want to try to walk"
+    },
+    {
+     "emoji": "🦽",
+     "label": "WHEELCHAIR",
+     "say": "Can I use the wheelchair?"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "GET UP",
+     "say": "I need to get out of bed"
+    },
+    {
+     "emoji": "🦾",
+     "label": "STAND UP",
+     "say": "Can you help me stand up?"
+    },
+    {
+     "emoji": "🚶‍♂️",
+     "label": "GO FOR WALK",
+     "say": "I want to go for a walk in the hallway"
+    },
+    {
+     "emoji": "🤽",
+     "label": "EXERCISE",
+     "say": "I want to do my exercises"
+    },
+    {
+     "emoji": "🚿",
+     "label": "SHOWER",
+     "say": "I want to take a shower"
+    },
+    {
+     "emoji": "🧘",
+     "label": "STRETCH",
+     "say": "Can you help me stretch?"
+    },
+    {
+     "emoji": "🚪",
+     "label": "OUTSIDE",
+     "say": "I want to go outside for fresh air"
+    },
+    {
+     "emoji": "💆",
+     "label": "THERAPY",
+     "say": "When is my therapy session?"
+    }
+   ]
+  },
+  "comfort": {
+   "title": "Comfort & Position",
+   "tiles": [
+    {
+     "emoji": "🥵",
+     "label": "TOO HOT",
+     "say": "I'm too hot"
+    },
+    {
+     "emoji": "🥶",
+     "label": "TOO COLD",
+     "say": "I'm too cold"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "PILLOW",
+     "say": "Can I have a pillow please?"
+    },
+    {
+     "emoji": "🧣",
+     "label": "BLANKET",
+     "say": "I need a blanket please"
+    },
+    {
+     "emoji": "⬆️",
+     "label": "SIT UP",
+     "say": "Can you help me sit up?"
+    },
+    {
+     "emoji": "⬇️",
+     "label": "LIE DOWN",
+     "say": "Can you help me lie down?"
+    },
+    {
+     "emoji": "🔄",
+     "label": "TURN OVER",
+     "say": "Can you help me turn over?"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "BED UP",
+     "say": "Can you raise the bed please?"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "BED DOWN",
+     "say": "Can you lower the bed please?"
+    },
+    {
+     "emoji": "💡",
+     "label": "LIGHTS ON",
+     "say": "Can you turn the lights on?"
+    },
+    {
+     "emoji": "🌙",
+     "label": "LIGHTS OFF",
+     "say": "Can you turn the lights off?"
+    },
+    {
+     "emoji": "📺",
+     "label": "TV ON",
+     "say": "Can you turn the TV on?"
+    },
+    {
+     "emoji": "📺",
+     "label": "TV OFF",
+     "say": "Can you turn the TV off?"
+    },
+    {
+     "emoji": "📺",
+     "label": "CHANGE CHANNEL",
+     "say": "Can you change the channel please?"
+    },
+    {
+     "emoji": "🪭",
+     "label": "CURTAIN",
+     "say": "Can you open or close the curtain?"
+    },
+    {
+     "emoji": "🤫",
+     "label": "TOO NOISY",
+     "say": "It's too noisy. Can it be quieter?"
+    },
+    {
+     "emoji": "👨‍👩‍👧",
+     "label": "MISS FAMILY",
+     "say": "I miss my family. Can someone call them?"
+    },
+    {
+     "emoji": "🏠",
+     "label": "GO HOME",
+     "say": "I want to go home"
+    }
+   ]
+  },
+  "swallowing": {
+   "title": "Eating & Swallowing",
+   "tiles": [
+    {
+     "emoji": "😖",
+     "label": "CAN'T SWALLOW",
+     "say": "I can't swallow"
+    },
+    {
+     "emoji": "😣",
+     "label": "HARD TO SWALLOW",
+     "say": "It's hard for me to swallow"
+    },
+    {
+     "emoji": "🪫",
+     "label": "CHOKING ON FOOD",
+     "say": "I'm choking on my food"
+    },
+    {
+     "emoji": "🤢",
+     "label": "NAUSEOUS",
+     "say": "I feel nauseous"
+    },
+    {
+     "emoji": "🥤",
+     "label": "THICKENED LIQUIDS",
+     "say": "I need thickened liquids"
+    },
+    {
+     "emoji": "🥣",
+     "label": "SOFT FOOD",
+     "say": "I can only eat soft food"
+    },
+    {
+     "emoji": "😫",
+     "label": "NO APPETITE",
+     "say": "I don't have any appetite"
+    },
+    {
+     "emoji": "🍔",
+     "label": "HUNGRY",
+     "say": "I'm hungry"
+    },
+    {
+     "emoji": "🥤",
+     "label": "NEED STRAW",
+     "say": "I need a straw please"
+    },
+    {
+     "emoji": "💧",
+     "label": "THIRSTY",
+     "say": "I'm thirsty"
+    },
+    {
+     "emoji": "😵‍💫",
+     "label": "CAN'T DRINK",
+     "say": "I can't drink right now"
+    },
+    {
+     "emoji": "🤮",
+     "label": "GOING TO BE SICK",
+     "say": "I think I'm going to be sick"
+    }
+   ]
+  },
+  "words": {
+   "title": "Help Me Communicate",
+   "tiles": [
+    {
+     "emoji": "💡",
+     "label": "I KNOW WHAT I MEAN",
+     "say": "I know what I want to say but I can't get the words out"
+    },
+    {
+     "emoji": "📝",
+     "label": "WRITE IT",
+     "say": "Can I write it down instead?"
+    },
+    {
+     "emoji": "👆",
+     "label": "POINT TO IT",
+     "say": "Let me point to what I mean"
+    },
+    {
+     "emoji": "🔄",
+     "label": "SHOW ME OPTIONS",
+     "say": "Can you show me choices so I can pick?"
+    },
+    {
+     "emoji": "🐂",
+     "label": "SPEAK SLOWER",
+     "say": "Please speak more slowly"
+    },
+    {
+     "emoji": "✅",
+     "label": "YES THAT'S IT",
+     "say": "Yes! That's what I meant"
+    },
+    {
+     "emoji": "❌",
+     "label": "NO NOT THAT",
+     "say": "No, that's not what I meant"
+    },
+    {
+     "emoji": "🔄",
+     "label": "START OVER",
+     "say": "Let's start over, I want to try again"
+    },
+    {
+     "emoji": "🤔",
+     "label": "I'M CONFUSED",
+     "say": "I'm confused right now"
+    },
+    {
+     "emoji": "⏳",
+     "label": "NEED TIME",
+     "say": "I need more time to think"
+    },
+    {
+     "emoji": "😐",
+     "label": "FRUSTRATED",
+     "say": "I'm frustrated that I can't say what I want"
+    },
+    {
+     "emoji": "📱",
+     "label": "TYPE IT",
+     "say": "Let me type what I want to say"
+    }
+   ]
+  },
+  "communication": {
+   "title": "Communication",
+   "tiles": [
+    {
+     "emoji": "🤔",
+     "label": "MAYBE",
+     "say": "Maybe"
+    },
+    {
+     "emoji": "🤷",
+     "label": "DON'T KNOW",
+     "say": "I don't know"
+    },
+    {
+     "emoji": "🔁",
+     "label": "SAY AGAIN",
+     "say": "Can you say that again please?"
+    },
+    {
+     "emoji": "🙏",
+     "label": "THANK YOU",
+     "say": "Thank you"
+    },
+    {
+     "emoji": "👍",
+     "label": "UNDERSTAND",
+     "say": "I understand"
+    },
+    {
+     "emoji": "😕",
+     "label": "DON'T GET IT",
+     "say": "I don't understand"
+    },
+    {
+     "emoji": "⏳",
+     "label": "WAIT",
+     "say": "Please wait a moment"
+    },
+    {
+     "emoji": "😊",
+     "label": "I'M OK",
+     "say": "I'm okay right now"
+    },
+    {
+     "emoji": "🙋",
+     "label": "PLEASE",
+     "say": "Please"
+    },
+    {
+     "emoji": "😔",
+     "label": "SORRY",
+     "say": "I'm sorry"
+    },
+    {
+     "emoji": "👋",
+     "label": "HELLO",
+     "say": "Hello"
+    },
+    {
+     "emoji": "👋",
+     "label": "GOODBYE",
+     "say": "Goodbye"
+    }
+   ]
+  },
+  "body_part_picker": {
+   "title": "Where does it hurt?",
+   "tiles": [
+    {
+     "emoji": "🧠",
+     "label": "Head",
+     "say": "I have pain in my head"
+    },
+    {
+     "emoji": "👁️",
+     "label": "Eyes",
+     "say": "I'm having trouble with my vision"
+    },
+    {
+     "emoji": "👂",
+     "label": "Ears",
+     "say": "I'm having trouble hearing"
+    },
+    {
+     "emoji": "😶",
+     "label": "Mouth/Face",
+     "say": "My mouth or face feels different"
+    },
+    {
+     "emoji": "🧍",
+     "label": "Neck",
+     "say": "I have pain in my neck"
+    },
+    {
+     "emoji": "🫁",
+     "label": "Chest",
+     "say": "I have pain in my chest"
+    },
+    {
+     "emoji": "🤛",
+     "label": "Left Arm",
+     "say": "My left arm feels numb or weak"
+    },
+    {
+     "emoji": "🤜",
+     "label": "Right Arm",
+     "say": "My right arm feels numb or weak"
+    },
+    {
+     "emoji": "✋",
+     "label": "Hands",
+     "say": "My hands feel numb or tingling"
+    },
+    {
+     "emoji": "🦵",
+     "label": "Left Leg",
+     "say": "My left leg feels numb or weak"
+    },
+    {
+     "emoji": "🦵",
+     "label": "Right Leg",
+     "say": "My right leg feels numb or weak"
+    },
+    {
+     "emoji": "🦶",
+     "label": "Feet",
+     "say": "My feet feel numb or tingling"
+    }
+   ]
+  }
+ },
+ "pain": {
+  "levels": [
+   {
+    "level": 0,
+    "emoji": "😊",
+    "label": "No Pain",
+    "color": "#4CAF50"
+   },
+   {
+    "level": 1,
+    "emoji": "🙂",
+    "label": "Minimal",
+    "color": "#66BB6A"
+   },
+   {
+    "level": 2,
+    "emoji": "😐",
+    "label": "Mild",
+    "color": "#8BC34A"
+   },
+   {
+    "level": 3,
+    "emoji": "😕",
+    "label": "Uncomfortable",
+    "color": "#CDDC39"
+   },
+   {
+    "level": 4,
+    "emoji": "😟",
+    "label": "Moderate",
+    "color": "#FFEB3B"
+   },
+   {
+    "level": 5,
+    "emoji": "😣",
+    "label": "Distracting",
+    "color": "#FFC107"
+   },
+   {
+    "level": 6,
+    "emoji": "😖",
+    "label": "Distressing",
+    "color": "#FF9800"
+   },
+   {
+    "level": 7,
+    "emoji": "😩",
+    "label": "Hard",
+    "color": "#FF5722"
+   },
+   {
+    "level": 8,
+    "emoji": "😭",
+    "label": "Intense",
+    "color": "#F44336"
+   },
+   {
+    "level": 9,
+    "emoji": "😱",
+    "label": "Severe",
+    "color": "#D32F2F"
+   },
+   {
+    "level": 10,
+    "emoji": "🤯",
+    "label": "Worst",
+    "color": "#B71C1C"
+   }
+  ],
+  "kinds": [
+   {
+    "emoji": "🔪",
+    "label": "SHARP",
+    "descriptor": "sharp"
+   },
+   {
+    "emoji": "⚡",
+    "label": "STABBING",
+    "descriptor": "stabbing"
+   },
+   {
+    "emoji": "🔥",
+    "label": "BURNING",
+    "descriptor": "burning"
+   },
+   {
+    "emoji": "💓",
+    "label": "THROBBING",
+    "descriptor": "throbbing"
+   },
+   {
+    "emoji": "😩",
+    "label": "DULL ACHE",
+    "descriptor": "dull, aching"
+   },
+   {
+    "emoji": "🫸",
+    "label": "PRESSURE",
+    "descriptor": "pressure"
+   },
+   {
+    "emoji": "💫",
+    "label": "TINGLING",
+    "descriptor": "tingling, pins and needles"
+   },
+   {
+    "emoji": "✊",
+    "label": "CRAMPING",
+    "descriptor": "cramping"
+   },
+   {
+    "emoji": "➡️⬅️",
+    "label": "COMES & GOES",
+    "descriptor": "that comes and goes"
+   },
+   {
+    "emoji": "📈",
+    "label": "GETTING WORSE",
+    "descriptor": "that is getting worse"
+   }
+  ],
+  "places": [
+   {
+    "emoji": "🧠",
+    "label": "HEAD",
+    "location": "my head"
+   },
+   {
+    "emoji": "😶",
+    "label": "FACE",
+    "location": "my face"
+   },
+   {
+    "emoji": "🧍",
+    "label": "NECK",
+    "location": "my neck"
+   },
+   {
+    "emoji": "🫁",
+    "label": "CHEST",
+    "location": "my chest"
+   },
+   {
+    "emoji": "🤢",
+    "label": "STOMACH",
+    "location": "my stomach"
+   },
+   {
+    "emoji": "🚻",
+    "label": "BACK",
+    "location": "my back"
+   },
+   {
+    "emoji": "🤛",
+    "label": "LEFT ARM",
+    "location": "my left arm"
+   },
+   {
+    "emoji": "🤜",
+    "label": "RIGHT ARM",
+    "location": "my right arm"
+   },
+   {
+    "emoji": "✋",
+    "label": "HANDS",
+    "location": "my hands"
+   },
+   {
+    "emoji": "🦵",
+    "label": "LEFT LEG",
+    "location": "my left leg"
+   },
+   {
+    "emoji": "🦵",
+    "label": "RIGHT LEG",
+    "location": "my right leg"
+   },
+   {
+    "emoji": "🦶",
+    "label": "FEET",
+    "location": "my feet"
+   },
+   {
+    "emoji": "👤",
+    "label": "EVERYWHERE",
+    "location": "everywhere"
+   }
+  ]
+ },
+ "after": [
+  "🔊  Say Again",
+  "↩️  Wrong One",
+  "🤚  Their Turn — Listen for Response",
+  "💬  Keep Talking",
+  "📷  See — Show Something",
+  "✋  I'm Done"
+ ],
+ "saved": [
+  {
+   "id": "stroke_needs",
+   "title": "Basic Needs",
+   "emoji": "💧",
+   "tiles": [
+    {
+     "emoji": "💧",
+     "label": "Water",
+     "say": "I need water please"
+    },
+    {
+     "emoji": "🍽️",
+     "label": "Hungry",
+     "say": "I'm hungry"
+    },
+    {
+     "emoji": "🚻",
+     "label": "Bathroom",
+     "say": "I need to use the bathroom"
+    },
+    {
+     "emoji": "🧣",
+     "label": "Blanket",
+     "say": "I need a blanket"
+    },
+    {
+     "emoji": "🥵",
+     "label": "Hot",
+     "say": "I'm too hot"
+    },
+    {
+     "emoji": "🥶",
+     "label": "Cold",
+     "say": "I'm too cold"
+    },
+    {
+     "emoji": "🛏️",
+     "label": "Position",
+     "say": "Can you help me change position?"
+    },
+    {
+     "emoji": "💡",
+     "label": "Lights",
+     "say": "Can you adjust the lights?"
+    },
+    {
+     "emoji": "📺",
+     "label": "TV",
+     "say": "Can you turn on the TV?"
+    },
+    {
+     "emoji": "📱",
+     "label": "Phone",
+     "say": "I need my phone"
+    },
+    {
+     "emoji": "👓",
+     "label": "Glasses",
+     "say": "I need my glasses"
+    },
+    {
+     "emoji": "🦷",
+     "label": "Teeth",
+     "say": "I need to brush my teeth"
+    }
+   ]
+  },
+  {
+   "id": "stroke_pain",
+   "title": "Pain",
+   "emoji": "🩺",
+   "tiles": [
+    {
+     "emoji": "😊",
+     "label": "No Pain",
+     "say": "I have no pain right now"
+    },
+    {
+     "emoji": "😐",
+     "label": "Mild",
+     "say": "My pain is mild, about a 2 or 3"
+    },
+    {
+     "emoji": "😟",
+     "label": "Moderate",
+     "say": "My pain is moderate, about a 4 or 5"
+    },
+    {
+     "emoji": "😣",
+     "label": "Bad",
+     "say": "My pain is bad, about a 6 or 7"
+    },
+    {
+     "emoji": "😭",
+     "label": "Severe",
+     "say": "My pain is severe, about an 8 or 9"
+    },
+    {
+     "emoji": "🤯",
+     "label": "Worst",
+     "say": "My pain is the worst it can be, a 10"
+    },
+    {
+     "emoji": "💊",
+     "label": "Meds",
+     "say": "I need pain medication"
+    },
+    {
+     "emoji": "⬆️",
+     "label": "Worse",
+     "say": "My pain is getting worse"
+    },
+    {
+     "emoji": "⬇️",
+     "label": "Better",
+     "say": "My pain is getting better"
+    },
+    {
+     "emoji": "🔄",
+     "label": "Constant",
+     "say": "The pain is constant"
+    },
+    {
+     "emoji": "✨",
+     "label": "Comes & Goes",
+     "say": "The pain comes and goes"
+    },
+    {
+     "emoji": "🔪",
+     "label": "Sharp",
+     "say": "The pain is sharp and stabbing"
+    }
+   ]
+  },
+  {
+   "id": "stroke_symptoms",
+   "title": "Symptoms",
+   "emoji": "⚠️",
+   "tiles": [
+    {
+     "emoji": "🥴",
+     "label": "Dizzy",
+     "say": "I feel dizzy"
+    },
+    {
+     "emoji": "🧠",
+     "label": "Headache",
+     "say": "I have a bad headache"
+    },
+    {
+     "emoji": "👁",
+     "label": "Vision",
+     "say": "My vision is blurry or different"
+    },
+    {
+     "emoji": "🫱",
+     "label": "Numb",
+     "say": "I feel numbness or tingling"
+    },
+    {
+     "emoji": "💪",
+     "label": "Weak",
+     "say": "I feel weakness on one side"
+    },
+    {
+     "emoji": "😵‍💫",
+     "label": "Confused",
+     "say": "I feel confused"
+    },
+    {
+     "emoji": "🤢",
+     "label": "Nauseous",
+     "say": "I feel nauseous"
+    },
+    {
+     "emoji": "😮‍💨",
+     "label": "Breathing",
+     "say": "I'm having trouble breathing"
+    },
+    {
+     "emoji": "🗣️",
+     "label": "Speech",
+     "say": "My speech feels different"
+    },
+    {
+     "emoji": "😴",
+     "label": "Tired",
+     "say": "I feel very tired"
+    },
+    {
+     "emoji": "💦",
+     "label": "Swallowing",
+     "say": "I'm having trouble swallowing"
+    },
+    {
+     "emoji": "🦶",
+     "label": "Balance",
+     "say": "I'm having trouble with balance"
+    }
+   ]
+  },
+  {
+   "id": "stroke_staff",
+   "title": "Staff",
+   "emoji": "👨‍⚕️",
+   "tiles": [
+    {
+     "emoji": "👨‍⚕️",
+     "label": "Doctor",
+     "say": "I need to speak with my doctor"
+    },
+    {
+     "emoji": "🙋",
+     "label": "Nurse",
+     "say": "I need a nurse please"
+    },
+    {
+     "emoji": "❓",
+     "label": "Question",
+     "say": "I have a question"
+    },
+    {
+     "emoji": "📅",
+     "label": "Schedule",
+     "say": "What is my schedule today?"
+    },
+    {
+     "emoji": "💊",
+     "label": "Medication",
+     "say": "When is my next medication?"
+    },
+    {
+     "emoji": "🩺",
+     "label": "Tests",
+     "say": "What tests am I having?"
+    },
+    {
+     "emoji": "👪",
+     "label": "Family",
+     "say": "When can my family visit?"
+    },
+    {
+     "emoji": "🏠",
+     "label": "Discharge",
+     "say": "When can I go home?"
+    },
+    {
+     "emoji": "🙏",
+     "label": "Thank You",
+     "say": "Thank you for taking care of me"
+    },
+    {
+     "emoji": "⏰",
+     "label": "Wait",
+     "say": "How long do I need to wait?"
+    },
+    {
+     "emoji": "🔄",
+     "label": "Repeat",
+     "say": "Can you repeat that please?"
+    },
+    {
+     "emoji": "✍️",
+     "label": "Write",
+     "say": "Can you write it down for me?"
+    }
+   ]
+  },
+  {
+   "id": "stroke_emotions",
+   "title": "Feelings",
+   "emoji": "😨",
+   "tiles": [
+    {
+     "emoji": "😨",
+     "label": "Scared",
+     "say": "I'm feeling scared"
+    },
+    {
+     "emoji": "😕",
+     "label": "Confused",
+     "say": "I'm feeling confused"
+    },
+    {
+     "emoji": "😩",
+     "label": "Frustrated",
+     "say": "I'm feeling frustrated"
+    },
+    {
+     "emoji": "😢",
+     "label": "Sad",
+     "say": "I'm feeling sad"
+    },
+    {
+     "emoji": "😴",
+     "label": "Tired",
+     "say": "I'm very tired"
+    },
+    {
+     "emoji": "😟",
+     "label": "Worried",
+     "say": "I'm worried"
+    },
+    {
+     "emoji": "😊",
+     "label": "Better",
+     "say": "I'm feeling better"
+    },
+    {
+     "emoji": "😔",
+     "label": "Lonely",
+     "say": "I'm feeling lonely"
+    },
+    {
+     "emoji": "😤",
+     "label": "Angry",
+     "say": "I'm feeling angry"
+    },
+    {
+     "emoji": "🙏",
+     "label": "Grateful",
+     "say": "I'm grateful for your help"
+    },
+    {
+     "emoji": "❤️",
+     "label": "Loved",
+     "say": "I feel loved and supported"
+    },
+    {
+     "emoji": "💪",
+     "label": "Strong",
+     "say": "I'm trying to stay strong"
+    }
+   ]
+  }
+ ],
+ "nurse": {
+  "alert": "I need a nurse please. Can someone help me?",
+  "urgent": "🚨 URGENT — CALL NURSE NOW",
+  "tools": "👩‍⚕️  Nurse Tools — Rounding, Assessments, Shift Report",
+  "sounded": "ALERT SOUNDED",
+  "show": "Show this screen to someone nearby",
+  "followUps": [
+   {
+    "emoji": "🔔",
+    "label": "Call Again",
+    "say": "__NURSE_ALERT__"
+   },
+   {
+    "emoji": "🩺",
+    "label": "Pain",
+    "say": "I'm in pain"
+   },
+   {
+    "emoji": "🚻",
+    "label": "Bathroom",
+    "say": "I need to use the bathroom"
+   },
+   {
+    "emoji": "💧",
+    "label": "Water",
+    "say": "I need water please"
+   },
+   {
+    "emoji": "😨",
+    "label": "Scared",
+    "say": "I'm feeling scared"
+   },
+   {
+    "emoji": "⬅",
+    "label": "Back",
+    "say": "__BACK_TO_TILES__"
+   }
+  ]
+ },
+ "diet": {
+  "npo": {
+   "message": "This patient is NPO (nothing by mouth). Do NOT give food or drink. Please check with the nurse before proceeding. If this status is wrong, the nurse can change it in Nurse Tools → Diet Status.",
+   "say": "Alert. This patient is NPO. Nothing by mouth. Check with nurse."
+  },
+  "warnings": [
+   {
+    "status": "ice_chips",
+    "kind": "food",
+    "message": "This patient is on ICE CHIPS ONLY. No solid food."
+   },
+   {
+    "status": "ice_chips",
+    "kind": "drink",
+    "message": "This patient is on ICE CHIPS ONLY. Check with nurse before giving liquids."
+   },
+   {
+    "status": "thickened",
+    "kind": "drink",
+    "message": "This patient needs THICKENED LIQUIDS only. No thin liquids (water, juice, coffee)."
+   },
+   {
+    "status": "mechanical_soft",
+    "kind": "food",
+    "message": "This patient is on MECHANICAL SOFT diet. No hard, crunchy, or chewy foods."
+   },
+   {
+    "status": "pureed",
+    "kind": "food",
+    "message": "This patient is on PUREED diet only. No solid foods."
+   }
+  ]
+ }
+}

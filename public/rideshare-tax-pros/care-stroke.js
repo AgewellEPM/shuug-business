@@ -1026,7 +1026,8 @@
     }
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", deactivate);
-    const api = {open, recordMessage, deactivate, reset, destroy};
+    const api = {open, recordMessage, deactivate, reset, destroy,
+      diet: () => (clinical.diet.find(row => row[0] === state.diet) || [])[1]};
     mounted.set(element, api);
     render();
     return api;
