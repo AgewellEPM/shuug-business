@@ -159,6 +159,8 @@
     home.hidden = Boolean(venue);
     stage.hidden = !venue;
     part('place').textContent = names.get(venue) || 'Communication boards';
+    const customerExample = part('customer-example');
+    if (customerExample) customerExample.hidden = !['hospital', 'nursing-home', 'senior-center', 'clinic'].includes(venue);
     panel.setAttribute('aria-labelledby', venue ? 'care-stage-title' : 'sales-demo-title');
     chrome(venue, mode, Boolean(venue && args.get('present') === '1'));
 

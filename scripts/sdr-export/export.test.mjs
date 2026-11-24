@@ -372,7 +372,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const before = (await owner.api('bootstrap')).offices;
     find(voiceLink).click();
     const voice = part => find('[data-training-voice-' + part + ']');
-    assert.equal(find('[data-tab-panel="training-demo"]').hidden, false);
+    const trainingDemo = find('[data-tab-panel="training-demo"]');
+    assert.equal(trainingDemo.hidden, false);
+    const customerKiosk = trainingDemo.querySelector('[data-live-customer-kiosk]');
+    assert.equal(customerKiosk.href, 'https://tinkytown.com/biz/healthcare');
+    assert.equal(customerKiosk.target, '_blank');
+    assert.match(trainingDemo.querySelector('[aria-labelledby="training-demo-qr"]').textContent, /Listen for Staff/);
     assert.equal((await owner.request('/care-location-qr-healthcare.png')).headers.get('content-type'), 'image/png');
     voice('listen').click();
     assert.match(voice('status').textContent, /Listening/);
@@ -1531,6 +1536,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     demoTool.click();
     assert.equal(panel.closest('[data-team-workspace]').hidden, false);
     await waitFor(() => !panel.hidden, 'The locations lobby did not open');
+    const customerKiosk = panel.querySelector('[data-care-home] [data-live-customer-kiosk]');
+    assert.equal(customerKiosk.href, 'https://tinkytown.com/biz/healthcare');
     for (const id of ['hospital','nursing-home','senior-center','townhall','directory','college','airport','stroke']) {
       assert.ok(panel.querySelector('[data-care-launch="' + id + '"]'), id);
     }
@@ -1540,6 +1547,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       careWindow.location.hash = 'view=demo&venue=' + venue;
       await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
       const voice = panel.querySelector('[data-care-voice]');
+      assert.equal(panel.querySelector('[data-care-customer-example]').hidden, false);
       assert.equal(voice.hidden, false);
       assert.equal(voice.open, false);
       const voiceForm = voice.querySelector('form');
@@ -1585,6 +1593,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     careWindow.location.hash = 'view=demo&venue=townhall';
     await waitFor(() => panel.querySelector('.cl-board-title'), 'Hartford Town Hall did not load');
     assert.equal(panel.querySelector('[data-care-voice]').hidden, true);
+    assert.equal(panel.querySelector('[data-care-customer-example]').hidden, true);
     assert.match(panel.querySelector('.cl-header h3').textContent, /Hartford/);
     careWindow.location.hash = 'view=demo&venue=home';
     await waitFor(() => panel.querySelector('.care-library [data-tile]') || panel.querySelector('[aria-label="TinkySpeak board library"] [data-tile]'), 'Family board did not load');
