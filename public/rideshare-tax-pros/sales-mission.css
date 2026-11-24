@@ -1,0 +1,160 @@
+.sdr-mission {
+  --mission-ink: #10234b;
+  --mission-muted: #426087;
+  --mission-blue: #075ed6;
+  --mission-line: #bdd7f6;
+  display: grid;
+  gap: 12px;
+  color: var(--mission-ink);
+  min-width: 0;
+  padding-bottom: 20px;
+  container: mission / inline-size;
+}
+.mission-search {
+  align-items: center;
+  display: flex;
+  gap: 9px;
+  max-width: 690px;
+  min-height: 42px;
+  padding: 3px 12px;
+  border: 1px solid #a5c5f4;
+  border-radius: 11px;
+  background: #edf5ff;
+}
+.mission-search .sdr-icon { color: var(--mission-muted); flex: none; }
+.sdr-mission .mission-search input { color: var(--mission-ink); background: transparent; flex: 1; min-width: 0; border: 0; padding: 5px 0; font: inherit; }
+.mission-search:focus-within { outline: 2px solid #4f9df3; outline-offset: 2px; }
+.mission-clear { background: none; border: 0; font: inherit; color: var(--mission-blue); cursor: pointer; font-weight: 700; }
+.mission-search-results p { margin: 0; font-weight: 700; }
+.mission-search-results ul { display: flex; gap: 5px 18px; flex-wrap: wrap; margin: 7px 0 0; padding-left: 17px; }
+.mission-search-results ul:empty { display: none; }
+.mission-search-results a { color: var(--mission-blue); }
+.mission-hero {
+  display: grid;
+  align-items: center;
+  min-height: clamp(225px, 26cqw, 295px);
+  border-radius: 16px;
+  padding: clamp(19px, 3.15cqw, 36px);
+  background: linear-gradient(90deg, #061a47 0%, #07275ae8 32%, #082c6060 56%, #082c6006 82%),
+    #073474 url('/sales-mission-hero.webp') center 48% / cover no-repeat;
+}
+.mission-hero-copy { max-width: min(55%, 425px); }
+.sales-console-page .mission-hero :is(h1, p) { color: #fff; margin: 0; text-shadow: 0 1px 3px #031c48bd; }
+.sales-console-page .mission-hero h1 { font-size: clamp(38px, 5.9cqw, 63px); line-height: .99; letter-spacing: -.039em; margin: 6px 0 9px; }
+.mission-hero p { font-size: clamp(14px, 1.55cqw, 18px); line-height: 1.35; }
+.mission-hero .mission-brand { font-size: clamp(18px, 2.2cqw, 25px); font-weight: 800; }
+.sales-console-page .mission-hero .mission-hero-line { font-weight: 760; margin-bottom: 5px; font-size: clamp(16px, 2cqw, 22px); line-height: 1.12; }
+.mission-principles {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  padding: 8px 12px;
+  list-style: none;
+  margin: 0;
+  border: 1px solid var(--mission-line);
+  border-radius: 10px;
+  background: linear-gradient(#f5fbff,#dfedff);
+  box-shadow: 0 2px 6px #0e4b9920;
+}
+.mission-principles li { display: flex; align-items: center; gap: 5px; font-size: .86em; font-weight: 680; }
+.mission-principles .sdr-icon { width: 20px; height: 20px; color: #047837; flex: none; }
+.mission-row { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; }
+.mission-intro { grid-template-columns: minmax(0, 1.36fr) minmax(0, 1fr); }
+.mission-practice { grid-template-columns: minmax(0, 1.16fr) minmax(0, 1fr); }
+.mission-card {
+  min-width: 0;
+  padding: 12px 15px;
+  border: 1px solid var(--mission-line);
+  border-radius: 12px;
+  background: linear-gradient(145deg,#fcfeff,#edf5ff);
+  box-shadow: 0 2px 6px #0a489411;
+}
+.sales-console-page .mission-card h2 { display: flex; gap: 8px; align-items: center; margin: 0 0 6px; color: var(--mission-ink); font-size: clamp(18px, 2.35cqw, 25px); line-height: 1.15; letter-spacing: -.025em; }
+.mission-card h2 .sdr-icon { width: 25px; height: 25px; color: var(--mission-blue); flex: none; }
+.mission-card p { margin: 4px 0 0; line-height: 1.36; }
+.mission-vision {
+  padding-right: 43%;
+  background: linear-gradient(90deg,#f8fbff 10%, #f8fbff 41%, #f8fbff9e 60%, #f8fbff00 80%),
+    #f8fbff url('/sales-mission-vision.webp') right center / auto 100% no-repeat;
+}
+.mission-checklist { list-style: none; display: grid; gap: 5px; padding: 0; margin: 6px 0 0; }
+.mission-checklist li { position: relative; padding-inline-start: 19px; line-height: 1.27; }
+.mission-checklist li::before { position: absolute; left: 0; content: '✓'; color: #047837; font-weight: 850; }
+.mission-subtitle { font-weight: 730; }
+.mission-tinkyspeak { position: relative; isolation: isolate; padding-right: 36%; background: linear-gradient(135deg,#fbfdff,#e1efff); }
+.mission-tinkyspeak img {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32%;
+  height: auto;
+  max-height: calc(100% - 12px);
+  object-fit: contain;
+}
+.mission-angelcare { background: linear-gradient(106deg,#fdfaff,#faeafa); border-color: #e6cbea; }
+.mission-angelcare h2 .sdr-icon { color: #a51f79; }
+.mission-link { display: inline-flex; gap: 7px; align-items: center; margin-top: 8px; color: var(--mission-blue); font-size: .9em; font-weight: 720; }
+.mission-link .sdr-icon { width: 16px; height: 16px; }
+.mission-action-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); list-style: none; gap: 7px; margin: 0; padding: 0; }
+.mission-action-grid li { display: grid; }
+.mission-action-grid a {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 6px;
+  text-align: center;
+  border: 1px solid var(--mission-line);
+  border-radius: 9px;
+  padding: 9px 6px;
+  background: linear-gradient(#fbfdff,#e5f0ff);
+  color: var(--mission-ink);
+  text-decoration: none;
+  line-height: 1.17;
+  font-weight: 710;
+  font-size: .88em;
+}
+.mission-action-grid .sdr-icon { width: 24px; height: 24px; color: var(--mission-blue); }
+.mission-action-grid a:hover { background: #e3efff; text-decoration: underline; }
+.mission-tracks { margin: 0; }
+.mission-tracks > div { display: grid; grid-template-columns: minmax(75px, 24%) 1fr; gap: 5px; border-bottom: 1px solid #d1e3fa; padding: 4px 0; }
+.mission-tracks > div:last-child { border-bottom: 0; }
+.mission-tracks dt { font-weight: 740; font-size: .9em; overflow-wrap: anywhere; }
+.mission-tracks dd { margin: 0; font-size: .87em; line-height: 1.23; }
+.mission-impact { display: grid; grid-template-columns: minmax(0,.95fr) minmax(0,1fr); align-items: center; gap: 10px; }
+.mission-impact img { width: 100%; height: clamp(82px, 11cqw, 137px); object-fit: cover; border-radius: 7px; }
+.mission-impact .mission-checklist { font-size: .88em; margin: 0; }
+.mission-destination { background: linear-gradient(145deg,#f5faff,#dceeff); }
+.mission-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px 18px; flex-wrap: wrap; background: linear-gradient(110deg,#f6fbff,#dceaff); }
+.mission-footer > div:first-child { flex: 1 1 335px; }
+.mission-footer-actions { display: flex; gap: 7px; flex-wrap: wrap; }
+.mission-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid #9dc4fa;
+  border-radius: 8px;
+  padding: 7px 10px;
+  min-height: 39px;
+  text-decoration: none;
+  text-align: center;
+  font-size: .89em;
+  font-weight: 740;
+  color: var(--mission-blue);
+  background: linear-gradient(#fff,#e7f3ff);
+}
+.mission-button-primary { border-color: #1276ef; color: #fff; background: linear-gradient(#008bf0,#0648d6); }
+.mission-button:hover { filter: brightness(.95); }
+.sdr-mission :is(a,button,h2):focus-visible { outline: 2px solid #1475df; outline-offset: 3px; }
+
+@container mission (max-width: 660px) {
+  .mission-row { grid-template-columns: minmax(0,1fr); }
+  .mission-hero { background-position: center, 60% 50%; background-image: linear-gradient(90deg,#061a47f0 4%, #07275ad9 52%, #0c336350), url('/sales-mission-hero.webp'); }
+  .mission-hero-copy { max-width: min(92%, 420px); }
+}
+@container mission (max-width: 390px) {
+  .mission-action-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .mission-vision { padding-right: 29%; }
+}

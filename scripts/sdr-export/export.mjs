@@ -32,6 +32,7 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
 const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-care-campaign.mjs', 'sales-today.mjs', 'sales-training.mjs', 'sales-training-demo.mjs', 'sales-training-pipeline.mjs', 'sales-pipeline-workspace.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('scripts/rideshare-site/sales-products.mjs');
+copy('scripts/rideshare-site/sales-mission.mjs');
 copy('scripts/rideshare-site/sales-certification.mjs');
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
@@ -48,6 +49,7 @@ const assets = [
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-pipeline-workspace.css', 'sales-pipeline-workspace.js', 'sales-pipeline-hero.webp',
   'sales-products.css', 'sales-products.js', 'sales-products-hero.webp', 'sales-products-tablet.webp', 'sales-products-phone.webp',
+  'sales-mission.css', 'sales-mission.js', 'sales-mission-hero.webp', 'sales-mission-vision.webp',
   'sales-certification.css', 'sales-certification.js', 'sales-certification-hero.webp',
   'sales-display.css', 'sales-display.js',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
