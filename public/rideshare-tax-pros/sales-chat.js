@@ -19,6 +19,7 @@
     badge.hidden = true;
     nav.append(badge);
     const list = $('#chat-channels'), log = $('#chat-messages'), scroll = $('#chat-scroll');
+    const railToggle = $('#chat-nav-toggle');
     const directs = $('#chat-directs'), peoplePanel = $('#chat-people'), newDirect = $('#chat-new-direct');
     const personSearch = $('#chat-person-search'), personResults = $('#chat-person-results'), firstDirect = $('#chat-first-direct');
     const add = $('#chat-add'), create = $('#chat-create'), compose = $('#chat-compose');
@@ -33,6 +34,19 @@
       status.textContent = text;
       status.dataset.kind = kind;
       status.dataset.error = String(kind === 'error' || kind === 'connection');
+    }
+    function setNavigation(open) {
+      panel.dataset.navOpen = String(open);
+      railToggle.setAttribute('aria-expanded', String(open));
+    }
+    function selectRoom(slug) {
+      const fromMobileList = panel.dataset.navOpen === 'true' && railToggle.getClientRects().length > 0;
+      setNavigation(false);
+      view(user, 'chat', slug);
+      if (fromMobileList) {
+        railToggle.focus({ preventScroll: true });
+        markVisible();
+      }
     }
     function renderChannels() {
       const all = [...channelList, ...directList];
@@ -58,7 +72,7 @@
         mark.setAttribute('aria-hidden', 'true');
         button.append(mark, element('span', direct ? label : channel.slug, 'chat-channel-label'));
         if (channel.unread) button.append(element('span', countLabel(channel.unread), 'chat-unread'));
-        button.addEventListener('click', () => view(user, 'chat', channel.slug));
+        button.addEventListener('click', () => selectRoom(channel.slug));
         return button;
       }
       list.replaceChildren(...channelList.map(rowButton));
@@ -68,6 +82,8 @@
     function roomHeading(channel) {
       const direct = room.slug.startsWith('@'), name = direct ? channel?.name || 'Direct message' : room.slug;
       const label = direct ? name : '#' + name;
+      panel.dataset.conversation = direct ? 'direct' : 'channel';
+      scroll.setAttribute('aria-label', direct ? 'Direct message history with ' + name : 'History for ' + label);
       room.writable = !direct || channel?.active === true;
       $('#chat-name').textContent = name;
       $('.chat-channel-mark').textContent = direct ? (channel ? initialsOf(name) : '…') : '#';
@@ -100,10 +116,12 @@
       if (day !== previousDay) entry.append(element('div', day, 'chat-day'));
       const item = element('article', undefined, 'chat-message');
       item.dataset.messageId = row.id;
+      item.classList.toggle('is-own', String(user.id) === row.authorId);
       const initials = initialsOf(row.author);
       const avatar = element('span', initials, 'chat-avatar tone-' + ((Number(row.authorId) || 0) % 4));
       avatar.setAttribute('aria-hidden', 'true');
-      const content = element('div'), byline = element('div', undefined, 'chat-byline');
+      const content = element('div', undefined, 'chat-message-content'), byline = element('div', undefined, 'chat-byline');
+      const bubble = element('div', undefined, 'chat-bubble');
       const time = element('time', timeFormat.format(date));
       time.dateTime = row.sentAt;
       time.title = date.toLocaleString();
@@ -119,9 +137,9 @@
         input.focus();
       });
       byline.append(element('strong', row.author), time, respond);
-      content.append(byline);
-      if (row.replyId) content.append(element('blockquote', `${row.replyAuthor} · ${row.replyText}`, 'chat-quote'));
-      content.append(element('p', row.body, 'chat-body'));
+      if (row.replyId) bubble.append(element('blockquote', `${row.replyAuthor} · ${row.replyText}`, 'chat-quote'));
+      bubble.append(element('p', row.body, 'chat-body'));
+      content.append(byline, bubble);
       item.append(avatar, content);
       entry.append(item);
       return entry;
@@ -149,7 +167,7 @@
     function markVisible() {
       const current = room;
       if (!user || !active || !current?.ready || current.marking || current.last <= current.seen ||
-          document.visibilityState === 'hidden' || !nearBottom()) return;
+          document.visibilityState === 'hidden' || (panel.dataset.navOpen === 'true' && railToggle.getClientRects().length) || !nearBottom()) return;
       const through = current.last;
       current.marking = true;
       api('chat-seen', { channel: current.slug, through }).then(() => {
@@ -243,11 +261,15 @@
       const nameCounts = new Map();
       for (const person of people) nameCounts.set(person.name, (nameCounts.get(person.name) || 0) + 1);
       personResults.replaceChildren(...filtered.map(person => {
-        const button = element('button', person.name);
+        const button = element('button');
         button.type = 'button';
         button.dataset.person = person.id;
+        const avatar = element('span', initialsOf(person.name), 'chat-peer-avatar');
+        avatar.setAttribute('aria-hidden', 'true');
+        const label = element('span', person.name);
+        button.append(avatar, label);
         if (nameCounts.get(person.name) > 1) {
-          button.append(element('small', person.id === 'owner' ? 'Owner' : 'Rep #' + person.id));
+          label.append(element('small', person.id === 'owner' ? 'Owner' : 'Rep #' + person.id));
         }
         button.addEventListener('click', async () => {
           if (button.disabled) return;
@@ -257,7 +279,7 @@
             const { slug } = await api('chat-direct-open', { memberId: person.id });
             if (selection !== peopleRequest || !active) return;
             hidePeople();
-            view(user, 'chat', slug);
+            selectRoom(slug);
           } catch (error) {
             if (selection === peopleRequest) $('#chat-person-status').textContent = error.message;
           } finally { button.disabled = false; }
@@ -271,6 +293,7 @@
       if (!user) return;
       if (!peoplePanel.hidden) { hidePeople(); newDirect.focus(); return; }
       hideCreate();
+      if (railToggle.getClientRects().length) setNavigation(true);
       const request = ++peopleRequest;
       peoplePanel.hidden = false;
       firstDirect.hidden = true;
@@ -301,6 +324,7 @@
       create.reset();
       hideCreate();
       hidePeople();
+      setNavigation(false);
       add.hidden = older.hidden = jump.hidden = empty.hidden = signin.hidden = true;
       $('#chat-name').textContent = '';
       $('#chat-topic').textContent = '';
@@ -316,6 +340,7 @@
       if (!changedUser && active === entering && (!entering || room?.slug === slug)) return;
       const wasActive = active;
       active = entering;
+      setNavigation(false);
       room = undefined;
       log.replaceChildren();
       hideCreate();
@@ -402,11 +427,23 @@
       add.setAttribute('aria-expanded', 'true');
       create.elements.name.focus();
     });
+    railToggle.addEventListener('click', () => {
+      const open = panel.dataset.navOpen !== 'true';
+      setNavigation(open);
+      if (open) $('#chat-nav [aria-current="true"]')?.focus({ preventScroll: true });
+      else markVisible();
+    });
+    $('#chat-nav').addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || event.defaultPrevented || panel.dataset.navOpen !== 'true') return;
+      setNavigation(false);
+      railToggle.focus();
+      markVisible();
+    });
     newDirect.addEventListener('click', openPeople);
     firstDirect.addEventListener('click', openPeople);
     personSearch.addEventListener('input', showPeople);
     peoplePanel.addEventListener('keydown', event => {
-      if (event.key === 'Escape') { hidePeople(); newDirect.focus(); }
+      if (event.key === 'Escape') { event.preventDefault(); hidePeople(); newDirect.focus(); }
     });
     $('#chat-create-cancel').addEventListener('click', () => { hideCreate(); add.focus(); });
     create.addEventListener('submit', async event => {
@@ -420,7 +457,7 @@
         if (user?.id !== creator) return;
         create.reset();
         hideCreate();
-        if (active) view(user, 'chat', slug);
+        if (active) selectRoom(slug);
       } catch (error) { $('#chat-create-status').textContent = error.message; }
       finally { button.disabled = false; }
     });

@@ -41,7 +41,7 @@ const assets = [
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json',
   'sales-email.css', 'sales-email.js',
-  'sales-chat.css', 'sales-chat.js',
+  'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
   'sales-support.css', 'sales-support.js', 'sales-support-content.js',
   'facility-reviews.css', 'facility-reviews.js',
   'sales-team.css', 'sales-team.js', 'sales-team-territory-planning.webp', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js', 'territory-town-map.js', 'territory-county-leads.js', 'territory-ownership.js', 'sdr-headshots.js',
