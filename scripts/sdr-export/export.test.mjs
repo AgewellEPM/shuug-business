@@ -586,6 +586,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => territoryMetric('total') === '9', 'A previous state overwrote the Connecticut dashboard');
   assert.equal(colors.checked, true);
   assert.equal(townCanvas.querySelectorAll('.town-map-county').length, 9);
+  const nearby = () => townCanvas.querySelector('.leaflet-territory-context-pane svg');
+  assert.ok(nearby().querySelector('path[data-context-state="NY"]'));
+  assert.equal(nearby().getAttribute('aria-hidden'), 'true');
+  assert.equal(nearby().querySelector('[data-county], [data-locality], [tabindex]'), null);
   const townSelect = townPanel.querySelector('[data-map-town]');
   const hartford = [...townSelect.options].find(option => option.text === 'Hartford');
   assert.equal(townSelect.options.length, 170);
@@ -683,6 +687,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => /Clarendon County.*Example County Lead/.test(mapSelection.textContent), 'The town’s assigned rep did not load');
   townPanel.querySelector('[data-map-streets]').click();
   assert.equal(townCanvas.dataset.layer, 'streets');
+  assert.equal(nearby(), null);
   const tile = townCanvas.querySelector('img.leaflet-tile');
   assert.match(tile.src, /^https:\/\/tile\.openstreetmap\.org\/16\//);
   townCanvas.dispatchEvent(new window.MouseEvent('click', {clientX:400, clientY:240, bubbles:true}));
@@ -698,6 +703,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.ok(townCanvas.querySelector('img.leaflet-tile[src*="/19/"]'));
   townPanel.querySelector('[data-map-reset]').click();
   assert.equal(townCanvas.dataset.layer, 'counties');
+  assert.ok(nearby().querySelector('path[data-context-state="GA"]'));
   assert.equal(clarendon.parentElement.getAttribute('display'), 'inline');
   assert.equal(mapSelection.hidden, true);
   assert.equal(townPanel.querySelector('.county-lead-form'), null);

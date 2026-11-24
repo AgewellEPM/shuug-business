@@ -24,6 +24,7 @@ import shapefile
 import shapely
 from pyproj import Transformer
 from shapely.geometry import Point, box as rectangle, shape
+from territory_map_context import build_context
 
 root = Path(__file__).resolve().parents[2]
 archives = Path(sys.argv[1])
@@ -222,3 +223,5 @@ for state in states.iterShapeRecords():
     raw = json.dumps(payload, ensure_ascii=False, separators=(',', ':')).encode()
     (destination / f'{code}.json.gz').write_bytes(gzip.compress(raw, mtime=0))
     print(code, len(features), flush=True)
+
+build_context(destination)

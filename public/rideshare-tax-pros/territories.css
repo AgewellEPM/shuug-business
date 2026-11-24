@@ -26,6 +26,13 @@
 .town-map-color-control input { appearance: auto; flex: none; width: 18px; height: 18px; accent-color: var(--accent); }
 .town-map-canvas.leaflet-container { height: var(--territory-map-height); width: 100%; isolation: isolate; border: 1px solid var(--glass-border-muted); border-radius: 12px; background: #fcfaf4; }
 .town-map-water { fill: #b7e0ec; fill-rule: evenodd; pointer-events: none; }
+.leaflet-territory-context-pane { z-index: 350; pointer-events: none; }
+.town-map-backdrop, .town-map-backdrop * { pointer-events: none; }
+.town-map-neighbor { fill: #e3e8df; fill-rule: evenodd; stroke: #a8b5a9; stroke-width: 1.1px; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.town-map-neighbor:nth-child(3n+2) { fill: #e8e9e0; }
+.town-map-neighbor:nth-child(3n) { fill: #e0e8e5; }
+.town-map-context-names { font-family: var(--f-sans), sans-serif; font-weight: 620; letter-spacing: .06em; fill: #738478; text-anchor: middle; dominant-baseline: central; }
+.town-map-state-shadow { fill: #435a4d; fill-opacity: .24; fill-rule: evenodd; stroke: #435a4d; stroke-opacity: .16; stroke-width: 2px; vector-effect: non-scaling-stroke; pointer-events: none; }
 .town-map-outline { fill: #f6f0d8; fill-rule: evenodd; }
 .town-map-county { stroke: #745f47; stroke-width: .9px; vector-effect: non-scaling-stroke; fill-rule: evenodd; cursor: pointer; }
 .town-map-county:hover { stroke: #3e342d; stroke-width: 1.4px; }
