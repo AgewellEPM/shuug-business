@@ -73,3 +73,20 @@ test('the builder validates generated drafts and falls back to an unsaved librar
   assert.equal(generated.script.title, 'Admissions desk demonstration');
   assert.equal(online.dispatch(rep, 'sales-scripts-read').customCount, 0);
 });
+
+test('a rep can personalize, save and reopen the face-to-face signing script using the existing library', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'sdr-scripts-visit-'));
+  const db = sqliteStore(join(directory, 'workspace.sqlite'));
+  t.after(() => { db.close(); rmSync(directory, { recursive: true, force: true }); });
+  const api = salesScripts(db);
+  const { scripts } = api.dispatch(rep, 'sales-scripts-read');
+  for (const script of scripts) {
+    assert.ok(Object.values(script.versions).every(version => version.length > 0 && !version.includes('undefined')));
+    assert.ok(script.versions.voicemail.trim().split(/\s+/).length <= 50);
+  }
+  const visit = scripts.find(s => s.id === 'visit-sign');
+  assert.match(visit.versions.script, /are you ready to sign/i);
+  assert.match(visit.versions.objections, /introduce me to the director/);
+  const saved = api.dispatch(rep, 'sales-scripts-save', { script: { ...visit, title: 'My desk visit' } });
+  assert.equal(saved.scripts.find(s => s.id === saved.savedId).versions.script, visit.versions.script);
+});

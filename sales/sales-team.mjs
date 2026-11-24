@@ -70,24 +70,26 @@ function publicMember(row, member, rootId) {
     ...territoryFields(member.scope, member.structured) };
 }
 
+function userInRoster(row, roster) {
+  const current = row && roster.get(idOf(row));
+  if (!current) return null;
+  const member = account(current, roster);
+  if (!member.active) return null;
+  const { territoryRevision } = agentTerritory(current);
+  return { id: idOf(current), name: current.contact_name, email: current.contact_email, role: 'agent', territoryRevision,
+    ...territoryFields(member.scope, member.structured) };
+}
+
+export function activeSalesRoster(user, rows) {
+  if (user.role !== 'owner') return [];
+  const records = pairedRows(rows);
+  return [...records.values()].map(row => userInRoster(row, records)).filter(Boolean)
+    .map(({ id, name, states, territory, territoryRevision }) => ({ id, name, states, territory, territoryRevision }));
+}
+
 export function salesTeamTools(db, audit, owner) {
   const list = () => pairedRows(db.list('agents'));
-  function rosterUser(row, roster = list()) {
-    const current = row && roster.get(idOf(row));
-    if (!current) return null;
-    const member = account(current, roster);
-    if (!member.active) return null;
-    const { territoryRevision } = agentTerritory(current);
-    return { id: idOf(current), name: current.contact_name, email: current.contact_email, role: 'agent', territoryRevision,
-      ...territoryFields(member.scope, member.structured) };
-  }
-
-  function roster(user, rows) {
-    if (user.role !== 'owner') return [];
-    const records = pairedRows(rows);
-    return [...records.values()].map(row => rosterUser(row, records)).filter(Boolean)
-      .map(({ id, name, states, territory, territoryRevision }) => ({ id, name, states, territory, territoryRevision }));
-  }
+  const rosterUser = (row, roster = list()) => userInRoster(row, roster);
 
   function messagingMembers() {
     const rows = list();
@@ -171,5 +173,5 @@ export function salesTeamTools(db, audit, owner) {
     return ['sales-team-profile', 'sales-team-member-profile'].includes(action) ? work() : db.writeAgentTeam(work);
   }
 
-  return { actions, dispatch, roster, rosterUser, messagingMembers };
+  return { actions, dispatch, roster: activeSalesRoster, rosterUser, messagingMembers };
 }

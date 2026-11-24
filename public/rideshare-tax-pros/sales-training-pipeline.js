@@ -19,7 +19,7 @@
     function render(focus = false) {
       if (!catalog) return;
       if (!active) {
-        panel.innerHTML = `<h2 id="training-pipeline-heading" tabindex="-1">Choose a facility scenario</h2>
+        panel.innerHTML = `<h2 id="training-pipeline-heading" tabindex="-1">Choose a buyer scenario</h2>
           <p>Practice with a fictional prospect. Your score is saved in Training.</p>
           <div class="training-course-grid">${catalog.map(scenario => `<article class="training-course">
             <p class="training-course-summary">${escape(scenario.setting)}</p>

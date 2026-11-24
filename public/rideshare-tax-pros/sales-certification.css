@@ -40,7 +40,7 @@
 .sdr-certification .cert-hero h1 { margin: 4px 0; color: inherit; font-size: clamp(2.05em, 3.6vw, 3.35em); line-height: 1; letter-spacing: -.035em; }
 .cert-nav {
   display: grid;
-  grid-template-columns: 1.2fr .9fr 1fr 1.25fr 1fr .9fr;
+  grid-template-columns: 1.2fr .8fr 1fr 1.2fr 1fr 1.2fr .9fr;
   gap: 4px;
   padding: 4px;
   border: 1px solid var(--cert-border);
@@ -149,3 +149,9 @@
   .cert-hero, .cert-card, .cert-button { border: 1px solid CanvasText; }
   .cert-nav a[aria-current="page"] { outline: 2px solid Highlight; }
 }
+
+[data-field-form] { display: grid; gap: .75rem; margin-block-start: .75rem; }
+[data-field-form][hidden] { display: none; }
+[data-field-form] fieldset { min-width: 0; border: 1px solid #bbd2ef; padding: .8rem; }
+[data-field-form] label { display: block; margin-block: .45rem; }
+[data-field-form] textarea { display: block; box-sizing: border-box; width: 100%; margin-block: .45rem; font: inherit; }

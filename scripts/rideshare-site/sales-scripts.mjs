@@ -1,6 +1,6 @@
 const versions = [
-  ['script', 'contracts', 'Script'], ['email', 'mail', 'Email Version'], ['voicemail', 'microphone', 'Voicemail'],
-  ['talking', 'chat', 'Talking Points'], ['objections', 'support', 'Objections'], ['followup', 'calendar', 'Follow-Up'],
+  ['script', 'contracts', 'What to say'], ['email', 'mail', 'Email Version'], ['voicemail', 'microphone', 'Voicemail'],
+  ['talking', 'chat', 'Rep notes'], ['objections', 'support', 'Objections'], ['followup', 'calendar', 'Follow-Up'],
 ];
 const variables = [
   ['FirstName', 'First name'], ['LastName', 'Last name'], ['Organization', 'Organization'], ['Title', 'Job title'],
@@ -21,9 +21,15 @@ export function renderSalesScripts(icon) {
     ${search('Search sales scripts', 'Search scripts, audiences, or topics…')}
     <header class="scripts-hero">
       <span class="scripts-hero-icon" aria-hidden="true">${icon('chat')}</span>
-      <div><h1 id="sales-scripts-title">Sales Scripts</h1><p>Accessibility-focused scripts for outreach, demos, and closing.</p></div>
+      <div><h1 id="sales-scripts-title">Sales Scripts</h1><p>Find the words for a first visit, a demo, or an agreement conversation.</p></div>
       <span class="scripts-hero-art" aria-hidden="true"><span class="scripts-hero-mic">${icon('microphone')}</span><span class="scripts-hero-page"><i></i><i></i><i></i>${icon('demo')}</span></span>
     </header>
+    <nav class="scripts-actions" aria-label="Face-to-face visit">
+      <button type="button" class="scripts-button" data-visit-script="visit-walk-in">Walk in</button>
+      <button type="button" class="scripts-button" data-visit-script="visit-demo">Show the board</button>
+      <button type="button" class="scripts-button" data-visit-script="visit-objection">Handle hesitation</button>
+      <button type="button" class="scripts-button" data-visit-script="visit-sign">Ask for the signature</button>
+    </nav>
     <dl class="scripts-stats">${stats.map(stat).join('')}</dl>
     <p data-scripts-status class="scripts-status" role="status" aria-atomic="true" hidden></p>
     <div class="scripts-layout">
@@ -77,6 +83,8 @@ export function renderSalesScripts(icon) {
             </section>
           </aside>
         </div>
+        <p data-scripts-signing hidden><a href="#view=contracts">Open Contracts to review the approved agreement</a> ·
+          <a href="#view=training&amp;course=first-week-in-the-field&amp;lesson=decide">Practice the signing conversation</a></p>
         <footer class="scripts-actions">
           ${button('copy', 'Copy Script', 'contracts', 'scripts-blue')}
           ${button('email', 'Generate Email', 'mail')}

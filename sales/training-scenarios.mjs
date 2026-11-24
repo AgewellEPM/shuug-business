@@ -137,4 +137,66 @@ export const trainingScenarios = [
       },
     ],
   },
+  {
+    id: 'shop-counter', title: 'A shop manager with one busy counter',
+    setting: 'An independent neighborhood shop at lunchtime',
+    opening: 'The cashier is helping a customer. The manager has five minutes before the next delivery and already keeps a paper board at the counter.',
+    passPercent: 80,
+    stages: [
+      {
+        id: 'permission', phase: 'First visit', title: 'Read the room',
+        prompt: 'You arrive just as a line forms. What do you say?',
+        options: [
+          { label: '“I have a quick demo. I can do it while you ring people up.”', feedback: 'Even a short demo draws attention away from a customer.' },
+          { label: '“I’ll set the board here for people to try while we wait.”', feedback: 'Ask staff before introducing anything at their counter.' },
+          { label: '“I can see you’re busy. Is there a quieter time to catch whoever runs the desk?”', feedback: 'The manager can choose a time or decline the visit.' },
+        ], correct: 2,
+      },
+      {
+        id: 'discovery', phase: 'Discovery', title: 'Understand the paper board',
+        prompt: '“We already keep a picture board here.” What do you ask?',
+        options: [
+          { label: '“What does yours handle well? Is there a request people still struggle to get across?”', feedback: 'Learn whether there is a gap worth exploring.' },
+          { label: '“Could I show you the digital version before we get into that?”', feedback: 'You might demo something they already do well.' },
+          { label: '“Who picked the paper one, and do they still handle purchasing?”', feedback: 'Learn whether they want a change before discussing purchasing.' },
+        ], correct: 0,
+      },
+      {
+        id: 'try', phase: 'Demo', title: 'Try the buyer’s example',
+        prompt: 'The manager says customers struggle to ask where to find an item. The sample board has a request for help. What do you offer?',
+        options: [
+          { label: '“I’ll walk you through the settings first.”', feedback: 'Start with the buyer’s task while you have their attention.' },
+          { label: '“Try asking me for help on this screen. I’ll be at the counter. What would you say next if you were working here?”', feedback: 'The manager experiences both sides and can tell you what is missing.' },
+          { label: '“We can definitely stock every item on the board.”', feedback: 'Demonstrate available choices and check requests for new content.' },
+        ], correct: 1,
+      },
+      {
+        id: 'cost', phase: 'Objection', title: 'Clarify the budget objection',
+        prompt: '“The paper board cost almost nothing.” How do you reply?',
+        options: [
+          { label: '“Would you buy if I could cut the price in half?”', feedback: 'Use approved terms and first find out whether there is a reason to change.' },
+          { label: '“Would you rather see a monthly figure or an annual figure?”', feedback: 'They have raised a value question as well as a price question.' },
+          { label: '“What would this have to do better than the paper one to be worth paying for?”', feedback: 'Use their answer to plan a test or accept that the paper board fits.' },
+        ], correct: 2,
+      },
+      {
+        id: 'sign', phase: 'Decision', title: 'Ask for a real commitment',
+        prompt: 'The manager wants one counter. The owner signs. What do you ask for today?',
+        options: [
+          { label: 'An introduction to the owner to review the desk, the written price and the terms before deciding.', feedback: 'The manager can sponsor the next conversation with the actual buyer.' },
+          { label: 'Permission to call the account signed and sort out the link later.', feedback: 'Interest and a recorded signature are separate events.' },
+          { label: 'A verbal go-ahead to set up the counter while you find the owner.', feedback: 'Confirm authorization and the actual agreement first.' },
+        ], correct: 0,
+      },
+      {
+        id: 'decline', phase: 'Follow-up', title: 'Honor the owner’s decision',
+        prompt: 'At review the owner says, “We’ll stick with paper. Please close this out.” What do you do?',
+        options: [
+          { label: 'Ask the manager to raise it again next week.', feedback: 'That would continue an inquiry the buyer has closed.' },
+          { label: 'Thank them, record the decline and close out the follow-up.', feedback: 'Another rep can see the actual decision and honor it.' },
+          { label: 'Schedule a monthly check-in to measure the objection.', feedback: 'The owner asked to close the inquiry.' },
+        ], correct: 1,
+      },
+    ],
+  },
 ];

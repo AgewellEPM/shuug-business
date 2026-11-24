@@ -411,6 +411,7 @@
         <h3>${escape(certificate.title)}</h3>
         <p>${escape(certificate.description)}</p>
         <strong>Earned ${date.format(new Date(earned))}</strong>
+        ${certificate.id === 'tinkytown-sales' ? '<p><a href="#view=certification&amp;section=practical">Continue to the observed sales practical</a></p>' : ''}
       </div>`;
     }
 

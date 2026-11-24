@@ -3,6 +3,7 @@
   const tags = {
     overview: 'program sales representative overview', training: 'classes curriculum courses lessons healthcare ada practice',
     certificates: 'certification certificates awards recognition badges completion', earnings: 'earnings bonuses rewards commissions payments',
+    practical: 'observed practical field visit sign off role play coaching owner score readiness',
     requirements: 'steps requirements quiz knowledge checks assessment', apply: 'apply enroll register join start my plan',
   };
   const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
@@ -106,8 +107,89 @@
         row.append(title, element('small', label));
         return row;
       }));
+      const practical = element('li'), link = element('a', 'Observed sales practical');
+      link.href = '#view=certification&section=practical';
+      practical.dataset.earned = String(Boolean(record.field.review?.passed));
+      const result = record.field.review?.passed ? 'Passed ' + date.format(new Date(record.field.review.reviewedAt))
+        : record.field.review ? 'Retry with coaching' : record.field.ready ? 'Ready for observation' : 'In training';
+      practical.append(link, element('small', result));
+      find('[data-cert-awards]').append(practical);
       enroll.disabled = saving || !paths.length;
     }
+    const fieldForm = find('[data-field-form]'), fieldLoad = find('[data-field-load]');
+    const fieldStatus = find('[data-field-status]');
+    let candidates = [], fieldBusy = false;
+    function standingText(standing) {
+      if (standing.review?.passed) return 'Passed the observed sales practical.';
+      if (standing.review) return 'Retry the observed visit after practicing the skills below.';
+      if (standing.ready) return 'Ready to schedule the observed visit with the workspace owner.';
+      const remaining = standing.remaining.map(id => record.catalog.courses.find(course => course.id === id)?.title || id);
+      if (!standing.scenarioPassed) remaining.push('Pass one Pipeline Practice case');
+      return 'Before the observed visit, complete the following — ' + remaining.join(' · ');
+    }
+    function feedbackText(review) {
+      if (!review) return '';
+      const missed = record.catalog.fieldRubric.filter(row => !review.checked.includes(row.id)).map(row => row.label);
+      return [date.format(new Date(review.reviewedAt)), review.note, ...missed].join(' · ');
+    }
+    function renderField() {
+      const { field, catalog } = record;
+      find('[data-field-standing]').textContent = standingText(field);
+      callout(find('[data-field-feedback]'), feedbackText(field.review));
+      find('[data-field-rubric]').replaceChildren(...catalog.fieldRubric.map(row => element('li', row.label)));
+      find('[data-field-owner]').hidden = !field.canReview;
+    }
+    function selectRep() {
+      const rep = candidates.find(item => item.id === fieldForm.elements.rep.value);
+      const fieldset = fieldForm.querySelector('fieldset');
+      fieldset.disabled = !rep?.ready || Boolean(rep?.review?.passed) || fieldBusy;
+      find('[data-field-rep-state]').textContent = rep ? standingText(rep) : 'Select the rep you observed.';
+      fieldForm.elements.note.value = rep?.review?.note || '';
+      find('[data-field-checks]').replaceChildren(...record.catalog.fieldRubric.map(row => {
+        const label = element('label'), input = element('input');
+        input.type = 'checkbox'; input.name = 'skill'; input.value = row.id;
+        // A retry scores a fresh performance.
+        input.checked = Boolean(rep?.review?.passed && rep.review.checked.includes(row.id));
+        label.append(input, ' ' + row.label);
+        return label;
+      }));
+      if (rep && !rep.review?.passed) fieldForm.elements.note.value = '';
+      if (rep?.review && !rep.review.passed) find('[data-field-rep-state]').textContent += ' Previous review: ' + feedbackText(rep.review);
+    }
+    fieldLoad.addEventListener('click', async () => {
+      if (fieldBusy) return;
+      fieldBusy = fieldLoad.disabled = true;
+      fieldForm.hidden = true;
+      callout(fieldStatus, 'Loading reps…');
+      try {
+        ({ candidates } = await api('training-field-candidates'));
+        const picker = fieldForm.elements.rep;
+        picker.replaceChildren(new Option('Choose the rep you observed', ''), ...candidates.map(rep => new Option(rep.name, rep.id)));
+        fieldForm.hidden = !candidates.length;
+        selectRep();
+        callout(fieldStatus, candidates.length ? '' : 'No active sales reps to review.');
+      } catch (error) { callout(fieldStatus, error.message); }
+      finally { fieldBusy = fieldLoad.disabled = false; }
+    });
+    fieldForm.elements.rep.addEventListener('change', () => { callout(fieldStatus, ''); selectRep(); });
+    fieldForm.addEventListener('submit', async event => {
+      event.preventDefault();
+      const rep = candidates.find(item => item.id === fieldForm.elements.rep.value);
+      if (fieldBusy || !rep?.ready || rep.review?.passed) return;
+      const checked = [...fieldForm.querySelectorAll('input:checked')].map(input => input.value);
+      const fieldset = fieldForm.querySelector('fieldset');
+      fieldBusy = fieldLoad.disabled = fieldForm.elements.rep.disabled = fieldset.disabled = true;
+      try {
+        const { review } = await api('training-field-review', { repId: rep.id, checked, revision: rep.review?.revision || 0, note: fieldForm.elements.note.value });
+        rep.review = review;
+        callout(fieldStatus, rep.name + (review.passed ? ' passed the observed practical.' : ' has coaching feedback for a retry.'));
+        fieldBusy = false;
+        selectRep();
+      } catch (error) {
+        callout(fieldStatus, error.message);
+        fieldset.disabled = false;
+      } finally { fieldBusy = fieldLoad.disabled = fieldForm.elements.rep.disabled = false; }
+    });
     function load() {
       if (loading) return loading;
       if (!record) callout(status, 'Loading certification progress…');
@@ -115,6 +197,7 @@
         record = next;
         callout(status, '');
         renderTraining();
+        renderField();
       }).catch(error => callout(status, error.message || 'Certification progress is unavailable.'))
         .finally(() => { loading = null; });
       return loading;
@@ -127,7 +210,7 @@
       saving = enroll.disabled = true;
       callout(enrollStatus, 'Opening your training…');
       try {
-        const pending = core.required.filter(id => !record.progress.completed[id]);
+        const pending = record.field.remaining;
         const add = pending.filter(id => !record.progress.plan.includes(id));
         if (add.length) {
           const { progress } = await api('training-update', { planChanges: { add } });
@@ -136,7 +219,7 @@
         }
         renderTraining();
         callout(enrollStatus, '');
-        if (!root.hidden) location.hash = trainingLink('', pending[0]).hash;
+        if (!root.hidden) location.hash = pending.length ? trainingLink('', pending[0]).hash : '#view=certification&section=practical';
       } catch (error) {
         callout(enrollStatus, error.message || 'The learning plan could not be updated.');
       } finally {

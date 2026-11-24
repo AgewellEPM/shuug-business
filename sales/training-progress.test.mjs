@@ -222,3 +222,45 @@ test('rehearsals grade private answers and retain best and latest scores separat
   f.reopen();
   assert.deepEqual((await owner('training-progress')).progress, result.progress);
 });
+
+test('the practical requires an active rep, coursework, a passed scenario and an owner-observed visit', async t => {
+  const f = fixture(t), owner = f.session(), rep = f.session();
+  await owner('login', { code: ownerCode });
+  const email = 'field@example.test';
+  const { code, agent } = await owner('create-agent', { name: 'Field Rep', email, states: ['CT'] });
+  await rep('login', { code, email });
+  const { catalog, field } = await rep('training-progress');
+  const checked = catalog.fieldRubric.map(row => row.id);
+  const attempt = { repId: String(agent.id), revision: 0, checked, note: 'Observed a fictional shop visit.' };
+  assert.equal(field.canReview, false);
+  await rep('training-field-candidates', {}, 403);
+  await rep('training-field-review', attempt, 403);
+  await owner('training-field-review', { ...attempt, repId: 'owner' }, 404);
+  await owner('training-field-review', attempt, 409);
+  for (const id of field.remaining) {
+    const course = catalog.courses.find(course => course.id === id);
+    for (const section of course.sections) await rep('training-update', { courseId: id, sectionId: section.id });
+    const exercise = trainingCourseExercises[id];
+    const answers = Object.fromEntries(exercise.questions.map(q => [q.id, q.correct]));
+    await rep('training-update', { courseId: id, assessment: { answers } });
+    for (const task of exercise.practice) await rep('training-update', { courseId: id, practice: { id: task.id, checked: task.checklist.map((_, i) => i) } });
+    await rep('training-update', { courseId: id });
+  }
+  await owner('training-field-review', attempt, 409);
+  const scenario = trainingScenarios.find(s => s.id === 'shop-counter');
+  const answers = Object.fromEntries(scenario.stages.map(s => [s.id, s.correct]));
+  await rep('training-update', { scenarioAttempt: { scenarioId: scenario.id, answers } });
+  const { candidates } = await owner('training-field-candidates');
+  assert.equal(candidates.find(row => row.id === attempt.repId).ready, true);
+  await owner('training-field-review', { ...attempt, checked: ['invented'] }, 400);
+  await owner('training-field-review', { ...attempt, note: ' ' }, 400);
+  const first = await owner('training-field-review', { ...attempt, checked: checked.slice(0, 4) });
+  assert.equal(first.review.passed, false);
+  assert.equal(first.review.revision, 1);
+  await owner('training-field-review', attempt, 409);
+  const second = await owner('training-field-review', { ...attempt, revision: 1, note: 'Asked the buyer to review and sign. Recorded the decision and handoff.' });
+  assert.equal(second.review.passed, true);
+  f.reopen();
+  assert.deepEqual((await rep('training-progress')).progress.fieldReview, second.review);
+  assert.equal((await owner('training-progress')).field.review, null);
+});

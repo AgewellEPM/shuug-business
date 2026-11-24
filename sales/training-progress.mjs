@@ -1,4 +1,6 @@
-import { HttpError } from './model.mjs';
+import { activeSalesRoster } from './sales-team.mjs';
+import { fieldCourse, fieldRubric } from './training-field-course.mjs';
+import { HttpError, text } from './model.mjs';
 import {
   featuredTrainingCourseId, trainingCategories, trainingCertificates, trainingCourseExercises, trainingCourses,
   trainingFaqs, trainingPaths, trainingPlaybooks,
@@ -25,12 +27,13 @@ const catalog = {
       id, phase, title, prompt, options: options.map(({ label }) => ({ label })),
     })),
   })),
+  fieldRubric,
   sessions: [],
 };
 const coursesById = new Map(catalog.courses.map(course => [course.id, course]));
 const scenariosById = new Map(trainingScenarios.map(scenario => [scenario.id, scenario]));
 
-export const TRAINING_ACTIONS = new Set(['training-progress', 'training-update']);
+export const TRAINING_ACTIONS = new Set(['training-progress', 'training-update', 'training-field-candidates', 'training-field-review']);
 
 function trainingProgress(saved) {
   const sections = saved?.sections ?? {};
@@ -43,6 +46,7 @@ function trainingProgress(saved) {
     scenarios: saved?.scenarios ?? {},
     currentCourseId: saved?.currentCourseId ?? null,
     plan: saved?.plan ?? [],
+    ...(saved?.fieldReview ? { fieldReview: saved.fieldReview } : {}),
   };
 }
 
@@ -143,6 +147,42 @@ function planChanges(value) {
   return { add, remove };
 }
 
+const fieldPrerequisites = [...trainingPaths.find(path => path.id === 'new-sales-rep').courseIds, fieldCourse.id];
+
+function fieldStanding(saved) {
+  const remaining = fieldPrerequisites.filter(id => !saved?.completed?.[id]);
+  const scenarioPassed = trainingScenarios.some(scenario => saved?.scenarios?.[scenario.id]?.best?.passed);
+  return { remaining, scenarioPassed, ready: !remaining.length && scenarioPassed, review: saved?.fieldReview || null };
+}
+
+async function fieldReviewTools(db, user, action, body, now) {
+  if (user.role !== 'owner') throw new HttpError(403, 'Only the workspace owner can score a rep’s practical.');
+  const reps = activeSalesRoster(user, await db.list('agents'));
+  if (action === 'training-field-candidates') {
+    const candidates = await Promise.all(reps.map(async ({ id, name }) => ({
+      id, name, ...fieldStanding(await db.trainingProgress(id)),
+    })));
+    return { candidates };
+  }
+  const rep = reps.find(rep => rep.id === body.repId);
+  if (!rep) throw new HttpError(404, 'Choose an active sales rep.');
+  const { checked, revision } = body;
+  if (!Array.isArray(checked) || checked.length > fieldRubric.length || new Set(checked).size !== checked.length ||
+      !checked.every(id => fieldRubric.some(row => row.id === id))) throw new HttpError(400, 'Use the practical scorecard to mark the skills observed.');
+  const note = text(body.note, 800, true);
+  const progress = await db.updateTrainingProgress(rep.id, saved => {
+    const standing = fieldStanding(saved);
+    if (!standing.ready) throw new HttpError(409, 'Finish the prerequisite courses and pass a Pipeline Practice case first.');
+    if ((standing.review?.revision || 0) !== revision) throw new HttpError(409, 'Another review was saved. Reload the rep list before scoring.');
+    if (standing.review?.passed) throw new HttpError(409, 'This rep has already passed the observed practical.');
+    return { ...trainingProgress(saved), fieldReview: {
+      revision: revision + 1, checked: fieldRubric.filter(row => checked.includes(row.id)).map(row => row.id),
+      passed: checked.length === fieldRubric.length, note, reviewedBy: user.id, reviewedAt: new Date(now()).toISOString(),
+    } };
+  });
+  return { review: progress.fieldReview };
+}
+
 export function trainingTools(db, now = Date.now) {
   return async (user, action, body) => {
     if (!['owner', 'agent'].includes(user.role)) throw new HttpError(403, 'Open the Sales Workspace to use training.');
@@ -150,8 +190,10 @@ export function trainingTools(db, now = Date.now) {
       throw new HttpError(503, 'Training progress is unavailable in this workspace.');
     }
     const userId = String(user.id);
+    if (action === 'training-field-candidates' || action === 'training-field-review') return fieldReviewTools(db, user, action, body, now);
     if (action === 'training-progress') {
-      return { catalog, progress: trainingProgress(await db.trainingProgress(userId)) };
+      const progress = trainingProgress(await db.trainingProgress(userId));
+      return { catalog, progress, field: { ...fieldStanding(progress), canReview: user.role === 'owner' } };
     }
     if (body.scenarioAttempt !== undefined) {
       if (['courseId', 'sectionId', 'assessment', 'practice', 'planChanges'].some(key => body[key] !== undefined)) {

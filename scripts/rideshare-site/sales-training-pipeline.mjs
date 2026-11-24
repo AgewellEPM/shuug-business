@@ -3,7 +3,7 @@ export function renderTrainingPipeline() {
     <header class="training-hero">
       <img class="training-reference-icon" src="/training-art/cap.png" alt="">
       <div><h1 id="training-pipeline-title">Pipeline Practice</h1>
-        <p>Rehearse a sales visit from first contact through the facility handoff.</p></div>
+        <p>Rehearse a sales visit from first contact to a signed agreement, a dated next step or a clear decline.</p></div>
     </header>
     <a class="training-link" href="#view=training">← Back to Training</a>
     <p data-training-pipeline-status role="status" hidden></p>

@@ -35,7 +35,46 @@ test('certification shows real completion and adds the unfinished core courses t
   await setImmediate();
   assert.equal(reloads, 1);
   assert.equal(window.location.hash, '#view=training&course=qualify-directory-prospects');
-  assert.equal(saved.plan.length, 7);
+  assert.equal(saved.plan.length, 8);
+  assert.ok(saved.plan.includes('first-week-in-the-field'));
   assert.ok(saved.plan.includes('aging-and-dementia'));
   assert.ok(!saved.plan.includes('sales-onboarding'));
+});
+
+test('the owner scores a named rep and sees the retry cue before submitting a fresh observed visit', async t => {
+  const dom = new JSDOM(renderCertification(() => ''), { url: 'http://127.0.0.1/sales', runScripts: 'outside-only' });
+  t.after(() => dom.window.close());
+  const { window } = dom, find = selector => window.document.querySelector(selector);
+  const read = trainingTools({ trainingProgress: () => null, updateTrainingProgress() {} });
+  const record = await read({ id: 'owner', role: 'owner' }, 'training-progress');
+  let review = null;
+  window.eval(readFileSync(new URL('../../public/rideshare-tax-pros/sales-certification.js', import.meta.url), 'utf8'));
+  const app = window.SdrCertification.mount({ api: async (action, body) => {
+    if (action === 'training-progress') return record;
+    if (action === 'training-field-candidates') return { candidates: [{ id: '42', name: 'Practice rep', ready: true, remaining: [], scenarioPassed: true, review }] };
+    assert.equal(action, 'training-field-review');
+    assert.equal(body.repId, '42');
+    assert.equal(body.revision, review?.revision || 0);
+    review = { revision: body.revision + 1, checked: body.checked, passed: body.checked.length === 6,
+      note: body.note, reviewedAt: new Date().toISOString() };
+    return { review };
+  } });
+  await app.show('practical');
+  find('[data-field-load]').click(); await setImmediate();
+  const form = find('[data-field-form]');
+  form.elements.rep.value = '42';
+  form.elements.rep.dispatchEvent(new window.Event('change'));
+  const checks = () => [...form.querySelectorAll('[type=checkbox]')];
+  checks()[0].checked = true;
+  form.elements.note.value = 'Asked permission. Practice the signature question.';
+  form.requestSubmit(); await setImmediate();
+  assert.equal(review.passed, false);
+  assert.match(find('[data-field-rep-state]').textContent, /Practice the signature question/);
+  assert.ok(checks().every(box => !box.checked));
+  for (const box of checks()) box.checked = true;
+  form.elements.note.value = 'Confirmed the signer and accepted a decline in the alternate ending.';
+  form.requestSubmit(); await setImmediate();
+  assert.equal(review.passed, true);
+  assert.equal(form.querySelector('fieldset').disabled, true);
+  assert.match(find('[data-field-status]').textContent, /Practice rep passed/);
 });

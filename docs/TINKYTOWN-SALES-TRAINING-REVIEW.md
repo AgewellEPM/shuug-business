@@ -1,0 +1,24 @@
+# TinkyTown sales training and certification review
+
+November 24, 2026 · Internal sales enablement
+
+**Verdict.** The original program prepared a rep to run a respectful product walkthrough. Its completion certificate gave a manager too little evidence to send that rep alone into a first visit. In a walkthrough with a fictional rep, all three course paths showed complete after 35 lesson visits, 55 selected answers and 15 self-reported practice activities. Both Pipeline Practice cases still showed zero attempts. A manager could see that a rep recognized an appropriate answer, but had never heard the rep give one.
+
+I treated “Tony Robinson” as Tony Robbins. I used Robbins’s emphasis on practice, feedback and weekly measurement, and Jordan Belfort’s emphasis on rapport, qualification, delivery and a clear decision. The judgments and practical below are TinkyTown’s proposed internal standard. [Robbins’s Business Mastery workbook](https://go.tonyrobbins.com/hubfs/Files%20to%20create%20urls/BM1_Manual%20Interactive%202024-min.pdf) · [Belfort’s Straight Line curriculum](https://india.jordanbelfort.com/opt-in171269699288)
+
+| Original material reviewed | Judgment | What a manager should listen for |
+| --- | --- | --- |
+| Sales Onboarding and Qualify a Directory Prospect | Good account hygiene. Verifying an address and role is a sound first step. A rep could still arrive with no reason the buyer would give them a minute. | The rep names one relevant desk, asks permission and pauses. They can leave a busy counter graciously. |
+| Senior Care Discovery, Sell to Senior Centers and Nursing Homes, and the two first-contact playbooks | Good role mapping, specific use cases and pilot questions. Both scored rehearsals covered care or senior services and used the same correct-answer pattern. | Change the setting to a shop or library. Can the rep discover an unmet need, recognize an existing solution that works, and change the next question? |
+| TinkyTown and TinkySpeak, TinkyStroke Demo, Hospital Demo, Demo Lab and the site checklist | The strongest teaching sequence. A participant chooses a message and a staff member responds. The buyer can see what the product does. | Give the device to the buyer. When they choose an unexpected message or need a different access method, can the rep continue the exchange? |
+| Aging and Dementia, Dignity and Privacy, accessible discovery, access checks, ADA course and accessibility playbook | Keep the participant’s choice, fictional examples and boundaries on claims. A quiz score alone can conceal a serious mistake. | Ask for a savings or compliance guarantee. The rep should describe what was observed and offer to verify the open question. |
+| Facility Demo Follow-Up, Pipeline Follow-Ups, Booking and Contracts, and the outreach/pilot playbook | Good guidance on the signer and dated next steps. The scripts often asked for another meeting after a buyer was ready. Some objection replies told the rep what to do without giving them words to use. | Play both endings. Ask for the signature when the signer is ready. Handle a change in terms or a clear decline, then write the outcome accurately. |
+| Three learning paths, certifications, My Plan and live training | The paths organize the material well. Live Training listed no scheduled sessions. Self-paced completion left coaching and practical assessment to chance. | Use the first-week course, one scored Pipeline Practice case and the owner's observed review. The rep can read the feedback and see which skill to retry. |
+
+## What to do with a new rep
+
+Start at **Certification → Get started**. During the first week, use **Sales Scripts → Walk in**, **Show the board**, **Handle hesitation** and **Ask for the signature**. Have the rep speak or type the lines in their own words. As the buyer, interrupt, change an answer, ask about cost, or point to the paper board you already use. A memorized pitch becomes easy to spot when the next line ignores your answer.
+
+Score the ten-minute fictional visit in **Certification → Observed practical**. Mark only the six behaviors you observed across a buying and a declining ending. Record one thing the buyer said and what the rep did in response. On a miss, give the rep the exact moment to redo. For example, “When I said ‘too expensive,’ you offered a discount. Try asking what I would need to see for the price to make sense.” Save a new review after observing the retry.
+
+**Field validation is still open.** Passing a rehearsal demonstrates performance with a role-player. For the first cohort, observe an actual permission-based visit and compare the rep’s recap with the buyer’s decision. Review qualified conversations, demos held, pilots agreed and signed agreements for the same accounts each week. Use the buyer’s reasons to decide what to reteach. The walkthrough supplied no customer conversion or revenue evidence.

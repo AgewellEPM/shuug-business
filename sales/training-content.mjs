@@ -1,3 +1,4 @@
+import { fieldCourse } from './training-field-course.mjs';
 import { fieldTrainingCourses } from './training-curriculum.mjs';
 
 export { trainingCourseExercises, trainingPlaybooks } from './training-curriculum.mjs';
@@ -31,13 +32,14 @@ export const trainingCourses = [
         steps: [
           'Pick one communication moment to discuss, such as asking for assistance or expressing a preference. Ask who is involved today and where the person gets stuck.',
           'Open Sales team and select Demo. Pick TinkyStroke for a bedside conversation or TinkyTown Hospital for reception. Walk through one prompt and select a sample message to display and speak.',
+          'Open Sales Scripts and choose Face-to-face visits. Rehearse the walk-in, buyer objection and signature request with a teammate. Then take Your First Week Selling TinkyTown in the course catalog.',
           'Practice a short introduction for a teammate. Name the setting you researched, show one message on the demo board, and ask whether that interaction would fit their workflow.',
         ],
       },
       {
         id: 'follow-through', title: 'Practice the handoff to a next step',
         steps: [
-          'Open a practice prospect or a record you already own. Locate the status, Log call, and Schedule follow-up controls. Write a brief practice note with the outcome, who owns the next step, and a date.',
+          'Use Pipeline Practice for the fictional visit. Write your sample note outside live accounts. On a real call, log the actual outcome, who owns the next step, and any agreed date.',
           'Open Contracts and identify where to check the business, signer, terms, and signature status. Find Download signed agreement on an existing signed record if one is visible.',
           'Check your work by explaining the difference between a directory listing, a saved prospect, an accepted demo appointment, and a signed agreement.',
         ],
@@ -241,6 +243,7 @@ export const trainingCourses = [
     ],
   },
   ...fieldTrainingCourses,
+  fieldCourse,
 ];
 
 export const trainingPaths = [
@@ -290,7 +293,7 @@ export const trainingFaqs = [
   },
   {
     question: 'How do I earn a certificate?',
-    answer: 'Complete all courses in its learning path, then open Certifications to view the workspace completion record.',
+    answer: 'Complete all courses in its learning path, then open Certifications to view the coursework record. To demonstrate field readiness, open Certification → Observed practical for the first-week course, Pipeline Practice and a scored visit with the workspace owner.',
   },
   {
     question: 'Where can I practice the product demos?',

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
   const channelNames = { phone: 'Phone Call', email: 'Email', demo: 'In-Person / Demo', voicemail: 'Voicemail' };
-  const versionNames = { script: 'Script', email: 'Email Version', voicemail: 'Voicemail', talking: 'Talking Points', objections: 'Objections', followup: 'Follow-Up' };
+  const versionNames = { script: 'Script', email: 'Email Version', voicemail: 'Voicemail', talking: 'Rep Notes', objections: 'Objections', followup: 'Follow-Up' };
   const token = /\{\{([A-Za-z]+)\}\}/g;
   const number = new Intl.NumberFormat('en-US');
 
@@ -129,6 +129,10 @@
       desktop.hidden = !script;
       if (!script) return;
       title.textContent = script.title;
+      find('[data-scripts-signing]').hidden = script.id !== 'visit-sign';
+      for (const shortcut of all('[data-visit-script]')) {
+        shortcut.setAttribute('aria-pressed', String(shortcut.dataset.visitScript === script.id));
+      }
       find('[data-scripts-description]').textContent = [script.category, script.description].filter(Boolean).join(' · ');
       find('[data-scripts-kind]').textContent = draft ? 'Unsaved draft' : script.shared ? 'Team script' : script.custom ? 'My script' : 'Library';
       const isPrimary = Boolean(script.id && script.id === record.primaryId);
@@ -213,6 +217,18 @@
       setVersion('script');
     }
 
+    for (const shortcut of all('[data-visit-script]')) {
+      shortcut.addEventListener('click', async () => {
+        if (load) await load;
+        const script = record?.scripts.find(item => item.id === shortcut.dataset.visitScript);
+        if (!script) return;
+        searchText = '';
+        for (const input of search) input.value = '';
+        searchCollapsed.clear();
+        status('');
+        choose(script, true);
+      });
+    }
     for (const input of search) {
       input.form.addEventListener('submit', event => event.preventDefault());
       input.addEventListener('input', () => {

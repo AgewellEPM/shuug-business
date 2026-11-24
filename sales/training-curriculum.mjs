@@ -1,3 +1,5 @@
+import { fieldCourse, fieldExercise } from './training-field-course.mjs';
+
 const titleII = { title: 'DOJ · ADA Title II regulations, 28 CFR Part 35', url: 'https://www.ada.gov/law-and-regs/regulations/title-ii-2010-regulations/' };
 const titleIII = { title: 'DOJ · ADA Title III regulations, 28 CFR Part 36', url: 'https://www.ada.gov/law-and-regs/regulations/title-iii-regulations/' };
 const effectiveCommunication = { title: 'DOJ · ADA requirements for effective communication', url: 'https://www.ada.gov/resources/effective-communication/' };
@@ -168,6 +170,7 @@ const question = (id, prompt, options, correct, explanation) => ({ id, prompt, o
 const practice = (id, prompt, checklist) => ({ id, prompt, checklist });
 
 export const trainingCourseExercises = {
+  [fieldCourse.id]: fieldExercise,
   'sales-onboarding': {
     questions: [
       question('first-step', 'You find a facility that may be a fit. What is the next step before outreach?',
