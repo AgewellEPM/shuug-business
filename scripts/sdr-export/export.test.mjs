@@ -1598,16 +1598,16 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     form.elements.frequency.value = 'each';
     form.requestSubmit();
     await waitFor(() => find('[data-product-status]').textContent === 'Pricing saved.', 'Owner pricing did not save');
-    const { pricing, canEdit } = await juniorSession.api('products-read');
+    const { pricing, canEdit } = await peerSession.api('products-read');
     assert.equal(canEdit, false);
     assert.equal(pricing.rentalCents, 7500);
     assert.equal(pricing.commissionCents, 938);
     assert.equal(pricing.hardwareCostCents, undefined);
     assert.equal((await owner.api('products-read')).pricing.hardwareCostCents, 12000);
     const changes = { revision: 0, rental: '75', hardwareCost: '120', kind: 'fixed', amount: '8', frequency: 'first' };
-    await juniorSession.api('products-save', changes, 403);
+    await peerSession.api('products-save', changes, 403);
     await owner.api('products-save', changes, 409);
-    const staffProducts = await mountConsole(t, first.origin, juniorSession, html, '/sales#view=products&section=pricing');
+    const staffProducts = await mountConsole(t, first.origin, peerSession, html, '/sales#view=products&section=pricing');
     await waitFor(() => staffProducts.document.querySelector('[data-product-panel="pricing"] [data-product-commission]').textContent.includes('$9.38 each paid month'),
       'The sales rep did not see the published commission');
     assert.equal(staffProducts.document.querySelector('.product-edit').hidden, true);
