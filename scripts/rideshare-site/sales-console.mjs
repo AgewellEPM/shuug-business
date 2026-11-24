@@ -233,6 +233,23 @@ function standaloneTeam(legacyTeam) {
         <div id="sales-team"></div>
       </section>
       <div class="sdr-team-controls">
+        <section class="sales-panel sdr-team-profile" aria-labelledby="sales-team-profile-title">
+          <h2 id="sales-team-profile-title">My bio and headshot</h2>
+          <p>Your profile can appear on counties assigned to you.</p>
+          <form id="sales-team-profile" class="sales-form">
+            <label>Bio<textarea name="bio" rows="3" maxlength="800" disabled></textarea></label>
+            <div class="sdr-team-profile-photo">
+              <img data-team-profile-preview alt="Headshot preview" width="64" height="64" hidden>
+              <label>Headshot<input name="headshot" type="file" accept="image/*" disabled></label>
+              <button type="button" class="button secondary" data-team-profile-remove hidden>Remove headshot</button>
+            </div>
+            <div class="sales-actions">
+              <button type="submit" class="button primary" disabled>Save profile</button>
+              <button type="button" class="button secondary" data-team-profile-reload hidden>Reload profile</button>
+            </div>
+            <p id="sales-team-profile-status" role="status" aria-live="polite"></p>
+          </form>
+        </section>
         <section class="sales-panel" aria-labelledby="sales-team-invite-title">
           <h2 id="sales-team-invite-title">Invite a team member</h2>
           <p>Share the sign-in page and private access code with the person you invite.</p>

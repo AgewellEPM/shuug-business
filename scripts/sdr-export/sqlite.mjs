@@ -51,6 +51,8 @@ export function sqliteStore(filename) {
     return { ...body, created_at: timestamp, updated_at: timestamp };
   };
   const get = (kind, id) => /^[1-9]\d*$/.test(String(id)) ? decode(one.get(kindFor(kind), String(id))) : undefined;
+  const salesRepProfile = id => JSON.parse(setting.get('sales-rep-profile:' + id)?.value ?? 'null') ??
+    { bio: '', photo: '', revision: 0 };
 
   let writing = false;
   function writeTransaction(work) {
@@ -120,6 +122,15 @@ export function sqliteStore(filename) {
         const next = { ...changes, revision: revision + 1 };
         save.run('county-lead:' + id, JSON.stringify(next));
         return next;
+      });
+    },
+    salesRepProfile,
+    setSalesRepProfile(id, revision, changes) {
+      return writeTransaction(() => {
+        if (salesRepProfile(id).revision !== revision) throw new HttpError(409, 'Your profile changed. Reopen it before saving.');
+        const profile = { ...changes, revision: revision + 1 };
+        save.run('sales-rep-profile:' + id, JSON.stringify(profile));
+        return profile;
       });
     },
     writeAgentTeam: writeTransaction,

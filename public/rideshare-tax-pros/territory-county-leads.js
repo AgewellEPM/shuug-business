@@ -7,26 +7,6 @@
     return node;
   }
 
-  async function headshot(file) {
-    if (file.size > 16 * 1024 * 1024) throw Error('Choose a photo smaller than 16 MB.');
-    const url = URL.createObjectURL(file);
-    try {
-      const image = new Image();
-      image.src = url;
-      await image.decode();
-      const canvas = document.createElement('canvas');
-      canvas.width = canvas.height = 112;
-      const ctx = canvas.getContext('2d'), side = Math.min(image.naturalWidth, image.naturalHeight);
-      ctx.fillStyle = 'white'; ctx.fillRect(0, 0, 112, 112);
-      ctx.drawImage(image, (image.naturalWidth - side)/2, (image.naturalHeight - side)/2, side, side, 0, 0, 112, 112);
-      for (const quality of [.82, .65, .45]) {
-        const encoded = canvas.toDataURL('image/jpeg', quality);
-        if (encoded.length <= 13000) return encoded;
-      }
-      throw Error('Choose a smaller headshot.');
-    } finally { URL.revokeObjectURL(url); }
-  }
-
   function avatar(lead) {
     if (lead?.photo) {
       const image = el('img', '', 'county-avatar');
@@ -90,7 +70,8 @@
       name.value = lead?.name || ''; name.required = true; name.maxLength = 100; name.name = 'name';
       const member = el('select'); member.name = 'memberId'; member.required = true;
       member.append(new Option('Choose a sales rep', ''));
-      for (const person of data.leadMembers.filter(p => !p.counties || p.counties.includes(county.id))) {
+      const members = data.leadMembers.filter(p => !p.counties || p.counties.includes(county.id));
+      for (const person of members) {
         member.append(new Option(person.name, person.id));
       }
       if (data.customLeads) member.append(new Option('Enter a name manually', 'manual'));
@@ -98,13 +79,27 @@
       const label = (text, input) => { const label = el('label', text); label.append(input); return label; };
       photo.type = 'file'; photo.name = 'photo'; photo.accept = 'image/*';
       const customName = label('Person running this county', name);
-      function showName() { customName.hidden = member.value !== 'manual'; name.disabled = customName.hidden; }
-      member.onchange = showName;
-      showName();
-      form.append(label('Sales rep', member), customName, label('Headshot (optional)', photo));
-      if (lead?.photo) {
-        removePhoto.type = 'checkbox'; form.append(label('Remove headshot', removePhoto));
+      const customPhoto = label('Headshot (optional)', photo);
+      const remove = label('Remove headshot', removePhoto);
+      removePhoto.type = 'checkbox';
+      const profile = el('div', '', 'county-rep-preview');
+      function showPerson() {
+        const manual = member.value === 'manual';
+        customName.hidden = name.disabled = !manual;
+        customPhoto.hidden = photo.disabled = !manual;
+        remove.hidden = !manual || !lead?.photo || Boolean(lead.memberId);
+        const person = members.find(rep => rep.id === member.value);
+        profile.hidden = !person;
+        if (person) {
+          const sameRep = lead?.memberId === person.id;
+          const savedPhoto = sameRep ? lead.photo : '';
+          const shown = { ...person, photo: sameRep && lead.profileRevision ? savedPhoto : person.photo || savedPhoto };
+          profile.replaceChildren(avatar(shown), el('span', shown.photo ? 'Rep profile headshot' : 'No profile headshot yet'));
+        }
       }
+      member.onchange = showPerson;
+      showPerson();
+      form.append(label('Sales rep', member), profile, customName, customPhoto, remove);
       const actions = el('div', '', 'county-lead-actions');
       const save = el('button', 'Save assignment', 'button primary');
       const clear = el('button', 'Clear assignment', 'button secondary');
@@ -121,7 +116,7 @@
           const memberId = member.value === 'manual' ? '' : member.value;
           const samePerson = memberId ? memberId === lead?.memberId : !lead?.memberId && name.value.trim() === lead?.name;
           let image = samePerson ? lead.photo : '';
-          if (photo.files?.[0]) image = await headshot(photo.files[0]);
+          if (!memberId && photo.files?.[0]) image = await window.SdrHeadshots.encode(photo.files[0]);
           if (clearing || removePhoto.checked) image = '';
           const result = await api('set-county-lead', {state:data.state, county:county.id, revision:lead?.revision || 0,
             name:clearing ? '' : name.value.trim(), memberId, photo:image, clear:clearing});
@@ -147,5 +142,5 @@
       list.replaceChildren(); close();
     } };
   }
-  window.SdrCountyLeads = { mount };
+  window.SdrCountyLeads = { mount, avatar };
 })();

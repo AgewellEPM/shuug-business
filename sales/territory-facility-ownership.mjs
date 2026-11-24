@@ -1,6 +1,7 @@
 import { nursingHomesSource } from './business-category-sources.mjs';
 import { FACILITY_TYPES, HttpError, STATES, metadata, state, text } from './model.mjs';
 import { localityAllowed, localityKey, stateAllowed } from './territory-access.mjs';
+import { officeMarket } from './sales-market-segments.mjs';
 import { countyOwnership } from './territory-map.mjs';
 
 const maxMatches = 12;
@@ -29,7 +30,8 @@ export async function facilityOwnership(user, input, db) {
     if ((region ? row.state !== region : !STATES.includes(row.state)) || !localityAllowed(user, row.state, row.locality)) continue;
     const info = metadata(row) || {};
     const name = typeof row.town === 'string' ? row.town.trim() : '';
-    if (!name || !isFacility(row, info)) continue;
+    const market = officeMarket(row, info);
+    if (!name || (!market && !isFacility(row, info))) continue;
     const city = typeof row.locality === 'string' ? row.locality : '';
     const address = typeof info.address === 'string' ? info.address : '';
     const searchable = searchKey([name, address, city, row.state, info.postalCode].join(' '));
@@ -37,7 +39,7 @@ export async function facilityOwnership(user, input, db) {
     if (numeric.length && !numeric.every(term => searchable.split(' ').includes(term))) continue;
     const nameKey = searchKey(name), addressKey = searchKey(address);
     const rank = nameKey === query || addressKey === query ? 0 : nameKey.startsWith(query) ? 1 : 2;
-    candidates.push({ name, city, address, state: row.state, assignedTo: String(row.assigned_to ?? '').trim(), rank });
+    candidates.push({ name, city, address, state: row.state, market, assignedTo: String(row.assigned_to ?? '').trim(), rank });
   }
   candidates.sort((a, b) => a.rank - b.rank || a.name.localeCompare(b.name) || a.state.localeCompare(b.state) ||
     a.city.localeCompare(b.city) || a.address.localeCompare(b.address, undefined, { numeric: true }));
@@ -51,8 +53,8 @@ export async function facilityOwnership(user, input, db) {
       }
     }
   }
-  const matches = page.map(({ name, city, address, state, assignedTo }) => ({
-    name, city, address, state,
+  const matches = page.map(({ name, city, address, state, market, assignedTo }) => ({
+    name, city, address, state, ...(market ? {market} : {}),
     assignee: assignedTo === 'owner' ? 'Workspace owner' : assignedTo ? reps.get(assignedTo) || 'Unknown rep' : '',
     status: assignedTo ? 'assigned' : 'unassigned',
   }));

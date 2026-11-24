@@ -15,3 +15,15 @@
 @media (max-width: 900px) {
   .sdr-team-layout { grid-template-columns: minmax(0, 1fr); gap: 0; }
 }
+
+
+#sales-team-profile { margin-top: 12px; }
+.sdr-team-profile-photo { display: flex; flex-wrap: wrap; align-items: end; gap: 8px 12px; }
+.sdr-team-profile-photo img { flex: 0 0 auto; object-fit: cover; border: 1px solid var(--glass-border-muted); border-radius: 50%; }
+.sdr-team-profile-photo label { flex: 1 1 12rem; min-width: 0; }
+.sdr-team-profile-photo input { max-width: 100%; }
+#sales-team-profile-status:empty { display: none; }
+.sales-console-page #sales-team-profile-status[data-error="true"] { color: var(--danger-ink); }
+
+.sdr-team-member-markets { display: flex; flex-wrap: wrap; gap: 4px 6px; margin-block-start: 6px; }
+.sdr-team-member-markets span { padding: 2px 8px; border-radius: 99px; background: var(--glass-fill-strong); color: var(--text-secondary); font-size: 12px; }

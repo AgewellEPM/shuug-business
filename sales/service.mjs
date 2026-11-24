@@ -14,6 +14,7 @@ import { revenueSummary } from './revenue.mjs';
 import { localDiscovery } from './local-discovery.mjs';
 import {agentTerritory, territoryTools} from './territories.mjs';
 import {localityAllowed} from './territory-access.mjs';
+import { teamMarketSegments } from './sales-market-segments.mjs';
 import { salesTeamTools } from './sales-team.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
@@ -106,7 +107,12 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
-    if (salesTeam?.actions.has(action)) return salesTeam.dispatch(user, action, b);
+    if (salesTeam?.actions.has(action)) {
+      const result = salesTeam.dispatch(user, action, b);
+      return action === 'sales-team-read'
+        ? { ...result, members: teamMarketSegments(user, result.members, await db.list('offices')) }
+        : result;
+    }
     if (tools.territoryOwnership && action === 'territory-ownership') {
       return tools.territoryOwnership(user, b, () => salesTeam.dispatch(user, 'sales-team-read', {}));
     }
