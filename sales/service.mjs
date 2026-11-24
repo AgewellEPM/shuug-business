@@ -115,6 +115,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       return action === 'territory-map' ? tools.territoryMap(user, b, readTeam) : tools.setCountyLead(user, b, readTeam);
     }
     if (tools.facilities && action === 'territory-facilities') return tools.facilities(user, b);
+    if (tools.facilityOutreach && action === 'facility-outreach-drafts') return tools.facilityOutreach(user, b);
     if (tools.facilities && action === 'territory-facility-save') return tools.facilities(user, b,
       (input, classification) => dispatch(user, 'create-office', input, classification));
     if (tools.savedProspects && ['list-prospects', 'save-prospect', 'update-prospect'].includes(action)) {

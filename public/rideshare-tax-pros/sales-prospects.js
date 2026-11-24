@@ -119,7 +119,7 @@
     if (role?.sourceURL) {
       const source = links?.(role.sourceURL, 'Role source');
       if (source) {
-        if (role.checkedOn) source.title = 'Employer source checked ' + role.checkedOn;
+        if (role.checkedOn) source.title = 'Role source checked ' + role.checkedOn;
         pages.append(source);
       }
     }
@@ -144,9 +144,68 @@
   function facilityProfile(dialog, api) {
     const find = name => dialog.querySelector(`[data-facility-profile-${name}]`);
     const team = find('team'), contact = find('contact');
+    const outreach = dialog.querySelector('[data-facility-outreach]');
+    const draftPanel = dialog.querySelector('[data-facility-outreach-drafts]');
+    const draftList = dialog.querySelector('[data-facility-outreach-list]');
+    const draftStatus = dialog.querySelector('[data-facility-outreach-status]');
     const link = (href, text) => window.SdrTerritoryFacilities?.sourceLink(href, text);
     const textNode = (tag, text) => { const element = document.createElement(tag); element.textContent = text; return element; };
     let request = 0;
+
+    function draftCard(draft, index) {
+      const card = document.createElement('details');
+      card.open = index === 0;
+      const summary = textNode('summary', draft.name + ' · ' + draft.title);
+      const content = document.createElement('div');
+      content.className = 'facility-outreach-compose';
+      content.innerHTML = '<label>Subject<input maxlength="180"></label><label>Message<textarea rows="9" maxlength="4000"></textarea></label>';
+      const subject = content.querySelector('input'), body = content.querySelector('textarea');
+      subject.value = draft.subject;
+      body.value = draft.body;
+      const sendTo = textNode('p', draft.to + (draft.ai ? ' · AI draft' : ' · Template draft'));
+      const email = textNode('a', 'Open individual draft in email app');
+      email.className = 'button secondary';
+      function updateEmail() {
+        const fields = 'subject=' + encodeURIComponent(subject.value.replace(/[\r\n]/g, ' ')) + '&body=' + encodeURIComponent(body.value);
+        email.href = 'mailto:' + encodeURIComponent(draft.to).replace('%40', '@') + '?' + fields;
+      }
+      content.addEventListener('input', updateEmail);
+      updateEmail();
+      content.prepend(sendTo);
+      content.append(email);
+      card.append(summary, content);
+      return card;
+    }
+
+    function setupOutreach(facility, category, people) {
+      draftPanel.hidden = true;
+      draftList.replaceChildren();
+      outreach.hidden = !facility.sourceURL || !people.some(person => person?.email);
+      outreach.disabled = false;
+      outreach.onclick = async () => {
+        draftPanel.hidden = false;
+        draftPanel.querySelector('h3').focus();
+        if (draftList.childElementCount) return;
+        const active = request;
+        outreach.disabled = true;
+        draftStatus.textContent = 'Preparing a separate draft for each eligible contact…';
+        try {
+          const { drafts, skipped } = await api('facility-outreach-drafts', {
+            state: facility.state, category, sourceURL: facility.sourceURL,
+          });
+          if (active !== request) return;
+          draftList.replaceChildren(...drafts.map(draftCard));
+          draftStatus.textContent = drafts.length
+            ? `${drafts.length} individual ${drafts.length === 1 ? 'draft' : 'drafts'} ready. No email sent.`
+              + (skipped ? ` ${skipped} ${skipped === 1 ? 'contact excluded' : 'contacts excluded'}.` : '')
+            : 'No contacts with eligible business email addresses.';
+        } catch (error) {
+          if (active === request) draftStatus.textContent = error.message || 'Could not prepare drafts. Try again.';
+        } finally {
+          if (active === request) outreach.disabled = false;
+        }
+      };
+    }
 
     function appendFact(parent, label, value, url, sourceName = 'Source') {
       const fact = document.createElement('div');
@@ -208,13 +267,14 @@
       if (address) appendFact(facts, 'Address', address, facility.sourceURL, facility.sourceName || 'Directory');
       const sourceLinks = find('links');
       sourceLinks.replaceChildren(...[link(profile.website || facility.website, 'Facility website'), link(facility.sourceURL, facility.sourceName || 'Directory record')].filter(Boolean));
+      const people = profile.people || [];
+      setupOutreach(facility, category, loading ? [] : [administrator, ...people]);
       if (loading) {
         find('team-status').textContent = 'Loading directory profile…';
         team.replaceChildren();
         contact.replaceChildren();
         return;
       }
-      const people = profile.people || [];
       find('team-status').textContent = administrator || people.length
         ? 'Published roles grouped by department. Reporting lines are unavailable.'
         : 'Public leadership profiles are unavailable for this facility.';

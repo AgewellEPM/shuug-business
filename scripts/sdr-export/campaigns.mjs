@@ -5,6 +5,7 @@ import { searchConnecticutBusinesses } from '../../sales/business-registry.mjs';
 import { lookupStateBusiness } from '../../sales/state-registry.mjs';
 import { researchOffice } from '../../sales/research.mjs';
 import { mailConfig, mailConnection, sendContractMail, singleEmail } from '../../sales/mail-provider.mjs';
+import { emailOutreachBlocked, officeOutreachBlocked } from '../../sales/outreach-preferences.mjs';
 
 export const campaignOwner = { id: 'owner', name: 'Workspace owner', role: 'owner', states: [] };
 export const campaignActions = new Set(['campaign-read', 'campaign-save', 'campaign-run', 'campaign-pause']);
@@ -88,13 +89,7 @@ export function campaigns(env, db, {
   }
   function blocked(address, officeId) {
     const office = officeId && db.get('offices', officeId);
-    if (office && (['not_interested', 'do_not_contact'].includes(office.status) || metadata(office).primaryContactDoNotContact)) return true;
-    return db.suppressedEmail(address) || db.list('offices').some(row => {
-      const info = metadata(row);
-      return (info.emailOptOuts || []).includes(address) ||
-        (row.contact_email === address && (['not_interested', 'do_not_contact'].includes(row.status) || info.primaryContactDoNotContact)) ||
-        (info.contacts || []).some(person => person.email === address && person.preference === 'do_not_contact');
-    });
+    return Boolean(office && officeOutreachBlocked(office)) || emailOutreachBlocked(db, address, db.list('offices'));
   }
   async function discover(profile) {
     if (profile.source === 'registry') return findRegistry(profile.city, profile.keywords, { limit: profile.limit * 3 });

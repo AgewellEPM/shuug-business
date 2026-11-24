@@ -294,6 +294,15 @@ button.prospects-administrator-photo:is(:hover,:focus-visible) { outline: 2px so
 .facility-profile-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; padding: 18px 24px; background: linear-gradient(120deg, #e8f3ff, #f4f0ff); border-bottom: 1px solid #ceddf1; }
 .facility-profile-header h2 { color: #142d53; font-size: clamp(20px, 3vw, 29px); font-weight: 750; line-height: 1.15; overflow-wrap: anywhere; }
 .facility-profile-header p { margin-bottom: 5px; color: #426084; font-size: 13px; }
+.facility-profile-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; flex: none; }
+.facility-profile-actions [hidden], .facility-outreach[hidden] { display: none; }
+.facility-outreach { padding-top: 16px; border-top: 1px solid #ceddf1; scroll-margin: 21px; }
+.facility-outreach details { margin-top: 9px; border: 1px solid #c4d6ee; border-radius: 10px; background: #fff; }
+.facility-outreach summary { padding: 12px; font-size: 14px; font-weight: 650; color: #1c4576; cursor: pointer; }
+.facility-outreach-compose { display: grid; gap: 10px; padding: 0 12px 12px; }
+.facility-outreach-compose label { display: grid; gap: 4px; color: #253f60; font-size: 13px; }
+.facility-outreach-compose :is(input, textarea) { width: 100%; padding: 9px; border: 1px solid #b3c9e6; border-radius: 8px; background: #f9fbff; color: #19365a; font: inherit; }
+.facility-outreach-compose a { justify-self: start; max-width: 100%; }
 .facility-profile-body { display: grid; gap: 22px; padding: 21px 24px 24px; min-height: 0; overflow: auto; }
 .facility-profile-body h3 { margin-bottom: 5px; color: #182e52; font-size: 19px; }
 .facility-profile-body h4 { margin-bottom: 7px; color: #243e62; font-size: 13px; }
@@ -336,5 +345,6 @@ button.prospects-administrator-photo:is(:hover,:focus-visible) { outline: 2px so
 @media (max-width: 630px) {
   .facility-profile { width: calc(100vw - 16px); }
   .facility-profile-header, .facility-profile-body { padding-inline: 13px; }
+  .facility-profile-actions { flex-direction: column; }
   .facility-team-layout { grid-template-columns: minmax(0, 1fr); }
 }

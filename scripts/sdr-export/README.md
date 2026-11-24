@@ -50,6 +50,14 @@ exact CMS facility. The profile labels the main facility phone and includes a
 published business email and portrait when available. Google and LinkedIn
 research links are provided for incomplete profiles.
 
+Click a facility name or administrator photo to see published facility facts
+and leadership. **Quick Email** prepares one editable TinkyTown introduction
+per eligible contact with a published work email. Each draft can be opened
+individually in your email app. Quick Email itself submits no messages. It uses
+the local Ollama service with `qwen3:4b-instruct-2507-q4_K_M` by default.
+`SDR_OUTREACH_MODEL` selects another local model. When the model is unavailable,
+the drafts use role-specific templates.
+
 ## Sales teams
 
 Open **Sales team** to invite a member and share their access code privately. The owner can place a new member anywhere in the active reporting tree. Each member can invite their own direct reports and see everyone who reports through them. New reports inherit the manager’s territory by default. A narrower state selection keeps any town restrictions from the manager’s territory, and later changes to the manager’s territory also apply to their branch.

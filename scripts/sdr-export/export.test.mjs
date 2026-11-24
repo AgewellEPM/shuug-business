@@ -112,6 +112,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const fetchNetwork = globalThis.fetch;
     globalThis.fetch = async (address, options) => {
       const url = new URL(address);
+      if (url.origin === 'http://127.0.0.1:11434' && url.pathname === '/api/chat') {
+        const { messages } = JSON.parse(options.body);
+        const { roles } = JSON.parse(messages[1].content);
+        if (roles.length < 5) return Response.json({}, { status: 503 });
+        return Response.json({ message: { content: JSON.stringify({
+          examples: roles.map(role => 'A front-desk use case relevant to ' + role + '.'),
+        }) } });
+      }
       if (url.hostname === 'data.cms.gov') {
         const state = url.searchParams.get('conditions[0][value]');
         if (state === 'AL') return Response.json({ count: 2, results: [{
@@ -566,6 +574,24 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(nursing.getAttribute('aria-pressed'), 'true');
     assert.match(contact.textContent, /Director of Nursing.*ateeples@limestonehf\.com/s);
     assert.match(contact.querySelector('img').alt, /Aleshia Teeples/);
+    const quickEmail = find('[data-facility-outreach]');
+    assert.equal(quickEmail.hidden, false);
+    quickEmail.click();
+    const drafts = find('[data-facility-outreach-list]');
+    const draftStatus = find('[data-facility-outreach-status]');
+    await waitFor(() => drafts.children.length === 5, 'Quick Email did not prepare individual drafts');
+    assert.match(draftStatus.textContent, /5 individual drafts ready. No email sent./);
+    const draftLinks = [...drafts.querySelectorAll('a')].map(link => new URL(link.href));
+    assert.equal(new Set(draftLinks.map(link => decodeURIComponent(link.pathname))).size, 5);
+    assert.equal(decodeURIComponent(draftLinks[0].pathname), 'sbowling@limestonehf.com');
+    assert.ok(draftLinks.every(link => link.protocol === 'mailto:' && !link.searchParams.has('cc') && !link.searchParams.has('bcc')));
+    assert.match(draftLinks[1].searchParams.get('body'), /Hi Aleshia,.*Director of Nursing/s);
+    assert.match(drafts.textContent, /AI draft/);
+    const formBody = drafts.querySelector('textarea');
+    formBody.value = 'Reviewed message';
+    formBody.dispatchEvent(new window.Event('input', { bubbles: true }));
+    assert.equal(new URL(drafts.querySelector('a').href).searchParams.get('body'), 'Reviewed message');
+    assert.equal((await owner.api('bootstrap')).offices.length, before + 1);
     close.click();
     assert.equal(profile.open, false);
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
@@ -574,6 +600,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.match(facts.textContent, /52,000 sq ft/);
     assert.ok(facts.querySelector('a[href^="https://www.maxusconstruction.com/"]'));
     assert.equal(find('[data-facility-person="Aleshia Teeples"]'), null);
+    assert.equal(quickEmail.hidden, true);
     close.click();
     listing.querySelector('form').requestSubmit();
     await waitFor(() => listing.querySelector('[data-open-facility]'), 'Administrator facility was not saved');
@@ -584,6 +611,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     find('[data-prospect-action="facility-profile"]').click();
     assert.equal(profile.open, true);
     await waitFor(() => find('[data-facility-person="Aleshia Teeples"]'), 'Saved facility did not reload its leadership');
+    const sourceURL = JSON.parse(limestone.notes).facilitySource;
+    const scratch = new DatabaseSync(join(root, 'workspace-data', 'workspace.sqlite'));
+    try {
+      scratch.prepare('INSERT INTO outreach_suppression(email) VALUES (?)').run('ateeples@limestonehf.com');
+    } finally { scratch.close(); }
+    const eligible = await owner.api('facility-outreach-drafts', { sourceURL, state: 'AL', category: 'nursing-home' });
+    assert.equal(eligible.drafts.length, 4);
+    assert.ok(eligible.drafts.every(draft => !draft.ai && draft.to !== 'ateeples@limestonehf.com'));
     close.click();
     find('[data-prospect-clear]').click();
   });

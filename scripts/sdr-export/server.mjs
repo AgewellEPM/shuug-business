@@ -22,6 +22,7 @@ import { administratorPhotoOrigins } from '../../sales/facility-administrators.m
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
 import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
 import { stateFacilityDirectory } from '../../sales/state-facilities.mjs';
+import { facilityOutreach } from './facility-outreach.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -58,6 +59,7 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
   if (process.env[variable]) env[variable] = process.env[variable];
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
+const facilities = stateFacilityDirectory({ db });
 const automation = campaigns(env, db, { catalogue });
 db.discover = catalogue ? async (region, locality, { offset = 0, limit = 50 } = {}) => {
   const rows = catalogue(region, locality);
@@ -89,7 +91,8 @@ const sales = createHandler(env, db, {
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
-  facilities: stateFacilityDirectory({ db }),
+  facilities,
+  facilityOutreach: facilityOutreach(db, facilities, { model: process.env.SDR_OUTREACH_MODEL }),
   territoryMap: (user, input, team) => territoryMap(user, input, db, team),
   territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),

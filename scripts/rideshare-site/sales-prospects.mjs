@@ -98,7 +98,10 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
   <dialog class="facility-profile" data-facility-profile aria-labelledby="facility-profile-title">
     <header class="facility-profile-header">
       <div><p data-facility-profile-location></p><h2 id="facility-profile-title" data-facility-profile-title></h2></div>
-      <button type="button" class="button secondary" data-facility-profile-close aria-label="Close facility profile" autofocus>Close</button>
+      <div class="facility-profile-actions">
+        <button type="button" class="button primary" data-facility-outreach aria-controls="facility-outreach-drafts" hidden>Quick Email</button>
+        <button type="button" class="button secondary" data-facility-profile-close aria-label="Close facility profile" autofocus>Close</button>
+      </div>
     </header>
     <div class="facility-profile-body">
       <section aria-labelledby="facility-overview-title">
@@ -116,6 +119,11 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
             <div data-facility-profile-contact></div>
           </section>
         </div>
+      </section>
+      <section class="facility-outreach" id="facility-outreach-drafts" data-facility-outreach-drafts aria-labelledby="facility-outreach-title" hidden>
+        <h3 id="facility-outreach-title" tabindex="-1">Individual outreach drafts</h3>
+        <p data-facility-outreach-status role="status"></p>
+        <div data-facility-outreach-list></div>
       </section>
     </div>
   </dialog>
