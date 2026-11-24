@@ -198,7 +198,9 @@
         if (person?.id !== member) return;
         progress = result.progress;
         updateLauncher(); launcher.hidden = false;
-        if (user.role === 'agent' && !started && (!progress || progress.state === 'active')) {
+        const url = new URL(location.href), requested = url.searchParams.get('walkthrough') === '1';
+        if (requested) { url.searchParams.delete('walkthrough'); history.replaceState(null, '', url); }
+        if (requested || (user.role === 'agent' && !started && (!progress || progress.state === 'active'))) {
           started = true;
           requestAnimationFrame(() => { if (person?.id === member) void open(); });
         }
