@@ -91,6 +91,7 @@
         if (typeof dialog.showModal === 'function') dialog.showModal();
         else dialog.open = true;
       }
+      syncControls();
     }
     function closeDialog() {
       if (typeof dialog.close === 'function') dialog.close();
@@ -115,6 +116,14 @@
       search.value = '';
       message.textContent = '';
       renderBody();
+    }
+    function syncControls() {
+      host.setAttribute('aria-busy', String(working));
+      host.querySelectorAll('[data-ct-action], [data-ct-editor] button, [data-ct-review] button').forEach(button => { button.disabled = working; });
+    }
+    function showContent(markup) {
+      content.innerHTML = markup;
+      syncControls();
     }
     function matching(items, keys) {
       return items.filter(item => query.split(/\s+/).every(word => keys.map(key => item[key]).join(' ').toLowerCase().includes(word)));
@@ -172,15 +181,15 @@
       const drafts = matching(currentDrafts(),['office','city','state','title','type']);
       if (query) {
         const rows = view === 'archive' ? matching(all.filter(row => row.archived),['office','city','state','termsTitle','agreementType','email']) : current;
-        content.innerHTML = tableSection('Matching Contracts',rows,{archive:view === 'archive'}) + templateSection() + draftsSection('Matching Drafts',drafts);
+        showContent(tableSection('Matching Contracts',rows,{archive:view === 'archive'}) + templateSection() + draftsSection('Matching Drafts',drafts));
         return;
       }
-      if (view === 'templates') { content.innerHTML = templateSection(); return; }
-      if (view === 'approvals') { content.innerHTML = draftsSection('Contract Drafts & Approvals',drafts); return; }
-      if (view === 'compliance') { content.innerHTML = compliance(); return; }
+      if (view === 'templates') { showContent(templateSection()); return; }
+      if (view === 'approvals') { showContent(draftsSection('Contract Drafts & Approvals',drafts)); return; }
+      if (view === 'compliance') { showContent(compliance()); return; }
       if (view === 'archive') {
-        content.innerHTML = tableSection('Archived Contracts',all.filter(row => row.archived),{archive:true}) +
-          draftsSection('Archived Drafts',(workspace?.drafts || []).filter(row => row.status === 'archived'));
+        showContent(tableSection('Archived Contracts',all.filter(row => row.archived),{archive:true}) +
+          draftsSection('Archived Drafts',(workspace?.drafts || []).filter(row => row.status === 'archived')));
         return;
       }
       if (view === 'renewals') {
@@ -190,17 +199,17 @@
           ...drafts.filter(row => row.type === 'renewal'),
         ].map(row => row.priorId));
         const due = current.filter(row => row.signed && row.endDate && row.endDate <= upcoming && !scheduled.has(row.id));
-        content.innerHTML = tableSection('Renewals Due Within 60 Days',due,{renew:true}) +
+        showContent(tableSection('Renewals Due Within 60 Days',due,{renew:true}) +
           draftsSection('Renewals in Preparation',drafts.filter(row => row.type === 'renewal')) +
-          tableSection('Renewal Agreements',current.filter(row => row.agreementType === 'renewal'));
+          tableSection('Renewal Agreements',current.filter(row => row.agreementType === 'renewal')));
         return;
       }
       if (view === 'active') {
-        content.innerHTML = tableSection('Current Contracts',active) +
-          tableSection('Ended Terms & Expired Invitations',current.filter(row => contractStatus(row)[0] === 'expired'));
+        showContent(tableSection('Current Contracts',active) +
+          tableSection('Ended Terms & Expired Invitations',current.filter(row => contractStatus(row)[0] === 'expired')));
         return;
       }
-      content.innerHTML = `
+      showContent(`
         <div class="ct-overview-top">
           <section class="ct-card ct-program">${heading(programTitle,'file')}
             <p>Prepare reviewed agreements for pilots, deployments, and renewals with clear terms and a private signature link.</p>
@@ -212,7 +221,7 @@
           <ol class="ct-workflow">${workflow.map(item => '<li>' + escape(item) + '</li>').join('')}</ol></section></div>
         <div class="ct-records-row">${tableSection('Current Contracts',active,{limited:true})}${compliance()}</div>
         <section class="ct-card ct-start">${heading('Start a New Contract','file','Choose a template, customize the terms, and prepare it for review.')}
-          <div class="ct-actions">${button('New Contract','template:service','ct-primary','plus')}${button('Use a Template','templates','','layers')}${button('Book a Meeting','calendar','','calendar')}</div></section>`;
+          <div class="ct-actions">${button('New Contract','template:service','ct-primary','plus')}${button('Use a Template','templates','','layers')}${button('Book a Meeting','calendar','','calendar')}</div></section>`);
     }
     function editor(draft = {}, type = 'service', existing) {
       const template = workspace?.templates.find(row => row.id === type);
@@ -276,8 +285,9 @@
     async function perform(work) {
       if (working) return;
       working = true;
+      syncControls();
       try { await work(); } catch (error) { alert(error.message, true); }
-      finally { working = false; }
+      finally { working = false; syncControls(); }
     }
     async function updateDraft(draft, operation, extra = {}) {
       const { draft: next } = await api('contract-draft-action',{ id:draft.id, revision:draft.revision, operation, ...extra });
