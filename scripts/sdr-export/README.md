@@ -29,9 +29,9 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 
 ## Ask Tinky
 
-Open **Ask Tinky** in the workspace sidebar. Each signed-in sales rep and the owner has a private conversation and a personal goal. The coach uses the rep’s accessible accounts, recent activity, calendar, Today’s Plan, Training Center lessons, Support Center and TinkyTown product guides. A linked lesson opens inside Training.
+Open the **Ask Tinky** bubble in the bottom-right corner of either CRM. The conversation stays open as you move around the workspace. Tinky can use the current screen, selected account and the basic business fields already entered in the prospect form. Ask “Open my pipeline” to navigate or “Log a call on this account” to prepare the open record. Minimize the popup to return to the same form. Each staff member has a private conversation and personal goal. Tinky also uses the rep’s accessible pipeline, calendar, Today’s Plan, Training Center, Support Center and TinkyTown product guides.
 
-Choose **Set goal** to track prospects added and currently assigned to you, confirmed meetings you host during the period, logged calls or signed agreements credited to you. Set the dates and add a focus such as senior-care admissions. The card counts saved SDR activity in the goal’s time zone.
+In the popup, open **My goal** and choose **Set goal** to track prospects added and currently assigned to you, confirmed meetings you host during the period, logged calls or signed agreements credited to you. Set the dates and add a focus such as senior-care admissions. The card counts saved SDR activity in the goal’s time zone.
 
 Ask for a new prospect, call note, follow-up date, email draft or goal. Select **Review** to open the working form, check the details and save or send it there. Conversation history and goals are saved per staff account in the workspace database.
 

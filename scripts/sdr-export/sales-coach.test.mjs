@@ -119,6 +119,26 @@ test('chat goal proposals keep spoken quantities and calendar weeks while requir
   assert.equal((await call(rep, 'coach-state')).goal, null);
 });
 
+test('the open account is resolved against the rep’s scope and can be used without naming it again', async t => {
+  let modelScreen;
+  const { call, office } = setup(t, async (_url, init) => {
+    modelScreen = JSON.parse(JSON.parse(init.body).messages[1].content).workspaceContext.screen;
+    return response({ answer: 'Prepared', action: 'activity', fields: { kind: 'call', note: 'Spoke with reception.' }, sources: [] });
+  });
+  const target = office('Lighthouse', rep.id), hidden = office('Other staff account', teammate.id);
+  const question = 'Log a call on this account. My exact note is: Spoke with reception.';
+  const ask = (id, lastId) => call(rep, 'coach-ask', { ...prompt(question, lastId), screen: { view: 'pipeline', officeId: String(id), privateMessage: 'excluded data' } });
+  const first = (await ask(target.id)).turn;
+  assert.equal(modelScreen.account.name, 'Lighthouse'); assert.equal(modelScreen.privateMessage, undefined);
+  assert.equal(first.draft.recordId, String(target.id));
+  const second = (await ask(hidden.id, first.id)).turn;
+  assert.equal(modelScreen.account, undefined); assert.equal(second.draft, null);
+  const link = (await call(rep, 'coach-ask', prompt('Open Lighthouse', second.id))).turn;
+  assert.equal(link.navigation.href, '#view=pipeline&account=' + target.id);
+  const tab = (await call(rep, 'coach-ask', prompt('Take me to my calendar', link.id))).turn;
+  assert.equal(tab.navigation.href, '#view=calendar');
+});
+
 test('meeting and agreement goals count confirmed, credited records within the goal period', async t => {
   const { db, call } = setup(t);
   const when = clock();

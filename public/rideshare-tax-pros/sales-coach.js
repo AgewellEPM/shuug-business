@@ -6,14 +6,54 @@
     if (className) out.className = className;
     return out;
   }
-  function mount({ api, review }) {
-    const panel = document.querySelector('[data-tab-panel="coach"]');
-    if (!panel) return;
+  function mount({ api, review, context, navigate }) {
+    const host = document.querySelector('#coach-widget');
+    if (!host) return;
+    const panel = host.querySelector('#coach-popup'), launcher = host.querySelector('#coach-launch'), home = host.parentElement;
     const $ = s => panel.querySelector(s), form = $('#coach-form'), question = form.elements.question;
     const send = form.querySelector('button'), status = $('#coach-status'), log = $('#coach-messages'), stream = $('#coach-stream');
     const editor = $('#coach-goal-form'), edit = $('#coach-edit-goal'), goalStatus = $('#coach-goal-status'), reload = $('#coach-reload');
     const older = $('#coach-older'), timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
     let identity, active = false, state, busy = false, key, version = 0, latestRequest = 0, pending, editingRevision = 0;
+    const switchKey = id => 'sdr.coach.open.' + id;
+    function remember(open) { if (identity) { try { sessionStorage.setItem(switchKey(identity), String(open)); } catch {} } }
+    function sync() {
+      const here = context();
+      $('#coach-context').textContent = [here.label, here.accountName || (here.form === 'prospect' ? 'New prospect' : '')].filter(Boolean).join(' · ');
+    }
+    function pane(goal) {
+      $('#coach-side').hidden = !goal; $('#coach-conversation').hidden = goal;
+      $('#coach-show-goal').setAttribute('aria-pressed', String(goal)); $('#coach-show-chat').setAttribute('aria-pressed', String(!goal));
+    }
+    function open(focus = true) {
+      if (!identity) return;
+      const wasOpen = active;
+      active = true; panel.hidden = false; launcher.hidden = true; launcher.setAttribute('aria-expanded', 'true'); remember(true); sync();
+      if (!wasOpen && !busy) void loadState().then(() => {
+        if (focus && active && document.activeElement === $('#coach-minimize') && !question.disabled) question.focus({ preventScroll: true });
+      });
+      if (focus) (state && !question.disabled ? question : $('#coach-minimize')).focus({ preventScroll: true });
+    }
+    function minimize(focus = true) {
+      active = false; panel.hidden = true; launcher.hidden = false; launcher.setAttribute('aria-expanded','false'); remember(false);
+      if (focus) launcher.focus({ preventScroll: true });
+    }
+    launcher.onclick = () => open();
+    $('#coach-minimize').onclick = () => minimize();
+    $('#coach-show-chat').onclick = () => { pane(false); if (!question.disabled) question.focus(); };
+    $('#coach-show-goal').onclick = () => { pane(true); if (!busy) void loadState(); };
+    host.addEventListener('keydown', e => { if (e.key === 'Escape' && active) { e.preventDefault(); e.stopPropagation(); minimize(); } });
+    // Native modal dialogs trap input outside their subtree. Keep the same widget available inside the active dialog.
+    function attachToDialog() {
+      const dialogs = [...document.querySelectorAll('#sales-workspace dialog[open]')];
+      const parent = dialogs.at(-1) || home;
+      if (host.parentElement !== parent) parent.append(host);
+      if (dialogs.length && typeof host.showPopover === 'function') {
+        host.setAttribute('popover', 'manual');
+        if (!host.hidden && !host.matches(':popover-open')) host.showPopover();
+      } else if (host.hasAttribute('popover')) { if (host.matches(':popover-open')) host.hidePopover(); host.removeAttribute('popover'); }
+    }
+    new MutationObserver(attachToDialog).observe(home, { subtree: true, attributes: true, attributeFilter: ['open'] });
     function announce(message, error = false) { status.textContent = message; status.dataset.error = String(error); }
     function controls() {
       question.disabled = !state;
@@ -41,6 +81,7 @@
     }
     function openGoal(fields = {}) {
       if (!state) return;
+      pane(true);
       const goal = state.goal;
       editingRevision = goal?.revision || 0;
       const values = { metric: 'meetings', start: state.calendar.weekStart, end: state.calendar.weekEnd, target: '', focus: '', ...(goal || {}), ...fields };
@@ -54,7 +95,12 @@
       const a = node('a', source.title);
       a.href = source.href;
       if (!isView) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+      else a.onclick = event => { if (event.ctrlKey || event.metaKey || event.shiftKey) return; event.preventDefault(); go(source.href); };
       return a;
+    }
+    async function go(href) {
+      if (href === '#view=coach') { pane(true); return; }
+      try { await navigate(href); sync(); } catch (error) { pane(false); announce(error.message, true); }
     }
     function renderTurn(turn) {
       const group = node('article', undefined, 'coach-turn');
@@ -70,7 +116,7 @@
         button.onclick = async () => {
           if (turn.draft.type === 'goal') { openGoal(turn.draft.fields); return; }
           button.disabled = true;
-          try { await review(turn.draft); }
+          try { await review(turn.draft); minimize(false); }
           catch (error) {
             announce(error.message, true);
             const visible = document.querySelector('#sales-detail-drawer:not([hidden]) #sales-detail-status') || document.querySelector('#sales-message');
@@ -78,6 +124,10 @@
           } finally { button.disabled = false; }
         };
         response.append(button);
+      }
+      if (turn.navigation) {
+        const button = node('button', 'Open ' + turn.navigation.title, 'coach-review'); button.type = 'button';
+        button.onclick = () => go(turn.navigation.href); response.append(button);
       }
       const links = node('div', undefined, 'coach-sources');
       for (const source of turn.sources || []) { const link = sourceLink(source); if (link) links.append(link); }
@@ -89,7 +139,11 @@
       goalCard();
       const items = $('#coach-next');
       items.replaceChildren(...state.next.slice(0, 3).map(task => {
-        const li = node('li'); li.append(node('span', task.title)); return li;
+        const li = node('li'), link = node('a', task.title);
+        if (task.officeId) link.href = '#view=pipeline&account=' + encodeURIComponent(task.officeId);
+        else link.href = '#view=' + encodeURIComponent(task.view || 'today');
+        link.onclick = event => { event.preventDefault(); void go(link.hash); };
+        li.append(link); return li;
       }));
       if (!items.children.length) items.append(node('li', 'Your plan has no open recommendations.'));
     }
@@ -113,14 +167,17 @@
       }
     }
     function reset() {
-      version++; latestRequest++; identity = undefined; state = pending = key = undefined; busy = active = false;
+      minimize(false); pane(false); host.hidden = true;
+      version++; latestRequest++; identity = undefined; state = pending = key = undefined; busy = false;
       log.replaceChildren(); question.value = ''; goalStatus.textContent = ''; $('#coach-next').replaceChildren();
       $('#coach-goal-summary').replaceChildren(); editor.reset(); closeGoal(); older.hidden = reload.hidden = true; announce(''); controls();
     }
-    function view(user, name) {
-      if (identity !== user.id) { reset(); identity = user.id; }
-      if (name !== 'coach') { active = false; return; }
-      if (!active) { active = true; if (!busy) void loadState(); }
+    function view(user) {
+      if (identity !== user.id) {
+        reset(); identity = user.id; host.hidden = false;
+        try { if (sessionStorage.getItem(switchKey(identity)) === 'true') open(false); } catch {}
+      }
+      sync();
     }
     reload.onclick = () => { key = undefined; void loadState(); };
     older.onclick = async () => {
@@ -169,12 +226,15 @@
       busy = true; reload.hidden = true; pending = node('p', message, 'coach-question'); log.append(pending);
       controls(); announce('Tinky is working on your question…'); stream.scrollTop = stream.scrollHeight;
       try {
-        const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone });
+        const here = context();
+        const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone,
+          screen: { view: here.view, care: here.care, form: here.form, officeId: here.officeId, prospect: here.prospect } });
         if (generation !== version) return;
         pending.remove(); pending = null;
         if (!state.turns.some(item => item.id === turn.id)) { state.turns.push(turn); log.append(renderTurn(turn)); }
         question.value = ''; key = undefined; announce(''); stream.scrollTop = stream.scrollHeight;
-        if (active) question.focus();
+        if (turn.navigation && active && context().view === here.view && context().officeId === here.officeId) go(turn.navigation.href);
+        if (active && panel.contains(document.activeElement)) question.focus({ preventScroll: true });
       } catch (error) {
         if (generation !== version) return;
         if ([401,403].includes(error.status)) reset();
@@ -183,7 +243,7 @@
         if (generation === version) { pending?.remove(); pending = null; busy = false; controls(); }
       }
     };
-    return { reset, view };
+    return { reset, view, sync, open };
   }
   window.SdrCoach = { mount };
 })();

@@ -1,31 +1,43 @@
-.sales-console-page .coach-launch {
-  display: inline-flex; align-items: center; justify-content: flex-start; gap: 9px; flex: none; white-space: nowrap;
-  min-height: 39px; margin-inline: 5px; padding: 7px 13px; border: 1px solid #497c94; border-radius: 11px;
-  background: linear-gradient(110deg, #244575, #175869); color: #f2fcff; font: inherit; font-weight: 650;
+.coach-widget {
+  --coach-edge: clamp(12px, 2vw, 24px); position: fixed; z-index: 140; inset: auto max(var(--coach-edge), env(safe-area-inset-right)) max(var(--coach-edge), env(safe-area-inset-bottom)) auto;
+  width: max-content; max-width: calc(100vw - 2 * var(--coach-edge)); pointer-events: none;
 }
-.sales-console-page .coach-launch:is(:hover, [aria-pressed="true"]) { border-color: #95d4dc; background: #185e72; }
-.coach-launch svg { width: 17px; height: 17px; }
-.coach-launch:focus-visible { outline: 3px solid #94dbef; outline-offset: 2px; }
+.coach-widget[hidden], .coach-widget [hidden] { display: none !important; }
+.coach-widget > * { pointer-events: auto; }
+.coach-widget[popover] { padding: 0; margin: 0; border: 0; overflow: visible; background: transparent; }
+.sales-console-page .coach-launch {
+  display: inline-flex; float: right; align-items: center; gap: 9px; min-height: 50px; padding: 7px 17px 7px 8px;
+  border: 1px solid #558f9e; border-radius: 30px; background: linear-gradient(120deg, #193b65, #155d66);
+  color: white; box-shadow: 0 5px 16px #11294040; font: inherit; font-weight: 650; cursor: pointer;
+}
+.coach-launch-symbol { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: #ffffff22; }
+.coach-launch svg { width: 19px; height: 19px; }
+.sales-console-page .coach-launch:hover { background: #165666; }
+.coach-launch:focus-visible { outline: 3px solid #4bb9d4; outline-offset: 2px; }
 .coach-workspace {
   --coach-ink: #142e4d; --coach-muted: #50677d; --coach-line: #cfdeea; --coach-accent: #20569c; --coach-tint: #eaf3fc;
-  container: tinkycoach / inline-size; overflow: hidden; border-radius: 20px; border: 1px solid #c6d7e6;
-  background: #fff; color: var(--coach-ink); box-shadow: 0 8px 26px -15px #163a6559;
+  display: flex; flex-direction: column; width: min(410px, calc(100vw - 2 * var(--coach-edge)));
+  height: min(595px, calc(100dvh - 2 * var(--coach-edge))); min-height: 0; overflow: hidden; border-radius: 20px;
+  border: 1px solid #aec5d6; background: #fff; color: var(--coach-ink); box-shadow: 0 16px 46px #0c284740, 0 2px 8px #08233125;
 }
 [data-care-crm] .coach-workspace { --coach-accent: #246252; --coach-tint: #e4f2ec; }
 .coach-workspace [hidden] { display: none !important; }
-.coach-header { display: flex; align-items: center; gap: 15px; padding: 20px 26px; color: white;
+.coach-header { display: flex; align-items: center; gap: 15px; padding: 13px 15px; color: white;
   background: radial-gradient(ellipse at 90% 140%, #24858a 0%, transparent 56%), linear-gradient(115deg, #112d4e, #164b79 70%, #16616e); }
-.coach-symbol { display: grid; place-items: center; width: 46px; height: 46px; flex: none; border: 1px solid #ffffff55; border-radius: 15px; background: #ffffff17; }
+.coach-symbol { display: grid; place-items: center; width: 40px; height: 40px; flex: none; border: 1px solid #ffffff55; border-radius: 15px; background: #ffffff17; }
 .coach-workspace .coach-symbol svg { width: 26px; height: 26px; }
-#coach-title { color: #fff; font-size: clamp(27px, 3.3cqi, 36px); font-weight: 680; letter-spacing: -.044em; }
+#coach-title { color: #fff; font-size: 23px; font-weight: 680; letter-spacing: -.044em; }
 .coach-workspace .coach-header p { margin-top: 3px; font-size: 14px; color: #e1f6ff; }
-.coach-layout { display: grid; grid-template-columns: minmax(0, 1fr) clamp(205px, 29%, 310px); }
-.coach-conversation { display: flex; flex-direction: column; min-width: 0; height: clamp(400px, calc(100dvh - 225px), 790px); background: linear-gradient(145deg, #fff 30%, #f7fbff); }
+#coach-minimize { margin-left: auto; flex: none; align-self: flex-start; width: 37px; height: 37px; border: 1px solid #ffffff66; border-radius: 11px; background: #ffffff12; color: white; font-size: 24px; line-height: 1; }
+.coach-switch { display: flex; flex: none; gap: 4px; padding: 6px 12px; border-bottom: 1px solid var(--coach-line); background: #f4f8fb; }
+.coach-switch button { padding: 6px 12px; border: 1px solid transparent; border-radius: 9px; color: #45647c; background: transparent; font: inherit; font-size: 13px; }
+.coach-switch button[aria-pressed="true"] { color: #173d5c; background: #fff; border-color: #cbdce8; font-weight: 650; }
+.coach-conversation { display: flex; flex: 1; flex-direction: column; min-width: 0; min-height: 0; background: linear-gradient(145deg, #fff 30%, #f7fbff); }
 #coach-stream { flex: 1; min-height: 0; overflow: auto; overflow-anchor: none; overscroll-behavior: contain; padding: 15px clamp(14px, 2.5cqi, 28px); }
 #coach-stream:focus-visible { outline-offset: -4px; }
 #coach-welcome { display: grid; min-height: 100%; align-content: center; justify-items: center; text-align: center; gap: 12px; }
-#coach-welcome img { width: min(48%, 205px); height: auto; }
-#coach-welcome h3 { font-size: clamp(22px, 2.8cqi, 30px); letter-spacing: -.04em; }
+#coach-welcome img { width: min(43%, 150px); height: auto; }
+#coach-welcome h3 { font-size: 22px; letter-spacing: -.04em; }
 .coach-prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; max-width: 460px; }
 .coach-workspace button { cursor: pointer; }
 .coach-workspace :is(button, a, input, select, textarea, [tabindex]):focus-visible { outline: 3px solid #3882bb; outline-offset: 2px; }
@@ -51,7 +63,7 @@
 #coach-form textarea:focus-visible { outline: none; }
 #coach-form button, #coach-goal-form [type="submit"] { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 10px; padding: 9px 12px; background: var(--coach-accent); color: #fff; font-size: 14px; font-weight: 650; }
 #coach-form button:disabled { background: #e4ebf2; color: #54697d; opacity: 1; }
-.coach-side { display: grid; align-content: start; gap: 14px; max-height: clamp(400px, calc(100dvh - 225px), 790px); overflow: auto; padding: 17px 13px; border-left: 1px solid var(--coach-line); background: #f2f6fa; }
+.coach-side { display: grid; align-content: start; gap: 14px; min-height: 0; flex: 1; overflow: auto; padding: 17px 13px; background: #f2f6fa; }
 .coach-card { padding: 13px; border: 1px solid var(--coach-line); border-radius: 13px; background: #fff; }
 .coach-card-title { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-bottom: 10px; }
 .coach-workspace .coach-card-title h3 { font-size: 16px; font-weight: 680; }
@@ -69,12 +81,10 @@
 #coach-goal-status:not(:empty) { margin-top: 7px; }
 #coach-next { margin: 0 0 9px; padding-inline-start: 18px; }
 #coach-next li + li { margin-top: 5px; }
-@container tinkycoach (max-width: 640px) {
-  .coach-layout { grid-template-columns: minmax(0, 1fr); }
-  .coach-header { padding: 14px 16px; }
-  .coach-conversation { height: clamp(370px, 62dvh, 620px); }
-  .coach-side { grid-template-columns: repeat(auto-fit, minmax(min(195px, 100%), 1fr)); max-height: none; border-left: 0; border-top: 1px solid var(--coach-line); padding: 10px; gap: 9px; }
+@media (max-width: 600px) {
+  .coach-widget { --coach-edge: 10px; }
+  .coach-workspace { height: min(540px, 78dvh); border-radius: 17px; }
   #coach-form textarea, #coach-goal-form :is(input,select) { font-size: 16px; }
-  #coach-stream { padding: 11px; }
+  #coach-stream { padding: 10px 12px; }
   .coach-prompts button { min-height: 36px; }
 }

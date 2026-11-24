@@ -56,7 +56,7 @@ export function goalProgress(db, user, goal) {
 }
 
 const norm = v => String(v || '').normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
-export function accountContext(db, user, question, history, recommendations) {
+export function accountContext(db, user, question, history, recommendations, openOfficeId) {
   const phrase = norm(question), tokens = new Set(phrase.split(' ').filter(t => t.length > 2));
   const recent = norm(history.slice(-2).map(turn => turn.question).join(' '));
   const urgent = new Set(recommendations.map(task => String(task.officeId)));
@@ -64,6 +64,7 @@ export function accountContext(db, user, question, history, recommendations) {
   const score = row => {
     const name = norm(row.town);
     let value = urgent.has(String(row.id)) ? 2 : 0;
+    if (String(row.id) === openOfficeId) value += 90;
     if (name && phrase.includes(name)) value += 100;
     if (name && recent.includes(name)) value += 12;
     for (const word of name.split(' ')) if (tokens.has(word)) value += 8;
