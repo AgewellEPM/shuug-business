@@ -47,6 +47,11 @@ export function renderSupport() {
         <span class="support-card-art">${art(glyph)}</span><h2>${title}</h2><p>${copy}</p>
         <button type="button" class="support-button" data-support-action="${action}">${label} ${art('arrow')}</button>
       </article>`).join('')}
+      <article class="support-card">
+        <span class="support-card-art"><img src="/training-art/cap.png" alt=""></span>
+        <h2>Training Center</h2><p>Take courses, practice demos, and track your progress.</p>
+        <a class="support-button" href="#view=training">Open Training ${art('arrow')}</a>
+      </article>
     </div>
     <section class="support-panel" data-support-library hidden aria-labelledby="support-library-title">
       <header class="support-panel-head"><h2 id="support-library-title" tabindex="-1">Help library</h2>

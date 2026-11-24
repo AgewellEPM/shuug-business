@@ -196,7 +196,7 @@
 .support-topics button:hover { background: #fff; }
 .support-topics button[aria-pressed="true"] { border-color: #155cb9; background: #175cb7; color: #fff; }
 
-.support-cards { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+.support-cards { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; }
 .support-card, .support-panel {
   min-width: 0;
   border: 1px solid var(--support-border);
@@ -210,11 +210,12 @@
   align-items: center;
   gap: 6px;
   min-height: 221px;
-  padding: 16px clamp(8px, 2.4cqw, 31px) 19px;
+  padding: 16px clamp(8px, 1.6cqw, 20px) 19px;
   text-align: center;
 }
 .support-card-art { display: grid; place-items: center; width: 82px; height: 64px; margin-bottom: 2px; }
 .support-card-art img { width: 100%; height: 100%; min-height: 0; mix-blend-mode: multiply; }
+.support-card-art img[src="/training-art/cap.png"] { object-fit: contain; }
 .support-card-art .reference-chat { height: auto; clip-path: polygon(0 0, 100% 0, 100% 80%, 54% 80%, 48% 100%, 0 100%); }
 .sales-console-page .support-card h2 { font-size: clamp(17px, 1.7cqw, 22px); font-weight: 760; line-height: 1.15; }
 .support-card p { flex: 1; font-size: clamp(13px, 1.17cqw, 15px); line-height: 1.26; }
@@ -376,10 +377,12 @@
 .sales-console-page .support-thread-message p { margin-top: 4px; white-space: pre-wrap; }
 
 @container sales-support (max-width: 860px) {
-  .support-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .support-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .support-card { min-height: 192px; }
   .support-bottom { grid-template-columns: minmax(0, 1fr); }
+}
+@container sales-support (max-width: 1100px) {
+  .support-cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @container sales-support (max-width: 700px) {
   .support-hero > div { max-width: 58%; }

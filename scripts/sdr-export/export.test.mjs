@@ -298,13 +298,23 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
-  await t.test('training opens from the sidebar and resumes saved onboarding', async t => {
+  await t.test('training opens from Support and resumes saved onboarding', async t => {
     const trainingWindow = await mountConsole(t, first.origin, owner, html);
     const doc = trainingWindow.document;
     const training = doc.querySelector('[data-tab-panel="training"]');
     const find = selector => training.querySelector(selector);
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
-    doc.querySelector('.sdr-sidebar [data-tab="training"]').click();
+    const supportButton = doc.querySelector('.sdr-sidebar [data-tab="support"]');
+    const trainingLink = doc.querySelector('[data-tab-panel="support"] a[href="#view=training"]');
+    assert.equal(doc.querySelector('.sdr-sidebar [data-tab="training"]'), null);
+    supportButton.click();
+    assert.equal(trainingLink.closest('[hidden]'), null);
+    trainingLink.click();
+    await waitFor(() => !training.hidden, 'Training did not open from Support');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'true');
+    find('a[href="#view=support"]').click();
+    await waitFor(() => trainingLink.closest('[hidden]') === null, 'The Support link did not return to Support');
+    trainingLink.click();
     const planButton = '[data-training-feature] [data-training-plan="sales-onboarding"]';
     const featuredCourse = '[data-training-feature] .training-feature-description [data-training-course="sales-onboarding"]';
     await waitFor(() => find(featuredCourse), 'The featured course did not load');
@@ -373,6 +383,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     find(voiceLink).click();
     const voice = part => find('[data-training-voice-' + part + ']');
     assert.equal(find('[data-tab-panel="training-demo"]').hidden, false);
+    assert.equal(find('.sdr-sidebar [data-tab="support"]').getAttribute('aria-pressed'), 'true');
     assert.equal((await owner.request('/care-location-qr-healthcare.png')).headers.get('content-type'), 'image/png');
     voice('listen').click();
     assert.match(voice('status').textContent, /Listening/);
@@ -1747,7 +1758,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
     const rail = find('.sdr-nav');
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
-      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
+      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
     const back = find('[data-team-return]');
     assert.equal(back.closest('[hidden]'), null);

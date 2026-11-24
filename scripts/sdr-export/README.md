@@ -29,7 +29,7 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 
 ## Ask Tinky
 
-Open **Ask Tinky** in the workspace sidebar. Each signed-in sales rep and the owner has a private conversation and a personal goal. The coach uses the rep’s accessible accounts, recent activity, calendar, Today’s Plan, Training Center lessons, Support Center and TinkyTown product guides. A linked lesson opens inside Training.
+Open **Ask Tinky** in the workspace sidebar. Each signed-in sales rep and the owner has a private conversation and a personal goal. The coach uses the rep’s accessible accounts, recent activity, calendar, Today’s Plan, Training Center lessons, Support Center and TinkyTown product guides. Linked lessons open in the Training Center, which is also available from **Support → Open Training**.
 
 Choose **Set goal** to track prospects added and currently assigned to you, confirmed meetings you host during the period, logged calls or signed agreements credited to you. Set the dates and add a focus such as senior-care admissions. The card counts saved SDR activity in the goal’s time zone.
 
