@@ -106,7 +106,6 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
   <div class="town-map-tools" data-map-tools hidden>
     <label class="territory-lookup">Check territory availability<input type="search" data-territory-lookup maxlength="120" placeholder="Town, county, or facility"></label>
     <label>Jump to town<select data-map-town></select></label>
-    <button type="button" class="button secondary" data-map-research disabled>Find offices</button>
     <button type="button" class="button secondary" data-map-streets>Show streets</button>
     <button type="button" class="button secondary" data-map-reset>Fit state</button>
     <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="true">County leads</button>
@@ -115,9 +114,10 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
   <div class="town-map-layout"><div class="town-map-canvas" data-map-canvas hidden></div>
     <aside id="territory-county-roster" class="town-map-roster" aria-label="County leads" hidden>
       <h3>County leads</h3>
-      <div data-county-editor></div><div data-county-list class="county-lead-list"></div>
+      <div data-county-list class="county-lead-list"></div>
     </aside></div>
   <section class="territory-map-selection" data-map-selection aria-label="Selected territory" aria-live="polite" hidden></section>
+  <section id="territory-county-editor" class="territory-county-editor" data-county-editor aria-label="County assignment" hidden></section>
   <button type="button" class="button secondary" data-map-retry hidden>Retry map</button>
   <div class="town-map-caption" data-map-caption hidden>
     <span class="town-map-legend"><b aria-hidden="true">★</b> Capital <i aria-hidden="true"></i> City or town</span>
