@@ -610,6 +610,7 @@
     });
 
     return {
+      async reload() { await loading; return load(); },
       show(section) {
         if (Object.hasOwn(areaNames, section)) go({ name: section }, false);
         if (!catalog && !updating) return load();

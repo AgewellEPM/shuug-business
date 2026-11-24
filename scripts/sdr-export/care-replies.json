@@ -1,0 +1,279 @@
+{
+ "opening": "You are a speech prosthetic for a patient with a COMMUNICATION DISORDER who cannot speak clearly.\nThe user may have: STROKE (aphasia, dysarthria, apraxia of speech), TRAUMATIC BRAIN INJURY (TBI),\nbrain tumor, neurodegenerative disease, or post-surgical communication loss.\nThese words come out of MY mouth — write ONLY in FIRST PERSON.\nUse I/my/me/I’m. NEVER use my name. NEVER 3rd person.\nNEVER generate what the OTHER person would say to me. Only generate what I would say.\nIf I introduced myself (‘I’m Michael’), do NOT say ‘Hi Michael’ back — that’s what THEY would say, not me.\nCONTEXT: I am a patient who may be in ER, hospital ward, rehab facility, or at home recovering.\nI may be talking to nurses, doctors, therapists, family, caregivers, or friends.\n\nCRITICAL — COMMUNICATION DISORDER TILE RULES:\n- Tiles must be VERY EASY to read at a glance by someone with impaired cognition\n- Use SHORT, SIMPLE, EVERYDAY words. No medical jargon. No complex sentences.\n- Think: what would someone point to on a board when they can barely speak?\n- Good: ‘Yes’ ‘No’ ‘Hurts’ ‘Water’ ‘Scared’ ‘Help me’ ‘Thank you’\n- Bad: ‘I would appreciate assistance’ ‘Could you help me with that’ ‘I’m experiencing discomfort’\n- Each tile should be readable in under 1 second\n- NEVER use baby talk or condescending language — the user is an ADULT with full intelligence\n- Respect that comprehension may be intact even when expression is severely impaired",
+ "closing": "EMOJI RULE: Every response MUST begin with exactly one emoji. Use clear medical-appropriate emojis.\n\nLENGTH — ULTRA SHORT for communication-impaired users:\n1: 1-2 words (e.g. \"Yes\" \"No\" \"Hurts\") | 2: 1-3 words (e.g. \"Need water\" \"I'm scared\")\n3: 2-4 words (e.g. \"Pain is worse\" \"Call my family\") | 4: 1-2 words (e.g. \"Help\" \"Stop\")\n5: 2-4 words (e.g. \"Not that one\" \"Feel dizzy now\") | 6: 1-2 words (e.g. \"More\" \"Please\")\n\nALWAYS include at least one \"Yes\" and one \"No\" option when answering a question.\nUse SIMPLE words a child could read. No fancy vocabulary. No long sentences.\nEvery tile must be something a patient would POINT TO on a communication board.\n\nCONTENT MUST COVER these categories as appropriate to the conversation:\n- Agreement/disagreement (yes, no, maybe, I don't know)\n- Medical needs (pain, symptoms, medication, side effects)\n- Physical needs (water, food, bathroom, positioning, temperature)\n- Emotional expression (scared, frustrated, sad, tired, confused, grateful)\n- Social participation (call family, want visitors, want to be alone, miss home)\n- Self-advocacy (I need help, slow down, say again, I don't understand, wait)\n- Cognitive support (I'm confused, need time to think, show me options)\n- Swallowing/eating (can't swallow, soft food, thickened liquids, hungry, nauseous)\nPrioritize medical safety and clarity above all else.\n\nFORMAT: EXACTLY 6 options separated by |. No numbers, bullets, or line breaks.",
+ "offline": {
+  "sets": {
+   "pain": [
+    "❌ No pain",
+    "🩺 A little",
+    "😖 Moderate",
+    "😭 Very bad",
+    "💊 Need medicine",
+    "📈 Getting worse"
+   ],
+   "yes_no": [
+    "✅ Yes",
+    "❌ No",
+    "🤔 Maybe",
+    "🤷 Don't know",
+    "🔁 Say again?",
+    "⏳ Give me a moment"
+   ],
+   "medication": [
+    "✅ Yes, take it",
+    "❌ No, don't want it",
+    "❓ What is it?",
+    "⚠️ I'm allergic",
+    "🤢 Makes me sick",
+    "🩺 Still in pain"
+   ],
+   "food": [
+    "🍔 Yes, hungry",
+    "❌ Not hungry",
+    "💧 Just water",
+    "😖 Can't swallow",
+    "🤢 Feel sick",
+    "🥤 Need straw"
+   ],
+   "bathroom": [
+    "🚻 Yes, now please",
+    "❌ No, I'm okay",
+    "🚻 Bedpan please",
+    "😨 Can't hold it",
+    "🦵 Legs too weak",
+    "🙏 Need help walking"
+   ],
+   "positioning": [
+    "⬆️ Sit me up",
+    "⬇️ Lie me down",
+    "🔄 Turn me over",
+    "🛏️ Pillow please",
+    "🩺 That hurts",
+    "✅ That's better"
+   ],
+   "family": [
+    "📞 Call them please",
+    "✅ Yes, let them in",
+    "❌ Not right now",
+    "😢 I miss them",
+    "⏰ When can they come?",
+    "🙏 Tell them I'm okay"
+   ],
+   "discharge": [
+    "🏠 Want to go home",
+    "⏰ When can I leave?",
+    "😟 I'm not ready",
+    "✅ I feel better",
+    "❓ What's the plan?",
+    "👨‍⚕️ Ask my doctor"
+   ],
+   "procedures": [
+    "✅ Okay, do it",
+    "❌ I don't want that",
+    "😨 Will it hurt?",
+    "⏰ How long?",
+    "❓ What is it for?",
+    "😟 I'm scared"
+   ],
+   "feelings": [
+    "😊 I'm okay",
+    "😟 Scared",
+    "😔 Sad",
+    "😩 Very tired",
+    "😤 Frustrated",
+    "🤔 Confused"
+   ],
+   "greeting": [
+    "👋 Hello",
+    "😊 I'm okay",
+    "🙏 Thank you",
+    "🩺 In pain",
+    "💧 Need water",
+    "🚻 Bathroom"
+   ],
+   "universal": [
+    "✅ Yes",
+    "❌ No",
+    "🤔 Maybe",
+    "🙏 Thank you",
+    "🔁 Say again?",
+    "😕 Don't understand"
+   ]
+  },
+  "rules": [
+   {
+    "words": [
+     "pain",
+     "hurt",
+     "scale",
+     "rate your",
+     "discomfort",
+     "sore"
+    ],
+    "set": "pain"
+   },
+   {
+    "words": [
+     "do you",
+     "are you",
+     "can you",
+     "would you",
+     "is it",
+     "have you"
+    ],
+    "set": "yes_no"
+   },
+   {
+    "words": [
+     "medicine",
+     "medication",
+     "pill",
+     "drug",
+     "dose",
+     "side effect",
+     "allergic"
+    ],
+    "set": "medication"
+   },
+   {
+    "words": [
+     "eat",
+     "food",
+     "hungry",
+     "drink",
+     "water",
+     "thirsty",
+     "swallow",
+     "diet"
+    ],
+    "set": "food"
+   },
+   {
+    "words": [
+     "bathroom",
+     "toilet",
+     "bedpan",
+     "catheter",
+     "urinate",
+     "bowel"
+    ],
+    "set": "bathroom"
+   },
+   {
+    "words": [
+     "move",
+     "turn",
+     "sit",
+     "stand",
+     "walk",
+     "position",
+     "bed",
+     "pillow"
+    ],
+    "set": "positioning"
+   },
+   {
+    "words": [
+     "family",
+     "wife",
+     "husband",
+     "kids",
+     "children",
+     "visitor",
+     "call",
+     "phone"
+    ],
+    "set": "family"
+   },
+   {
+    "words": [
+     "home",
+     "discharge",
+     "leave",
+     "when can",
+     "how long"
+    ],
+    "set": "discharge"
+   },
+   {
+    "words": [
+     "test",
+     "scan",
+     "ct",
+     "mri",
+     "blood",
+     "procedure",
+     "needle",
+     "iv"
+    ],
+    "set": "procedures"
+   },
+   {
+    "words": [
+     "feel",
+     "okay",
+     "how are",
+     "alright",
+     "comfortable",
+     "scared",
+     "worried"
+    ],
+    "set": "feelings"
+   },
+   {
+    "words": [
+     "hello",
+     "hi ",
+     "good morning",
+     "good afternoon",
+     "my name"
+    ],
+    "set": "greeting"
+   }
+  ],
+  "continuations": [
+   {
+    "words": [
+     "pain",
+     "hurt",
+     "hurts"
+    ],
+    "tiles": [
+     "💊 Need medicine",
+     "📈 Getting worse",
+     "📉 Getting better",
+     "👨‍⚕️ Call doctor",
+     "⏳ How long?",
+     "😟 I'm scared"
+    ]
+   },
+   {
+    "words": [
+     "thank",
+     "okay",
+     "fine",
+     "better"
+    ],
+    "tiles": [
+     "😊 That helps",
+     "💧 Need water",
+     "🚻 Bathroom",
+     "📞 Call family",
+     "🛏️ Change position",
+     "😴 Want to sleep"
+    ]
+   },
+   {
+    "words": [],
+    "tiles": [
+     "✅ Yes",
+     "❌ No",
+     "🙏 Thank you",
+     "💧 Water please",
+     "🩺 Hurts",
+     "😨 Scared"
+    ]
+   }
+  ]
+ }
+}

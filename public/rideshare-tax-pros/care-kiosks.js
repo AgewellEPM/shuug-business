@@ -37,7 +37,7 @@
   function mount(root, venue, params, {diet} = {}) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
     let lexicon = indexed({}), lastUtterance, pendingSign = false;
-    let recognition = null, pendingAnswer = null, privacy = false;
+    let recognition = null, pendingAnswer = null, privacy = false, exchange = null, turns = 0;
     const app = element('article'); app.className = 'care-venue-kiosk';
     const header = element('header'), about = element('div'), title = element('h3'), address = element('p'), contact = element('p'), boardName = element('p');
     const captions = element('div'), words = element('div'), speaker = element('strong'), message = element('p'), original = element('p');
@@ -65,6 +65,7 @@
       event.preventDefault();
       const question = draft.value.trim();
       if (!question || pendingAnswer) return;
+      if (exchange) return void heardFrom(question);
       draft.value = '';
       show(question, language, 'Visitor');
       void ask(question, language);
@@ -120,24 +121,79 @@
       for (const b of [staff,hear]) b.removeAttribute('data-listening');
       status.textContent = '';
     }
+    // Their turn. What staff say and the replies to it share the tile area, as they do in the app.
+    function openExchange() {
+      exchange = { said: '', shown: [] };
+      heading.textContent = boardName.textContent = 'Their turn';
+      emergency.replaceChildren(...(pack.pool[place.boards[key]].strip || []).map(tileButton));
+      draft.placeholder = 'Type what they said…';
+      waiting('Waiting for their response…', true);
+    }
+    function closeExchange() { if (exchange) draft.value = ''; exchange = null; turns++; draft.placeholder = 'Type your question…'; }
+    function panel(...parts) { grid.replaceChildren(); helper.replaceChildren(); const box = element('div'); box.className = 'ck-exchange'; box.append(...parts); grid.append(box); area.scrollTop = 0; return box; }
+    function waiting(words, listening) {
+      const again = button('🎤  Tap When They Speak', listenForStaff);
+      again.className = 'ck-again'; again.hidden = Boolean(listening);
+      panel(Object.assign(element('p','👂'),{className:'ck-big'}), element('p',words), again, element('p','— or type what they said below —'));
+    }
+    async function heardFrom(said) {
+      stopListening();
+      // Sending a correction replaces what was heard.
+      if (exchange?.said && messages.at(-1)?.who === 'Staff') { messages.pop(); transcriptList.lastElementChild?.remove(); }
+      draft.value = said;
+      show(said,'en','Staff',null,false);
+      exchange = { said, shown: [] };
+      await replies('reply');
+    }
+    async function replies(mode) {
+      const turn = ++turns, { said } = exchange;
+      panel(Object.assign(element('p','🧠'),{className:'ck-big'}), element('p','Thinking…'));
+      let result;
+      try {
+        const response = await fetch('/api/sales/care-replies', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ said, mode, shown: exchange.shown, log: messages.slice(-6).map(m => ({ who: m.who === 'Staff' ? 'Staff' : 'Visitor', text: m.english || m.text })) }) });
+        if (!response.ok) throw new Error('Replies unavailable.');
+        result = await response.json();
+      } catch { result = null; }
+      if (closed || turn !== turns || !exchange) return;
+      if (!result) { const retry = button('Try again', () => replies(mode)); retry.className = 'ck-again'; panel(element('p','Replies could not load.'), retry); return; }
+      exchange.shown.push(...result.tiles);
+      helper.replaceChildren();
+      if (mode !== 'continue') helper.append(Object.assign(element('p','They said: ' + said),{className:'ck-prompt'}));
+      if (result.source === 'fixed') helper.append(Object.assign(element('p','The AI is unavailable. These are the app’s saved replies.'),{className:'ck-note'}));
+      const after = place.boards.ts_after !== undefined ? 'ts_after' : undefined;
+      grid.replaceChildren(...result.tiles.map(words => {
+        const cut = words.indexOf(' '), label = words.slice(cut + 1).trim();
+        return tileButton({ emoji: words.slice(0,cut), label, spokenText: label, color: 'blue', navigateTo: after });
+      }), tileButton({ emoji: '🔄', label: 'More Choices', color: 'gray', action: 'more_choices', wide: true }));
+      area.scrollTop = 0;
+    }
     // The browser handles recognition. Without it, or without permission, the same words can be typed.
     function listenForStaff() {
       const active = Boolean(recognition);
       stopListening();
       if (active) return;
       cancelVoice();
-      const fallback = () => { stopListening(); compose('Staff reply'); };
+      const bedside = Boolean(place.bedside);
+      if (bedside) openExchange();
+      const fallback = () => { stopListening(); if (bedside) waiting('Type what they said below.'); else compose('Staff reply'); };
       const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!Recognition) return fallback();
       recognition = new Recognition();
       recognition.lang = 'en-US';
+      recognition.interimResults = true;
       recognition.onresult = event => {
-        const heard = event.results[0][0].transcript.trim();
+        const heard = [...event.results].map(result => result[0].transcript).join('').trim();
+        // Their words fill the type box as they speak, so a misheard word can be fixed and sent again.
+        draft.value = heard.slice(0,350);
+        if (event.results[event.results.length - 1].isFinal === false) return;
         stopListening();
+        if (bedside && heard) return void heardFrom(heard);
+        draft.value = '';
         if (heard) show(heard, 'en', 'Staff', null, false);
       };
       recognition.onerror = fallback;
-      recognition.onend = () => { stopListening(); status.textContent = 'No words were heard. Try again.'; };
+      recognition.onend = () => { stopListening(); if (bedside) waiting('No words were heard.'); else status.textContent = 'No words were heard. Try again.'; };
       [staff,hear].forEach(b => b.setAttribute('data-listening',''));
       status.textContent = 'Listening for staff…';
       try { recognition.start(); } catch { fallback(); }
@@ -226,10 +282,13 @@
     }
     function go(id, push = true) {
       if (!Object.hasOwn(place.boards,id)) return;
+      if (exchange) closeExchange();
       if (push && key !== id) history.push(key);
       pendingSign = false; stopListening(); selectors.hidden = true; key = id; setAddress(); draw(); area.scrollTop = 0; heading.focus({preventScroll:true});
     }
     function previous(fallback) {
+      if (exchange) { stopListening(); closeExchange(); draw(); return; }
+      if (key === 'main' && !history.length && typeof fallback !== 'string') return root.dispatchEvent(new CustomEvent('care:leave',{bubbles:true}));
       go(history.pop() || (typeof fallback === 'string' && fallback !== key ? fallback : 'main'),false);
     }
     function compose(label, options = {}) {
@@ -306,6 +365,8 @@
       if (action === 'replay') { const m = messages.at(-1); if (m) utter(m.text,m.lang); return; }
       if (action === 'wrong_one') { messages.pop(); transcriptList.lastElementChild?.remove(); transcriptTitle.textContent = 'Conversation (' + messages.length + ')'; utter('Sorry, wrong one','en'); return previous(); }
       if (action === 'done') { utter("I'm done",'en'); history = []; return go('main',false); }
+      if (action === 'more_choices') return replies('more');
+      if (action === 'keep_talking') { const last = messages.findLast(m => m.who === 'Visitor'); exchange = { said: last?.text || 'Hello', shown: [] }; return replies('continue'); }
       if (action === 'see') return helper.replaceChildren(element('p','See to Speak uses the camera in the TinkyStroke app.'));
       if (action === 'stroke_tool') return root.dispatchEvent(new CustomEvent('care:stroke-tool',{bubbles:true,detail:tile.tool}));
       if (action === 'back') return previous(tile.navigateTo);
@@ -364,7 +425,7 @@
       emergency.replaceChildren(...(board.strip || []).map(tileButton));
       if (board.notice) helper.append(element('blockquote',board.notice));
       if (board.prompt) helper.append(Object.assign(element('p','They may say: ' + board.prompt),{className:'ck-prompt'}));
-      back.disabled = !history.length && key === 'main';
+      back.setAttribute('aria-label', !history.length && key === 'main' ? 'Demo locations' : 'Back');
       nav.firstElementChild.toggleAttribute('data-current', key === 'main');
     }
     async function changeLanguage(value) {
@@ -383,7 +444,7 @@
       }
     }
     function setPlace(id, requestedBoard) {
-      generation++; pendingSign = false; stopListening();
+      generation++; pendingSign = false; stopListening(); closeExchange();
       cancelAnswer();
       place = pack.places.find(p => p.key === id) || pack.places[0];
       key = Object.hasOwn(place.boards,requestedBoard) ? requestedBoard : 'main';

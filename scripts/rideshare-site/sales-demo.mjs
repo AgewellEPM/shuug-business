@@ -65,14 +65,6 @@ export function renderCareDemo() {
     </details>
   </div>
   <section data-care-stage hidden aria-label="Location demo">
-    <nav class="care-stage-header" aria-label="Demo navigation">
-      <a href="#view=demo" data-care-return>← Demo locations</a>
-      <strong id="care-stage-title" data-care-place></strong>
-      <div class="care-stage-actions">
-        <a href="#view=demo" data-care-plan-toggle>Plan a pilot</a>
-        <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
-      </div>
-    </nav>
     <div data-care-plan hidden></div>
     <div data-care-experience>
     <div data-care-mount></div>
@@ -154,8 +146,17 @@ export function renderCareDemo() {
     </div>
   </div>
     </div>
+    </div>
     <details class="care-rep-tools" data-care-rep-tools>
       <summary>Rep tools</summary>
+      <nav class="care-stage-header" aria-label="Demo navigation">
+        <a href="#view=demo" data-care-return>← Demo locations</a>
+        <strong id="care-stage-title" data-care-place></strong>
+        <div class="care-stage-actions">
+          <a href="#view=demo" data-care-plan-toggle>Plan a pilot</a>
+          <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
+        </div>
+      </nav>
       <div class="care-stage-links" data-care-modes></div>
       <div class="training-actions">
         <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
@@ -167,7 +168,6 @@ export function renderCareDemo() {
         ${renderVoicePractice({ id: 'care-voice', heading: 'Listen and choose a reply' })}
       </details>
     </details>
-    </div>
   </section>
 </section>`;
 }

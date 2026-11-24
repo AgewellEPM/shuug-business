@@ -67,6 +67,21 @@ if (nurse.followUps.length !== 6 || diet.warnings.length < 5) throw new Error('T
 if (strip.length !== 4 || acute.length !== 8 || hospital.length !== 15 || full.length !== 23 || levels.length !== 11 || kinds.length !== 10 || places.length !== 13 || after.length !== 6 || saved.length !== 5) {
   throw new Error('The Android source changed shape: ' + [strip, acute, hospital, full, levels, kinds, places, after, saved].map(x => x.length));
 }
+// The app's AI prompt and its fixed replies, for the local model behind Listen for Staff.
+const ai = read('TinkyAskAI'), offline = read('TinkyAskOffline');
+const kotlin = raw => JSON.parse('"' + raw.replaceAll('\\$', '$') + '"');
+const builder = ai.slice(ai.indexOf('buildBaseSystemPrompt('), ai.indexOf('private fun parseTileResponse'));
+const opening = [...builder.slice(0, builder.indexOf('// Dual-language')).matchAll(/appendLine\("((?:[^"\\]|\\.)*)"\)/g)].map(m => kotlin(m[1])).join('\n');
+const closing = /appendLine\("{3}([\s\S]*?)"{3}\)/.exec(builder)[1].trim();
+const sets = Object.fromEntries([...offline.matchAll(/val OFFLINE_(\w+)_RESPONSES = listOf\(([\s\S]*?)\n\)/g)].map(m => [m[1].toLowerCase(), [...m[2].matchAll(new RegExp(str, 'g'))].map(x => text(x[1]))]));
+const matching = offline.slice(offline.indexOf('getOfflineResponses('), offline.indexOf('getOfflineStarters('));
+const rules = [...matching.matchAll(/containsAny\(([^)]*)\) ->\s*OFFLINE_(\w+)_RESPONSES/g)].map(m => ({ words: [...m[1].matchAll(/"([^"]*)"/g)].map(x => x[1]), set: m[2].toLowerCase() }));
+const more = offline.slice(offline.indexOf('getOfflineContinuations('), offline.indexOf('// ==================== FIXED RESPONSE SETS'));
+const continuations = [...more.matchAll(/(?:containsAny\(([^)]*)\)|else) -> listOf\(([\s\S]*?)\n        \)/g)].map(m => ({ words: [...(m[1] || '').matchAll(/"([^"]*)"/g)].map(x => x[1]), tiles: [...m[2].matchAll(new RegExp(str, 'g'))].map(x => text(x[1])) }));
+if (opening.split('\n').length < 17 || !/EXACTLY 6 options/.test(closing) || Object.keys(sets).length !== 12 || rules.length !== 11 || continuations.length !== 3) {
+  throw new Error('The Android AI source changed shape: ' + [opening.split('\n').length, Object.keys(sets).length, rules.length, continuations.length]);
+}
+writeFileSync(fileURLToPath(new URL('./care-replies.json', import.meta.url)), JSON.stringify({ opening, closing, offline: { sets, rules, continuations } }, null, 1) + '\n');
 writeFileSync(fileURLToPath(new URL('../../public/rideshare-tax-pros/care-tinkystroke.json', import.meta.url)),
   JSON.stringify({ strip, tiers: { acute, hospital, full }, boards, pain: { levels, kinds, places }, after, saved, nurse, diet }, null, 1) + '\n');
 console.log(Object.entries(boards).map(([id, b]) => id + ' ' + b.title + ' ' + b.tiles.length).join('\n'));
