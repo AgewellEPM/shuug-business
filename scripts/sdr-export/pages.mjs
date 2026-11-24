@@ -43,6 +43,7 @@ export function renderWorkspace(profile, signIn) {
     sales = sales
       .replace('</head>', '<link rel="stylesheet" href="/sales-display.css"><script src="/sales-display.js" defer></script></head>')
       .replace(/<form id="sdr-header-search"[^>]*>[\s\S]*?<\/form>/, '')
+      .replace('<section class="cc-search-results', '<form class="cc-card" data-cc-search role="search"><label>Search campaign materials <input type="search" maxlength="180"></label></form><section class="cc-search-results')
       .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Settings</button>' + button)
       .replace('</body>', `<dialog class="sdr-display" aria-labelledby="sdr-display-title">
         <form method="dialog">
