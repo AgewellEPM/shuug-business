@@ -78,7 +78,7 @@ body.sales-console-page[data-standalone-sdr] {
 .sdr-xp > div { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
 .sdr-xp strong { color: #39217c; font-size: 13px; white-space: nowrap; }
 .sdr-xp span { color: #505678; font-size: 11px; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.sdr-xp progress { display: block; width: 100%; height: 9px; accent-color: #7750dc; }
+.sdr-xp progress { display: block; width: 100%; height: 16px; accent-color: #7750dc; }
 .sdr-xp progress::-webkit-progress-bar { background: #e7def9; border-radius: 8px; }
 .sdr-xp progress::-webkit-progress-value { background: linear-gradient(90deg, #4d2ec4, #9e6bf5); border-radius: 8px; }
 #sdr-earnings { position: relative; min-width: 95px; }
