@@ -58,7 +58,7 @@
     return inside;
   }
 
-  function selectionStatus(panel, state, api, refreshAssignments) {
+  function selectionStatus(panel, state, api, refreshAssignments, editCounty) {
     const host = panel.querySelector('[data-map-selection]');
     let current, revision = 0;
     function render() {
@@ -73,9 +73,23 @@
         return;
       }
       for (const county of current.counties) {
-        const row = document.createElement('span');
+        const row = document.createElement('div');
+        row.className = 'territory-selection-county';
+        const text = document.createElement('span');
         const rep = county.lead?.name ? 'Sales rep · ' + county.lead.name : 'No sales rep currently assigned';
-        row.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
+        text.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
+        row.append(text);
+        if (county.canEdit) {
+          const button = document.createElement('button');
+          button.type = 'button';
+          button.className = 'button secondary';
+          button.dataset.countyAssign = county.id;
+          button.textContent = county.lead?.name ? 'Change rep' : 'Assign county';
+          button.setAttribute('aria-controls', 'territory-county-editor');
+          button.setAttribute('aria-label', button.textContent + ' for ' + county.label);
+          button.onclick = () => editCounty(county);
+          row.append(button);
+        }
         host.append(row);
       }
       if (!current.counties.length) host.append('County assignment unavailable for this region.');
@@ -86,7 +100,7 @@
       host.hidden = true;
       host.replaceChildren();
     }
-    async function show(name, counties) {
+    async function show(name, counties, reveal) {
       const request = ++revision;
       current = { name, counties, pending: counties.length > 0 };
       host.hidden = false;
@@ -98,6 +112,7 @@
         refreshAssignments(counties, result.counties);
         current.pending = false;
         render();
+        if (reveal) host.scrollIntoView?.({ block: 'nearest' });
       } catch {
         if (request !== revision) return;
         current.pending = false;
@@ -108,9 +123,9 @@
     return {show, clear, render};
   }
 
-  function draw(panel, data, onSearch, api, focus) {
+  function draw(panel, data, api, focus) {
     const L = window.L, canvas = panel.querySelector('[data-map-canvas]');
-    const picker = panel.querySelector('[data-map-town]'), research = panel.querySelector('[data-map-research]');
+    const picker = panel.querySelector('[data-map-town]');
     const reset = panel.querySelector('[data-map-reset]');
     const items = new Map(), streetsButton = panel.querySelector('[data-map-streets]');
     const mode = panel.querySelector('[data-map-layer]'), tileStatus = panel.querySelector('[data-map-tiles]');
@@ -156,7 +171,11 @@
         roster.refresh();
         ownership.refresh();
       }
-    });
+    }, county => roster.edit(county));
+    function showAssignment(name, counties, reveal = true) {
+      roster.close();
+      void selection.show(name, counties, reveal);
+    }
     try {
       const [left, top, right, bottom] = data.frame;
       const drawing = svg('svg', { viewBox: [left, top, right - left, bottom - top].join(' '), 'aria-hidden': 'true' });
@@ -196,7 +215,6 @@
       picker.replaceChildren(option('', 'Choose a town or city'), ...ordered.map(feature =>
         option(feature.id, duplicates.has(feature.name) ? feature.label : feature.name)));
       picker.disabled = !items.size;
-      research.disabled = true;
 
       function annotate() {
         const zoom = map.getZoom(), street = zoom >= streetZoom();
@@ -270,43 +288,36 @@
 
       function fitState() {
         selection.clear();
+        roster?.close();
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
-        research.disabled = true;
-        map.fitBounds(initial, { padding: [14, 14], animate: false });
+          map.fitBounds(initial, { padding: [14, 14], animate: false });
         atState = true;
         annotate();
       }
-      function select(id, countyId) {
+      function select(id, countyId, reveal = true) {
         const item = items.get(id);
         if (!item) return fitState();
         selected?.path.classList.remove('is-selected');
         selected = item;
         selected.path.classList.add('is-selected');
         picker.value = id;
-        research.disabled = false;
         const areas = (countyId ? [countyId] : item.feature.counties).map(county => counties.get(county)).filter(Boolean);
-        void selection.show(item.feature.name, areas);
+        showAssignment(item.feature.name, areas, reveal);
         map.fitBounds(bounds(item.feature.bounds), { padding: [32, 32], maxZoom: streetZoom() - 1, animate: false });
         atState = false;
         annotate();
       }
       picker.onchange = () => select(picker.value);
-      research.onclick = async () => {
-        if (!selected) return;
-        try { await onSearch({ state: data.state, city: selected.feature.name }); }
-        catch (error) { panel.querySelector('[data-map-status]').textContent = error.message; }
-      };
       reset.onclick = fitState;
       streetsButton.onclick = () => map.setView(selected ? selected.position : map.getCenter(), Math.max(16, map.getZoom()), { animate: false });
       function zoomCounty(county) {
-        void selection.show(county.label, [county]);
+        showAssignment(county.label, [county]);
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
-        research.disabled = true;
-        const target = bounds(county.bounds);
+          const target = bounds(county.bounds);
         const fit = map.getBoundsZoom(target, false, L.point(40, 40));
         map.setView(target.getCenter(), Math.min(streetZoom() - 1, Math.max(stateZoom() + 1, fit)), {animate:false});
         annotate();
@@ -328,12 +339,11 @@
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
-        research.disabled = true;
-        if (target.dataset.district) {
+          if (target.dataset.district) {
           const district = data.subdivisions.find(area => area.id === target.dataset.district);
           if (district) {
             const county = counties.get(district.id.slice(0, 5));
-            void selection.show(district.label, county ? [county] : []);
+            showAssignment(district.label, county ? [county] : []);
             map.fitBounds(bounds(district.bounds), { padding: [16, 16], maxZoom: 14 });
           }
           return;
@@ -352,7 +362,7 @@
         if (nearest) select(nearest.feature.id);
         else {
           const county = data.counties.find(area => boundaryHit(area, place.x, place.y));
-          void selection.show(place.name, county ? [county] : []);
+          showAssignment(place.name, county ? [county] : []);
           map.setView(latLng(place.x, place.y), Math.max(map.getZoom(), 14));
         }
       });
@@ -364,12 +374,12 @@
         if (!map.hasLayer(roads) || event.originalEvent?.target?.closest?.('[data-locality], [data-county], [data-landmark], [data-district]')) return;
         const point = atlasPoint(event.latlng);
         const county = data.counties.find(area => boundaryHit(area, ...point));
-        if (!county) return selection.clear();
+        if (!county) { selection.clear(); roster.close(); return; }
         const town = data.features.findLast(feature => feature.counties.includes(county.id) && boundaryHit(feature, ...point));
-        void selection.show(town?.name || county.label, [county]);
+        showAssignment(town?.name || county.label, [county]);
       });
       if (items.has(focus?.place)) {
-        select(focus.place);
+        select(focus.place, undefined, false);
         if (focus.streets) streetsButton.onclick();
       }
       if (window.ResizeObserver) {
@@ -387,7 +397,7 @@
         selection.clear();
         ownership?.dispose();
         roster?.dispose();
-        picker.onchange = research.onclick = reset.onclick = streetsButton.onclick = null;
+        picker.onchange = reset.onclick = streetsButton.onclick = null;
         map.remove();
       };
     } catch (error) {
@@ -400,7 +410,7 @@
     }
   }
 
-  function mount({ api, onSearch, onBack }) {
+  function mount({ api, onBack }) {
     const panel = document.getElementById('territory-town-map');
     if (!panel) return null;
     const find = name => panel.querySelector('[data-map-' + name + ']');
@@ -442,7 +452,7 @@
         if (request !== sequence) return;
         canvas.hidden = tools.hidden = caption.hidden = false;
         const total = new Set(data.features.map(feature => feature.name)).size;
-        dispose = draw(panel, data, onSearch, api, focus);
+        dispose = draw(panel, data, api, focus);
         status.textContent = total.toLocaleString() + (region === 'CT' ? ' towns' : total === 1 ? ' locality' : ' localities');
       } catch (error) {
         if (request !== sequence) return;

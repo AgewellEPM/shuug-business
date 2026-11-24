@@ -4,7 +4,7 @@
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
   window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
-    const townMap=window.SdrTerritoryTownMap?.mount({api,onSearch,onBack:returnToStates});
+    const townMap=window.SdrTerritoryTownMap?.mount({api,onBack:returnToStates});
     const townAccessState=document.querySelector('#sales-town-access-state');
     let mapState='';
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;

@@ -43,10 +43,10 @@
   function mount(panel, data, api, zoomCounty, onAssignment) {
     const aside = panel.querySelector('#territory-county-roster'), toggle = panel.querySelector('[data-map-roster]');
     const list = aside.querySelector('[data-county-list]');
-    const editor = aside.querySelector('[data-county-editor]');
+    const editor = panel.querySelector('[data-county-editor]');
     const counties = [...data.counties].sort((a,b) => a.label.localeCompare(b.label));
-    let current, active = true;
-    editor.replaceChildren();
+    let current, editing, active = true;
+    close();
     aside.hidden = toggle.getAttribute('aria-expanded') === 'false';
     const show = visible => { aside.hidden = !visible; toggle.setAttribute('aria-expanded', String(visible)); };
     toggle.onclick = () => show(aside.hidden);
@@ -66,66 +66,85 @@
 
     function select(county) {
       current = county;
-      show(true);
-      editor.replaceChildren();
       renderList();
+    }
+
+    function close(restoreFocus = false) {
+      const previous = editing;
+      editing = undefined;
+      editor.hidden = true;
+      editor.replaceChildren();
+      if (restoreFocus && previous) panel.querySelector(`[data-county-assign="${previous.id}"]`)?.focus();
+    }
+
+    function edit(county) {
+      if (!county.canEdit) return;
+      close();
+      select(county);
+      editing = county;
+      editor.hidden = false;
       const lead = county.lead;
-      const title = el('strong', county.label);
-      editor.append(title);
-      if (!county.canEdit) { editor.append(el('p', lead?.name || 'Unassigned')); return; }
+      editor.append(el('h3', (lead?.name ? 'Change rep for ' : 'Assign ') + county.label));
       const form = el('form', '', 'county-lead-form');
       const name = el('input'), photo = el('input'), removePhoto = el('input');
       name.value = lead?.name || ''; name.required = true; name.maxLength = 100; name.name = 'name';
-      const member = el('select'); member.name = 'memberId'; member.required = !data.customLeads;
-      member.append(new Option(data.customLeads ? 'Enter a name' : 'Choose a team member', ''));
+      const member = el('select'); member.name = 'memberId'; member.required = true;
+      member.append(new Option('Choose a sales rep', ''));
       for (const person of data.leadMembers.filter(p => !p.counties || p.counties.includes(county.id))) {
         member.append(new Option(person.name, person.id));
       }
-      member.value = lead?.memberId || '';
+      if (data.customLeads) member.append(new Option('Enter a name manually', 'manual'));
+      member.value = lead?.memberId || (lead?.name && data.customLeads ? 'manual' : '');
       const label = (text, input) => { const label = el('label', text); label.append(input); return label; };
       photo.type = 'file'; photo.name = 'photo'; photo.accept = 'image/*';
       const customName = label('Person running this county', name);
-      function showName() { customName.hidden = !data.customLeads || !!member.value; name.disabled = customName.hidden; }
+      function showName() { customName.hidden = member.value !== 'manual'; name.disabled = customName.hidden; }
       member.onchange = showName;
       showName();
-      form.append(label('Team member', member), customName, label('Headshot', photo));
+      form.append(label('Sales rep', member), customName, label('Headshot (optional)', photo));
       if (lead?.photo) {
         removePhoto.type = 'checkbox'; form.append(label('Remove headshot', removePhoto));
       }
-      const save = el('button', 'Save lead', 'button primary'), clear = el('button', 'Clear lead', 'button secondary');
-      clear.type = 'button'; clear.hidden = !lead?.name;
+      const actions = el('div', '', 'county-lead-actions');
+      const save = el('button', 'Save assignment', 'button primary');
+      const clear = el('button', 'Clear assignment', 'button secondary');
+      const cancel = el('button', 'Cancel', 'button secondary');
+      clear.type = cancel.type = 'button'; clear.hidden = !lead?.name;
+      actions.append(save, clear, cancel);
       const message = el('p'); message.setAttribute('role','status');
-      form.append(save, clear, message);
+      form.append(actions, message);
+      cancel.onclick = () => close(true);
       async function submit(clearing) {
         if (save.disabled) return;
         save.disabled = clear.disabled = true;
         try {
-          const samePerson = member.value ? member.value === lead?.memberId : !lead?.memberId && name.value.trim() === lead?.name;
+          const memberId = member.value === 'manual' ? '' : member.value;
+          const samePerson = memberId ? memberId === lead?.memberId : !lead?.memberId && name.value.trim() === lead?.name;
           let image = samePerson ? lead.photo : '';
           if (photo.files?.[0]) image = await headshot(photo.files[0]);
           if (clearing || removePhoto.checked) image = '';
           const result = await api('set-county-lead', {state:data.state, county:county.id, revision:lead?.revision || 0,
-            name:clearing ? '' : name.value.trim(), memberId: member.value, photo:image, clear:clearing});
+            name:clearing ? '' : name.value.trim(), memberId, photo:image, clear:clearing});
           county.lead = result.lead;
           if (!active) return;
           onAssignment();
-          if (current === county) {
-            select(county);
-            editor.querySelector('[role=status]').textContent = clearing ? 'Lead cleared.' : 'County lead saved.';
-          } else renderList();
+          renderList();
+          if (editing === county && editor.contains(form)) close(true);
         } catch (error) { message.textContent = error.message; }
         finally { save.disabled = clear.disabled = false; }
       }
       form.onsubmit = event => { event.preventDefault(); void submit(false); };
       clear.onclick = () => submit(true);
       editor.append(form);
+      member.focus({ preventScroll: true });
+      editor.scrollIntoView?.({ block: 'nearest' });
     }
     renderList();
-    return { select, refresh: renderList, dispose() {
+    return { select, edit, close, refresh: renderList, dispose() {
       active = false;
       aside.hidden = true;
       toggle.onclick = null;
-      list.replaceChildren(); editor.replaceChildren();
+      list.replaceChildren(); close();
     } };
   }
   window.SdrCountyLeads = { mount };
