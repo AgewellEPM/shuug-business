@@ -96,12 +96,12 @@ function standaloneOverview(queue, careWorkspace) {
 }
 
 const workspaceTracker = `<div class="sdr-workspace-tracker"><div class="sdr-xp" title="10 XP per saved business, 20 per first contact, 30 per reply, and 40 per signed agreement"><div><strong id="sdr-xp-level">Level 1</strong><span id="sdr-xp-label">0 / 100 XP</span></div><progress id="sdr-xp-bar" aria-label="XP toward the next level" max="100" value="0"></progress></div>
-<div class="sdr-xp" data-sample-xp hidden><div><strong>Level 5 · Sample</strong><span>50 / 100 XP</span></div><progress aria-label="Sample XP toward Level 6" max="100" value="50"></progress></div>
-<div class="com-sample-total" data-sample-total hidden><small>Sample earnings</small><strong>$4,860.00</strong></div>
+<div class="sdr-xp" data-sample-xp hidden><div><strong>Level 5</strong><span>50 / 100 XP</span></div><progress aria-label="Sample XP toward Level 6" max="100" value="50"></progress></div>
+<div class="com-sample-total" data-sample-total hidden><small>Earned to date</small><strong>$4,860.00</strong></div>
 <details id="sdr-earnings" hidden><summary><span>Earned to date</span><strong id="sdr-earning-amount">$0.00</strong></summary><div class="sdr-earnings-panel"><h2>Recorded earnings</h2><form id="sdr-earnings-form" class="sales-form"><label>Payment description<input name="label" maxlength="140" required></label><label>Amount received (USD)<input name="amount" inputmode="decimal" maxlength="12" placeholder="0.00" required></label><button class="button primary" type="submit">Record payment</button></form><div id="sdr-earnings-receipts"></div></div></details></div>`;
 const sidebarProfile = `<button type="button" class="sdr-sidebar-profile" data-sdr-own-profile aria-label="Open My profile">
   <span class="sdr-sidebar-portrait" aria-hidden="true"><img alt="" width="42" height="42" hidden><span data-profile-initials></span></span>
-  <span><strong data-profile-name></strong><small data-profile-role></small><small data-sample-role hidden>Director of Senior Care Partnerships · Sample</small></span>
+  <span><strong data-profile-name></strong><small data-profile-role></small><small data-sample-role hidden>Director of Senior Care Partnerships</small></span>
 </button>`;
 
 function section(markup, marker) {
@@ -299,7 +299,7 @@ function standaloneTeam(legacyTeam, careWorkspace) {
         <article class="com-sample-profile" data-profile-sample hidden>
           <header class="com-sample-banner">
             <div><strong>Sample profile</strong><p>Fictional contact details, XP, and earnings for demonstrations.</p></div>
-            <div class="com-sample-toolbar"><a class="button secondary" href="#view=commissions&amp;sample=1">Show sample earnings</a><a class="button secondary" href="#view=team&amp;section=profile">Exit sample</a></div>
+            <div class="com-sample-toolbar"><a class="button secondary" href="#view=commissions&amp;sample=1">Open earnings preview</a><a class="button secondary" href="#view=team&amp;section=profile">Exit sample</a></div>
           </header>
           <header class="com-sample-identity"><img data-sample-photo alt="" width="64" height="64" hidden><div><h4 data-sample-name></h4><p>Director of Senior Care Partnerships</p></div></header>
           <dl>

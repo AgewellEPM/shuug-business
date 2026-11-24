@@ -11,23 +11,72 @@
   }
 
   const sampleGoal = 1000000;
-  function sampleHistory() {
-    const today = new Date();
-    const months = [300000, 425000, 620000, 802000, 1229000, 486000].map((cents, i) => ({
-      month: new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 5 + i, 1)).toISOString().slice(0, 7),
-      cents,
+  function sampleHistory(expanded) {
+    const months = [162000, 312000, 406000, 612000, 822000, 1048000].map((cents, i) => ({
+      month: '2026-' + String(6 + i).padStart(2, '0'), cents, projected: i === 5,
     }));
-    // Use a fixed illustrative yearly total so the same example works in January.
     const rows = [
-      ['Maple View Nursing Home · Setup and CRM', 125000],
-      ['Riverbend Senior Living · Monthly CRM', 48000],
-      ['Oakridge Care Center · Add-ons', 32000],
-      ['Evergreen Health Services · Referral', 50000],
-      ['Pine Grove Senior Center · CRM and setup', 231000],
-    ].map(([label, cents], i) => ({
-      label, cents, recordedAt: months.at(-1).month + '-' + String(Math.max(1, today.getUTCDate() - i)).padStart(2, '0'),
-    }));
-    return { months, yearCents: 3862000, total: rows.length, size: rows.length, rows };
+      ['2026-11-23', 'Maple View Nursing Home', 'Setup + CRM', 125000, 'Earned'],
+      ['2026-11-20', 'Riverbend Senior Living', 'CRM (Monthly)', 48000, 'Pending'],
+      ['2026-11-18', 'Oakridge Care Center', 'Add-ons', 32000, 'Earned'],
+      ['2026-11-15', 'Evergreen Health Services', 'Referral bonus', 50000, 'Earned'],
+      ['2026-11-12', 'Pine Grove Senior Center', 'Setup + CRM', 279000, 'Earned'],
+      ...(expanded ? [
+        ['2026-10-30', 'Briarwood Assisted Living', 'CRM (Monthly)', 144000, 'Paid'],
+        ['2026-10-24', 'Westfield Community Center', 'Setup', 187000, 'Paid'],
+        ['2026-10-14', 'Meadowbrook Rehab', 'Setup + CRM', 230000, 'Paid'],
+      ] : []),
+    ].map(([recordedAt, label, type, cents, status]) => ({ label, type, cents, status, recordedAt }));
+    return { months, yearCents: 3862000, currentMonthCents: 486000, total: rows.length, size: rows.length, rows };
+  }
+
+  function drawPlot(canvas, months) {
+    if (!window.CanvasRenderingContext2D) return;
+    const { width, height } = canvas.getBoundingClientRect();
+    if (!width || !height) return;
+    const dpi = Math.min(devicePixelRatio || 1, 2);
+    canvas.width = Math.round(width * dpi);
+    canvas.height = Math.round(height * dpi);
+    const ctx = canvas.getContext('2d');
+    if (!ctx || !months.length) return;
+    ctx.scale(dpi, dpi);
+    const top = 12, bottom = height - 8;
+    const step = width / months.length;
+    const max = Math.ceil(Math.max(100000, ...months.map(month => month.cents)) / 200000) * 200000;
+    const points = months.map(({ cents }, i) => [step * (i + 0.5), bottom - cents / max * (bottom - top)]);
+    ctx.strokeStyle = '#d5e4fb';
+    for (let i = 0; i < 5; i++) {
+      const y = top + (bottom - top) * i / 4;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    const gradient = ctx.createLinearGradient(0, top, 0, bottom);
+    gradient.addColorStop(0, '#1987f96a');
+    gradient.addColorStop(1, '#8ec5ff26');
+    ctx.fillStyle = gradient;
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], bottom);
+    for (const point of points) ctx.lineTo(...point);
+    ctx.lineTo(points.at(-1)[0], bottom);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#1253ec';
+    ctx.lineWidth = 3;
+    for (let i = 1; i < points.length; i++) {
+      ctx.setLineDash(months[i].projected ? [6, 4] : []);
+      ctx.beginPath();
+      ctx.moveTo(...points[i - 1]);
+      ctx.lineTo(...points[i]);
+      ctx.stroke();
+    }
+    ctx.fillStyle = '#1253ec';
+    for (const point of points) {
+      ctx.beginPath();
+      ctx.arc(...point, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
   }
 
   function mount({ api }) {
@@ -45,7 +94,9 @@
     const samplePhoto = sampleProfile?.querySelector('[data-sample-photo]');
     const sampleName = sampleProfile?.querySelector('[data-sample-name]');
     const sampleHeader = document.querySelectorAll('[data-sample-xp], [data-sample-total], [data-sample-role]');
-    let request = 0, offset = 0, query = '', latest, currentMonthCents = 0, sampleActive = false;
+    const plot = find('plot');
+    let request = 0, offset = 0, query = '', latest, currentMonthCents = 0, sampleActive = false, expanded = false, monthsOnChart = [];
+    if (window.ResizeObserver) new ResizeObserver(() => drawPlot(plot, monthsOnChart)).observe(plot);
 
     function preview(data, view) {
       const params = new URLSearchParams(location.hash.slice(1));
@@ -79,7 +130,9 @@
       const goal = sampleActive ? sampleGoal : latest?.earnings ? readGoal() : 0;
       const progress = find('progress');
       write('goal', goal ? money(goal) : '—');
-      write('goal-note', goal ? money(currentMonthCents) + ' recorded this month' : 'No goal set');
+      const percent = goal ? Math.round(currentMonthCents / goal * 1000) / 10 + '%' : '';
+      write('goal-note', goal && !sampleActive ? money(currentMonthCents) + ' recorded this month' : goal ? '' : 'No goal set');
+      write('goal-percent', percent);
       progress.hidden = !goal;
       if (goal) {
         progress.max = goal;
@@ -118,25 +171,31 @@
 
     function drawHistory(result) {
       const start = sampleActive ? 0 : offset;
-      currentMonthCents = result.months.at(-1)?.cents || 0;
+      currentMonthCents = result.currentMonthCents ?? result.months.at(-1)?.cents ?? 0;
       write('year', money(result.yearCents));
       drawGoal();
-      const max = Math.max(1, ...result.months.map(entry => entry.cents));
+      monthsOnChart = result.months;
+      drawPlot(plot, monthsOnChart);
       find('trend').replaceChildren(...result.months.map(entry => {
-        const bar = node('li');
+        const item = node('li');
         const label = monthLabel.format(new Date(entry.month + '-01T00:00:00Z'));
-        const meter = node('meter');
-        meter.max = max;
-        meter.value = entry.cents;
-        meter.setAttribute('aria-label', label + ': ' + money(entry.cents));
-        bar.append(node('strong', money(entry.cents)), meter, node('span', label));
-        return bar;
+        item.append(node('b', label), node('span', money(entry.cents) + (entry.projected ? ' projected' : '')));
+        return item;
       }));
       write('trend-empty', result.months.some(entry => entry.cents > 0) ? '' : 'No payments recorded in this period.');
-      const rows = find('receipts');
-      rows.replaceChildren(...result.rows.map(item => {
+      find('receipts').replaceChildren(...result.rows.map(item => {
         const row = node('tr');
-        row.append(node('td', item.recordedAt.slice(0, 10)), node('td', item.label), node('td', money(item.cents)));
+        row.append(node('td', item.recordedAt.slice(0, 10)), node('td', item.label));
+        if (sampleActive) row.append(node('td', item.type));
+        row.append(node('td', money(item.cents)));
+        if (sampleActive) {
+          const cell = node('td');
+          const badge = node('span', item.status);
+          badge.className = 'com-status';
+          badge.dataset.status = item.status.toLowerCase();
+          cell.append(badge);
+          row.append(cell);
+        }
         return row;
       }));
       find('previous').disabled = start === 0;
@@ -152,22 +211,28 @@
       find('settings').hidden = true;
       write('total', money(486000));
       write('overview', money(486000));
-      write('total-note', 'Illustrative current earnings');
+      write('total-note', '↑ +$1,275.00 this week');
       write('pending', money(840000));
-      write('pending-note', '5 sample deals · awaiting activation');
+      write('pending-note', '5 deals · awaiting activation');
+      write('year-title', 'Paid to date (YTD)');
+      write('year-note', '12 payouts');
       termsList(find('breakdown'), [
-        ['Software / CRM', money(243000)], ['Contracts / setup', money(97200)],
-        ['Referrals', money(72900)], ['Bonuses / incentives', money(72900)],
+        ['Software / CRM', '$2,430.00 · 50%'], ['Contracts / Setup', '$972.00 · 20%'],
+        ['Referrals', '$729.00 · 15%'], ['Bonuses / Incentives', '$729.00 · 15%'],
       ]);
       const rates = node('dl');
-      termsList(rates, [['TinkyTown CRM', '20% recurring'], ['Setup', '10%–25% one-time'], ['Add-ons', '15% one-time'], ['Referrals', '$250–$1,000 sample bonus']]);
+      termsList(rates, [
+        ['TinkyTown CRM (monthly)', '20% recurring'], ['Office / Organization Setup', '10%–25% one-time'],
+        ['Add-ons & Integrations', '15% one-time'], ['Referrals (New Rep or Office)', '$250–$1,000 bonus'],
+        ['Monthly Performance Bonus', '$500–$5,000+'],
+      ]);
       find('structure').replaceChildren(rates);
-      write('incentives', '$2,500 · +5%  |  $5,000 · +10%  |  $10,000 · +15% sample bonus tiers');
-      write('year-note', 'Illustrative year-to-date payments');
-      write('trend-note', 'Sample payments over six months');
-      write('ledger-title', 'Sample payments');
-      write('payout-notice', 'Example next payout: ' + money(840000) + ' via bank transfer.');
-      drawHistory(sampleHistory());
+      write('incentives', '');
+      write('trend-note', 'Your commission growth over time');
+      write('ledger-title', 'Recent Commissions');
+      write('ledger-note', 'Your latest earnings and deal status');
+      drawHistory(sampleHistory(expanded));
+      write('ledger-status', '');
     }
 
     let pageSize = 10;
@@ -189,6 +254,13 @@
         if (token === request) find('ledger').removeAttribute('aria-busy');
       }
     }
+    find('all-earnings').addEventListener('click', event => {
+      if (!sampleActive) return;
+      expanded = !expanded;
+      event.currentTarget.setAttribute('aria-expanded', String(expanded));
+      event.currentTarget.textContent = expanded ? 'Show recent earnings' : 'View all earnings →';
+      drawSample();
+    });
     search.addEventListener('submit', event => {
       event.preventDefault();
       query = search.elements.query.value.trim();
@@ -223,20 +295,27 @@
         sampleActive = Boolean(sample);
         find('sample-open').hidden = sampleActive;
         find('sample-banner').hidden = !sampleActive;
-        find('search').hidden = find('controls').hidden = sampleActive;
+        panel.toggleAttribute('data-com-demo-mode', sampleActive);
+        for (const key of ['tiers', 'projected', 'demo-payout', 'all-earnings']) find(key).hidden = !sampleActive;
+        for (const column of panel.querySelectorAll('[data-com-demo-column]')) column.hidden = !sampleActive;
+        for (const key of ['search', 'controls', 'payout-notice']) find(key).hidden = sampleActive;
         latest = data;
         if (sampleActive) { drawSample(); return; }
         if (wasSample) {
           currentMonthCents = 0;
           find('receipts').replaceChildren();
           find('trend').replaceChildren();
+          monthsOnChart = [];
+          drawPlot(plot, monthsOnChart);
           write('year', '—');
           write('trend-empty', '');
           write('ledger-status', '');
         }
+        write('year-title', 'Recorded this year');
         write('year-note', 'Payments logged in the workspace');
         write('trend-note', 'Recorded payments over the last six months');
         write('ledger-title', 'Recorded earnings');
+        write('ledger-note', 'Payments recorded by the workspace owner');
         write('payout-notice', 'Payout scheduling and payment methods are not configured in this workspace.');
         drawSummary(data);
         drawGoal();
@@ -248,6 +327,8 @@
           ++request;
           find('receipts').replaceChildren();
           find('trend').replaceChildren();
+          monthsOnChart = [];
+          drawPlot(plot, monthsOnChart);
           find('ledger').removeAttribute('aria-busy');
           write('year', '—');
           write('trend-empty', 'Recorded payment history is available to the workspace owner.');
