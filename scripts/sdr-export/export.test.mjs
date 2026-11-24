@@ -1731,7 +1731,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const demoRail = doc.querySelector('.sdr-sidebar [data-tab="demo"]');
     const teamRail = doc.querySelector('.sdr-sidebar [data-tab="team"]');
     assert.equal(demoRail.textContent.trim(), 'Demo');
-    assert.equal(demoRail.nextElementSibling.dataset.tab, 'contracts');
+    assert.equal(demoRail.nextElementSibling.dataset.tab, 'products');
+    assert.equal(demoRail.nextElementSibling.nextElementSibling.dataset.tab, 'contracts');
+    assert.equal(teamRail.closest('.sdr-team-sidebar-group').nextElementSibling.dataset.tab, 'email');
     demoRail.click();
     assert.equal(panel.hidden, false);
     assert.equal(demoRail.getAttribute('aria-pressed'), 'true');
