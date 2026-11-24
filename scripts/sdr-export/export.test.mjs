@@ -1333,6 +1333,73 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
 
+  await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
+    const path = '/sales/senior-care';
+    const before = await owner.api('bootstrap');
+    const careWindow = await mountConsole(t, first.origin, owner, await (await owner.request(path)).text(), path);
+    const doc = careWindow.document;
+    const panel = doc.querySelector('[data-tab-panel="demo"]');
+    const find = part => panel.querySelector(`[data-demo-${part}]`);
+    const tile = label => [...find('tiles').children].find(button => button.lastElementChild.textContent === label);
+    const spoken = [];
+    careWindow.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+    careWindow.speechSynthesis = { getVoices: () => [], cancel() {}, speak: utterance => spoken.push(utterance.text) };
+
+    await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'The signed-in demo entrypoint did not open');
+    assert.ok(panel.hidden);
+    doc.querySelector('[data-tab="demo"]').click();
+    await waitFor(() => !find('session').hidden, 'The exported demo boards did not load');
+    assert.equal(find('setting').textContent, 'Nursing home');
+    assert.equal(find('board-picker').options.length, 19);
+    tile('BLANKET').click();
+    assert.equal(find('message').textContent, "Can I have a blanket? I'm cold.");
+    assert.equal(spoken.at(-1), find('message').textContent);
+    find('save').click();
+    find('board-picker').value = 'saved_phrases';
+    find('board-picker').dispatchEvent(new careWindow.Event('change'));
+    tile('BLANKET').click();
+    find('next').click();
+    tile('No').click();
+    assert.equal(find('message').textContent, 'No');
+
+    find('scenarios').querySelector('[data-setting="hospital-ward"]').click();
+    find('next').click();
+    tile('HEAD').click();
+    find('next').click();
+    tile('5').click();
+    assert.match(find('pain').textContent, /HEAD · 5\/10/);
+    find('scan').click();
+    const scanning = find('tiles').querySelector('[data-scanning]');
+    assert.ok(scanning);
+    find('tiles').dispatchEvent(new careWindow.KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    assert.equal(find('message').textContent, 'I have no pain right now.');
+    find('tiles').dispatchEvent(new careWindow.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(find('scan').getAttribute('aria-pressed'), 'false');
+
+    panel.querySelector('[data-demo-product="hospital"]').click();
+    assert.equal(find('board-title').textContent, 'Reception kiosk');
+    tile('I AM IN PAIN').click();
+    assert.equal(find('board-title').textContent, 'Pain assessment');
+    tile('5 - DISTRACTING').click();
+    assert.equal(find('message').textContent, 'My pain is a five. Hard to ignore.');
+    find('back').click();
+    assert.ok(tile('WATER'));
+    find('reset').click();
+    assert.equal(find('history').children.length, 0);
+
+    const main = await mountConsole(t, first.origin, owner, await (await owner.request('/sales')).text(), '/sales#view=demo&product=hospital');
+    await waitFor(() => !main.document.querySelector('[data-demo-session]').hidden, 'Hospital direct link did not open in the main workspace');
+    assert.equal(main.document.querySelector('[data-demo-board-title]').textContent, 'Reception kiosk');
+    assert.equal(main.document.querySelector('[data-tab="demo"]').getAttribute('aria-pressed'), 'true');
+    main.document.querySelector('[data-tab="home"]').click();
+    main.location.hash = 'view=demo&product=stroke&setting=rehab';
+    await waitFor(() => !main.document.querySelector('[data-tab-panel="demo"]').hidden &&
+      main.document.querySelector('[data-demo-setting]').textContent === 'Rehab', 'Rehab direct link did not reopen Demo from Overview');
+    const after = await owner.api('bootstrap');
+    assert.deepEqual(after.offices, before.offices);
+    assert.deepEqual(after.contracts, before.contracts);
+  });
+
   await t.test('senior-care and universal views share saved facilities and honor the active pipeline filter', async t => {
     const path = '/sales/senior-care';
     const carePage = await owner.request(path);

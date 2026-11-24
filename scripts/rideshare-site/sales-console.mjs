@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { renderProspects } from './sales-prospects.mjs';
+import { renderCareDemo } from './sales-demo.mjs';
 import { renderSupport } from './sales-support.mjs';
 import { bookingOverview, bookingPanel } from './sales-booking.mjs';
 import { renderSalesEmail } from './sales-email.mjs';
@@ -10,6 +11,7 @@ import { renderToday } from './sales-today.mjs';
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
 // GigTax forms/API remain the source of truth; no generic tenant key is exposed.
 const icons = {
+  demo: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3Z"/>',
   chat: '<path d="M20 11.5a7 7 0 0 1-7 7H8l-5 3 1.3-5.1A7.4 7.4 0 0 1 3 12V9a6 6 0 0 1 6-6h5a6 6 0 0 1 6 6z"/><path d="M7.5 9h8m-8 4h5"/>',
   chatSend: '<path d="m3 4 18 8-18 8 3-8z"/><path d="M6 12h10"/>',
   nursing: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
@@ -373,6 +375,7 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
     nav.unshift(['today', 'Today’s Plan']);
     nav.push(['support', 'Support']);
   }
+  if (careWorkspace) nav.splice(2, 0, ['demo', 'Demo']);
   const careLabels = { contacts: 'Contacts', discover: 'Local research' };
   const sidebarNav = prospects ? nav.filter(([name]) => !['discover', 'contacts'].includes(name)) : nav;
   const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
@@ -383,6 +386,7 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
 <div class="sdr-main" id="sales-main" tabindex="-1"><header class="sdr-topbar"><div>${prospects ? '' : '<p class="eyebrow">Your office network</p>'}<h1 id="sales-view-title">Overview</h1></div>${seniorCare ? standaloneHeader.replaceAll('businesses, contacts, or locations', 'facilities, contacts, or locations') : prospects ? standaloneHeader : ''}<div class="sdr-topbar-right">${prospects ? workspaceTracker : ''}<div id="sales-revenue" hidden></div><div id="sales-identity" hidden><span class="sdr-user-avatar" aria-hidden="true">G</span><span id="sales-name"></span><button class="button secondary" id="sales-logout">Sign out</button></div></div></header><p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
 <section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
+${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
