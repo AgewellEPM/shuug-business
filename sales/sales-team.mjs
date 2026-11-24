@@ -116,7 +116,7 @@ export function salesTeamTools(db, audit, owner) {
   function readMemberProfile(user, id, records) {
     if (id === OWNER && user.id === OWNER) return profileForAccount(owner, db.salesRepProfile(OWNER), true);
     const row = records.get(id), member = account(row, records);
-    if (!member.active || !memberVisible(user.id, member)) throw new HttpError(404, 'Sales team profile not found.');
+    if (!member.active || !memberVisible(user.id, member)) throw new HttpError(404, 'Tinky Team profile not found.');
     return profileForAccount({ id, name: row.contact_name, email: row.contact_email }, db.salesRepProfile(id), true);
   }
 

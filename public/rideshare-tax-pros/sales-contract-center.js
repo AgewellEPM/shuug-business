@@ -55,8 +55,8 @@
 
   window.SdrContractCenter = { mount({ host, api, onSelect, onNavigate, onCompose, refresh }) {
     if (!host || !document.body.hasAttribute('data-agreement-only')) return;
-    const care = document.body.hasAttribute('data-care-crm');
-    const facility = care ? 'facility' : 'business';
+    const care = document.body.hasAttribute('data-care-workspace');
+    const facility = care ? 'facility or business' : 'business';
     const programTitle = care ? 'Contract Program for Nursing Homes' : 'Contract Program';
     host.classList.add('sdr-contract-center');
     host.innerHTML = `
@@ -238,7 +238,7 @@
         ownerName: existing?.ownerName || office?.contact_name || '', ownerEmail: existing?.email || office?.contact_email || '', ...draft };
       showDialog(draft.id ? 'Edit contract draft' : template.title, `<p>${escape(template.guidance)}</p>
         <form class="ct-form" data-ct-editor>
-          <label>${care ? 'Facility' : 'Business'}<select name="officeId" required ${locked ? 'disabled' : ''}><option value="">Choose a saved ${facility}</option>
+          <label>${care ? 'Facility or business' : 'Business'}<select name="officeId" required ${locked ? 'disabled' : ''}><option value="">Choose a saved ${facility}</option>
             ${offices().map(row => `<option value="${escape(row.id)}" ${String(row.id) === officeId ? 'selected' : ''}>${escape(row.town)}</option>`).join('')}</select></label>
           ${['extension','renewal'].includes(type) ? '<label>Prior signed agreement<select name="priorId" required></select></label>' : ''}
           <div class="ct-form-pair"><label>Agreement title<input name="title" required maxlength="180" value="${escape(values.title)}"></label>

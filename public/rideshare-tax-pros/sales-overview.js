@@ -32,7 +32,6 @@
   function mount({ api, onNavigate, onOpenOffice, onBrowseFacilities, facilityType, refresh, status }) {
     const form = $('#sdr-category-form');
     if (!form) return null;
-    const care = Boolean(form.closest('[data-senior-care]'));
     const directoryState = $('#care-directory-state');
     const researchStatus = $('#sdr-category-status'), resultList = $('#sdr-category-results');
     const report = (message, error = false) => {
@@ -41,7 +40,6 @@
     };
     const researchFocus = () => {
       onNavigate('home');
-      if (care) $('#sdr-category-research').open = true;
       form.elements.type.focus();
       $('#sdr-category-research').scrollIntoView?.({ block: 'nearest' });
     };
@@ -63,7 +61,7 @@
       $('#sales-attention-filter').value = '';
       pipeline('', kind);
     };
-    const actions = { pipeline: () => openCarePipeline(), research: researchFocus, prospects: prospectFocus, campaigns: () => onNavigate('campaigns'),
+    const actions = { pipeline: () => openCarePipeline('facility'), research: researchFocus, prospects: prospectFocus, campaigns: () => onNavigate('campaigns'),
       contracts: () => onNavigate('contracts'), calendar: () => onNavigate('calendar') };
     for (const button of document.querySelectorAll('[data-overview-action]')) {
       button.addEventListener('click', actions[button.dataset.overviewAction]);
@@ -190,7 +188,6 @@
     });
 
     function renderTerritory(offices) {
-      if (care) return;
       const host = $('#sdr-overview-territory');
       const states = new Set(offices.map(office => office.state));
       const cities = new Set(offices.filter(office => office.locality).map(office => office.state + ':' + office.locality.toLowerCase()));
@@ -254,23 +251,21 @@
           loaded = true;
           void api('business-research-last').then(({ research }) => {
             if (!research || form.querySelector('button').disabled) return;
-            if (care && ![...form.elements.type.options].some(option => option.value === research.type)) return;
-            if (care ? Boolean(form.elements.locality.value) : Boolean(form.elements.type.value)) return;
+            if (form.elements.type.value) return;
             for (const key of ['type', 'locality', 'state']) form.elements[key].value = research[key];
             renderTerritory(currentOffices);
             renderResearch(research);
           }).catch(error => report(error.message, true));
         }
         const now = new Date(), hour = now.getHours();
-        if (!care) $('#sdr-greeting').textContent = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
+        $('#sdr-greeting').textContent = hour < 12 ? 'Good morning!' : hour < 17 ? 'Good afternoon!' : 'Good evening!';
         const offices = data.offices;
         currentOffices = offices;
         const started = offices.some(office => office.pipeline?.lastContact);
         const signed = offices.filter(office => office.pipeline?.converted).length;
         const scheduled = offices.filter(office => office.meeting_date).length;
         const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-        const accounts = care ? offices.filter(office => ['nursing-home', 'senior-center'].includes(facilityType(office))) : offices;
-        const due = accounts.filter(office => office.meeting_date && office.meeting_date <= today && !['active', 'not_interested', 'do_not_contact'].includes(office.status));
+        const due = offices.filter(office => office.meeting_date && office.meeting_date <= today && !['active', 'not_interested', 'do_not_contact'].includes(office.status));
         if (data.progress) {
           const { level, xpIntoLevel, xpPerLevel } = data.progress;
           $('#sdr-xp-level').textContent = 'Level ' + level;
@@ -279,12 +274,7 @@
           $('#sdr-xp-label').textContent = xpIntoLevel + ' / ' + xpPerLevel + ' XP';
         }
         renderEarnings(data.earnings);
-        const stats = care ? [
-          ['Nursing homes saved', accounts.filter(office => facilityType(office) === 'nursing-home').length, 'pipeline', () => openCarePipeline('nursing-home'), 'green'],
-          ['Senior centers saved', accounts.filter(office => facilityType(office) === 'senior-center').length, 'territories', () => openCarePipeline('senior-center'), 'blue'],
-          ['Follow-ups due', due.length, 'contacts', followups, 'purple'],
-          ['Agreements signed', accounts.filter(office => office.pipeline?.converted).length, 'contracts', actions.contracts, 'blue'],
-        ] : [
+        const stats = [
           ['Saved Businesses', offices.length, 'pipeline', pipeline, 'green'],
           ['Follow-ups Due', due.length, 'territories', followups, 'blue'],
           ['Interested', offices.filter(office => office.status === 'interested').length, 'prospects', () => pipeline('interested'), 'purple'],
@@ -297,12 +287,11 @@
           card.append(navigationIcon(icon), value);
           return card;
         }));
-        if (care) {
+        if (directoryState) {
           const noTerritory = !directoryState.value;
           document.querySelectorAll('[data-browse-facility]').forEach(button => { button.disabled = noTerritory; });
-          $('#care-directory-status').textContent = noTerritory ? 'Ask your sales team manager to assign a territory to browse facilities.' : '';
-          renderCareAccounts(accounts);
-          return;
+          $('#care-directory-status').textContent = noTerritory ? 'Ask your Tinky Team manager to assign a territory to browse facilities.' : '';
+          renderCareAccounts(offices.filter(office => ['nursing-home', 'senior-center'].includes(facilityType(office))));
         }
         const steps = [
           ['Find your first business', 'Research a business type in your area.', 'Find Businesses', researchFocus, Boolean(resultList.querySelector('article') || offices.length)],

@@ -34,12 +34,12 @@ const destinations = {
   today: ['Today’s Plan', 'today', 'todays plan', 'daily plan'], home: ['Overview', 'dashboard'], prospects: ['Prospects', 'prospect list'],
   pipeline: ['Pipeline', 'sales pipeline'], calendar: ['Calendar', 'sales calendar'], training: ['Training', 'training center'],
   demo: ['Demo', 'demos'], email: ['Email', 'inbox', 'mailbox'], chat: ['Team chat', 'staff chat'],
-  team: ['Sales team', 'team roster'], contracts: ['Contracts', 'agreements'], contacts: ['Contacts', 'rolodex'],
+  team: ['Tinky Team', 'Sales team', 'team roster'], contracts: ['Contracts', 'agreements'], contacts: ['Contacts', 'rolodex'],
   territories: ['Territories', 'territory map'], campaigns: ['Campaigns'], support: ['Support', 'help center'],
   facilities: ['Facility directory'], mail: ['Senders'], locations: ['Signup locations'],
   'training-demo': ['Demo Lab'], 'training-pipeline': ['Pipeline practice'],
 };
-function navigationFor(question, user, demo, care) {
+function navigationFor(question, user, demo) {
   const label = question.toLowerCase().trim().replace(/[’']/g, '').replace(/[.!?]+$/, '')
     .match(/^(?:(?:can|could|would) you )?(?:please )?(?:open|show me|take me to|go to|switch to|navigate to|bring up) (?:the |my |our )?(.+?)\s*$/)?.[1];
   if (!label) return undefined;
@@ -53,11 +53,11 @@ function navigationFor(question, user, demo, care) {
   };
   if (Object.hasOwn(inside, label)) return { title: inside[label][0], href: '#view=' + inside[label][1] };
   for (const [view, names] of Object.entries(destinations)) {
-    if (view === 'demo' && !demo || view === 'facilities' && !care || view === 'campaigns' && !(demo || user.role === 'owner')) continue;
+    if ((view === 'demo' || view === 'facilities') && !demo || view === 'campaigns' && !(demo || user.role === 'owner')) continue;
     if (names.some(name => name.toLowerCase().replace(/[’']/g, '') === label)) return { title: names[0], href: '#view=' + view };
   }
 }
-function screenContext(raw, accounts, demo) {
+function screenContext(raw, accounts) {
   if (!raw || !Object.hasOwn(destinations, raw.view)) return undefined;
   const account = accounts.find(row => row.id === raw.officeId);
   const form = raw.view === 'prospects' && raw.form === 'prospect' ? 'prospect' : undefined;
@@ -65,7 +65,7 @@ function screenContext(raw, accounts, demo) {
   if (form) for (const key of ['name','address','city','state','postalCode','facilityType']) {
     if (typeof raw.prospect?.[key] === 'string') prospect[key] = raw.prospect[key].trim().slice(0, draftFields.prospect[key]);
   }
-  return { view: destinations[raw.view][0], crm: demo && raw.care === true ? 'Senior Care CRM' : 'Universal CRM', account, form, prospect: form && prospect };
+  return { view: destinations[raw.view][0], crm: 'Sales Workspace', account, form, prospect: form && prospect };
 }
 function outputFormat(intent) {
   if (intent === 'none') return { type: 'object', properties: {
@@ -205,13 +205,13 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
     const revision = mail && previous?.mail && editsEmail(question);
     if (previous?.mail && /^(?:please )?(?:cancel|discard|don['’]?t send|do not send)(?: (?:it|that|the (?:email|message|draft)))?[.!]*$/i.test(question.trim())) return workflow('Email canceled.');
     const emailRequest = revision || mail && asksToEmail(question) && !/^\s*(?:how|what|where|can i|should i)\b/i.test(question);
-    const navigation = navigationFor(question, user, demo, demo && input.screen?.care === true);
+    const navigation = navigationFor(question, user, demo);
     if (navigation) return { mode: 'workflow', answer: 'Here is ' + navigation.title + '. You can keep chatting while you work.', navigation, sources: [], draft: null };
     const manual = manualWorkflow(question);
     if (manual && !emailRequest) return { mode: 'workflow', answer: manual[2], sources: [{ title: manual[0], href: manual[1] }], draft: null };
     const { day, goal } = snapshot(user, input.timeZone);
     const accounts = accountContext(db, user, question, history, day.recommendations, input.screen?.officeId);
-    const screen = screenContext(input.screen, accounts, demo);
+    const screen = screenContext(input.screen, accounts);
     const selection = emailRequest && recipientsFor(db, user, revision ? previous.mail.entries.map(x => x.name + ' ' + x.to).join(', ') : question, screen?.account, previous);
     const generalEmail = /\b(?:generic|general|example|sample|template)\b/i.test(question);
     if (selection?.issue && !generalEmail) return workflow(selection.issue);

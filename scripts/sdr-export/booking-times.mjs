@@ -34,7 +34,7 @@ function timeValue(clock) {
   return Number(clock.slice(0, 2)) * 60 + Number(clock.slice(3));
 }
 export function defaultPolicy(member, defaultZone) {
-  return { revision: 0, published: member.id === 'owner', name: member.id === 'owner' ? 'TinkyTown sales team' : member.name,
+  return { revision: 0, published: member.id === 'owner', name: member.id === 'owner' ? 'Tinky Team' : member.name,
     email: member.email || '', zone: defaultZone, hours: Array.from({ length: 7 }, (_, i) => i > 0 && i < 6 ? ['09:00', '17:00'] : null),
     durations: { appointment: 30, demo: 45 }, buffer: 0, notice: 2, horizon: 60, daysOff: [], question: '', location: '' };
 }

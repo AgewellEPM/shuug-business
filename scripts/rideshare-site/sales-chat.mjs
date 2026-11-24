@@ -2,7 +2,7 @@ export function renderTeamChat(icon) {
   return `<section class="chat-workspace" data-tab-panel="chat" aria-labelledby="chat-title" hidden>
     <header class="chat-titlebar">
       <span class="chat-mark">${icon('chat')}</span><h2 id="chat-title">Team chat</h2>
-      <span class="chat-audience">${icon('team')} <span id="chat-audience-label">Sales team only</span></span>
+      <span class="chat-audience">${icon('team')} <span id="chat-audience-label">Tinky Team only</span></span>
     </header>
     <div class="chat-mobile-controls">
       <button type="button" id="chat-nav-toggle" aria-expanded="false" aria-controls="chat-nav">
@@ -30,7 +30,7 @@ export function renderTeamChat(icon) {
           <input type="search" id="chat-person-search" placeholder="Search by name" autocomplete="off">
           <div id="chat-person-results" aria-label="Matching teammates"></div>
           <p id="chat-person-status" role="status"></p>
-          <a href="#view=team&section=invite" id="chat-invite-link" hidden>Invite a sales rep</a>
+          <a href="#view=team&section=invite" id="chat-invite-link" hidden>Invite a Tinky Team agent</a>
         </div>
         <nav id="chat-directs" class="chat-conversations" aria-label="Direct messages"></nav>
         <button type="button" id="chat-first-direct">${icon('prospects')} Message a teammate</button>

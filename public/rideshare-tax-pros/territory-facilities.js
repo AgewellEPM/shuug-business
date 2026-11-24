@@ -181,7 +181,7 @@
       paint();
       results.removeAttribute('aria-busy');
       title.textContent = 'Facility directory';
-      status.textContent = 'Ask your sales team manager to assign a territory to browse facilities.';
+      status.textContent = 'Ask your Tinky Team manager to assign a territory to browse facilities.';
       status.dataset.error = 'false';
       retry.hidden = true;
     } };

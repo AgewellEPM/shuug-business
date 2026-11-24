@@ -1,4 +1,4 @@
-export function renderPipelineWorkspace({ icon, toolbar, map, seniorCare }) {
+export function renderPipelineWorkspace({ icon, toolbar, map }) {
   const nav = [
     ['overview', 'pipeline', 'Pipeline overview'], ['list', 'prospects', 'Opportunities'],
     ['tasks', 'contracts', 'Tasks'], ['calendar', 'calendar', 'Calendar'],
@@ -11,9 +11,9 @@ export function renderPipelineWorkspace({ icon, toolbar, map, seniorCare }) {
   ];
   return `<section data-tab-panel="pipeline" class="sdr-pipeline-workspace" hidden aria-labelledby="sales-pipeline-title">
   <header class="pipeline-hero">
-    <div class="pipeline-hero-brand">${icon('pipeline')} <span>${seniorCare ? 'TinkyTown' : 'Gig Tax Pros'}</span></div>
+    <div class="pipeline-hero-brand">${icon('pipeline')} <span>TinkyTown</span></div>
     <h1 id="sales-pipeline-title">Pipeline</h1>
-    <p>Track ${seniorCare ? 'facility partnerships' : 'sales opportunities'} from first contact to signed agreement.</p>
+    <p>Track business and facility opportunities from first contact to signed agreement.</p>
   </header>
   <nav class="pipeline-navigation" aria-label="Pipeline views">
     ${nav.map(([view, symbol, label]) => `<button type="button" data-pipeline-page="${view}"${view !== 'calendar' ? ` aria-pressed="${view === 'overview'}"` : ''}>${icon(symbol)}<span>${label}</span></button>`).join('')}

@@ -173,6 +173,10 @@ const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, 
     if (path === '/api/booking' || path.startsWith('/api/booking/') || path.startsWith('/book/feed/')) return await publicBooking(request, response);
     if (routes.has(path)) return await routes.get(path)(request, response);
     if (!['GET', 'HEAD'].includes(request.method)) return finish(405);
+    if (profile.focus === 'senior-care' && (path === '/sales/senior-care' || path === '/sales/senior-care/')) {
+      response.setHeader('Location', '/sales' + new URL(request.url, origin).search);
+      return finish(302);
+    }
     const demo = profile.focus === 'senior-care' && demoDestination(path);
     if (path === '/' || demo) {
       response.setHeader('Location', demo || '/sales');

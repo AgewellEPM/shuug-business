@@ -453,6 +453,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(header.querySelector('#sdr-earnings').hidden, false);
     assert.ok(header.querySelector('#sales-logout'));
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
+    assert.equal(header.querySelector('#sdr-header-search'), null);
+    assert.ok(document.querySelector('[data-pipeline-part="board"] #sales-filter'));
     document.querySelector('#coach-launch').click();
     await waitFor(() => !document.querySelector('#coach-form textarea').disabled, 'Coach did not finish opening over Support');
     assert.equal(document.body.dataset.sdrView, 'support');
@@ -561,7 +563,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(territoryState.value, 'PA');
   pageDocument.querySelector('[data-territory-state="AK"]').click();
   assert.equal(territoryState.value, 'AK');
-  assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
+  assert.equal(territoriesPanel.querySelector('#sales-territory-facilities'), null);
   assert.equal(territoriesPanel.querySelector('#sales-territory-cities'), null);
   assert.ok(territoriesPanel.querySelector('[data-territory-lookup]'));
   const townPanel = pageDocument.getElementById('territory-town-map');
@@ -592,6 +594,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => territoryMetric('total') === '9', 'A previous state overwrote the Connecticut dashboard');
   assert.equal(colors.checked, true);
   assert.equal(townCanvas.querySelectorAll('.town-map-county').length, 9);
+  const nearby = () => townCanvas.querySelector('.leaflet-territory-context-pane svg');
+  assert.ok(nearby().querySelector('path[data-context-state="NY"]'));
+  assert.equal(nearby().getAttribute('aria-hidden'), 'true');
+  assert.equal(nearby().querySelector('[data-county], [data-locality], [tabindex]'), null);
   const townSelect = townPanel.querySelector('[data-map-town]');
   const hartford = [...townSelect.options].find(option => option.text === 'Hartford');
   assert.equal(townSelect.options.length, 170);
@@ -650,7 +656,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   clarendon.dispatchEvent(new window.MouseEvent('click', {bubbles:true}));
   assert.equal(mapSelection.hidden, false);
   assert.match(mapSelection.textContent, /Clarendon County/);
-  await waitFor(() => /No sales rep currently assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
+  await waitFor(() => /No Tinky Team agent assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
   assert.equal(clarendon.parentElement.getAttribute('display'), 'none');
   assert.equal(atlas.querySelector('.town-map-districts').getAttribute('display'), 'inline');
   assert.equal(atlas.querySelectorAll('.town-map-district[data-district^="45027"]').length, 7);
@@ -689,10 +695,11 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => /Clarendon County.*Example County Lead/.test(mapSelection.textContent), 'The town’s assigned rep did not load');
   townPanel.querySelector('[data-map-streets]').click();
   assert.equal(townCanvas.dataset.layer, 'streets');
+  assert.equal(nearby(), null);
   const tile = townCanvas.querySelector('img.leaflet-tile');
   assert.match(tile.src, /^https:\/\/tile\.openstreetmap\.org\/16\//);
   townCanvas.dispatchEvent(new window.MouseEvent('click', {clientX:400, clientY:240, bubbles:true}));
-  assert.match(mapSelection.textContent, /Checking sales rep/);
+  assert.match(mapSelection.textContent, /Checking agent assignment/);
   await waitFor(() => {
     const selection = townPanel.querySelector('[data-map-selection]');
     return /Manning.*Clarendon County.*Example County Lead/.test(selection.textContent);
@@ -704,6 +711,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.ok(townCanvas.querySelector('img.leaflet-tile[src*="/19/"]'));
   townPanel.querySelector('[data-map-reset]').click();
   assert.equal(townCanvas.dataset.layer, 'counties');
+  assert.ok(nearby().querySelector('path[data-context-state="GA"]'));
   assert.equal(clarendon.parentElement.getAttribute('display'), 'inline');
   assert.equal(mapSelection.hidden, true);
   assert.equal(townPanel.querySelector('.county-lead-form'), null);
@@ -1010,6 +1018,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.elements.body.value, reviewedDraft);
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
+    assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-xp-bar'));
+    assert.equal(pageDocument.querySelector('.sdr-topbar #sdr-header-search'), null);
     assert.ok(pageDocument.querySelector('#sales-filter'));
     assert.ok(pageDocument.querySelector('#coach-launch'));
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
@@ -1147,7 +1157,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   window.document.querySelector('[data-tab=team]').click();
   const addRep = pageDocument.querySelector('#sales-team-add-rep');
   assert.equal(addRep.closest('[hidden]'), null);
-  assert.match(addRep.textContent.trim(), /^Add sales rep$/);
+  assert.match(addRep.textContent.trim(), /^Add Tinky Team agent$/);
   addRep.click();
   assert.equal(teamPane('invite').hidden, false);
   assert.equal(teamPane('settings').hidden, true);
@@ -1251,6 +1261,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentNav = agentDocument.querySelector('[data-tab=team]');
   agentWindow.location.hash = 'view=team&section=settings';
   await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
+  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Tinky Team');
+  assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Tinky Team');
+  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Tinky Team agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
   assert.equal(agentDocument.getElementById('sales-team-pane-settings').hidden, true);
@@ -1284,7 +1297,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => agentDocument.querySelector('[data-county-row="09110"]'), 'Team county roster did not load');
   const teamSelection = agentDocument.querySelector('[data-map-selection]');
   agentDocument.querySelector('[data-county-row="09190"]').click();
-  await waitFor(() => /No sales rep currently assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
+  await waitFor(() => /No Tinky Team agent assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
   assert.equal(teamSelection.querySelector('[data-county-assign]'), null);
   agentDocument.querySelector('[data-county-row="09110"]').click();
   assert.equal(agentDocument.querySelector('.county-lead-form'), null);
@@ -1397,7 +1410,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
   assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
-  await t.test('sales reps exchange live channel messages across both CRM views', async t => {
+  await t.test('sales reps exchange live channel messages across sessions', async t => {
     await browserSession(first.origin).api('chat-sync', {}, 401);
     await juniorSession.api('chat-create-channel', { name: 'Unavailable' }, 403);
     const ownerDoc = window.document;
@@ -1416,7 +1429,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await owner.api('chat-create-channel', { name: '#deal-desk' }, 409);
     await differentProject.api('chat-sync', { channel: 'deal-desk' }, 404);
 
-    const path = '/sales/senior-care';
+    const path = '/sales';
     const rep = agentWindow, careRep = await mountConsole(t, first.origin, juniorSession,
       await (await juniorSession.request(path)).text(), path + '#view=chat&channel=deal-desk');
     const find = (win, selector) => win.document.querySelector(selector);
@@ -1470,7 +1483,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const people = (await agentSession.api('chat-people')).people;
     assert.deepEqual(Object.keys(people.find(person => person.id === peer.id)).sort(), ['id', 'name']);
     assert.ok(!people.some(person => person.id === agent.id));
-    const path = '/sales/senior-care';
+    const path = '/sales';
     const recipient = await mountConsole(t, first.origin, peerSession, await (await peerSession.request(path)).text(), path + '#view=chat');
     const mine = agentWindow.document, theirs = recipient.document;
     mine.querySelector('[data-tab=chat]').click();
@@ -1578,7 +1591,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await replacementSession.api('bootstrap', {}, 401);
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
-    const path = '/sales/senior-care';
+    const path = '/sales';
     const before = await owner.api('bootstrap');
     const careWindow = await mountConsole(t, first.origin, owner, await (await owner.request(path)).text(), path);
     const doc = careWindow.document;
@@ -1605,7 +1618,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     }
     for (const [venue, room] of [['hospital','reception'], ['nursing-home','resident-room'], ['senior-center','transportation']]) {
       const entry = await owner.request('/demo/' + venue, { redirect: 'manual' });
-      assert.equal(entry.headers.get('location'), '/sales/senior-care#view=demo&venue=' + venue + '&present=1');
+      assert.equal(entry.headers.get('location'), '/sales#view=demo&venue=' + venue + '&present=1');
       careWindow.location.hash = 'view=demo&venue=' + venue;
       await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
       const voice = panel.querySelector('[data-care-voice]');
@@ -1716,12 +1729,16 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual(after.contracts, before.contracts);
   });
 
-  await t.test('senior-care and universal views share saved facilities and honor the active pipeline filter', async t => {
-    const path = '/sales/senior-care';
+  await t.test('one blue Sales Workspace includes business and facility tools and supports old links', async t => {
+    const path = '/sales';
+    const old = await owner.request('/sales/senior-care?ref=bookmark', { redirect: 'manual' });
+    assert.equal(old.status, 302);
+    assert.equal(old.headers.get('location'), '/sales?ref=bookmark');
+    assert.equal((await owner.request('/demo', { redirect: 'manual' })).headers.get('location'), '/sales#view=demo');
     const carePage = await owner.request(path);
     assert.equal(carePage.status, 200);
-    assert.ok(pageDocument.querySelector('a[href="/sales/senior-care"]'));
-    assert.equal(pageDocument.querySelector('#care-directory-state'), null);
+    assert.equal(pageDocument.querySelector('a[href="/sales/senior-care"], [data-senior-care], .care-workspace-switch'), null);
+    assert.ok(pageDocument.querySelector('#care-directory-state'));
     const careWindow = await mountConsole(t, first.origin, owner, await carePage.text(), path);
     const care = careWindow.document;
     await waitFor(() => !care.querySelector('#sales-workspace').hidden, 'Care view did not reuse the signed-in session');
@@ -1768,6 +1785,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
     const savedOffices = (await owner.api('bootstrap')).offices;
     care.querySelector('[data-tab="pipeline"]').click();
+    const general = savedOffices.find(row => !JSON.parse(row.notes).facilityType);
+    assert.ok(general);
+    assert.ok(care.querySelector('#sales-offices [data-office="' + general.id + '"]'));
     pageDocument.querySelector('[data-tab="pipeline"]').click();
     pageDocument.querySelector('#sales-refresh').click();
     for (const facility of facilities) {
