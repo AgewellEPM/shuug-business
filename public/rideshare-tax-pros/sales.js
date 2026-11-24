@@ -66,8 +66,7 @@
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft });
-    const careCampaign = window.SdrCareCampaign?.mount({ api, refresh, getOffices: () => data?.offices || [],
-      openOffice: id => { openNavigation('pipeline'); return showOffice(id).catch(error => status(error.message, true)); } });
+    const careCampaign = window.SdrCareCampaign?.mount();
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
@@ -401,7 +400,15 @@
       const renew = $('#sales-renew-invitation');
       if (renew) renew.onsubmit = run(async () => { const values = Object.fromEntries(new FormData(renew)); const result = await api('renew-invitation', { id, reason: values.reason, reviewed: values.reviewed === 'on' }); await refresh(); showInvitation(result); status('Fresh private invitation ready to copy. No message was sent.'); }, renew);
 
-      const activity = $('#sales-activity'); activity.onsubmit = run(async () => { await api('activity',{id,...Object.fromEntries(new FormData(activity))}); await showOffice(id); status('Activity saved.'); }, activity);
+      const activity = $('#sales-activity');
+      if (['nursing-home', 'long-term-care', 'assisted-living'].includes(m.facilityType)) careCampaign?.addPilotActivity(activity);
+      activity.onsubmit = run(async () => {
+        const entry = Object.fromEntries(new FormData(activity)), pilot = entry.kind === 'care_pilot';
+        await api(pilot ? 'start-care-pilot' : 'activity', { id, ...entry });
+        if (!activity.isConnected || selected !== String(id)) return;
+        await showOffice(id);
+        status(pilot ? 'Pilot plan saved to facility history.' : 'Activity saved.');
+      }, activity);
       const invite = $('#sales-invite');
       if (invite.elements.savedOwner) invite.elements.savedOwner.onchange = () => { const person = savedOwners.find(c => c.id === invite.elements.savedOwner.value); if (person) { invite.elements.ownerName.value = person.name; invite.elements.email.value = person.email || ''; } };
       invite.onsubmit = run(async () => { const result = await api('invite',{id,...Object.fromEntries(new FormData(invite))}); await refresh(); showInvitation(result); status('Contract prepared. Review its email in the Office contract section.'); }, invite);

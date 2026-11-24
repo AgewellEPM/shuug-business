@@ -60,9 +60,7 @@ const rows = entries => `<ul class="cc-rows">${entries.map(([symbol, name, detai
 const card = (symbol, name, body) => `<article class="cc-card">${title(symbol, name)}${body}</article>`;
 const metricList = () => `<ul class="cc-metrics">${metrics.map(([symbol, pct, name]) => `<li>${icon(symbol)}<div><b>${pct}</b><span>${e(name)}</span></div></li>`).join('')}</ul>`;
 const benefitTiles = () => `<div class="cc-benefits">${benefits.map(([symbol, name, detail]) => `<article class="cc-card">${icon(symbol)}<h4>${e(name)}</h4><p>${e(detail)}</p></article>`).join('')}</div>`;
-const pilotButton = label => `<button type="button" class="cc-action cc-primary" data-cc-start>${icon('play')}${label}</button>`;
 const kitLink = `<a class="cc-action" href="${kit}" download>${icon('download')}Download Sales Kit</a>`;
-const demoLink = `<a class="cc-action" href="/book?type=demo" target="_blank" rel="noopener">${icon('calendar')}Schedule a Demo</a>`;
 
 function overview() {
   return `<div class="cc-lead-grid"><div class="cc-left-stack"><article class="cc-card cc-opportunity">${title('target', 'The Opportunity')}
@@ -93,24 +91,16 @@ function topics() {
     roi: `<div class="cc-topic-grid">${card('chart', 'Illustrative Pilot Targets', '<p>Choose a target with the facility and compare it with its own baseline.</p>' + metricList())}
       ${card('clock', 'How to Measure the Pilot', rows(metrics.map(([symbol, , label, detail]) => [symbol, label, detail])))}</div>`,
     materials: `<div class="cc-topic-grid">${card('folder', 'Nursing-Home Sales Kit', '<p>A printable campaign overview, discovery guide and pilot worksheet for a conversation with a facility.</p>' + kitLink)}
-      ${card('tablet', 'Live Demo Materials', '<p>Rehearse a resident communication scenario or schedule time with a sales rep.</p><div class="cc-actions"><a class="cc-action" href="' + demo + '">' + icon('play') + 'Open walkthrough</a>' + demoLink + '</div>')}</div>`,
+      ${card('tablet', 'Demo Walkthrough', '<p>Rehearse a resident communication scenario before meeting with the facility.</p><a class="cc-action" href="' + demo + '">' + icon('play') + 'Open walkthrough</a>')}</div>`,
   };
 }
-function pilotDialog() {
-  return `<dialog class="cc-dialog" data-cc-dialog aria-labelledby="cc-pilot-title">
-    <div class="cc-dialog-head"><h2 id="cc-pilot-title">Start a nursing-home pilot</h2><button type="button" class="cc-close" data-cc-close aria-label="Close pilot form">×</button></div>
-    <form data-cc-pilot class="sales-form">
-      <label>Facility<select name="office" required></select></label>
-      <fieldset data-cc-new hidden disabled><legend>New facility</legend><label>Facility name<input name="name" maxlength="180" required></label>
-        <label>Street address<input name="address" maxlength="300" required></label><div class="cc-fields"><label>City<input name="city" maxlength="100" required></label>
-        <label>State<select name="state" data-states required></select></label></div></fieldset>
-      <div class="cc-fields"><label>Unit or team<input name="unit" maxlength="120" required placeholder="Memory care"></label><label>Target start date<input name="start" type="date" required></label></div>
+const pilotFields = `<template id="care-pilot-fields"><fieldset class="cc-record-pilot" disabled hidden><legend>Pilot plan</legend>
+      <input type="hidden" name="requestId">
+      <label>Unit or team<input name="unit" maxlength="120" required placeholder="Memory care"></label>
+      <label>Target start date<input name="start" type="date" required></label>
       <label>Pilot coordinator<input name="coordinator" maxlength="140" placeholder="Staff name or role" required></label>
       <label>What will the team measure?<textarea name="goal" rows="2" maxlength="500" placeholder="For example, how often residents make a choice at lunch" required></textarea></label>
-      <button class="cc-action cc-primary" type="submit">Save pilot to facility</button>
-    </form><p data-cc-pilot-status role="status" aria-live="polite"></p><button type="button" class="cc-action" data-cc-open-office hidden>Open facility record</button>
-  </dialog>`;
-}
+    </fieldset></template>`;
 export function renderCareCampaign(outreach) {
   const content = topics();
   return `<section data-tab-panel="campaigns" data-care-campaign hidden aria-labelledby="cc-title"><div class="cc-shell">
@@ -121,8 +111,6 @@ export function renderCareCampaign(outreach) {
       <ul class="cc-hero-list">${['Resident communication', 'Staff efficiency', 'Accessibility support', 'Family engagement', 'Person-centered care'].map(v => `<li>${icon('check')}${v}</li>`).join('')}</ul></header>
     <div class="cc-tabs" role="tablist" aria-label="Nursing-home campaign topics">${tabs.map(([id,label,symbol], i) => `<button type="button" role="tab" id="cc-tab-${id}" aria-controls="cc-topic-${id}" aria-selected="${i === 0}" tabindex="${i ? -1 : 0}" data-cc-tab="${id}">${icon(symbol)}${e(label)}</button>`).join('')}</div>
     ${tabs.map(([id]) => `<div id="cc-topic-${id}" class="cc-topic" role="tabpanel" aria-labelledby="cc-tab-${id}" tabindex="0"${id === 'why' ? '' : ' hidden'}>${content[id]}</div>`).join('')}
-    <section class="cc-banner">${icon('bed')}<div><h2>Ready to Bring TinkyTown to Your Nursing Home?</h2><p>Choose a next step with your facility.</p></div>
-    <div class="cc-actions">${pilotButton('Start a Pilot')}${demoLink}${kitLink}</div></section>
     <details class="cc-outreach" data-owner-only hidden><summary>Manage outreach campaigns</summary>${outreach}</details>
-    ${pilotDialog()}</div></section>`;
+    </div></section>${pilotFields}`;
 }
