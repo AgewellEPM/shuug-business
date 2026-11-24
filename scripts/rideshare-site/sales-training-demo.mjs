@@ -1,3 +1,7 @@
+export function renderLiveKioskLink(className = 'button primary') {
+  return `<a class="${className}" data-live-customer-kiosk href="https://tinkytown.com/biz/healthcare" target="_blank" rel="noopener noreferrer">Open live customer kiosk <span aria-hidden="true">↗</span></a>`;
+}
+
 export function renderVoicePractice({ id, heading }) {
   return `<section class="training-card training-voice" data-training-voice aria-labelledby="${id}-title">
       <header><h2 id="${id}-title">${heading}</h2>
@@ -33,23 +37,32 @@ export function renderTrainingDemo({ careWorkspace }) {
     <header class="training-hero">
       <img class="training-reference-icon" src="/training-art/cap.png" alt="">
       <div><h1 id="training-demo-title">TinkyTown Demo Lab</h1>
-        <p>Practice the visit from QR scan through a conversation the person controls.</p></div>
+        <p>Show the customer’s QR experience, then rehearse the sales conversation.</p></div>
     </header>
     <button type="button" class="training-link" data-training-demo-return>← Back to Training</button>
     <section class="training-card training-demo-start" aria-labelledby="training-demo-qr">
       <div>
-        <h2 id="training-demo-qr">1. Open the board</h2>
-        <p>Scan the TinkyTown healthcare QR code. On the phone, choose the location or care setting you’re presenting. Tap a tile to see the message.</p>
+        <h2 id="training-demo-qr">1. Show the live customer kiosk</h2>
+        <p>Scan this sample QR to open the live Healthcare kiosk on a phone. For a site with its own board, scan that facility’s issued QR.</p>
         <div class="training-actions">
-          <a class="training-button training-primary" href="https://tinkytown.com/biz/healthcare" target="_blank" rel="noopener noreferrer">Open the phone board ↗</a>
-          ${careWorkspace ? '<a class="training-button" href="#view=demo&amp;venue=nursing-home&amp;mode=counter&amp;training=1">Nursing home kiosk</a><a class="training-button" href="#view=demo&amp;venue=senior-center&amp;training=1">Senior center kiosk</a><a class="training-button" href="#view=demo&amp;venue=stroke&amp;training=1">TinkyStroke bedside</a>' : ''}
+          ${renderLiveKioskLink('training-button training-primary')}
         </div>
+        <ol class="training-customer-steps">
+          <li>Choose <strong>Nursing Home</strong> on the Healthcare board and tap one visitor message.</li>
+          <li>Select <strong>Listen for Staff</strong> and have a teammate say a short practice reply.</li>
+          <li>Review the reply tiles together. Let the visitor choose what to say.</li>
+        </ol>
       </div>
       <figure><img src="/care-location-qr-healthcare.png" width="144" height="144" alt="QR code for the TinkyTown healthcare board">
         <figcaption>tinkytown.com/biz/healthcare</figcaption>
       </figure>
     </section>
-    ${renderVoicePractice({ id: 'training-voice', heading: '2. Try voice and suggested replies' })}
+    <section class="training-card training-demo-debrief" aria-labelledby="training-demo-rehearse">
+      <h2 id="training-demo-rehearse">2. Rehearse with your team</h2>
+      <p>Use these staff practice boards for role-play before a customer visit.</p>
+      ${careWorkspace ? '<div class="training-actions"><a class="training-button" href="#view=demo&amp;venue=nursing-home&amp;mode=counter&amp;training=1">Practice nursing home reception</a><a class="training-button" href="#view=demo&amp;venue=senior-center&amp;training=1">Practice a senior center visit</a><a class="training-button" href="#view=demo&amp;venue=stroke&amp;training=1">Practice TinkyStroke bedside</a></div>' : ''}
+    </section>
+    ${renderVoicePractice({ id: 'training-voice', heading: 'Practice listening and choosing a reply' })}
     <section class="training-card training-demo-debrief" aria-labelledby="training-demo-debrief-title">
       <h2 id="training-demo-debrief-title">3. Debrief the visit</h2>
       <ol><li>Ask which part of the interaction fit the resident or visitor’s needs.</li>
