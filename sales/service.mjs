@@ -121,6 +121,12 @@ export function service(env, db, payment = payments(env), tools = {}) {
       return action === 'territory-map' ? tools.territoryMap(user, b, readTeam) : tools.setCountyLead(user, b, readTeam);
     }
     if (tools.facilities && action === 'territory-facilities') return tools.facilities(user, b);
+    if (tools.facilityReviews && action === 'facility-reviews') {
+      if (b.officeId === undefined) return tools.facilityReviews(user, b);
+      const office = await leadFor(user, text(b.officeId, 40, true));
+      const info = metadata(office);
+      return tools.facilityReviews(user, b, { name: office.town, address: info.address, city: office.locality, state: office.state, zip: info.postalCode });
+    }
     if (tools.facilityOutreach && action === 'facility-outreach-drafts') return tools.facilityOutreach(user, b);
     if (tools.facilities && action === 'territory-facility-save') return tools.facilities(user, b,
       (input, classification) => dispatch(user, 'create-office', input, classification));

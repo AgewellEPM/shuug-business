@@ -21,7 +21,8 @@ import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
 import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
-import { stateFacilityDirectory } from '../../sales/state-facilities.mjs';
+import { directoryFacility, stateFacilityDirectory } from '../../sales/state-facilities.mjs';
+import { googleFacilityReviews } from '../../sales/facility-reviews.mjs';
 import { facilityOutreach } from './facility-outreach.mjs';
 import { initialize, privateValue } from './setup.mjs';
 
@@ -60,6 +61,13 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
 const facilities = stateFacilityDirectory({ db });
+const googleReviews = googleFacilityReviews({
+  key() {
+    if (process.env.SDR_GOOGLE_PLACES_API_KEY) return process.env.SDR_GOOGLE_PLACES_API_KEY.trim();
+    try { return privateValue(join(directory, 'google-places-key')); }
+    catch { return ''; }
+  },
+});
 const automation = campaigns(env, db, { catalogue });
 db.discover = catalogue ? async (region, locality, { offset = 0, limit = 50 } = {}) => {
   const rows = catalogue(region, locality);
@@ -92,6 +100,7 @@ const sales = createHandler(env, db, {
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
   facilities,
+  facilityReviews: async (user, input, office) => googleReviews(office || await directoryFacility(facilities, user, input)),
   facilityOutreach: facilityOutreach(db, facilities, { model: process.env.SDR_OUTREACH_MODEL }),
   territoryMap: (user, input, team) => territoryMap(user, input, db, team),
   territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
@@ -124,7 +133,7 @@ for (const path of readdirSync(staticRoot, { recursive: true, withFileTypes: tru
 }
 const mimes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png',
   '.svg': 'image/svg+xml', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
-const csp = `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org ${administratorPhotoOrigins.join(' ')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`;
+const csp = `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://*.googleusercontent.com ${administratorPhotoOrigins.join(' ')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`;
 const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, async (request, response) => {
   const finish = (status, body = '') => { response.statusCode = status; response.end(body); };
   response.setHeader('Content-Security-Policy', csp);

@@ -7,6 +7,14 @@ const categories = new Set(['nursing-home', 'senior-center']);
 const pageSize = 25;
 const alphabetical = new Intl.Collator('en-US', { sensitivity: 'base', numeric: true });
 
+export async function directoryFacility(directory, user, input) {
+  const sourceURL = text(input.sourceURL, 1200, true);
+  const { results } = await directory(user, { state: input.state, category: input.category, sourceURL });
+  const facility = results[0];
+  if (facility?.sourceURL !== sourceURL) throw new HttpError(404, 'Facility not found in your territory.');
+  return facility;
+}
+
 function sortedFacilities(rows, region) {
   const unique = new Map();
   for (const row of rows) {
