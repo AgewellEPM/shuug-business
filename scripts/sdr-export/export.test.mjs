@@ -455,6 +455,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
     assert.equal(header.querySelector('#sdr-header-search'), null);
     assert.ok(document.querySelector('[data-pipeline-part="board"] #sales-filter'));
+    document.querySelector('#coach-launch').click();
+    await waitFor(() => !document.querySelector('#coach-form textarea').disabled, 'Coach did not finish opening over Support');
+    assert.equal(document.body.dataset.sdrView, 'support');
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
+    document.querySelector('.sdr-nav [data-tab="pipeline"]').click();
+    assert.equal(document.body.dataset.sdrView, 'pipeline');
+    assert.match(document.querySelector('#coach-context').textContent, /Pipeline/);
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -1012,6 +1020,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
     assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-xp-bar'));
     assert.equal(pageDocument.querySelector('.sdr-topbar #sdr-header-search'), null);
+    assert.ok(pageDocument.querySelector('#sales-filter'));
+    assert.ok(pageDocument.querySelector('#coach-launch'));
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });
@@ -1099,6 +1109,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(teamPane('settings').hidden, true);
   teamTab('roster').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
   assert.equal(pageDocument.activeElement, teamTab('profile'));
+  assert.equal(pageDocument.querySelector('#sales-team-sidebar-section').value, 'profile');
+  assert.equal(window.location.hash, '#view=team&section=profile');
   assert.equal(teamPane('profile').hidden, false);
   assert.equal(teamPane('roster').hidden, true);
   teamTab('profile').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
@@ -1256,6 +1268,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Tinky Team agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
+  const agentPicker = agentDocument.querySelector('#sales-team-sidebar-section');
+  assert.equal(agentPicker.value, 'roster');
+  assert.equal(agentPicker.querySelector('option[value="settings"]'), null);
   assert.equal(agentDocument.getElementById('sales-team-pane-settings').hidden, true);
   assert.equal(agentDocument.querySelector('#directory-support-form'), null);
   agentSettings.click();
@@ -1580,6 +1595,47 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
 
+  await t.test('Products opens from the rail, searches catalog sections, compares devices, and starts a quote request', async t => {
+    const productsWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=products&section=phones');
+    const find = selector => productsWindow.document.querySelector(selector);
+    const pane = find('[data-tab-panel="products"]');
+    await waitFor(() => !pane.hidden, 'Products did not open from its deep link');
+    assert.equal(find('[data-product-device="phones"]').hidden, false);
+    assert.ok(find('[data-product-device="tablets"]').hidden);
+    find('.sdr-nav [data-tab="products"]').click();
+    assert.equal(find('[data-product-device="tablets"]').hidden, false);
+    const search = find('[data-product-search] input');
+    search.value = 'charging dock';
+    search.dispatchEvent(new productsWindow.Event('input', { bubbles: true }));
+    const results = [...pane.querySelectorAll('[data-product-result]:not([hidden]) a')];
+    const accessories = results.find(link => link.textContent.trim() === 'Accessories');
+    assert.ok(accessories);
+    accessories.click();
+    assert.equal(find('[data-product-pane="accessories"]').hidden, false);
+    assert.ok(find('[data-product-results]').hidden);
+    find('[data-product-tab="compare"]').click();
+    assert.equal(find('[data-product-pane="compare"]').hidden, false);
+    assert.match(find('.products-table-wrap table').textContent, /Larger landscape touchscreen/);
+    assert.equal(find('.products-cta a').getAttribute('href'), '/book?type=demo');
+
+    const before = (await owner.api('support-requests')).requests.length;
+    find('[data-product-tab="packages"]').click();
+    find('[data-product-package-open="care"]').click();
+    assert.ok(find('[data-product-dialog]').open);
+    assert.equal(find('#products-dialog-title').textContent, 'Care Package');
+    find('[data-product-package-detail="care"] [data-product-dialog-quote]').click();
+    const quote = await waitFor(() => find('[data-support-form="create"]'), 'Quote request form did not open');
+    assert.equal(quote.elements.subject.value, 'Quote request for the Care Package');
+    assert.equal(quote.elements.category.value, 'billing');
+    assert.equal((await owner.api('support-requests')).requests.length, before);
+    quote.elements.message.value = 'Synthetic facility needs a tablet and two bedside devices.';
+    quote.requestSubmit();
+    await waitFor(() => find('.support-thread')?.textContent.includes('two bedside devices'), 'Quote request was not recorded');
+    const { requests } = await owner.api('support-requests');
+    assert.equal(requests.length, before + 1);
+    assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
+  });
+
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
     const path = '/sales';
     const before = await owner.api('bootstrap');
@@ -1600,6 +1656,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(demoTool.closest('[hidden]'), null);
     demoTool.click();
     assert.equal(panel.closest('[data-team-workspace]').hidden, false);
+    assert.equal(doc.querySelector('#sales-team-sidebar-section').value, 'demo');
     await waitFor(() => !panel.hidden, 'The locations lobby did not open');
     const customerKiosk = panel.querySelector('[data-care-home] [data-live-customer-kiosk]');
     assert.equal(customerKiosk.href, 'https://tinkytown.com/biz/healthcare');
@@ -1835,6 +1892,29 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
       ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
+    const picker = rail.querySelector('select[aria-label="Tinky Team section"]');
+    assert.equal(picker.closest('[hidden]'), null);
+    assert.equal(picker.selectedOptions[0].textContent, 'Owners & Rolodex');
+    assert.equal(picker.multiple, false);
+    assert.equal(picker.size, 0);
+    const select = key => {
+      picker.value = key;
+      picker.dispatchEvent(new contactsWindow.Event('change', { bubbles: true }));
+    };
+    select('calendar');
+    assert.equal(find('[data-tab-panel="calendar"]').closest('[hidden]'), null);
+    select('profile');
+    assert.equal(find('#sales-team-pane-profile').closest('[hidden]'), null);
+    assert.equal(contactsWindow.location.hash, '#view=team&section=profile');
+    contactsWindow.history.back();
+    await waitFor(() => picker.value === 'calendar', 'Back did not restore the calendar section');
+    contactsWindow.history.forward();
+    await waitFor(() => picker.value === 'profile', 'Forward did not restore My profile');
+    rail.querySelector('[data-tab="home"]').click();
+    assert.ok(picker.closest('[hidden]'));
+    rail.querySelector('[data-tab="team"]').click();
+    assert.equal(picker.selectedOptions[0].textContent, 'Team roster');
+    select('contacts');
     const back = find('[data-team-return]');
     assert.equal(back.closest('[hidden]'), null);
     back.click();
@@ -1844,6 +1924,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       assert.equal(button.closest('[hidden]'), null);
       button.click();
       assert.equal(find('[data-tab-panel="' + name + '"]').closest('[hidden]'), null);
+      assert.equal(picker.value, name);
       assert.equal(new URLSearchParams(contactsWindow.location.hash.slice(1)).get('view'), name);
       assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
       if (name !== 'contacts') back.click();

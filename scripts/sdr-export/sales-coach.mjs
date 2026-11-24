@@ -183,7 +183,7 @@ function dates(today) {
 }
 const sourceLink = ({ title, href }) => ({ title, href });
 
-export function salesCoach(db, plan, { articles = [], demo = false, model = defaultModel, fetcher = fetch, mail } = {}) {
+export function salesCoach(db, plan, { articles = [], demo = false, model = defaultModel, fetcher = fetch, mail, localVoice = false } = {}) {
   const store = db.coach, running = new Map();
   function snapshot(user, timeZone) {
     const day = plan.dispatch(user, 'sales-daily-plan', { timeZone });
@@ -311,7 +311,7 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
     if (action === 'coach-state') {
       if (input.before !== undefined && (!Number.isSafeInteger(input.before) || input.before <= 0)) throw new HttpError(400, 'Invalid conversation page.');
       const { day, goal } = snapshot(user, input.timeZone);
-      return { ...store.history(member, 20, input.before), goal, calendar: dates(day.date), counts: day.counts, next: day.recommendations };
+      return { ...store.history(member, 20, input.before), goal, calendar: dates(day.date), counts: day.counts, next: day.recommendations, localVoice };
     }
     if (action === 'coach-goal') {
       if (!Number.isSafeInteger(input.revision) || input.revision < 0) throw new HttpError(400, 'Reload the current goal.');

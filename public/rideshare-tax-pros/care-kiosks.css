@@ -1,7 +1,7 @@
 /* The customer kiosk inside the workspace. Values follow css/kiosk.css in TinkySpeak-Web. */
 .care-venue-kiosk {
   --ck-header:#2e5090; --ck-ink:#1a1a2e; --ck-muted:#5b6472; --ck-line:#e5e7eb;
-  display:flex; flex-direction:column; min-width:0; height:max(640px,calc(100dvh - 178px)); overflow:hidden;
+  display:flex; flex-direction:column; min-width:0; height:max(620px,calc(100dvh - 290px)); overflow:hidden;
   border:1px solid #c5d8ef; border-radius:16px; background:#fff; color:var(--ck-ink); box-shadow:0 2px 8px #113c7024;
 }
 .care-venue-kiosk button { font:inherit; cursor:pointer; }

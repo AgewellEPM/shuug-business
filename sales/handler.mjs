@@ -35,9 +35,16 @@ export function createHandler(env = process.env, adapter, tools = {}) {
       }
       if (req.method !== 'POST') throw new HttpError(405, 'Use the sales workspace to make this request.');
       if (!sharedEntry && !origins.includes(req.headers.origin)) throw new HttpError(403, 'Open the sales workspace on its configured website.');
-      if (!req.headers['content-type']?.startsWith('application/json')) throw new HttpError(415, 'Use a JSON request.');
-      const mailApi = Boolean(tools.repEmail && req.url?.split('?')[0] === '/api/sales/mail/v1');
       const cookie = (req.headers.cookie || '').split(';').map(p => p.trim()).find(p => p.startsWith(cookiePrefix))?.slice(cookiePrefix.length);
+      const path = req.url?.split('?')[0];
+      if (tools.coachSpeech && path === '/api/sales/coach/voice') {
+        if (sharedEntry) throw new HttpError(403, 'Open Ask Tinky in your sales workspace.');
+        const user = await service(env, adapter, undefined, tools).identity(cookie);
+        if (!['agent', 'owner'].includes(user.role)) throw new HttpError(403, 'Sign in as a sales team member to use voice.');
+        return reply(200, await tools.coachSpeech.transcribe(req, user.id));
+      }
+      if (!req.headers['content-type']?.startsWith('application/json')) throw new HttpError(415, 'Use a JSON request.');
+      const mailApi = Boolean(tools.repEmail && path === '/api/sales/mail/v1');
       const mailApp = mailApi ? service(env, adapter, undefined, tools) : null;
       if (mailApi && sharedEntry) throw new HttpError(403, 'Use your workspace session for email.');
       const mailUser = mailApi ? await mailApp.identity(cookie) : null;

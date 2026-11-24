@@ -31,10 +31,11 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
 }
 const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-care-campaign.mjs', 'sales-today.mjs', 'sales-training.mjs', 'sales-training-demo.mjs', 'sales-training-pipeline.mjs', 'sales-pipeline-workspace.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
+copy('scripts/rideshare-site/sales-products.mjs');
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
 copy('public/rideshare-tax-pros/sales-support-content.js', 'scripts/sdr-export/coach-help.cjs');
-for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge', 'coach-mail', 'coach-save']) copy('scripts/sdr-export/' + file + '.mjs');
+for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge', 'coach-mail', 'coach-save', 'coach-speech']) copy('scripts/sdr-export/' + file + '.mjs');
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
   'booking-ui.js', 'booking-client.js', 'booking-connect.js', 'sales-booking.js', 'sales-booking.css',
@@ -45,6 +46,7 @@ const assets = [
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-pipeline-workspace.css', 'sales-pipeline-workspace.js', 'sales-pipeline-hero.webp',
+  'sales-products.css', 'sales-products.js', 'sales-products-hero.webp', 'sales-products-tablet.webp', 'sales-products-phone.webp',
   'sales-display.css', 'sales-display.js',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
   ...['care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot'].flatMap(name => [name + '.js', name + '.css']),
@@ -56,7 +58,7 @@ const assets = [
   'sales-care-campaign.css', 'sales-care-campaign.js', 'sales-campaign-care.webp', 'sales-campaign-hands.webp', 'nursing-home-sales-kit.pdf',
   'sales-email.css', 'sales-mail-team.js', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
-  'sales-coach.css', 'sales-coach-controls.js', 'sales-coach.js',
+  'sales-coach.css', 'sales-coach-controls.js', 'sales-coach.js', 'sales-coach-audio-worklet.js',
   'sales-contract-center.css', 'sales-contract-center.js', 'sales-contracts-hero.webp', 'sales-contracts-care.webp',
   'territory-dashboard.css', 'territory-dashboard.js', 'territory-dashboard-hero.webp',
   'sales-training.css', 'sales-training.js', 'sales-training-demo.css', 'sales-training-voice.js', 'sales-training-pipeline.js',

@@ -186,7 +186,7 @@
       if (lastLaunch) home.querySelector('[data-care-launch="' + lastLaunch + '"]')?.focus({ preventScroll: true });
       return;
     }
-    if (voice && ['hospital', 'nursing-home', 'senior-center', 'stroke', 'guide'].includes(venue)) {
+    if (voice && ['bedside', 'hospital', 'nursing-home', 'senior-center', 'stroke', 'guide'].includes(venue)) {
       const setting = voice.querySelector('select[name="setting"]');
       setting.value = venue === 'senior-center' ? 'senior' : venue === 'nursing-home' ? 'nursing' : 'bedside';
       setting.dispatchEvent(new Event('change'));

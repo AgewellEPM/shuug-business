@@ -99,7 +99,7 @@
     return roomRequest;
   }
   function newDraft(venue, context, profile) {
-    const bedside = ['hospital','nursing-home','stroke'].includes(venue);
+    const bedside = ['bedside','hospital','nursing-home','stroke'].includes(venue);
     const practices = [
       'Scan from the sign using a visitor phone and open the intended board.',
       profile[2],
@@ -258,7 +258,7 @@
         const group = element('div','cp-fields');
         const accessLabel = element('label','cp-field','Access at this placement');
         const access = element('select');
-        const device = ['hospital','nursing-home','stroke'].includes(venue) ? 'Preconfigured bedside tablet' : 'Shared device';
+        const device = ['bedside','hospital','nursing-home','stroke'].includes(venue) ? 'Preconfigured bedside tablet' : 'Shared device';
         for (const option of ['Printed QR sign',device,'QR sign and device']) access.append(new Option(option,option));
         access.value = details.access || 'Printed QR sign';
         access.addEventListener('change',()=>{details.access = access.value;});

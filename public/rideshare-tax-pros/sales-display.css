@@ -3,26 +3,15 @@ body.sales-console-page,
 body.sales-console-page :is(button, input, select, textarea, dialog, h1, h2, h3, h4, h5) {
   font-family: system-ui, -apple-system, sans-serif;
 }
-html[data-sdr-scale="125"] { --sdr-display-zoom: 1.25; zoom: var(--sdr-display-zoom); }
-html[data-sdr-scale="150"] { --sdr-display-zoom: 1.5; zoom: var(--sdr-display-zoom); }
-html[data-sdr-scale="175"] { --sdr-display-zoom: 1.75; zoom: var(--sdr-display-zoom); }
-html[data-sdr-scale="200"] { --sdr-display-zoom: 2; zoom: var(--sdr-display-zoom); }
-html[data-sdr-scale] body.sales-console-page {
-  min-width: 0;
-  height: calc(100dvh / var(--sdr-display-zoom, 1));
-}
+html[data-sdr-scale="125"] { --sdr-text-scale: 1.25; }
+html[data-sdr-scale="150"] { --sdr-text-scale: 1.5; }
+html[data-sdr-scale="175"] { --sdr-text-scale: 1.75; }
+html[data-sdr-scale="200"] { --sdr-text-scale: 2; }
 html[data-sdr-monochrome] { filter: grayscale(1); }
 html[data-sdr-monochrome] body.sales-console-page :focus-visible {
   outline: 3px solid currentColor;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px Canvas;
-}
-[data-sdr-display-compact] body.sales-console-page #sales-workspace {
-  grid-template: auto minmax(0, 1fr) / minmax(0, 1fr);
-}
-[data-sdr-display-compact] .sales-console-page .sdr-sidebar {
-  max-height: 35vh;
-  overflow: auto;
 }
 [data-sdr-display-compact] .sales-console-page .sdr-topbar,
 [data-sdr-display-compact] .sales-console-page .sdr-topbar-right {
@@ -55,3 +44,6 @@ body.sales-console-page [data-display-read][aria-pressed="true"] { border: 2px s
 body.sales-console-page[data-standalone-sdr] .sdr-topbar-right { flex: 1; }
 body.sales-console-page[data-standalone-sdr] .sdr-workspace-tracker { flex: 1 1 12rem; min-width: 0; }
 body.sales-console-page[data-standalone-sdr] .sdr-xp { flex: 1 1 7rem; width: auto; }
+
+[data-sdr-display-compact] .sales-console-page .today-task-text { overflow-wrap: anywhere; }
+[data-sdr-display-compact] .sales-console-page .sdr-display select { width: 100%; }

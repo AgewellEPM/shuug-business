@@ -180,6 +180,16 @@
       openDialog(title, find('[data-support-create]').content.cloneNode(true));
     }
 
+    function openQuote(packageName) {
+      find('#support-requests-title').focus();
+      openCreate('Request a product quote');
+      const form = dialogBody.querySelector('[data-support-form]');
+      form.elements.category.value = 'billing';
+      form.elements.subject.value = packageName ? `Quote request for the ${packageName}` : 'TinkySpeak product quote request';
+      form.elements.message.placeholder = 'Include the facility name, devices and quantities, rollout date, and follow-up contact.';
+      form.elements.message.focus();
+    }
+
     async function startChat(button) {
       if (!loaded) {
         button.disabled = true;
@@ -274,7 +284,7 @@
         libraryTrigger?.focus();
       }
     });
-    return { show(user, entering) {
+    return { openQuote, show(user, entering) {
       userId = String(user.id);
       if (entering || !loaded) void load();
     } };

@@ -1,6 +1,7 @@
 import { renderLiveKioskLink, renderVoicePractice } from './sales-training-demo.mjs';
 
 const care = [
+  ['bedside','🛏️','Bedside','Scan in the room: stroke, nurse, pain, bathroom'],
   ['hospital','🏥','TinkyTown Hospital','Admissions, bedside care and discharge'],
   ['nursing-home','🏡','Nursing home','Daily care, meals and resident preferences'],
   ['senior-center','☀️','Senior center','Programs, transportation and community services'],

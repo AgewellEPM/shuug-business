@@ -82,12 +82,52 @@
     return { boards, groups, catalog };
   }
 
+  // What a person in bed needs first. Aphasia can leave someone knowing exactly
+  // what they mean, so the board opens with ways to slow the conversation down.
+  async function bedside() {
+    const resident = await read('/care-kiosks/nursing-home.json');
+    const boards = Object.fromEntries(Object.entries(resident.places[0].boards).map(([id, i]) => [id, resident.pool[i]]));
+    const stroke = shape(Object.fromEntries((await read('/sales-demo-boards.json')).stroke.map(board => [board.id, board])),
+      tile => ({ ...libraryTile(tile), navigateTo: tile.navigateTo === 'main_board' ? 'stroke_home' : tile.navigateTo }));
+    for (const board of Object.values(stroke)) board.title = plain(board.title);
+    const say = (emoji, label, spokenText, navigateTo, color = 'blue') => ({ emoji, label, spokenText, navigateTo, color });
+    Object.assign(boards, stroke, {
+      stroke_home: { title: 'I had a stroke', tiles: [
+        say('🚨','Nurse NOW','I need a nurse right now.','senior_urgent','red'),
+        say('💬','I know what I want to say','I know what I want to say. The words will not come out.',undefined,'purple'),
+        say('⏳','Give me time','Please give me time. I am thinking.',undefined,'purple'),
+        say('❓','Ask me yes or no','Please ask me questions I can answer with yes or no.',undefined,'purple'),
+        say('🐢','Slow down','Please speak slowly, one thing at a time.',undefined,'purple'),
+        say('🫨','Something changed','Something feels different right now. Please check me.','quick_symptoms','red'),
+        say('🤕','Pain','I have pain.','pain_body_board','orange'),
+        say('🚽','Bathroom','I need help with the bathroom.','senior_bathroom'),
+        say('💧','Food & drink','I would like something to eat or drink.','senior_food','green'),
+        say('🛏️','Comfort','I am not comfortable.','senior_comfort','teal'),
+        say('💪','My arm or leg','I want to talk about my arm or my leg.','stroke_mobility_recovery','teal'),
+        say('💊','Medicine','I want to talk about my medicine.','senior_meds','purple'),
+        say('😰','How I feel','I want to tell you how I feel.','quick_feelings','pink'),
+        say('👨‍👩‍👧','My family','I want to talk about my family.','senior_family','green'),
+        say('🧑‍⚕️','Talk to someone','I would like to talk to someone.','senior_staff','indigo'),
+        say('🌐','More stroke boards','','stroke_boards','gray'),
+      ] },
+    });
+    boards.stroke_boards = menu('Stroke boards', Object.entries(stroke));
+    const my = boards.senior_resident;
+    boards.senior_resident = { ...my, tiles: [my.tiles[0], say('🧠','I had a stroke','I had a stroke. I use this board to talk.','stroke_home','purple'), ...my.tiles.slice(1)] };
+    return boards;
+  }
+
   const hartfordHospital = { phone: '(860) 545-5000', hours: 'Open 24 hours' };
   const sources = {
     async hospital() {
       const [kiosks, rooms] = await Promise.all([read('/care-facility-kiosks.json'), read('/care-facility-data.json')]);
       const desk = shape({ ...rooms.boards, ...kiosks }, facilityTile);
-      const health = await locations();
+      const [health, room] = await Promise.all([locations(), bedside()]);
+      Object.assign(desk, room);
+      desk.loc_hospital_arrive = { ...desk.loc_hospital_arrive, tiles: [
+        { emoji: '🛏️', label: 'In my room', spokenText: 'I am in my room.', color: 'green', navigateTo: 'senior_resident' },
+        { emoji: '🧠', label: 'I had a stroke', spokenText: 'I had a stroke. I use this board to talk.', color: 'purple', navigateTo: 'stroke_home' },
+        ...desk.loc_hospital_arrive.tiles] };
       const address = '80 Seymour Street, Hartford, CT 06102';
       return pack([
         place(desk, 'desk', 'Hospital — Hartford Hospital Hartford', address, 'loc_hospital_arrive', hartfordHospital),
@@ -95,21 +135,23 @@
       ]);
     },
     async 'nursing-home'() {
-      const resident = await read('/care-kiosks/nursing-home.json'), health = await locations();
-      const bedside = resident.places[0];
-      const named = Object.fromEntries(Object.entries(bedside.boards).map(([id, i]) => [id, resident.pool[i]]));
+      const boards = await bedside(), health = await locations();
       return pack([
-        { ...bedside, named },
+        place(boards, 'resident', 'Nursing Home — In My Room', 'Bedside communication', 'senior_resident'),
+        place(boards, 'stroke', 'Nursing Home — After a Stroke', 'Bedside communication', 'stroke_home'),
         place(health, 'visitor', 'Nursing Home — Visitor', 'Front desk', 'loc_visit_biz_nursing_home_arrive'),
         place(health, 'assisted', 'Assisted Living — Visitor', 'Front desk', 'loc_visit_biz_assisted_living_facility_arrive'),
       ]);
     },
+    async bedside() {
+      const boards = await bedside();
+      return pack([
+        place(boards, 'stroke', 'Bedside — After a Stroke', 'Scanned in the room', 'stroke_home'),
+        place(boards, 'resident', 'Bedside — In My Room', 'Scanned in the room', 'senior_resident'),
+      ]);
+    },
     async stroke() {
-      const all = Object.fromEntries((await read('/sales-demo-boards.json')).stroke.map(board => [board.id, board]));
-      const boards = shape(all, tile => ({ ...libraryTile(tile), navigateTo: tile.navigateTo === 'main_board' ? 'home' : tile.navigateTo }));
-      for (const board of Object.values(boards)) board.title = plain(board.title);
-      boards.home = menu('What do you need?', Object.entries(boards));
-      return pack([place(boards, 'bedside', 'TinkyStroke', 'Stroke ward and bedside communication', 'home')]);
+      return pack([place(await bedside(), 'bedside', 'TinkyStroke', 'Stroke ward and bedside communication', 'stroke_home')]);
     },
     async 'senior-center'() {
       const community = await read('/care-kiosks/community.json');
