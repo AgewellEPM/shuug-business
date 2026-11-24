@@ -1,0 +1,34 @@
+/* Skin tones and topic colors in the artwork stay independent of the meaning of the answer. */
+[data-tab-panel="demo"] button[data-response-tone="positive"] { --response-ink:#126744; --response-wash:#eff9f3; }
+[data-tab-panel="demo"] button[data-response-tone="negative"] { --response-ink:#ad353c; --response-wash:#fff3f2; }
+[data-tab-panel="demo"] button:is([data-response-tone="positive"],[data-response-tone="negative"]) {
+  position:relative;
+  border-color:var(--response-ink);
+  background-color:var(--response-wash);
+}
+[data-tab-panel="demo"] button:is([data-response-tone="positive"],[data-response-tone="negative"]) :is(.ck-label,.cl-tile-text) { background-color:var(--response-ink); }
+[data-tab-panel="demo"] button:is([data-response-tone="positive"],[data-response-tone="negative"])::after {
+  content:""; position:absolute; top:5px; right:5px; width:16px; height:16px; border-radius:50%;
+  background:linear-gradient(white,white) center / 8px 2px no-repeat,var(--response-ink);
+  pointer-events:none;
+}
+[data-tab-panel="demo"] button[data-response-tone="positive"]::after {
+  background:linear-gradient(white,white) center / 2px 8px no-repeat,linear-gradient(white,white) center / 8px 2px no-repeat,var(--response-ink);
+}
+.ck-quick-needs {
+  display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; flex:none;
+  box-sizing:border-box; width:min(624px,100%); padding:8px 12px; margin:0 auto;
+}
+.ck-quick-needs .care-kiosk-tile {
+  flex-direction:row; align-items:center; justify-content:center; gap:7px; min-height:54px;
+  border:1px solid #9bb6ce; border-radius:12px; background:#f3f8fc; color:#163c5c;
+}
+.ck-quick-needs .care-kiosk-tile > .care-demo-picture { --picture-size:2.4rem; flex:none; min-height:0; padding:0; }
+.ck-quick-needs .ck-label { padding:0; background:transparent; color:inherit; }
+.ck-quick-needs .ck-label strong { font-size:.88rem; text-transform:none; letter-spacing:0; }
+@media(max-width:530px) {
+  .ck-quick-needs { gap:6px; padding:5px 8px; }
+  .ck-quick-needs .care-kiosk-tile { flex-direction:column; gap:2px; padding:4px; }
+  .ck-quick-needs .care-demo-picture::before { inline-size:1.9rem; }
+  .ck-quick-needs .ck-label strong { font-size:.78rem; }
+}

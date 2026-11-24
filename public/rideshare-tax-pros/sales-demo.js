@@ -193,16 +193,13 @@
       button.className = 'sdr-demo-tile';
       const color = tile.colorHex || tile.color;
       if (/^#[a-f\d]{6}$/i.test(color)) button.style.setProperty('--demo-tile-color', color);
-      const emoji = document.createElement('span');
-      emoji.className = 'sdr-demo-tile-emoji';
-      emoji.textContent = tile.emoji;
-      emoji.setAttribute('aria-hidden', 'true');
+      const picture = window.CareDemoResponses.illustration(button, tile);
       const label = document.createElement('span');
       const message = messageOf(tile);
       label.textContent = message.label;
       label.lang = message.language;
       if (tile.navigateTo === 'hospital_pain') button.setAttribute('aria-label', `${message.label}. Opens Pain assessment`);
-      button.append(emoji, label);
+      button.append(picture, label);
       button.addEventListener('click', () => choose(tile, button));
       button.addEventListener('pointerenter', event => {
         if (!find('dwell').checked || scanTimer || event.pointerType === 'touch') return;

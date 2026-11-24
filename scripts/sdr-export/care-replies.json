@@ -127,6 +127,14 @@
  ],
  "offline": {
   "sets": {
+   "sleep": [
+    "😌 I slept well",
+    "🌙 I had a hard night",
+    "🛏️ I slept on and off",
+    "👀 I couldn't sleep",
+    "🌅 I woke up early",
+    "😴 I'm still tired"
+   ],
    "pain": [
     "❌ No pain",
     "🩺 A little",
@@ -225,6 +233,20 @@
    ]
   },
   "rules": [
+   {
+    "words": [
+     "how did you sleep",
+     "how was your sleep",
+     "how was your night",
+     "did you sleep well",
+     "sleep last night",
+     "did you get any sleep",
+     "did you get some sleep",
+     "did you get any rest",
+     "did you get enough rest"
+    ],
+    "set": "sleep"
+   },
    {
     "words": [
      "pain",

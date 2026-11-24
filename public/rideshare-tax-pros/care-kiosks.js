@@ -39,7 +39,8 @@
   function mount(root, venue, params, {diet} = {}) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
     let lexicon = indexed({}), lastUtterance, pendingSign = false;
-    let recognition = null, privacy = false, exchange = null, lastExchange = null, turns = 0;
+    let recognition = null, privacy = false, exchange = null, lastExchange = null, request = null;
+    const client = window.crypto?.randomUUID?.() || '';
     const app = element('article'); app.className = 'care-venue-kiosk';
     const header = element('header'), about = element('div'), title = element('h3'), address = element('p'), contact = element('p'), boardName = element('p');
     const captions = element('div'), words = element('div'), speaker = element('strong'), message = element('p'), original = element('p');
@@ -83,7 +84,9 @@
     for (const [label,glyph,click] of tabs) { const b = icon(label,glyph,click,'ck-tab'); b.append(element('small',label)); nav.append(b); }
     dock.className = 'ck-dock'; dock.append(type,staff,status,transcript);
     const patientScreen = careSettings.has(venue);
-    app.append(header,captions,...(patientScreen ? [] : [selectors]),area,dock,...(patientScreen ? [] : [nav]));
+    const needs = element('div'); needs.className = 'ck-quick-needs'; needs.hidden = true;
+    needs.setAttribute('role','group'); needs.setAttribute('aria-label','Quick needs');
+    app.append(header,captions,...(patientScreen ? [] : [selectors]),area,...(patientScreen ? [needs] : []),dock,...(patientScreen ? [] : [nav]));
     root.replaceChildren(app);
     const openPlaces = () => { selectors.hidden = false; if (patientScreen) { helper.append(selectors); area.scrollTop = 0; } };
     const live = [captions,dock,nav];
@@ -127,13 +130,18 @@
     }
     // Their turn. What staff say and the replies to it share the tile area, as they do in the app.
     function openExchange() {
+      closeExchange();
       exchange = { said: '', shown: [], listening: true };
       heading.textContent = boardName.textContent = 'Their turn';
       emergency.replaceChildren(...(pack.pool[place.boards[key]].strip || []).map(tileButton));
       draft.placeholder = 'Type what they said…';
       waiting('Waiting for their response…', true);
     }
-    function closeExchange() { if (exchange) draft.value = ''; exchange = null; turns++; draft.placeholder = 'Type your question…'; }
+    function cancelReplies() {
+      request?.abort();
+      request = null;
+    }
+    function closeExchange() { needs.hidden = true; cancelReplies(); if (exchange) draft.value = ''; exchange = null; draft.placeholder = 'Type your question…'; }
     function panel(...parts) { grid.replaceChildren(); helper.replaceChildren(); const box = element('div'); box.className = 'ck-exchange'; box.append(...parts); grid.append(box); area.scrollTop = 0; return box; }
     function waiting(words, listening) {
       const again = button('🎤  Tap When They Speak', listenForStaff);
@@ -142,6 +150,7 @@
     }
     async function heardFrom(said, who = 'Staff') {
       stopListening();
+      lastExchange = null;
       // Sending a correction replaces what was heard.
       if (exchange?.said && messages.at(-1)?.who === who) { messages.pop(); transcriptList.lastElementChild?.remove(); }
       draft.value = said;
@@ -154,27 +163,45 @@
     function picture(tile, used) {
       const same = value => normalize(value).replace(/ ›$/,'');
       for (const board of pack.pool) for (const known of board.tiles) {
-        if (known.emoji && known.spokenText && same(known.spokenText) === same(tile.say)) return { emoji: known.emoji, label: known.label.replace(/ ›$/,''), say: tile.say };
+        if (known.emoji && known.spokenText && same(known.spokenText) === same(tile.say)) return { ...tile, emoji: known.emoji, label: known.label.replace(/ ›$/,'') };
         if (known.emoji && same(known.label) === same(tile.label)) return { ...tile, emoji: known.emoji };
       }
       return used.has(tile.emoji) ? { ...tile, emoji: '💬' } : tile;
     }
     // The tile shows the words it will say, as the demo does.
-    const replyTile = ({ emoji, label, say }, color = 'blue') => ({ emoji, label: /^(yes|no)$/i.test(label) ? label : say, spokenText: say, color, reply: true, navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined });
+    const replyTile = ({ emoji, say, tone }, color = 'blue') => ({ emoji, tone, label: say, spokenText: say, color, reply: true, navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined });
     // Yes and No stay first and stay put while the AI writes the rest.
     function replyGrid() {
       heading.textContent = boardName.textContent = 'Choose a reply';
+      if (patientScreen && !privacy) {
+        const shortcuts = [
+          { id:'bathroom', label:'Bathroom', spokenText:'I need to use the bathroom.' },
+          { id:'thirsty', label:'Thirsty', spokenText:'I am thirsty.' },
+          { id:'help', label:'Help', spokenText:'I need help.' },
+        ];
+        needs.replaceChildren(...shortcuts.map(shortcut => tileButton({ ...shortcut, quickNeed:true, reply:true,
+          navigateTo: place.boards.ts_after !== undefined ? 'ts_after' : undefined })));
+        needs.hidden = false;
+      }
       helper.replaceChildren();
       if (exchange.mode !== 'continue') helper.append(Object.assign(element('p',(exchange.who === 'Typed' ? '' : 'They said: ') + exchange.said),{className:'ck-prompt'}));
-      grid.replaceChildren(tileButton(replyTile({ emoji:'✅', label:'Yes', say: exchange.yes || 'Yes' },'green')), tileButton(replyTile({ emoji:'❌', label:'No', say: exchange.no || 'No' },'red')),
+      grid.replaceChildren(tileButton(replyTile({ emoji:'✅', label:'Yes', say:'Yes' },'green')), tileButton(replyTile({ emoji:'❌', label:'No', say:'No' },'red')),
         ...exchange.tiles.map(tile => tileButton(replyTile(tile))));
     }
-    function addReply(tile) {
-      if (/^(yes|no)$/i.test(tile.label)) { if (!place.bedside) { exchange[tile.label.toLowerCase()] = tile.say; replyGrid(); thinking(true); } return; }
+    function moreChoices() {
+      if (!grid.querySelector('[data-action="more_choices"]')) grid.append(tileButton({ emoji:'🔄', label:'More Choices', color:'gray', action:'more_choices', wide:true }));
+    }
+    function addReply(tile, previous) {
+      if (/^(yes|no)$/i.test(normalize(tile.say)) || exchange.shown.some(words => normalize(words) === normalize(tile.say))) return;
+      if (previous?.length && exchange.tiles === previous) {
+        exchange.tiles = [];
+        replyGrid(); thinking(true);
+      }
       const shown = picture(tile, new Set(exchange.tiles.map(item => item.emoji)));
-      exchange.tiles.push(shown); exchange.shown.push(shown.label);
-      const wait = grid.querySelector('.ck-thinking');
+      exchange.tiles.push(shown); exchange.shown.push(tile.say);
+      const wait = grid.querySelector('.ck-thinking, [data-action="more_choices"]');
       wait ? wait.before(tileButton(replyTile(shown))) : grid.append(tileButton(replyTile(shown)));
+      moreChoices();
     }
     function thinking(on) {
       grid.querySelector('.ck-thinking')?.remove();
@@ -183,35 +210,45 @@
       card.append(element('span','🧠'), element('strong','Thinking…')); grid.append(card);
     }
     async function replies(mode) {
-      const turn = ++turns, current = exchange;
-      current.mode = mode; current.tiles = []; current.yes = current.no = '';
+      cancelReplies();
+      const pending = new AbortController(), current = exchange;
+      request = pending;
+      current.mode = mode;
+      const previous = mode === 'more' && current.tiles?.length ? current.tiles : null;
+      current.tiles = previous || [];
       replyGrid(); thinking(true); area.scrollTop = 0;
       const board = pack.pool[place.boards[key]], main = pack.pool[place.boards.main];
-      const options = [...new Set([...board.tiles,...main.tiles].filter(t => t.spokenText && !t.silent && !t.private && !/^(yes|no)\b/i.test(t.label) && t.action !== 'back').map(t => t.spokenText))].slice(0,12);
+      const options = [...new Set([...board.tiles,...main.tiles].filter(t => t.spokenText && t.spokenText.length <= 120 && !t.silent && !t.private && !/^(yes|no)\b/i.test(t.label) && t.action !== 'back').map(t => t.spokenText))].slice(0,12);
       let source;
       try {
-        const response = await fetch('/api/sales/care-replies', { method:'POST', credentials:'same-origin', headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({ said: current.said, mode, shown: current.shown, log: messages.slice(0,mode === 'reply' ? -1 : undefined).slice(-6).map(m => ({ who: m.who === 'Visitor' ? 'Visitor' : 'Staff', text: m.english || m.text })),
+        const response = await fetch('/api/sales/care-replies', { method:'POST', credentials:'same-origin', signal:pending.signal, headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ client, said: current.said, mode, shown: current.shown.slice(-18).map(s => s.slice(0,60)), log: messages.slice(0,mode === 'reply' ? -1 : undefined).slice(-6).map(m => ({ who: m.who === 'Visitor' ? 'Visitor' : 'Staff', text: (m.english || m.text).slice(0,200) })),
             place: { name: place.name, bedside: Boolean(place.bedside), options } }) });
         if (!response.ok) throw new Error('Replies unavailable.');
         const reader = response.body.getReader(), decoder = new TextDecoder();
         for (let rest = '';;) {
           const { done, value } = await reader.read();
-          if (closed || turn !== turns || exchange !== current) { reader.cancel(); return; }
+          if (closed || request !== pending || exchange !== current) { await reader.cancel(); return; }
           if (done) break;
           rest += decoder.decode(value, {stream:true});
           const lines = rest.split('\n'); rest = lines.pop();
-          for (const line of lines) if (line) { const part = JSON.parse(line); if (part.tile) addReply(part.tile); if (part.done) source = part.source; }
+          for (const line of lines) if (line) {
+            const part = JSON.parse(line);
+            if (part.tile) addReply(part.tile, previous);
+            if (part.done) source = part.source;
+          }
         }
       } catch { source = source || null; }
-      if (closed || turn !== turns || exchange !== current) return;
+      if (closed || request !== pending || exchange !== current) return;
+      request = null;
       thinking(false);
-      if (!current.tiles.length) { const retry = button('Try again', () => replies(mode)); retry.className = 'ck-again'; helper.append(element('p','Replies could not load.'), retry); return; }
+      if (!current.tiles.length || (mode === 'more' && current.tiles === previous)) { const retry = button('Try again', () => replies(mode)); retry.className = 'ck-again'; helper.append(element('p',source ? 'No additional choices are available.' : 'Replies could not load.'), retry); return; }
       if (source === 'fixed') helper.append(Object.assign(element('p','The AI did not respond. These are saved replies.'),{className:'ck-note'}));
-      grid.append(tileButton({ emoji:'🔄', label:'More Choices', color:'gray', action:'more_choices', wide:true }));
+      moreChoices();
     }
     // What happens after a reply is spoken, as on demo.tinkytown.com.
     function afterReply() {
+      needs.hidden = true;
       heading.textContent = boardName.textContent = 'What next?';
       helper.replaceChildren();
       const tones = { repeat:'teal', undo:'red', their_turn:'purple', keep_talking:'blue', new_question:'orange', im_done:'gray', go_home:'yellow' };
@@ -232,16 +269,21 @@
       recognition = new Recognition();
       recognition.lang = 'en-US';
       recognition.interimResults = true;
+      let latest = '';
       recognition.onresult = event => {
         const heard = [...event.results].map(result => result[0].transcript).join('').trim();
         // Their words fill the type box as they speak, so a misheard word can be fixed and sent again.
-        draft.value = heard.slice(0,350);
+        latest = heard.slice(0,350); draft.value = latest;
         if (event.results[event.results.length - 1].isFinal === false) return;
         stopListening();
         if (heard) void heardFrom(heard);
       };
       recognition.onerror = fallback;
-      recognition.onend = () => { stopListening(); waiting('No words were heard.'); };
+      recognition.onend = () => {
+        stopListening();
+        if (latest) void heardFrom(latest);
+        else waiting('No words were heard.');
+      };
       [staff,hear].forEach(b => b.setAttribute('data-listening',''));
       status.textContent = 'Listening for staff…';
       try { recognition.start(); } catch { fallback(); }
@@ -377,7 +419,7 @@
       if (dietBlocks(tile)) return;
       if (action === 'replay') { const m = messages.at(-1); if (m) utter(m.text,m.lang); return; }
       if (action === 'wrong_one') { messages.pop(); transcriptList.lastElementChild?.remove(); transcriptTitle.textContent = 'Conversation (' + messages.length + ')'; utter('Sorry, wrong one','en');
-        if (lastExchange?.tiles?.length) { if (key === 'ts_after') { key = history.pop() || 'main'; setAddress(); draw(); } exchange = lastExchange; replyGrid(); grid.append(tileButton({ emoji:'🔄', label:'More Choices', color:'gray', action:'more_choices', wide:true })); return; }
+        if (lastExchange) { if (key === 'ts_after') { key = history.pop() || 'main'; setAddress(); draw(); } exchange = lastExchange; replyGrid(); moreChoices(); return; }
         return previous(); }
       if (action === 'done') { utter(tile.closing || "I'm done",'en'); history = []; return go('main',false); }
       if (action === 'more_choices') return replies('more');
@@ -414,23 +456,25 @@
       }
       if (tile.reply) {
         lastExchange = exchange;
-        if (!tile.navigateTo) return pack.controls ? afterReply() : undefined;
+        if (!tile.navigateTo && pack.controls) { closeExchange(); return afterReply(); }
       }
       if (tile.navigateTo) go(tile.navigateTo);
     }
     function tileButton(tile) {
       const b = button('',() => choose(tile)); b.className = 'care-kiosk-tile';
       b.dataset.color = tile.color || 'blue'; b.dataset.boardTarget = tile.navigateTo || ''; b.dataset.action = tile.action || '';
-      const emoji = element('span',tile.emoji || '💬'); emoji.setAttribute('aria-hidden','true');
+      const picture = window.CareDemoResponses.illustration(b, tile);
       const label = element('div'); label.className = 'ck-label';
       label.append(localized(element('strong'),tile.label));
       if (tile.subtitle) label.append(localized(element('small'),tile.subtitle));
-      b.append(emoji,label);
+      b.append(picture,label);
       if (tile.wide) b.dataset.wide = '';
-      if (tile.reply) b.dataset.reply = '';
+      if (tile.quickNeed) b.dataset.quickNeed = tile.id;
+      else if (tile.reply) b.dataset.reply = '';
       return b;
     }
     function draw() {
+      needs.hidden = true;
       const board = pack.pool[place.boards[key]];
       privacy = key === 'senior_private';
       localized(heading,board.title || place.name);
@@ -466,6 +510,7 @@
     }
     function setPlace(id, requestedBoard) {
       generation++; pendingSign = false; stopListening(); closeExchange();
+      lastExchange = null;
       place = pack.places.find(p => p.key === id) || pack.places[0];
       key = Object.hasOwn(place.boards,requestedBoard) ? requestedBoard : 'main';
       history = []; messages = []; transcriptList.replaceChildren(); transcript.open = false; transcriptTitle.textContent = 'Conversation';
@@ -500,7 +545,7 @@
     const pause = () => { stopListening(); cancelVoice(); };
     root.addEventListener('care:pause', pause);
     load();
-    return () => {closed=true;generation++;pause();root.removeEventListener('care:pause', pause);selectors.remove();app.remove();};
+    return () => {closed=true;generation++;cancelReplies();pause();root.removeEventListener('care:pause', pause);selectors.remove();app.remove();};
   }
   window.CareKiosks = {mount};
 })();

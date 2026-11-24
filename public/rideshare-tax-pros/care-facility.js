@@ -197,7 +197,7 @@
 
     function addTile(grid, text, icon, handler, color) {
       const tile = button('', handler, 'cf-tile');
-      tile.append(symbol(icon), node('span', null, text));
+      tile.append(window.CareDemoResponses.illustration(tile, {label:text, emoji:icon}), node('span', null, text));
       if (color && /^#[\da-f]{6}$/i.test(color)) tile.style.setProperty('--tile-ink', color);
       grid.append(tile);
     }
