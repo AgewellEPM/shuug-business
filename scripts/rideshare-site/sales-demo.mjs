@@ -38,11 +38,11 @@ function links(items) {
 
 const demos = new Set([...care, ...places].map(([id]) => id));
 export function demoDestination(path) {
-  if (path === '/demo' || path === '/demo/') return '/sales/senior-care#view=demo';
+  if (path === '/demo' || path === '/demo/') return '/sales#view=demo';
   if (!path?.startsWith('/demo/')) return;
   const slug = path.slice(6).replace(/\/$/, '');
   const venue = slug === 'ct/hartford/townhall' ? 'townhall' : slug;
-  if (demos.has(venue)) return '/sales/senior-care#view=demo&venue=' + venue + '&present=1';
+  if (demos.has(venue)) return '/sales#view=demo&venue=' + venue + '&present=1';
 }
 
 export function renderCareDemo() {

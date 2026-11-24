@@ -21,7 +21,7 @@
       if (busy || !state) return;
       pane(false); question.value = message; key = undefined; mailTurnId = previewId; controls(); form.requestSubmit();
     }
-    const voice = window.SdrCoachControls?.voice($('#coach-mic'), say, message => announce(message));
+    const voice = window.SdrCoachControls?.voice($('#coach-mic'), say, message => announce(message), () => state?.localVoice);
     const switchKey = id => 'sdr.coach.open.' + id;
     function remember(open) { if (identity) { try { sessionStorage.setItem(switchKey(identity), String(open)); } catch {} } }
     function sync() {
@@ -65,6 +65,7 @@
     function announce(message, error = false) { status.textContent = message; status.dataset.error = String(error); }
     function controls() {
       question.disabled = !state;
+      $('#coach-mic').disabled = !state || (busy && $('#coach-mic').getAttribute('aria-pressed') !== 'true');
       question.readOnly = busy;
       send.disabled = !state || busy || !question.value.trim();
       edit.disabled = !state;
@@ -271,7 +272,7 @@
         const here = context(), activeForm = nativeForms?.current();
         const reviewed = /^(?:please )?(?:save|record) (?:it|this|that|the )/i.test(message) ? reviewedFields(state.turns.at(-1)) : undefined;
         const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone, mailTurnId, reviewed,
-          screen: { view: here.view, care: here.care, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm } });
+          screen: { view: here.view, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm } });
         if (generation !== version) return;
         pending.remove(); pending = null;
         if (!state.turns.some(item => item.id === turn.id)) { state.turns.push(turn); log.append(renderTurn(turn)); }

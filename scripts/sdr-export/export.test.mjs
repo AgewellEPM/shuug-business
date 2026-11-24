@@ -455,6 +455,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
     assert.equal(header.querySelector('#sdr-header-search'), null);
     assert.ok(document.querySelector('[data-pipeline-part="board"] #sales-filter'));
+    document.querySelector('#coach-launch').click();
+    await waitFor(() => !document.querySelector('#coach-form textarea').disabled, 'Coach did not finish opening over Support');
+    assert.equal(document.body.dataset.sdrView, 'support');
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
+    document.querySelector('.sdr-nav [data-tab="pipeline"]').click();
+    assert.equal(document.body.dataset.sdrView, 'pipeline');
+    assert.match(document.querySelector('#coach-context').textContent, /Pipeline/);
+    assert.equal(document.querySelector('#coach-popup').hidden, false);
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -555,7 +563,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(territoryState.value, 'PA');
   pageDocument.querySelector('[data-territory-state="AK"]').click();
   assert.equal(territoryState.value, 'AK');
-  assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
+  assert.equal(territoriesPanel.querySelector('#sales-territory-facilities'), null);
   assert.equal(territoriesPanel.querySelector('#sales-territory-cities'), null);
   assert.ok(territoriesPanel.querySelector('[data-territory-lookup]'));
   const townPanel = pageDocument.getElementById('territory-town-map');
@@ -1011,6 +1019,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
     assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-xp-bar'));
+    assert.equal(pageDocument.querySelector('.sdr-topbar #sdr-header-search'), null);
+    assert.ok(pageDocument.querySelector('#sales-filter'));
+    assert.ok(pageDocument.querySelector('#coach-launch'));
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
       headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action, ...data }) });
@@ -1399,7 +1410,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
   assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
-  await t.test('sales reps exchange live channel messages across both CRM views', async t => {
+  await t.test('sales reps exchange live channel messages across sessions', async t => {
     await browserSession(first.origin).api('chat-sync', {}, 401);
     await juniorSession.api('chat-create-channel', { name: 'Unavailable' }, 403);
     const ownerDoc = window.document;
@@ -1418,7 +1429,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await owner.api('chat-create-channel', { name: '#deal-desk' }, 409);
     await differentProject.api('chat-sync', { channel: 'deal-desk' }, 404);
 
-    const path = '/sales/senior-care';
+    const path = '/sales';
     const rep = agentWindow, careRep = await mountConsole(t, first.origin, juniorSession,
       await (await juniorSession.request(path)).text(), path + '#view=chat&channel=deal-desk');
     const find = (win, selector) => win.document.querySelector(selector);
@@ -1472,7 +1483,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const people = (await agentSession.api('chat-people')).people;
     assert.deepEqual(Object.keys(people.find(person => person.id === peer.id)).sort(), ['id', 'name']);
     assert.ok(!people.some(person => person.id === agent.id));
-    const path = '/sales/senior-care';
+    const path = '/sales';
     const recipient = await mountConsole(t, first.origin, peerSession, await (await peerSession.request(path)).text(), path + '#view=chat');
     const mine = agentWindow.document, theirs = recipient.document;
     mine.querySelector('[data-tab=chat]').click();
@@ -1580,7 +1591,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await replacementSession.api('bootstrap', {}, 401);
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
-    const path = '/sales/senior-care';
+    const path = '/sales';
     const before = await owner.api('bootstrap');
     const careWindow = await mountConsole(t, first.origin, owner, await (await owner.request(path)).text(), path);
     const doc = careWindow.document;
@@ -1607,7 +1618,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     }
     for (const [venue, room] of [['hospital','reception'], ['nursing-home','resident-room'], ['senior-center','transportation']]) {
       const entry = await owner.request('/demo/' + venue, { redirect: 'manual' });
-      assert.equal(entry.headers.get('location'), '/sales/senior-care#view=demo&venue=' + venue + '&present=1');
+      assert.equal(entry.headers.get('location'), '/sales#view=demo&venue=' + venue + '&present=1');
       careWindow.location.hash = 'view=demo&venue=' + venue;
       await waitFor(() => panel.querySelector('.cf-room-card[data-room="' + room + '"]'), 'Facility room missing: ' + room);
       const voice = panel.querySelector('[data-care-voice]');
@@ -1718,12 +1729,16 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual(after.contracts, before.contracts);
   });
 
-  await t.test('senior-care and universal views share saved facilities and honor the active pipeline filter', async t => {
-    const path = '/sales/senior-care';
+  await t.test('one blue Sales Workspace includes business and facility tools and supports old links', async t => {
+    const path = '/sales';
+    const old = await owner.request('/sales/senior-care?ref=bookmark', { redirect: 'manual' });
+    assert.equal(old.status, 302);
+    assert.equal(old.headers.get('location'), '/sales?ref=bookmark');
+    assert.equal((await owner.request('/demo', { redirect: 'manual' })).headers.get('location'), '/sales#view=demo');
     const carePage = await owner.request(path);
     assert.equal(carePage.status, 200);
-    assert.ok(pageDocument.querySelector('a[href="/sales/senior-care"]'));
-    assert.equal(pageDocument.querySelector('#care-directory-state'), null);
+    assert.equal(pageDocument.querySelector('a[href="/sales/senior-care"], [data-senior-care], .care-workspace-switch'), null);
+    assert.ok(pageDocument.querySelector('#care-directory-state'));
     const careWindow = await mountConsole(t, first.origin, owner, await carePage.text(), path);
     const care = careWindow.document;
     await waitFor(() => !care.querySelector('#sales-workspace').hidden, 'Care view did not reuse the signed-in session');
@@ -1770,6 +1785,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
     const savedOffices = (await owner.api('bootstrap')).offices;
     care.querySelector('[data-tab="pipeline"]').click();
+    const general = savedOffices.find(row => !JSON.parse(row.notes).facilityType);
+    assert.ok(general);
+    assert.ok(care.querySelector('#sales-offices [data-office="' + general.id + '"]'));
     pageDocument.querySelector('[data-tab="pipeline"]').click();
     pageDocument.querySelector('#sales-refresh').click();
     for (const facility of facilities) {

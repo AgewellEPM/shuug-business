@@ -20,7 +20,7 @@ export function renderWorkspace(profile, signIn) {
   const portal = signIn ? ` data-identity-portal="${escape(signIn)}"` : '';
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
   const site = escape(profile.publicSite || '/sales');
-  function salesPage(source, seniorCare = false) {
+  function salesPage(source) {
     const careStyles = careWorkspace ? ['sales-demo','care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot','sales-care-campaign','sales-products']
       .map(name => `<link rel="stylesheet" href="/${name}.css">`).join('') : '';
     const careScripts = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign','sales-products']
@@ -39,7 +39,7 @@ export function renderWorkspace(profile, signIn) {
       .replace('</head>', '<link rel="stylesheet" href="/sales-pipeline-workspace.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-pipeline-workspace.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
-      .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}${seniorCare ? ' data-care-crm' : ''}>`)
+      .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}${careWorkspace ? ' data-care-workspace' : ''}>`)
       .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')
       .replace('<link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml">', '')
       .replace('<a class="sdr-brand" href="/"', `<a class="sdr-brand" href="${site}"`)
@@ -95,10 +95,6 @@ export function renderWorkspace(profile, signIn) {
     </article>`)],
     ['/office-signup', frame('Private agreement', branded(signup), '<script src="/contract-signature.js" defer></script><script src="/sales.js" defer></script>')],
   ]);
-  if (careWorkspace) {
-    const care = salesPages({ prospects: true, seniorCare: true, careWorkspace });
-    pages.set('/sales/senior-care', salesPage(care.find(page => page.slug === 'sales').html, true));
-  }
   if (signIn) {
     const location = legacy.find(page => page.slug === 'location').main
       .replace('https://portal.gigtax.pro/', escape(signIn)).replace('Your tax location', 'Your location');

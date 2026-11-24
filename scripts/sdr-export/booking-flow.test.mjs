@@ -147,7 +147,7 @@ test('reps use Campaigns for guides and materials, facility records for pilots, 
     settings.querySelector('summary').click();
     assert.ok(settings.open && settings.querySelector('#sales-campaign-form'));
 
-    const w = await rep.page('/sales/senior-care#view=campaigns&topic=benefits');
+    const w = await rep.page('/sales#view=campaigns&topic=benefits');
     const d = w.document, el = selector => d.querySelector(selector);
     await waitFor(() => !el('[data-care-campaign]').hidden, 'rep campaign landing');
     assert.equal(el('.sdr-nav [data-tab="campaigns"]').hidden, false);
@@ -158,9 +158,9 @@ test('reps use Campaigns for guides and materials, facility records for pilots, 
     assert.equal(el('[data-care-campaign] [download]').closest('[role="tabpanel"]').id, 'cc-topic-materials');
     assert.equal(rep.actions.some(r => r.action === 'campaign-read'), false);
     await rep.api('campaign-read', {}, 403);
-    const search = el('#sdr-header-search input');
+    const search = el('[data-cc-search] input');
     search.value = 'worksheet';
-    el('#sdr-header-search').requestSubmit();
+    el('[data-cc-search]').requestSubmit();
     const result = el('[data-cc-search-results] button');
     assert.equal(result.textContent, 'Sales Materials');
     result.click();

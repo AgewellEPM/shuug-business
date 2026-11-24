@@ -19,11 +19,6 @@
   box-shadow: 0 7px 26px -13px #163a6575, 0 1px 3px #203d6114;
   overflow: hidden;
 }
-[data-care-crm] .chat-workspace {
-  --chat-accent: #21614a; --chat-deep: #174d41; --chat-tint: #e1f1e9;
-  --chat-rail: #eff5f2; --chat-own: #205e4e;
-  --chat-hero: linear-gradient(108deg, #123836 0%, #16554f 53%, #1c7180 100%);
-}
 .chat-workspace[data-conversation="direct"] { --chat-own: #176363; }
 .chat-workspace [hidden], .sdr-nav .chat-nav-count[hidden] { display: none !important; }
 .chat-workspace :is(h2, h3, h4, p) { margin: 0; }

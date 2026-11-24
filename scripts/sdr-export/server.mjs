@@ -21,6 +21,7 @@ import { workspaceResearch } from '../../sales/workspace-research.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { salesDailyPlan } from '../../sales/sales-daily-plan.mjs';
 import { salesCoach } from './sales-coach.mjs';
+import { localCoachSpeech } from './coach-speech.mjs';
 import coachArticles from './coach-help.cjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
 import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
@@ -98,6 +99,7 @@ if (searchEndpoint) db.search = async query => {
 
 let attempts = [];
 const dailyPlan = salesDailyPlan(db);
+const coachSpeech = localCoachSpeech();
 const sales = createHandler(env, db, {
   cookieName: 'gigtax_sales_' + digest(sessionKey).slice(0, 16),
   localHttp: origin.origin === localOrigin,
@@ -125,7 +127,8 @@ const sales = createHandler(env, db, {
   nextBooking: booking.nextBooking,
   teamChat: db.chat,
   dailyPlan,
-  salesCoach: salesCoach(db, dailyPlan, { articles: coachArticles, demo: profile.focus === 'senior-care', model: process.env.SDR_COACH_MODEL, mail: repEmail }),
+  coachSpeech,
+  salesCoach: salesCoach(db, dailyPlan, { articles: coachArticles, demo: profile.focus === 'senior-care', model: process.env.SDR_COACH_MODEL, mail: repEmail, localVoice: coachSpeech.available }),
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -139,6 +142,7 @@ const sales = createHandler(env, db, {
 });
 const routes = new Map([
   ['/api/sales', sales],
+  ['/api/sales/coach/voice', sales],
   ['/api/sales/mail/v1', sales],
   ['/api/offices', createDirectoryHandler(env, db, { defaultBookingURL: () =>
     origin.protocol === 'https:' && booking.publicAction('hosts', {}).hosts.length ? origin.origin + '/book' : '' })],
@@ -169,6 +173,10 @@ const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, 
     if (path === '/api/booking' || path.startsWith('/api/booking/') || path.startsWith('/book/feed/')) return await publicBooking(request, response);
     if (routes.has(path)) return await routes.get(path)(request, response);
     if (!['GET', 'HEAD'].includes(request.method)) return finish(405);
+    if (profile.focus === 'senior-care' && (path === '/sales/senior-care' || path === '/sales/senior-care/')) {
+      response.setHeader('Location', '/sales' + new URL(request.url, origin).search);
+      return finish(302);
+    }
     const demo = profile.focus === 'senior-care' && demoDestination(path);
     if (path === '/' || demo) {
       response.setHeader('Location', demo || '/sales');

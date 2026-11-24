@@ -523,7 +523,7 @@
         typeCounts.set(row.type, (typeCounts.get(row.type) || 0) + 1);
         stageCounts.set(row.stage, (stageCounts.get(row.stage) || 0) + 1);
       }
-      replaceOptions(filter.elements.type, 'All types', Object.entries(types).filter(([value]) => !document.body.hasAttribute('data-care-crm') || ['nursing-home', 'senior-center'].includes(value)).map(([value, name]) =>
+      replaceOptions(filter.elements.type, 'All types', Object.entries(types).map(([value, name]) =>
         [value, typeCounts.has(value) ? `${name} (${typeCounts.get(value)})` : name]), saved.type);
       const user = workspace.user;
       const areas = user.territory?.version === 1 ? user.territory.areas.map(area => area.state) :
