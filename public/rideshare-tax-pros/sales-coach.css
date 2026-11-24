@@ -63,6 +63,12 @@
 #coach-form textarea:focus-visible { outline: none; }
 #coach-form button, #coach-goal-form [type="submit"] { display: inline-flex; align-items: center; gap: 6px; border: 0; border-radius: 10px; padding: 9px 12px; background: var(--coach-accent); color: #fff; font-size: 14px; font-weight: 650; }
 #coach-form button:disabled { background: #e4ebf2; color: #54697d; opacity: 1; }
+#coach-form #coach-mic { flex: none; justify-content: center; width: 34px; min-height: 35px; padding: 5px; color: #235d68; background: #e6f3f2; }
+#coach-form #coach-mic[aria-pressed="true"] { background: #185d60; color: white; }
+.coach-mail-preview { margin: 9px 0; padding: 10px; background: #f2f7fb; border: 1px solid var(--coach-line); border-radius: 9px; overflow-wrap: anywhere; font-size: 13px; }
+.coach-mail-preview details { padding: 6px 0; }
+.coach-mail-preview summary { cursor: pointer; color: var(--coach-accent); }
+.coach-mail-preview details > strong { display: block; margin: 7px 0; }
 .coach-side { display: grid; align-content: start; gap: 14px; min-height: 0; flex: 1; overflow: auto; padding: 17px 13px; background: #f2f6fa; }
 .coach-card { padding: 13px; border: 1px solid var(--coach-line); border-radius: 13px; background: #fff; }
 .coach-card-title { display: flex; align-items: center; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-bottom: 10px; }

@@ -24,6 +24,8 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 - Pipeline list and board, assignments, follow-ups, recorded contact and reply history, suppression preferences, and CSV export.
 - Owner and agent access, territory enforcement, and revocation. An optional shared identity portal can also grant scoped staff and location sessions.
 - Agreement preview and publication, private invitations, signatures, receipts and delivery history. Email can be recorded from an external mail app or sent through a configured Mailgun account following the existing reviewed preview flow.
+
+In the agreement workspace, **Contracts** provides pilot, service, extension and renewal templates. Select a saved facility or business, enter its terms, and submit the draft for workspace-owner approval. After approval, prepare the private signature link or open the facility’s existing contract tools. The invitation uses the exact approved text, including any entered dates and value. Renewals and extensions reference an existing signed agreement. The archive retains signed agreements and expired invitations.
 - The existing Stripe checkout, webhook, billing reconciliation, revenue and commission projections can be used with the optional membership profile. The default agreement profile completes after signature and offers project-defined agreement text.
 - The optional MCP server exposes the same records and role restrictions used by the browser.
 
@@ -33,7 +35,11 @@ Open the **Ask Tinky** bubble in the bottom-right corner of either CRM. The conv
 
 In the popup, open **My goal** and choose **Set goal** to track prospects added and currently assigned to you, confirmed meetings you host during the period, logged calls or signed agreements credited to you. Set the dates and add a focus such as senior-care admissions. The card counts saved SDR activity in the goal’s time zone.
 
-Ask for a new prospect, call note, follow-up date, email draft or goal. Select **Review** to open the working form, check the details and save or send it there. Conversation history and goals are saved per staff account in the workspace database.
+Ask Tinky to open a named account, the new prospect form, the email composer, booking calendar or a specific training lesson. It can fill sales forms in place, including contacts, pipeline progress, campaigns, booking details, support requests and mailbox messages. For a prepared prospect, call note, follow-up date or goal, say **Save it**. Tinky uses the form’s current values and reports the result from the SDR.
+
+Ask **Email Harbor View about a reception demo** or name multiple saved prospects. Tinky shows the sender, each recipient and their message. You can change the subject or revise the wording in chat. **Send it** submits each reviewed message separately through the signed-in rep’s assigned Zoho mailbox and records provider acceptance on the account. Contact preferences and current assignments are checked again at submission. **Email my prospects** prepares the eligible accounts assigned to that rep. Typing an exact **Subject:** and **Body:** uses the words supplied.
+
+In browsers that offer speech recognition, use the microphone in the popup. Tinky transcribes the command, reads its reply and listens for the next instruction. Minimize the popup or tap the microphone again to end voice mode. Browser permissions and speech services govern microphone input. Staff can use the same commands by typing. Conversation history and goals are saved per staff account in the workspace database.
 
 The server runs inference through local Ollama on loopback, using `qwen3:4b-instruct-2507-q4_K_M` by default. Set `SDR_COACH_MODEL` before startup to select another installed Ollama chat model that supports structured output. If the model is unavailable, a labeled workspace guide shows sourced instructions and the rep’s next recorded priority.
 

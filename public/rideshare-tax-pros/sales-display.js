@@ -70,11 +70,17 @@
     return view?.innerText.trim() || '';
   }
 
-  read.addEventListener('pointerdown', () => { selected = selectionText(); });
+  document.querySelectorAll('[data-display-open]').forEach(button => {
+    button.addEventListener('pointerdown', () => { selected = selectionText(); });
+    button.addEventListener('keydown', event => {
+      if (event.key === 'Enter' || event.key === ' ') selected = selectionText();
+    });
+  });
+  panel.addEventListener('close', () => { selected = ''; });
   read.addEventListener('click', () => {
     if (active) return stop('Reading stopped.');
     if (!speech || !window.SpeechSynthesisUtterance) return stop('Read aloud is unavailable in this browser.');
-    const text = selectionText() || selected || pageText();
+    const text = selected || pageText();
     selected = '';
     if (!text) return stop('There is no page text to read.');
     const words = text.split(/\s+/);

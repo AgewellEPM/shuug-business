@@ -8,7 +8,8 @@ import { enrollmentEligibility, initialBilling, reconcileEnrollment } from './bi
 import { patchReviewed } from './atomic.mjs';
 import { CONTACT_ACTIONS, contactBook, contactDirectory, contactTools, initialOfficeContact } from './contacts.mjs';
 import { progressProjection, progressTools } from './pipeline.mjs';
-import { contractSummary, contractLink, signedContractReceipt } from './contracts.mjs';
+import { contractSummary, contractLink, contractInvitation, signedContractReceipt } from './contracts.mjs';
+import { CONTRACT_WORKSPACE_ACTIONS, contractWorkspace } from './contract-workspace.mjs';
 import { DELIVERY_ACTIONS, deliveryTools, deliveryReceipts, safeSalesEvent } from './contract-delivery.mjs';
 import { revenueSummary } from './revenue.mjs';
 import { localDiscovery } from './local-discovery.mjs';
@@ -27,6 +28,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const workspaceSession = tools.workspaceSession || requestWorkspaceSession;
   const presence = tools.teamChat?.presence;
   const prepareAgreement = tools.agreement || agreement;
+  const contractCenter = tools.agreementOnly && db.contractTransaction ? contractWorkspace(env, db, prepareAgreement) : null;
   const outreachDrafts = tools.outreach || outreach;
   const prospects = prospectTools(env, db, tools);
   const reconcile = tools.billingReconciler || reconcileEnrollment;
@@ -118,12 +120,13 @@ export function service(env, db, payment = payments(env), tools = {}) {
         membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
+    if (contractCenter && CONTRACT_WORKSPACE_ACTIONS.has(action)) return contractCenter(user, action, b);
     if (SUPPORT_REQUEST_ACTIONS.has(action)) return support(user, action, b);
     if (TRAINING_ACTIONS.has(action)) return training(user, action, b);
     if (tools.booking && typeof action === 'string' && action.startsWith('booking-')) return tools.booking(user, action, b);
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
-    if (tools.salesCoach?.actions.has(action)) return tools.salesCoach.dispatch(user, action, b);
+    if (tools.salesCoach?.actions.has(action)) return tools.salesCoach.dispatch(user, action, b, dispatch);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.careCampaign && action === 'start-care-pilot') {
       const office = await leadFor(user, b.id);
@@ -316,13 +319,13 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const lead = await leadFor(user, b.id), info = metadata(lead), terms = await db.terms();
       if (!termsValid(terms)) throw new HttpError(409, 'The workspace owner must approve and publish the enrollment terms first.');
       if (!independenceVerified(info) || info.primaryContactDoNotContact || ['do_not_contact', 'not_interested', 'active'].includes(lead.status)) throw new HttpError(409, 'Confirm independent ownership with source evidence and the office’s interest before inviting. Respect the primary contact’s do not contact preference.');
-      const ownerEmail = email(b.email), ownerName = text(b.ownerName, 140, true), token = secret();
+      const ownerEmail = email(b.email), ownerName = text(b.ownerName, 140, true);
       const current=(await db.list('enrollments')).find(r=>String(metadata(r).leadId)===String(lead.id)&&['invited','payment_pending','active'].includes(r.status));
       if(current){const m=metadata(current),saved=unseal(m.sealedToken||'',key);if(saved?.token&&current.contact_email===ownerEmail&&m.expiresAt>Date.now())return {enrollmentId:current.id,link:`${env.GIGTAX_SALES_ORIGIN}/office-signup#${new URLSearchParams({id:current.id,token:saved.token})}`,expiresInDays:Math.max(0,Math.floor((m.expiresAt-Date.now())/86400000))};throw new HttpError(409,'This office already has an enrollment. Review its payment and invitation status before creating another.');}
-      const expiresAt=Date.now()+14*86400000;
       if (info.invitationPendingUntil > Date.now()) throw new HttpError(409, 'An invitation is being prepared. Refresh before trying again.');
       await patchReviewed(db, 'offices', lead, { status: 'invited', notes: JSON.stringify({ ...info, invitationPendingUntil: Date.now() + 120000 }) });
-      const enrollment = await db.create('enrollments', { town: `Invitation ${secret().slice(0, 12)}`, state: lead.state, contact_name: ownerName, contact_email: ownerEmail, assigned_to: user.id, status: 'invited', notes: JSON.stringify({ leadId: String(lead.id), officeName: lead.town, address: info.address, state: lead.state, agentId: String(lead.assigned_to || user.id), preparedBy: user.id, tokenHash: digest(token), sealedToken:seal({token,exp:expiresAt},key), terms, expiresAt }) });
+      const { token, record } = contractInvitation(env, lead, user, { ownerName, ownerEmail, terms });
+      const enrollment = await db.create('enrollments', record);
       await audit(user, lead.id, 'invitation_created', { enrollmentId: enrollment.id, ownerEmail });
       return { enrollmentId: enrollment.id, link: `${env.GIGTAX_SALES_ORIGIN}/office-signup#${new URLSearchParams({ id: enrollment.id, token })}`, expiresInDays: 14 };
     }

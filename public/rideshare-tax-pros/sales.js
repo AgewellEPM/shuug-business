@@ -65,7 +65,7 @@
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
-    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate });
+    const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
     if (coachUI) document.addEventListener('click', event => {
       if (event.target.closest('[data-prospect-select],[data-prospect-add],[data-prospect-cancel]')) coachUI.sync();
     });
@@ -78,7 +78,7 @@
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
       const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -87,7 +87,7 @@
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
-      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
+      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -104,6 +104,7 @@
       careCampaign?.view(name);
       if (name === 'campaigns' && data?.user.role === 'owner') campaignUI?.refresh();
       if (name === 'email') emailUI?.enter();
+      if (name === 'contracts') contractsUI?.enter();
       if (name === 'team') teamUI?.refresh(data.user);
       else teamUI?.closeMemberProfile();
       if (enteringWorkspace) $('.sdr-main').scrollTop = 0;
@@ -191,7 +192,7 @@
         return true;
       }
       if (standalone && ['pipeline', 'contacts', 'calendar', 'locations', 'contracts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
-      if (emailUI && ['email', 'mail'].includes(params.get('view'))) { tab(params.get('view')); return true; }
+      if (emailUI && ['email', 'mail'].includes(params.get('view'))) { tab(params.get('view')); if (params.get('view') === 'email' && params.get('compose') === 'new') emailUI.compose(); return true; }
       if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
       if (teamUI && params.get('view') === 'team') {
         tab('team');
@@ -207,6 +208,7 @@
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
       if (!prospectUI || !['prospects', 'linkedin'].includes(params.get('view'))) return false;
       tab('prospects');
+      if (params.get('form') === 'new') $('[data-prospect-add]')?.click();
       if (params.get('view') === 'linkedin') prospectUI.reveal();
       const profile = params.get('profile');
       if (profile && prospectUI.capture(profile, params.get('name') || '')) {
@@ -539,7 +541,8 @@
       for (const [name,value] of Object.entries({ name:result.name, address:result.address || '', city:result.city || '', state:result.state, postalCode:result.zip || '', source:result.sourceURL || result.url || '', email:result.email || '', phone:result.phone || '', contact:result.contact || '', website:result.website || '', independence:'unverified' })) if (form.elements[name]) form.elements[name].value = value;
       form.scrollIntoView?.({ behavior:'smooth', block:'start' }); form.elements.name.focus(); status('Public business details prepared. Review the office location and owner role before saving. Nothing has been saved yet.');
     } });
-    contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: tab, refresh });
+    contractsUI = window.GigTaxContracts?.mount({ api, status, onSelect: showOffice, onNavigate: openNavigation,
+      onCompose: draft => emailUI?.compose(draft), refresh });
     emailUI = window.SdrEmail?.mount({ api, onNavigate: tab, onOpenOffice: showOffice, refresh });
     contactsUI = window.GigTaxContacts?.mount({ api, status, refresh, onSelect: showOffice, onNavigate: tab, onEmail: emailUI && emailContact });
     prospectUI = window.SdrLinkedIn?.mount({ api, status });
