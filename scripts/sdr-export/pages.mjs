@@ -38,6 +38,19 @@ export function renderWorkspace(profile, signIn) {
       .replace('<link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml">', '')
       .replace('<a class="sdr-brand" href="/"', `<a class="sdr-brand" href="${site}"`)
       .replace('<a href="/">Open public website ↗</a>', profile.publicSite ? `<a href="${site}">Open public website ↗</a>` : '');
+    sales = sales
+      .replace('</head>', '<link rel="stylesheet" href="/sales-display.css"><script src="/sales-display.js" defer></script></head>')
+      .replace(/<button[^>]*id="sales-logout"[^>]*>/, button => '<button type="button" class="button secondary" data-display-open>Display settings</button>' + button)
+      .replace('</body>', `<dialog class="sdr-display" aria-labelledby="sdr-display-title">
+        <form method="dialog">
+          <h2 id="sdr-display-title">Display settings</h2>
+          <label>Text and interface size
+            <select name="scale"><option value="100">100% (default)</option><option value="125">125%</option><option value="150">150%</option><option value="175">175%</option><option value="200">200%</option></select>
+          </label>
+          <label class="sdr-display-check"><input type="checkbox" name="monochrome"> Black and white</label>
+          <div class="sdr-display-actions"><button type="button" class="button secondary" data-display-reset>Reset</button><button class="button primary" autofocus>Done</button></div>
+        </form>
+      </dialog></body>`);
     if (profile.directory === 'project') {
       sales = sales.replace('Find local tax offices', 'Find local businesses');
     }

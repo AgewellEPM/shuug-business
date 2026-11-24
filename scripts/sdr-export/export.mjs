@@ -42,6 +42,7 @@ const assets = [
   'local-contacts.js', 'local-offices.css', 'local-offices.js', 'sales.css', 'sales.js', 'sales-console.css',
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
+  'sales-display.css', 'sales-display.js',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
   ...['care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot'].flatMap(name => [name + '.js', name + '.css']),
   ...readdirSync(join(root, 'public/rideshare-tax-pros')).filter(name => /^care-library-[a-z_-]+\.json$/.test(name)),
