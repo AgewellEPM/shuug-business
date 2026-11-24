@@ -73,6 +73,7 @@ function browserSession(origin) {
 
 async function mountConsole(t, origin, session, html, path = '/sales') {
   const dom = new JSDOM(html, { url: origin + path, runScripts: 'outside-only', beforeParse(window) {
+    window.AbortController = AbortController;
     window.fetch = (path, options) => session.request(path, options);
     const dialog = window.HTMLDialogElement.prototype;
     dialog.showModal ??= function () { this.open = true; };
@@ -1055,6 +1056,74 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(sign.paymentStatus, 'not_required');
   await signer.api('signup-confirm', token, 409);
   assert.equal((await owner.api('bootstrap')).offices.find(row => row.town === office.name).pipeline.waitingOn, 'none');
+  await t.test('sales reps exchange live channel messages across both CRM views', async t => {
+    await browserSession(first.origin).api('chat-sync', {}, 401);
+    await juniorSession.api('chat-create-channel', { name: 'Unavailable' }, 403);
+    const ownerDoc = window.document;
+    if (!ownerDoc.querySelector('#sales-detail-drawer').hidden) ownerDoc.querySelector('#sales-detail-close').click();
+    ownerDoc.querySelector('[data-tab=chat]').click();
+    assert.equal(ownerDoc.querySelector('[data-tab-panel=chat]').hidden, false);
+    await waitFor(() => !ownerDoc.querySelector('#chat-compose textarea').disabled, 'Owner chat did not load');
+    assert.deepEqual([...ownerDoc.querySelectorAll('#chat-channels button')].map(b => b.dataset.channel), ['general', 'field-notes', 'wins']);
+    ownerDoc.querySelector('#chat-add').click();
+    const create = ownerDoc.querySelector('#chat-create');
+    create.elements.name.value = 'Deal Desk';
+    create.elements.topic.value = 'Coordinate the next steps on deals.';
+    create.requestSubmit();
+    await waitFor(() => ownerDoc.querySelector('#chat-name').textContent === 'deal-desk' &&
+      ownerDoc.querySelector('#chat-topic').textContent === 'Coordinate the next steps on deals.', 'Owner could not open the new channel');
+    await owner.api('chat-create-channel', { name: '#deal-desk' }, 409);
+    await differentProject.api('chat-sync', { channel: 'deal-desk' }, 404);
+
+    const path = '/sales/senior-care';
+    const rep = agentWindow, careRep = await mountConsole(t, first.origin, juniorSession,
+      await (await juniorSession.request(path)).text(), path + '#view=chat&channel=deal-desk');
+    const find = (win, selector) => win.document.querySelector(selector);
+    const channelButton = (win, channel) => find(win, `#chat-channels [data-channel="${channel}"]`);
+    function type(win, value) {
+      const input = find(win, '#chat-compose textarea');
+      input.value = value;
+      input.dispatchEvent(new win.Event('input', { bubbles: true }));
+      return input;
+    }
+    find(rep, '[data-tab=chat]').click();
+    await waitFor(() => channelButton(rep, 'deal-desk'), 'The new channel did not reach the rep');
+    channelButton(rep, 'deal-desk').click();
+    for (const win of [rep, careRep]) {
+      await waitFor(() => find(win, '#chat-name').textContent === 'deal-desk' && !find(win, '#chat-compose textarea').disabled, 'Rep chat did not open');
+      assert.equal(find(win, '#chat-add').hidden, true);
+    }
+    const message = 'Can someone cover Thursday’s call? <b>10 AM</b>';
+    type(rep, message).dispatchEvent(new rep.KeyboardEvent('keydown', { key: 'Enter', bubbles: true, cancelable: true }));
+    await waitFor(() => find(careRep, '.chat-body')?.textContent === message, 'The other rep did not receive the message live');
+    assert.equal(find(careRep, '.chat-body b'), null);
+    assert.equal(find(careRep, '.chat-byline strong').textContent, 'Example Agent');
+    find(careRep, '.chat-byline button').click();
+    assert.match(find(careRep, '#chat-reply').textContent, /Example Agent/);
+    type(careRep, 'I can take it.');
+    find(careRep, '#chat-compose').requestSubmit();
+    await waitFor(() => find(rep, '.chat-quote') && find(rep, '#chat-messages').textContent.includes('I can take it.'), 'The original sender did not receive the reply');
+    const received = await agentSession.api('chat-sync', { channel: 'deal-desk' });
+    assert.deepEqual(received.messages.map(m => m.authorId), [agent.id, junior.agent.id]);
+    assert.equal(received.messages[1].replyId, received.messages[0].id);
+    const crossChannel = { channel: 'wins', body: 'A win', requestId: randomUUID(), replyTo: received.messages[0].id };
+    await agentSession.api('chat-send', crossChannel, 404);
+    const winMessage = { channel: 'wins', body: 'Booked a call.', requestId: randomUUID(), author: 'Wrong author' };
+    const copies = await Promise.all([owner.api('chat-send', winMessage), owner.api('chat-send', winMessage)]);
+    assert.equal(copies[0].id, copies[1].id);
+    type(rep, 'Unfinished handoff');
+    await waitFor(() => channelButton(rep, 'wins')?.querySelector('.chat-unread')?.textContent === '1', 'Unread count did not update');
+    channelButton(rep, 'wins').click();
+    await waitFor(() => find(rep, '.chat-body')?.textContent === 'Booked a call.', 'Channel switch did not load its own history');
+    assert.equal(find(rep, '.chat-byline strong').textContent, 'Workspace owner');
+    await waitFor(async () => (await agentSession.api('chat-sync')).channels.find(c => c.slug === 'wins').unread === 0, 'Reading the channel did not clear unread');
+    channelButton(rep, 'deal-desk').click();
+    assert.equal(find(rep, '#chat-compose textarea').value, 'Unfinished handoff');
+    assert.equal(rep.location.hash, '#view=chat&channel=deal-desk');
+    const reload = await mountConsole(t, first.origin, agentSession, html, '/sales' + rep.location.hash);
+    await waitFor(() => find(reload, '#chat-messages')?.textContent.includes('I can take it.'), 'Reload lost the conversation');
+    for (const win of [window, rep, careRep, reload]) find(win, '[data-tab=team]').click();
+  });
   const signedOffice = await agentSession.api('office', { id });
   await agentSession.api('record-progress', { id, expectedRevision: signedOffice.pipeline.revision, requestId: randomUUID(), kind: 'replied', channel: 'email', note: 'Synthetic reply recorded.' });
   await owner.api('create-office', { name: 'Extra XP Example Office', state: 'CT', city: 'Hartford', address: '99 Example Road', assignedTo: agent.id });
@@ -1069,6 +1138,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => ownProgress.textContent.includes('Level 2') && ownProgress.querySelector('progress').value === 10,
     'Reopening the team did not refresh the rep’s own level and XP');
   await agentSession.api('sales-team-revoke', { id: junior.agent.id });
+  await juniorSession.api('chat-sync', { channel: 'deal-desk' }, 401);
+  await traineeSession.api('chat-send', { channel: 'general', body: 'Blocked', requestId: randomUUID() }, 401);
   await juniorSession.api('bootstrap', {}, 401);
   await traineeSession.api('bootstrap', {}, 401);
   await traineeSession.api('login', { email: traineeInput.email, code: trainee.code }, 401);
@@ -1156,6 +1227,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const reopen = browserSession(restarted.origin);
   await reopen.api('login', { code });
   const recovered = await reopen.api('bootstrap');
+  assert.deepEqual((await reopen.api('chat-sync', { channel: 'deal-desk' })).messages.map(m => m.author), ['Example Agent', 'Example Junior']);
   const recoveredLead = (await reopen.api('territory-map',{state:'SC'})).counties.find(county => county.id === '45027').lead;
   assert.deepEqual(recoveredLead, {name:'Example County Lead', photo:portrait, revision:2});
   assert.equal(recovered.earnings.totalCents, 12550);

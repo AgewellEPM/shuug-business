@@ -112,6 +112,7 @@ const sales = createHandler(env, db, {
   salesTeam: true,
   booking: booking.staff,
   nextBooking: booking.nextBooking,
+  teamChat: db.chat,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -186,5 +187,6 @@ const scheduler = setInterval(() => {
 scheduler.unref();
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
   clearInterval(scheduler);
+  db.chat.close();
   server.close(async () => { await Promise.allSettled([scheduledRun, booking.tick()]); db.close(); });
 });

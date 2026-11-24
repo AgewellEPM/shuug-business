@@ -94,6 +94,10 @@ The owner can revoke any member. Each member can revoke a direct report, which e
 
 Members on other devices use the workspace’s hosted HTTPS address. An address beginning with `127.0.0.1` opens the workspace on the Mac running it.
 
+Open **Team chat** in the sidebar or on the Sales team page. The owner and active sales reps share the same channels in Universal CRM and Senior Care CRM. Start in **#general**, **#field-notes**, or **#wins**. The owner can use **+** beside Channels to create a channel and give it a topic. All channels are visible to the sales team.
+
+Press **Enter** to send, use **Shift + Enter** for a new line, or choose **Reply** on a message to quote it. Unread counts are personal. Each channel keeps its history in this workspace’s SQLite database.
+
 ## Booking calendar
 
 Open **Overview → Open calendar** or **Calendar** in the sidebar. Clients use `/book` to choose a rep, meeting type and available time in their own time zone. **Copy booking link** gives a rep-specific address. A confirmation includes a private link to reschedule or cancel, and a calendar download. Client intake and changes appear in the rep’s schedule. The hosted app directory uses the built-in booking page when the owner has left the alternative appointment link blank and a rep is accepting bookings.
