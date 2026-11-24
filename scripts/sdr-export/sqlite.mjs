@@ -63,6 +63,7 @@ export function sqliteStore(filename) {
   const get = (kind, id) => /^[1-9]\d*$/.test(String(id)) ? decode(one.get(kindFor(kind), String(id))) : undefined;
   const salesRepProfile = id => JSON.parse(setting.get('sales-rep-profile:' + id)?.value ?? 'null') ??
     { bio: '', photo: '', revision: 0 };
+  const trainingProgress = id => JSON.parse(setting.get('training-progress:' + id)?.value ?? 'null');
 
   let writing = false;
   function writeTransaction(work) {
@@ -150,6 +151,14 @@ export function sqliteStore(filename) {
         const profile = { ...previous, ...changes, revision: revision + 1 };
         save.run('sales-rep-profile:' + id, JSON.stringify(profile));
         return profile;
+      });
+    },
+    trainingProgress,
+    updateTrainingProgress(id, apply) {
+      return writeTransaction(() => {
+        const progress = apply(trainingProgress(id));
+        save.run('training-progress:' + id, JSON.stringify(progress));
+        return progress;
       });
     },
     writeAgentTeam: writeTransaction,

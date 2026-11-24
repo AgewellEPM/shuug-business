@@ -28,7 +28,7 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);
   }
 }
-const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-today.mjs'];
+const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-today.mjs', 'sales-training.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
@@ -42,6 +42,7 @@ const assets = [
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json',
   'sales-email.css', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
+  'sales-training.css', 'sales-training.js',
   'sales-support.css', 'sales-support.js', 'sales-support-content.js',
   'facility-reviews.css', 'facility-reviews.js',
   'sales-team.css', 'sales-team.js', 'sales-team-territory-planning.webp', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js', 'territory-town-map.js', 'territory-county-leads.js', 'territory-ownership.js', 'sdr-headshots.js',
@@ -49,8 +50,10 @@ const assets = [
   ...['layers-2x', 'layers', 'marker-icon-2x', 'marker-icon', 'marker-shadow'].map(name => 'vendor/leaflet-1.9.4/images/' + name + '.png'),
 ];
 for (const path of assets) copy('public/rideshare-tax-pros/' + path, 'site/' + path);
-for (const filename of readdirSync(join(root, 'public/rideshare-tax-pros/support-art'))) {
-  if (filename.endsWith('.png')) copy('public/rideshare-tax-pros/support-art/' + filename, 'site/support-art/' + filename);
+for (const directory of ['support-art', 'training-art']) {
+  for (const filename of readdirSync(join(root, 'public/rideshare-tax-pros', directory))) {
+    if (filename.endsWith('.png')) copy('public/rideshare-tax-pros/' + directory + '/' + filename, 'site/' + directory + '/' + filename);
+  }
 }
 for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'team-chat.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
