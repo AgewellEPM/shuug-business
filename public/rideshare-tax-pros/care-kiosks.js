@@ -179,7 +179,8 @@
       if (args.get('venue') !== venue) return;
       args.set('place',place.key); args.set('board',key);
       if (language === 'en') args.delete('language'); else args.set('language',language);
-      window.history.replaceState(null,'','#' + args);
+      // Browsers limit how often the address can change. The board must still open.
+      try { window.history.replaceState(null,'','#' + args); } catch { /* the address catches up on the next board */ }
     }
     function go(id, push = true) {
       if (!Object.hasOwn(place.boards,id)) return;
