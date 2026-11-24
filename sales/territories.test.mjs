@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {contactFixture} from '../scripts/sales/contact-fixture.mjs';
 import {territoryCatalog, territoryManifest, territoryRevision} from './territories.mjs';
+import {territoryMap} from './territory-map.mjs';
 import {localityAllowed, stateAllowed} from './territory-access.mjs';
 import {digest, metadata, visible} from './model.mjs';
 import {localDiscovery} from './local-discovery.mjs';
@@ -15,6 +16,23 @@ test('published catalog covers all 51 regions with verified source hashes and ev
   }
   assert.equal(territoryCatalog('CT').length,169);assert(territoryCatalog('CT').some(row=>row.name==='Hartford'));assert(territoryCatalog('CA').some(row=>row.name==='Los Angeles'));
   assert.throws(()=>territoryCatalog('../'),error=>error.status===400);
+});
+
+test('each catalog geography has a selectable polygon in its state map', async () => {
+  for (const {state} of territoryManifest.states) {
+    const map = await territoryMap({role:'owner'}, {state});
+    const ids = territoryCatalog(state).flatMap(town => town.geoids).sort();
+    assert.equal(map.state, state);
+    assert.match(map.outline, /^M/);
+    assert.ok(map.counties.length && map.counties.every(area => area.path && area.color >= 0 && area.color < 7));
+    assert.equal(map.landmarks.filter(place => place.capital).length, 1, state);
+    if (state === 'SC') assert.equal(map.counties.length, 46);
+    assert.deepEqual(map.features.map(town => town.id).sort(), ids, state);
+    for (const town of map.features) {
+      assert.match(town.path, /^M.*Z$/);
+      assert.ok(town.bounds.every(Number.isFinite) && Number.isFinite(town.x) && Number.isFinite(town.y));
+    }
+  }
 });
 
 test('town assignments persist, retain explicit other-state coverage, reject stale updates and take effect in existing sessions',async()=>{

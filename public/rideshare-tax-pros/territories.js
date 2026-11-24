@@ -4,12 +4,21 @@
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
   window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate,onOpenOffice}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
+    const townMap=window.SdrTerritoryTownMap?.mount({api,onSearch,onBack:returnToStates});
     const facilities=window.SdrTerritoryFacilities?.mount({api,refresh,onOpenOffice,onBack:returnToStates});
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;
     const agent=()=>data?.agents.find(row=>String(row.id)===agentId);
     const owner=()=>data?.user.role==='owner';
+    function updateStateLink(region){
+      if(!townMap || new URLSearchParams(location.hash.slice(1)).get('view')!=='territories')return;
+      history.replaceState(null,'',location.pathname+location.search+'#view=territories'+(region?'&state='+region:''));
+    }
     function returnToStates(){
-      state='';sequence++;clearTimeout(timer);facilities?.clear();paint();
+      if(!state)return;
+      updateStateLink('');
+      const previous=state;
+      state='';sequence++;clearTimeout(timer);townMap?.clear();facilities?.clear();paint();
+      document.querySelector(`#sales-territory-map [data-state="${previous}"]`)?.focus?.({preventScroll:true});
       document.querySelector('#sales-territory-map')?.scrollIntoView?.({block:'start'});
     }
     function resetSelection(){
@@ -68,12 +77,18 @@
       catch(error){status(error.message,true);}
       finally{saving=false;paint();}
     }
-    return {render(next){data=next;if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';resetSelection();paint();},
+    const scope=user=>JSON.stringify([user.id,user.role,user.states,user.territory]);
+    return {showStates:returnToStates,render(next){
+      if(state&&data&&scope(data.user)!==scope(next.user))returnToStates();
+      data=next;if(!data.agents.some(row=>String(row.id)===agentId))agentId=data.agents[0]?String(data.agents[0].id):'';resetSelection();paint();},
       selectState(region, category, facilityQuery){
         clearTimeout(timer);state=region;query='';offset=0;report=undefined;
         resetSelection();paint();void load();
-        const drilldown=facilities?.selectState(region, category, facilityQuery) || host;
-        drilldown.scrollIntoView?.({block:'start',behavior:'smooth'});
+        updateStateLink(region);
+        void townMap?.open(region);
+        const directory=facilities?.selectState(region, category, facilityQuery);
+        if(townMap&&!category)townMap.focus();
+        else (directory||host).scrollIntoView?.({block:'start',behavior:'smooth'});
       }};
   }};
 })();

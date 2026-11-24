@@ -65,7 +65,12 @@
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
       if (standalone && ['pipeline', 'contacts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (teamUI && params.get('view') === 'team') { tab('team'); return true; }
-      if (standalone && territoryUI && params.get('view') === 'territories') { tab('territories'); return true; }
+      if (standalone && territoryUI && params.get('view') === 'territories') {
+        tab('territories');
+        if (params.get('state')) consoleUI?.chooseState(params.get('state'));
+        else territoryUI.showStates();
+        return true;
+      }
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
       if (!prospectUI || !['prospects', 'linkedin'].includes(params.get('view'))) return false;
       tab('prospects');
