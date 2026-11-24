@@ -1,12 +1,15 @@
 export function renderTeamChat(icon) {
   return `<section class="chat-workspace" data-tab-panel="chat" aria-labelledby="chat-title" hidden>
     <header class="chat-titlebar">
-      <span class="chat-mark">${icon('supportChat')}</span><h2 id="chat-title">Team chat</h2>
+      <span class="chat-mark">${icon('chat')}</span><h2 id="chat-title">Team chat</h2>
       <span class="chat-audience">${icon('team')} <span id="chat-audience-label">Sales team only</span></span>
     </header>
-    <button type="button" id="chat-nav-toggle" aria-expanded="false" aria-controls="chat-nav">
-      ${icon('chat')} Conversations <span class="chat-chevron" aria-hidden="true"></span>
-    </button>
+    <div class="chat-mobile-controls">
+      <button type="button" id="chat-nav-toggle" aria-expanded="false" aria-controls="chat-nav">
+        ${icon('chat')} Conversations <span class="chat-chevron" aria-hidden="true"></span>
+      </button>
+      <button type="button" id="chat-online-shortcut" aria-controls="chat-presence">Online staff</button>
+    </div>
     <div class="chat-layout">
       <aside class="chat-rail" id="chat-nav" aria-label="Conversations">
         <div class="chat-rail-heading"><h3>Channels</h3>
@@ -31,6 +34,11 @@ export function renderTeamChat(icon) {
         </div>
         <nav id="chat-directs" class="chat-conversations" aria-label="Direct messages"></nav>
         <button type="button" id="chat-first-direct">${icon('prospects')} Message a teammate</button>
+        <section id="chat-presence" aria-labelledby="chat-online-title">
+          <div class="chat-rail-heading"><h3 id="chat-online-title" tabindex="-1">Online now</h3><span id="chat-online-count" hidden></span></div>
+          <ul id="chat-online-members" aria-label="Online staff"></ul>
+          <p id="chat-online-status" role="status">Connecting…</p>
+        </section>
       </aside>
       <div class="chat-room">
         <header class="chat-room-heading">
