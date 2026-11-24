@@ -200,15 +200,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const pageDocument = window.document;
   pageDocument.querySelector('[data-tab="territories"]').click();
   pageDocument.querySelector('[data-territory-state="AK"]').click();
-  const facilitiesPanel = pageDocument.querySelector('#sales-territory-facilities');
-  const facilitiesResults = () => facilitiesPanel.querySelector('[data-facility-results]');
-  for (let retry = 0; retry < 100 && !facilitiesResults()?.textContent.match(/Anchorage Example Home/i); retry++) await delay(20);
-  assert.match(facilitiesResults().textContent, /Anchorage Example Home/i);
-  assert.match(facilitiesResults().querySelector('a').href, /^https:\/\/data\.cms\.gov\//);
-  pageDocument.querySelector('[data-territory-state="CT"]').click();
-  for (let retry = 0; retry < 100 && !facilitiesResults()?.textContent.match(/Bridgeport Example Home/i); retry++) await delay(20);
-  assert.match(facilitiesResults().textContent, /Bridgeport Example Home/i);
-  assert.doesNotMatch(facilitiesResults().textContent, /Anchorage Example Home/i);
+  const territoriesPanel = pageDocument.querySelector('[data-tab-panel="territories"]');
+  assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
+  assert.equal(territoriesPanel.querySelector('#sales-territory-cities'), null);
+  assert.ok(territoriesPanel.querySelector('[data-territory-lookup]'));
   const townPanel = pageDocument.getElementById('territory-town-map');
   const stateShape = code => pageDocument.querySelector(`#sales-territory-map path[data-state="${code}"]`);
   const statePicker = pageDocument.getElementById('sales-territory-cards');
@@ -291,7 +286,17 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('set-county-lead', change);
   await owner.api('set-county-lead', change, 409);
   await owner.api('set-county-lead', {...change, county:'09001'}, 400);
-  townSelect.value = '4544350'; townSelect.dispatchEvent(new window.Event('change'));
+  townPanel.querySelector('[data-map-reset]').click();
+  const territoryLookup = townPanel.querySelector('[data-territory-lookup]');
+  territoryLookup.value = 'Manning';
+  territoryLookup.dispatchEvent(new window.Event('input', { bubbles: true }));
+  const manningResult = await waitFor(() => [...townPanel.querySelectorAll('[data-territory-matches] li')]
+    .find(row => row.querySelector('button strong')?.textContent === 'Manning' && /Assigned to Example County Lead/.test(row.textContent)),
+  'Manning lookup did not show the assigned Clarendon County lead');
+  assert.match(manningResult.textContent, /Clarendon County/);
+  manningResult.querySelector('button').click();
+  assert.equal(townSelect.value, '4544350');
+  assert.equal(townCanvas.dataset.layer, 'towns');
   townPanel.querySelector('[data-map-streets]').click();
   assert.equal(townCanvas.dataset.layer, 'streets');
   const tile = townCanvas.querySelector('img.leaflet-tile');
@@ -315,21 +320,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   townPanel.querySelector('[data-map-back]').click();
   window.location.hash = 'view=territories&state=CT';
   await waitFor(() => townCanvas.querySelectorAll('.town-map-area').length === 169, 'CT state link did not open');
-  const facilitySearch = facilitiesPanel.querySelector('[data-facility-search]');
-  facilitiesPanel.querySelector('[data-facility-query]').value = 'Bridgeport';
-  facilitySearch.requestSubmit();
-  for (let retry = 0; retry < 100 && (facilitiesResults()?.textContent.match(/Hartford Example Home/i) || !facilitiesResults()?.textContent.match(/Bridgeport Example Home/i)); retry++) await delay(20);
-  assert.match(facilitiesResults().textContent, /Bridgeport Example Home/i);
-  assert.doesNotMatch(facilitiesResults().textContent, /Hartford Example Home/i);
   const ctSenior = await owner.api('territory-facilities', { state: 'CT', category: 'senior-center' });
   assert.deepEqual(ctSenior.results.map(record => record.city), ['', 'Hartford', 'Hartford']);
   assert.equal(ctSenior.sources[0].url, 'https://www.openstreetmap.org/copyright');
-  facilitiesPanel.querySelector('[data-facility-category="senior-center"]').click();
-  facilitiesPanel.querySelector('[data-facility-query]').value = '';
-  facilitySearch.requestSubmit();
-  for (let retry = 0; retry < 100 && !facilitiesResults()?.textContent.match(/Hartford Example Senior Center/i); retry++) await delay(20);
-  assert.match(facilitiesResults().textContent, /Hartford Example Senior Center/i);
-  assert.match(facilitiesResults().querySelector('a').href, /^https:\/\/www\.openstreetmap\.org\//);
   pageDocument.querySelector('[data-tab="home"]').click();
   assert.equal((await owner.request('/sales-welcome.webp')).headers.get('content-type'), 'image/webp');
   assert.equal(window.document.querySelector('#sdr-xp-level').textContent, 'Level 1');
@@ -575,7 +568,28 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const revision = async () => (await owner.api('bootstrap')).agents.find(member => member.id === agent.id).territoryRevision;
   const assignTown = async town => owner.api('set-agent-territory', { id: agent.id, state: 'CT', mode: 'selected',
     cityKeys: [town], expectedRevision: await revision() });
-  await assignTown('hartford');
+  pageDocument.querySelector('#sales-refresh').click();
+  pageDocument.querySelector('[data-tab="team"]').click();
+  const townAccessState = pageDocument.querySelector('#sales-town-access-state');
+  const townAccess = townAccessState.closest('details');
+  assert.equal(townAccess.hidden, false);
+  townAccess.querySelector('summary').click();
+  townAccessState.value = 'CT';
+  townAccessState.dispatchEvent(new window.Event('change', { bubbles: true }));
+  await waitFor(() => townAccess.querySelector('[data-territory-town][value="hartford"]'), 'Town access editor did not load Connecticut');
+  const salesperson = await waitFor(() => {
+    const field = townAccess.querySelector('[data-territory-agent]');
+    return [...(field?.options || [])].some(option => option.value === String(agent.id)) && field;
+  }, 'New rep missing from the town access editor');
+  salesperson.value = String(agent.id);
+  salesperson.dispatchEvent(new window.Event('change', { bubbles: true }));
+  const coverage = townAccess.querySelector('[data-territory-mode]');
+  coverage.value = 'selected';
+  coverage.dispatchEvent(new window.Event('change', { bubbles: true }));
+  townAccess.querySelector('[data-territory-town][value="hartford"]').click();
+  townAccess.querySelector('[data-territory-save]').click();
+  await waitFor(async () => (await agentSession.api('territory-localities', { state: 'CT' })).total === 1, 'Saving town access did not restrict the rep to Hartford');
+
   const scopedMap = await agentSession.api('territory-map', { state: 'CT' });
   assert.deepEqual(scopedMap.features.map(feature => feature.name), ['Hartford']);
   await agentSession.api('territory-map', { state: 'AK' }, 403);
@@ -735,6 +749,28 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !care.querySelector('#sales-workspace').hidden, 'Care view did not reuse the signed-in session');
     const directoryState = care.querySelector('#care-directory-state');
     assert.equal(directoryState.options.length, 51);
+    care.querySelector('[data-tab="facilities"]').click();
+    const facilitiesPanel = care.querySelector('[data-tab-panel="facilities"]');
+    assert.equal(facilitiesPanel.hidden, false);
+    assert.equal(care.querySelector('[data-tab-panel="territories"] #sales-territory-facilities'), null);
+    const results = facilitiesPanel.querySelector('[data-facility-results]');
+    const facilityState = facilitiesPanel.querySelector('[data-facility-state]');
+    facilityState.value = 'AK';
+    facilityState.dispatchEvent(new careWindow.Event('change', { bubbles: true }));
+    await waitFor(() => /Anchorage Example Home/i.test(results.textContent), 'Alaska facilities did not load from the directory state selector');
+    assert.match(results.querySelector('a').href, /^https:\/\/data\.cms\.gov\//);
+    facilityState.value = 'CT';
+    facilityState.dispatchEvent(new careWindow.Event('change', { bubbles: true }));
+    await waitFor(() => /Bridgeport Example Home/i.test(results.textContent), 'Connecticut facilities did not load from the directory state selector');
+    assert.doesNotMatch(results.textContent, /Anchorage Example Home/i);
+    const facilitySearch = facilitiesPanel.querySelector('[data-facility-search]');
+    const query = facilitiesPanel.querySelector('[data-facility-query]');
+    query.value = 'Bridgeport';
+    facilitySearch.requestSubmit();
+    await waitFor(() => /Bridgeport Example Home/i.test(results.textContent) && !/Hartford Example Home/i.test(results.textContent), 'Facility name and town search failed');
+    query.value = '';
+    facilitySearch.requestSubmit();
+
     const facilities = [
       { category: 'nursing-home', state: 'AK', name: 'ANCHORAGE Example Home 1' },
       { category: 'senior-center', state: 'CT', name: 'Second Example Senior Center', address: '42 Example Street' },

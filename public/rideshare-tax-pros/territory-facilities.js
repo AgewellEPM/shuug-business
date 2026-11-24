@@ -87,10 +87,11 @@
     return form;
   }
 
-  function mount({ api, onBack, refresh, onOpenOffice }) {
+  function mount({ api, refresh, onOpenOffice }) {
     const panel = document.getElementById('sales-territory-facilities');
     if (!panel) return null;
     const find = name => panel.querySelector(`[data-facility-${name}]`);
+    const regionPicker = find('state');
     const title = find('title'), form = find('search'), field = find('query'), results = find('results');
     const status = find('status'), coverage = find('coverage'), sources = find('sources'), issues = find('issues'), retry = find('retry');
     const pages = find('pages'), previous = find('previous'), next = find('next');
@@ -143,7 +144,7 @@
       }
     }
 
-    find('back').addEventListener('click', onBack);
+    regionPicker.addEventListener('change', () => selectState(regionPicker.value));
     for (const button of categories) button.addEventListener('click', () => {
       const selected = button.dataset.facilityCategory;
       if (selected === category) return;
@@ -160,26 +161,31 @@
     next.addEventListener('click', () => { if (report?.hasMore) void load(report.offset + report.limit); });
     retry.addEventListener('click', () => void load(offset));
 
-    return {
-      selectState(region, selectedCategory, search) {
-        const nextCategory = selectedCategory || category;
-        if (state === region && nextCategory === category && (search === undefined || search === query)) return panel;
-        category = nextCategory;
-        categories.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.facilityCategory === category)));
-        state = region;
-        stateName = document.querySelector(`[data-territory-state="${region}"] strong`)?.textContent || region;
-        field.value = query = search || '';
-        title.textContent = `${stateName} facilities`;
-        panel.hidden = false;
-        void load();
-        return panel;
-      },
-      clear() {
-        sequence++;
-        state = '';
-        panel.hidden = true;
-      },
-    };
+    function selectState(region, selectedCategory = category, search) {
+      if (!Array.from(regionPicker.options).some(option => option.value === region)) return;
+      if (state === region && selectedCategory === category && (search === undefined || search === query)) return;
+      category = selectedCategory;
+      categories.forEach(control => control.setAttribute('aria-pressed', String(control.dataset.facilityCategory === category)));
+      regionPicker.value = state = region;
+      stateName = document.querySelector(`[data-territory-state="${region}"] strong`)?.textContent || region;
+      field.value = query = search || '';
+      title.textContent = `${stateName} facilities`;
+      void load();
+    }
+
+    return { selectState, show() {
+      const region = regionPicker.value;
+      if (region) { selectState(region); return; }
+      sequence++;
+      state = '';
+      paint();
+      results.removeAttribute('aria-busy');
+      title.textContent = 'Facility directory';
+      status.textContent = 'Ask your sales team manager to assign a territory to browse facilities.';
+      status.dataset.error = 'false';
+      retry.hidden = true;
+    } };
+
   }
 
   window.SdrTerritoryFacilities = { mount, saveForm, sourceLink };

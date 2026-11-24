@@ -81,7 +81,7 @@
         streetLines.set(feature.id, line);
       }
     }
-    let selected, observer, atlas, roster, atState = true;
+    let selected, observer, atlas, roster, ownership, atState = true;
     try {
       const [left, top, right, bottom] = data.frame;
       const drawing = svg('svg', { viewBox: [left, top, right - left, bottom - top].join(' '), 'aria-hidden': 'true' });
@@ -232,7 +232,12 @@
         map.setView(target.getCenter(), Math.min(streetZoom() - 1, Math.max(stateZoom() + 1, fit)), {animate:false});
         annotate();
       }
-      roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty);
+      roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty, () => ownership?.refresh());
+      ownership = window.SdrTerritoryOwnership.mount(panel, data, api, place => {
+        if (place.feature) select(place.feature.id);
+        else zoomCounty(place.county);
+        roster.select(place.county);
+      }, () => roster.refresh());
       drawing.addEventListener('click', event => {
         if (map.dragging.moved()) return;
         const target = event.target.closest('[data-locality], [data-county], [data-landmark], [data-district]');
@@ -281,13 +286,15 @@
       }
       return () => {
         observer?.disconnect();
+        ownership?.dispose();
         roster?.dispose();
         picker.onchange = research.onclick = reset.onclick = streetsButton.onclick = null;
         map.remove();
       };
     } catch (error) {
       observer?.disconnect();
-        roster?.dispose();
+      ownership?.dispose();
+      roster?.dispose();
       map.remove();
       throw error;
     }

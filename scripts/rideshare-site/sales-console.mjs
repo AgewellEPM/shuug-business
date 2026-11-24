@@ -11,6 +11,7 @@ const icons = {
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18M7 15h4"/>',
   home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-8H9v8H4a1 1 0 0 1-1-1Z"/>',
   pipeline: '<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/>',
+  facilities: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
   territories: '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/>',
   discover: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10.5h5M10.5 8v5"/>',
   team: '<circle cx="9" cy="8" r="3"/><path d="M3 21v-3a6 6 0 0 1 12 0v3M16 5a3 3 0 0 1 0 6M18 15a5 5 0 0 1 3 4v2"/>',
@@ -102,15 +103,18 @@ function territoryMap() {
 
 const townMap = `<section id="territory-town-map" class="sdr-card territory-town-map" hidden aria-labelledby="town-map-title">
   <div class="sdr-card-head"><div><h2 id="town-map-title" tabindex="-1"></h2><p data-map-status role="status"></p></div><button type="button" class="button secondary" data-map-back>All states</button></div>
-  <div class="town-map-tools" data-map-tools hidden><label>Town or city<select data-map-town></select></label>
+  <div class="town-map-tools" data-map-tools hidden>
+    <label class="territory-lookup">Check territory availability<input type="search" data-territory-lookup maxlength="120" placeholder="Town, county, or facility"></label>
+    <label>Jump to town<select data-map-town></select></label>
     <button type="button" class="button secondary" data-map-research disabled>Find offices</button>
     <button type="button" class="button secondary" data-map-streets>Show streets</button>
     <button type="button" class="button secondary" data-map-reset>Fit state</button>
     <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="true">County leads</button>
     <label class="town-map-color-control"><input type="checkbox" data-map-colors checked>Map colors</label></div>
+  <div class="territory-lookup-results" data-territory-matches hidden></div>
   <div class="town-map-layout"><div class="town-map-canvas" data-map-canvas hidden></div>
     <aside id="territory-county-roster" class="town-map-roster" aria-label="County leads" hidden>
-      <h3>County leads</h3><label>Find a county<input type="search" data-county-query></label>
+      <h3>County leads</h3>
       <div data-county-editor></div><div data-county-list class="county-lead-list"></div>
     </aside></div>
   <button type="button" class="button secondary" data-map-retry hidden>Retry map</button>
@@ -121,8 +125,11 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
   </div>
 </section>`;
 
-const standaloneFacilities = `<section class="sdr-card territory-facilities" id="sales-territory-facilities" aria-labelledby="sales-facilities-title" hidden>
-  <div class="sdr-card-head"><h3 id="sales-facilities-title" data-facility-title>Facilities</h3><button type="button" class="button secondary" data-facility-back>All states</button></div>
+const standaloneFacilities = `<section data-tab-panel="facilities" aria-labelledby="sales-facilities-title" hidden>
+  <div class="sdr-card territory-facilities" id="sales-territory-facilities">
+  <div class="sdr-card-head"><h2 id="sales-facilities-title" data-facility-title>Facility directory</h2>
+    <label class="care-state-field">State<select data-facility-state data-states></select></label>
+  </div>
   <div class="territory-facility-categories" role="group" aria-label="Facility type">
     <button type="button" class="button secondary" data-facility-category="nursing-home" aria-pressed="true" aria-controls="sales-facility-results">Nursing homes</button>
     <button type="button" class="button secondary" data-facility-category="senior-center" aria-pressed="false" aria-controls="sales-facility-results">Senior community centers</button>
@@ -140,6 +147,7 @@ const standaloneFacilities = `<section class="sdr-card territory-facilities" id=
     <button type="button" class="button secondary" data-facility-previous disabled>Previous facilities</button>
     <button type="button" class="button secondary" data-facility-next disabled>Next facilities</button>
   </nav>
+  </div>
 </section>`;
 
 const linkedInProspects = `  <div class="sdr-card">
@@ -248,6 +256,11 @@ function standaloneTeam(legacyTeam) {
             <button type="button" class="button secondary" id="sales-copy-login-link">Copy shared sign-in link</button>
           </div>
         </section>
+        <details class="sales-panel" data-owner-only hidden>
+          <summary>Town access</summary>
+          <label>State <select id="sales-town-access-state" aria-controls="sales-territory-cities"></select></label>
+          <div id="sales-territory-cities" hidden></div>
+        </details>
         ${terms}
       </div>
     </div>
@@ -274,7 +287,8 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
     const order = ['home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'contacts', 'locations', 'mail'];
     nav.sort((first, second) => order.indexOf(first[0]) - order.indexOf(second[0]));
   }
-  const careLabels = { contacts: 'Contacts', territories: 'Facility directory', discover: 'Local research' };
+  if (seniorCare) nav.splice(nav.findIndex(([name]) => name === 'territories'), 0, ['facilities', 'Facility directory']);
+  const careLabels = { contacts: 'Contacts', discover: 'Local research' };
   const sidebarNav = prospects ? nav.filter(([name]) => name !== 'discover') : nav;
   const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === 'home'}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Office workspace | Gig Tax Pros</title><meta name="description" content="Private Gig Tax Pros office recruitment workspace."><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/sales.css"><link rel="stylesheet" href="/sales-console.css"><link rel="stylesheet" href="/vendor/leaflet-1.9.4/leaflet.css"><link rel="stylesheet" href="/local-offices.css"><script src="/directory-admin.js" defer></script><script src="/sales-research.js" defer></script><script src="/sales-workflows.js" defer></script><script src="/sales-console.js" defer></script><script src="/sales-contacts.js" defer></script><script src="/sales-progress.js" defer></script><script src="/sales-contracts.js" defer></script><script src="/vendor/leaflet-1.9.4/leaflet.js" defer></script><script src="/local-contacts.js" defer></script><script src="/local-offices.js" defer></script><link rel="stylesheet" href="/territories.css"><script src="/territories.js" defer></script><script src="/sales.js" defer></script></head>
@@ -285,7 +299,8 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
 <section data-tab-panel="home" aria-label="Workspace overview">${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section><section data-tab-panel="mail" hidden aria-label="Shared and agent email senders"><div id="sales-mailboxes"></div></section>
 <section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
-<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title"><div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>${prospects ? 'Choose a state to browse facilities, towns, and cities, or assign sales coverage.' : 'Choose a state, drill into towns and cities, and assign sales coverage.'}</p></div><span class="sdr-count-label">50 states + DC</span></div><div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap + standaloneFacilities : ''}<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>
+<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title"><div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>${prospects ? 'Choose a state to check availability or assign county leads.' : 'Choose a state, drill into towns and cities, and assign sales coverage.'}</p></div><span class="sdr-count-label">50 states + DC</span></div><div class="sdr-card">${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
+${seniorCare ? standaloneFacilities : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + standaloneTeam(team) : team}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

@@ -19,6 +19,7 @@ import { campaignNotifications } from './campaign-mail.mjs';
 import { workspaceResearch } from '../../sales/workspace-research.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { administratorPhotoOrigins } from '../../sales/facility-administrators.mjs';
+import { territoryOwnership } from '../../sales/territory-facility-ownership.mjs';
 import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
 import { stateFacilityDirectory } from '../../sales/state-facilities.mjs';
 import { initialize, privateValue } from './setup.mjs';
@@ -90,6 +91,7 @@ const sales = createHandler(env, db, {
   earnings: agreementOnly ? workspaceEarnings(db) : null,
   facilities: stateFacilityDirectory({ db }),
   territoryMap: (user, input, team) => territoryMap(user, input, db, team),
+  territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,
   beforeLogin() {
