@@ -63,7 +63,8 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
   if (process.env[variable]) env[variable] = process.env[variable];
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
-const booking = bookings(process.env, db, origin.origin, sessionKey);
+const repEmail = repEmailWorkspace(db, sessionKey, process.env);
+const booking = bookings(process.env, db, origin.origin, sessionKey, { repMail: repEmail });
 const publicBooking = bookingHTTP(booking, origin.origin);
 const facilities = stateFacilityDirectory({ db });
 const googleReviews = googleFacilityReviews({
@@ -100,7 +101,7 @@ const sales = createHandler(env, db, {
   localDiscovery: catalogue ? { catalogue, placeLookup: async () => null } : undefined,
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
-  repEmail: repEmailWorkspace(db, sessionKey, process.env),
+  repEmail,
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
@@ -142,7 +143,7 @@ for (const path of readdirSync(staticRoot, { recursive: true, withFileTypes: tru
   files.set('/' + filename.slice(staticRoot.length + 1), filename);
 }
 const mimes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png',
-  '.svg': 'image/svg+xml', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
+  '.svg': 'image/svg+xml', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json; charset=utf-8' };
 const csp = `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://*.googleusercontent.com ${administratorPhotoOrigins.join(' ')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`;
 const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, async (request, response) => {
   const finish = (status, body = '') => { response.statusCode = status; response.end(body); };

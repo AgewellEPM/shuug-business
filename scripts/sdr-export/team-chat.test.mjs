@@ -40,3 +40,25 @@ test('channel history pages meet without gaps and each reader advances independe
   chat.dispatch(rep, 'chat-send', request);
   assert.throws(() => chat.dispatch(rep, 'chat-send', { ...request, body: 'Changed' }), { status: 409 });
 });
+
+test('private activity changes only participant inboxes and never writes to legacy channel tables', t => {
+  const db = new DatabaseSync(':memory:'), chat = teamChat(db);
+  t.after(() => { chat.close(); db.close(); });
+  const people = [{id:'owner', name:'Owner'}, {id:'2', name:'Ari'}, {id:'12', name:'Sam'}, {id:'4', name:'Alex'}];
+  const call = (id, action, input = {}) => chat.dispatch({ ...people.find(p => p.id === id), role: id === 'owner' ? 'owner' : 'agent' }, action, input, undefined, () => people);
+  const outside = call('owner', 'chat-sync').version;
+  const { slug } = call('2', 'chat-direct-open', {memberId:'12'});
+  assert.deepEqual(call('12', 'chat-sync').directs, []);
+  assert.throws(() => call('2', 'chat-direct-open', {memberId:'2'}), { status:404 });
+  const request = {channel:slug, body:'Private handoff', requestId:randomUUID()};
+  const sent = call('2', 'chat-send', request);
+  assert.deepEqual(call('2', 'chat-send', request), sent);
+  assert.equal(call('12', 'chat-direct-open', {memberId:'2'}).slug, slug);
+  assert.equal(call('12', 'chat-sync').directs[0].unread, 1);
+  call('12', 'chat-seen', {channel:slug, through:sent.id});
+  assert.equal(call('12', 'chat-sync').directs[0].unread, 0);
+  assert.equal(call('owner', 'chat-sync').version, outside);
+  assert.equal(call('4', 'chat-sync').directs.length, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM chat_messages').get().n, 0);
+  assert.equal(db.prepare('SELECT COUNT(*) AS n FROM chat_channels WHERE slug = ?').get(slug).n, 0);
+});

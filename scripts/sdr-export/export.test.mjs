@@ -932,6 +932,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.match(createdCode() || '', /^[A-Za-z0-9_-]{43}$/);
   const peer = (await owner.api('sales-team-read')).members.find(member => member.email === 'peer@example.test');
   assert.equal(peer.parentId, 'owner');
+  const peerSession = browserSession(first.origin);
+  await peerSession.api('login', { email: peer.email, code: createdCode() });
   const juniorInput = { name: 'Example Junior', email: 'junior@example.test' };
   await agentSession.api('sales-team-invite', { ...juniorInput, states: ['MA'] }, 403);
   await agentSession.api('sales-team-invite', { ...juniorInput, parentId: peer.id }, 403);
@@ -1206,6 +1208,57 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => find(reload, '#chat-messages')?.textContent.includes('I can take it.'), 'Reload lost the conversation');
     for (const win of [window, rep, careRep, reload]) find(win, '[data-tab=team]').click();
   });
+  let privateRoom;
+  await t.test('staff in separate reporting branches can exchange private direct messages', async t => {
+    const people = (await agentSession.api('chat-people')).people;
+    assert.deepEqual(Object.keys(people.find(person => person.id === peer.id)).sort(), ['id', 'name']);
+    assert.ok(!people.some(person => person.id === agent.id));
+    const path = '/sales/senior-care';
+    const recipient = await mountConsole(t, first.origin, peerSession, await (await peerSession.request(path)).text(), path + '#view=chat');
+    const mine = agentWindow.document, theirs = recipient.document;
+    mine.querySelector('[data-tab=chat]').click();
+    mine.querySelector('#chat-new-direct').click();
+    const search = mine.querySelector('#chat-person-search');
+    await waitFor(() => !search.disabled, 'Teammate search did not load');
+    search.value = 'example peer';
+    search.dispatchEvent(new agentWindow.Event('input'));
+    assert.equal(mine.querySelectorAll('#chat-person-results button').length, 1);
+    mine.querySelector('#chat-person-results button').click();
+    const compose = mine.querySelector('#chat-compose');
+    await waitFor(() => mine.querySelector('#chat-name').textContent === peer.name && !compose.elements.message.disabled, 'The private conversation did not open');
+    privateRoom = '@' + new URLSearchParams(agentWindow.location.hash.slice(1)).get('dm');
+    assert.ok(privateRoom.startsWith('@') && privateRoom.length > 30);
+    assert.equal((await peerSession.api('chat-sync')).directs.length, 0);
+    function send(win, body) {
+      const form = win.document.querySelector('#chat-compose');
+      form.elements.message.value = body;
+      form.elements.message.dispatchEvent(new win.Event('input', { bubbles:true }));
+      form.requestSubmit();
+    }
+    send(agentWindow, 'Are you free for a handoff?');
+    const opener = await waitFor(() => theirs.querySelector('#chat-directs [data-channel] .chat-unread')?.parentElement, 'First message did not appear in the recipient inbox');
+    assert.equal(opener.dataset.channel, privateRoom);
+    opener.click();
+    await waitFor(() => theirs.querySelector('.chat-body')?.textContent === 'Are you free for a handoff?', 'Recipient could not read the DM');
+    theirs.querySelector('.chat-byline button').click();
+    send(recipient, 'Yes, let’s talk.');
+    await waitFor(() => mine.querySelector('.chat-quote') && mine.querySelector('#chat-messages').textContent.includes('Yes, let’s talk.'), 'Private reply did not arrive');
+    const again = await peerSession.api('chat-direct-open', { memberId: agent.id });
+    assert.equal(again.slug, privateRoom);
+    const history = await agentSession.api('chat-sync', { channel: privateRoom });
+    const firstId = history.messages[0].id;
+    assert.equal(history.messages.length, 2);
+    for (const stranger of [owner, juniorSession, differentProject]) {
+      const inbox = await stranger.api('chat-sync');
+      assert.ok(![...inbox.channels, ...inbox.directs].some(c => c.slug === privateRoom));
+      for (const action of ['chat-sync', 'chat-history', 'chat-seen', 'chat-send']) {
+        await stranger.api(action, { channel: privateRoom, before: firstId, through:firstId, body:'Blocked', requestId:randomUUID() }, 404);
+      }
+    }
+    const reload = await mountConsole(t, first.origin, peerSession, html, '/sales' + recipient.location.hash);
+    await waitFor(() => reload.document.querySelectorAll('.chat-message').length === 2, 'Reload lost the private conversation');
+    for (const win of [agentWindow, recipient, reload]) win.document.querySelector('[data-tab=team]').click();
+  });
   const signedOffice = await agentSession.api('office', { id });
   await agentSession.api('record-progress', { id, expectedRevision: signedOffice.pipeline.revision, requestId: randomUUID(), kind: 'replied', channel: 'email', note: 'Synthetic reply recorded.' });
   await owner.api('create-office', { name: 'Extra XP Example Office', state: 'CT', city: 'Hartford', address: '99 Example Road', assignedTo: agent.id });
@@ -1227,12 +1280,82 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await traineeSession.api('login', { email: traineeInput.email, code: trainee.code }, 401);
   await owner.api('revoke-agent', { id: agent.id });
   await agentSession.api('bootstrap', {}, 401);
+  await agentSession.api('chat-sync', { channel: privateRoom }, 401);
+  assert.equal((await peerSession.api('chat-sync', { channel: privateRoom })).peer.active, false);
+  await peerSession.api('chat-send', { channel: privateRoom, body: 'Inactive', requestId: randomUUID() }, 409);
   const replacement = await owner.api('sales-team-invite', { ...traineeInput, parentId: peer.id });
   assert.notEqual(replacement.agent.id, trainee.agent.id);
   const replacementSession = browserSession(first.origin);
   await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
   await owner.api('sales-team-revoke', { id: peer.id });
   await replacementSession.api('bootstrap', {}, 401);
+
+  await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
+    const path = '/sales/senior-care';
+    const before = await owner.api('bootstrap');
+    const careWindow = await mountConsole(t, first.origin, owner, await (await owner.request(path)).text(), path);
+    const doc = careWindow.document;
+    const panel = doc.querySelector('[data-tab-panel="demo"]');
+    const find = part => panel.querySelector(`[data-demo-${part}]`);
+    const tile = label => [...find('tiles').children].find(button => button.lastElementChild.textContent === label);
+    const spoken = [];
+    careWindow.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+    careWindow.speechSynthesis = { getVoices: () => [], cancel() {}, speak: utterance => spoken.push(utterance.text) };
+
+    await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'The signed-in demo entrypoint did not open');
+    assert.ok(panel.hidden);
+    doc.querySelector('[data-tab="demo"]').click();
+    await waitFor(() => !find('session').hidden, 'The exported demo boards did not load');
+    assert.equal(find('setting').textContent, 'Nursing home');
+    assert.equal(find('board-picker').options.length, 19);
+    tile('BLANKET').click();
+    assert.equal(find('message').textContent, "Can I have a blanket? I'm cold.");
+    assert.equal(spoken.at(-1), find('message').textContent);
+    find('save').click();
+    find('board-picker').value = 'saved_phrases';
+    find('board-picker').dispatchEvent(new careWindow.Event('change'));
+    tile('BLANKET').click();
+    find('next').click();
+    tile('No').click();
+    assert.equal(find('message').textContent, 'No');
+
+    find('scenarios').querySelector('[data-setting="hospital-ward"]').click();
+    find('next').click();
+    tile('HEAD').click();
+    find('next').click();
+    tile('5').click();
+    assert.match(find('pain').textContent, /HEAD · 5\/10/);
+    find('scan').click();
+    const scanning = find('tiles').querySelector('[data-scanning]');
+    assert.ok(scanning);
+    find('tiles').dispatchEvent(new careWindow.KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    assert.equal(find('message').textContent, 'I have no pain right now.');
+    find('tiles').dispatchEvent(new careWindow.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    assert.equal(find('scan').getAttribute('aria-pressed'), 'false');
+
+    panel.querySelector('[data-demo-product="hospital"]').click();
+    assert.equal(find('board-title').textContent, 'Reception kiosk');
+    tile('I AM IN PAIN').click();
+    assert.equal(find('board-title').textContent, 'Pain assessment');
+    tile('5 - DISTRACTING').click();
+    assert.equal(find('message').textContent, 'My pain is a five. Hard to ignore.');
+    find('back').click();
+    assert.ok(tile('WATER'));
+    find('reset').click();
+    assert.equal(find('history').children.length, 0);
+
+    const main = await mountConsole(t, first.origin, owner, await (await owner.request('/sales')).text(), '/sales#view=demo&product=hospital');
+    await waitFor(() => !main.document.querySelector('[data-demo-session]').hidden, 'Hospital direct link did not open in the main workspace');
+    assert.equal(main.document.querySelector('[data-demo-board-title]').textContent, 'Reception kiosk');
+    assert.equal(main.document.querySelector('[data-tab="demo"]').getAttribute('aria-pressed'), 'true');
+    main.document.querySelector('[data-tab="home"]').click();
+    main.location.hash = 'view=demo&product=stroke&setting=rehab';
+    await waitFor(() => !main.document.querySelector('[data-tab-panel="demo"]').hidden &&
+      main.document.querySelector('[data-demo-setting]').textContent === 'Rehab', 'Rehab direct link did not reopen Demo from Overview');
+    const after = await owner.api('bootstrap');
+    assert.deepEqual(after.offices, before.offices);
+    assert.deepEqual(after.contracts, before.contracts);
+  });
 
   await t.test('senior-care and universal views share saved facilities and honor the active pipeline filter', async t => {
     const path = '/sales/senior-care';

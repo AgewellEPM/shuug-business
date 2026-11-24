@@ -200,5 +200,22 @@ export function repEmailWorkspace(db, sessionKey, env, transport = mailTransport
       default: throw new HttpError(404, 'Email action unavailable.');
     }
   }
-  return { actions, dispatch, summary };
+  function bookingSender(user) {
+    const account = accountFor(user);
+    return account && Object.hasOwn(providers, account.provider)
+      ? { from: account.address, fromName: account.name, replyTo: account.address, revision: account.revision, mode: 'smtp' } : null;
+  }
+  async function sendBooking(user, revision, message) {
+    const account = connected(user);
+    if (account.revision !== revision) return 'setup-changed';
+    try {
+      const receipt = await transport.send(account, providers[account.provider], message);
+      await receipt.saveCopy();
+      return 'accepted';
+    } catch (error) {
+      if (error instanceof HttpError && error.status === 422) return 'failed';
+      throw error;
+    }
+  }
+  return { actions, dispatch, summary, bookingSender, sendBooking };
 }

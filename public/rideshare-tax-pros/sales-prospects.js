@@ -66,11 +66,15 @@
     const source = role.photoURL && window.SdrTerritoryFacilities?.sourceLink(role.photoURL, '');
     if (!source) return;
     const photo = document.createElement('img');
-    photo.src = source.href;
     photo.alt = alt;
     photo.loading = 'lazy';
     photo.referrerPolicy = 'no-referrer';
-    photo.addEventListener('error', () => photo.remove(), { once: true });
+    const fallback = role.fallbackPhotoURL && window.SdrTerritoryFacilities?.sourceLink(role.fallbackPhotoURL, '');
+    photo.addEventListener('error', () => {
+      if (fallback && photo.src !== fallback.href) photo.src = fallback.href;
+      else photo.remove();
+    });
+    photo.src = source.href;
     if (role.photoFrame) frame.dataset.photoFrame = role.photoFrame;
     frame.append(photo);
   }
@@ -126,13 +130,13 @@
     const pages = document.createElement('div');
     pages.className = 'prospects-administrator-sources';
     if (role?.sourceURL) {
-      const source = links?.(role.sourceURL, role.sourceName || 'Role source');
+      const source = links?.(role.sourceURL, showResearch && role.photoSourceURL === role.sourceURL ? 'Role and photo source' : role.sourceName || 'Role source');
       if (source) {
         if (role.checkedOn) source.title = 'Role source dated ' + role.checkedOn;
         pages.append(source);
       }
     }
-    if (showResearch && role?.photoSourceURL) {
+    if (showResearch && role?.photoSourceURL && role.photoSourceURL !== role.sourceURL) {
       const photoSource = links?.(role.photoSourceURL, 'Photo source');
       if (photoSource) pages.append(photoSource);
     }
