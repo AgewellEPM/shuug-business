@@ -22,6 +22,7 @@ function write(file, value) {
 for (const filename of readdirSync(join(root, 'sales'))) {
   if (filename.endsWith('.mjs') && !filename.endsWith('.test.mjs')) copy('sales/' + filename);
 }
+copy('sales/facility-leadership-data.json');
 for (const directory of ['business-places-data', 'territory-data', 'territory-map-data']) {
   for (const filename of readdirSync(join(root, 'sales', directory))) {
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);
@@ -36,7 +37,7 @@ const assets = [
   'local-contacts.js', 'local-offices.css', 'local-offices.js', 'sales.css', 'sales.js', 'sales-console.css',
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
-  'sales-team.css', 'sales-team.js', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js', 'territory-town-map.js', 'territory-county-leads.js', 'territory-ownership.js', 'sdr-headshots.js',
+  'sales-team.css', 'sales-team.js', 'sales-team-territory-planning.webp', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js', 'territory-town-map.js', 'territory-county-leads.js', 'territory-ownership.js', 'sdr-headshots.js',
   'vendor/leaflet-1.9.4/LICENSE', 'vendor/leaflet-1.9.4/leaflet.js', 'vendor/leaflet-1.9.4/leaflet.css',
   ...['layers-2x', 'layers', 'marker-icon-2x', 'marker-icon', 'marker-shadow'].map(name => 'vendor/leaflet-1.9.4/images/' + name + '.png'),
 ];

@@ -36,6 +36,7 @@
   function mount({ status = () => {}, onSelect = () => {}, onNavigate = () => {}, onSearch = () => {}, onTerritory, matchesFacility = () => true, facilityLabel = () => '' } = {}) {
     previousMount?.();
     let data = { offices: [], agents: [], user: {}, stages: STAGES }, selectedState = '', currentView = 'dashboard', pipelineView = 'board';
+    const statePicker = $('#sales-territory-state');
     const cleanups = [], boundPaths = new WeakSet();
     const listen = (element, event, handler) => { if (!element) return; element.addEventListener(event, handler); cleanups.push(() => element.removeEventListener(event, handler)); };
     const act = work => { try { Promise.resolve(work()).catch(error => status(error.message || 'The view could not be opened.', true)); } catch (error) { status(error.message || 'The view could not be opened.', true); } };
@@ -187,7 +188,19 @@
       const form = $('#sales-discover'); if (form) { if (form.elements.namedItem('state')) form.elements.namedItem('state').value = state; if (form.elements.namedItem('city')) form.elements.namedItem('city').value = city; }
       openView('discover'); return onSearch({ state, city });
     }
+    function clearState() {
+      if (!selectedState) return;
+      selectedState = '';
+      renderTerritories();
+    }
     function renderTerritories() {
+      if (statePicker) {
+        if (statePicker.options.length === 1) {
+          statePicker.append(...Array.from(STATE_NAMES, ([code, name]) => new Option(name, code)));
+        }
+        for (const option of statePicker.options) option.disabled = option.value !== '' && !permitted(option.value);
+        statePicker.value = selectedState;
+      }
       const rows = offices(), counts = new Map([...STATE_NAMES.keys()].map(state => [state,rows.filter(o => o.state === state).length]));
       const host = $('#sales-territory-map');
       if (host) host.classList.add('sdr-map');
@@ -245,12 +258,18 @@
         else citiesHost.replaceChildren(...list.map(group => { const control = button('','sdr-city-button',() => searchCity(group.state,group.city)); control.append(node('strong','',`${group.city}, ${group.state}`),node('span','',plural(group.count)),node('span','sdr-city-arrow','Research this city ↗')); return control; }));
       }
     }
+    listen(statePicker, 'change', () => act(() => {
+      const state = statePicker.value, focus = { statePicker: true };
+      if (!state) return onTerritory?.('', undefined, undefined, focus);
+      if (permitted(state)) return chooseState(state, undefined, undefined, focus);
+      statePicker.value = selectedState;
+    }));
     listen($('#sales-filter'),'input',renderPipeline); listen($('#sales-stage-filter'),'change',renderPipeline); listen($('#sales-attention-filter'),'change',renderPipeline);
     $$('[data-pipeline-view]').forEach(control => listen(control,'click',() => setPipelineView(control.dataset.pipelineView)));
     previousMount = () => cleanups.forEach(remove => remove());
     return {
       render(next) { data = { offices:[], agents:[], stages:STAGES, user:{}, ...next }; if (!permitted(selectedState)) selectedState = ''; renderRevenue(); renderDashboard(); renderPipeline(); renderTerritories(); navigate(currentView); },
-      navigate, chooseState,
+      navigate, chooseState, clearState,
     };
   }
   window.GigTaxConsole = { mount };

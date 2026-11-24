@@ -132,6 +132,10 @@
       }
       if (focus) next.focus();
     }
+    $('sales-team-add-rep')?.addEventListener('click', () => {
+      view('invite');
+      form.elements.name.focus();
+    });
     tablist.addEventListener('click', event => {
       const control = event.target.closest('[data-team-view]');
       if (control && !control.hidden) view(control.dataset.teamView);

@@ -1,3 +1,5 @@
+import { nationalFacilityAdministrator } from './national-facility-leadership.mjs';
+
 const cmsPath = '/provider-data/dataset/4pq5-n9py';
 
 // Employer-published role evidence, matched against the CMS facility ID,
@@ -115,8 +117,13 @@ export const administratorPhotoOrigins = [...new Set([
 ].filter(Boolean).map(url => new URL(url).origin))];
 
 export function publishedFacilityAdministrator(row) {
-  const role = reviewed[matchedRecordId(row)];
-  if (!role) return null;
+  const id = matchedRecordId(row);
+  const role = reviewed[id];
+  if (!role) {
+    // The former Stamford administrator publicly announced a different role.
+    const latest = nationalFacilityAdministrator(row);
+    return id === '075320' && latest?.name.toLowerCase().includes('olenechuk') ? null : latest;
+  }
   return {
     name: role.name, title: role.title || 'Administrator', phone: role.phone, email: role.email || '',
     sourceURL: role.sourceURL, photoURL: role.photoURL || '', linkedinURL: role.linkedinURL || '', checkedOn: '2026-11-23',
