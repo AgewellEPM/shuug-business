@@ -156,6 +156,10 @@
       draft.value = said;
       show(said, who === 'Staff' ? 'en' : language, who, null, false);
       exchange = { said, shown: [], tiles: [], listening: who === 'Staff', who };
+      if (patientScreen && window.matchMedia?.('(max-width: 640px)').matches) {
+        if (document.activeElement === draft) draft.blur();
+        app.scrollIntoView?.({block:'start', behavior:'instant'});
+      }
       await replies('reply');
     }
     // A wrong picture can mislead someone who cannot read the label. Prefer the words and picture this
