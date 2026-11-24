@@ -40,6 +40,7 @@ test('model receives only permitted accounts and authored lessons, and a questio
   assert.doesNotMatch(JSON.stringify(context), /Private Juniper|Outside territory/);
   assert.equal(schema.properties.action, undefined);
   assert.equal(turn.draft, null);
+  assert.match(turn.answer, /select a relevant tile/i);
   assert.equal(db.list('events').length, 0);
   assert.equal((await call(teammate, 'coach-state', { memberId: rep.id })).turns.length, 0);
   await assert.rejects(call({ ...rep, role: 'location' }, 'coach-state'), { status: 403 });

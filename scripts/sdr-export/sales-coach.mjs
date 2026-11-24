@@ -228,19 +228,20 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
     }
     const cited = guides.filter(item => Array.isArray(value.sources) && value.sources.includes(item.id));
     const sources = (cited.length ? cited : guides.slice(0, 1)).map(sourceLink);
-    if (/\b(?:train(?:ing)?|lesson|practice|learn|walkthrough)\b/i.test(question)) {
-      const lesson = guides.find(item => item.id.startsWith('learn-'));
-      if (lesson && !sources.some(source => source.href === lesson.href)) sources.push(sourceLink(lesson));
-    }
+    const lesson = /\b(?:teach|train(?:ing)?|lesson|practice|learn|walkthrough)\b/i.test(question) && guides.find(item => item.id.startsWith('learn-'));
+    if (lesson && !sources.some(source => source.href === lesson.href)) sources.push(sourceLink(lesson));
     const type = intent || value.action;
     const draft = normalizeDraft({ ...value, action: type }, accounts, question, history, workspace.calendar, screen);
     const genericEmail = type === 'email' && !draft && !namedAccounts(question, accounts).length && !/\b(?:them|their|that account)\b/i.test(question);
     const emailCopy = genericEmail && [value.fields?.subject, value.fields?.body].filter(v => typeof v === 'string' && v.trim()).join('\n\n').slice(0, 3800);
     const response = emailCopy || (Object.hasOwn(draftFields, type) ? draftAnswer(type, draft) : value.answer.trim().slice(0, 5500));
     const approvedUrls = new Set(guides.map(item => item.href));
-    const answerText = type === 'none' ? response.replace(/\[([^\]]+)\]\(https?:\/\/[^\s)]+\)/gi, '$1')
+    let answerText = type === 'none' ? response.replace(/\[([^\]]+)\]\([^\s)]+\)/gi, '$1')
       .replace(/https?:\/\/[^\s)]+/gi, url => approvedUrls.has(url) ? url : '')
       .replace(/\b(?:in|into) (?:any|every) language\b/gi, 'in supported languages').trim() : response;
+    if (type === 'none' && lesson && answerText.length < 180 && /\b(?:teach|walkthrough|how|practice|steps)\b/i.test(question)) {
+      answerText = lesson.content + '\n\n' + 'Open “' + lesson.title + '” below to practice.';
+    }
     return { mode: 'ai', answer: answerText, sources, draft };
   }
   async function dispatch(user, action, input) {
