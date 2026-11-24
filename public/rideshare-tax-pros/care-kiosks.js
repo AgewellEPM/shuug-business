@@ -1,23 +1,22 @@
-// Local presentation of TinkyTown's place-specific kiosk boards.
+// Local presentation of TinkyTown's kiosk, in the same layout a customer opens from the QR code.
 (() => {
   'use strict';
-  const packs = new Map();
   const langs = { en:'English', es:'Español', fr:'Français', ar:'العربية', pt:'Português', zh:'中文', vi:'Tiếng Việt' };
+  const published = new Set(['airport','bank','grocery','hotel','pharmacy','dmv','usps']);
   const normalize = s => String(s || '').normalize('NFKC').toLocaleLowerCase().replace(/[’‘]/g,"'").replace(/[.!?…]+$/g,'').trim();
-  async function read(name) {
-    if (!packs.has(name)) {
-      const loading = fetch('/care-kiosks/' + encodeURIComponent(name) + '.json').then(response => {
-        if (!response.ok) throw new Error('Venue boards unavailable.');
-        return response.json();
-      }).catch(error => { packs.delete(name); throw error; });
-      packs.set(name, loading);
-    }
-    return packs.get(name);
-  }
+  const read = name => window.CareKioskPacks.read('/care-kiosks/' + name + '.json');
   const element = (tag, value) => Object.assign(document.createElement(tag), {textContent:value ?? ''});
   function button(label, click) {
     const b = element('button', label);
     b.type = 'button'; b.addEventListener('click', click);
+    return b;
+  }
+  function icon(label, glyph, click, kind) {
+    const b = button('', click);
+    const mark = element('span', glyph);
+    mark.setAttribute('aria-hidden', 'true');
+    b.className = kind; b.setAttribute('aria-label', label);
+    b.append(mark);
     return b;
   }
   function picker(label, options, selected, onChange) {
@@ -35,20 +34,47 @@
     }
     return { dictionary, forward, reverse };
   }
-  function mount(root, family, params) {
+  function mount(root, venue, params) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
-    let lexicon = indexed({}), speaking = true, lastUtterance, pendingSign = false;
+    let lexicon = indexed({}), lastUtterance, pendingSign = false;
+    let recognition = null, privacy = false;
     const app = element('article'); app.className = 'care-venue-kiosk';
-    const title = element('h3'), address = element('p'), selectors = element('div'), controls = element('div');
-    const message = element('p'), original = element('p'), heading = element('h4'), grid = element('div'), helper = element('div');
-    const transcript = element('details'), transcriptList = element('ol');
-    transcript.append(element('summary','Conversation'),transcriptList);
-    selectors.className = controls.className = 'care-kiosk-controls';
-    message.className = 'care-kiosk-message'; message.setAttribute('role','status');
-    original.hidden = true;
-    grid.className = 'care-kiosk-tiles'; heading.tabIndex = -1;
-    app.append(title,address,selectors,message,original,controls,heading,grid,helper,transcript);
+    const header = element('header'), about = element('div'), title = element('h3'), address = element('p'), contact = element('p'), boardName = element('p');
+    const captions = element('div'), words = element('div'), speaker = element('strong'), message = element('p'), original = element('p');
+    const area = element('div'), heading = element('h4'), grid = element('div'), helper = element('div'), dock = element('footer');
+    const transcript = element('details'), transcriptTitle = element('summary','Conversation'), transcriptList = element('ol');
+    const selectors = element('div'), status = element('p');
+    const back = icon('Back', '←', previous, 'ck-back'); back.dataset.back = '';
+    header.className = 'ck-header'; about.className = 'ck-about'; contact.className = 'ck-contact'; boardName.className = 'ck-board';
+    about.append(title,address,contact,boardName); header.append(back,about);
+    captions.className = 'ck-captions'; words.className = 'ck-words';
+    message.className = 'care-kiosk-message'; words.setAttribute('role','status');
+    original.className = 'ck-original'; original.hidden = true;
+    const hear = icon('Listen for staff', '👂', () => listen('staff'), 'ck-ear');
+    const replay = icon('Speak again', '🔊', () => { const m = messages.at(-1); if (m) utter(m.text,m.lang); }, 'ck-replay'); replay.dataset.replay = '';
+    words.append(speaker,message,original); captions.append(words,hear,replay);
+    area.className = 'ck-area'; heading.className = 'ck-sr'; heading.tabIndex = -1;
+    grid.className = 'care-kiosk-tiles'; helper.className = 'ck-helper';
+    area.append(heading,helper,grid);
+    const talk = button('🎤 Tap to Speak', () => listen('visitor')); talk.className = 'ck-talk';
+    const type = element('form'), draft = element('input'), clear = button('Clear', () => { draft.value = ''; draft.focus(); }), send = element('button','↑');
+    type.className = 'ck-type'; draft.placeholder = 'Type your question…'; draft.maxLength = 350; draft.setAttribute('aria-label','Type your question');
+    clear.className = 'ck-clear'; send.className = 'ck-send'; send.type = 'submit'; send.setAttribute('aria-label','Show and speak');
+    type.append(draft,clear,send);
+    type.addEventListener('submit', e => { e.preventDefault(); const text = draft.value.trim(); if (text) { show(text,language,'Visitor'); draft.value = ''; } });
+    const staff = button('👂 Listen for Staff', () => listen('staff')); staff.className = 'ck-staff';
+    status.className = 'ck-status'; status.setAttribute('role','status');
+    transcript.className = 'ck-transcript'; transcript.append(transcriptTitle,transcriptList);
+    selectors.className = 'ck-places'; selectors.hidden = true;
+    const nav = element('nav'); nav.className = 'ck-nav'; nav.setAttribute('aria-label','Kiosk');
+    const tabs = [['Home','🏠',() => { history = []; go('main',false); }],['Numbers','🔢',() => compose('Number',{numeric:true})],
+      ['Translate','🌐',() => translateSign()],['Places','📍',() => { selectors.hidden = !selectors.hidden; if (!selectors.hidden) selectors.querySelector('select').focus(); }]];
+    for (const [label,glyph,click] of tabs) { const b = icon(label,glyph,click,'ck-tab'); b.append(element('small',label)); nav.append(b); }
+    dock.className = 'ck-dock'; dock.append(talk,type,staff,status,transcript);
+    app.append(header,captions,selectors,area,dock,nav);
     root.replaceChildren(app);
+    const live = [captions,dock,nav];
+    for (const part of live) part.inert = true;
     const tr = text => Object.hasOwn(lexicon.dictionary,text) ? lexicon.dictionary[text] : lexicon.forward.get(normalize(text));
     function localized(el, english) {
       const translated = tr(english);
@@ -78,26 +104,57 @@
       } catch { return undefined; }
       finally { translator?.destroy?.(); }
     }
+    function stopListening() {
+      if (!recognition) return;
+      recognition.onresult = recognition.onerror = recognition.onend = null;
+      try { recognition.abort(); } catch { /* already ended */ }
+      recognition = null;
+      for (const b of [talk,staff,hear]) b.removeAttribute('data-listening');
+      status.textContent = '';
+    }
+    // The browser handles recognition. Without it, or without permission, the same words can be typed.
+    function listen(who) {
+      const active = Boolean(recognition);
+      stopListening();
+      if (active) return;
+      cancelVoice();
+      const fallback = () => { stopListening(); compose(who === 'staff' ? 'Staff reply' : 'Your message'); };
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Recognition) return fallback();
+      recognition = new Recognition();
+      recognition.lang = who === 'staff' ? 'en-US' : language;
+      recognition.onresult = event => {
+        const heard = event.results[0][0].transcript.trim();
+        stopListening();
+        if (heard) show(heard, who === 'staff' ? 'en' : language, who === 'staff' ? 'Staff' : 'Visitor', null, who !== 'staff');
+      };
+      recognition.onerror = fallback;
+      recognition.onend = () => { stopListening(); status.textContent = 'No words were heard. Try again.'; };
+      (who === 'staff' ? [staff,hear] : [talk]).forEach(b => b.setAttribute('data-listening',''));
+      status.textContent = who === 'staff' ? 'Listening for staff…' : 'Listening…';
+      try { recognition.start(); } catch { fallback(); }
+    }
     function show(text, lang, who, english, speakNow = true) {
       if (!text) return;
       const item = {text,lang,who,english};
       messages.push(item);
+      speaker.textContent = who === 'Visitor' ? 'You said:' : who + ':';
       message.textContent = text; message.lang = lang; message.dir = 'auto';
       original.hidden = !english; original.textContent = english ? 'Full message in English · ' + english : '';
-      const li = element('li',who + ' · '), words = element('span',text);
-      words.lang = lang; words.dir = 'auto'; li.append(words);
+      const li = element('li',who + ' · '), line = element('span',text);
+      line.lang = lang; line.dir = 'auto'; li.append(line);
       if (english) li.append(element('small',' · ' + english));
-      transcriptList.append(li);
-      controls.querySelector('[data-replay]').disabled = false;
-      if (speaking && speakNow) utter(text,lang);
-      return {item,words,li};
+      transcriptList.append(li); transcriptTitle.textContent = 'Conversation (' + messages.length + ')';
+      replay.disabled = false;
+      if (speakNow) utter(text,lang);
+      return {item,words:line,li};
     }
-    function speak(english, fallback, who = 'Visitor') {
+    function speak(english, fallback, {who = 'Visitor', aloud = true} = {}) {
       if (!english) return;
       const translation = tr(english), short = fallback && tr(fallback);
-      if (translation) return show(translation,language,who);
-      const tryLocal = language !== 'en' && Boolean(window.Translator?.availability);
-      const placed = short ? show(short,language,who,english,!tryLocal) : show(english,'en',who,null,!tryLocal);
+      if (translation) return show(translation,language,who,undefined,aloud);
+      const tryLocal = aloud && language !== 'en' && Boolean(window.Translator?.availability);
+      const placed = short ? show(short,language,who,english,aloud && !tryLocal) : show(english,'en',who,null,aloud && !tryLocal);
       if (!tryLocal) return;
       const target = language;
       localTranslation(english,'en',target).then(translated => {
@@ -113,12 +170,12 @@
           message.textContent = translated; message.lang = target;
           original.hidden = false; original.textContent = 'Full message in English · ' + english;
         }
-        if (speaking) utter(item.text,item.lang);
+        utter(item.text,item.lang);
       });
     }
     function setAddress() {
       const args = new URLSearchParams(location.hash.slice(1));
-      if (args.get('venue') !== family) return;
+      if (args.get('venue') !== venue) return;
       args.set('place',place.key); args.set('board',key);
       if (language === 'en') args.delete('language'); else args.set('language',language);
       window.history.replaceState(null,'','#' + args);
@@ -126,7 +183,7 @@
     function go(id, push = true) {
       if (!Object.hasOwn(place.boards,id)) return;
       if (push && key !== id) history.push(key);
-      pendingSign = false; key = id; setAddress(); draw(); heading.focus({preventScroll:true});
+      pendingSign = false; stopListening(); selectors.hidden = true; key = id; setAddress(); draw(); area.scrollTop = 0; heading.focus({preventScroll:true});
     }
     function previous(fallback) {
       go(history.pop() || (typeof fallback === 'string' && fallback !== key ? fallback : 'main'),false);
@@ -138,13 +195,17 @@
       if (options.numeric) { input.inputMode = 'decimal'; input.pattern = '[0-9., +\\-]+'; }
       if (options.placeholder) input.placeholder = options.placeholder;
       const submit = element('button', options.submit || 'Show and speak'); submit.type = 'submit';
-      form.append(field,submit); helper.replaceChildren(form); input.focus();
+      form.append(field,submit); helper.replaceChildren(form); area.scrollTop = 0; input.focus();
       form.addEventListener('submit', e => {
         e.preventDefault();
         const text = input.value.trim();
         if (!text) return;
         if (options.save) options.save(text);
-        else show(text, options.lang || language, label);
+        else {
+          const reply = label === 'Staff reply';
+          show(text, reply ? 'en' : language, reply ? 'Staff' : 'Visitor', null, !reply);
+          helper.replaceChildren();
+        }
       });
       return form;
     }
@@ -166,6 +227,7 @@
       if (language === 'en') {
         pendingSign = true;
         helper.replaceChildren(element('p','Choose the other language on the sign, then enter the text.'));
+        selectors.hidden = false;
         selectors.querySelector('[data-language] select').focus();
         return;
       }
@@ -187,18 +249,20 @@
       const action = tile.action;
       if (action === 'back') return previous(tile.navigateTo);
       if (action === 'go_home') { history = []; return go('main',false); }
-      if (action === 'language_picker') return selectors.querySelector('[data-language] select').focus();
-      if (['focus_input','caption_teller'].includes(action)) return compose('Staff reply');
-      if (['number_pad','weight_pad'].includes(action)) return compose(tile.label,{numeric:true});
+      if (action === 'language_picker') { selectors.hidden = false; return selectors.querySelector('[data-language] select').focus(); }
+      if (action === 'caption_teller') return listen('staff');
+      if (action === 'focus_input') return draft.focus();
+      if (['number_pad','weight_pad','number_pad_digits','number_pad_date'].includes(action)) return compose(tile.label,{numeric:true});
       if (action === 'translate_sign') return translateSign();
       if (action === 'scan_boarding_pass') return compose('Sample boarding pass', {placeholder:'Flight or gate',submit:'Show boarding details'});
       helper.replaceChildren();
       if (action === 'show_for_staff') {
         const english = tile.showForStaffText || tile.spokenText || tile.label;
-        speak(english);
+        // A private message is shown on screen only. It is never spoken or kept in the conversation.
+        if (!tile.silent) speak(english);
         helper.append(localized(element('blockquote'),english)); return;
       }
-      speak(tile.spokenText || tile.label, tile.label);
+      if (!tile.private && !privacy && tile.spokenText !== '') speak(tile.spokenText || tile.label, tile.label, {aloud: !tile.silent});
       if (action === 'open_url') return resource(tile);
       if (action === 'report_set_safety') {
         const target = tile.reportNext === 'report_988_routing' ? 'mental_health_crisis' : tile.reportNext;
@@ -212,21 +276,32 @@
       }
       if (tile.navigateTo) go(tile.navigateTo);
     }
+    function tileButton(tile) {
+      const b = button('',() => choose(tile)); b.className = 'care-kiosk-tile';
+      b.dataset.color = tile.color || 'blue'; b.dataset.boardTarget = tile.navigateTo || ''; b.dataset.action = tile.action || '';
+      const emoji = element('span',tile.emoji || '💬'); emoji.setAttribute('aria-hidden','true');
+      const label = element('div'); label.className = 'ck-label';
+      label.append(localized(element('strong'),tile.label));
+      if (tile.subtitle) label.append(localized(element('small'),tile.subtitle));
+      b.append(emoji,label);
+      return b;
+    }
     function draw() {
       const board = pack.pool[place.boards[key]];
+      privacy = key === 'senior_private';
       localized(heading,board.title || place.name);
-      grid.replaceChildren(...board.tiles.map(tile => {
-        const b = button('',() => choose(tile)); b.className = 'care-kiosk-tile';
-        b.dataset.color = tile.color || 'blue'; b.dataset.boardTarget = tile.navigateTo || ''; b.dataset.action = tile.action || '';
-        const emoji = element('span',tile.emoji || '💬'); emoji.setAttribute('aria-hidden','true');
-        b.append(emoji,localized(element('strong'),tile.label));
-        if (tile.subtitle) b.append(localized(element('small'),tile.subtitle));
-        return b;
-      }));
+      boardName.textContent = key === 'main' ? '' : heading.textContent;
+      // The kiosk keeps Yes and No on every board.
+      const has = word => board.tiles.some(tile => tile.label?.trim().toLowerCase() === word);
+      const answers = privacy ? [] : [['Yes','✅','green'],['No','❌','red']].filter(([label]) => !has(label.toLowerCase()))
+        .map(([label,emoji,color]) => ({label,emoji,color,spokenText:label}));
+      grid.replaceChildren(...[...answers,...board.tiles].map(tileButton));
       const boards = selectors.querySelector('[data-board] select');
       for (const option of boards.options) localized(option,pack.pool[place.boards[option.value]].title);
       boards.value = key; helper.replaceChildren();
-      controls.querySelector('[data-back]').disabled = !history.length && key === 'main';
+      if (board.prompt) helper.append(Object.assign(element('p','They may say: ' + board.prompt),{className:'ck-prompt'}));
+      back.disabled = !history.length && key === 'main';
+      nav.firstElementChild.toggleAttribute('data-current', key === 'main');
     }
     async function changeLanguage(value) {
       const seq = ++generation;
@@ -244,34 +319,31 @@
       }
     }
     function setPlace(id, requestedBoard) {
-      generation++; pendingSign = false;
+      generation++; pendingSign = false; stopListening();
       place = pack.places.find(p => p.key === id) || pack.places[0];
       key = Object.hasOwn(place.boards,requestedBoard) ? requestedBoard : 'main';
-      history = []; messages = []; transcriptList.replaceChildren(); transcript.open = false;
-      cancelVoice(); original.hidden = true; original.textContent = '';
-      message.textContent = 'Tap a tile to show and speak your message.'; message.lang = 'en';
+      history = []; messages = []; transcriptList.replaceChildren(); transcript.open = false; transcriptTitle.textContent = 'Conversation';
+      cancelVoice(); original.hidden = true; original.textContent = ''; speaker.textContent = '';
+      message.textContent = 'Captions will appear here. Tap 👂 to listen for staff.'; message.lang = 'en';
       title.textContent = place.name; address.textContent = place.address; address.hidden = !place.address;
+      contact.textContent = [place.phone && '☎️ ' + place.phone, place.hours].filter(Boolean).join(' · '); contact.hidden = !contact.textContent;
       const where = picker('Location',pack.places.map(p => [p.key,p.name]),place.key,value => {setPlace(value);setAddress();});
       const boards = picker('Board',Object.entries(place.boards).map(([id,i]) => [id,pack.pool[i].title]),key,id => go(id)); boards.dataset.board='';
       const lang = picker('Board language',Object.entries(langs),language,changeLanguage); lang.dataset.language='';
       selectors.replaceChildren(where,boards,lang);
-      const back = button('← Back',previous); back.dataset.back='';
-      const replay = button('Speak again',() => {const m=messages.at(-1);if(m)utter(m.text,m.lang);});
-      replay.dataset.replay='';replay.disabled=true;
-      const auto = element('label'), toggle = element('input'); toggle.type='checkbox'; toggle.checked=speaking;
-      toggle.addEventListener('change',() => {speaking=toggle.checked;if(!speaking)cancelVoice();}); auto.append(toggle,' Speak on tap');
-      controls.replaceChildren(back,button('Yes',()=>speak('Yes')),button('No',()=>speak('No')),replay,button('Staff reply',()=>compose('Staff reply')),auto);
-      if (!['college','community'].includes(family)) {
+      replay.disabled = true;
+      for (const part of live) part.inert = false;
+      if (published.has(venue)) {
         const official = element('a','Open public kiosk ↗');
-        official.href='https://tinkytown.com/'+family+'/'+place.key.split('/').map(encodeURIComponent).join('/');
-        official.target='_blank';official.rel='noopener noreferrer'; controls.append(official);
+        official.href='https://tinkytown.com/'+venue+'/'+place.key.split('/').map(encodeURIComponent).join('/');
+        official.target='_blank';official.rel='noopener noreferrer'; selectors.append(official);
       }
       draw();
     }
     async function load() {
       title.textContent='Loading location…';
       try {
-        pack=await read(family); if (closed) return;
+        pack=await window.CareKioskPacks.load(venue); if (closed) return;
         setPlace(params.get('place') || params.get('mode'),params.get('board'));
         const requested=params.get('language');
         if(requested && Object.hasOwn(langs,requested)) await changeLanguage(requested);
@@ -279,8 +351,10 @@
         if(!closed) {title.textContent='This location could not load.';helper.replaceChildren(button('Try again',load));}
       }
     }
+    const pause = () => { stopListening(); cancelVoice(); };
+    root.addEventListener('care:pause', pause);
     load();
-    return () => {closed=true;generation++;cancelVoice();app.remove();};
+    return () => {closed=true;generation++;pause();root.removeEventListener('care:pause', pause);app.remove();};
   }
   window.CareKiosks = {mount};
 })();

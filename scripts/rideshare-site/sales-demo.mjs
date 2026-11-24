@@ -72,18 +72,8 @@ export function renderCareDemo() {
         <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
       </div>
     </nav>
-    <div class="training-actions">
-      <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
-      <span data-care-customer-example hidden>${renderLiveKioskLink()}</span>
-    </div>
     <div data-care-plan hidden></div>
     <div data-care-experience>
-    <div data-care-tour-shell><div data-care-tour></div></div>
-    <div class="care-stage-links" data-care-modes></div>
-    <details class="sdr-training care-voice" data-care-voice hidden>
-      <summary>Practice voice replies</summary>
-      ${renderVoicePractice({ id: 'care-voice', heading: 'Listen and choose a reply' })}
-    </details>
     <div data-care-mount></div>
     <div data-care-stroke hidden></div>
     <div data-care-guide hidden>
@@ -163,6 +153,19 @@ export function renderCareDemo() {
     </div>
   </div>
     </div>
+    <details class="care-rep-tools" data-care-rep-tools>
+      <summary>Rep tools</summary>
+      <div class="care-stage-links" data-care-modes></div>
+      <div class="training-actions">
+        <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
+        <span data-care-customer-example hidden>${renderLiveKioskLink()}</span>
+      </div>
+      <div data-care-tour-shell><div data-care-tour></div></div>
+      <details class="sdr-training care-voice" data-care-voice hidden>
+        <summary>Practice voice replies</summary>
+        ${renderVoicePractice({ id: 'care-voice', heading: 'Listen and choose a reply' })}
+      </details>
+    </details>
     </div>
   </section>
 </section>`;

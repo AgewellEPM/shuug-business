@@ -49,7 +49,7 @@ const assets = [
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
   ...['care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot'].flatMap(name => [name + '.js', name + '.css']),
   ...readdirSync(join(root, 'public/rideshare-tax-pros')).filter(name => /^care-library-[a-z_-]+\.json$/.test(name)),
-  'care-kiosks.js', 'care-venue-tour.js', 'care-facility-data.json', 'care-facility-kiosks.json',
+  'care-kiosk-packs.js', 'care-kiosks.css', 'care-kiosks.js', 'care-venue-tour.js', 'care-facility-data.json', 'care-facility-kiosks.json',
   ...['boards','visit','gmb'].map(name => 'care-location-' + name + '.json'),
   ...['clinic','directory','healthcare','hospital','townhall','library','police','clerk','tax','probate'].map(name => 'care-location-qr-' + name + '.png'),
   ...readdirSync(join(root, 'public/rideshare-tax-pros/care-kiosks')).filter(name => /^[a-z-]+\.json$/.test(name)).map(name => 'care-kiosks/' + name),
