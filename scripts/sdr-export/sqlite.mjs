@@ -1,6 +1,7 @@
 import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
+import { bookingStore } from './booking-store.mjs';
 
 const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings']);
 function kindFor(kind) {
@@ -85,6 +86,7 @@ export function sqliteStore(filename) {
   }
 
   return {
+    booking: bookingStore(db, writeTransaction),
     list: kind => all.all(kindFor(kind)).map(decode),
     get,
     create(kind, body) {

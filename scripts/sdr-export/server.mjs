@@ -24,6 +24,8 @@ import { setCountyLead, territoryMap } from '../../sales/territory-map.mjs';
 import { stateFacilityDirectory } from '../../sales/state-facilities.mjs';
 import { facilityOutreach } from './facility-outreach.mjs';
 import { initialize, privateValue } from './setup.mjs';
+import { bookings } from './bookings.mjs';
+import { bookingHTTP } from './booking-http.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const profile = profileAt(root);
@@ -59,6 +61,8 @@ for (const variable of ['GIGTAX_MAILGUN_API_KEY', 'GIGTAX_MAILGUN_DOMAIN', 'GIGT
   if (process.env[variable]) env[variable] = process.env[variable];
 }
 const db = sqliteStore(join(directory, 'workspace.sqlite'));
+const booking = bookings(process.env, db, origin.origin, sessionKey);
+const publicBooking = bookingHTTP(booking, origin.origin);
 const facilities = stateFacilityDirectory({ db });
 const automation = campaigns(env, db, { catalogue });
 db.discover = catalogue ? async (region, locality, { offset = 0, limit = 50 } = {}) => {
@@ -97,6 +101,7 @@ const sales = createHandler(env, db, {
   territoryOwnership: (user, input, team) => territoryOwnership(user, input, db, team),
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,
+  booking: booking.staff,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);
@@ -110,9 +115,10 @@ const sales = createHandler(env, db, {
 });
 const routes = new Map([
   ['/api/sales', sales],
-  ['/api/offices', createDirectoryHandler(env, db)],
+  ['/api/offices', createDirectoryHandler(env, db, { defaultBookingURL: () =>
+    origin.protocol === 'https:' && booking.publicAction('hosts', {}).hosts.length ? origin.origin + '/book' : '' })],
   ['/api/sales-webhook', createWebhookHandler(env, db)],
-  ['/api/sales-mail-webhook', createMailWebhook(env, db, { campaignNotification: campaignNotifications(db) })],
+  ['/api/sales-mail-webhook', createMailWebhook(env, db, { campaignNotification: campaignNotifications(db), bookingNotification: booking.mailNotification })],
 ]);
 const pages = renderWorkspace(profile, signIn?.href);
 const files = new Map();
@@ -135,6 +141,7 @@ const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, 
   if (request.headers.host !== origin.host) return finish(421);
   const path = request.url?.split('?')[0];
   try {
+    if (path === '/api/booking' || path.startsWith('/api/booking/') || path.startsWith('/book/feed/')) return await publicBooking(request, response);
     if (routes.has(path)) return await routes.get(path)(request, response);
     if (!['GET', 'HEAD'].includes(request.method)) return finish(405);
     if (path === '/') {
@@ -161,6 +168,7 @@ server.listen(port, '127.0.0.1', () => {
 const runScheduledSales = service(env, db).dispatch;
 let scheduledRun;
 const scheduler = setInterval(() => {
+  booking.tick().catch(() => console.error('The booking notification cycle could not finish.'));
   if (!scheduledRun) scheduledRun = automation.tick(runScheduledSales)
     .catch(() => console.error('The campaign scheduler could not finish its current cycle.'))
     .finally(() => { scheduledRun = null; });
@@ -168,5 +176,5 @@ const scheduler = setInterval(() => {
 scheduler.unref();
 for (const signal of ['SIGINT', 'SIGTERM']) process.once(signal, () => {
   clearInterval(scheduler);
-  server.close(async () => { await scheduledRun; db.close(); });
+  server.close(async () => { await Promise.allSettled([scheduledRun, booking.tick()]); db.close(); });
 });

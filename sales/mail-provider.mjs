@@ -20,12 +20,13 @@ export function mailConnection(env) {
     webhooksConfigured: Boolean(env.GIGTAX_MAILGUN_WEBHOOK_KEY),
     message: config.ready ? config.mode === 'test' ? 'Email is in test mode. Test requests do not establish real delivery.' : 'Email settings are saved. Provider acceptance and recipient delivery are tracked separately.' : 'Direct email delivery needs setup. Contract links and your own email app remain available.' };
 }
-export async function sendContractMail(config, preview, deliveryId, fetcher = fetch) {
+export async function sendProviderMail(config, preview, deliveryId, fetcher = fetch, booking = null) {
   if (!config.ready) throw new HttpError(503, 'Direct contract email is not connected. Use your email app or finish email setup.');
   if (singleEmail(preview.from).split('@')[1] !== config.domain) throw new HttpError(409, 'This sender must belong to the configured sending domain.');
   const body = new FormData();
   for (const [key, value] of Object.entries({ from: `${text(preview.fromName, 140)} <${singleEmail(preview.from)}>`, to: singleEmail(preview.to), 'h:Reply-To': singleEmail(preview.replyTo), subject: text(preview.subject, 180, true), text: preview.text,
-    'v:gigtax_delivery': String(deliveryId), 'o:tracking': 'no', 'o:tracking-clicks': 'no', 'o:tracking-opens': 'no', 'o:require-tls': 'yes', 'o:skip-verification': 'no', ...(config.mode === 'test' ? { 'o:testmode': 'yes' } : {}) })) body.set(key, value);
+    [booking ? 'v:sdr_booking' : 'v:gigtax_delivery']: String(deliveryId), 'o:tracking': 'no', 'o:tracking-clicks': 'no', 'o:tracking-opens': 'no', 'o:require-tls': 'yes', 'o:skip-verification': 'no', ...(config.mode === 'test' ? { 'o:testmode': 'yes' } : {}) })) body.set(key, value);
+  if (booking?.calendar) body.set('attachment', new Blob([booking.calendar], { type: 'text/calendar; charset=utf-8; method=' + booking.method }), 'appointment.ics');
   try {
     const response = await fetcher(config.endpoint, { method: 'POST', headers: { Authorization: `Basic ${Buffer.from(`api:${config.key}`).toString('base64')}` }, body, redirect: 'error', signal: AbortSignal.timeout(20000) });
     if ([400, 401, 403, 404, 422, 429].includes(response.status)) { await response.body?.cancel(); return { status: 'rejected', providerId: null }; }
@@ -37,3 +38,4 @@ export async function sendContractMail(config, preview, deliveryId, fetcher = fe
     return typeof result.id === 'string' && /^[!-~]{1,300}$/.test(result.id) ? { status: 'accepted', providerId: result.id } : { status: 'uncertain', providerId: null };
   } catch { return { status: 'uncertain', providerId: null }; }
 }
+export { sendProviderMail as sendContractMail };

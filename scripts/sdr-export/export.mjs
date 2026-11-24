@@ -42,6 +42,9 @@ const assets = [
 ];
 for (const path of assets) copy('public/rideshare-tax-pros/' + path, 'site/' + path);
 for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
+for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
+  if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
+}
 for (const name of ['Capture.swift', 'SDRWrapper.swift']) copy('native/macos/SDRWrapper/' + name);
 copy('scripts/sales/mcp-connection.ts');
 copy('src/lib/backend/sales-mcp.ts');
