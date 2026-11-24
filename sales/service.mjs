@@ -24,6 +24,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const ownerHash = env.GIGTAX_SALES_OWNER_HASH;
   const owner = { id: 'owner', name: 'Workspace owner', role: 'owner', states: [] };
   const workspaceSession = tools.workspaceSession || requestWorkspaceSession;
+  const presence = tools.teamChat?.presence;
   const prepareAgreement = tools.agreement || agreement;
   const outreachDrafts = tools.outreach || outreach;
   const prospects = prospectTools(env, db, tools);
@@ -49,11 +50,15 @@ export function service(env, db, payment = payments(env), tools = {}) {
   async function identity(token) {
     const session = unseal(token || '', key);
     if (!session) throw new HttpError(401, 'Sign in with your sales access code.');
-    if (session.workspaceSession) return workspaceIdentity(await workspaceSession('read', session.workspaceSession));
-    if (session.ownerHash && session.ownerHash === ownerHash) return owner;
-    const row = await db.get('agents', session.id);
-    const user = rosterUser(row);
-    if (!user || metadata(row).codeHash !== session.codeHash) throw new HttpError(401, 'This access code has expired or was revoked.');
+    let user;
+    if (session.workspaceSession) user = await workspaceIdentity(await workspaceSession('read', session.workspaceSession));
+    else if (session.ownerHash && session.ownerHash === ownerHash) user = owner;
+    else {
+      const row = await db.get('agents', session.id);
+      user = rosterUser(row);
+      if (!user || metadata(row).codeHash !== session.codeHash) throw new HttpError(401, 'This access code has expired or was revoked.');
+    }
+    presence?.touch(token, user);
     return user;
   }
   async function leadFor(user, id) {
@@ -84,15 +89,19 @@ export function service(env, db, payment = payments(env), tools = {}) {
       if (!user) throw new HttpError(401, 'Check your email and access code.');
       session = { id: user.id, codeHash };
     }
-    return { user: publicUser(user), token: seal({ ...session, exp: Date.now() + 8 * 3600000 }, key) };
+    const token = seal({ ...session, sid: secret(), exp: Date.now() + 8 * 3600000 }, key);
+    presence?.touch(token, user);
+    return { user: publicUser(user), token };
   }
   async function enterWorkspace(ticket) {
     const proof = await workspaceSession('redeem', ticket);
     const user = await workspaceIdentity(proof);
-    return { destination: user.role === 'location' ? '/location' : '/sales',
-      token: seal({ workspaceSession: proof.session, exp: proof.expires }, key) };
+    const token = seal({ workspaceSession: proof.session, exp: proof.expires }, key);
+    presence?.touch(token, user);
+    return { destination: user.role === 'location' ? '/location' : '/sales', token };
   }
   async function logout(token) {
+    presence?.leave(token);
     const session = unseal(token || '', key);
     if (session?.workspaceSession) await workspaceSession('revoke', session.workspaceSession);
   }

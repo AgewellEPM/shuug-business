@@ -22,6 +22,7 @@
     });
     const list = $('#chat-channels'), log = $('#chat-messages'), scroll = $('#chat-scroll');
     const railToggle = $('#chat-nav-toggle');
+    const onlineMembers = $('#chat-online-members'), onlineCount = $('#chat-online-count'), onlineShortcut = $('#chat-online-shortcut');
     const directs = $('#chat-directs'), peoplePanel = $('#chat-people'), newDirect = $('#chat-new-direct');
     const personSearch = $('#chat-person-search'), personResults = $('#chat-person-results'), firstDirect = $('#chat-first-direct');
     const add = $('#chat-add'), create = $('#chat-create'), compose = $('#chat-compose');
@@ -31,6 +32,7 @@
     const drafts = new Map();
     let user, active = false, room, lastChannel = 'general', controller, timer, retry = 1000;
     let channelList = [], directList = [], channelSignature = '', people = [], peopleRequest = 0;
+    let onlineSignature;
 
     function showStatus(text = '', kind = '') {
       status.textContent = text;
@@ -48,6 +50,41 @@
       if (fromMobileList) {
         railToggle.focus({ preventScroll: true });
         markVisible();
+      }
+    }
+    function renderOnline(members, statusText = 'Connecting…') {
+      const signature = JSON.stringify([user?.id, members, members ? '' : statusText]);
+      if (signature === onlineSignature) return;
+      onlineSignature = signature;
+      const focused = onlineMembers.contains(document.activeElement) && document.activeElement.dataset.member;
+      onlineCount.hidden = !members;
+      onlineCount.textContent = members ? String(members.length) : '';
+      onlineShortcut.textContent = members ? members.length + ' online' : 'Online staff';
+      onlineShortcut.dataset.online = String(Boolean(members?.length));
+      $('#chat-online-status').textContent = members ? (members.length ? '' : 'Nobody online.') : statusText;
+      onlineMembers.replaceChildren(...(members || []).map(person => {
+        const self = person.id === user?.id;
+        const li = element('li'), row = element(self ? 'div' : 'button', undefined, 'chat-online-person');
+        const avatar = element('span', initialsOf(person.name), 'chat-peer-avatar');
+        avatar.setAttribute('aria-hidden', 'true');
+        row.append(avatar, element('span', person.name, 'chat-online-name'));
+        if (self) row.append(element('small', 'You'));
+        else {
+          row.type = 'button';
+          row.dataset.member = person.id;
+          row.title = 'Message ' + person.name;
+          row.setAttribute('aria-label', row.title);
+          const arrow = element('span', '›', 'chat-online-arrow');
+          arrow.setAttribute('aria-hidden', 'true');
+          row.append(arrow);
+          row.addEventListener('click', () => openDirect(person.id, row, text => showStatus(text, 'error')));
+        }
+        li.append(row);
+        return li;
+      }));
+      if (focused) {
+        const next = [...onlineMembers.querySelectorAll('button')].find(button => button.dataset.member === focused);
+        (next || $('#chat-online-title')).focus({ preventScroll: true });
       }
     }
     function renderChannels() {
@@ -186,10 +223,18 @@
     }
     function restart() {
       pause();
-      if (!user || document.visibilityState === 'hidden') return;
+      if (!user) return;
       const request = new AbortController();
       controller = request;
-      void sync(request);
+      if (document.visibilityState === 'hidden') void heartbeat(request);
+      else void sync(request);
+    }
+    async function heartbeat(request) {
+      try { await api('chat-heartbeat', {}, request.signal); }
+      catch (error) {
+        if (request === controller && [401, 403].includes(error.status)) { reset(); return; }
+      }
+      if (request === controller) timer = setTimeout(() => heartbeat(request), 45_000);
     }
     async function sync(request) {
       const current = room, displaying = Boolean(active && current);
@@ -201,6 +246,7 @@
         if (request !== controller) return;
         channelList = data.channels;
         directList = data.directs || [];
+        renderOnline(data.online);
         renderChannels();
         if (displaying) {
           const channel = [...channelList, ...directList].find(c => c.slug === current.slug);
@@ -238,6 +284,7 @@
           showStatus('That conversation is unavailable. Showing #general.', 'error');
           return;
         }
+        renderOnline(null, 'Online status unavailable.');
         if (displaying) showStatus('Chat connection interrupted. Reconnecting…', 'connection');
         timer = setTimeout(() => sync(request), retry);
         retry = Math.min(retry * 2, 15_000);
@@ -259,6 +306,19 @@
       $('#chat-invite-link').hidden = true;
       firstDirect.hidden = Boolean(directList.length);
     }
+    async function openDirect(memberId, button, onError) {
+      if (!user || button.disabled) return;
+      button.disabled = true;
+      const selection = ++peopleRequest;
+      try {
+        const { slug } = await api('chat-direct-open', { memberId });
+        if (selection !== peopleRequest || !active) return;
+        hidePeople();
+        selectRoom(slug);
+      } catch (error) {
+        if (selection === peopleRequest) onError(error.message);
+      } finally { button.disabled = false; }
+    }
     function showPeople() {
       const term = personSearch.value.trim().toLocaleLowerCase();
       const filtered = people.filter(person => person.name.toLocaleLowerCase().includes(term));
@@ -275,19 +335,7 @@
         if (nameCounts.get(person.name) > 1) {
           label.append(element('small', person.id === 'owner' ? 'Owner' : 'Rep #' + person.id));
         }
-        button.addEventListener('click', async () => {
-          if (button.disabled) return;
-          button.disabled = true;
-          const selection = ++peopleRequest;
-          try {
-            const { slug } = await api('chat-direct-open', { memberId: person.id });
-            if (selection !== peopleRequest || !active) return;
-            hidePeople();
-            selectRoom(slug);
-          } catch (error) {
-            if (selection === peopleRequest) $('#chat-person-status').textContent = error.message;
-          } finally { button.disabled = false; }
-        });
+        button.addEventListener('click', () => openDirect(person.id, button, text => { $('#chat-person-status').textContent = text; }));
         return button;
       }));
       $('#chat-person-status').textContent = filtered.length ? '' : people.length ? 'No matching teammates.' : 'No other active teammates yet.';
@@ -329,6 +377,7 @@
       hideCreate();
       hidePeople();
       setNavigation(false);
+      renderOnline(null);
       add.hidden = older.hidden = jump.hidden = empty.hidden = signin.hidden = true;
       $('#chat-name').textContent = '';
       $('#chat-topic').textContent = '';
@@ -436,6 +485,10 @@
       setNavigation(open);
       if (open) $('#chat-nav [aria-current="true"]')?.focus({ preventScroll: true });
       else markVisible();
+    });
+    onlineShortcut.addEventListener('click', () => {
+      setNavigation(true);
+      $('#chat-online-title').focus();
     });
     $('#chat-nav').addEventListener('keydown', event => {
       if (event.key !== 'Escape' || event.defaultPrevented || panel.dataset.navOpen !== 'true') return;

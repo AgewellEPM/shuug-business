@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { HttpError } from '../../sales/model.mjs';
+import { HttpError, digest } from '../../sales/model.mjs';
 
 const starterChannels = [
   ['general', 'Team updates, questions, and handoffs.'],
@@ -7,7 +7,44 @@ const starterChannels = [
   ['wins', 'Celebrate booked meetings and closed deals.'],
 ];
 const pageSize = 50;
-const actions = new Set(['chat-sync', 'chat-watch', 'chat-history', 'chat-create-channel', 'chat-send', 'chat-seen', 'chat-people', 'chat-direct-open']);
+const actions = new Set(['chat-sync', 'chat-watch', 'chat-history', 'chat-create-channel', 'chat-send', 'chat-seen', 'chat-people', 'chat-direct-open', 'chat-heartbeat']);
+
+function workspacePresence(notify, now) {
+  const sessions = new Map();
+  const lifetime = 120_000;
+  let online = new Set();
+  function memberIds() {
+    const current = now(), next = new Set();
+    for (const [key, session] of sessions) {
+      if (session.until <= current) sessions.delete(key);
+      else if (session.member) next.add(session.member);
+    }
+    if (next.size !== online.size || [...next].some(id => !online.has(id))) notify();
+    online = next;
+    return online;
+  }
+  function touch(token, user) {
+    if (!token || !['owner', 'agent'].includes(user.role)) return;
+    const key = digest(token), current = now(), until = current + lifetime;
+    const session = sessions.get(key);
+    // A request authenticated before sign-out can finish after the cookie was cleared.
+    if (session?.member === null && session.until > current) return;
+    if (session?.member === user.id) session.until = until;
+    else {
+      sessions.set(key, { member: user.id, until });
+      memberIds();
+    }
+  }
+  function leave(token) {
+    const session = token && sessions.get(digest(token));
+    if (session) {
+      session.member = null;
+      session.until = now() + lifetime;
+      memberIds();
+    }
+  }
+  return { touch, leave, memberIds };
+}
 
 function positiveId(value) {
   if (!Number.isSafeInteger(value) || value <= 0) throw new HttpError(400, 'Choose a valid message.');
@@ -85,7 +122,7 @@ function messageLog(db, { rooms, messages, reads }) {
   return { page, send, seen, open: (id, room) => mark.run(id, room, 0).changes };
 }
 
-export function teamChat(db) {
+export function teamChat(db, { now = Date.now } = {}) {
   db.exec(`
     CREATE TABLE IF NOT EXISTS chat_channels (slug TEXT PRIMARY KEY, topic TEXT NOT NULL);
     CREATE TABLE IF NOT EXISTS chat_direct_threads (
@@ -124,6 +161,7 @@ export function teamChat(db) {
     else sharedVersion = randomUUID();
     for (const [wake, id] of waiters) if (!recipients || recipients.includes(id)) wake();
   }
+  const presence = workspacePresence(notify, now);
   function wait(id, version, signal) {
     if (version !== versionFor(id) || closing || signal?.aborted) return {};
     return new Promise(resolve => {
@@ -149,6 +187,7 @@ export function teamChat(db) {
       }
       return directory;
     }
+    if (action === 'chat-heartbeat') return { ok: true };
     if (action === 'chat-watch') return wait(me, input.version, signal);
     if (action === 'chat-people') return { people: [...members().values()].filter(m => m.id !== me).sort((a, b) => a.name.localeCompare(b.name)) };
     if (action === 'chat-direct-open') {
@@ -183,7 +222,8 @@ export function teamChat(db) {
     }
     if (action === 'chat-sync') {
       const personal = directs.all({ me }).map(row => ({ slug: row.slug, unread: row.unread, seen: row.seen, ...peerOf(row) }));
-      const state = { channels: channels.all(me, me), directs: personal, version: versionFor(me) };
+      const online = [...presence.memberIds()].map(id => members().get(id)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
+      const state = { channels: channels.all(me, me), directs: personal, online, version: versionFor(me) };
       if (room === undefined) return state;
       return { ...state, ...log.page(room, input.after), ...(direct ? { peer: peerOf(thread) } : {}) };
     }
@@ -198,5 +238,5 @@ export function teamChat(db) {
     if (result.added) notify(direct ? [thread.user_a, thread.user_b] : undefined);
     return { id: result.id };
   }
-  return { actions, dispatch, close() { closing = true; notify(); } };
+  return { actions, dispatch, presence, close() { closing = true; notify(); } };
 }

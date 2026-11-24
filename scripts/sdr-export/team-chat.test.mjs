@@ -62,3 +62,37 @@ test('private activity changes only participant inboxes and never writes to lega
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM chat_messages').get().n, 0);
   assert.equal(db.prepare('SELECT COUNT(*) AS n FROM chat_channels WHERE slug = ?').get(slug).n, 0);
 });
+
+test('online staff follow live sessions, expire, and use current directory permissions', async t => {
+  let now = 10_000;
+  const db = new DatabaseSync(':memory:'), chat = teamChat(db, { now: () => now });
+  t.after(() => { chat.close(); db.close(); });
+  const owner = { id: 'owner', role: 'owner', name: 'Owner' };
+  const rep = { id: '7', role: 'agent', name: 'Rep' };
+  let active = true;
+  const directory = () => [{ id: owner.id, name: 'Workspace owner' }, ...(active ? [{ id: rep.id, name: 'Alex' }] : [])];
+  const read = () => chat.dispatch(owner, 'chat-sync', {}, undefined, directory);
+  chat.presence.touch('owner-browser', owner);
+  const { version } = read();
+  const watching = chat.dispatch(owner, 'chat-watch', { version });
+  chat.presence.touch('rep-phone', rep);
+  await watching;
+  assert.deepEqual(read().online.map(member => member.name), ['Alex', 'Workspace owner']);
+  const connected = read().version;
+  chat.presence.touch('rep-laptop', rep);
+  chat.presence.leave('rep-phone');
+  chat.presence.touch('rep-phone', rep);
+  assert.equal(read().version, connected);
+  assert.deepEqual(read().online[0], { id: '7', name: 'Alex' });
+  active = false;
+  assert.deepEqual(read().online.map(member => member.id), ['owner']);
+  active = true;
+  now += 100_000;
+  chat.presence.touch('owner-browser', owner);
+  now += 20_001;
+  assert.deepEqual(read().online.map(member => member.id), ['owner']);
+  chat.presence.touch('rep-laptop', rep);
+  chat.presence.leave('rep-laptop');
+  chat.presence.touch('facility-browser', { id: '7', role: 'location' });
+  assert.deepEqual(read().online.map(member => member.id), ['owner']);
+});
