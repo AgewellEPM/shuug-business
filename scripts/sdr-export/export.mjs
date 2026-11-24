@@ -28,7 +28,7 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);
   }
 }
-const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs'];
+const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
@@ -38,6 +38,7 @@ const assets = [
   'local-contacts.js', 'local-offices.css', 'local-offices.js', 'sales.css', 'sales.js', 'sales-console.css',
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
+  'sales-email.css', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js',
   'facility-reviews.css', 'facility-reviews.js',
   'sales-team.css', 'sales-team.js', 'sales-team-territory-planning.webp', 'sales-workflows.js', 'territories.css', 'territories.js', 'territory-facilities.js', 'territory-town-map.js', 'territory-county-leads.js', 'territory-ownership.js', 'sdr-headshots.js',
@@ -49,6 +50,7 @@ for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'confi
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
 }
+for (const name of ['package.json', 'package-lock.json', 'store.mjs', 'transport.mjs', 'workspace.mjs']) copy('scripts/sdr-export/mail/' + name);
 for (const name of ['Capture.swift', 'SDRWrapper.swift']) copy('native/macos/SDRWrapper/' + name);
 copy('scripts/sales/mcp-connection.ts');
 copy('src/lib/backend/sales-mcp.ts');

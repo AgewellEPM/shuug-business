@@ -153,7 +153,7 @@
     return profile;
   }
 
-  function facilityProfile(dialog, api) {
+  function facilityProfile(dialog, api, onCompose) {
     const find = name => dialog.querySelector(`[data-facility-profile-${name}]`);
     const team = find('team'), contact = find('contact');
     const outreach = dialog.querySelector('[data-facility-outreach]');
@@ -185,6 +185,14 @@
       content.addEventListener('input', updateEmail);
       updateEmail();
       content.prepend(sendTo);
+      if (onCompose) {
+        const compose = textNode('button', 'Open in Email');
+        compose.type = 'button';
+        compose.className = 'button primary';
+        compose.dataset.openWorkspaceEmail = '';
+        compose.onclick = () => onCompose({ to: draft.to, subject: subject.value, body: body.value }, () => dialog.close());
+        content.append(compose);
+      }
       content.append(email);
       card.append(summary, content);
       return card;
@@ -463,7 +471,7 @@
     };
   }
 
-  function mount({ api, refresh, onOpenOffice }) {
+  function mount({ api, refresh, onOpenOffice, onCompose }) {
     const root = document.querySelector('.sdr-prospects');
     if (!root) return null;
     const $ = selector => root.querySelector(selector);
@@ -478,7 +486,7 @@
     let workspace, records = [], visible = [], selected = '', view = 'list', index = 0, descending = false;
     let storageKey, detailRequest = 0, detailStale = true, saving = false;
     let stages = new Set(), lastLink, searchDelay = 0;
-    const profileDialog = facilityProfile($('[data-facility-profile]'), api);
+    const profileDialog = facilityProfile($('[data-facility-profile]'), api, onCompose);
     const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice, openProfile: profileDialog.open });
 
     function writeStatus(target, message, error = false) {

@@ -27,6 +27,7 @@ import { facilityOutreach } from './facility-outreach.mjs';
 import { initialize, privateValue } from './setup.mjs';
 import { bookings } from './bookings.mjs';
 import { bookingHTTP } from './booking-http.mjs';
+import { repEmailWorkspace } from './mail/workspace.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const profile = profileAt(root);
@@ -99,6 +100,7 @@ const sales = createHandler(env, db, {
   localDiscovery: catalogue ? { catalogue, placeLookup: async () => null } : undefined,
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
+  repEmail: repEmailWorkspace(db, sessionKey, process.env),
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),

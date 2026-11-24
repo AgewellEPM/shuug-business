@@ -52,8 +52,8 @@ research links are provided for incomplete profiles.
 
 Click a facility name or administrator photo to see published facility facts
 and leadership. **Quick Email** prepares one editable TinkyTown introduction
-per eligible contact with a published work email. Each draft can be opened
-individually in your email app. Quick Email itself submits no messages. It uses
+per eligible contact with a published work email. Open each draft in **Email**
+or in your own email app for review. Quick Email itself submits no messages. It uses
 the local Ollama service with `qwen3:4b-instruct-2507-q4_K_M` by default.
 `SDR_OUTREACH_MODEL` selects another local model. When the model is unavailable,
 the drafts use role-specific templates.
@@ -112,6 +112,37 @@ The owner calendar starts with 30-minute sales appointments and 45-minute demos,
 - **Other APIs.** In **Connections → Add an API connection**, enter an HTTPS webhook and an optional bearer token. Copy the signing secret into the receiving service. A rep can subscribe to their own bookings and the owner can subscribe the whole workspace. Open `/book/api` for public availability, booking operations, webhook payloads, signature verification, retries and server-managed endpoints. Each appointment shows its current delivery status.
 
 Use the workspace’s hosted HTTPS origin for clients on other devices. Keep the workspace database and its session key together during backup and restore. The key protects private links, saved webhook credentials and calendar refresh tokens.
+
+## Rep email
+
+For a new export install the mail dependencies with
+`npm ci --prefix scripts/sdr-export/mail --ignore-scripts`. Sign in as yourself,
+open **Senders → My business mailbox**, and choose your provider. Reps connect
+the business address they use to sign in. Enter a provider-generated app
+password and select **Verify and connect**. Gmail and Google Workspace accounts
+need to allow app passwords. iCloud Mail and Fastmail also have built-in
+presets. [Google instructions](https://support.google.com/accounts/answer/185833) ·
+[iCloud instructions](https://support.apple.com/en-us/102654) ·
+[Fastmail instructions](https://www.fastmail.help/hc/en-us/articles/360058752854)
+
+**Email** opens Inbox, Sent and workspace Drafts. Choose a recipient from the
+Rolodex in the composer, or select **Email** or **Email history** on a saved
+contact. Reading and sending use the signed-in rep’s verified mailbox over
+TLS. The workspace saves unfinished drafts privately and records provider
+acceptance in the linked office history. Check Sent or the provider’s webmail
+for an unconfirmed submission. Email displays plain text and supports
+attachment downloads on messages up to 6 MB. Open provider webmail
+for larger messages or to attach a file to an outgoing email.
+
+For another app-password provider, the server operator can set
+`SDR_MAIL_IMAP_HOST`, `SDR_MAIL_SMTP_HOST`, optional `SDR_MAIL_IMAP_PORT`
+(default 993), and optional `SDR_MAIL_SMTP_PORT` (implicit TLS by default,
+STARTTLS on port 587).
+Use `SDR_MAIL_SMTP_SAVES_SENT=1` if the provider automatically stores a copy
+of SMTP submissions in Sent. Accounts that require OAuth-only access,
+including Microsoft 365 and Outlook.com, require a separate integration.
+The **Contract & campaign senders** section continues to use the
+configured Mailgun provider or the reviewed external email flow.
 
 ## Campaigns
 
