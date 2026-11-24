@@ -1,4 +1,5 @@
 import { HttpError } from '../../../sales/model.mjs';
+import { allocationStore } from './allocation-store.mjs';
 
 export function mailStore(db, transaction) {
   db.exec(`
@@ -27,6 +28,7 @@ export function mailStore(db, transaction) {
   const changed = () => new HttpError(409, 'This draft changed. Reopen it from Drafts.');
 
   return {
+    ...allocationStore(db),
     transaction,
     file: id => file.get(id)?.content,
     addFile(id, content) { insertFile.run(id, content); },

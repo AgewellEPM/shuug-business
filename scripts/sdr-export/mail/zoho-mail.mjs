@@ -88,7 +88,7 @@ export function zohoMail(fetcher = fetch) {
       return { messages: contact ? items.filter(row => [...row.from, ...row.to, ...row.cc].some(p => p.address === contact)) : items,
         next: rows.length > pageSize ? String(start + pageSize) : '' };
     },
-    async read(account, { folder, id }) {
+    async read(account, { folder, id, markRead = true }) {
       const { api, folderId } = await context(account, folder), path = base(folderId, id);
       const row = await checked(api, folderId, id);
       const view = message(row);
@@ -98,8 +98,8 @@ export function zohoMail(fetcher = fetch) {
       ]);
       const unfolded = String(headers.headerContent || '').replace(/\r?\n[ \t]+/g, ' ');
       const replyAddress = people(/^Reply-To:\s*(.+)$/im.exec(unfolded)?.[1] || '')[0]?.address || view.from[0]?.address;
-      if (view.unread) await update(api, id, 'markAsRead');
-      return { ...view, unread: false, body: [plain(body.content), plain(body.blockContent)].filter(Boolean).join('\n\n'),
+      if (view.unread && markRead) await update(api, id, 'markAsRead');
+      return { ...view, unread: markRead ? false : view.unread, body: [plain(body.content), plain(body.blockContent)].filter(Boolean).join('\n\n'),
         attachments: attachments.map(({ name, size }) => ({ name, size })), replyTo: replyAddress };
     },
     async download(account, { folder, id, index }) {

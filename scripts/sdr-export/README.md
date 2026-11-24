@@ -140,6 +140,10 @@ Place the configuration in `workspace-data/zoho-mail.json` with mode `0600`, or 
 
 The server also accepts `ZOHO_CLIENT_ID`, `ZOHO_CLIENT_SECRET`, `ZOHO_REFRESH_TOKEN`, `SDR_ZOHO_REGION`, `SDR_ZOHO_OWNER_ADDRESS` and optional `SDR_ZOHO_ORG_ID`. Owner-issued rep accounts automatically use their business sign-in email. For a different assigned address, a team-lead invitation, or a mailbox-specific grant, add an entry under `mailboxes` keyed by the immutable CRM member ID, for example `"42": {"address":"rep@example.com","refreshToken":"<authorized grant>"}`. An optional `accountId` selects a specific Zoho account. The server verifies the primary address before accessing any mail. Reps only sign into the CRM.
 
+**Sales team → Senders → Rep mailboxes** lets the owner allocate company addresses. Select an active CRM rep and choose **Assign existing** or **Create new**. Creation uses one available Zoho license on the selected verified company domain. The SDR can generate the initial password, or the owner can supply one. **Assigned** means the workspace verified access to that specific primary mailbox and Inbox. If Zoho requires delegation, grant the workspace account access and choose **Check access**. **Release SDR assignment** removes that rep’s CRM access and preserves the Zoho account. The directory uses organization account and domain read permissions. Only creation uses the separate organization account creation permission. [Zoho organization users](https://www.zoho.com/mail/help/api/users-api.html) · [Zoho mailbox delegation](https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html)
+
+Open an **Inbox** message and choose **Assign to rep** to give one teammate that message in **Email → Assigned**. The recipient can read it, download available original attachments, reply from their own mailbox, and mark the assignment complete. Switch to **Assigned by me** to track outgoing assignments. The original mailbox holder can change the assignee from the incoming message. A handoff stores an encrypted copy of the selected message in the SDR.
+
 ### Mailbox API
 
 A native client can reuse its existing CRM session with `POST /api/sales/mail/v1`. Send the workspace Origin, its private sales session cookie and an `application/json` body. Account selection is server-side. The browser uses this same endpoint.
@@ -155,6 +159,13 @@ A native client can reuse its existing CRM session with `POST /api/sales/mail/v1
 | `rep-email-save` | UUID `id`, `revision` (0 for new), `to`, `subject`, `body`, optional `cc`, `bcc`, `files`, `link`, `replyToken` | Saved draft and next revision |
 | `rep-email-discard` | Workspace draft `id`, `revision` | Discard confirmation |
 | `rep-email-send` | Workspace draft `id`, `revision` | Accepted by Zoho, rejected, or unconfirmed |
+| `rep-email-allocations` | Optional directory `offset` | Owner’s rep roster, assignment revisions, verified domains and Zoho mailbox page |
+| `rep-email-bind` / `rep-email-provision` | `memberId`, `address`, `revision` (0 for first assignment), optional initial `password` for creation | Owner-only assignment with its verified or pending state |
+| `rep-email-release` | `memberId`, `revision` | Updated local assignment |
+| `rep-email-handoff-options` / `rep-email-handoff` | Incoming `messageId`, plus `memberId` and `revision` to assign | Eligible recipients and current assignment, or saved handoff |
+| `rep-email-handoffs` | `view` (`to-me` or `by-me`), optional `offset` | Participant’s assignment page and next offset |
+| `rep-email-handoff-read` / `rep-email-handoff-download` | Assignment `id`, add attachment `index` to download | Shared message or file |
+| `rep-email-handoff-status` | Assignment `id`, `revision`, `status` (`open` or `done`) | Updated assignment |
 
 Send new files as `{ "name": "notes.txt", "base64": "SGVsbG8=" }`. Reuse the returned file IDs on subsequent saves. A linked Rolodex contact uses `{ "officeId": "...", "contactId": "..." }`. To reply, pass the recipient, subject and reply token returned by reading that message. After an unconfirmed submission, review Sent before attempting another send. [Zoho Mail message APIs](https://www.zoho.com/mail/help/api/email-api.html)
 

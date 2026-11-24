@@ -41,7 +41,7 @@ const assets = [
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json',
   'sales-care-campaign.css', 'sales-care-campaign.js', 'sales-campaign-care.webp', 'sales-campaign-hands.webp', 'nursing-home-sales-kit.pdf',
-  'sales-email.css', 'sales-email.js',
+  'sales-email.css', 'sales-mail-team.js', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
   'sales-support.css', 'sales-support.js', 'sales-support-content.js',
   'facility-reviews.css', 'facility-reviews.js',
@@ -57,7 +57,7 @@ for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'confi
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
 }
-for (const name of ['authorize.mjs', 'store.mjs', 'zoho-account.mjs', 'zoho-mail.mjs', 'workspace.mjs']) copy('scripts/sdr-export/mail/' + name);
+for (const name of ['authorize.mjs', 'store.mjs', 'allocation-store.mjs', 'allocations.mjs', 'handoffs.mjs', 'organization.mjs', 'zoho-account.mjs', 'zoho-mail.mjs', 'workspace.mjs']) copy('scripts/sdr-export/mail/' + name);
 for (const name of ['Capture.swift', 'SDRWrapper.swift']) copy('native/macos/SDRWrapper/' + name);
 copy('scripts/sales/mcp-connection.ts');
 copy('src/lib/backend/sales-mcp.ts');
