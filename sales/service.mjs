@@ -111,6 +111,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
+    if (tools.dailyPlan?.actions.has(action)) return tools.dailyPlan.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) {
       const result = salesTeam.dispatch(user, action, b);
       if (action !== 'sales-team-read' && !result.profile) return result;
@@ -158,12 +159,14 @@ export function service(env, db, payment = payments(env), tools = {}) {
       const contracts = enrollments.flatMap(row => { const office = offices.find(office => String(office.id) === String(metadata(row).leadId)); return office ? [{ ...contractSummary(row, office), deliveries: deliveryReceipts(events).filter(item => item.contractId === String(row.id)) }] : []; });
       const activeAgents = salesTeam ? salesTeam.roster(user, agents) : agents.filter(r => r.status === 'active')
         .map(r => ({ id: String(r.id), name: r.contact_name, states: metadata(r).states || [], ...agentTerritory(r) }));
+      const profile = salesTeam ? db.salesRepProfile(user.id) : null;
+      const repProfile = profile ? { name: profile.name || user.name, photo: profile.photo } : null;
       return {
         user: publicUser(user), offices, contracts, revenue: tools.agreementOnly ? null : revenueSummary(user, all, enrollments, terms),
         mailboxes: await delivery.mailboxes(user), mailConnection: delivery.connection(), rolodex: contactDirectory(offices), agents: activeAgents,
         terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null,
         paymentsConfigured: payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES,
-        ...(salesTeam ? { progress: pipelineExperience(offices) } : {}),
+        ...(salesTeam ? { progress: pipelineExperience(offices), repProfile } : {}),
         ...(tools.nextBooking ? { nextBooking: tools.nextBooking(user) } : {}),
         ...(tools.repEmail ? { repEmail: tools.repEmail.summary(user) } : {}),
         ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}),

@@ -28,6 +28,10 @@ export function sqliteStore(filename) {
     CREATE UNIQUE INDEX IF NOT EXISTS prospects_source
       ON records(json_extract(data, '$.assigned_to'), json_extract(data, '$.sourceKey'))
       WHERE kind = 'prospects';
+    CREATE TABLE IF NOT EXISTS daily_plan_completions (
+      member_id TEXT NOT NULL, day TEXT NOT NULL, task_id TEXT NOT NULL,
+      PRIMARY KEY (member_id, day, task_id)
+    );
     CREATE TABLE IF NOT EXISTS settings (name TEXT PRIMARY KEY, value TEXT NOT NULL);
   `);
   const all = db.prepare('SELECT id, data FROM records WHERE kind = ? ORDER BY id');
@@ -46,6 +50,9 @@ export function sqliteStore(filename) {
       AND json_extract(data, '$.assigned_to') = ? AND json_extract(data, '$.sourceKey') = ?
   `);
   const update = db.prepare('UPDATE records SET data = ? WHERE id = ?');
+  const dailyCompletions = db.prepare('SELECT task_id FROM daily_plan_completions WHERE member_id = ? AND day = ?');
+  const completeDailyTask = db.prepare('INSERT OR IGNORE INTO daily_plan_completions (member_id, day, task_id) VALUES (?, ?, ?)');
+  const reopenDailyTask = db.prepare('DELETE FROM daily_plan_completions WHERE member_id = ? AND day = ? AND task_id = ?');
   const setting = db.prepare('SELECT value FROM settings WHERE name = ?');
   const save = db.prepare('INSERT INTO settings VALUES (?, ?) ON CONFLICT(name) DO UPDATE SET value = excluded.value');
   const decode = row => row && { ...JSON.parse(row.data), id: row.id };
@@ -130,6 +137,10 @@ export function sqliteStore(filename) {
         save.run('county-lead:' + id, JSON.stringify(next));
         return next;
       });
+    },
+    dailyPlanCompletions: (memberId, day) => new Set(dailyCompletions.all(memberId, day).map(row => row.task_id)),
+    setDailyPlanCompletion(memberId, day, taskId, completed) {
+      (completed ? completeDailyTask : reopenDailyTask).run(memberId, day, taskId);
     },
     salesRepProfile,
     setSalesRepProfile(id, revision, changes) {
