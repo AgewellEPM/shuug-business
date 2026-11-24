@@ -281,6 +281,11 @@
       if (campaignUI && params.get('view') === 'campaigns') { tab('campaigns'); return true; }
       if (!prospectUI || !['prospects', 'linkedin'].includes(params.get('view'))) return false;
       tab('prospects');
+      const facility = params.get('facility'), state = params.get('state');
+      if (['nursing-home','senior-center'].includes(facility) && /^[a-z]{2}$/i.test(state || '')) {
+        prospectsWorkspace?.research?.({ state: state.toUpperCase(), category: facility,
+          query: params.get('query') || '', minBeds: params.get('minbeds'), maxBeds: params.get('maxbeds'), maxCmsRating: params.get('maxcms') });
+      }
       if (params.get('form') === 'new') $('[data-prospect-add]')?.click();
       if (params.get('view') === 'linkedin') prospectUI.reveal();
       const profile = params.get('profile');
@@ -324,6 +329,7 @@
       const id = drawer && !drawer.hidden ? selected : view === 'prospects' && !adding ? $('[data-prospect-select][aria-pressed="true"]')?.dataset.prospectSelect : undefined;
       const office = id && data?.offices.find(row => String(row.id) === String(id));
       const out = { view, label, officeId: office && String(office.id), accountName: office?.town };
+      if (view === 'prospects') out.facilityResearch = prospectsWorkspace?.researchContext?.();
       if (adding && !office) {
         const fields = $('#sales-business-prospect-form').elements;
         out.form = 'prospect';
@@ -332,10 +338,17 @@
       return out;
     }
     async function coachNavigate(href, { replace = false } = {}) {
-      if (!/^#view=[a-z-]+(?:&[a-z]+=[a-z0-9-]+)*$/.test(href)) throw new Error('That workspace view is unavailable.');
+      if (!/^#view=[a-z-]+(?:&[a-z]+=[a-z0-9%+*._-]+)*$/i.test(href)) throw new Error('That workspace view is unavailable.');
       const params = new URLSearchParams(href.slice(1)), destination = params.get('view');
       const target = $$('[data-tab-panel]').find(el => el.dataset.tabPanel === destination);
       if (!target || (target.hasAttribute('data-owner-only') && data.user.role !== 'owner')) throw new Error('That workspace view is unavailable for this account.');
+      if (destination === 'prospects' && params.get('review') === 'google') {
+        const reviews = $('[data-facility-profile][open] [data-facility-reviews]');
+        if (!reviews) throw new Error('Open a facility profile first.');
+        reviews.open = true;
+        reviews.querySelector('summary')?.focus();
+        return;
+      }
       if (document.querySelector('#sales-workspace dialog[open]')) throw new Error('Finish or close the open dialog, then open this link.');
       if (!$('#sales-detail-drawer').hidden) {
         if (officeHasEdits()) throw new Error('Finish your open account edits, then open this link.');

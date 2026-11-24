@@ -28,6 +28,10 @@
   const collator = new Intl.Collator('en-US', { sensitivity: 'base', numeric: true });
   const label = stage => statuses[stage] || 'New';
   const regionLabel = state => regionNames[state] || state;
+  const isBedCount = value => Number.isSafeInteger(value) && value >= 0;
+  const isCmsRating = value => Number.isInteger(value) && value >= 1 && value <= 5;
+  const bedText = value => isBedCount(value) ? value.toLocaleString() : 'Unavailable';
+  const cmsRatingText = value => isCmsRating(value) ? value + ' / 5' : 'Unavailable';
   const regionNames = {
     AL:'Alabama', AK:'Alaska', AZ:'Arizona', AR:'Arkansas', CA:'California', CO:'Colorado', CT:'Connecticut', DC:'District of Columbia',
     DE:'Delaware', FL:'Florida', GA:'Georgia', HI:'Hawaii', ID:'Idaho', IL:'Illinois', IN:'Indiana', IA:'Iowa', KS:'Kansas',
@@ -45,7 +49,8 @@
     return {
       id: String(office.id), name: office.town, location: [office.locality, office.state].filter(Boolean).join(', '),
       state: office.state, type, stage: Object.hasOwn(statuses, stage) ? stage : 'new', due: office.meeting_date || '',
-      next: office.pipeline?.nextAction || '', office, metadata,
+      next: office.pipeline?.nextAction || '', certifiedBeds: metadata.facilityCertifiedBeds,
+      cmsRating: metadata.facilityCmsRating, office, metadata,
     };
   }
   function dateText(value, format = dateStyle) {
@@ -166,7 +171,7 @@
     const draftStatus = dialog.querySelector('[data-facility-outreach-status]');
     const link = (href, text) => window.SdrTerritoryFacilities?.sourceLink(href, text);
     const textNode = (tag, text) => { const element = document.createElement(tag); element.textContent = text; return element; };
-    let request = 0, prepareOutreach;
+    let request = 0, prepareOutreach, researchTarget;
     const reviews = window.SdrFacilityReviews.mount(dialog, api, focus => void prepareOutreach?.(focus));
 
     function draftCard(draft, index) {
@@ -272,6 +277,7 @@
 
     function render(facility, category, personName, { loading = false, officeId } = {}) {
       const { profile = {}, cms, administrator } = facility;
+      researchTarget = facility.sourceURL ? { state: facility.state, category, sourceURL: facility.sourceURL } : undefined;
       find('location').textContent = [[facility.city, facility.state].filter(Boolean).join(', '), types[category]].filter(Boolean).join(' · ');
       find('title').textContent = facility.name;
       find('description').textContent = profile.description || (cms ? 'Medicare or Medicaid-certified nursing facility.'
@@ -279,7 +285,9 @@
       const facts = find('facts');
       facts.replaceChildren();
       if (cms) {
-        appendFact(facts, 'Certified beds', cms.beds == null ? '' : cms.beds.toLocaleString(), facility.sourceURL, 'CMS');
+        appendFact(facts, 'Certified beds', bedText(facility.certifiedBeds ?? cms.beds), facility.sourceURL, 'CMS');
+        appendFact(facts, 'CMS overall rating', cmsRatingText(facility.cmsRating ?? cms.overallRating), facility.sourceURL, 'CMS');
+        if (cms.processingDate) appendFact(facts, 'CMS processing date', cms.processingDate, facility.sourceURL, 'CMS');
         if (cms.program) appendFact(facts, 'Certification', cms.program, facility.sourceURL, 'CMS');
         if (cms.ownership) appendFact(facts, 'Ownership', cms.ownership, facility.sourceURL, 'CMS');
       }
@@ -340,21 +348,28 @@
       if (!dialog.open) dialog.showModal();
       dialog.querySelector('.facility-profile-body').scrollTop = 0;
     }
+    function showReviews() {
+      reviews.show();
+      dialog.querySelector('[data-facility-reviews] > summary')?.scrollIntoView?.({ block: 'nearest' });
+    }
     find('close').onclick = () => dialog.close();
     dialog.addEventListener('close', () => {
       if (!dialog.open) { request++; reviews.reset(); }
     });
     return {
-      open(row, category, personName) {
+      researchTarget() { return dialog.open ? researchTarget : undefined; },
+      open(row, category, personName, shouldShowReviews = false) {
         request++;
         render(row, category, personName);
         show();
+        if (shouldShowReviews) showReviews();
       },
       async openSaved(record) {
         const { office, metadata } = record;
         const row = { name: record.name, state: record.state, city: office.locality, address: metadata.address, zip: metadata.postalCode,
           phone: office.contact_phone, email: office.contact_email, website: metadata.website, administrator: metadata.facilityAdministrator,
-          sourceURL: metadata.facilitySource };
+          sourceURL: metadata.facilitySource || metadata.facilityBedSource, certifiedBeds: record.certifiedBeds, cmsRating: record.cmsRating,
+          cms: metadata.facilityBedSource || metadata.facilityCmsRatingSource ? { processingDate: metadata.facilityBedDate } : undefined };
         const options = { officeId: record.id, loading: Boolean(row.sourceURL) };
         const active = ++request;
         render(row, record.type, row.administrator?.name, options);
@@ -373,7 +388,7 @@
     };
   }
 
-  function mountDirectory(panel, { api, refresh, onOpenOffice, openProfile }) {
+  function mountDirectory(panel, { api, refresh, onOpenOffice, openProfile, onResearch }) {
     const facilities = window.SdrTerritoryFacilities;
     if (!panel || !facilities?.saveForm) return null;
     const find = name => panel.querySelector(`[data-prospect-directory-${name}]`);
@@ -386,7 +401,8 @@
       const row = document.createElement('tr');
       row.innerHTML = `<th scope="row"><button type="button" class="facility-profile-open" data-open-facility-profile><strong>${escape(facility.name)}</strong></button>
         <small>${escape([facility.address, [facility.city, facility.state, facility.zip].filter(Boolean).join(' ')].filter(Boolean).join(' · '))}</small></th>
-        <td>${escape(types[page.category])}</td><td data-regular-contact></td><td></td>`;
+        <td>${escape(types[page.category])}</td><td class="prospects-cms-value" data-prospect-directory-beds>${bedText(facility.certifiedBeds ?? facility.cms?.beds)}</td>
+        <td class="prospects-cms-value" data-prospect-directory-cms-rating>${cmsRatingText(facility.cmsRating ?? facility.cms?.overallRating)}</td><td data-regular-contact></td><td></td>`;
       row.querySelector('[data-open-facility-profile]').onclick = () => openProfile(facility, page.category);
       row.querySelector('[data-regular-contact]').append(administratorProfile(facility, facility.administrator, {
         open: () => openProfile(facility, page.category, facility.administrator?.name),
@@ -400,7 +416,13 @@
       view.className = 'button secondary';
       view.textContent = 'View profile';
       view.onclick = () => openProfile(facility, page.category);
-      actions.append(view, facilities.saveForm(facility,
+      const google = document.createElement('button');
+      google.type = 'button';
+      google.className = 'button secondary';
+      google.textContent = 'Google reviews';
+      google.setAttribute('aria-label', 'Google reviews for ' + facility.name);
+      google.onclick = () => openProfile(facility, page.category, undefined, true);
+      actions.append(view, google, facilities.saveForm(facility,
         fields => api('territory-facility-save', { ...fields, state: page.state, category: page.category, sourceURL: facility.sourceURL }),
         onOpenOffice, refresh, 'Open prospect'));
       row.lastElementChild.append(actions);
@@ -435,7 +457,14 @@
         if (page.total && page.category === 'nursing-home' && Number.isInteger(page.namedAdministrators)) {
           status.textContent += ` ${page.namedAdministrators.toLocaleString()} of ${page.total.toLocaleString()} have a published administrator.`;
         }
+        if (page.bedCoverage?.unknown && (criteria.minBeds !== undefined || criteria.maxBeds !== undefined)) {
+          status.textContent += ` ${page.bedCoverage.unknown.toLocaleString()} without a published bed count excluded.`;
+        }
+        if (page.cmsRatingCoverage?.unknown && criteria.maxCmsRating !== undefined) {
+          status.textContent += ` ${page.cmsRatingCoverage.unknown.toLocaleString()} without a CMS overall rating excluded.`;
+        }
         if (page.issues?.length) status.textContent += ' Some source results may be unavailable.';
+        onResearch(page.savedFacilityResearch || []);
       } catch (error) {
         if (request !== sequence) return;
         status.textContent = error.message || 'The directory could not be loaded.';
@@ -486,12 +515,39 @@
     const detail = $('[data-prospect-detail]');
     const emptyDetail = detail.innerHTML;
     const editorStatus = $('[data-prospect-editor-status]');
+    const bedStatus = $('#prospect-bed-filter-status');
     const linkedIn = $('#sales-linkedin-prospects');
     let workspace, records = [], visible = [], selected = '', view = 'list', index = 0, descending = false;
     let storageKey, detailRequest = 0, detailStale = true, saving = false;
     let stages = new Set(), lastLink, searchDelay = 0;
+    const facilityResearch = new Map();
     const profileDialog = facilityProfile($('[data-facility-profile]'), api, onCompose);
-    const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice, openProfile: profileDialog.open });
+    const directory = mountDirectory($('[data-prospect-directory]'), { api, refresh, onOpenOffice, openProfile: profileDialog.open, onResearch: applyResearch });
+
+    function readBusiness(office) {
+      const row = business(office), source = facilityResearch.get(row.id);
+      if (!source) return row;
+      row.certifiedBeds = source.certifiedBeds;
+      row.cmsRating = source.cmsRating;
+      if (row.type === 'other') row.type = 'nursing-home';
+      row.metadata.facilityBedSource = source.sourceURL;
+      row.metadata.facilityCmsRatingSource = source.sourceURL;
+      row.metadata.facilityBedDate = source.processingDate;
+      return row;
+    }
+    function applyResearch(research) {
+      let changed = false;
+      for (const result of research) {
+        const id = String(result.officeId), prior = facilityResearch.get(id);
+        if (prior?.certifiedBeds === result.certifiedBeds && prior?.cmsRating === result.cmsRating &&
+            prior?.processingDate === result.processingDate && prior?.sourceURL === result.sourceURL) continue;
+        facilityResearch.set(id, result);
+        changed = true;
+      }
+      if (!changed) return;
+      records = workspace.offices.map(readBusiness);
+      updateList({ detailChanged: true });
+    }
 
     function writeStatus(target, message, error = false) {
       target.textContent = message;
@@ -504,7 +560,25 @@
       return item;
     }
     function criteria() {
-      return { query: filter.elements.query.value, type: filter.elements.type.value, state: filter.elements.state.value, stages: [...stages] };
+      const fields = filter.elements;
+      return { query: fields.query.value, type: fields.type.value, state: fields.state.value,
+        minBeds: fields.minBeds.value, maxBeds: fields.maxBeds.value, maxCmsRating: fields.maxCmsRating.value, stages: [...stages] };
+    }
+    function researchFilters() {
+      const { minBeds, maxBeds, maxCmsRating } = filter.elements;
+      const min = minBeds.value ? minBeds.valueAsNumber : undefined;
+      const max = maxBeds.value ? maxBeds.valueAsNumber : undefined;
+      const rating = maxCmsRating.value ? Number(maxCmsRating.value) : undefined;
+      let error = '';
+      if (!minBeds.validity.valid || !maxBeds.validity.valid) error = 'Enter a whole bed count between 0 and 9,999.';
+      else if (min !== undefined && max !== undefined && min > max) error = 'Maximum certified beds must be at least the minimum.';
+      return { values: { minBeds: min, maxBeds: max, maxCmsRating: rating }, error };
+    }
+    function setResearchFields(values = {}) {
+      for (const name of ['minBeds', 'maxBeds', 'maxCmsRating']) {
+        const value = values[name];
+        filter.elements[name].value = (typeof value === 'string' && /^\d+$/.test(value)) || Number.isSafeInteger(value) ? String(value) : '';
+      }
     }
     function replaceOptions(select, first, entries, prior = select.value) {
       select.replaceChildren(option('', first), ...entries.map(([value, text]) => option(value, text)));
@@ -555,9 +629,14 @@
     function updateList({ reset = false, detailChanged = false } = {}) {
       if (reset) index = 0;
       const { query, type, state } = criteria();
+      const { values: { minBeds, maxBeds, maxCmsRating }, error } = researchFilters();
+      writeStatus(bedStatus, error, Boolean(error));
       const terms = searchKey(query).split(/\s+/).filter(Boolean);
       visible = records.filter(row => {
-        if ((state && row.state !== state) || (type && row.type !== type) || (stages.size && !stages.has(row.stage))) return false;
+        if (error || (state && row.state !== state) || (type && row.type !== type) || (stages.size && !stages.has(row.stage))) return false;
+        if ((minBeds !== undefined || maxBeds !== undefined) &&
+            (!isBedCount(row.certifiedBeds) || row.certifiedBeds < (minBeds ?? 0) || row.certifiedBeds > (maxBeds ?? Infinity))) return false;
+        if (maxCmsRating !== undefined && (!isCmsRating(row.cmsRating) || row.cmsRating > maxCmsRating)) return false;
         const { contact_name, contact_email, contact_phone } = row.office;
         const words = searchKey([row.name, row.location, types[row.type], contact_name, contact_email, contact_phone,
           row.metadata.address, row.office.pipeline?.lastContact?.note, row.next].join(' '));
@@ -579,15 +658,18 @@
       return `<tr class="${row.id === selected ? 'is-selected' : ''}">
         <th scope="row"><button type="button" data-prospect-select="${escape(row.id)}" aria-pressed="${row.id === selected}"><strong>${escape(row.name)}</strong><small>${escape(row.location)}</small></button></th>
         <td><span class="prospects-type" title="${types[row.type]}">${icon('business')}<span class="prospects-type-label">${types[row.type]}</span></span></td>
+        <td class="prospects-cms-value" data-prospect-saved-beds>${bedText(row.certifiedBeds)}</td>
+        <td class="prospects-cms-value" data-prospect-saved-cms-rating>${cmsRatingText(row.cmsRating)}</td>
         <td>${stageBadge(row)}</td>
         <td><span class="prospects-next" title="${escape(row.next)}">${date ? icon('date') + escape(date) : escape(nextLabel)}</span></td>
       </tr>`;
     }
     function paintList() {
       const { type, state, query } = criteria();
-      const showDirectory = directory && !root.hidden && view === 'list' && state && !stages.size &&
+      const { values, error } = researchFilters();
+      const showDirectory = directory && !error && !root.hidden && view === 'list' && state && !stages.size &&
         ['nursing-home', 'senior-center'].includes(type);
-      directory?.update(showDirectory ? { state, category: type, query: query.trim().slice(0, 100) } : null, searchDelay);
+      directory?.update(showDirectory ? { state, category: type, query: query.trim().slice(0, 100), ...values } : null, searchDelay);
       $('[data-prospect-saved-table]').hidden = Boolean(showDirectory && !visible.length);
       $('[data-prospect-count]').textContent = showDirectory ? `(${visible.length.toLocaleString()} saved)` : `(${visible.length.toLocaleString()})`;
       const pages = Math.ceil(visible.length / pageSize);
@@ -595,7 +677,8 @@
       const start = index * pageSize;
       const empty = $('[data-prospect-empty]');
       empty.hidden = visible.length > 0 || Boolean(showDirectory);
-      empty.textContent = records.length || stages.size ? 'No saved prospects match these filters.' :
+      empty.textContent = error ? 'Correct the certified bed range to show results.' :
+        records.length || stages.size ? 'No saved prospects match these filters.' :
         'Choose Nursing home or Senior community center and a territory to find directory matches, or add a prospect.';
       if (view === 'list') $('[data-prospect-rows]').innerHTML = visible.slice(start, start + pageSize).map(rowMarkup).join('');
       if (view === 'map') paintMap();
@@ -653,6 +736,8 @@
             .map(([value, name]) => `<option value="${value}" ${value === row.stage ? 'selected' : ''}>${name}</option>`).join('')}
         </select></label></section>
         <section><h4>Office type</h4><p class="prospects-inline">${icon('business')}${types[row.type]}</p></section>
+        ${row.type === 'nursing-home' || isBedCount(row.certifiedBeds) ? `<section><h4>Certified beds</h4><p>${bedText(row.certifiedBeds)} · CMS</p></section>
+          <section><h4>CMS overall rating</h4><p>${cmsRatingText(row.cmsRating)}</p></section>` : ''}
         <section><h4>Contact</h4><p class="prospects-inline">${icon('person')}<strong>${escape(office.contact_name || 'No contact saved')}</strong></p>
           ${office.contact_phone ? `<p>${escape(office.contact_phone)}</p>` : ''}${office.contact_email ? `<p class="prospects-inline">${icon('mail')}${escape(office.contact_email)}</p>` : ''}</section>
         <section><h4>Next action</h4><p class="prospects-inline">${icon('date')}<strong>${escape(row.due && !paused ? 'Follow up' : row.next || 'Review prospect')}</strong></p>
@@ -778,7 +863,7 @@
     filter.addEventListener('input', event => {
       if (event.target.matches('select')) return;
       if (event.target.name === 'stage') stages = new Set([...filter.querySelectorAll('[name="stage"]:checked')].map(input => input.value));
-      searchDelay = event.target.name === 'query' ? 250 : 0;
+      searchDelay = ['query', 'minBeds', 'maxBeds'].includes(event.target.name) ? 250 : 0;
       updateList({ reset: true });
       searchDelay = 0;
     });
@@ -801,6 +886,7 @@
       writeStatus($('[data-prospect-filter-status]'), 'Filters cleared.');
     };
     $('[data-prospect-save-filter]').onclick = () => {
+      if (researchFilters().error) return writeStatus($('[data-prospect-filter-status]'), 'Correct the certified bed range before saving.', true);
       try {
         localStorage.setItem(storageKey, JSON.stringify(criteria()));
         writeStatus($('[data-prospect-filter-status]'), 'Filter saved on this device.');
@@ -837,6 +923,7 @@
       try {
         const { office, duplicate } = await api('create-office', Object.fromEntries(new FormData(addForm)));
         filter.elements.query.value = filter.elements.type.value = filter.elements.state.value = '';
+        setResearchFields();
         stages.clear();
         selected = String(office.id);
         index = 0;
@@ -862,24 +949,46 @@
               const select = filter.elements[field], value = params.get(field);
               if (value && [...select.options].some(option => option.value === value)) select.value = value;
             }
+            const researchKeys = ['minBeds', 'maxBeds', 'maxCmsRating'];
+            if (researchKeys.some(key => params.has(key))) {
+              const current = criteria();
+              setResearchFields(Object.fromEntries(researchKeys.map(key => [key, params.get(key) ?? current[key]])));
+            }
           }
         }
         updateList({ detailChanged: detailStale });
       },
       render(data) {
         workspace = data;
-        records = data.offices.map(business);
         const key = `sdr-prospect-filter:${location.pathname}:${data.user.id}`;
         let saved = criteria();
         if (storageKey !== key) {
           storageKey = key;
+          facilityResearch.clear();
           try { saved = JSON.parse(localStorage.getItem(key)) || {}; } catch { saved = {}; }
           filter.elements.query.value = typeof saved.query === 'string' ? saved.query.slice(0, 180) : '';
+          setResearchFields(saved);
           stages = new Set(Array.isArray(saved.stages) ? saved.stages.filter(stage => Object.hasOwn(statuses, stage)) : []);
         }
+        records = data.offices.map(readBusiness);
         renderFilters(saved);
         stats();
         updateList({ detailChanged: true });
+      },
+      researchContext() {
+        const { query, type, state } = criteria();
+        const { values, error } = researchFilters();
+        return { state, category: type, query: query.trim().slice(0, 100), ...(error ? {} : values), selected: profileDialog.researchTarget() };
+      },
+      research({ state, category, query, ...values } = {}) {
+        if (state !== undefined && [...filter.elements.state.options].some(option => option.value === state)) filter.elements.state.value = state;
+        if (category !== undefined && Object.hasOwn(types, category)) filter.elements.type.value = category;
+        if (typeof query === 'string') filter.elements.query.value = query.slice(0, 180);
+        setResearchFields(values);
+        stages.clear();
+        renderFilters(criteria());
+        choosePane('list');
+        updateList({ reset: true });
       },
     };
   }

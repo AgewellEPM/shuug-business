@@ -250,7 +250,10 @@ export function service(env, db, payment = payments(env), tools = {}) {
         const info = metadata(row);
         const addsSource = facility?.facilitySource && !info.facilitySource;
         const addsAdministrator = facility?.facilityAdministrator && !info.facilityAdministrator;
-        if (facility && (!info.facilityType || (info.facilityType === facility.facilityType && (addsSource || addsAdministrator)))) {
+        const updatesCmsFacts = facility?.facilityBedSource &&
+          ['facilityCertifiedBeds', 'facilityBedSource', 'facilityBedDate', 'facilityCmsRating', 'facilityCmsRatingSource']
+            .some(field => info[field] !== facility[field]);
+        if (facility && (!info.facilityType || (info.facilityType === facility.facilityType && (addsSource || addsAdministrator || updatesCmsFacts)))) {
           row = await patchReviewed(db, 'offices', row, { notes: JSON.stringify({ ...info, ...facility }) });
         }
         return { office: row, duplicate: true };

@@ -1,6 +1,7 @@
 (() => {
   'use strict';
-  const panel = document.querySelector('.sdr-display');
+  const read = document.querySelector('[data-display-read]');
+  const panel = read?.closest('.sdr-display');
   if (!panel) return;
   const root = document.documentElement;
   const size = panel.querySelector('[name="scale"]');
@@ -74,17 +75,22 @@
   }));
   panel.addEventListener('close', () => opener?.focus());
 
-  const read = document.querySelector('[data-display-read]');
   const status = document.querySelector('[data-display-reading-status]');
   const workspace = document.getElementById('sales-workspace');
   const speech = window.speechSynthesis;
+  const googleReviews = '.facility-maps-reviews';
   let active;
   let selected = '';
 
   function selectionText() {
     const selection = window.getSelection();
-    return workspace?.contains(selection?.anchorNode) && workspace.contains(selection.focusNode)
-      ? selection.toString().trim() : '';
+    if (!workspace?.contains(selection?.anchorNode) || !workspace.contains(selection.focusNode)) return '';
+    const reviewPanels = [...workspace.querySelectorAll(googleReviews)];
+    for (let i = 0; i < selection.rangeCount; i++) {
+      const range = selection.getRangeAt(i);
+      if (reviewPanels.some(panel => range.intersectsNode(panel))) return '';
+    }
+    return selection.toString().trim();
   }
 
   function stop(message = '') {
@@ -101,7 +107,11 @@
     const current = document.body.dataset.sdrView;
     const view = [...workspace.querySelectorAll('[data-tab-panel]')]
       .find(pane => pane.dataset.tabPanel === current && !pane.closest('[hidden]'));
-    return view?.innerText.trim() || '';
+    if (!view) return '';
+    const reviewPanels = view.querySelectorAll(googleReviews + ':not([hidden])');
+    reviewPanels.forEach(panel => { panel.hidden = true; });
+    try { return view.innerText.trim(); }
+    finally { reviewPanels.forEach(panel => { panel.hidden = false; }); }
   }
 
   document.querySelectorAll('[data-display-open]').forEach(button => {

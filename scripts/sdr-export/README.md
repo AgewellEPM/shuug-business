@@ -118,6 +118,15 @@ and [Places API usage policies](https://developers.google.com/maps/documentation
 The nursing-home directory reads administrator listings from matched CMS
 enrollments and state licensure rosters. Each name links to its publisher.
 Directory results show administrator coverage for the current filters.
+In Prospects, filter nursing homes by minimum or maximum certified beds and by
+CMS overall rating before pagination. Open a facility profile for the published
+capacity, quality rating, and CMS processing date. Ask Tinky “Find nursing homes
+in Alabama with at least 100 beds and a CMS rating of 3” or “How many beds does
+this facility have?” while its profile is open.
+
+Google reviews load for an individual facility when you open its review panel.
+Filter that sample by stars and search for a word such as “communication.”
+The panel shows Google’s overall rating and rating count separately from CMS.
 The index contains public professional contacts and can be regenerated with
 `scripts/sales/build-facility-leadership.py`. California licensure data are
 published by the California Department of Public Health under [CC BY](https://publish.data.ca.gov/dataset/licensed-and-certified-healthcare-facility-listing).

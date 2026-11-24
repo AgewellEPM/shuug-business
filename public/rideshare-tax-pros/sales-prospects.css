@@ -77,6 +77,10 @@
 .prospects-filter-fields label { flex: 1 1 145px; min-width: 0; }
 .prospects-filter-fields label:first-child { flex: 2 1 220px; }
 #sales-business-prospect-filter fieldset { min-width: 0; padding: 4px 0 0; margin: 0; border: 0; }
+#sales-business-prospect-filter .prospects-research-filters { padding-top: 8px; }
+.prospects-research-filters .prospects-filter-fields label { flex: 1 1 165px; }
+.prospects-research-filters .prospects-muted { margin-top: 4px; }
+.prospects-cms-value { white-space: nowrap; font-variant-numeric: tabular-nums; }
 [data-prospect-stages] { display: flex; flex-wrap: wrap; gap: 9px; }
 [data-prospect-stages] .prospects-status-button {
   position: relative;

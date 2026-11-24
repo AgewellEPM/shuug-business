@@ -59,8 +59,62 @@
       const list = node('ul');
       list.append(...reviews.map(reviewCard));
       column.append(list);
-    } else column.append(node('p', 'None in the available sample.'));
+    } else column.append(node('p', 'No matching reviews in this sample.'));
     return column;
+  }
+
+  const reviewGroups = [
+    { key: 'positive', label: 'Positive', range: '4–5', includes: rating => rating >= 4 },
+    { key: 'negative', label: 'Negative', range: '1–2', includes: rating => rating <= 2 },
+    { key: 'mixed', label: 'Mixed', range: '3', includes: rating => rating === 3 },
+  ];
+
+  function reviewFilters(reviews, status) {
+    const filters = node('div', '', 'facility-review-filters');
+    const search = node('input');
+    search.type = 'search';
+    search.maxLength = 120;
+    search.dataset.facilityReviewSearch = '';
+    const rating = node('select');
+    rating.dataset.facilityReviewStars = '';
+    const searchLabel = node('label', 'Search review text');
+    const ratingLabel = node('label', 'Review stars');
+    searchLabel.append(search);
+    ratingLabel.append(rating);
+    filters.append(searchLabel, ratingLabel);
+    rating.add(new Option('All stars', ''));
+    for (const group of reviewGroups) rating.add(new Option(group.range + ' stars · ' + group.label, group.key));
+
+    const results = node('div', '', 'facility-review-results');
+    const searchable = value => value.normalize('NFKD').replace(/\p{M}/gu, '').toLocaleLowerCase();
+    function update() {
+      const terms = searchable(search.value).trim().split(/\s+/).filter(Boolean);
+      const rows = reviews.filter(review => {
+        const text = searchable([review.text, review.originalText].filter(Boolean).join(' '));
+        return terms.every(term => text.includes(term));
+      });
+      const group = reviewGroups.find(group => group.key === rating.value);
+      if (group || terms.length) {
+        const matches = group ? rows.filter(review => group.includes(review.rating)) : rows;
+        status.textContent = `Showing ${matches.length} of ${reviews.length} reviews in Google’s relevance-ordered sample.`;
+        if (group) {
+          results.replaceChildren(reviewColumn(group.label, group.range, matches, group.key));
+          return;
+        }
+      } else {
+        status.textContent = 'Showing ' + reviews.length + (reviews.length === 1 ? ' review' : ' reviews') + ' from Google’s relevance-ordered sample, grouped by stars.';
+      }
+      const split = node('div', '', 'facility-review-split');
+      const column = group => reviewColumn(group.label, group.range, rows.filter(review => group.includes(review.rating)), group.key);
+      split.append(...reviewGroups.slice(0, 2).map(column));
+      results.replaceChildren(split);
+      const mixed = reviewGroups[2];
+      if (rows.some(review => mixed.includes(review.rating))) results.append(column(mixed));
+    }
+    search.addEventListener('input', update);
+    rating.addEventListener('change', update);
+    update();
+    return [filters, results];
   }
 
   function summaryCard(summary) {
@@ -108,18 +162,9 @@
       if (report.count !== null) rating.append(node('span', report.count.toLocaleString() + (report.count === 1 ? ' Google rating' : ' Google ratings')));
       if (report.rating === null && report.count === null) rating.textContent = 'No published rating';
       const { reviews } = report;
-      status.textContent = reviews.length
-        ? 'Showing ' + reviews.length + (reviews.length === 1 ? ' review' : ' reviews') + ' from Google’s relevance-ordered sample, grouped by stars.'
-        : 'Google returned no individual reviews for this listing.';
+      if (!reviews.length) status.textContent = 'Google returned no individual reviews for this listing.';
       if (report.summary) content.append(summaryCard(report.summary));
-      if (reviews.length) {
-        const split = node('div', '', 'facility-review-split');
-        split.append(reviewColumn('Positive', '4–5', reviews.filter(review => review.rating >= 4), 'positive'),
-          reviewColumn('Negative', '1–2', reviews.filter(review => review.rating <= 2), 'negative'));
-        content.append(split);
-        const mixed = reviews.filter(review => review.rating > 2 && review.rating < 4);
-        if (mixed.length) content.append(reviewColumn('Mixed', '3', mixed, 'mixed'));
-      }
+      if (reviews.length) content.append(...reviewFilters(reviews, status));
       const attributions = node('div', '', 'facility-review-source-links');
       for (const provider of report.attributions) attributions.append(external(provider.url, provider.name) || node('span', provider.name));
       const policy = external('https://support.google.com/contributionpolicy/answer/7422880', 'Google Maps review policy');

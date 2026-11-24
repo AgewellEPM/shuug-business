@@ -32,6 +32,30 @@
 .facility-review-stars > span:first-child { color: #916300; }
 .facility-reviews [data-facility-review-status] { margin: 10px 0 12px; }
 [data-facility-review-content] { display: grid; gap: 11px; }
+.facility-review-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.facility-review-filters label {
+  display: grid;
+  flex: 1 1 160px;
+  gap: 4px;
+  min-width: 0;
+  color: #344b67;
+  font-size: 13px;
+}
+.facility-review-filters :is(input, select) {
+  min-width: 0;
+  min-height: 40px;
+  padding: 7px 9px;
+  border: 1px solid #b3c9e6;
+  border-radius: 7px;
+  color: #19365a;
+  background: #f9fbff;
+  font: inherit;
+}
+.facility-review-results { display: grid; gap: 11px; }
 .facility-review-split { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 .facility-review-column, .facility-review-summary {
   padding: 10px;

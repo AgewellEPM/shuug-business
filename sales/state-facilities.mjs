@@ -6,6 +6,32 @@ import { loadStateFacilities } from './state-facility-sources.mjs';
 const categories = new Set(['nursing-home', 'senior-center']);
 const pageSize = 25;
 const alphabetical = new Intl.Collator('en-US', { sensitivity: 'base', numeric: true });
+const maxCertifiedBeds = 9999;
+
+function searchBound(value, min, max, message) {
+  if (value == null || (typeof value === 'string' && !value.trim())) return null;
+  const count = typeof value === 'string' && /^\d{1,4}$/.test(value.trim()) ? Number(value.trim()) : value;
+  if (!Number.isInteger(count) || count < min || count > max) throw new HttpError(400, message);
+  return count;
+}
+
+const bedBound = value => searchBound(value, 0, maxCertifiedBeds, 'Enter a whole certified bed count between 0 and 9,999.');
+
+function certifiedBeds(row) {
+  const count = row.cms?.beds;
+  return Number.isInteger(count) && count >= 0 && count <= maxCertifiedBeds ? count : null;
+}
+
+function cmsRating(row) {
+  const rating = row.cms?.overallRating;
+  return Number.isInteger(rating) && rating >= 1 && rating <= 5 ? rating : null;
+}
+
+function cmsFacts(row) {
+  if (!row.cms) return {};
+  return { facilityCertifiedBeds: certifiedBeds(row), facilityBedSource: row.sourceURL,
+    facilityBedDate: row.cms.processingDate || '', facilityCmsRating: cmsRating(row), facilityCmsRatingSource: row.sourceURL };
+}
 
 export async function directoryFacility(directory, user, input) {
   const sourceURL = text(input.sourceURL, 1200, true);
@@ -66,18 +92,33 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
       const facilityAdministrator = category === 'nursing-home' ? publishedFacilityAdministrator(row) : null;
       return saveOffice({ ...row, source, email: addressEmail,
         address: row.address || text(input.address, 300, true), city: row.city || text(input.city, 100, true) },
-        { facilityType: category, facilitySource: source, ...(facilityAdministrator ? { facilityAdministrator } : {}) });
+        { facilityType: category, facilitySource: source, ...cmsFacts(row), ...(facilityAdministrator ? { facilityAdministrator } : {}) });
     }
     const offset = input.offset === undefined ? 0 : Number(input.offset);
     if (!Number.isSafeInteger(offset) || offset < 0 || offset > 100000) throw new HttpError(400, 'Choose a valid facility page.');
+    const minBeds = bedBound(input.minBeds), maxBeds = bedBound(input.maxBeds);
+    const maxCmsRating = searchBound(input.maxCmsRating, 1, 5, 'Choose a maximum CMS overall rating from 1 to 5 stars.');
+    if (minBeds !== null && maxBeds !== null && minBeds > maxBeds) {
+      throw new HttpError(400, 'Minimum certified beds must be no greater than maximum certified beds.');
+    }
     const sourceURL = text(input.sourceURL ?? '', 1200);
     const query = localityKey(text(input.query ?? '', 100));
     const terms = query ? query.split(' ') : [];
     const { results, coverage, sources, issues } = await reportFor(region, category);
-    const matches = results.filter(row => {
+    const scopedMatches = results.filter(row => {
       if ((sourceURL && row.sourceURL !== sourceURL) || !localityAllowed(user, region, row.city)) return false;
       const label = localityKey([row.name, row.city, row.zip].join(' '));
       return terms.every(term => label.includes(term));
+    });
+    const bedsKnown = scopedMatches.filter(row => certifiedBeds(row) !== null).length;
+    const bedMatches = minBeds === null && maxBeds === null ? scopedMatches : scopedMatches.filter(row => {
+      const count = certifiedBeds(row);
+      return count !== null && count >= (minBeds ?? 0) && count <= (maxBeds ?? maxCertifiedBeds);
+    });
+    const ratingsKnown = bedMatches.filter(row => cmsRating(row) !== null).length;
+    const matches = maxCmsRating === null ? bedMatches : bedMatches.filter(row => {
+      const rating = cmsRating(row);
+      return rating !== null && rating <= maxCmsRating;
     });
     const administrators = category === 'nursing-home'
       ? new Map(matches.flatMap(row => {
@@ -87,24 +128,39 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
     const page = matches.slice(offset, offset + pageSize).map(row => {
       const administrator = administrators.get(row.sourceURL);
       const profile = category === 'nursing-home' ? publishedFacilityProfile(row) : null;
-      return { ...row, ...(administrator ? { administrator } : {}), ...(profile ? { profile } : {}) };
+      return { ...row, certifiedBeds: certifiedBeds(row), cmsRating: cmsRating(row),
+        ...(administrator ? { administrator } : {}), ...(profile ? { profile } : {}) };
     });
-    if (db && page.length) {
+    const savedFacilityResearch = [];
+    if (db && (page.length || category === 'nursing-home')) {
       const saved = new Map();
       for (const office of await db.list('offices')) {
         if (office.state !== region || !visible(user, office)) continue;
         const info = metadata(office);
-        if (info.facilityType !== category) continue;
+        if (info.facilityType !== category && !(category === 'nursing-home' && !info.facilityType)) continue;
         if (info.facilitySource || info.source) saved.set(info.facilitySource || info.source, office.id);
-        saved.set(officeIdentity(office.town, info.address, office.locality, region), office.id);
+        if (info.address && office.locality) saved.set(officeIdentity(office.town, info.address, office.locality, region), office.id);
       }
+      const savedId = row => saved.get(row.sourceURL) ||
+        (row.address && row.city ? saved.get(officeIdentity(row.name, row.address, row.city, region)) : undefined);
       for (const [index, row] of page.entries()) {
-        const id = saved.get(row.sourceURL) || saved.get(officeIdentity(row.name, row.address, row.city, region));
+        const id = savedId(row);
         if (id) page[index] = { ...row, savedOfficeId: id };
+      }
+      if (category === 'nursing-home' && saved.size) {
+        for (const row of results) {
+          const officeId = row.cms && savedId(row);
+          if (!officeId || (sourceURL && row.sourceURL !== sourceURL) || !localityAllowed(user, region, row.city)) continue;
+          savedFacilityResearch.push({ officeId, certifiedBeds: certifiedBeds(row), cmsRating: cmsRating(row),
+            processingDate: row.cms.processingDate || '', sourceURL: row.sourceURL });
+        }
       }
     }
     return { state: region, category, results: page,
       total: matches.length, namedAdministrators: administrators.size,
+      bedCoverage: { known: bedsKnown, unknown: scopedMatches.length - bedsKnown },
+      cmsRatingCoverage: { known: ratingsKnown, unknown: bedMatches.length - ratingsKnown },
+      filters: { minBeds, maxBeds, maxCmsRating }, savedFacilityResearch,
       offset, limit: pageSize, hasMore: offset + pageSize < matches.length, coverage, sources, issues };
   };
 }

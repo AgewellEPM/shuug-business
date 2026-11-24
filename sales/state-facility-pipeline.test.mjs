@@ -13,7 +13,8 @@ const agent = { id: '12', role: 'agent', name: 'Fixture agent',
   territory: { version: 1, areas: [{ state: 'CT', cities: ['hartford'] }] } };
 const center = { state: 'CT', name: 'Fixture Senior Center', city: 'Hartford', address: '', zip: '06103',
   email: '', phone: '860-555-0100', sourceURL: 'https://www.openstreetmap.org/node/1234' };
-const home = { ...center, name: 'Fixture Nursing Home', address: '12 Fixture Street', sourceURL: 'https://example.org/provider/1234' };
+const home = { ...center, name: 'Fixture Nursing Home', address: '12 Fixture Street', sourceURL: 'https://example.org/provider/1234',
+  cms: { beds: 170, overallRating: 3, processingDate: '2026-10-01' } };
 
 function fixture(t) {
   const folder = mkdtempSync(join(tmpdir(), 'sdr-facility-save-'));
@@ -51,11 +52,22 @@ test('saving an existing office from the directory classifies it and keeps its c
   const app = fixture(t);
   const existing = await app.dispatch(owner, 'create-office', { ...home, contact: 'Existing director' });
   await app.dispatch(owner, 'activity', { id: existing.office.id, kind: 'call', note: 'Follow up next week.' });
+  const directory = { category: 'nursing-home', state: 'CT' };
+  const emptyPage = await app.dispatch(owner, 'territory-facilities', { ...directory, minBeds: 171 });
+  assert.deepEqual(emptyPage.results, []);
+  assert.deepEqual(emptyPage.savedFacilityResearch, [{ officeId: existing.office.id, certifiedBeds: 170, cmsRating: 3,
+    processingDate: '2026-10-01', sourceURL: home.sourceURL }]);
+  assert.deepEqual((await app.dispatch(agent, 'territory-facilities', directory)).savedFacilityResearch, []);
+  assert.equal(metadata((await app.dispatch(owner, 'office', { id: existing.office.id })).office).facilityCertifiedBeds, undefined);
   const result = await app.dispatch(owner, 'territory-facility-save', { category: 'nursing-home', state: 'CT', sourceURL: home.sourceURL });
   assert.equal(result.duplicate, true);
   assert.equal(result.office.id, existing.office.id);
   assert.equal(result.office.contact_name, 'Existing director');
   assert.equal(metadata(result.office).facilityType, 'nursing-home');
+  assert.equal(metadata(result.office).facilityCertifiedBeds, 170);
+  assert.equal(metadata(result.office).facilityCmsRating, 3);
+  assert.equal(metadata(result.office).facilityBedSource, home.sourceURL);
+  assert.equal(metadata(result.office).facilityBedDate, '2026-10-01');
   const { office } = await app.dispatch(owner, 'update-office', { id: result.office.id, nextFollowup: '2027-01-10' });
   assert.equal(metadata(office).facilityType, 'nursing-home');
   const detail = await app.dispatch(owner, 'office', { id: office.id });
@@ -63,4 +75,35 @@ test('saving an existing office from the directory classifies it and keeps its c
   await assert.rejects(app.dispatch(owner, 'update-office', { id: office.id, facilityType: 'anything' }), { status: 400 });
   const cleared = await app.dispatch(owner, 'update-office', { id: office.id, facilityType: '' });
   assert.equal(metadata(cleared.office).facilityType, '');
+});
+
+test('certified bed and CMS overall rating filters apply after territory and text matching, before pagination', async () => {
+  const homes = Array.from({ length: 30 }, (_, index) => ({
+    ...home, name: `Fixture Home ${index + 1}`, address: `${index + 1} Fixture Lane`,
+    sourceURL: `https://example.org/provider/${index + 1}`, cms: {
+      beds: index === 1 ? null : index + 99,
+      overallRating: index === 2 ? null : index > 27 ? 2 : 5,
+    },
+  }));
+  const directory = stateFacilityDirectory({ load: async () => ({ results: [...homes,
+    { ...home, name: 'Outside Fixture Home', city: 'New Haven', cms: { beds: 150, overallRating: 2 } }] }) });
+  const browse = input => directory(agent, { state: 'CT', category: 'nursing-home', query: 'fixture home', ...input });
+  const unfiltered = await browse({ minBeds: '', maxCmsRating: null });
+  assert.equal(unfiltered.total, 30);
+  assert.equal(unfiltered.hasMore, true);
+  assert.equal(unfiltered.results[1].certifiedBeds, null);
+  assert.deepEqual(unfiltered.bedCoverage, { known: 29, unknown: 1 });
+  assert.deepEqual(unfiltered.cmsRatingCoverage, { known: 29, unknown: 1 });
+  const next = await browse({ minBeds: '100', offset: 25 });
+  assert.equal(next.total, 28);
+  assert.deepEqual(next.results.map(row => row.certifiedBeds), [126, 127, 128]);
+  const filtered = await browse({ minBeds: '100', maxBeds: 127, maxCmsRating: 2 });
+  assert.deepEqual(filtered.results.map(row => [row.certifiedBeds, row.cmsRating]), [[127, 2]]);
+  assert.equal(filtered.total, 1);
+  assert.deepEqual(filtered.cmsRatingCoverage, { known: 26, unknown: 1 });
+  assert.deepEqual(filtered.filters, { minBeds: 100, maxBeds: 127, maxCmsRating: 2 });
+  for (const criteria of [{ minBeds: -1 }, { minBeds: true }, { maxBeds: '1e3' }, { minBeds: 5, maxBeds: 0 },
+    { maxCmsRating: 0 }, { maxCmsRating: 6 }, { maxCmsRating: 1.5 }]) {
+    await assert.rejects(browse(criteria), { status: 400 });
+  }
 });

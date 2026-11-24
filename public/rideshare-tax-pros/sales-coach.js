@@ -366,7 +366,7 @@
         const reviewed = /^(?:please )?(?:save|record) (?:it|this|that|the )/i.test(message) ? reviewedFields(state.turns.at(-1)) : undefined;
         const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone, mailTurnId, reviewed,
           ...(wasSpoken ? { voice: true } : {}),
-          screen: { view: here.view, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm } });
+          screen: { view: here.view, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm, facilityResearch: here.facilityResearch } });
         if (generation !== version) return;
         pending.remove(); pending = null;
         if (!state.turns.some(item => item.id === turn.id)) { state.turns.push(turn); log.append(renderTurn(turn)); }

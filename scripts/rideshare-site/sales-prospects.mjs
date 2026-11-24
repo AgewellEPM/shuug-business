@@ -59,6 +59,19 @@ export function renderProspects({ icon, map, linkedIn }) {
           <label>Territory<select name="state"><option value="">All territories</option></select></label>
           <button type="button" class="button secondary" data-prospect-save-filter>Save filter</button>
         </div>
+        <fieldset class="prospects-research-filters" aria-describedby="prospect-cms-filter-scope prospect-bed-filter-status">
+          <legend>Facility research</legend>
+          <div class="prospects-filter-fields">
+            <label>Minimum certified beds<input type="number" name="minBeds" min="0" max="9999" step="1" inputmode="numeric" placeholder="Any"></label>
+            <label>Maximum certified beds<input type="number" name="maxBeds" min="0" max="9999" step="1" inputmode="numeric" placeholder="Any"></label>
+            <label>CMS overall rating<select name="maxCmsRating">
+              <option value="">Any rating</option><option value="1">1 star</option><option value="2">2 stars or lower</option>
+              <option value="3">3 stars or lower</option><option value="4">4 stars or lower</option><option value="5">Any published rating</option>
+            </select></label>
+          </div>
+          <p id="prospect-cms-filter-scope" class="prospects-muted">Bed counts and overall ratings use CMS nursing home data. Open a facility’s Google reviews to search its review sample.</p>
+          <p id="prospect-bed-filter-status" class="prospects-muted" role="status"></p>
+        </fieldset>
         <fieldset><legend>Status</legend><div data-prospect-stages></div></fieldset>
       </form>
       <p data-prospect-filter-status class="prospects-muted" role="status"></p>
@@ -73,7 +86,7 @@ export function renderProspects({ icon, map, linkedIn }) {
         </div>
         <div data-prospect-pane="list">
           <div class="prospects-table-scroll" data-prospect-saved-table><table class="prospects-table">
-            <thead><tr><th scope="col" aria-sort="ascending"><button type="button" data-prospect-sort>Office / organization <span aria-hidden="true">↕</span></button></th><th scope="col">Type</th><th scope="col">Status</th><th scope="col">Next action</th></tr></thead>
+            <thead><tr><th scope="col" aria-sort="ascending"><button type="button" data-prospect-sort>Office / organization <span aria-hidden="true">↕</span></button></th><th scope="col">Type</th><th scope="col">Certified beds</th><th scope="col">CMS overall</th><th scope="col">Status</th><th scope="col">Next action</th></tr></thead>
             <tbody data-prospect-rows></tbody>
           </table></div>
           <p class="prospects-empty" data-prospect-empty hidden></p>
@@ -85,7 +98,7 @@ export function renderProspects({ icon, map, linkedIn }) {
             <p data-prospect-directory-status role="status"></p>
             <div class="prospects-table-scroll prospects-directory-scroll" data-prospect-directory-table hidden>
               <table class="prospects-table">
-                <thead><tr><th scope="col">Office / organization</th><th scope="col">Type</th><th scope="col">Facility Administrator</th><th scope="col">Action</th></tr></thead>
+                <thead><tr><th scope="col">Office / organization</th><th scope="col">Type</th><th scope="col">Certified beds</th><th scope="col">CMS overall</th><th scope="col">Facility Administrator</th><th scope="col">Action</th></tr></thead>
                 <tbody data-prospect-directory-results></tbody>
               </table>
             </div>

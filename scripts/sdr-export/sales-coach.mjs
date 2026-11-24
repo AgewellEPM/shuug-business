@@ -5,6 +5,7 @@ import { asksToEmail, confirmsEmail, editsEmail, preparedEmail, recipientsFor, s
 import { coachForms, selectCoachForm, statedFormFields } from '../../sales/coach-forms.mjs';
 import { saveReviewed, workspaceSaveReview } from './coach-save.mjs';
 import { handleCoachBooking } from './coach-booking.mjs';
+import { handleFacilityResearch } from './coach-facility-research.mjs';
 
 const actions = new Set(['coach-state', 'coach-ask', 'coach-goal']);
 const defaultModel = 'qwen3:4b-instruct-2507-q4_K_M';
@@ -253,6 +254,10 @@ export function salesCoach(db, plan, { articles = [], demo = false, model = defa
     const emailRequest = revision || mail && asksToEmail(question) && !/^\s*(?:how|what|where|can i|should i)\b/i.test(question);
     const navigation = navigationFor(question, user, demo);
     if (navigation) return { mode: 'workflow', answer: 'Here is ' + navigation.title + '. You can keep chatting while you work.', navigation, sources: [], draft: null };
+    if (demo && !emailRequest) {
+      const research = await handleFacilityResearch(user, crm, command, input.screen);
+      if (research) return research;
+    }
     const { day, goal } = snapshot(user, input.timeZone);
     const calendar = dates(day.date);
     if (/^(?:what(?:['’]s| is) (?:next|my next (?:step|task))|what should i do next|who should i (?:call|follow up with)(?: first)?)[.!?]*$/i.test(command)) {
