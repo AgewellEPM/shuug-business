@@ -7,8 +7,8 @@
     padding: 8px 24px;
   }
   [data-sdr-view="support"] #sdr-header-search { height: 38px; }
-  .sdr-nav [data-tab="support"] { position: relative; margin-block-start: 13px; }
-  .sdr-nav [data-tab="support"]::before {
+  .sdr-nav [data-tab="training"] { position: relative; margin-block-start: 13px; }
+  .sdr-nav [data-tab="training"]::before {
     content: '';
     position: absolute;
     inset: -8px 6px auto;

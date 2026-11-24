@@ -76,16 +76,16 @@
       if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
       const trainingTool = ['training-demo', 'training-pipeline'].includes(name);
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
-      const supportView = name === 'support' || name === 'training' || trainingTool || trainingDemo;
+      const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || supportView || ['today','team','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
         teamReturn.hidden = !teamTool;
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
-      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (supportView && b.dataset.tab === 'support') || (teamTool && b.dataset.tab === 'team')));
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
       $('#sales-stats').hidden = trainingTool || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach'].includes(name);
       if (name === 'calendar') {
