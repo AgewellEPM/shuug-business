@@ -2,32 +2,27 @@
 
 .sdr-team-workspace { display: grid; gap: 14px; min-width: 0; }
 .sdr-team-hero {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(185px, 43%);
   align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
-  min-height: 118px;
-  padding: 20px clamp(16px, 3vw, 35px);
+  gap: 12px;
+  min-height: 186px;
+  padding: 16px clamp(16px, 3vw, 34px);
   border-radius: 18px;
   color: white;
-  background: linear-gradient(114deg, #073586 5%, #075cb3 56%, #137ed0);
+  background: linear-gradient(114deg, #073586 5%, #075cb3 56%, #2199e3);
+  overflow: hidden;
 }
-.sdr-team-hero-title { display: flex; align-items: center; gap: 15px; }
-.sdr-team-hero-title > svg { flex: none; width: 40px; height: 40px; }
-.sales-console-page .sdr-team-hero h2 { color: white; font-size: clamp(30px, 3.5vw, 44px); line-height: 1.05; letter-spacing: -.04em; }
+.sdr-team-hero-main { display: grid; gap: 16px; min-width: 0; }
+.sales-console-page .sdr-team-hero h2 { color: white; font-size: clamp(30px, 3.5vw, 46px); line-height: 1.05; letter-spacing: -.04em; }
 .sales-console-page .sdr-team-hero p { margin-top: 5px; color: #e6f4ff; font-size: clamp(13px, 1.25vw, 16px); }
-.sales-console-page .sdr-team-hero .button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-  border-color: #ffffff80;
-  color: white;
-  background: #00275860;
-  text-decoration: none;
-}
-.sales-console-page .sdr-team-hero .button:hover { background: #002758b0; }
+.sdr-team-hero-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.sales-console-page .sdr-team-hero .button { display: inline-flex; align-items: center; gap: 7px; text-decoration: none; }
+.sales-console-page .sdr-team-hero .button.primary { background: #fff; border-color: #fff; color: #074999; }
+.sales-console-page .sdr-team-hero .button.primary:hover { background: #dceeff; }
+.sales-console-page .sdr-team-hero .button.secondary { background: #07337290; border-color: #ffffff80; color: #fff; }
+.sales-console-page .sdr-team-hero .button.secondary:hover { background: #052e65; }
+.sdr-team-hero-art { display: block; width: 100%; max-height: 194px; height: auto; object-fit: contain; object-position: right center; }
 .sdr-team-surface {
   min-width: 0;
   border: 1px solid var(--glass-border-muted);
@@ -115,8 +110,8 @@
   .sdr-team-member-access { justify-content: start; grid-column: 1 / -1; }
 }
 @media (max-width: 550px) {
-  .sdr-team-hero { align-items: flex-start; }
-  .sdr-team-hero-title > svg { width: 32px; height: 32px; }
+  .sdr-team-hero { grid-template-columns: 1fr; min-height: 0; }
+  .sdr-team-hero-art { width: min(100%, 310px); justify-self: center; max-height: 130px; object-position: center; }
   .sdr-team-tabs { margin-inline: 8px; }
   .sdr-team-tabs button { flex-basis: 110px; font-size: 13px; }
   .sdr-team-member, #sales-create-agent { grid-template-columns: minmax(0, 1fr); }

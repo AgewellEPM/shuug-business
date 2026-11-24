@@ -428,8 +428,8 @@
     const find = name => panel.querySelector('[data-map-' + name + ']');
     const heading = panel.querySelector('h2'), status = find('status'), retry = find('retry');
     const canvas = find('canvas'), tools = find('tools'), caption = find('caption');
-    const nationalMap = document.getElementById('sales-territory-map').parentElement;
-    const national = [nationalMap, nationalMap.previousElementSibling, document.getElementById('sales-territory-cards')];
+    const nationalMap = document.getElementById('sales-territory-national');
+    const hero = document.querySelector('.sdr-territory-hero');
     let sequence = 0, dispose;
     const colors = find('colors'), preference = 'sdr.territoryMap.colors';
     try { colors.checked = localStorage.getItem(preference) !== 'off'; } catch { /* Storage is optional. */ }
@@ -445,14 +445,14 @@
       dispose?.();
       dispose = null;
       panel.hidden = true;
-      national.forEach(element => { element.hidden = false; });
+      nationalMap.hidden = false;
     }
     find('back').onclick = onBack;
     async function open(region, focus) {
       const request = ++sequence;
       dispose?.();
       dispose = null;
-      national.forEach(element => { element.hidden = true; });
+      nationalMap.hidden = true;
       panel.hidden = false;
       canvas.hidden = tools.hidden = caption.hidden = retry.hidden = true;
       const stateName = document.querySelector(`[data-territory-state="${region}"] strong`)?.textContent || region;
@@ -475,7 +475,7 @@
     }
     return { clear, open, focus() {
       heading.focus({ preventScroll: true });
-      panel.scrollIntoView?.({ block: 'start' });
+      (hero || panel).scrollIntoView?.({ block: 'start' });
     } };
   }
 
