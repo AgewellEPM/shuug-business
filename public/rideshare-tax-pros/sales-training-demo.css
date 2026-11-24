@@ -1,0 +1,111 @@
+.sdr-training-demo > .training-link { justify-self: start; }
+.training-demo-start {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+}
+.training-demo-start, .training-voice, .training-demo-debrief { padding: clamp(17px, 2.1cqw, 28px); }
+.training-demo-start p, .training-voice header p, .training-demo-debrief li {
+  margin-block: 7px;
+  color: var(--training-muted);
+  line-height: 1.48;
+}
+.training-demo-start figure {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 10px;
+  margin: 0;
+  color: var(--training-muted);
+  font-size: .8rem;
+  text-align: center;
+}
+.training-demo-start figure img { image-rendering: pixelated; border: 2px solid #fff; }
+.training-voice form { display: grid; gap: 11px; margin-top: 16px; }
+.training-voice label { display: grid; gap: 5px; font-weight: 660; }
+.training-voice-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; max-width: 780px; }
+.sdr-training .training-voice :is(select, textarea) {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #a7bfdf;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--training-text);
+  font: inherit;
+  min-height: 43px;
+}
+.training-voice textarea { resize: vertical; max-width: 780px; }
+.training-voice-examples, .training-voice-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.training-voice-examples .training-button { min-height: 35px; font-size: 13px; }
+.training-voice .training-button[aria-pressed="true"] { border-color: #064cba; background: #cee5ff; color: #093e91; }
+.training-voice-status { margin-top: 10px; color: var(--training-muted); }
+.training-voice-status:empty { display: none; }
+.training-voice-result { display: grid; gap: 13px; margin-top: 17px; padding-top: 15px; border-top: 1px solid var(--training-border); }
+.training-voice-result h3 { margin: 0; }
+.training-voice-result [data-training-voice-selection] {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 17px;
+  border-radius: 12px;
+  padding: 12px;
+  background: #e8f2ff;
+  color: #123a74;
+}
+.training-voice-result [data-training-voice-message] { margin: 0; font-weight: 730; }
+.training-demo-debrief ol { padding-inline-start: 22px; }
+.sdr-training.care-voice { display: block; padding: 0; margin: 10px 0; }
+.care-voice > summary {
+  min-height: 42px;
+  padding: 10px 13px;
+  border: 1px solid var(--training-border);
+  border-radius: 10px;
+  background: #e7f1ff;
+  color: var(--training-text);
+  cursor: pointer;
+  font-weight: 700;
+}
+.care-voice > .training-voice { margin-top: 8px; }
+.sdr-training-pipeline > .training-link { justify-self: start; }
+.training-pipeline-card { padding: clamp(17px, 2.1cqw, 28px); }
+.training-pipeline-card > p { margin: 7px 0 14px; color: var(--training-muted); }
+.training-pipeline-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0;
+  padding: 0;
+  list-style: none;
+}
+.training-pipeline-stages li {
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: #e5edf7;
+  color: #244366;
+  font-size: 13px;
+}
+.training-pipeline-stages li[aria-current] { background: #0b63d2; color: #fff; }
+.training-pipeline-card fieldset { display: grid; gap: 7px; border: 0; padding: 0; margin: 0 0 14px; }
+.training-pipeline-card legend { margin: 0 0 10px; font-weight: 700; }
+.training-pipeline-card fieldset label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 13px;
+  border: 1px solid var(--training-border);
+  border-radius: 10px;
+  cursor: pointer;
+}
+.training-pipeline-card label input { margin-top: 2px; flex: none; accent-color: #0b63d2; }
+.training-pipeline-card label:has(input:checked) { border-color: #7ca9df; background: #e9f3ff; }
+.training-pipeline-card .training-pipeline-result { color: #935524; font-weight: 740; }
+.training-pipeline-card .training-pipeline-result[data-passed="true"] { color: #1e6639; }
+.training-pipeline-feedback { padding-inline-start: 24px; margin: 12px 0 16px; }
+.training-pipeline-feedback li + li { margin-top: 9px; }
+.training-pipeline-feedback p { margin: 3px 0; color: var(--training-muted); }
+
+@container sales-training (max-width: 550px) {
+  .training-demo-start, .training-voice-fields { grid-template-columns: minmax(0, 1fr); }
+  .training-demo-start figure { justify-self: start; }
+}

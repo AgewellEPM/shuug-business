@@ -1,0 +1,500 @@
+.sdr-training {
+  --training-text: #0d1c37;
+  --training-muted: #435b7a;
+  --training-primary: #0053cc;
+  --training-border: #c8d9ee;
+  --training-card: #fbfdff;
+  container: sales-training / inline-size;
+  display: grid;
+  gap: 15px;
+  padding-bottom: 20px;
+  color: var(--training-text);
+  color-scheme: light;
+}
+
+.sdr-training [hidden] { display: none !important; }
+.sdr-training :is(button, a, summary):focus-visible { outline: 2px solid #0066dc; outline-offset: 2px; }
+.sdr-training :is(h2, h3)[tabindex="-1"] { scroll-margin-block-start: 84px; }
+.sdr-training img { display: block; max-width: 100%; }
+.sdr-training svg { flex: none; }
+
+.training-hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: clamp(13px, 1.8cqw, 24px);
+  min-height: 116px;
+  padding: 8px clamp(17px, 2.6cqw, 36px);
+  border-radius: 17px;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(110deg, #073297 5%, #0576d5 45%, #22b9ed 76%);
+  color: #fff;
+}
+.training-hero::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 auto;
+  width: min(571px, 47%);
+  background: url('/training-art/hero.png') right center / auto 100% no-repeat;
+  mask-image: linear-gradient(to right, transparent, #000 15%);
+  content: '';
+}
+.training-hero > .training-reference-icon {
+  width: clamp(54px, 6.5cqw, 84px);
+  height: auto;
+  flex: none;
+  mask-image: radial-gradient(ellipse 68% 74%, #000 67%, transparent 97%);
+}
+.training-hero > div { max-width: 64%; }
+.sales-console-page .training-hero h1 {
+  margin: 0;
+  font-size: clamp(29px, 3.48cqw, 46px);
+  font-weight: 790;
+  line-height: 1.09;
+  letter-spacing: -.033em;
+}
+.training-hero p { margin: 4px 0 0; font-size: clamp(13px, 1.35cqw, 18px); line-height: 1.35; }
+
+.training-metrics {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+.training-metric {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1.3cqw, 16px);
+  min-width: 0;
+  min-height: 70px;
+  padding: 9px clamp(10px, 1.4cqw, 19px);
+  border: 1px solid #fff8;
+  border-radius: 14px;
+  background: linear-gradient(125deg, #d9eeff, #cce7f9);
+}
+.training-metric-completed { background: linear-gradient(125deg, #e0f8ed, #cff3df); }
+.training-metric-certificates { background: linear-gradient(125deg, #fff8d6, #fff1bb); }
+.training-metric-time { background: linear-gradient(125deg, #eeecfb, #e8e1f9); }
+.training-metric > img { flex: none; width: clamp(30px, 3.3cqw, 43px); height: auto; border-radius: 8px; }
+.training-metric > div { min-width: 0; flex: 1; }
+.training-metric strong, .training-metric span { display: block; line-height: 1.08; }
+.training-metric span { font-size: clamp(11px, 1.08cqw, 14px); font-weight: 670; }
+.training-metric strong {
+  margin-top: 3px;
+  font-size: clamp(19px, 1.93cqw, 26px);
+  font-weight: 760;
+  font-variant-numeric: tabular-nums;
+}
+.training-metric-milestone strong { font-size: clamp(13px, 1.25cqw, 16px); }
+.sdr-training progress {
+  display: block;
+  width: 100%;
+  height: 9px;
+  border: 0;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #b9cae0;
+  color: #0b6ae9;
+  accent-color: #0b6ae9;
+}
+.sdr-training progress::-webkit-progress-bar { background: #b9cae0; }
+.sdr-training progress::-webkit-progress-value { border-radius: 20px; background: linear-gradient(90deg, #08f, #064edc); }
+.sdr-training progress::-moz-progress-bar { border-radius: 20px; background: linear-gradient(90deg, #08f, #064edc); }
+.training-metric progress { margin-top: 5px; }
+
+.training-feature-grid {
+  display: grid;
+  grid-template-columns: minmax(174px, 18.5%) minmax(0, 1fr);
+  gap: 15px;
+  align-items: start;
+}
+.training-card {
+  min-width: 0;
+  border: 1px solid var(--training-border);
+  border-radius: 15px;
+  background: linear-gradient(151deg, var(--training-card), #f1f7ff);
+  box-shadow: 0 2px 8px #29517a0b;
+}
+.sales-console-page .training-card h2 {
+  margin: 0;
+  color: var(--training-text);
+  font-size: clamp(17px, 1.63cqw, 22px);
+  font-weight: 760;
+  letter-spacing: -.022em;
+  line-height: 1.15;
+}
+.training-hub { padding: 11px 10px; }
+.sales-console-page .training-hub h2 { margin: 1px 8px 9px; }
+.training-hub button,
+.training-lesson-nav button {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  min-height: 30px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--training-text);
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.25;
+}
+.training-hub button svg { width: 19px; height: 19px; color: #234577; }
+.training-hub button:hover, .training-lesson-nav button:hover { background: #e3efff; }
+.training-hub button[aria-current], .training-lesson-nav button[aria-current] {
+  background: linear-gradient(115deg, #deedff, #c9e0fc);
+  color: #034bb8;
+  font-weight: 700;
+}
+.training-hub button[aria-current] svg { color: var(--training-primary); }
+
+.training-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1.14fr) minmax(0, .94fr);
+  align-self: stretch;
+  align-items: stretch;
+  gap: 14px;
+  padding: 11px 13px 12px;
+}
+.training-feature-visual {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 225px;
+  overflow: hidden;
+  isolation: isolate;
+  border-radius: 12px;
+  background: linear-gradient(129deg, #061743, #055aa1 57%, #1b8bca);
+  color: #fff;
+}
+.training-feature-visual::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 59%, #041e2be6 100%);
+  content: '';
+}
+.training-feature-visual .training-feature-art {
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 0 auto;
+  width: 59%;
+  height: 100%;
+  object-fit: cover;
+  object-position: right center;
+  mask-image: linear-gradient(to right, transparent, #000 31%);
+}
+.training-feature-visual-title {
+  position: absolute;
+  inset: auto auto 12% 5%;
+  display: grid;
+  gap: 4px;
+  max-width: 85%;
+  text-shadow: 0 1px 3px #00102aa8;
+}
+.training-feature-visual-title strong { font-size: clamp(18px, 2.25cqw, 31px); line-height: 1.1; }
+.training-feature-visual-title span { font-size: 14px; font-weight: 650; }
+.sdr-training .training-play {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #051f467d;
+  color: #fff;
+  box-shadow: 0 2px 6px #02162757;
+  font-size: 25px;
+  line-height: 1;
+}
+.sdr-training .training-play span { padding-inline-start: 3px; }
+.sdr-training .training-play:hover { background: #064fbf; }
+.training-feature-description {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  min-width: 0;
+  padding: 8px 7px 8px 13px;
+  border-inline-start: 1px solid #d9e4f3;
+}
+.training-feature-label {
+  margin-bottom: 8px;
+  padding: 3px 8px;
+  border-radius: 15px;
+  background: #b4e4ff;
+  color: #003f9c;
+  font-size: 11px;
+  font-weight: 760;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+.sales-console-page .training-feature-description h2 { font-size: clamp(21px, 2cqw, 27px); }
+.training-feature-description p { margin: 5px 0 12px; line-height: 1.4; }
+.training-course-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 14px;
+  margin: 0;
+  color: var(--training-muted);
+  font-size: 13px;
+  font-weight: 620;
+}
+.training-feature-description .training-actions { margin-top: 18px; }
+.training-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.sdr-training :is(.training-button, .training-link) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 34px;
+  border: 1px solid #a8c3e7;
+  border-radius: 9px;
+  padding: 6px 11px;
+  background: linear-gradient(#fff, #e9f2ff);
+  color: #0649ad;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.25;
+  text-align: center;
+  text-decoration: none;
+}
+.sdr-training .training-button:hover { background: #dcecff; }
+.sdr-training .training-button[aria-pressed="true"] { border-color: #71a4e3; background: #e0eeff; }
+.sdr-training .training-button.training-primary {
+  border-color: #0071e9;
+  background: linear-gradient(#079bfa, #0057df);
+  color: #fff;
+}
+.sdr-training .training-button.training-primary:hover { background: #065ccd; }
+.sdr-training .training-button:disabled { opacity: .65; cursor: wait; }
+.sdr-training .training-link { min-height: 28px; padding: 3px 0; border: 0; background: transparent; }
+.sdr-training .training-link:hover { text-decoration: underline; }
+.training-link svg { width: 15px; height: 15px; }
+
+.training-board-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+.training-board { padding: 12px 16px 14px; }
+.training-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+.sales-console-page .training-card-head h2 { display: flex; align-items: center; gap: 9px; }
+.training-card-head h2 svg { color: #075bcc; }
+.training-card-head .training-link { flex: none; }
+.training-path-row,
+.training-category {
+  border: 0;
+  border-radius: 11px;
+  background: linear-gradient(115deg, #e1f0fc, #e9f2fd);
+  color: var(--training-text);
+}
+.training-path-row:hover, .training-category:hover { box-shadow: inset 0 0 0 1px #85ade2; }
+.training-path-row[data-training-tone="path-care"], .training-category[data-training-tone="healthcare"] { background: linear-gradient(115deg, #e2f7ec, #d7f4e5); }
+.training-path-row[data-training-tone="path-ada"], .training-category[data-training-tone="ada"] { background: linear-gradient(115deg, #eeebfd, #e4e5fa); }
+.training-category[data-training-tone="product"] { background: linear-gradient(115deg, #f2ebfd, #e9e6fa); }
+.training-path-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1.55fr) minmax(65px, 1fr) auto;
+  align-items: center;
+  gap: clamp(7px, 1.14cqw, 15px);
+  width: 100%;
+  min-height: 51px;
+  padding: 7px 13px;
+  text-align: left;
+}
+.training-path-row + .training-path-row { margin-top: 8px; }
+.training-path-row > img { width: 37px; height: 35px; object-fit: contain; mix-blend-mode: multiply; }
+.training-path-description { min-width: 0; }
+.training-path-description strong, .training-path-description small { display: block; line-height: 1.2; }
+.training-path-description strong { font-size: 14px; }
+.training-path-description small { margin-top: 2px; color: var(--training-muted); font-size: 12px; }
+.training-path-progress { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.training-path-progress strong { min-width: 32px; font-size: 13px; text-align: right; font-variant-numeric: tabular-nums; }
+.training-path-row > span:last-child { color: #0457c9; font-size: 24px; line-height: 1; }
+.training-categories { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 9px; }
+.training-category {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 111px;
+  padding: 7px 4px;
+  line-height: 1.25;
+  text-align: center;
+}
+.training-category > img { width: 47px; height: 44px; object-fit: contain; mix-blend-mode: multiply; }
+.training-category strong { font-size: 13px; }
+.training-category span { color: var(--training-muted); font-size: 12px; }
+.training-cert-row, .training-live-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 11px;
+  align-items: center;
+  min-height: 47px;
+  padding: 6px 0;
+  border-bottom: 1px solid #d9e4f4;
+}
+.training-cert-row:last-child, .training-live-row:last-child { border-bottom: 0; }
+.training-cert-row strong, .training-cert-row small { display: block; line-height: 1.24; }
+.training-cert-row strong, .training-live-row strong { font-size: 14px; }
+.training-cert-row small, .training-live-row :is(p, time) { color: var(--training-muted); font-size: 12px; }
+.training-cert-state { display: grid; place-items: center; width: 22px; height: 22px; border: 2px solid #849bb9; border-radius: 50%; }
+.training-cert-state[data-earned="true"] { border-color: #19804b; background: #19804b; color: #fff; font-size: 13px; }
+.training-cert-row .training-button { min-height: 28px; min-width: 67px; padding-block: 4px; }
+.training-live-row { grid-template-columns: minmax(0, 1fr) auto; }
+.training-empty { margin: 0; padding: 9px 0; color: var(--training-muted); font-size: 14px; }
+
+.training-content { padding: 16px 18px 18px; }
+.training-content .training-back { margin-bottom: 8px; }
+.training-pane-intro { margin-top: 9px; color: var(--training-muted); line-height: 1.45; }
+.training-content > :is(.training-path-row, .training-cert-row, .training-live-row, .training-lesson-layout) { margin-top: 10px; }
+.training-category-filters { display: flex; flex-wrap: wrap; gap: 7px; margin: 14px 0; }
+.training-course-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+.training-course {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--training-border);
+  border-radius: 11px;
+  background: #f7fbff;
+}
+.training-course-summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px; color: var(--training-muted); font-size: 12px; font-weight: 650; }
+.sales-console-page .training-course h3 { margin: 5px 0; font-size: 18px; line-height: 1.18; }
+.training-course h3 + p { flex: 1; margin: 0 0 12px; color: var(--training-muted); font-size: 14px; line-height: 1.42; }
+.training-path-summary { display: flex; align-items: center; gap: 10px; margin: 12px 0; color: var(--training-muted); font-weight: 650; }
+.training-path-summary progress { max-width: 180px; }
+.training-lesson-layout { display: grid; grid-template-columns: minmax(138px, .62fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.training-lesson-nav, .training-lesson, .training-faq, .training-certificate {
+  padding: 11px;
+  border: 1px solid #d2e0f1;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+.training-lesson-nav button + button { margin-top: 3px; }
+.training-lesson { padding: 15px; }
+.training-lesson ol { display: grid; gap: 9px; margin: 11px 0 16px; padding-inline-start: 20px; font-size: 14px; line-height: 1.48; }
+.training-lesson li::marker { color: var(--training-primary); font-weight: 750; }
+.training-completed-note { margin: 0; color: #146739; font-weight: 700; }
+.training-faq { margin-top: 10px; }
+.training-faq summary { color: var(--training-text); cursor: pointer; font-weight: 680; }
+.training-faq p { margin: 7px 0 1px; color: var(--training-muted); }
+.training-certificate { display: grid; justify-items: center; gap: 12px; margin-top: 10px; padding: 24px; text-align: center; }
+.training-certificate img { width: 56px; border-radius: 9px; }
+.training-certificate strong { color: #146739; }
+.training-work-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--training-border);
+}
+.training-work-tabs .training-button[aria-pressed="true"] {
+  border-color: #8bb3e9;
+  background: linear-gradient(115deg, #deedff, #c9e0fc);
+}
+.training-activity, .training-playbook-section, .training-mastery, .training-sources {
+  min-width: 0;
+  margin: 12px 0;
+  padding: 12px 14px;
+  border: 1px solid #cdddf1;
+  border-radius: 10px;
+  background: #f8fbff;
+}
+.training-activity fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.training-activity :is(legend, .training-choice span) { overflow-wrap: anywhere; }
+.training-activity legend { max-width: 100%; margin: 0 0 7px; padding: 0; font-size: 15px; font-weight: 730; }
+.training-activity .training-actions { margin-top: 11px; }
+.training-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 8px 9px;
+  border-radius: 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  cursor: pointer;
+}
+.training-choice:hover { background: #e9f3ff; }
+.training-choice:has(input:checked) { background: #e6f1ff; }
+.sdr-training .training-choice input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: #075bcc;
+}
+.training-choice input:focus-visible { outline: 2px solid #0066dc; outline-offset: 2px; }
+.training-assessment-result, .training-answer {
+  margin: 12px 0 0;
+  padding: 9px 11px;
+  border-radius: 8px;
+  background: #fff2d7;
+  color: #684205;
+  font-size: 14px;
+}
+.training-assessment-result { font-weight: 730; }
+.training-answer strong { margin-inline-end: 5px; }
+.training-assessment-result[data-passed="true"], .training-answer[data-correct="true"] {
+  background: #e0f6e9;
+  color: #145833;
+}
+.training-mastery { background: linear-gradient(115deg, #eef6ff, #f7faff); }
+.training-mastery ul { display: flex; flex-wrap: wrap; gap: 7px; margin: 9px 0 12px; padding: 0; list-style: none; }
+.training-mastery li { padding: 4px 8px; border-radius: 7px; background: #e4eefb; color: var(--training-muted); font-size: 13px; }
+.sdr-training .training-mastery .training-button:disabled { cursor: not-allowed; }
+.training-playbook-section ol, .training-lab ol, .training-sources ul {
+  display: grid;
+  gap: 7px;
+  margin: 8px 0 10px;
+  padding-inline-start: 20px;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.training-lab ol { flex: 1; }
+.training-playbook-section li::marker, .training-lab li::marker { color: var(--training-primary); font-weight: 750; }
+.sdr-training [data-training-status] { margin: 0; color: var(--training-muted); font-size: 13px; }
+.sdr-training [data-training-status][data-error="true"] { color: #932b35; }
+
+@container sales-training (max-width: 900px) {
+  .training-feature { gap: 11px; padding-inline: 11px; }
+  .training-feature-visual { min-height: 200px; }
+  .training-feature-description { padding-inline: 9px 3px; }
+  .training-board { padding-inline: 11px; }
+}
+@container sales-training (max-width: 750px) {
+  .training-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .training-feature-grid { grid-template-columns: minmax(132px, 21%) minmax(0, 1fr); gap: 9px; }
+  .training-feature { grid-template-columns: minmax(0, 1fr); }
+  .training-feature-visual { min-height: 170px; }
+  .training-feature-description { border-inline-start: 0; }
+  .training-board-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+}
+@container sales-training (max-width: 550px) {
+  .training-hero { min-height: 108px; }
+  .training-hero::before { opacity: .38; }
+  .training-hero > div { max-width: none; }
+  .training-hub { display: flex; flex-wrap: wrap; gap: 3px; }
+  .sales-console-page .training-hub h2 { flex-basis: 100%; }
+  .training-hub button { width: auto; padding: 6px 8px; }
+  .training-feature-grid, .training-course-grid, .training-lesson-layout { grid-template-columns: minmax(0, 1fr); }
+  .training-metric { min-height: 63px; }
+  .training-feature-description .training-actions { margin-top: 12px; }
+  .training-board-grid .training-board-catalog { grid-row: 2; }
+  .training-categories { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .training-category { min-height: 94px; }
+}
+@container sales-training (max-width: 390px) {
+  .training-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .training-path-row { grid-template-columns: auto minmax(0, 1fr) auto; }
+  .training-path-row .training-path-progress { grid-column: 2; grid-row: 2; }
+  .training-path-row > span:last-child { grid-column: 3; grid-row: 1; }
+  .training-card-head { flex-wrap: wrap; }
+  .training-content { padding-inline: 12px; }
+}

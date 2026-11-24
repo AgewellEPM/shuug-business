@@ -1,3 +1,4 @@
+import { demoDestination } from '../rideshare-site/sales-demo.mjs';
 import { createServer } from 'node:http';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -148,7 +149,7 @@ for (const path of readdirSync(staticRoot, { recursive: true, withFileTypes: tru
 }
 const mimes = { '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png',
   '.svg': 'image/svg+xml', '.webp': 'image/webp', '.pdf': 'application/pdf', '.txt': 'text/plain; charset=utf-8', '.json': 'application/json; charset=utf-8' };
-const csp = `default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org https://*.googleusercontent.com ${administratorPhotoOrigins.join(' ')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`;
+const csp = `default-src 'self'; script-src 'self'; style-src 'self'; ${profile.focus === 'senior-care' ? "media-src 'self' blob:; " : ''}img-src 'self' data: ${profile.focus === 'senior-care' ? 'blob: ' : ''}https://tile.openstreetmap.org https://*.googleusercontent.com ${administratorPhotoOrigins.join(' ')}; object-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'`;
 const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, async (request, response) => {
   const finish = (status, body = '') => { response.statusCode = status; response.end(body); };
   response.setHeader('Content-Security-Policy', csp);
@@ -162,8 +163,9 @@ const server = createServer({ requestTimeout: 60_000, headersTimeout: 10_000 }, 
     if (path === '/api/booking' || path.startsWith('/api/booking/') || path.startsWith('/book/feed/')) return await publicBooking(request, response);
     if (routes.has(path)) return await routes.get(path)(request, response);
     if (!['GET', 'HEAD'].includes(request.method)) return finish(405);
-    if (path === '/') {
-      response.setHeader('Location', '/sales');
+    const demo = profile.focus === 'senior-care' && demoDestination(path);
+    if (path === '/' || demo) {
+      response.setHeader('Location', demo || '/sales');
       return finish(302);
     }
     if (pages.has(path)) {
