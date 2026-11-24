@@ -669,6 +669,30 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     cityKeys: [town], expectedRevision: await revision() });
   pageDocument.querySelector('#sales-refresh').click();
   pageDocument.querySelector('[data-tab="team"]').click();
+  const teamTab = name => pageDocument.querySelector(`[data-team-view="${name}"]`);
+  const teamPane = name => pageDocument.getElementById(teamTab(name).getAttribute('aria-controls'));
+  assert.equal(teamTab('roster').getAttribute('aria-selected'), 'true');
+  assert.equal(teamPane('roster').hidden, false);
+  assert.equal(teamPane('profile').hidden, true);
+  assert.equal(teamPane('invite').hidden, true);
+  assert.equal(teamPane('settings').hidden, true);
+  teamTab('roster').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+  assert.equal(pageDocument.activeElement, teamTab('profile'));
+  assert.equal(teamPane('profile').hidden, false);
+  assert.equal(teamPane('roster').hidden, true);
+  teamTab('profile').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+  assert.equal(pageDocument.activeElement, teamTab('settings'));
+  assert.equal(teamTab('settings').getAttribute('aria-selected'), 'true');
+  assert.equal(teamPane('settings').hidden, false);
+  assert.equal(teamPane('profile').hidden, true);
+  const publicContacts = await waitFor(() => teamPane('settings').querySelector('[data-team-app-help] #directory-support-form'),
+    'Public app contact details did not mount in Workspace settings');
+  const publicContactsSection = publicContacts.closest('details');
+  const publicContactsSummary = publicContactsSection.querySelector('summary');
+  assert.equal(publicContactsSummary.textContent, 'Public app contact details');
+  publicContactsSummary.click();
+  assert.equal(publicContactsSection.open, true);
+  assert.ok(['roster', 'profile', 'invite'].every(name => !teamPane(name).contains(publicContacts)));
   const townAccessState = pageDocument.querySelector('#sales-town-access-state');
   const townAccess = townAccessState.closest('details');
   assert.equal(townAccess.hidden, false);
@@ -700,6 +724,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.deepEqual(townCenters.results.map(record => record.name), ['Hartford Example Senior Center', 'Second Example Senior Center']);
   await agentSession.api('territory-facilities', { state: 'AK', category: 'nursing-home' }, 403);
   window.document.querySelector('[data-tab=team]').click();
+  teamTab('invite').click();
+  assert.equal(teamPane('invite').hidden, false);
+  assert.equal(teamPane('settings').hidden, true);
   const ownerInvite = window.document.querySelector('#sales-create-agent');
   const submitInvite = ownerInvite.querySelector('button[type=submit]');
   for (let retry = 0; retry < 100 && submitInvite.disabled; retry++) await delay(20);
@@ -721,6 +748,38 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const junior = await inviteReplies.find(reply => reply.ok).json();
   const juniorSession = browserSession(first.origin);
   await juniorSession.api('login', { email: juniorInput.email, code: junior.code });
+  const juniorWindow = await mountConsole(t, first.origin, juniorSession, html);
+  const juniorDocument = juniorWindow.document;
+  await waitFor(() => !juniorDocument.querySelector('#sales-workspace').hidden, 'The rep console did not load');
+  juniorDocument.querySelector('[data-tab="team"]').click();
+  juniorDocument.querySelector('[data-team-view="profile"]').click();
+  const profileForm = juniorDocument.getElementById('sales-team-profile');
+  assert.equal(profileForm.closest('[role="tabpanel"]').hidden, false);
+  await waitFor(() => !profileForm.elements.bio.disabled, 'The self-profile form did not load');
+  profileForm.elements.bio.value = 'Hospital and senior care outreach';
+  const mockFile = new juniorWindow.File(['portrait'], 'portrait.jpg', {type:'image/jpeg'});
+  juniorWindow.SdrHeadshots.encode = async file => {
+    assert.equal(file, mockFile);
+    return portrait;
+  };
+  Object.defineProperty(profileForm.elements.headshot, 'files', {value:[mockFile]});
+  profileForm.elements.headshot.dispatchEvent(new juniorWindow.Event('change', {bubbles:true}));
+  await waitFor(() => profileForm.querySelector('[data-team-profile-preview]').getAttribute('src') === portrait &&
+    !profileForm.elements.bio.disabled, 'The rep portrait did not preview');
+  profileForm.requestSubmit();
+  await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own bio and headshot');
+  assert.deepEqual((await juniorSession.api('sales-team-profile')).profile, {
+    bio:'Hospital and senior care outreach', photo:portrait, revision:1
+  });
+  for (const [index, [name, facilityType]] of [
+    ['Hartford Example Hospital', ''],
+    ['Example Senior Residence', 'assisted-living'],
+    ['Hartford Example Community Center', '']
+  ].entries()) {
+    await owner.api('create-office', {
+      name, facilityType, state:'CT', city:'Hartford', address:`${30 + index} Example Street`, assignedTo:junior.agent.id
+    });
+  }
   const traineeInput = { name: 'Example Trainee', email: 'trainee@example.test' };
   const trainee = await juniorSession.api('sales-team-invite', traineeInput);
   const traineeSession = browserSession(first.origin);
@@ -737,7 +796,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(branch.rootId, agent.id);
   assert.deepEqual((await agentSession.api('bootstrap')).agents, []);
   assert.deepEqual(new Set(branch.members.map(member => member.id)), new Set([agent.id, junior.agent.id, trainee.agent.id]));
-  assert.equal(branch.members.find(member => member.id === junior.agent.id).canRevoke, true);
+  const juniorMember = branch.members.find(member => member.id === junior.agent.id);
+  assert.equal(juniorMember.canRevoke, true);
+  assert.deepEqual(juniorMember.marketSegments.map(market => [market.label,market.count]),
+    [['Community centers',1],['Hospitals',1],['Senior care',1]]);
+  const hospital = await agentSession.api('territory-ownership', {state:'CT',query:'Hartford Example Hospital'});
+  assert.equal(hospital.matches[0].market.label, 'Hospitals');
+  assert.equal(hospital.matches[0].assignee, juniorInput.name);
   assert.equal(branch.members.find(member => member.id === trainee.agent.id).canRevoke, false);
   await agentSession.api('sales-team-revoke', { id: trainee.agent.id }, 403);
   await agentSession.api('sales-team-revoke', { id: peer.id }, 403);
@@ -745,7 +810,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentDocument = agentWindow.document;
   for (let retry = 0; retry < 100 && agentDocument.querySelector('#sales-workspace').hidden; retry++) await delay(20);
   const agentNav = agentDocument.querySelector('[data-tab=team]');
-  agentNav.click();
+  agentWindow.location.hash = 'view=team&section=settings';
+  await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
+  const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
+  assert.equal(agentSettings.hidden, true);
+  assert.equal(agentDocument.getElementById('sales-team-pane-settings').hidden, true);
+  assert.equal(agentDocument.querySelector('#directory-support-form'), null);
+  agentSettings.click();
+  assert.equal(agentDocument.querySelector('[data-team-view="roster"]').getAttribute('aria-selected'), 'true');
   agentDocument.querySelector('#sales-team-territories').click();
   agentDocument.querySelector('[data-territory-state="CT"]').click();
   const capitolId = '09110';
@@ -764,8 +836,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.ok(choices.includes(junior.agent.id) && choices.includes(trainee.agent.id) && !choices.includes(peer.id));
   teamCounty.elements.memberId.value = junior.agent.id;
   teamCounty.elements.memberId.dispatchEvent(new agentWindow.Event('change', { bubbles: true }));
+  assert.ok(teamCounty.elements.photo.disabled, 'Linked rep headshots are managed in their own profile');
+  assert.equal(teamCounty.querySelector('.county-rep-preview img').getAttribute('src'), portrait);
   teamCounty.requestSubmit();
   await waitFor(() => agentDocument.querySelector('[data-county-row="09110"]').textContent.includes(juniorInput.name), 'Team lead could not save a county assignment');
+  assert.equal(agentDocument.querySelector('[data-county-row="09110"] img').getAttribute('src'), portrait);
+  assert.match(teamSelection.textContent, /Hospitals · Example Junior \(1\)/);
+  assert.match(teamSelection.textContent, /Senior care · Example Junior \(1\)/);
+  const currentCounty = async () => (await owner.api('territory-ownership', {state:'CT',countyIds:[capitolId]})).counties[0];
+  assert.equal((await currentCounty()).lead.photo, portrait);
+  await juniorSession.api('set-sales-team-profile', {bio:'Updated bio', photo:'', revision:1});
+  assert.equal((await currentCounty()).lead.photo, '');
+  assert.equal((await currentCounty()).lead.revision, 1, 'Updating a profile does not rewrite the county assignment');
   const delegated = {state:'CT', county:capitolId, memberId:trainee.agent.id, revision:1, photo:''};
   const transfer = await juniorSession.api('set-county-lead', delegated);
   assert.equal(transfer.lead.name, traineeInput.name);
@@ -780,7 +862,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const branchTree = agentDocument.querySelector('#sales-team');
   const traineeRow = '[data-team-member="' + trainee.agent.id + '"]';
   for (let retry = 0; retry < 100 && !branchTree.querySelector(traineeRow); retry++) await delay(20);
-  assert.ok(branchTree.querySelector('[data-team-member="' + junior.agent.id + '"] ' + traineeRow));
+  const juniorRow = branchTree.querySelector('[data-team-member="' + junior.agent.id + '"]');
+  assert.ok(juniorRow.querySelector(traineeRow));
+  assert.match(juniorRow.textContent, /Senior care/);
   assert.equal(branchTree.querySelector('[data-team-member="' + peer.id + '"]'), null);
   assert.ok(branchTree.querySelector('[data-team-revoke="' + junior.agent.id + '"]'));
   assert.equal(branchTree.querySelector('[data-team-revoke="' + trainee.agent.id + '"]'), null);

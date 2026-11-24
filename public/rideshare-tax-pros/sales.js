@@ -54,11 +54,12 @@
     const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh });
     const tab = name => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
+      const enteringTeam = standalone && name === 'team' && document.body.dataset.sdrView !== 'team';
       if (standalone) document.body.dataset.sdrView = name;
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team' })[name] || 'Workspace';
-      $('#sales-stats').hidden = ['home','discover','prospects','campaigns','facilities','territories'].includes(name);
+      $('#sales-stats').hidden = ['home','discover','prospects','campaigns','facilities','territories','team'].includes(name);
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') {
         prospectsWorkspace?.enter();
@@ -66,13 +67,18 @@
       }
       if (name === 'campaigns') campaignUI?.refresh();
       if (name === 'team') teamUI?.refresh(data.user);
+      if (enteringTeam) $('.sdr-main').scrollTop = 0;
       if (name === 'facilities') facilitiesUI?.show();
       if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
       if (standalone && ['pipeline', 'contacts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
-      if (teamUI && params.get('view') === 'team') { tab('team'); return true; }
+      if (teamUI && params.get('view') === 'team') {
+        tab('team');
+        teamUI.view(params.get('section') || 'roster');
+        return true;
+      }
       if (standalone && territoryUI && params.get('view') === 'territories') {
         tab('territories');
         if (params.get('state')) consoleUI?.chooseState(params.get('state'), undefined, undefined, { place: params.get('place'), streets: params.get('layer') === 'streets' });

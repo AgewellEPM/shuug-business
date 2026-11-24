@@ -14,12 +14,138 @@
     return states?.length ? states.join(', ') : 'Nationwide';
   }
 
+  function mountProfile(api) {
+    const form = $('sales-team-profile');
+    if (!form) return null;
+    const bio = form.elements.bio, headshot = form.elements.headshot;
+    const preview = form.querySelector('[data-team-profile-preview]');
+    const remove = form.querySelector('[data-team-profile-remove]');
+    const reload = form.querySelector('[data-team-profile-reload]');
+    const submit = form.querySelector('button[type="submit"]');
+    const status = $('sales-team-profile-status');
+    let identity, saved, photo = '', busy = false, sequence = 0;
+
+    function message(text, error = false) {
+      status.textContent = text;
+      status.dataset.error = String(error);
+    }
+
+    function controls() {
+      bio.disabled = headshot.disabled = remove.disabled = submit.disabled = !saved || busy;
+      reload.disabled = busy;
+    }
+
+    function showPhoto(next) {
+      photo = next;
+      preview.hidden = remove.hidden = !photo;
+      if (photo) preview.src = photo;
+      else preview.removeAttribute('src');
+    }
+
+    function show(profile) {
+      saved = profile;
+      bio.value = profile.bio;
+      headshot.value = '';
+      showPhoto(profile.photo);
+    }
+
+    async function work(action, success, options = {}) {
+      const request = ++sequence;
+      busy = true;
+      reload.hidden = true;
+      message(options.pending || '');
+      controls();
+      try {
+        const result = await action();
+        if (request === sequence) success(result);
+      } catch (error) {
+        if (request === sequence) {
+          message(error.message, true);
+          reload.hidden = !(options.loading || error.status === 409);
+        }
+      } finally {
+        if (request === sequence) {
+          busy = false;
+          controls();
+        }
+      }
+    }
+
+    function load() {
+      return work(() => api('sales-team-profile'), ({ profile }) => {
+        show(profile);
+        message('');
+      }, { loading: true, pending: 'Loading your profile…' });
+    }
+
+    headshot.addEventListener('change', () => {
+      const file = headshot.files?.[0];
+      if (!file || busy) return;
+      headshot.value = '';
+      void work(() => window.SdrHeadshots.encode(file), showPhoto);
+    });
+    remove.addEventListener('click', () => {
+      showPhoto('');
+      message('');
+    });
+    reload.addEventListener('click', load);
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      if (!saved || busy) return;
+      void work(() => api('set-sales-team-profile', { bio: bio.value, photo, revision: saved.revision }),
+        ({ profile }) => { show(profile); message('Profile saved.'); }, { pending: 'Saving your profile…' });
+    });
+    return {
+      refresh(user) {
+        if (user.id === identity) return;
+        identity = user.id;
+        saved = undefined;
+        form.reset();
+        showPhoto('');
+        void load();
+      },
+    };
+  }
+
   function mount({ api, refreshWorkspace }) {
     const form = $('sales-create-agent'), roster = $('sales-team'), status = $('sales-team-status');
     if (!form || !roster || !status) return null;
     const manager = form.elements.parentId, submit = form.querySelector('button[type="submit"]');
+    const profile = mountProfile(api);
     const reload = $('sales-reload-team'), secret = $('sales-agent-code'), code = $('sales-agent-code-value');
     let owner = false, ready = false, busy = false, sequence = 0;
+
+    const tablist = roster.closest('.sdr-team-surface').querySelector('[role="tablist"]');
+    const tabs = [...tablist.querySelectorAll('[data-team-view]')];
+    let current = 'roster';
+
+    function view(key, focus = false) {
+      if (key === 'settings' && !owner) key = 'roster';
+      const next = tabs.find(control => control.dataset.teamView === key);
+      if (!next) return;
+      current = key;
+      for (const control of tabs) {
+        const active = control === next;
+        control.setAttribute('aria-selected', String(active));
+        control.tabIndex = active ? 0 : -1;
+        $(control.getAttribute('aria-controls')).hidden = !active;
+      }
+      if (focus) next.focus();
+    }
+    tablist.addEventListener('click', event => {
+      const control = event.target.closest('[data-team-view]');
+      if (control && !control.hidden) view(control.dataset.teamView);
+    });
+    tablist.addEventListener('keydown', event => {
+      const available = tabs.filter(control => !control.hidden);
+      const index = available.indexOf(event.target);
+      if (index < 0) return;
+      const last = available.length - 1;
+      const target = { ArrowLeft: index ? index - 1 : last, ArrowRight: index === last ? 0 : index + 1, Home: 0, End: last }[event.key];
+      if (target === undefined) return;
+      event.preventDefault();
+      view(available[target].dataset.teamView, true);
+    });
 
     function message(text, error = false) {
       status.textContent = text;
@@ -66,16 +192,32 @@
       const row = element('div', '', 'sdr-team-member');
       const content = element('div', '', 'sdr-team-member-content');
       const title = element('div', '', 'sdr-team-member-title');
+      const coverage = element('div', '', 'sdr-team-member-coverage');
       const state = element('span', member.active ? 'Active' : 'Access ended', 'sdr-team-member-state');
       state.dataset.active = String(member.active);
-      title.append(element('strong', member.name), state);
+      title.append(element('strong', member.name));
       if (member.id === rootId) title.append(element('span', 'You', 'sdr-team-member-self'));
       content.append(title);
       if (member.email) content.append(element('p', member.email));
-      content.append(element('p', territoryLabel(member)));
+      coverage.append(element('p', territoryLabel(member)));
+      if (member.marketSegments?.length) {
+        const segments = element('div', '', 'sdr-team-member-markets');
+        segments.setAttribute('role', 'group');
+        segments.setAttribute('aria-label', 'Assigned facility segments');
+        for (const { id, label, count } of member.marketSegments) {
+          const segment = element('span', label + ' · ' + count.toLocaleString());
+          segment.dataset.teamMarket = id;
+          segments.append(segment);
+        }
+        coverage.append(segments);
+      } else if (member.active && Array.isArray(member.marketSegments)) {
+        coverage.append(element('p', 'No classified facilities assigned'));
+      }
       if (owner && member.id !== rootId) content.append(element('p', `Agent ID ${member.id}`));
-      row.append(content);
-      if (member.canRevoke) row.append(revokeButton(member));
+      const access = element('div', '', 'sdr-team-member-access');
+      access.append(state);
+      if (member.canRevoke) access.append(revokeButton(member));
+      row.append(content, coverage, access);
       item.append(row);
       return item;
     }
@@ -108,6 +250,8 @@
 
     async function refresh(user) {
       owner = user.role === 'owner';
+      view(current);
+      if (user.id != null) profile?.refresh(user);
       $('sales-team-scope').textContent = owner ? 'See who reports to whom across the workspace.' : 'See your direct reports and the teams they build.';
       const request = ++sequence;
       roster.setAttribute('aria-busy', 'true');
@@ -169,7 +313,7 @@
       message('');
       void refresh({ role: owner ? 'owner' : 'agent' });
     });
-    return { refresh };
+    return { refresh, view };
   }
   window.SdrSalesTeam = { mount };
 })();

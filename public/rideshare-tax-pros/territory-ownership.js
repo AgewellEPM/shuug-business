@@ -50,8 +50,11 @@
       const county = requested.get(update.id);
       if (!county) continue;
       const prior = county.lead?.revision || 0, next = update.lead?.revision || 0;
-      // A response started before a local save must not replace the saved lead.
-      if (next > prior || (next === prior && update.canEdit !== county.canEdit)) {
+      const photoRevision = county.lead?.profileRevision || 0, nextPhotoRevision = update.lead?.profileRevision || 0;
+      const coverageChanged = JSON.stringify(update.marketCoverage) !== JSON.stringify(county.marketCoverage);
+      // A response started before a local save must not replace the saved lead or photo.
+      if (next > prior || (next === prior && nextPhotoRevision >= photoRevision &&
+        (nextPhotoRevision > photoRevision || coverageChanged || update.canEdit !== county.canEdit))) {
         Object.assign(county, update);
         changed = true;
       }
@@ -83,7 +86,7 @@
       for (const facility of facilities) {
         const row = node('li', null, 'territory-lookup-row');
         const details = node('span');
-        const location = [facility.address, [facility.city, facility.state].filter(Boolean).join(', ')].filter(Boolean);
+        const location = [facility.market?.label, facility.address, [facility.city, facility.state].filter(Boolean).join(', ')].filter(Boolean);
         details.append(node('strong', facility.name), node('small', location.join(' · ')));
         const assignment = node('span', facility.status === 'assigned' ?
           'Assigned to ' + facility.assignee : 'Unassigned facility', 'territory-lookup-assignment');

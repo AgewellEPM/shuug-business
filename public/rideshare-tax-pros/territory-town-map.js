@@ -78,6 +78,7 @@
         const text = document.createElement('span');
         const rep = county.lead?.name ? 'Sales rep · ' + county.lead.name : 'No sales rep currently assigned';
         text.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
+        if (county.lead?.name) row.append(window.SdrCountyLeads.avatar(county.lead));
         row.append(text);
         if (county.canEdit) {
           const button = document.createElement('button');
@@ -89,6 +90,17 @@
           button.setAttribute('aria-label', button.textContent + ' for ' + county.label);
           button.onclick = () => editCounty(county);
           row.append(button);
+        }
+        if (county.marketCoverage?.length) {
+          const coverage = document.createElement('ul');
+          coverage.className = 'territory-market-coverage';
+          coverage.setAttribute('aria-label', 'Assigned facilities by market');
+          for (const market of county.marketCoverage) {
+            const segment = document.createElement('li');
+            segment.textContent = market.label + ' · ' + market.rep + ' (' + market.count + ')';
+            coverage.append(segment);
+          }
+          row.append(coverage);
         }
         host.append(row);
       }

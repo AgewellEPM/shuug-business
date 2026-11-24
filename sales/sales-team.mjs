@@ -1,8 +1,9 @@
 import { HttpError, STATES, digest, email, metadata, secret, text } from './model.mjs';
 import { agentTerritory } from './territories.mjs';
+import { salesRepProfileUpdate } from './sales-rep-profile.mjs';
 
 const OWNER = 'owner';
-const actions = new Set(['sales-team-read', 'sales-team-invite', 'sales-team-revoke']);
+const actions = new Set(['sales-team-read', 'sales-team-invite', 'sales-team-revoke', 'sales-team-profile', 'set-sales-team-profile']);
 const idOf = row => String(row.id);
 const parentOf = row => metadata(row).parentId || OWNER;
 const isAgent = row => row.status === 'active' || (row.status === 'revoked' && Boolean(metadata(row).codeHash));
@@ -132,11 +133,17 @@ export function salesTeamTools(db, audit, owner) {
 
   function dispatch(user, action, body) {
     if (action === 'sales-team-read') return read(user);
-    return db.writeAgentTeam(() => {
+    function work() {
       const records = list();
       if (user.role !== 'owner' && !account(records.get(user.id), records).active) throw new HttpError(401, 'Your sales access was revoked.');
+      if (action === 'sales-team-profile') return { profile: db.salesRepProfile(user.id) };
+      if (action === 'set-sales-team-profile') {
+        const changes = salesRepProfileUpdate(body);
+        return { profile: db.setSalesRepProfile(user.id, body.revision, changes) };
+      }
       return action === 'sales-team-invite' ? invite(user, body, records) : revoke(user, body, records);
-    });
+    }
+    return action === 'sales-team-profile' ? work() : db.writeAgentTeam(work);
   }
 
   return { actions, dispatch, roster, rosterUser };

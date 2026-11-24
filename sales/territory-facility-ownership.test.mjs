@@ -60,11 +60,12 @@ test('facility lookup shows other reps in scope while full CRM access stays scop
   await agent('territory-ownership', input, 401);
   await agent('login', { email: agentEmail, code: agentCode });
   const found = await agent('territory-ownership', input);
+  const market = { id: 'senior-care', label: 'Senior care' };
   assert.deepEqual(found, { matches: [
-    { name: 'Cedar Nursing Home', city: 'Hartford', address: '10 Main St', state: 'CT', assignee: 'Another Rep', status: 'assigned' },
-    { name: 'Cedar Nursing Home', city: 'Hartford', address: '42 Main St', state: 'CT', assignee: '', status: 'unassigned' },
-    { name: 'Cedar Nursing Home', city: 'Hartford', address: '53 Main St', state: 'CT', assignee: 'Workspace owner', status: 'assigned' },
-    { name: 'Cedar Nursing Home', city: 'Hartford', address: '64 Main St', state: 'CT', assignee: 'Unknown rep', status: 'assigned' },
+    { name: 'Cedar Nursing Home', city: 'Hartford', address: '10 Main St', state: 'CT', market, assignee: 'Another Rep', status: 'assigned' },
+    { name: 'Cedar Nursing Home', city: 'Hartford', address: '42 Main St', state: 'CT', market, assignee: '', status: 'unassigned' },
+    { name: 'Cedar Nursing Home', city: 'Hartford', address: '53 Main St', state: 'CT', market, assignee: 'Workspace owner', status: 'assigned' },
+    { name: 'Cedar Nursing Home', city: 'Hartford', address: '64 Main St', state: 'CT', market, assignee: 'Unknown rep', status: 'assigned' },
   ], hasMore: false, counties: [] });
   await agent('office', { id: assigned.id }, 404);
   await agent('territory-ownership', { state: 'MA', query: 'Cedar' }, 403);
@@ -99,7 +100,7 @@ test('combined ownership lookup returns saved county leads and validates the cou
   const owner = f.session();
   await owner('login', { code: ownerCode });
   const lead = f.db.saveCountyLead('09110', 0, { name: 'County Lead', photo: '' });
-  const county = { id: '09110', lead, canEdit: true };
+  const county = { id: '09110', lead, canEdit: true, marketCoverage: [] };
   assert.deepEqual(await owner('territory-ownership', { state: 'CT', countyIds: ['09110'] }),
     { matches: [], hasMore: false, counties: [county] });
   await owner('territory-ownership', { state: 'CT', countyIds: '09110' }, 400);

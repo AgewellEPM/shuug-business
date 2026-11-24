@@ -23,14 +23,33 @@
   }
   window.GigTaxDirectory = {
     async support({ api, status }) {
+      const standalone = document.body.hasAttribute('data-standalone-sdr');
+      const host = document.querySelector(standalone ? '[data-team-app-help]' : '[data-tab-panel="team"]');
+      if (!host) return;
       const result = await api('directory-settings');
       let panel = document.querySelector('#directory-support');
-      if (!panel) { panel = document.createElement('section'); panel.id = 'directory-support'; panel.className = 'sales-panel'; document.querySelector('[data-tab-panel="team"]').append(panel); }
-      panel.innerHTML = '<h2>App help & appointments</h2><p>These public contact details appear in the app. Leave a field blank until it is ready. Office-specific details are managed on each office record.</p>' +
-        `<form id="directory-support-form" class="sales-form">${contactFields(result.support || {})}<button type="submit" class="button primary">Save app help details</button></form>`;
+      if (!panel) {
+        panel = document.createElement('section');
+        panel.id = 'directory-support';
+        if (!standalone) panel.className = 'sales-panel';
+      }
+      if (panel.parentElement !== host) host.append(panel);
+      const heading = standalone ? '' : '<h2>App help & appointments</h2>';
+      const description = standalone
+        ? 'Set the help phone number, hours, and appointment link displayed in the public app. Manage office-specific contacts on each office record.'
+        : 'These public contact details appear in the app. Leave a field blank until it is ready. Office-specific details are managed on each office record.';
+      const label = standalone ? 'Save public contact details' : 'Save app help details';
+      panel.innerHTML = `${heading}<p>${description}</p>` +
+        `<form id="directory-support-form" class="sales-form">${contactFields(result.support || {})}<button type="submit" class="button primary">${label}</button>${standalone ? '<p data-directory-support-status role="status"></p>' : ''}</form>`;
+      const localStatus = panel.querySelector('[data-directory-support-status]');
+      const inform = localStatus ? (message, error = false) => {
+        localStatus.textContent = message;
+        localStatus.dataset.error = String(error);
+      } : status;
       submit(panel.querySelector('form'), async values => {
-        await api('save-directory-support', values); status('Public help details saved. The app will receive them on its next refresh.');
-      }, status);
+        await api('save-directory-support', values);
+        inform(standalone ? 'Public app contact details saved.' : 'Public help details saved. The app will receive them on its next refresh.');
+      }, inform);
     },
     office({ office, info, api, status, refresh }) {
       const saved = info.publicListing || {}, value = { name: office.town, address: info.address, city: office.locality, state: office.state, postalCode: info.postalCode, phone: office.contact_phone, ...saved };

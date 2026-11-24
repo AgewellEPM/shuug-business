@@ -224,46 +224,77 @@ const campaignsPanel = `<section data-tab-panel="campaigns" data-owner-only hidd
 
 function standaloneTeam(legacyTeam) {
   const terms = section(legacyTeam, '<section id="sales-enrollment-terms"')
-    .replace('<section id="sales-enrollment-terms">', '<section id="sales-enrollment-terms" class="sales-panel" data-owner-only hidden>')
-    .replace('<h3>Enrollment terms</h3>', '<h2>Enrollment terms</h2>');
-  return `<section data-tab-panel="team" aria-labelledby="sales-team-title" hidden>
-    <div class="sdr-team-layout">
-      <section class="sales-panel sdr-team-roster">
-        <div class="sdr-card-head"><div><h2 id="sales-team-title">Reporting structure</h2><p id="sales-team-scope"></p></div><a href="#view=territories" class="button secondary" id="sales-team-territories">Assign counties</a><button type="button" id="sales-reload-team" class="button secondary">Refresh team</button></div>
+    .replace('<section id="sales-enrollment-terms">', '<section id="sales-enrollment-terms" class="sdr-team-setting-content" data-owner-only hidden>')
+    .replace('<h3>Enrollment terms</h3>', '');
+  const tabs = [['roster', 'Team roster'], ['profile', 'My profile'], ['invite', 'Invite member'], ['settings', 'Workspace settings']];
+  return `<section class="sdr-team-workspace" data-tab-panel="team" aria-labelledby="sales-team-title" hidden>
+    <header class="sdr-team-hero">
+      <div class="sdr-team-hero-title">${icon('team')}<div><h2 id="sales-team-title">Sales team</h2><p>Reporting structure, rep profiles, and territory assignments</p></div></div>
+      <a href="#view=territories" class="button" id="sales-team-territories">${icon('territories')} Assign counties</a>
+    </header>
+    <div class="sdr-team-surface">
+      <div class="sdr-team-tabs" role="tablist" aria-label="Sales team workspace">
+        ${tabs.map(([key, label], index) => `<button type="button" role="tab" id="sales-team-tab-${key}" data-team-view="${key}" aria-controls="sales-team-pane-${key}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}"${key === 'settings' ? ' data-owner-only hidden' : ''}>${label}</button>`).join('')}
+      </div>
+      <p id="sales-team-status" role="status" aria-live="polite"></p>
+      <section class="sdr-team-pane sdr-team-roster" id="sales-team-pane-roster" role="tabpanel" aria-labelledby="sales-team-tab-roster" tabindex="0">
+        <div class="sdr-team-pane-head"><div><h3>Reporting structure</h3><p id="sales-team-scope"></p></div><button type="button" id="sales-reload-team" class="button secondary">Refresh team</button></div>
         <div id="sales-team"></div>
       </section>
-      <div class="sdr-team-controls">
-        <section class="sales-panel" aria-labelledby="sales-team-invite-title">
-          <h2 id="sales-team-invite-title">Invite a team member</h2>
-          <p>Share the sign-in page and private access code with the person you invite.</p>
-          <form id="sales-create-agent" class="sales-form">
-            <label>Name<input name="name" autocomplete="off" maxlength="140" required></label>
-            <label>Business email<input name="email" type="email" autocomplete="off" maxlength="200" required></label>
-            <label data-owner-only hidden>Reports to<select name="parentId"></select></label>
-            <div><label>Territory states<input name="states" aria-describedby="sales-team-territory-hint" placeholder="CT, MA, NY"></label><p class="field-hint" id="sales-team-territory-hint">Leave blank to inherit the manager’s states and towns.</p></div>
-            <button type="submit" class="button primary" disabled>Create access code</button>
-          </form>
-          <p id="sales-team-status" role="status" aria-live="polite"></p>
-          <div id="sales-agent-code" hidden>
-            <p>Share this code privately while it’s displayed here.</p><code class="sales-secret" id="sales-agent-code-value"></code>
-            <div class="sales-actions">
-              <button type="button" class="button secondary" id="sales-copy-team-code">Copy code</button>
-              <button type="button" class="button secondary" id="sales-copy-team-link">Copy sign-in link</button>
-              <button type="button" class="button secondary" id="sales-dismiss-team-code">Dismiss</button>
-            </div>
+      <section class="sdr-team-pane sdr-team-profile" id="sales-team-pane-profile" role="tabpanel" aria-labelledby="sales-team-tab-profile" tabindex="0" hidden>
+        <div class="sdr-team-pane-head"><div><h3>My bio and headshot</h3><p>Your headshot appears in your county assignments.</p></div></div>
+        <form id="sales-team-profile" class="sales-form">
+          <label>Bio<textarea name="bio" rows="3" maxlength="800" disabled></textarea></label>
+          <div class="sdr-team-profile-photo">
+            <img data-team-profile-preview alt="Headshot preview" width="64" height="64" hidden>
+            <label>Headshot<input name="headshot" type="file" accept="image/*" disabled></label>
+            <button type="button" class="button secondary" data-team-profile-remove hidden>Remove headshot</button>
           </div>
-          <div data-owner-only hidden data-team-identity-portal>
-            <p>For shared sign-in, link a staff account to its SDR agent ID.</p>
-            <button type="button" class="button secondary" id="sales-copy-login-link">Copy shared sign-in link</button>
+          <div class="sales-actions">
+            <button type="submit" class="button primary" disabled>Save profile</button>
+            <button type="button" class="button secondary" data-team-profile-reload hidden>Reload profile</button>
           </div>
-        </section>
-        <details class="sales-panel" data-owner-only hidden>
+          <p id="sales-team-profile-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+      <section class="sdr-team-pane" id="sales-team-pane-invite" role="tabpanel" aria-labelledby="sales-team-tab-invite" tabindex="0" hidden>
+        <div class="sdr-team-pane-head"><div><h3>Invite a team member</h3><p>Share the sign-in page and access code privately.</p></div></div>
+        <form id="sales-create-agent" class="sales-form">
+          <label>Name<input name="name" autocomplete="off" maxlength="140" required></label>
+          <label>Business email<input name="email" type="email" autocomplete="off" maxlength="200" required></label>
+          <label data-owner-only hidden>Reports to<select name="parentId"></select></label>
+          <div><label>Territory states<input name="states" aria-describedby="sales-team-territory-hint" placeholder="CT, MA, NY"></label><p class="field-hint" id="sales-team-territory-hint">Leave blank to inherit the manager’s states and towns.</p></div>
+          <button type="submit" class="button primary" disabled>Create access code</button>
+        </form>
+        <div id="sales-agent-code" hidden>
+          <p>Share this code privately while it’s displayed here.</p><code class="sales-secret" id="sales-agent-code-value"></code>
+          <div class="sales-actions">
+            <button type="button" class="button secondary" id="sales-copy-team-code">Copy code</button>
+            <button type="button" class="button secondary" id="sales-copy-team-link">Copy sign-in link</button>
+            <button type="button" class="button secondary" id="sales-dismiss-team-code">Dismiss</button>
+          </div>
+        </div>
+        <div data-owner-only hidden data-team-identity-portal>
+          <p>For shared sign-in, link a staff account to its SDR agent ID.</p>
+          <button type="button" class="button secondary" id="sales-copy-login-link">Copy shared sign-in link</button>
+        </div>
+      </section>
+      <section class="sdr-team-pane sdr-team-settings" id="sales-team-pane-settings" role="tabpanel" aria-labelledby="sales-team-tab-settings" tabindex="0" hidden>
+        <div class="sdr-team-pane-head"><h3>Workspace settings</h3></div>
+        <details class="sdr-team-setting">
           <summary>Town access</summary>
           <label>State <select id="sales-town-access-state" aria-controls="sales-territory-cities"></select></label>
           <div id="sales-territory-cities" hidden></div>
         </details>
-        ${terms}
-      </div>
+        <details class="sdr-team-setting">
+          <summary>Enrollment terms</summary>
+          ${terms}
+        </details>
+        <details class="sdr-team-setting">
+          <summary>Public app contact details</summary>
+          <div class="sdr-team-setting-content" data-team-app-help></div>
+        </details>
+      </section>
     </div>
   </section>`;
 }

@@ -2,6 +2,8 @@ import { readFile } from 'node:fs/promises';
 import { gunzip } from 'node:zlib';
 import { promisify } from 'node:util';
 import { HttpError, state, text } from './model.mjs';
+import { validateHeadshot } from './sales-rep-profile.mjs';
+import { countyMarketCoverage } from './sales-market-segments.mjs';
 import { localityAllowed, localityKey, stateAllowed } from './territory-access.mjs';
 
 const decompress = promisify(gunzip);
@@ -35,18 +37,35 @@ function assignmentScope(user, map, readTeam) {
   return {people, owner, covers, canEdit};
 }
 
+function withProfilePhoto(db, lead) {
+  if (!lead?.memberId) return lead;
+  const profile = db?.salesRepProfile?.(lead.memberId);
+  if (!profile?.revision) return lead;
+  return { ...lead, photo: profile.photo, profileRevision: profile.revision };
+}
+
+async function describeCounties(user, db, map, counties, scope) {
+  const [offices, agents] = db?.list ? await Promise.all([db.list('offices'), db.list('agents')]) : [[], []];
+  const coverage = countyMarketCoverage(user, map, counties, offices, agents);
+  return counties.map(county => {
+    const lead = db?.countyLead(county.id) || null;
+    return { id: county.id, lead: withProfilePhoto(db, lead),
+      canEdit: scope.canEdit(county.id, lead), marketCoverage: coverage.get(county.id) };
+  });
+}
+
 export async function territoryMap(user, input, db, readTeam) {
   const region = state(input.state);
   if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');
   const map = await geometry(region), scope = assignmentScope(user, map, readTeam);
+  const descriptions = await describeCounties(user, db, map, map.counties, scope);
+  map.counties.forEach((county, index) => Object.assign(county, descriptions[index]));
   map.features = map.features.filter(feature => localityAllowed(user, region, feature.name));
   map.landmarks = map.landmarks.filter(place => localityAllowed(user, region, place.name));
-  map.leadMembers = scope.people;
+  map.leadMembers = scope.people.map(person => ({
+    ...person, photo: db?.salesRepProfile?.(person.id)?.photo || '',
+  }));
   map.customLeads = scope.owner;
-  for (const county of map.counties) {
-    county.lead = db?.countyLead(county.id) || null;
-    county.canEdit = scope.canEdit(county.id, county.lead);
-  }
   return map;
 }
 
@@ -60,12 +79,8 @@ export async function countyOwnership(user, input, db, readTeam) {
   if (!ids.length) return { counties: [] };
   const map = await geometry(region), scope = assignmentScope(user, map, readTeam);
   const requested = new Set(ids);
-  return {
-    counties: map.counties.filter(county => requested.has(county.id)).map(county => {
-      const lead = db.countyLead(county.id) || null;
-      return { id: county.id, lead, canEdit: scope.canEdit(county.id, lead) };
-    })
-  };
+  const counties = map.counties.filter(county => requested.has(county.id));
+  return { counties: await describeCounties(user, db, map, counties, scope) };
 }
 
 export async function setCountyLead(user, input, db, readTeam) {
@@ -83,16 +98,9 @@ export async function setCountyLead(user, input, db, readTeam) {
       throw new HttpError(403, 'Choose an active person on your team for this county.');
     }
     const name = person ? person.name : text(input.name, 100, !clearing);
-    const photo = text(input.photo, 13000);
-    if (photo) {
-      if (!/^data:image\/jpeg;base64,[a-zA-Z0-9+/]+={0,2}$/.test(photo)) throw new HttpError(400, 'Choose a headshot image.');
-      const bytes = Buffer.from(photo.slice(23), 'base64');
-      if (bytes.length < 4 || bytes.readUInt16BE(0) !== 0xffd8 || bytes.readUInt16BE(bytes.length - 2) !== 0xffd9) {
-        throw new HttpError(400, 'Choose a valid JPEG headshot.');
-      }
-    }
+    const photo = person || clearing ? '' : validateHeadshot(input.photo);
     const changes = clearing ? {name:'', photo:''} : {name, photo, ...(person ? {memberId:person.id} : {})};
     const lead = db.saveCountyLead(input.county, input.revision, changes);
-    return {county: input.county, lead};
+    return {county: input.county, lead: withProfilePhoto(db, lead)};
   });
 }
