@@ -1,5 +1,28 @@
 [data-standalone-sdr][data-sdr-view="team"] #sales-view-title { display: none; }
 
+.sdr-team-sidebar-group { display: flex; flex: none; flex-direction: column; min-width: 0; }
+.sdr-team-sidebar-child { position: relative; margin: 3px 2px 2px 18px; padding-inline-start: 13px; }
+.sdr-team-sidebar-child::before {
+  content: ""; position: absolute; inset-inline-start: 0; top: -3px; height: calc(50% + 3px); width: 9px;
+  border-inline-start: 1px solid #577497; border-bottom: 1px solid #577497; border-end-start-radius: 5px;
+}
+.sdr-team-sidebar-child::after {
+  content: ""; position: absolute; inset-inline-end: 12px; top: calc(50% - 4px); width: 7px; height: 7px;
+  border: solid #b5d6f5; border-width: 0 1.5px 1.5px 0; transform: rotate(45deg); pointer-events: none;
+}
+#sales-team-sidebar-section {
+  appearance: none; display: block; width: 100%; min-width: 0; min-height: 40px; padding: 6px 28px 6px 10px;
+  color-scheme: dark; color: #e5f2ff; background: #162f4e; border: 1px solid #385777; border-radius: 8px;
+  font: inherit; font-size: .875rem; font-weight: 600; text-overflow: ellipsis; cursor: pointer;
+}
+#sales-team-sidebar-section:hover { border-color: #76a7cc; }
+#sales-team-sidebar-section:focus-visible { outline: 2px solid #74c6ff; outline-offset: 2px; }
+@media (max-width: 760px) {
+  .sales-console-page .sdr-nav:has(.sdr-team-sidebar-child:not([hidden])) { align-items: flex-start; }
+  .sdr-team-sidebar-child { margin-inline-start: 8px; }
+  #sales-team-sidebar-section { min-height: 44px; }
+}
+
 .sdr-team-workspace { display: grid; gap: 14px; min-width: 0; }
 .sdr-team-group { min-width: 0; }
 .sdr-team-tools {
