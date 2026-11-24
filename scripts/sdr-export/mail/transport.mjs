@@ -166,6 +166,7 @@ export const mailTransport = {
         from: { name: account.name, address: account.address }, to: draft.to, subject: draft.subject,
         text: draft.body, messageId: draft.messageId, date: new Date(draft.date),
         inReplyTo: draft.reply?.messageId || undefined, references: draft.reply?.references,
+        replyTo: draft.replyTo, icalEvent: draft.icalEvent,
       }));
       result = await smtp.sendMail({ envelope: { from: account.address, to: [draft.to] }, raw });
     } catch (error) {

@@ -6,6 +6,7 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { sqliteStore } from './sqlite.mjs';
 import { bookings } from './bookings.mjs';
+import { repEmailWorkspace } from './mail/workspace.mjs';
 import { defaultPolicy, minute, monthSlots, timeZone } from './booking-times.mjs';
 
 const owner = { id: 'owner', role: 'owner', name: 'Workspace owner' }, origin = 'https://booking.example';
@@ -156,6 +157,46 @@ test('reps can attach their own API and only owners can share an endpoint across
   await app.staff(rep, 'booking-webhook-remove', { name: 'My CRM' });
   app.publicAction('cancel', { token: tokenOf(result), revision: 1 }); await app.tick();
   assert.equal(sent.length, 3);
+});
+test('a verified rep mailbox sends booking invitations only for the account connection the rep enabled', async t => {
+  const { db } = project(t), key = randomBytes(32).toString('hex'), sent = [];
+  const repMail = repEmailWorkspace(db, key, {}, {
+    async verify() {},
+    async send(account, provider, message) { sent.push({ from: account.address, message }); return { saveCopy: async () => true }; },
+  });
+  const repRow = db.create('agents', { status: 'active', contact_name: 'Rep', contact_email: 'rep@example.invalid', notes: '{}' });
+  const rep = { id: String(repRow.id), name: 'Rep', role: 'agent', email: repRow.contact_email };
+  const app = bookings({}, db, origin, key, { now: () => fixed, repMail });
+  const dashboard = () => app.staff(rep, 'booking-dashboard', {});
+  await assert.rejects(app.staff(rep, 'booking-mailbox', { enabled: true }), fails(409));
+  const account = await repMail.dispatch(rep, 'rep-email-connect', {
+    name: 'Rep', address: rep.email, provider: 'gmail', password: 'fixture-mailbox-credential', revision: '' });
+  assert.equal((await dashboard()).connections.email, 'unconfigured');
+  await assert.rejects(app.staff(owner, 'booking-mailbox', { host: rep.id, enabled: true }), fails(403));
+  await app.staff(rep, 'booking-mailbox', { enabled: true });
+  assert.equal((await dashboard()).connections.email, 'smtp');
+  await app.staff(rep, 'booking-settings', { ...(await dashboard()).policy, published: true });
+  const days = await app.publicAction('slots', { host: rep.id, type: 'demo', zone: 'UTC', month: '2027-03' });
+  const slots = Object.values(days.days).flat();
+  const event = await app.publicAction('book', { ...form(slots[0]), host: rep.id });
+  const token = tokenOf(event); await app.tick();
+  assert.equal(app.publicAction('read', { token }).email, 'accepted');
+  assert.deepEqual(sent.map(row => row.from), [rep.email, rep.email]);
+  assert.equal(sent[0].message.to, event.booking.client.email);
+  assert.match(sent[0].message.icalEvent.content, /METHOD:REQUEST/);
+  assert.match(sent[0].message.body, /#manage=/);
+  assert.doesNotMatch(sent[1].message.body, /#manage=/);
+  await app.publicAction('reschedule', { token, revision: 1, start: slots[4], zone: 'UTC' });
+  await repMail.dispatch(rep, 'rep-email-disconnect', { revision: account.revision });
+  await repMail.dispatch(rep, 'rep-email-connect', { name: 'Rep', address: rep.email, provider: 'gmail', password: 'replacement-fixture', revision: '' });
+  await app.tick(); assert.equal(sent.length, 2);
+  assert.equal(app.publicAction('read', { token }).email, 'setup-changed');
+  assert.equal((await dashboard()).connections.email, 'unconfigured');
+  await app.staff(rep, 'booking-mailbox', { enabled: true });
+  app.publicAction('cancel', { revision: 2, token }); await app.tick();
+  assert.equal(sent.length, 4);
+  assert.equal(sent[2].message.icalEvent.method, 'CANCEL');
+  assert.equal(new Set(sent.map(row => row.message.messageId)).size, 4);
 });
 for (const provider of ['google', 'microsoft']) test(provider + ' connection rejects stale authorization, blocks busy time, and creates, updates and deletes one event', async t => {
   let start, fail = false, remote = null; const writes = [];
