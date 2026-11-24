@@ -1,6 +1,5 @@
 [data-sdr-view="prospects"] #sales-view-title { display: none; }
 [data-sdr-view="prospects"] .sdr-topbar > div:first-child { display: none; }
-[data-sdr-view="prospects"] .sdr-workspace-tracker { display: none; }
 
 .sdr-prospects {
   --prospect-border: #cdd9eb;

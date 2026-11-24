@@ -26,7 +26,7 @@
     return button;
   }
   function navigationIcon(view) {
-    return document.querySelector('.sdr-nav [data-tab="' + view + '"] svg')?.cloneNode(true) || node('span');
+    return document.querySelector('[data-tab="' + view + '"] svg')?.cloneNode(true) || node('span');
   }
 
   function mount({ api, onNavigate, onOpenOffice, onBrowseFacilities, facilityType, refresh, status }) {
@@ -74,6 +74,15 @@
         if (state) onBrowseFacilities({ state, category: button.dataset.browseFacility });
       });
     }
+    $('#sdr-header-search')?.addEventListener('submit', event => {
+      event.preventDefault();
+      const field = $('#sales-filter');
+      field.value = event.currentTarget.querySelector('input').value.trim();
+      $('#sales-attention-filter').value = '';
+      pipeline();
+      field.focus();
+    });
+
     function renderResearch(research) {
       resultList.replaceChildren();
       if (!research) return;

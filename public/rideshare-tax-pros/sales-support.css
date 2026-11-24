@@ -1,9 +1,5 @@
-[data-sdr-view="support"] .sdr-topbar > div:first-child,
-[data-sdr-view="support"] .sdr-workspace-tracker { display: none; }
-
 .support-sidebar-help { display: none; }
 @media (min-width: 761px) {
-  .sales-console-page[data-standalone-sdr][data-sdr-view="support"] { --sidebar-w: 212px; }
   [data-standalone-sdr][data-sdr-view="support"] .sdr-main { padding-inline: 15px; }
   [data-standalone-sdr][data-sdr-view="support"] .sdr-topbar {
     min-height: 61px;

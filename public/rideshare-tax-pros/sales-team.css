@@ -1,6 +1,29 @@
 [data-standalone-sdr][data-sdr-view="team"] #sales-view-title { display: none; }
 
 .sdr-team-workspace { display: grid; gap: 14px; min-width: 0; }
+.sdr-team-group { min-width: 0; }
+.sdr-team-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: 10px 22px;
+  padding: 16px clamp(14px, 2vw, 24px);
+  border: 1px solid var(--glass-border-muted);
+  border-radius: 18px;
+  background: var(--glass-fill);
+}
+.sales-console-page .sdr-team-tools h3 { margin: 0 0 4px; font-size: 14px; color: var(--text-secondary); }
+.sdr-team-tools button, .sdr-team-return {
+  display: flex; align-items: center; gap: 9px; min-height: 42px;
+  padding: 7px 10px; border: 1px solid transparent; border-radius: 9px;
+  color: var(--text-primary); background: transparent; font: inherit; font-weight: 600; text-align: left; cursor: pointer;
+}
+.sdr-team-tools button { width: 100%; }
+.sdr-team-tools button .sdr-icon, .sdr-team-return .sdr-icon { flex: none; color: var(--accent); }
+.sdr-team-tools button:hover, .sdr-team-return:hover { background: var(--accent-soft); color: var(--accent); }
+.sdr-team-tools button:focus-visible, .sdr-team-return:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sdr-team-return { margin: 0 0 8px; color: var(--accent); }
+.sdr-team-return .sdr-icon { transform: rotate(180deg); }
+.sdr-team-tools .chat-nav-count { margin-inline-start: auto; background: var(--accent-soft); color: var(--accent); }
 .sdr-team-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(185px, 43%);
