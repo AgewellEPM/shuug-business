@@ -92,6 +92,10 @@
       ongoing.delete(root);
     }
     ongoing.set(root, cleanup);
+    root.addEventListener('care:pause', () => {
+      stopListening();
+      if (dialog) closeDialog();
+    }, {signal: signal.signal});
 
     function say(message) {
       if (!audible || !message || !window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
