@@ -119,7 +119,7 @@
         const row = document.createElement('div');
         row.className = 'territory-selection-county';
         const text = document.createElement('span');
-        const rep = county.lead?.name ? 'Tinky Team agent · ' + county.lead.name : 'No Tinky Team agent assigned';
+        const rep = county.lead?.name ? 'Sales agent · ' + county.lead.name : 'No sales agent assigned';
         text.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
         if (county.lead?.name) row.append(window.SdrCountyLeads.avatar(county.lead));
         row.append(text);

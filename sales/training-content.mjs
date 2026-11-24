@@ -30,7 +30,7 @@ export const trainingCourses = [
         id: 'conversation', title: 'Connect a first conversation to a demo',
         steps: [
           'Pick one communication moment to discuss, such as asking for assistance or expressing a preference. Ask who is involved today and where the person gets stuck.',
-          'Open Tinky Team and select Demo. Pick TinkyStroke for a bedside conversation or TinkyTown Hospital for reception. Walk through one prompt and select a sample message to display and speak.',
+          'Open Sales team and select Demo. Pick TinkyStroke for a bedside conversation or TinkyTown Hospital for reception. Walk through one prompt and select a sample message to display and speak.',
           'Practice a short introduction for a teammate. Name the setting you researched, show one message on the demo board, and ask whether that interaction would fit their workflow.',
         ],
       },
@@ -74,7 +74,7 @@ export const trainingCourses = [
       {
         id: 'choose-setting', title: 'Run a bedside walkthrough',
         steps: [
-          'Open Tinky Team, select Demo, and choose TinkyStroke. Pick a hospital ward, nursing home, or rehab scenario that matches the conversation.',
+          'Open Sales team, select Demo, and choose TinkyStroke. Pick a hospital ward, nursing home, or rehab scenario that matches the conversation.',
           'Read the staff prompt, select a relevant tile, and point out the Selected message area. With Speak on tap turned off, choose Speak to play the selected phrase.',
           'Use Next prompt and select a different board from the Board menu. Show how someone can move between quick answers and a more specific message.',
         ],
@@ -96,7 +96,7 @@ export const trainingCourses = [
       {
         id: 'reception-walkthrough', title: 'Show a reception interaction',
         steps: [
-          'Open Tinky Team, then Demo, and choose TinkyTown Hospital. Read the reception prompt and select a sample message from the displayed board.',
+          'Open Sales team, then Demo, and choose TinkyTown Hospital. Read the reception prompt and select a sample message from the displayed board.',
           'Show the written phrase and use Speak to play it when helpful. Continue with Next prompt so the audience sees how a conversation can progress.',
         ],
       },
@@ -226,7 +226,7 @@ export const trainingCourses = [
       {
         id: 'book', title: 'Set up the right appointment',
         steps: [
-          'Open Tinky Team and choose Calendar. Review the meeting types and your availability. If your calendar is published, use Copy booking link to open the client booking page and check the options.',
+          'Open Sales team and choose Calendar. Review the meeting types and your availability. If your calendar is published, use Copy booking link to open the client booking page and check the options.',
           'Confirm the date, time zone, meeting type, and attendees with the facility. Check the saved appointment in your schedule and review any listed delivery status.',
         ],
       },
@@ -245,7 +245,7 @@ export const trainingCourses = [
 
 export const trainingPaths = [
   {
-    id: 'new-sales-rep', title: 'New Tinky Team Agent',
+    id: 'new-sales-rep', title: 'New Sales Agent',
     description: 'Complete onboarding and learn how to qualify, track, and follow through with a prospect.',
     courseIds: ['sales-onboarding', 'qualify-directory-prospects', 'tinkytown-tinkyspeak-workflow', 'ethical-care-communication',
       'sell-to-senior-centers-and-nursing-homes', 'pipeline-follow-ups', 'booking-and-contracts'],
@@ -294,7 +294,7 @@ export const trainingFaqs = [
   },
   {
     question: 'Where can I practice the product demos?',
-    answer: 'Open Tinky Team and choose Demo in a workspace that has the care demos enabled. The walkthroughs include sample prompts and communication boards.',
+    answer: 'Open Sales team and choose Demo in a workspace that has the care demos enabled. The walkthroughs include sample prompts and communication boards.',
   },
   {
     question: 'What should I say if a facility asks whether a setup meets the ADA?',

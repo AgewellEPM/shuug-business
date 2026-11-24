@@ -177,7 +177,7 @@ export function teamChat(db, { now = Date.now } = {}) {
     });
   }
   function dispatch(user, action, input, signal, messagingMembers) {
-    if (!['owner', 'agent'].includes(user.role)) throw new HttpError(403, 'Sign in to the Tinky Team to use chat.');
+    if (!['owner', 'agent'].includes(user.role)) throw new HttpError(403, 'Sign in to the Sales team to use chat.');
     let directory;
     const me = user.id;
     function members() {
