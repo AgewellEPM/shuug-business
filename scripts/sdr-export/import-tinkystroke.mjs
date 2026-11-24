@@ -1,11 +1,11 @@
 // Regenerate the TinkyStroke boards from the Android source. Every label and phrase is read
-// from the Kotlin. Run with node scripts/sdr-export/import-tinkystroke.mjs /path/to/tinkystroke /path/to/TinkySpeak-Web.
+// from the Kotlin. Run with node scripts/sdr-export/import-tinkystroke.mjs /path/to/tinkystroke /path/to/TinkySpeak-Web /path/to/tinkytown-demo.
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const source = process.argv[2], town = process.argv[3];
-if (!source || !town) throw new Error('Supply the tinkystroke and TinkySpeak-Web checkouts.');
+const source = process.argv[2], town = process.argv[3], demo = process.argv[4];
+if (!source || !town || !demo) throw new Error('Supply the tinkystroke, TinkySpeak-Web and tinkytown-demo checkouts.');
 const read = name => readFileSync(join(source, 'app/src/main/java/com/example/AI_AAC', name + '.kt'), 'utf8');
 const quick = read('TinkyAskQuickTiles'), boardsSource = read('TinkyAskBoards'), flow = read('TinkyAskConversationFlow');
 const str = '"((?:[^"\\\\]|\\\\.)*)"';
@@ -67,33 +67,28 @@ if (nurse.followUps.length !== 6 || diet.warnings.length < 5) throw new Error('T
 if (strip.length !== 4 || acute.length !== 8 || hospital.length !== 15 || full.length !== 23 || levels.length !== 11 || kinds.length !== 10 || places.length !== 13 || after.length !== 6 || saved.length !== 5) {
   throw new Error('The Android source changed shape: ' + [strip, acute, hospital, full, levels, kinds, places, after, saved].map(x => x.length));
 }
-// The app's AI prompt and its fixed replies, for the local model behind Listen for Staff.
-const ai = read('TinkyAskAI'), offline = read('TinkyAskOffline');
-const kotlin = raw => JSON.parse('"' + raw.replaceAll('\\$', '$') + '"');
-const builder = ai.slice(ai.indexOf('buildBaseSystemPrompt('), ai.indexOf('private fun parseTileResponse'));
-const opening = [...builder.slice(0, builder.indexOf('// Dual-language')).matchAll(/appendLine\("((?:[^"\\]|\\.)*)"\)/g)].map(m => kotlin(m[1])).join('\n');
-const closing = /appendLine\("{3}([\s\S]*?)"{3}\)/.exec(builder)[1].trim();
+// The app's fixed replies, for when the model does not answer.
+const offline = read('TinkyAskOffline');
 const sets = Object.fromEntries([...offline.matchAll(/val OFFLINE_(\w+)_RESPONSES = listOf\(([\s\S]*?)\n\)/g)].map(m => [m[1].toLowerCase(), [...m[2].matchAll(new RegExp(str, 'g'))].map(x => text(x[1]))]));
 const matching = offline.slice(offline.indexOf('getOfflineResponses('), offline.indexOf('getOfflineStarters('));
 const rules = [...matching.matchAll(/containsAny\(([^)]*)\) ->\s*OFFLINE_(\w+)_RESPONSES/g)].map(m => ({ words: [...m[1].matchAll(/"([^"]*)"/g)].map(x => x[1]), set: m[2].toLowerCase() }));
 const more = offline.slice(offline.indexOf('getOfflineContinuations('), offline.indexOf('// ==================== FIXED RESPONSE SETS'));
 const continuations = [...more.matchAll(/(?:containsAny\(([^)]*)\)|else) -> listOf\(([\s\S]*?)\n        \)/g)].map(m => ({ words: [...(m[1] || '').matchAll(/"([^"]*)"/g)].map(x => x[1]), tiles: [...m[2].matchAll(new RegExp(str, 'g'))].map(x => text(x[1])) }));
-if (opening.split('\n').length < 17 || !/EXACTLY 6 options/.test(closing) || Object.keys(sets).length !== 12 || rules.length !== 11 || continuations.length !== 3) {
-  throw new Error('The Android AI source changed shape: ' + [opening.split('\n').length, Object.keys(sets).length, rules.length, continuations.length]);
+if (Object.keys(sets).length !== 12 || rules.length !== 11 || continuations.length !== 3) {
+  throw new Error('The Android AI source changed shape: ' + [Object.keys(sets).length, rules.length, continuations.length]);
 }
-// The propose-replies doctrine from TinkyTown's own kiosk: tiles in the visitor's voice, never a chat answer.
-const kiosk = readFileSync(join(town, 'js/kiosk-ai.js'), 'utf8');
-const unescape = raw => raw.replace(/\$\{'((?:[^'\\]|\\.)*)'\}/g, '$1').replace(/\\u\{([0-9A-Fa-f]+)\}/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16))).replace(/\\u([0-9A-Fa-f]{4})/g, (_, hex) => String.fromCharCode(parseInt(hex, 16))).replace(/\\'/g, "'");
-const doctrine = kiosk.slice(kiosk.indexOf('systemPrompt = `You are a communication assistant') + 16);
-const venue = {
-  opening: unescape(doctrine.slice(0, doctrine.indexOf('${context'))).trim(),
-  grounding: unescape(/'(GROUNDING — services[^']*)' \+ realDepartments \+ '((?:[^'\\]|\\.)*)'/.exec(doctrine).slice(1).join('{services}')),
-  rules: unescape(doctrine.slice(doctrine.indexOf('CONVERSATION RULES:'), doctrine.indexOf('${tileFormat}'))).trim(),
-  format: unescape(/tileFormat = `([\s\S]*?)`;/.exec(kiosk)[1].replaceAll('${outputLangName}', 'English')).trim(),
-};
-if (!/speak FOR the visitor/.test(venue.opening) || !/\{services\}/.test(venue.grounding) || !/EXAMPLE/.test(venue.rules) || !/emoji \| LABEL \| spoken text/.test(venue.format) || /\$\{/.test(JSON.stringify(venue))) throw new Error('kiosk-ai.js changed shape. ' + [/speak FOR the visitor/.test(venue.opening), /\{services\}/.test(venue.grounding), /EXAMPLE/.test(venue.rules), /spoken text/.test(venue.format), JSON.stringify(venue).match(/.{30}\$\{.{60}/g)]);
-writeFileSync(fileURLToPath(new URL('./care-replies.json', import.meta.url)), JSON.stringify({ opening, closing, venue, body: JSON.parse(readFileSync(join(source, 'app/src/main/assets/boards/pain_body_board.json'), 'utf8')).tiles
+// The two AIs behind demo.tinkytown.com, and the words its router uses to choose between them.
+const prompts = readFileSync(join(town, 'worker/src/two_ai_prompts.js'), 'utf8');
+const prompt = name => new RegExp('export const ' + name + ' = `([\\s\\S]*?)`;').exec(prompts)[1].trim();
+const job = prompt('JOB_AI_PROMPT'), helper = prompt('HELPER_AI_PROMPT');
+const router = readFileSync(join(demo, 'js/ai-conversation.js'), 'utf8');
+const feelings = [...router.slice(router.indexOf('en: ['), router.indexOf('],', router.indexOf('en: ['))).matchAll(/'((?:[^'\\]|\\.)*)'/g)].map(m => m[1].replaceAll("\\'", "'"));
+const speech = readFileSync(join(demo, 'js/speech.js'), 'utf8');
+const controls = [...speech.slice(speech.indexOf('function showConversationControls'), speech.indexOf('updateTiles(controlTiles')).matchAll(/emoji: '([^']+)', label: (?:'([^']*)'|"([^"]*)"), type: '\w+', sentence: (?:'([^']*)'|"([^"]*)"|justSaid), _action: '(\w+)'/g)]
+  .map(m => ({ emoji: m[1].replace(/\\u\{([0-9A-Fa-f]+)\}/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16))), label: m[2] ?? m[3], say: m[4] ?? m[5] ?? '', action: m[6] }));
+if (!/NO HALLUCINATION/.test(job) || !/9 tile/.test(helper) || /\$\{/.test(job + helper) || feelings.length < 25 || controls.length !== 7) throw new Error('The demo AI changed shape: ' + [feelings.length, controls.length]);
+writeFileSync(fileURLToPath(new URL('./care-replies.json', import.meta.url)), JSON.stringify({ job, helper, feelings, body: JSON.parse(readFileSync(join(source, 'app/src/main/assets/boards/pain_body_board.json'), 'utf8')).tiles
   .filter(tile => !/^(GO BACK|ADD NEW)$/.test(tile.label)).map(tile => ({ emoji: tile.emoji, label: tile.label, say: tile.spokenText })), offline: { sets, rules, continuations } }, null, 1) + '\n');
 writeFileSync(fileURLToPath(new URL('../../public/rideshare-tax-pros/care-tinkystroke.json', import.meta.url)),
-  JSON.stringify({ strip, tiers: { acute, hospital, full }, boards, pain: { levels, kinds, places }, after, saved, nurse, diet }, null, 1) + '\n');
+  JSON.stringify({ strip, tiers: { acute, hospital, full }, boards, pain: { levels, kinds, places }, after, saved, nurse, diet, controls }, null, 1) + '\n');
 console.log(Object.entries(boards).map(([id, b]) => id + ' ' + b.title + ' ' + b.tiles.length).join('\n'));

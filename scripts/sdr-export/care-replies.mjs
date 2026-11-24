@@ -1,12 +1,10 @@
-// Reply tiles for the demo kiosks. Tiles are the visitor's or patient's words, never an answer from
-// the assistant. Bedside uses TinkyStroke's prompt and every other place uses TinkyTown's own.
-// The order is the Android app's: either/or questions, then
-// yes/no questions, then the AI, then fixed replies. The model runs on this computer.
+// Reply tiles for the demo kiosks, made the way demo.tinkytown.com makes them: a router picks the Job
+// or Helper AI, which writes nine things the visitor could say. Tiles are the visitor's own words,
+// never an answer from an assistant. The model runs on this computer.
 import { readFileSync } from 'node:fs';
 import { HttpError } from '../../sales/model.mjs';
 
 const app = JSON.parse(readFileSync(new URL('./care-replies.json', import.meta.url), 'utf8'));
-const fallbackEmoji = ['🔥', '✨', '💪', '🎯', '🧭', '💡', '⚡', '🛡️'];
 const tidy = value => value.trim().toLowerCase().replace(/\?$/, '').replace(/\.$/, '').replace(/!$/, '').trim();
 
 export function orChoices(input) {
@@ -63,101 +61,103 @@ export function fixedReplies(said, mode) {
   if (mode === 'venue') return app.offline.sets.universal;
   return app.offline.sets[app.offline.rules.find(rule => has(lower, rule.words))?.set || 'universal'];
 }
-// Anything about the body, medicine or care is answered only from the app's own tiles. A model must
-// never put a symptom in a patient's mouth. Words match whole, since "ct" is also inside "doctor".
-const symptom = /\b(wound|bleed\w*|chok\w*|chest|breath\w*|numb\w*|dizz\w*|stab\w*|seizure|stroke|allerg\w*|overdose|unconscious)\b/i;
-export function medicalReplies(said) {
+// Care questions are grounded in the app's own replies, which the model is told to prefer. Words
+// match whole, since "ct" is also inside "doctor".
+export function careOptions(said) {
   const lower = said.toLowerCase();
   const about = words => words.some(word => new RegExp('\\b' + word.trim().replace(/[^a-z ]/g, '') + (word.trim().length > 3 ? '' : '\\b')).test(lower));
-  if (/\bwhere\b/.test(lower) && /\b(hurt|pain|sore|ache)/.test(lower)) return app.body.map(tile => ({ emoji: tile.emoji, label: tile.label, say: tile.say }));
-  if (symptom.test(lower) && !/\b(pain|hurt)/.test(lower)) return app.offline.sets.yes_no.map(asTile);
-  const rule = app.offline.rules.find(item => ['pain', 'medication', 'food', 'bathroom', 'positioning', 'procedures', 'discharge', 'feelings', 'greeting'].includes(item.set) && about(item.words));
-  return rule ? app.offline.sets[rule.set].map(asTile) : null;
-}
-export function parseTiles(content) {
-  return content.replaceAll('\n', '|').split('|').map(tile => tile.replace(/[\u0000-\u001f]/g, '').trim())
-    .filter(tile => tile && tile.length <= 60 && !/https?:/i.test(tile))
-    .map((tile, i) => {
-      const [, emoji, words] = /^((?:\p{Extended_Pictographic}[\uFE0F\u200D\p{Emoji_Modifier}]*)+)\s*(.*)$/u.exec(tile) || [];
-      return emoji ? emoji + ' ' + words : fallbackEmoji[i % fallbackEmoji.length] + ' ' + tile;
-    })
-    .filter(tile => /\p{L}/u.test(tile)).slice(0, 6);
-}
-
-export function parseVenueTiles(content) {
-  return content.replaceAll('\r', '').split('\n').map(line => line.replace(/[*_`#]/g, '').replace(/^\s*(?:[-•]|\d+[.)])\s*/, '').trim())
-    .map(line => /^(.+?)\s*\|\s*(.+?)(?:\s*\|\s*(.+))?$/.exec(line))
-    .filter(match => match && /\p{L}/u.test(match[2]) && !/^(label|back)$/i.test(match[2]) && !/https?:/i.test(match[0]))
-    .map(([, emoji, label, say]) => ({ emoji: /\p{Extended_Pictographic}/u.test(emoji) ? emoji.trim().slice(0, 12) : '💬', label: label.trim().slice(0, 40), say: (say || label).trim().slice(0, 200) }))
-    .slice(0, 9);
+  if (/\bwhere\b/.test(lower) && /\b(hurt|pain|sore|ache)/.test(lower)) return app.body.map(tile => ({ ...tile }));
+  const rule = app.offline.rules.find(item => item.set !== 'yes_no' && about(item.words));
+  return rule ? app.offline.sets[rule.set].map(asTile) : [];
 }
 const asTile = words => { const cut = words.indexOf(' '), label = words.slice(cut + 1).trim(); return { emoji: words.slice(0, cut), label, say: label }; };
 
-const modes = {
-  reply: said => ({ situation: 'THE OTHER PERSON JUST SAID: "' + said + '"', ask: 'Generate 6 response options separated by |. Every option MUST start with an emoji.' }),
-  more: (said, shown) => ({ temperature: 0.3, ask: 'Generate 6 NEW direct response options separated by |. Every option MUST start with an emoji.',
-    situation: 'THE OTHER PERSON SAID: "' + said + `"
-
-Previous options were rejected. Generate MORE LITERAL, DIRECT, FACTUAL answers.
-No creativity, no embellishment. What would a real person ACTUALLY say?
-Stick to the topic. No tangents, no redirects.
-
-ALREADY SHOWN (do NOT repeat):
-` + shown.map(tile => '- ' + tile).join('\n') }),
-  continue: said => ({ ask: 'Generate 6 continuation options separated by |. Every option MUST start with an emoji.',
-    situation: 'I JUST SAID: "' + said + `"
-Now I want to keep talking — generate what I might say NEXT.
-Follow-ups to what I just said, adding detail, asking questions, changing topic, making a request.
-CRITICAL: These come out of MY mouth. First person only. I/my/me. Never describe me in 3rd person.
-CRITICAL: I am the SPEAKER. Do NOT generate things the OTHER person would say to me.
-If I introduced myself, do NOT repeat my introduction back to me — generate what I'd say AFTER introducing myself.
-Reference exactly what I said and the conversation so far.` }),
-};
-async function venueReplies({ said, mode, log, shown, place }, { model, fetcher, timeout }) {
-  const recent = log.slice(-6).map(turn => (turn.who === 'Staff' ? 'Staff: ' : 'Visitor: ') + turn.text).join('\n');
-  const system = [app.venue.opening, 'Likely venue: ' + place.name + '.', place.services.length && app.venue.grounding.replace('{services}', () => place.services.join(', ')),
-    app.venue.rules, app.venue.format, recent && 'CONVERSATION SO FAR:\n' + recent].filter(Boolean).join('\n\n');
-  const ask = mode === 'more' ? 'Generate different tiles for: ' + said + '\nALREADY SHOWN (do NOT repeat): ' + shown.join(', ') : said;
-  const response = await fetcher('http://127.0.0.1:11434/api/chat', {
-    method: 'POST', headers: { 'Content-Type': 'application/json' }, redirect: 'error', signal: AbortSignal.timeout(timeout),
-    body: JSON.stringify({ model, stream: false, think: false, keep_alive: 300, options: { temperature: 0.4, num_ctx: 4096, num_predict: 320 },
-      messages: [{ role: 'system', content: system }, { role: 'user', content: ask }] }),
-  });
-  if (!response.ok) throw new Error('Model unavailable');
-  const tiles = parseVenueTiles((await response.json()).message.content);
-  if (tiles.length < 3) throw new Error('Too few tiles');
-  return { source: 'ai', tiles };
+// A patient cannot correct a symptom the model made up. Clinical words are allowed only when staff
+// raised them or the app's own replies contain them.
+const clinical = /\b(wound|bleed|blood|chok|chest|breath|numb|dizz|stab|seizure|stroke|allerg|overdose|unconscious|heart|faint|fell|fall|fever|vomit|infect|poison|suicid|die|dying|broken|fracture|burn|swollen|rash|lump|left|right)\w*/gi;
+export function grounded(tile, allowed) {
+  const known = allowed.toLowerCase();
+  return [...(tile.label + ' ' + tile.say).matchAll(clinical)].every(match => known.includes(match[1].toLowerCase()));
 }
+const emojiOf = value => /\p{Extended_Pictographic}(?:[️‍]|\p{Emoji_Modifier}|\p{Extended_Pictographic})*/u.exec(value || '')?.[0] || '💬';
+function usable(raw, { bedside, allowed, options }) {
+  if (!raw || typeof raw.label !== 'string' || typeof raw.sentence !== 'string') return null;
+  const say = raw.sentence.replace(/[\u0000-\u001f*_`]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200), label = raw.label.replace(/[\u0000-\u001f*_`]/g, ' ').trim().slice(0, 40);
+  if (!/\p{L}/u.test(say) || !/\p{L}/u.test(label) || /https?:|@/i.test(say)) return null;
+  const authored = options.find(option => option.say.toLowerCase().replace(/[.!?]+$/, '') === say.toLowerCase().replace(/[.!?]+$/, ''));
+  if (authored) return { ...authored };
+  const tile = { emoji: emojiOf(raw.emoji), label, say };
+  return bedside && (say.split(' ').length > 14 || !grounded(tile, allowed)) ? null : tile;
+}
+// Tiles are read out of the stream as each one closes, so the first is on screen in a second or two.
+export function tilesIn(text, from) {
+  const found = [];
+  const pattern = /\{[^{}]*"label"[^{}]*\}/g;
+  pattern.lastIndex = from;
+  for (let match; (match = pattern.exec(text));) { try { found.push(JSON.parse(match[0])); } catch { /* incomplete */ } from = pattern.lastIndex; }
+  return { found, from };
+}
+const asks = {
+  reply: said => said,
+  more: (said, shown) => 'The person asked: "' + said + '".\n\nGenerate 9 DIFFERENT response tiles than any previous set — fresh angles, alternate phrasings, variations in tone. Avoid repeating labels or sentences from prior turns.\nPrior labels: ' + shown.join(', '),
+  continue: said => 'I just said: "' + said + '".\n\nGenerate 9 more things I might want to add or say next, before the other person responds. I want to keep talking.',
+};
+const easy = 'The visitor is an adult patient whose speech is affected, talking with a nurse, carer or family member. Use short, simple, everyday words: at most 8 words a sentence. Never state a symptom, diagnosis, body side, medicine name or past event the staff did not mention. Offer choices and feelings instead.';
+const tileShape = { type: 'object', properties: { emoji: { type: 'string' }, label: { type: 'string' }, sentence: { type: 'string' } }, required: ['emoji', 'label', 'sentence'] };
 
-export async function careReplies({ said, mode = 'reply', log = [], shown = [], place = null }, { model = 'qwen3:4b-instruct-2507-q4_K_M', fetcher = fetch, timeout = 25_000 } = {}) {
-  if (place && !place.bedside) {
-    try { return await venueReplies({ said, mode, log, shown, place }, { model, fetcher, timeout }); }
-    catch { return { source: 'fixed', tiles: fixedReplies(said, 'venue').map(asTile) }; }
-  }
+function message(said, mode, shown, place, options) {
+  const authored = options.slice(0, 12).map(option => option.say);
+  return ['VENUE: ' + place.name + (authored.length ? '\nAUTHORED OPTIONS ON BOARD (prefer these — they are hand-vetted for this venue):\n  - ' + authored.join('\n  - ') : ''),
+    'LANGUAGE: en/en', 'LAST STAFF QUESTION: ' + (mode === 'reply' ? said : 'none'), '', "VISITOR'S CURRENT MESSAGE: " + asks[mode](said, shown)].join('\n');
+}
+export async function* careReplies({ said, mode = 'reply', log = [], shown = [], place = { name: 'this place', bedside: false, options: [] } }, { model = 'qwen3:4b-instruct-2507-q4_K_M', fetcher = fetch, timeout = 40_000, signal } = {}) {
   if (mode === 'reply') {
     const choices = orChoices(said);
-    if (choices) return { source: 'question', tiles: choices.map(asTile) };
-    const authored = medicalReplies(said);
-    if (authored) return { source: 'authored', tiles: authored };
-    const answers = yesNo(said);
-    if (answers) return { source: 'question', tiles: answers.map(asTile) };
+    if (choices) { for (const words of choices) yield { tile: asTile(words) }; return yield { done: true, source: 'question' }; }
   }
-  if (mode === 'more' && medicalReplies(said)) return { source: 'authored', tiles: [...app.offline.sets.universal, ...app.offline.sets.yes_no].filter((tile, i, all) => all.indexOf(tile) === i && !shown.includes(asTile(tile).label)).slice(0, 6).map(asTile) };
+  const care = place.bedside ? careOptions(said) : [];
+  const options = [...care, ...place.options.map(say => ({ emoji: '💬', label: say, say }))].slice(0, 18);
+  const allowed = [said, ...log.map(turn => turn.text), ...care.flatMap(option => [option.say, option.label])].join(' ');
+  const lower = said.toLowerCase(), kind = app.feelings.some(word => lower.includes(word)) ? 'helper' : 'job';
+  const seen = new Set(shown.map(label => label.toLowerCase()));
+  let count = 0;
   try {
-    const { situation, ask, temperature } = modes[mode](said, shown);
-    const recent = log.slice(-6).map(turn => (turn.who === 'Staff' ? 'Other person said: ' : 'I said: ') + turn.text).join('\n');
-    const system = [app.opening, recent && "\nCONVERSATION SO FAR (I = the person using this device, Other person = whoever I'm talking to):\n" + recent, '\n' + situation, '\n' + app.closing].filter(Boolean).join('\n');
+    const limit = AbortSignal.timeout(timeout);
     const response = await fetcher('http://127.0.0.1:11434/api/chat', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, redirect: 'error', signal: AbortSignal.timeout(timeout),
-      body: JSON.stringify({ model, stream: false, think: false, keep_alive: 300, options: { temperature: temperature ?? 0.7, num_predict: 120 },
-        messages: [{ role: 'system', content: system }, { role: 'user', content: situation + '\n\n' + ask }] }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, redirect: 'error', signal: signal ? AbortSignal.any([signal, limit]) : limit,
+      body: JSON.stringify({ model, stream: true, think: false, keep_alive: 300, options: { temperature: 0.5, num_ctx: 4096, num_predict: 560 },
+        format: { type: 'object', properties: { tiles: { type: 'array', minItems: 9, maxItems: 9, items: tileShape } }, required: ['tiles'] },
+        messages: [{ role: 'system', content: app[kind] + (place.bedside ? '\n\n' + easy : '') },
+          ...log.slice(-6).map(turn => ({ role: turn.who === 'Staff' ? 'user' : 'assistant', content: (turn.who === 'Staff' ? 'Staff said: ' : 'I said: ') + turn.text })),
+          { role: 'user', content: message(said, mode, shown, place, place.bedside ? care : options) }] }),
     });
     if (!response.ok) throw new Error('Model unavailable');
-    // A patient's tile says exactly what it shows. Longer wording is where a model starts inventing.
-    const tiles = parseTiles((await response.json()).message.content).filter(tile => tile.split(' ').length <= 6);
-    if (tiles.length >= 3 && !tiles.some(tile => symptom.test(tile))) return { source: 'ai', tiles: tiles.map(asTile) };
-  } catch { /* fixed replies below */ }
-  return { source: 'fixed', tiles: fixedReplies(said, mode).map(asTile) };
+    const decoder = new TextDecoder();
+    let line = '', text = '', at = 0;
+    for await (const chunk of response.body) {
+      line += decoder.decode(chunk, { stream: true });
+      const lines = line.split('\n');
+      line = lines.pop();
+      for (const row of lines) if (row.trim()) text += JSON.parse(row).message?.content || '';
+      const { found, from } = tilesIn(text, at);
+      at = from;
+      for (const raw of found) {
+        const tile = usable(raw, { bedside: place.bedside, allowed, options });
+        if (!tile || seen.has(tile.label.toLowerCase()) || count >= 9) continue;
+        seen.add(tile.label.toLowerCase());
+        count++;
+        yield { tile };
+      }
+    }
+  } catch { /* saved replies below */ }
+  if (count >= 3) {
+    // Care answers the model left out are still offered.
+    for (const tile of care) if (count < 9 && !seen.has(tile.label.toLowerCase())) { count++; yield { tile }; }
+    return yield { done: true, source: 'ai' };
+  }
+  const saved = care.length ? care : (place.bedside && mode === 'reply' && yesNo(said)?.map(asTile)) || fixedReplies(said, place.bedside ? mode : 'venue').map(asTile);
+  for (const tile of saved) if (!seen.has(tile.label.toLowerCase())) yield { tile };
+  yield { done: true, source: 'fixed' };
 }
 
 const clean = (value, most) => typeof value === 'string' ? value.replace(/[\u0000-\u001f"]/g, ' ').trim().slice(0, most) : '';
@@ -176,15 +176,23 @@ export function careRepliesRoute({ identity, cookieName, origin, model, fetcher 
       let raw = '';
       for await (const chunk of request) { raw += chunk; if (raw.length > 6000) throw new HttpError(413, 'This request is too large.'); }
       const body = JSON.parse(raw), said = clean(body.said, 350);
-      if (!said || !Object.hasOwn(modes, body.mode || 'reply')) throw new HttpError(400, 'Check your request and try again.');
+      if (!said || !Object.hasOwn(asks, body.mode || 'reply')) throw new HttpError(400, 'Check your request and try again.');
       if (busy.has(user.id)) throw new HttpError(429, 'Wait for the current replies.');
       busy.add(key = user.id);
       const log = (Array.isArray(body.log) ? body.log : []).slice(-6).map(turn => ({ who: turn?.who === 'Staff' ? 'Staff' : 'Visitor', text: clean(turn?.text, 200) })).filter(turn => turn.text);
       const shown = (Array.isArray(body.shown) ? body.shown : []).slice(0, 18).map(value => clean(value, 60)).filter(Boolean);
-      const place = body.place && typeof body.place === 'object' ? { name: clean(body.place.name, 120) || 'this place', bedside: body.place.bedside === true,
-        services: (Array.isArray(body.place.services) ? body.place.services : []).slice(0, 40).map(value => clean(value, 40)).filter(Boolean) } : null;
-      reply(200, await careReplies({ said, mode: body.mode, log, shown, place }, { model, fetcher }));
+      const place = { name: clean(body.place?.name, 160) || 'this place', bedside: body.place?.bedside === true,
+        options: (Array.isArray(body.place?.options) ? body.place.options : []).slice(0, 12).map(value => clean(value, 120)).filter(Boolean) };
+      const left = new AbortController();
+      response.once('close', () => left.abort());
+      response.setHeader('Content-Type', 'application/x-ndjson; charset=utf-8');
+      for await (const part of careReplies({ said, mode: body.mode, log, shown, place }, { model, fetcher, signal: left.signal })) {
+        if (response.destroyed) break;
+        response.write(JSON.stringify(part) + '\n');
+      }
+      response.end();
     } catch (error) {
+      if (response.headersSent) return response.end();
       const status = error.status || (error instanceof SyntaxError || error instanceof TypeError ? 400 : 502);
       reply(status, { error: error instanceof HttpError ? error.message : 'Check your request and try again.' });
     } finally { busy.delete(key); }
