@@ -102,6 +102,7 @@ const sales = createHandler(env, db, {
   setCountyLead: (user, input, team) => setCountyLead(user, input, db, team),
   salesTeam: true,
   booking: booking.staff,
+  nextBooking: booking.nextBooking,
   beforeLogin() {
     const now = Date.now();
     attempts = attempts.filter(at => at > now - 60_000);

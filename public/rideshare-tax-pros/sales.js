@@ -52,14 +52,16 @@
       return showOffice(id);
     } });
     const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh });
+    const bookingUI = window.SdrBookings?.mount({ api });
     const tab = name => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
       const enteringWorkspace = standalone && ['team','territories'].includes(name) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team' })[name] || 'Workspace';
-      $('#sales-stats').hidden = ['home','discover','prospects','campaigns','facilities','territories','team'].includes(name);
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ home: 'Overview', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team' })[name] || 'Workspace';
+      $('#sales-stats').hidden = ['home','calendar','discover','prospects','campaigns','facilities','territories','team'].includes(name);
+      if (name === 'calendar') { bookingUI?.show(data.user, new URLSearchParams(location.hash.slice(1)).get('section')); $('.sdr-main').scrollTop = 0; }
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') {
         prospectsWorkspace?.enter();
@@ -72,7 +74,7 @@
       if (name === 'home' && data) overviewUI?.render(data);
     };
     function showRequestedView(params = new URLSearchParams(location.hash.slice(1))) {
-      if (standalone && ['pipeline', 'contacts'].includes(params.get('view'))) { tab(params.get('view')); return true; }
+      if (standalone && ['pipeline', 'contacts', 'calendar'].includes(params.get('view'))) { tab(params.get('view')); return true; }
       if (facilitiesUI && params.get('view') === 'facilities') { tab('facilities'); return true; }
       if (teamUI && params.get('view') === 'team') {
         tab('team');

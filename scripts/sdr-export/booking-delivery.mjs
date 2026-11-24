@@ -1,25 +1,11 @@
 import { createHmac } from 'node:crypto';
 import { digest, HttpError, metadata } from '../../sales/model.mjs';
 import { mailConfig, sendProviderMail } from '../../sales/mail-provider.mjs';
-import { httpsSetting } from './configuration.mjs';
 import { calendarFile, manageURL } from './booking-invitations.mjs';
+import { bookingWebhooks, postPublicWebhook } from './booking-webhooks.mjs';
 
-function webhooks(env) {
-  const items = env.SDR_BOOKING_WEBHOOKS ? JSON.parse(env.SDR_BOOKING_WEBHOOKS) : [];
-  if (!Array.isArray(items) || items.length > 20) throw new Error('SDR_BOOKING_WEBHOOKS must be a list of up to 20 endpoints.');
-  const hooks = new Map();
-  for (const { name, url, secret } of items) {
-    if (!/^[A-Za-z0-9_-]{1,50}$/.test(name || '') || hooks.has(name) || typeof secret !== 'string' || secret.length < 32) {
-      throw new Error('Each booking webhook needs a unique name and a signing secret of at least 32 characters.');
-    }
-    const endpoint = httpsSetting('Booking webhook', url);
-    if (!endpoint) throw new Error('Set the HTTPS URL for each booking webhook.');
-    hooks.set(name, { url: endpoint.href, key: secret });
-  }
-  return hooks;
-}
-export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fetch, now = Date.now } = {}) {
-  const store = db.booking, config = mailConfig(env), hooks = webhooks(env);
+export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fetch, now = Date.now, publicPost = postPublicWebhook } = {}) {
+  const store = db.booking, config = mailConfig(env), hooks = bookingWebhooks(env, store, key);
   function sender(host) {
     if (!config.ready) return null;
     const profiles = db.list('agents').filter(r => r.status === 'mailbox' && [host, 'shared'].includes(String(r.assigned_to)) &&
@@ -28,7 +14,8 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     return row && { from: row.contact_email, fromName: row.contact_name, replyTo: metadata(row).replyTo || row.contact_email };
   }
   function connections(host) {
-    return { email: sender(host) ? config.mode : 'unconfigured', webhooks: [...hooks.keys()] };
+    return { email: sender(host) ? config.mode : 'unconfigured',
+      webhooks: [...hooks.forHost(host).values()].map(h => ({ name: h.name, scope: h.scope, hostname: new URL(h.url).hostname })) };
   }
   function enqueueCalendar(row, conn) {
     if (conn) store.enqueue(row, 'calendar:' + conn.id, 'pending', { row, connection: conn.id });
@@ -40,7 +27,7 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     for (const [channel, to] of Object.entries(recipients)) {
       store.enqueue(row, channel, mailbox && to ? 'pending' : 'unconfigured', { row, event, to, mailbox, providerInvites: Boolean(conn), mode: config.mode });
     }
-    for (const [name, hook] of hooks) store.enqueue(row, 'webhook:' + name, 'pending', { row, event, endpointHash: digest(hook.url) });
+    for (const [name, hook] of hooks.forHost(row.host)) store.enqueue(row, 'webhook:' + name, 'pending', { row, event, endpointHash: digest(hook.url + hook.key) });
   }
   async function email(job) {
     const { row, event, to, mailbox, providerInvites, mode } = job.data;
@@ -61,8 +48,8 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     return result.status === 'accepted' && mode === 'test' ? 'test-accepted' : result.status;
   }
   async function webhook(job) {
-    const hook = hooks.get(job.channel.slice(8));
-    if (!hook || digest(hook.url) !== job.data.endpointHash) return 'setup-changed';
+    const hook = hooks.forHost(job.data.row.host).get(job.channel.slice(8));
+    if (!hook || digest(hook.url + hook.key) !== job.data.endpointHash) return 'setup-changed';
     const { row, event } = job.data;
     const id = row.id + '.' + row.revision;
     const body = JSON.stringify({ version: 1, id, event, occurredAt: new Date(row.changed).toISOString(), booking: {
@@ -71,9 +58,11 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
       client: row.client, question: row.question, answer: row.answer, location: row.location } });
     const timestamp = String(Math.floor(now() / 1000));
     const signature = createHmac('sha256', hook.key).update(timestamp + '.' + body).digest('hex');
-    const response = await fetcher(hook.url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10_000),
+    const send = hook.scope === 'server' ? fetcher : publicPost;
+    const response = await send(hook.url, { method: 'POST', redirect: 'error', signal: AbortSignal.timeout(10_000),
       headers: { 'Content-Type': 'application/json', 'X-Booking-Event': event, 'X-Booking-ID': id,
-        'X-Booking-Timestamp': timestamp, 'X-Booking-Signature': 'sha256=' + signature }, body });
+        'X-Booking-Timestamp': timestamp, 'X-Booking-Signature': 'sha256=' + signature,
+        ...(hook.bearer ? { Authorization: 'Bearer ' + hook.bearer } : {}) }, body });
     await response.body?.cancel();
     if (!response.ok) throw new Error('Webhook delivery failed.');
     return 'delivered';
@@ -83,7 +72,7 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     if (job.channel.startsWith('calendar:')) {
       const conn = calendars.connection(job.data.row.host);
       if (conn?.id !== job.data.connection) return 'disconnected';
-      await calendars.sync(job.data.row, conn);
+      await calendars.sync(store.get(job.booking), conn);
       return 'synced';
     }
     return email(job);
@@ -115,5 +104,5 @@ export function bookingDelivery(env, db, calendars, origin, key, { fetcher = fet
     if (event.event === 'failed' && event.severity === 'permanent' && job.status !== 'delivered') store.receipt(job.id, 'failed');
     return true;
   }
-  return { connections, enqueue, enqueueCalendar, tick, mailNotification };
+  return { connections, changeWebhook: hooks.change, enqueue, enqueueCalendar, tick, mailNotification };
 }

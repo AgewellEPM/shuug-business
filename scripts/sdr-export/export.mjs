@@ -28,10 +28,11 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);
   }
 }
-const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs'];
+const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
+  'booking-ui.js', 'booking-client.js', 'booking-connect.js', 'sales-booking.js', 'sales-booking.css',
   'business-data-attribution.txt', 'styles.css', 'contract-signature.js', 'directory-admin.js',
   'sales-overview.css', 'sales-overview.js', 'sales-welcome.webp', 'sales-care-community.webp',
   'local-contacts.js', 'local-offices.css', 'local-offices.js', 'sales.css', 'sales.js', 'sales-console.css',

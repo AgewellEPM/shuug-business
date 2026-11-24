@@ -59,7 +59,8 @@ export function bookings(env, db, origin, key, options = {}) {
     client: row.client, question: row.question, answer: row.answer, manageURL: manageURL(origin, key, row.id) });
   function receipt(row) {
     const statuses = store.statuses(row);
-    return { booking: privateView(row), calendar: calendarFile([row]), email: statuses.clientEmail || 'unconfigured' };
+    return { booking: privateView(row), calendar: calendarFile([row]), email: statuses.clientEmail || 'unconfigured',
+      calendarInvite: Object.entries(statuses).find(([channel]) => channel.startsWith('calendar:'))?.[1] || null };
   }
   const localBusy = (host, start, end, except) => store.range(host, start - pad, end + pad)
     .filter(row => row.status === 'confirmed' && row.id !== except);
@@ -152,7 +153,7 @@ export function bookings(env, db, origin, key, options = {}) {
       const entries = store.range(host, now() - 365 * day, now() + 181 * day);
       return { host, policy: p, hosts: (user.role === 'owner' ? roster() : [{ id: user.id, active: true, name: user.name }])
         .map(({ id, name, active }) => ({ id, name, active })), shareURL: origin + '/book?rep=' + encodeURIComponent(host),
-        feedURL: feedURL(host), connections: { ...calendars.status(host), ...delivery.connections(host) }, now: now(),
+        feedURL: host === user.id ? feedURL(host) : null, connections: { ...calendars.status(host), ...delivery.connections(host) }, now: now(),
         entries: entries.map(row => ({ ...privateView(row), delivery: store.statuses(row) })) };
     }
     if (action === 'booking-settings') {
@@ -167,6 +168,10 @@ export function bookings(env, db, origin, key, options = {}) {
       if (store.get(String(input.id))?.host !== host) throw missing();
       store.retry(input.id);
       return { queued: true };
+    }
+    if (action === 'booking-webhook-add' || action === 'booking-webhook-remove') {
+      if (!p.active && action === 'booking-webhook-add') throw missing();
+      return delivery.changeWebhook(user, host, input, action === 'booking-webhook-remove');
     }
     if (host !== user.id || !p.active) throw new HttpError(403, 'Sign in as this rep to manage their calendar connections.');
     if (action === 'booking-connect') return calendars.begin(host, input.provider);
@@ -186,5 +191,9 @@ export function bookings(env, db, origin, key, options = {}) {
     }
     throw new HttpError(400, 'Unknown sales calendar operation.');
   }
-  return { publicAction, staff, feed, tick: delivery.tick, mailNotification: delivery.mailNotification };
+  function nextBooking(user) {
+    const next = store.range(user.id, now(), now() + 181 * day).find(row => row.start >= now() && row.status === 'confirmed');
+    return next ? { title: next.title, start: next.start, zone: next.hostZone, client: next.client.name } : null;
+  }
+  return { publicAction, staff, feed, nextBooking, tick: delivery.tick, mailNotification: delivery.mailNotification };
 }

@@ -2,10 +2,11 @@
   'use strict';
   const e = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' })[c]);
   const field = (name, label, value, extra = '') => `<label>${label}<input name="${name}" value="${e(value)}" ${extra}></label>`;
-  function contactFields(value) {
+  function contactFields(value, builtIn = false) {
     return field('phone', 'Public help number', value.phone, 'type="tel" maxlength="40"') +
       field('hours', 'Phone / office hours, including time zone', value.hours, 'maxlength="240"') +
-      field('appointmentURL', 'Appointment booking link', value.appointmentURL, 'type="url" placeholder="https://…" maxlength="1200"') +
+      field('appointmentURL', builtIn ? 'Alternative appointment link (optional)' : 'Appointment booking link', value.appointmentURL,
+        builtIn ? 'type="url" placeholder="Built-in TinkyTown booking page" maxlength="1200"' : 'type="url" placeholder="https://…" maxlength="1200"') +
       `<label class="sales-check"><input name="available24x7" type="checkbox" ${value.available24x7 ? 'checked' : ''}>Show phone help as available 24/7</label>` +
       '<label class="sales-check"><input name="coverageConfirmed" type="checkbox">If selected above, I confirm this number is staffed 24 hours a day, every day.</label>';
   }
@@ -40,7 +41,8 @@
         : 'These public contact details appear in the app. Leave a field blank until it is ready. Office-specific details are managed on each office record.';
       const label = standalone ? 'Save public contact details' : 'Save app help details';
       panel.innerHTML = `${heading}<p>${description}</p>` +
-        `<form id="directory-support-form" class="sales-form">${contactFields(result.support || {})}<button type="submit" class="button primary">${label}</button>${standalone ? '<p data-directory-support-status role="status"></p>' : ''}</form>`;
+        (standalone ? '<p><a href="/book" target="_blank" rel="noopener">Open TinkyTown booking page ↗</a> · <a href="/sales#view=calendar">Manage calendar</a></p>' : '') +
+        `<form id="directory-support-form" class="sales-form">${contactFields(result.support || {}, standalone)}<button type="submit" class="button primary">${label}</button>${standalone ? '<p data-directory-support-status role="status"></p>' : ''}</form>`;
       const localStatus = panel.querySelector('[data-directory-support-status]');
       const inform = localStatus ? (message, error = false) => {
         localStatus.textContent = message;

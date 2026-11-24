@@ -1,5 +1,6 @@
 import { escape } from '../rideshare-site/layout.mjs';
 import { salesPages } from '../rideshare-site/sales.mjs';
+import { bookingAPIGuide, clientBookingPage, connectionPage } from '../rideshare-site/sales-booking.mjs';
 
 const loginForm = `<section id="sales-login" class="sales-panel"><h2>Sales workspace sign-in</h2>
 <form id="sales-login-form" class="sales-form" method="post">
@@ -21,6 +22,8 @@ export function renderWorkspace(profile, signIn) {
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source, seniorCare = false) {
     let sales = source
+      .replace('</head>', '<link rel="stylesheet" href="/sales-booking.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/booking-ui.js" defer></script><script src="/sales-booking.js" defer></script><script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-overview.css"><link rel="stylesheet" href="/sales-team.css"><link rel="stylesheet" href="/sales-prospects.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-linkedin.js" defer></script><script src="/sales-campaigns.js" defer></script><script src="/sales-overview.js" defer></script><script src="/sdr-headshots.js" defer></script><script src="/sales-team.js" defer></script><script src="/territory-county-leads.js" defer></script><script src="/territory-ownership.js" defer></script><script src="/territory-town-map.js" defer></script><script src="/territory-facilities.js" defer></script><script src="/sales-prospects.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
@@ -50,6 +53,7 @@ export function renderWorkspace(profile, signIn) {
       .replace('Continue to secure $500 checkout', 'Continue to checkout');
   }
   const pages = new Map([
+    ['/book', clientBookingPage(profile.name)], ['/book/connect', connectionPage(profile.name)], ['/book/api', bookingAPIGuide(profile.name)],
     ['/sales', salesPage(legacy.find(page => page.slug === 'sales').html)],
     ['/office-signup', frame('Private agreement', branded(signup), '<script src="/contract-signature.js" defer></script><script src="/sales.js" defer></script>')],
   ]);

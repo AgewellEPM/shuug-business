@@ -15,7 +15,7 @@ const unavailable = () => new HttpError(503, 'The connected calendar could not b
 const stamp = ms => new Date(ms).toISOString();
 const connectionKey = host => 'connection:' + host;
 const eventKey = (conn, id) => 'event:' + conn.id + ':' + id;
-const googleId = (conn, id) => digest(conn.id + ':' + id);
+const googleId = id => digest('tinkytown-booking:' + id);
 const msHeaders = { Prefer: 'outlook.timezone="UTC", IdType="ImmutableId"' };
 
 function beginningOfDate(date, zone) {
@@ -125,7 +125,7 @@ export function calendarConnections(env, store, origin, key, { fetcher = fetch, 
     url.search = new URLSearchParams(google ? { timeMin: stamp(start), timeMax: stamp(end), singleEvents: 'true', maxResults: '2500',
       fields: 'timeZone,nextPageToken,items(id,status,transparency,start,end)' } :
       { startDateTime: stamp(start), endDateTime: stamp(end), '$select': 'id,start,end,showAs,isCancelled', '$top': '1000' }).toString();
-    const exceptId = except && (google ? googleId(conn, except) : store.setting(eventKey(conn, except)));
+    const exceptId = except && (google ? googleId(except) : store.setting(eventKey(conn, except)));
     const intervals = [];
     for (let page = 0; page < 20; page++) {
       const response = await api(host, conn, url);
@@ -146,7 +146,7 @@ export function calendarConnections(env, store, origin, key, { fetcher = fetch, 
   }
   async function sync(row, conn) {
     const host = row.host, google = conn.provider === 'google', known = store.setting(eventKey(conn, row.id));
-    const base = google ? googleEvents : graph + '/events', id = google ? googleId(conn, row.id) : known;
+    const base = google ? googleEvents : graph + '/events', id = google ? googleId(row.id) : known;
     const target = id ? base + '/' + encodeURIComponent(id) + (google ? '?sendUpdates=all' : '') : '';
     if (row.status === 'cancelled') {
       if (id) {
