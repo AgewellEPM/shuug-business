@@ -12,6 +12,8 @@ import { setTimeout as delay } from 'node:timers/promises';
 import { JSDOM } from 'jsdom';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { trainingCourseExercises } from '../../sales/training-content.mjs';
+import { trainingScenarios } from '../../sales/training-scenarios.mjs';
 
 async function freePort() {
   const server = createServer();
@@ -89,6 +91,7 @@ async function mountConsole(t, origin, session, html, path = '/sales') {
     const dialog = window.HTMLDialogElement.prototype;
     dialog.showModal ??= function () { this.open = true; };
     dialog.close ??= function () { this.open = false; this.dispatchEvent(new window.Event('close')); };
+    session.configureWindow?.(window);
   } });
   t.after(() => dom.window.close());
   const { window } = dom;
@@ -295,6 +298,108 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
+  await t.test('training opens from the sidebar and resumes saved onboarding', async t => {
+    const trainingWindow = await mountConsole(t, first.origin, owner, html);
+    const doc = trainingWindow.document;
+    const training = doc.querySelector('[data-tab-panel="training"]');
+    const find = selector => training.querySelector(selector);
+    await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
+    doc.querySelector('.sdr-sidebar [data-tab="training"]').click();
+    const planButton = '[data-training-feature] [data-training-plan="sales-onboarding"]';
+    const featuredCourse = '[data-training-feature] .training-feature-description [data-training-course="sales-onboarding"]';
+    await waitFor(() => find(featuredCourse), 'The featured course did not load');
+    find(planButton).click();
+    await waitFor(() => find(planButton).getAttribute('aria-pressed') === 'true', 'Adding a course to My Plan did not save');
+    find(featuredCourse).click();
+    await waitFor(async () => (await owner.api('training-progress')).progress.sections['sales-onboarding'] === 'workspace',
+      'The first lesson did not save');
+    find('.training-lesson-nav [data-training-section="follow-through"]').click();
+    await waitFor(async () => (await owner.api('training-progress')).progress.sections['sales-onboarding'] === 'follow-through',
+      'The later lesson did not save');
+
+    const resumed = await mountConsole(t, first.origin, owner, html, '/sales#view=training');
+    const resume = selector => resumed.document.querySelector('.sdr-training ' + selector);
+    await waitFor(() => resume(featuredCourse), 'The Training Center did not load after reopening');
+    assert.match(resume(featuredCourse).textContent, /Continue Training/);
+    assert.equal(resume(planButton).getAttribute('aria-pressed'), 'true');
+    resume(featuredCourse).click();
+    assert.match(resume('[data-training-lesson-title]').textContent, /handoff/i);
+    const finish = '[data-training-complete="sales-onboarding"]';
+    assert.equal(resume(finish).disabled, true);
+    resume('.training-lesson-nav [data-training-section="conversation"]').click();
+    await waitFor(async () => (await owner.api('training-progress')).progress.visitedSections['sales-onboarding']?.includes('conversation'),
+      'All lesson visits did not save');
+    resume('.training-work-tabs [data-training-work="practice"]').click();
+    for (const form of resumed.document.querySelectorAll('[data-training-practice]')) {
+      for (const input of form.querySelectorAll('[name="criterion"]')) input.checked = true;
+      form.requestSubmit();
+      await waitFor(() => !form.querySelector('[data-training-practice-status]').hidden, 'The practice checklist did not save');
+    }
+    resume('.training-work-tabs [data-training-work="assessment"]').click();
+    for (const question of trainingCourseExercises['sales-onboarding'].questions) {
+      resume(`[data-training-question="${question.id}"] input[value="${question.correct}"]`).checked = true;
+    }
+    resume('[data-training-assessment]').requestSubmit();
+    await waitFor(() => resume('.training-assessment-result[data-passed="true"]'), 'Passing score and feedback did not appear');
+    await waitFor(() => resume(finish) && !resume(finish).disabled, 'The completion action did not become available');
+    resume(finish).click();
+    await waitFor(() => resume('[data-training-metric="completed"]').textContent === '1', 'Completing the course did not update progress');
+    assert.ok((await owner.api('training-progress')).progress.completed['sales-onboarding']);
+    assert.deepEqual((await differentProject.api('training-progress')).progress.plan, []);
+    assert.deepEqual((await differentProject.api('training-progress')).progress.completed, {});
+  });
+  await t.test('training demos offer selectable voice replies and record a pipeline practice score', async t => {
+    const spoken = [];
+    let microphone;
+    const session = { ...owner, configureWindow(window) {
+      window.SpeechRecognition = class {
+        constructor() { microphone = this; }
+        start() { this.onstart(); }
+        abort() { this.aborted = true; }
+      };
+      window.SpeechSynthesisUtterance = class {
+        constructor(text) { this.text = text; }
+      };
+      window.speechSynthesis = {
+        cancel() {}, getVoices() { return []; },
+        speak(phrase) { spoken.push(phrase.text); phrase.onend(); },
+      };
+    } };
+    const { document } = await mountConsole(t, first.origin, session, html, '/sales#view=training&section=demo');
+    const find = selector => document.querySelector(selector);
+    const voiceLink = '[data-training-demo="voice"]';
+    await waitFor(() => find(voiceLink), 'Demo Lab links did not load');
+    const before = (await owner.api('bootstrap')).offices;
+    find(voiceLink).click();
+    const voice = part => find('[data-training-voice-' + part + ']');
+    assert.equal(find('[data-tab-panel="training-demo"]').hidden, false);
+    assert.equal((await owner.request('/care-location-qr-healthcare.png')).headers.get('content-type'), 'image/png');
+    voice('listen').click();
+    assert.match(voice('status').textContent, /Listening/);
+    microphone.onresult({ results: { length: 1, 0: { isFinal: true, 0: { transcript: 'Would you like some water?' } } } });
+    assert.equal(microphone.aborted, true);
+    assert.match(voice('choices').textContent, /water/);
+    assert.deepEqual(spoken, []);
+    voice('choices').querySelector('button').click();
+    assert.deepEqual(spoken, []);
+    voice('speak').click();
+    assert.match(spoken[0], /water/);
+    find('[data-training-demo-return]').click();
+    find('[data-training-demo="pipeline"]').click();
+    const scenario = trainingScenarios.find(item => item.id === 'nursing-home-pipeline');
+    const start = `[data-pipeline-practice-start="${scenario.id}"]`;
+    await waitFor(() => find(start), 'Pipeline practice case did not load');
+    find(start).click();
+    for (const stage of scenario.stages) {
+      const form = find('[data-pipeline-practice-stage]');
+      assert.match(form.textContent, new RegExp(stage.prompt.slice(0, 20), 'i'));
+      form.querySelector(`[value="${stage.correct}"]`).checked = true;
+      form.requestSubmit();
+    }
+    await waitFor(() => find('[data-pipeline-practice-result][data-passed="true"]'), 'The practice score did not appear');
+    assert.equal((await owner.api('training-progress')).progress.scenarios[scenario.id].best.percent, 100);
+    assert.deepEqual((await owner.api('bootstrap')).offices, before);
+  });
   await t.test('a Support click during startup survives initial view selection', async t => {
     let releaseSettings;
     const settingsReady = new Promise(resolve => { releaseSettings = resolve; });
@@ -1607,7 +1712,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
     const rail = find('.sdr-nav');
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
-      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'support']);
+      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
     const back = find('[data-team-return]');
     assert.equal(back.closest('[hidden]'), null);

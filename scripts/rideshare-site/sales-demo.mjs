@@ -51,6 +51,7 @@ export function renderCareDemo() {
         <p>Choose a place to open its visitor kiosk or explore TinkyStroke at the bedside.</p></div>
       <img src="/care-town.webp" alt="" width="590" height="393">
     </header>
+    <a class="button" href="#view=training-demo">Open Training Demo Lab</a>
     <section class="care-destinations"><h3>Care settings</h3>
       <div class="care-launch-grid">${links(care)}</div></section>
     <section class="care-destinations"><h3>Explore TinkyTown</h3>
@@ -65,6 +66,7 @@ export function renderCareDemo() {
       <strong id="care-stage-title" data-care-place></strong>
       <button type="button" data-care-present aria-pressed="false">Present kiosk</button>
     </nav>
+    <a class="button" href="#view=training-demo">Back to Training Demo Lab</a>
     <div class="care-stage-links" data-care-modes></div>
     <div data-care-mount></div>
     <div data-care-stroke hidden></div>
