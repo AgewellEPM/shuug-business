@@ -41,7 +41,7 @@
       card.style.top = keepIn(pad, top, height - h - pad) + 'px';
     }
     function schedule() {
-      cancelAnimationFrame(frame); frame = requestAnimationFrame(locate);
+      clearTimeout(frame); frame = setTimeout(locate, 16);
     }
     window.addEventListener('resize', schedule);
     window.addEventListener('scroll', schedule, { capture: true, passive: true });
@@ -202,7 +202,7 @@
         if (requested) { url.searchParams.delete('walkthrough'); history.replaceState(null, '', url); }
         if (requested || (user.role === 'agent' && !started && (!progress || progress.state === 'active'))) {
           started = true;
-          requestAnimationFrame(() => { if (person?.id === member) void open(); });
+          setTimeout(() => { if (person?.id === member) void open(); }, 0);
         }
       }).catch(() => { if (person?.id === member) launcher.hidden = false; });
     }
