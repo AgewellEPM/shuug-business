@@ -1,92 +1,87 @@
 (() => {
   'use strict';
-  const currency = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 });
-  const usd = cents => currency.format(cents / 100);
 
-  const offers = new Map([
-    ['facility-rental', 'TinkySpeak facility hardware rental'],
-    ['healthcare', 'TinkyTown Healthcare'],
-  ]);
-
-  function mount({ api }) {
+  function mount() {
     const root = document.querySelector('.sdr-products');
     if (!root) return;
-    const find = selector => root.querySelector(selector);
-    const all = selector => [...root.querySelectorAll(selector)];
-    const form = find('[data-product-form]');
-    const status = find('[data-product-status]');
-    const editor = find('.product-edit');
-    const submit = form.querySelector('button[type="submit"]');
-    let revision, pending;
+    const search = root.querySelector('[data-product-search]');
+    const clear = search.querySelector('[data-product-clear]');
+    const input = search.elements.query;
+    const results = root.querySelector('[data-product-results]');
+    const count = results.querySelector('[data-product-search-count]');
+    const matches = [...results.querySelectorAll('[data-product-result]')];
+    const tabs = [...root.querySelectorAll('[data-product-tab]')];
+    const panes = [...root.querySelectorAll('[data-product-pane]')];
+    const devices = [...root.querySelectorAll('[data-product-device]')];
+    const promos = [...root.querySelectorAll('[data-product-overview-only]')];
+    const dialog = root.querySelector('[data-product-dialog]');
+    const title = dialog.querySelector('h2');
+    const packages = new Map([...dialog.querySelectorAll('[data-product-package-detail]')].map(panel =>
+      [panel.dataset.productPackageDetail, panel]));
+    let current = 'overview', opener;
 
-    function ruleFields() {
-      const active = Boolean(form.elements.kind.value);
-      for (const label of all('[data-product-rule]')) label.hidden = !active;
-      form.elements.amount.required = active;
-    }
-
-    function showPricing({ pricing, canEdit }) {
-      revision = pricing.revision;
-      for (const label of all('[data-product-price]')) label.textContent = usd(pricing.rentalCents) + ' / month';
-      let commission = 'Awaiting approval';
-      if (pricing.commission) {
-        commission = usd(pricing.commissionCents) + (pricing.commission.frequency === 'each' ? ' each paid month' : ' on the first paid month');
-        if (pricing.commission.kind === 'percent') commission += ' (' + (pricing.commission.value / 100) + '%)';
+    function refresh() {
+      const terms = input.value.trim().toLocaleLowerCase().split(/\s+/).filter(Boolean);
+      const searching = terms.length > 0;
+      results.hidden = clear.hidden = !searching;
+      for (const pane of panes) pane.hidden = searching || !pane.dataset.productPane.split(' ').includes(current);
+      for (const device of devices) device.hidden = current !== 'overview' && device.dataset.productDevice !== current;
+      for (const promo of promos) promo.hidden = current !== 'overview';
+      if (!searching) return;
+      let total = 0;
+      for (const result of matches) {
+        const text = (result.textContent + ' ' + result.dataset.productResult).toLocaleLowerCase();
+        result.hidden = !terms.every(term => text.includes(term));
+        if (!result.hidden) total++;
       }
-      for (const label of all('[data-product-commission]')) label.textContent = commission;
-      for (const owner of all('[data-product-owner]')) owner.hidden = !canEdit;
-      if (!canEdit) return;
-      find('[data-product-cost]').textContent = pricing.hardwareCostCents === null ? 'Awaiting entry' : usd(pricing.hardwareCostCents);
-      form.elements.rental.value = (pricing.rentalCents / 100).toFixed(2);
-      form.elements.hardwareCost.value = pricing.hardwareCostCents === null ? '' : (pricing.hardwareCostCents / 100).toFixed(2);
-      form.elements.kind.value = pricing.commission?.kind || '';
-      form.elements.amount.value = pricing.commission ? (pricing.commission.value / 100).toFixed(2) : '';
-      form.elements.frequency.value = pricing.commission?.frequency || 'first';
-      ruleFields();
+      count.textContent = total ? `${total} ${total === 1 ? 'match' : 'matches'}` : 'No products or packages match your search.';
     }
 
-    function load() {
-      if (pending) return pending;
-      status.textContent = '';
-      pending = api('products-read').then(showPricing).catch(() => {
-        status.textContent = 'Pricing is unavailable. Choose Pricing & commission to try again.';
-        for (const label of all('[data-product-price]')) label.textContent = 'Pricing unavailable';
-        for (const label of all('[data-product-commission]')) label.textContent = 'Unavailable';
-        for (const owner of all('[data-product-owner]')) owner.hidden = true;
-        editor.open = false;
-      }).finally(() => { pending = undefined; });
-      return pending;
-    }
-
-    function show(section) {
-      const view = ['pricing', 'compare'].includes(section) ? section : 'overview';
-      for (const tab of all('[data-product-view]')) {
-        if (tab.dataset.productView === view) tab.setAttribute('aria-current', 'page');
-        else tab.removeAttribute('aria-current');
+    function show(section, reset = false) {
+      const active = tabs.find(link => link.dataset.productTab === section) || tabs[0];
+      if (current !== active.dataset.productTab || reset) input.value = '';
+      current = root.dataset.productSection = active.dataset.productTab;
+      for (const link of tabs) {
+        if (link === active) link.setAttribute('aria-current', 'page');
+        else link.removeAttribute('aria-current');
       }
-      for (const panel of all('[data-product-panel]')) panel.hidden = panel.dataset.productPanel !== view;
-      if (!editor.open) void load();
+      refresh();
     }
-    form.elements.kind.addEventListener('change', ruleFields);
-    form.addEventListener('submit', async event => {
+
+    search.addEventListener('input', refresh);
+    search.addEventListener('submit', event => {
       event.preventDefault();
-      if (submit.disabled || pending) return;
-      submit.disabled = true;
-      status.textContent = 'Saving…';
-      try {
-        showPricing(await api('products-save', { revision, ...Object.fromEntries(new FormData(form)) }));
-        status.textContent = 'Pricing saved.';
-      } catch (error) {
-        if (error.status === 409) {
-          editor.open = false;
-          await load();
-        }
-        status.textContent = error.message;
-      } finally {
-        submit.disabled = false;
+      refresh();
+    });
+    clear.addEventListener('click', () => {
+      input.value = '';
+      refresh();
+      input.focus();
+    });
+    root.addEventListener('click', event => {
+      const button = event.target.closest('[data-product-package-open]');
+      if (button) {
+        const details = packages.get(button.dataset.productPackageOpen);
+        if (!details) return;
+        opener = button;
+        title.textContent = details.dataset.productPackageName;
+        for (const panel of packages.values()) panel.hidden = panel !== details;
+        if (!dialog.open) dialog.showModal();
+        return;
+      }
+      const link = event.target.closest('a');
+      if (!link || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+      if (link.hasAttribute('data-product-dialog-quote')) {
+        dialog.close();
+        return;
+      }
+      if (link.hasAttribute('data-product-tab') || link.hasAttribute('data-product-result-link')) {
+        const section = new URLSearchParams(link.hash.slice(1)).get('section');
+        show(section, true);
       }
     });
-    return { show, offerName: id => offers.get(id) };
+    dialog.addEventListener('close', () => opener?.focus());
+    return { show, packageName: key => packages.get(key)?.dataset.productPackageName };
   }
 
   window.SdrProducts = { mount };

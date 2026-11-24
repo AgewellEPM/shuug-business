@@ -67,7 +67,7 @@
     const trainingPipeline = window.SdrTrainingPipeline?.mount({ api });
     const trainingUI = window.SdrTraining?.mount({ api, onDemo: openTrainingDemo });
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
-    const productsUI = window.SdrProducts?.mount({ api });
+    const productsUI = window.SdrProducts?.mount();
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
@@ -92,7 +92,7 @@
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', products: 'Our Products', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: standalone ? 'Tinky Team' : 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: standalone ? 'Tinky Team' : 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
       $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
@@ -196,7 +196,7 @@
         tab('support');
         if (productsUI && params.get('request') === 'quote') {
           history.replaceState(null, '', '#view=support');
-          supportUI.openQuote(productsUI.offerName(params.get('offer')));
+          supportUI.openQuote(productsUI.packageName(params.get('package')));
         }
         return true;
       }

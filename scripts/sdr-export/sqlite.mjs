@@ -147,16 +147,6 @@ export function sqliteStore(filename) {
     suppressedEmail: address => Boolean(suppressedEmail.get(address)),
     patch: (kind, id, body) => patch(kind, id, body),
     patchIfUnchanged: (kind, id, notes, body) => patch(kind, id, body, notes ?? null),
-    productPricing: () => JSON.parse(setting.get('product-pricing')?.value ?? 'null'),
-    saveProductPricing(revision, pricing) {
-      return writeTransaction(() => {
-        const current = this.productPricing();
-        if ((current?.revision ?? 0) !== revision) throw new HttpError(409, 'Product pricing changed. Reopen the page to review it.');
-        const next = { ...pricing, revision: revision + 1 };
-        save.run('product-pricing', JSON.stringify(next));
-        return next;
-      });
-    },
     countyLead: id => JSON.parse(setting.get('county-lead:' + id)?.value ?? 'null'),
     countyLeadAssignments: () => new Map(assignedCounties.all().map(row => [row.county, { memberId: row.memberId, name: row.leadName }])),
     saveCountyLead(id, revision, changes) {

@@ -31,7 +31,6 @@ import { directoryFacility, stateFacilityDirectory } from '../../sales/state-fac
 import { googleFacilityReviews } from '../../sales/facility-reviews.mjs';
 import { facilityOutreach } from './facility-outreach.mjs';
 import { initialize, privateValue } from './setup.mjs';
-import { workspaceProducts } from '../../sales/workspace-products.mjs';
 import { bookings } from './bookings.mjs';
 import { bookingHTTP } from './booking-http.mjs';
 import { repEmailWorkspace } from './mail/workspace.mjs';
@@ -116,7 +115,6 @@ const sales = createHandler(env, db, {
   careCampaign: profile.focus === 'senior-care',
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
-  products: profile.focus === 'senior-care' ? workspaceProducts(db) : null,
   facilities,
   facilityReviews: async (user, input, office) => googleReviews(office || await directoryFacility(facilities, user, input)),
   facilityOutreach: facilityOutreach(db, facilities, { model: process.env.SDR_OUTREACH_MODEL }),
