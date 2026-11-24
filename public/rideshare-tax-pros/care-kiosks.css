@@ -6,6 +6,7 @@
 }
 .care-venue-kiosk button { font:inherit; cursor:pointer; }
 .care-venue-kiosk [inert] { opacity:.5; }
+body[data-care-clear] .care-venue-kiosk { height:max(620px,calc(100dvh - 125px)); }
 body[data-care-present] .care-venue-kiosk { height:calc(100dvh - 78px); }
 
 .ck-header { display:flex; align-items:center; gap:12px; flex:none; min-height:56px; padding:12px 16px; background:var(--ck-header); color:#fff; box-shadow:0 2px 8px #0003; }

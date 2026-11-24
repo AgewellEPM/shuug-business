@@ -2,6 +2,8 @@
 (() => {
   'use strict';
   const langs = { en:'English', es:'Español', fr:'Français', ar:'العربية', pt:'Português', zh:'中文', vi:'Tiếng Việt' };
+  // Care settings keep the patient's screen clear: no bottom bar, and the pickers open only when asked for.
+  const careSettings = new Set(['bedside','hospital','nursing-home','senior-center','stroke']);
   const published = new Set(['airport','bank','grocery','hotel','pharmacy','dmv','usps']);
   const normalize = s => String(s || '').normalize('NFKC').toLocaleLowerCase().replace(/[’‘]/g,"'").replace(/[.!?…]+$/g,'').trim();
   const read = name => window.CareKioskPacks.read('/care-kiosks/' + name + '.json');
@@ -80,8 +82,10 @@
       ['Translate','🌐',() => translateSign()],['Places','📍',() => { selectors.hidden = !selectors.hidden; if (!selectors.hidden) selectors.querySelector('select').focus(); }]];
     for (const [label,glyph,click] of tabs) { const b = icon(label,glyph,click,'ck-tab'); b.append(element('small',label)); nav.append(b); }
     dock.className = 'ck-dock'; dock.append(type,staff,status,transcript);
-    app.append(header,captions,selectors,area,dock,nav);
+    const patientScreen = careSettings.has(venue);
+    app.append(header,captions,...(patientScreen ? [] : [selectors]),area,dock,...(patientScreen ? [] : [nav]));
     root.replaceChildren(app);
+    const openPlaces = () => { selectors.hidden = false; if (patientScreen) { helper.append(selectors); area.scrollTop = 0; } };
     const live = [captions,dock,nav];
     for (const part of live) part.inert = true;
     const tr = text => Object.hasOwn(lexicon.dictionary,text) ? lexicon.dictionary[text] : lexicon.forward.get(normalize(text));
@@ -339,7 +343,7 @@
       if (language === 'en') {
         pendingSign = true;
         helper.replaceChildren(element('p','Choose the other language on the sign, then enter the text.'));
-        selectors.hidden = false;
+        openPlaces();
         selectors.querySelector('[data-language] select').focus();
         return;
       }
@@ -383,7 +387,7 @@
       if (action === 'stroke_tool') return root.dispatchEvent(new CustomEvent('care:stroke-tool',{bubbles:true,detail:tile.tool}));
       if (action === 'back') return previous(tile.navigateTo);
       if (action === 'go_home') { history = []; return go('main',false); }
-      if (action === 'language_picker') { selectors.hidden = false; return selectors.querySelector('[data-language] select').focus(); }
+      if (action === 'language_picker') { openPlaces(); return selectors.querySelector('[data-language] select').focus(); }
       if (action === 'caption_teller') return listenForStaff();
       if (action === 'focus_input') return draft.focus();
       if (['number_pad','weight_pad','number_pad_digits','number_pad_date'].includes(action)) return compose(tile.label,{numeric:true});
@@ -496,7 +500,7 @@
     const pause = () => { stopListening(); cancelVoice(); };
     root.addEventListener('care:pause', pause);
     load();
-    return () => {closed=true;generation++;pause();root.removeEventListener('care:pause', pause);app.remove();};
+    return () => {closed=true;generation++;pause();root.removeEventListener('care:pause', pause);selectors.remove();app.remove();};
   }
   window.CareKiosks = {mount};
 })();
