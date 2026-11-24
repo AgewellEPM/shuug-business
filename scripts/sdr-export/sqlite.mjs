@@ -1,6 +1,7 @@
 import { closeSync, openSync } from 'node:fs';
 import { DatabaseSync } from 'node:sqlite';
 import { HttpError } from '../../sales/model.mjs';
+import { bookingStore } from './booking-store.mjs';
 import { mailStore } from './mail/store.mjs';
 import { teamChat } from './team-chat.mjs';
 
@@ -88,6 +89,7 @@ export function sqliteStore(filename) {
 
   const chat = teamChat(db);
   return {
+    booking: bookingStore(db, writeTransaction),
     repMail: mailStore(db, writeTransaction),
     chat,
     list: kind => all.all(kindFor(kind)).map(decode),

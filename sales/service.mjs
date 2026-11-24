@@ -108,6 +108,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
     if (SUPPORT_REQUEST_ACTIONS.has(action)) return support(user, action, b);
+    if (tools.booking && typeof action === 'string' && action.startsWith('booking-')) return tools.booking(user, action, b);
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
@@ -166,6 +167,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         terms: termsValid(terms) ? { version: terms.version, hash: terms.hash, title: terms.title } : null,
         paymentsConfigured: payment.configured() && !tools.agreementOnly, states: STATES, stages: STAGES,
         ...(salesTeam ? { progress: pipelineExperience(offices) } : {}),
+        ...(tools.nextBooking ? { nextBooking: tools.nextBooking(user) } : {}),
         ...(tools.repEmail ? { repEmail: tools.repEmail.summary(user) } : {}),
         ...(tools.earnings ? { earnings: tools.earnings.summary(user) } : {}),
       };

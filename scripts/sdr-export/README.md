@@ -98,6 +98,21 @@ Open **Team chat** in the sidebar or on the Sales team page. The owner and activ
 
 Press **Enter** to send, use **Shift + Enter** for a new line, or choose **Reply** on a message to quote it. Unread counts are personal. Each channel keeps its history in this workspace’s SQLite database.
 
+## Booking calendar
+
+Open **Overview → Open calendar** or **Calendar** in the sidebar. Clients use `/book` to choose a rep, meeting type and available time in their own time zone. **Copy booking link** gives a rep-specific address. A confirmation includes a private link to reschedule or cancel, and a calendar download. Client intake and changes appear in the rep’s schedule. The hosted app directory uses the built-in booking page when the owner has left the alternative appointment link blank and a rep is accepting bookings.
+
+The owner calendar starts with 30-minute sales appointments and 45-minute demos, Monday–Friday, 9 a.m.–5 p.m. Eastern, with two hours’ notice and a 60-day window. `SDR_BOOKING_TIME_ZONE` sets the initial IANA time zone for new calendars. In **Availability**, reps or the owner can publish a rep, adjust hours, disable a meeting type, set durations, time off, buffers, notice, a client question, a notification email and meeting instructions or a video link. Individual rep calendars begin unpublished. Calendar edits take effect on the next availability check.
+
+**Connections** supports the following integrations.
+
+- **Google Calendar and Microsoft Outlook.** Register a web OAuth app and its exact redirect URI, `<SDR_ORIGIN>/book/connect`. Enable the Google Calendar API with the Calendar events scope, or Microsoft Graph delegated `Calendars.ReadWrite` with offline access. Configure `SDR_GOOGLE_CALENDAR_CLIENT_ID` and `SDR_GOOGLE_CALENDAR_CLIENT_SECRET`, or `SDR_MICROSOFT_CALENDAR_CLIENT_ID` and `SDR_MICROSOFT_CALENDAR_CLIENT_SECRET`, on the server. Each rep signs into their own provider from Connections. One primary calendar per rep supplies busy times and receives appointment changes and client invitations. Connecting also queues future bookings already on the schedule. When the provider cannot confirm availability, the connected rep’s booking page asks the client to retry. [Google Calendar events](https://developers.google.com/workspace/calendar/api/v3/reference/events/insert) · [Microsoft calendar view](https://learn.microsoft.com/en-us/graph/api/user-list-calendarview?view=graph-rest-1.0) · [Microsoft events](https://learn.microsoft.com/en-us/graph/api/user-post-events?view=graph-rest-1.0)
+- **Apple Calendar and other subscriptions.** Create a private iCalendar feed in Connections. The subscriber controls its refresh frequency. Turning off the feed invalidates the link.
+- **Email.** Configure Mailgun as described below and approve a provider sender in **Senders**. The rep’s sender takes priority over a shared sender. Clients and reps receive confirmation, reschedule and cancellation messages. Without a connected calendar provider, booking email includes an ICS attachment. Signed Mailgun delivery events update the email status. A test acceptance is displayed separately from a delivered message.
+- **Other APIs.** In **Connections → Add an API connection**, enter an HTTPS webhook and an optional bearer token. Copy the signing secret into the receiving service. A rep can subscribe to their own bookings and the owner can subscribe the whole workspace. Open `/book/api` for public availability, booking operations, webhook payloads, signature verification, retries and server-managed endpoints. Each appointment shows its current delivery status.
+
+Use the workspace’s hosted HTTPS origin for clients on other devices. Keep the workspace database and its session key together during backup and restore. The key protects private links, saved webhook credentials and calendar refresh tokens.
+
 ## Rep email
 
 For a new export install the mail dependencies with

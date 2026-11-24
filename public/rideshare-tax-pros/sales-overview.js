@@ -64,7 +64,7 @@
       pipeline('', kind);
     };
     const actions = { pipeline: () => openCarePipeline(), research: researchFocus, prospects: prospectFocus, campaigns: () => onNavigate('campaigns'),
-      contracts: () => onNavigate('contracts') };
+      contracts: () => onNavigate('contracts'), calendar: () => onNavigate('calendar') };
     for (const button of document.querySelectorAll('[data-overview-action]')) {
       button.addEventListener('click', actions[button.dataset.overviewAction]);
     }
@@ -247,6 +247,9 @@
     form.elements.state.addEventListener('change', () => renderTerritory(currentOffices));
     return {
       render(data) {
+        const next = data.nextBooking, label = $('#bk-overview-next');
+        if (label) label.textContent = next ? 'Next up · ' + next.title + ' with ' + next.client + ' · ' + window.TinkyBooking.when(next.start, next.zone) :
+          'View your schedule and share your booking page.';
         if (!loaded) {
           loaded = true;
           void api('business-research-last').then(({ research }) => {

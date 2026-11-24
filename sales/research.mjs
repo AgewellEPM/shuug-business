@@ -65,6 +65,7 @@ async function resolvePublic(url, lookup, signal) {
   if (!Array.isArray(addresses) || !addresses.length || addresses.length > 32 || addresses.some(a => !publicIP(a.address) || isIP(a.address) !== a.family)) fail('unsafe_dns', 'The office website did not resolve exclusively to public addresses.');
   return addresses;
 }
+export { resolvePublic as resolvePublicAddresses };
 function pinnedFetch(url, { addresses, signal, headers }) {
   return new Promise((resolve, reject) => {
     const address = addresses.find(a => a.family === 4) || addresses[0];

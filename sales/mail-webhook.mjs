@@ -38,13 +38,14 @@ function authenticate(req, data, raw, key, now) {
   if (!timingSafeEqual(Buffer.from(signature, 'hex'), hmac.digest())) throw new HttpError(400, 'Invalid email notification signature.');
   return Number(timestamp) * 1000;
 }
-export function createMailWebhook(env = process.env, adapter, { now = Date.now, campaignNotification } = {}) {
+export function createMailWebhook(env = process.env, adapter, { now = Date.now, campaignNotification, bookingNotification } = {}) {
   return async (req, res) => {
     const reply = (status, data) => { res.statusCode = status; res.setHeader('Content-Type', 'application/json'); res.setHeader('Cache-Control', 'private, no-store'); res.end(JSON.stringify(data)); };
     try {
       if (req.method !== 'POST') throw new HttpError(405, 'Use POST.');
       if (!env.GIGTAX_MAILGUN_WEBHOOK_KEY || (!adapter && !env.GIGTAX_TINKY_KEY)) throw new HttpError(503, 'Email notifications are not connected.');
       const { raw, data } = await payload(req), receivedAt = authenticate(req, data, raw, env.GIGTAX_MAILGUN_WEBHOOK_KEY, now());
+      if (bookingNotification && await bookingNotification(data)) return reply(200, { ok: true });
       if (campaignNotification && await campaignNotification(data, receivedAt)) return reply(200, { ok: true });
       const db = adapter || backend(env), rows = await db.list('events');
       const emails = rows.filter(row => metadata(row).action === 'contract_delivery');

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { renderProspects } from './sales-prospects.mjs';
 import { renderSupport } from './sales-support.mjs';
+import { bookingOverview, bookingPanel } from './sales-booking.mjs';
 import { renderSalesEmail } from './sales-email.mjs';
 import { renderTeamChat } from './sales-chat.mjs';
 
@@ -46,6 +47,7 @@ function careOverview(queue) {
     <p>Find nursing homes and senior centers, connect with decision makers, and track your next conversation.</p>
     <button type="button" class="care-hero-action" data-overview-action="pipeline">Open pipeline ${icon('arrow')}</button></div>
   </section>
+  ${bookingOverview(icon)}
   <div class="sdr-overview-stats care-metrics" id="sdr-overview-stats" aria-label="Pipeline summary"></div>
   <section class="sdr-card care-directory" aria-labelledby="care-directory-title">
     <div class="sdr-card-head"><div><h2 id="care-directory-title">Facility directory</h2><p>Choose a state and the facilities you want to reach.</p></div>
@@ -72,6 +74,7 @@ function careOverview(queue) {
 function standaloneOverview(queue) {
   return `<div class="sdr-overview-hero"><h2 id="sdr-greeting">Welcome back!</h2><p>Find businesses, build your pipeline, and close new partnerships.</p></div>
   <div class="sdr-overview-actions">${quickAction('Find businesses', 'research', 'green')}${quickAction('Add prospect', 'prospects', 'blue')}${quickAction('Open campaigns', 'campaigns', 'purple')}${quickAction('Create contract', 'contracts', 'orange')}</div>
+  ${bookingOverview(icon)}
   <div class="sdr-overview-stats" id="sdr-overview-stats"></div>
   <section class="sdr-card sdr-category-research" id="sdr-category-research" aria-labelledby="sdr-category-title">
     <div class="sdr-card-head"><div><h2 id="sdr-category-title">Research a business type</h2><p>Find locations and published contacts across all 50 states and D.C.</p></div></div>
@@ -354,10 +357,10 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
       .replace('Office, city or contact', 'Facility, city or contact').replace('Anyone / all offices', 'Anyone / all accounts').replace('Office reply', 'Facility reply');
   }
   const nav = [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'], ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
-  if (prospects) nav.splice(1, 0, ['prospects', 'Prospects'], ['campaigns', 'Campaigns']);
+  if (prospects) nav.splice(1, 0, ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['calendar', 'Calendar']);
   if (prospects) {
     nav.push(['chat', 'Team chat'], ['email', 'Email']);
-    const order = ['home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'chat', 'contacts', 'locations', 'email', 'mail'];
+    const order = ['home', 'calendar', 'prospects', 'campaigns', 'pipeline', 'contracts', 'territories', 'discover', 'team', 'chat', 'contacts', 'locations', 'email', 'mail'];
     nav.sort((first, second) => order.indexOf(first[0]) - order.indexOf(second[0]));
   }
   if (seniorCare) nav.splice(nav.findIndex(([name]) => name === 'territories'), 0, ['facilities', 'Facility directory']);
@@ -371,6 +374,7 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
 <div id="sales-workspace" class="sdr-layout" hidden><aside class="sdr-sidebar"><a class="sdr-brand" href="/" aria-label="Gig Tax Pros public website"><img src="/assets/brand-mark.svg" width="34" height="34" alt="">${seniorCare ? `<span class="care-brand-icon">${icon('center')}</span><span><strong>TinkyTown</strong><small>Senior care sales</small></span>` : prospects ? '<span class="sdr-brand-mark" aria-hidden="true">🚂</span><span><strong>TinkyTown</strong><small>Gig Tax Pros</small></span>' : '<span><strong>Gig Tax Pros</strong><small>OFFICE NETWORK</small></span>'}</a>${careWorkspace ? `<a class="care-workspace-switch" href="${seniorCare ? '/sales' : '/sales/senior-care'}">${icon(seniorCare ? 'pipeline' : 'center')}<span>${seniorCare ? 'Universal CRM' : 'Senior Care CRM'}</span>${icon('arrow')}</a>` : ''}<p class="sdr-sidebar-label">Workspace</p><nav class="sdr-nav sales-tabs" aria-label="Sales workspace">${navButtons}</nav><div class="sdr-sidebar-bottom"><span class="sdr-workspace-indicator">${prospects ? 'Workspace online' : 'Private team workspace'}</span><a href="/">Open public website ↗</a></div></aside>
 <div class="sdr-main" id="sales-main" tabindex="-1"><header class="sdr-topbar"><div>${prospects ? '' : '<p class="eyebrow">Your office network</p>'}<h1 id="sales-view-title">Overview</h1></div>${seniorCare ? standaloneHeader.replaceAll('businesses, contacts, or locations', 'facilities, contacts, or locations') : prospects ? standaloneHeader : ''}<div class="sdr-topbar-right">${prospects ? workspaceTracker : ''}<div id="sales-revenue" hidden></div><div id="sales-identity" hidden><span class="sdr-user-avatar" aria-hidden="true">G</span><span id="sales-name"></span><button class="button secondary" id="sales-logout">Sign out</button></div></div></header><p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
 <section data-tab-panel="home" aria-label="Workspace overview">${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
+${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
 <section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>${seniorCare ? 'Facility pipeline' : 'Your pipeline'}</h2><p>${seniorCare ? 'Manage facility contacts, sales stages, and next steps.' : 'Every office, every next step.'}</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
