@@ -162,6 +162,8 @@ body.sales-console-page :is(.skip-link, .sdr-skip):focus { top: 12px; }
   backdrop-filter: blur(24px) saturate(180%);
 }
 .sales-console-page #sales-view-title { font-size: 24px; }
+.sales-console-page .sdr-talk { gap: 8px; white-space: nowrap; }
+.sales-console-page [data-tab-panel] :is(h1, h2)[tabindex="-1"]:focus-visible { outline: 3px solid var(--accent-ring); outline-offset: 3px; }
 .sales-console-page #sales-identity { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 10px; color: var(--text-secondary); font-size: 13px; text-align: right; }
 .sales-console-page .sdr-user-avatar { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 13px; font-weight: 600; }
 .sales-console-page .sdr-count-label { color: var(--text-tertiary); font-size: 12px; }

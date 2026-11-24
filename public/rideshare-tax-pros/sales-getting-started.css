@@ -78,6 +78,7 @@
 .sdr-tour-card h2:focus { outline: none; }
 .sdr-tour-card p { margin-block: 9px 0; line-height: 1.45; }
 .sdr-tour-card .sdr-tour-instruction { color: #385273; font-size: .92rem; }
+.sdr-tour-voice { margin-top: 12px; }
 .sdr-tour-practice { margin-top: 15px; padding: 12px; background: #edf5ff; border-radius: 12px; }
 .sdr-tour-card .sdr-tour-practice-label { margin: 0 0 7px; color: #235a96; font-size: .74rem; font-weight: 750; letter-spacing: .07em; text-transform: uppercase; }
 .sdr-tour-practice fieldset { margin: 0; padding: 0; border: 0; min-inline-size: 0; }

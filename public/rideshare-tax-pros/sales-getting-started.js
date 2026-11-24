@@ -7,6 +7,7 @@
     const find = selector => dialog.querySelector(selector);
     const card = find('.sdr-tour-card'), title = find('h2'), meter = find('[data-tour-progress]');
     const next = find('[data-tour-next]'), back = find('[data-tour-back]'), pause = [...dialog.querySelectorAll('[data-tour-pause]')];
+    const voice = find('[data-tour-voice]'), talk = document.querySelector('.sdr-topbar [data-sdr-talk]:not([hidden])');
     const status = find('[data-tour-status]'), practice = find('[data-tour-practice]'), fields = find('[data-tour-fields]');
     const feedback = find('[data-tour-feedback]');
     let person, steps = [], progress, index = 0, busy = false, replay, frame, focusTimer, target, started = false;
@@ -126,7 +127,7 @@
     }
     function controls(disabled) {
       busy = disabled;
-      for (const button of [next, back, ...pause]) button.disabled = disabled;
+      for (const button of [next, back, voice, ...pause]) button.disabled = disabled;
       dialog.setAttribute('aria-busy', String(disabled));
     }
     function page(step) {
@@ -153,21 +154,33 @@
     function updateLauncher() {
       launcher.textContent = progress && progress.state !== 'complete' ? 'Resume walkthrough' : 'Getting started';
     }
-    async function leave(complete) {
+    function closeWalkthrough(restoreFocus) {
+      clearTimeout(focusTimer);
+      target = null;
+      dialog.close();
+      updateLauncher();
+      if (restoreFocus) launcher.focus({ preventScroll: true });
+    }
+    async function leave(complete, startVoice = false) {
       if (busy) return;
       controls(true);
+      if (startVoice) {
+        closeWalkthrough(false);
+        talk.click();
+      }
       try {
         await save(complete ? 'complete' : 'paused', steps[index].id);
-        clearTimeout(focusTimer); target = null; dialog.close(); updateLauncher(); launcher.focus({ preventScroll: true });
+        if (startVoice) updateLauncher();
+        else closeWalkthrough(true);
       } catch (e) {
-        if (!complete) {
-          clearTimeout(focusTimer); target = null; dialog.close(); updateLauncher(); launcher.focus({ preventScroll: true });
-        } else status.textContent = e.message || 'Try again to save your place.';
+        if (startVoice) document.querySelector('#sales-message').textContent = 'The walkthrough could not save your place.';
+        else if (!complete) closeWalkthrough(true);
+        else status.textContent = e.message || 'Try again to save your place.';
       }
       finally { controls(false); }
     }
     async function open() {
-      if (dialog.open || !person || document.querySelector('dialog[open]')) return;
+      if (busy || dialog.open || !person || document.querySelector('dialog[open]')) return;
       const workspace = document.querySelector('#sales-workspace');
       if (!workspace || workspace.hidden) return;
       replay = progress?.state === 'complete';
@@ -188,6 +201,8 @@
     next.onclick = () => index === steps.length - 1 ? leave(true) : move(index + 1);
     back.onclick = () => move(index - 1);
     pause.forEach(button => button.onclick = () => leave(false));
+    voice.hidden = !talk;
+    voice.onclick = () => { if (talk) void leave(false, true); };
     dialog.addEventListener('cancel', event => { event.preventDefault(); void leave(false); });
     launcher.onclick = () => open();
     function view(user) {

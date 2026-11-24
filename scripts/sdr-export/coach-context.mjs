@@ -56,6 +56,22 @@ export function goalProgress(db, user, goal) {
 }
 
 const norm = v => String(v || '').normalize('NFKD').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+export function mentionsAccount(message, name, spoken = false) {
+  const phrase = norm(message), label = norm(name);
+  if (!label) return false;
+  if ((' ' + phrase + ' ').includes(' ' + label + ' ')) return true;
+  if (!spoken) return false;
+  const joined = label.replaceAll(' ', '');
+  const words = phrase.split(' ');
+  return words.some((_, start) => {
+    let segment = '';
+    for (let index = start; index < words.length && segment.length < joined.length; index++) {
+      segment += words[index];
+      if (segment === joined) return true;
+    }
+    return false;
+  });
+}
 export function accountContext(db, user, question, history, recommendations, openOfficeId) {
   const phrase = norm(question), tokens = new Set(phrase.split(' ').filter(t => t.length > 2));
   const recent = norm(history.slice(-2).map(turn => turn.question).join(' '));
@@ -65,7 +81,7 @@ export function accountContext(db, user, question, history, recommendations, ope
     const name = norm(row.town);
     let value = urgent.has(String(row.id)) ? 2 : 0;
     if (String(row.id) === openOfficeId) value += 90;
-    if (name && phrase.includes(name)) value += 100;
+    if (mentionsAccount(question, row.town, true)) value += 100;
     if (name && recent.includes(name)) value += 12;
     for (const word of name.split(' ')) if (tokens.has(word)) value += 8;
     if (tokens.has(norm(row.locality))) value += 3;

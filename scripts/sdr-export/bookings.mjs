@@ -80,7 +80,7 @@ export function bookings(env, db, origin, key, options = {}) {
     if (row && row.signature !== signature) throw new HttpError(409, 'This booking request has already been used.');
     return row;
   }
-  async function reserve(input, prior) {
+  async function reserve(input, prior, expectedRevision) {
     const host = prior?.host || input.host, type = prior?.type || input.type, start = confirmedSlot(input);
     const zone = timeZone(input.zone), client = prior?.client || clientDetails(input);
     const answer = prior?.answer ?? text(input.answer || '', 800);
@@ -97,6 +97,7 @@ export function bookings(env, db, origin, key, options = {}) {
       if (input.revision !== prior.revision) throw stale();
     }
     const p = offered(host, type), conn = calendars.connection(host);
+    if (expectedRevision !== undefined && p.revision !== expectedRevision) throw stale();
     const end = start + p.durations[type] * minute;
     if (!openSlot(p, type, start, now(), localBusy(host, start, end, prior?.id))) throw conflict();
     const external = await calendars.busy(host, conn, start - pad, end + pad, prior?.id);
@@ -150,6 +151,26 @@ export function bookings(env, db, origin, key, options = {}) {
     const host = input.host || user.id;
     if (!['owner', 'agent'].includes(user.role) || (user.id !== host && user.role !== 'owner')) throw new HttpError(403, 'Open your own sales calendar.');
     const p = policy(host);
+    if (action === 'booking-staff-slots' || action === 'booking-staff-book' || action === 'booking-staff-manage') {
+      if (host !== user.id || !p.active) throw new HttpError(403, 'Sign in to your own sales calendar.');
+      const existing = typeof input.bookingId === 'string' && uuid.test(input.bookingId) ? store.get(input.bookingId) : null;
+      if (input.bookingId !== undefined && existing?.host !== host) throw missing();
+      if (action === 'booking-staff-manage' && input.operation === 'cancel') {
+        if (!existing) throw missing();
+        return cancel(input, existing);
+      }
+      if (!p.published) throw new HttpError(409, 'Enable client bookings under Calendar, then Availability.');
+      if (action === 'booking-staff-slots') {
+        const available = await slots({ ...input, host }, existing);
+        return { ...available, duration: p.durations[existing?.type || input.type], revision: p.revision, question: p.question, location: p.location };
+      }
+      if (!Number.isSafeInteger(input.policyRevision)) throw stale();
+      if (action === 'booking-staff-manage') {
+        if (!existing || input.operation !== 'reschedule') throw missing();
+        return reserve(input, existing, input.policyRevision);
+      }
+      return reserve({ ...input, host }, null, input.policyRevision);
+    }
     if (action === 'booking-dashboard') {
       const entries = store.range(host, now() - 365 * day, now() + 181 * day);
       return { host, policy: p, hosts: (user.role === 'owner' ? roster() : [{ id: user.id, active: true, name: user.name }])

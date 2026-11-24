@@ -73,6 +73,18 @@
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
+    const workspaceSkip = $('.sdr-skip');
+    workspaceSkip?.addEventListener('click', event => {
+      event.preventDefault();
+      $('#sales-main').focus();
+    });
+    if (coachUI) $$('[data-sdr-talk]').forEach(button => {
+      button.hidden = false;
+      button.addEventListener('click', () => {
+        button.focus({ preventScroll: true });
+        window.dispatchEvent(new CustomEvent('sdr:coach-voice'));
+      });
+    });
     const tourUI = window.SdrGettingStarted?.mount({ api, navigate: href => coachNavigate(href, { replace: true }) });
     if (coachUI) document.addEventListener('click', event => {
       if (event.target.closest('[data-prospect-select],[data-prospect-add],[data-prospect-cancel]')) coachUI.sync();
@@ -80,6 +92,14 @@
     const careCampaign = window.SdrCareCampaign?.mount();
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
+    const viewTitles = {
+      today: 'Today’s Plan', home: 'Overview', mission: 'Mission', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline',
+      contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Mailbox', mail: 'Senders',
+      territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects',
+      campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab',
+      'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky', products: 'Products', certification: 'Certification',
+    };
+    const workspaceTitle = document.title;
     const tab = (name, chatChannel, calendar) => {
       if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
       const trainingTool = ['training-demo', 'training-pipeline'].includes(name);
@@ -95,7 +115,9 @@
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
-      if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
+      const viewTitle = viewTitles[name] || 'Workspace';
+      if ($('#sales-view-title')) $('#sales-view-title').textContent = viewTitle;
+      if (standalone) document.title = viewTitle + ' | ' + workspaceTitle;
       $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification','mission'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
@@ -256,12 +278,25 @@
     });
     function openNavigation(name, section) {
       if (!standalone) return tab(name);
+      const previousView = document.body.dataset.sdrView, previousFocus = document.activeElement;
       const params = new URLSearchParams({ view: name });
       if (section && section !== 'roster') params.set('section', section);
       const hash = '#' + params;
       if (location.hash !== hash) history.pushState(null, '', hash);
       if (name === 'team' && section && document.body.dataset.sdrView === 'team' && teamUI) return teamUI.view(section);
       if (!showRequestedView()) tab(name);
+      focusView(previousView, previousFocus);
+    }
+    function focusView(previousView, previousFocus) {
+      const view = document.body.dataset.sdrView, currentFocus = document.activeElement;
+      if (view === previousView || $('dialog[open], #sales-detail-drawer:not([hidden])')) return;
+      if (currentFocus?.closest('#coach-widget') || (currentFocus !== previousFocus && currentFocus !== document.body)) return;
+      const panel = $$('[data-tab-panel]').find(element => element.dataset.tabPanel === view && !element.closest('[hidden]'));
+      if (!panel) return;
+      const named = document.getElementById(panel.getAttribute('aria-labelledby'));
+      const heading = [named, ...$$('h1, h2', panel)].find(element => element && !element.closest('[hidden], details:not([open])')) || panel;
+      heading.tabIndex = -1;
+      heading.focus();
     }
     function coachContext() {
       const view = document.body.dataset.sdrView || defaultView;
@@ -336,7 +371,10 @@
       previous?.focus({ preventScroll: true });
     });
     if (standalone) window.addEventListener('hashchange', () => {
-      if (data && !showRequestedView() && !location.hash) tab(defaultView);
+      if (!data) return;
+      const previousView = document.body.dataset.sdrView, previousFocus = document.activeElement;
+      if (!showRequestedView() && !location.hash) tab(defaultView);
+      focusView(previousView, previousFocus);
     });
     function closeDetail() {
       const drawer = $('#sales-detail-drawer'); if (!drawer) return;
@@ -368,7 +406,7 @@
           return !closed || closed.querySelector(':scope > summary') === element;
         });
         const widget = $('#coach-widget');
-        if (widget && !widget.hidden) controls.push(...$$('button:not([disabled]),a[href],input,textarea,select', widget).filter(el => !el.closest('[hidden]')));
+        if (widget && !widget.hidden && !drawer.contains(widget)) controls.push(...$$('button:not([disabled]),a[href],input,textarea,select', widget).filter(el => !el.closest('[hidden]')));
         const first = controls[0], last = controls.at(-1);
         if ((event.shiftKey && document.activeElement === first) || (!event.shiftKey && document.activeElement === last)) { event.preventDefault(); (event.shiftKey ? last : first)?.focus(); }
       }
@@ -399,6 +437,7 @@
     async function refresh() {
       data = await api('bootstrap');
       $('#sales-login').hidden = true; $('#sales-workspace').hidden = false;
+      if (workspaceSkip) workspaceSkip.hidden = false;
       coachUI?.view(data.user);
       const identity = $('#sales-identity');
       if (identity) identity.hidden = false;
@@ -514,6 +553,7 @@
       await refresh();
       if (initialSelection !== sidebarSelection) return;
       if (!showRequestedView() && document.body.dataset.sdrView !== defaultView) tab(defaultView);
+      if (!document.activeElement?.closest('#sales-workspace')) $('[data-sdr-talk]:not([hidden])')?.focus();
     }, loginForm);
     $('#sales-preview-terms').onclick = run(async () => { const result = await api('preview-terms',Object.fromEntries(new FormData(agreementForm))); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; },agreementForm);
     agreementForm.onsubmit = run(async () => { const input = Object.fromEntries(new FormData(agreementForm)); input.approved = input.approved === 'on'; const result = await api('publish-terms',input); $('#sales-agreement-preview').hidden = false; $('#sales-agreement-preview').textContent = result.terms.text; await refresh(); tab('team'); status('Approved terms published. Existing invitations retain their original version.'); },agreementForm);
@@ -521,7 +561,7 @@
     $$('[data-tab]').forEach(b => b.onclick = () => {
       sidebarSelection++;
       openNavigation(b.dataset.tab);
-      if (teamTools.has(b.dataset.tab)) teamReturn.focus({ preventScroll: true });
+      if (teamTools.has(b.dataset.tab) && !teamReturn.hidden && !document.activeElement?.closest('[data-tab-panel]')) teamReturn.focus({ preventScroll: true });
     });
     $('#sales-filter').oninput = renderList; $('#sales-stage-filter').onchange = renderList; $('#sales-facility-kind-filter')?.addEventListener('change', renderList); if ($('#sales-attention-filter')) $('#sales-attention-filter').onchange = renderList;
     $('#sales-refresh').onclick = run(async () => { await refresh(); status('Pipeline refreshed.'); });

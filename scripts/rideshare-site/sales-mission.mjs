@@ -35,6 +35,7 @@ export function renderMission(icon) {
         <h1 id="sales-mission-title">Our Mission</h1>
         <p class="mission-hero-line">Laying the tracks for a world where everyone can communicate.</p>
         <p>Bring picture-based communication to the places people live, learn, receive care, and take part in their communities.</p>
+        <button type="button" class="mission-button mission-button-primary mission-talk" data-sdr-talk aria-haspopup="dialog" aria-controls="coach-popup" hidden>${icon('microphone')} Talk to Tinky</button>
       </div>
     </header>
     <ul class="mission-principles" aria-label="Mission priorities">

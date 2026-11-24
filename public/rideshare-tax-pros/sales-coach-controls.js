@@ -4,13 +4,14 @@
     const catalog = JSON.parse(document.querySelector('#coach-form-catalog')?.textContent || '{}');
     let last;
     const visible = form => form && !form.closest('[hidden], dialog:not([open]), details:not([open])');
+    const textField = input => input?.matches?.('input:not([type="hidden"], [type="file"], [type="password"], [type="checkbox"], [type="radio"]), select, textarea');
     function read(key) {
       const item = catalog[key], form = item && document.querySelector(item.selector);
       if (!visible(form)) return;
       const fields = {};
       for (const name of item.fields) {
         const input = form.elements.namedItem(name);
-        if (!input || input.matches(':disabled') || input.closest('[hidden]') || ['hidden','file','password','checkbox'].includes(input.type)) continue;
+        if (!textField(input) || input.matches(':disabled') || input.closest('[hidden]')) continue;
         fields[name] = { value: String(input.value).slice(0, 1000), options: input.options ? [...input.options].slice(0, 100).map(o => [o.value, o.text]) : undefined };
       }
       return { key, fields };
@@ -25,7 +26,7 @@
       const visibleForms = Object.keys(catalog).map(read).filter(Boolean);
       return visibleForms.length === 1 ? visibleForms[0] : undefined;
     }
-    async function fill(draft, original, navigate, activeView) {
+    async function fill(draft, original, navigate, activeView, focus = true) {
       const item = catalog[draft.formKey];
       if (!item) throw new Error('This form is unavailable.');
       if (activeView !== item.view && !visible(document.querySelector(item.selector))) await navigate('#view=' + item.view);
@@ -36,27 +37,49 @@
         form = document.querySelector(item.selector);
       }
       if (!visible(form)) throw new Error('Open ' + item.title + ' in the workspace, then say “fill it in.”');
-      let filled = 0;
+      const applied = [], skipped = [];
       for (const name of item.fields) {
         const proposed = draft.fields[name];
+        if (!proposed) continue;
         const input = form.elements.namedItem(name);
-        if (!input || input.matches(':disabled') || input.readOnly || input.closest('[hidden]') || !proposed) continue;
+        const label = fieldLabel(name, input);
+        if (!textField(input) || input.matches(':disabled') || input.readOnly || input.closest('[hidden]')) { skipped.push(label); continue; }
         const expected = original?.key === draft.formKey && original.fields[name];
-        if (expected && input.value !== expected.value && input.value !== proposed) continue;
+        if (expected && input.value !== expected.value && input.value !== proposed) { skipped.push(label); continue; }
         let value = String(proposed);
         if (input.options) {
           const option = [...input.options].find(o => [o.value, o.text].some(s => s.toLowerCase() === value.toLowerCase()));
-          if (!option) continue;
+          if (!option) { skipped.push(label); continue; }
           value = option.value;
         }
         input.value = value;
-        if (!input.value) continue;
-        input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true })); filled++;
+        if (!input.value) { skipped.push(label); continue; }
+        input.dispatchEvent(new Event('input', { bubbles: true })); input.dispatchEvent(new Event('change', { bubbles: true }));
+        applied.push([label, fieldValue(input)]);
       }
-      if (!filled) throw new Error('The open form changed or needs more details. Check the fields and ask Tinky again.');
-      form.scrollIntoView?.({ block: 'center' }); form.querySelector('input,select,textarea')?.focus({ preventScroll: true });
+      if (!applied.length) throw new Error('I could not fill ' + item.title + '. Check the form or give me the details again.');
+      if (focus) {
+        form.scrollIntoView?.({ block: 'center' });
+        form.querySelector('input,select,textarea')?.focus({ preventScroll: true });
+      }
+      return { title: item.title, applied, skipped, missing: missingFields(form) };
     }
     return { current, fill };
+  }
+
+  function fieldLabel(name, input) {
+    const label = input?.labels?.[0]?.cloneNode(true);
+    label?.querySelectorAll('input, select, textarea, button, [aria-hidden="true"]').forEach(child => child.remove());
+    return label?.textContent.trim() || input?.getAttribute?.('aria-label') || name.replace(/([a-z])([A-Z])/g, '$1 $2');
+  }
+
+  function fieldValue(input) {
+    return input.selectedOptions?.[0]?.text || input.value;
+  }
+
+  function missingFields(form) {
+    return [...form.elements].filter(input => input.required && input.willValidate && !input.validity.valid)
+      .map(input => fieldLabel(input.name, input));
   }
 
   function wave(blocks, length, rate) {
@@ -90,7 +113,7 @@
     return 'Voice input is unavailable. You can type a command or use your keyboard’s dictation in the message box.';
   }
 
-  async function recordPhrase(signal, announce) {
+  async function recordPhrase(signal, announce, needsPermission) {
     const Context = window.AudioContext || window.webkitAudioContext;
     const audio = new Context();
     let stream, source, processor, timer, settle, fail;
@@ -106,7 +129,7 @@
     const abort = () => { release(); settle(); };
     signal.addEventListener('abort', abort, { once: true });
     try {
-      announce('Allow microphone access to speak with Tinky.');
+      if (needsPermission) announce('Allow microphone access to speak with Tinky.');
       const resumed = audio.resume();
       resumed.catch(() => {});
       stream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true }, video: false });
@@ -135,10 +158,10 @@
     } finally { signal.removeEventListener('abort', abort); release(); }
   }
 
-  function voice(button, submit, announce, localAvailable = () => false) {
+  function voice(button, submit, announce, localAvailable = () => false, activeChanged = () => {}) {
     const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!button) return { stop() {}, answer() {} };
-    let active = false, run, recording, speaking, generation = 0;
+    if (!button) return;
+    let active = false, run, recording, speaking, lastReply, generation = 0, microphoneReady = false;
     button.hidden = false;
     function pressed(on) {
       button.setAttribute('aria-pressed', String(on));
@@ -146,6 +169,7 @@
       button.setAttribute('aria-label', label); button.title = label;
       const caption = button.querySelector('span');
       if (caption) caption.textContent = on ? 'Stop' : 'Speak';
+      activeChanged(on);
     }
     function stop() {
       generation++; active = false;
@@ -154,11 +178,22 @@
       if (speaking) { speaking = null; window.speechSynthesis?.cancel(); }
       pressed(false);
     }
+    function fail(message, error = true) {
+      const wasActive = active;
+      stop(); announce(message, error);
+      if (wasActive && window.speechSynthesis && window.SpeechSynthesisUtterance) {
+        const utterance = new SpeechSynthesisUtterance(message);
+        speaking = utterance;
+        utterance.onend = utterance.onerror = () => { if (speaking === utterance) speaking = null; };
+        try { window.speechSynthesis.speak(utterance); } catch { speaking = null; }
+      }
+    }
     async function listenLocally(epoch) {
       const controller = new AbortController(); recording = controller;
       try {
-        const wav = await recordPhrase(controller.signal, announce);
+        const wav = await recordPhrase(controller.signal, announce, !microphoneReady);
         if (!wav || epoch !== generation) return;
+        microphoneReady = true;
         announce('Transcribing your words…');
         const res = await fetch('/api/sales/coach/voice', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'audio/wav' }, body: wav, signal: controller.signal });
         const result = await res.json();
@@ -167,7 +202,7 @@
         recording = null; submit(result.text);
       } catch (error) {
         if (epoch !== generation) return;
-        stop(); announce(error.name === 'Error' ? error.message : microphoneHelp(error.name));
+        fail(error.name === 'Error' ? error.message : microphoneHelp(error.name));
       }
     }
     function listen() {
@@ -176,7 +211,7 @@
       if (localAvailable() && navigator.mediaDevices?.getUserMedia && window.AudioWorkletNode && (window.AudioContext || window.webkitAudioContext)) {
         void listenLocally(epoch); return;
       }
-      if (!Speech) { stop(); announce(microphoneHelp()); button.form?.elements.question?.focus(); return; }
+      if (!Speech) { fail(microphoneHelp()); button.form?.elements.question?.focus(); return; }
       const recognition = new Speech(); run = recognition;
       recognition.lang = navigator.language || 'en-US'; recognition.continuous = false; recognition.interimResults = false;
       recognition.onresult = event => {
@@ -185,28 +220,51 @@
         if (!phrase) return;
         run = null; recognition.onend = null; recognition.stop(); submit(phrase);
       };
-      recognition.onerror = event => { if (epoch === generation) { stop(); announce(microphoneHelp(event.error)); } };
-      recognition.onend = () => { if (epoch === generation && run === recognition) { run = null; stop(); announce('Microphone stopped. Tap it to speak again.'); } };
-      try { recognition.start(); announce('Listening…'); } catch (error) { stop(); announce(microphoneHelp(error.name)); }
+      recognition.onerror = event => { if (epoch === generation) fail(microphoneHelp(event.error)); };
+      recognition.onend = () => {
+        if (epoch === generation && run === recognition) { run = null; fail('The microphone stopped. Choose Speak to try again.'); }
+      };
+      try { recognition.start(); announce('Listening…'); } catch (error) { fail(microphoneHelp(error.name)); }
+    }
+    function start() {
+      if (active) return;
+      if (speaking) { speaking = null; window.speechSynthesis?.cancel(); }
+      active = true; lastReply = undefined; generation++; pressed(true); listen();
     }
     button.onclick = () => {
       if (active) { stop(); announce('Microphone off.'); return; }
-      active = true; generation++; pressed(true); listen();
+      start();
     };
-    function answer(turn) {
+    function answer(turn, complete) {
       if (!active) return;
-      const items = turn.mail?.entries || [];
-      if (items.length > 1) { stop(); announce('Review the individual emails below. Tap the microphone again to confirm.'); return; }
-      const item = items[0];
-      const text = item ? ['Email to', item.to, 'from', item.from, '. Subject.', item.subject, '. Message.', item.body, '. Say send it to send.'].join(' ') : turn.answer.slice(0, 1200);
-      if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) { listen(); return; }
-      const epoch = generation, utterance = new SpeechSynthesisUtterance(text); speaking = utterance;
-      utterance.onend = () => { if (epoch === generation) { speaking = null; listen(); } };
-      utterance.onerror = () => { if (epoch === generation) stop(); };
-      window.speechSynthesis.speak(utterance);
+      if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) {
+        fail('Spoken replies are unavailable. You can read the reply with your screen reader and type or dictate a command.');
+        return;
+      }
+      const text = turn.answer.trim();
+      lastReply = { turn, complete };
+      const chunks = text.match(/.{1,220}(?:\s+|$)|\S+/gs) || [];
+      const epoch = generation;
+      let index = 0;
+      function speakNext() {
+        if (epoch !== generation) return;
+        if (index === chunks.length) { speaking = null; complete?.(); listen(); return; }
+        const utterance = new SpeechSynthesisUtterance(chunks[index++].trim());
+        speaking = utterance; utterance.lang = document.documentElement.lang || navigator.language || 'en-US';
+        utterance.onend = speakNext;
+        utterance.onerror = () => {
+          if (epoch === generation) { stop(); announce('The spoken reply was interrupted. Choose Speak to try again.', true); }
+        };
+        try { window.speechSynthesis.speak(utterance); } catch { utterance.onerror(); }
+      }
+      speakNext();
+    }
+    function repeat() {
+      if (lastReply) answer(lastReply.turn, lastReply.complete);
+      else answer({ answer: 'There is no spoken reply yet. Say Voice help for a list of commands.' });
     }
     window.addEventListener('pagehide', stop); document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
-    return { stop, answer };
+    return { start, stop, fail, answer, repeat, active: () => active };
   }
-  window.SdrCoachControls = { forms, voice };
+  window.SdrCoachControls = { forms, voice, fieldLabel, fieldValue, missingFields };
 })();

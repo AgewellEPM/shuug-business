@@ -9,6 +9,7 @@ export const gettingStarted = `<dialog class="sdr-tour" id="sdr-tour" aria-label
     <h2 id="sdr-tour-title" tabindex="-1"></h2>
     <p id="sdr-tour-copy"></p>
     <p class="sdr-tour-instruction" data-tour-instruction hidden></p>
+    <button class="button secondary sdr-tour-voice" type="button" data-tour-voice aria-description="Pauses the walkthrough and starts voice mode" hidden>Talk to Tinky</button>
     <form class="sdr-tour-practice" data-tour-practice hidden>
       <p class="sdr-tour-practice-label">Practice</p>
       <fieldset><legend></legend><div data-tour-fields></div></fieldset>

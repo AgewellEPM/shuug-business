@@ -89,3 +89,102 @@ test('closing voice while permission is pending releases a late microphone witho
   await new Promise(resolve => setImmediate(resolve));
   assert.equal(stopped, 1); assert.equal(mic.getAttribute('aria-pressed'), 'false');
 });
+
+function voiceWorkspace(t, { markup = '', answer }) {
+  const dom = new JSDOM('<main id="sales-workspace"><button id="talk">Talk to Tinky</button>' + markup + renderSalesCoach(() => '') + '</main>', {
+    url: 'https://workspace.example/sales', runScripts: 'outside-only',
+  });
+  const w = dom.window, find = selector => w.document.querySelector(selector);
+  t.after(() => w.close());
+  let microphone, pending;
+  w.SpeechRecognition = class {
+    start() { microphone = this; }
+    stop() { microphone = null; }
+    abort() { this.stop(); }
+  };
+  w.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
+  w.speechSynthesis = { speak(words) { pending = words; }, cancel() { pending = null; } };
+  w.eval(controlsScript);
+  w.eval(script);
+  const requests = [], turns = [];
+  const coach = w.SdrCoach.mount({
+    context: () => ({ view: 'home', label: 'Overview' }),
+    api: async (action, data) => {
+      if (action === 'coach-state') return { turns: [...turns], next: [], calendar: {}, goal: null };
+      requests.push(data);
+      const turn = { id: turns.length + 1, question: data.question, mode: 'workflow', sources: [], ...answer(data) };
+      turns.push(turn);
+      return { turn };
+    },
+  });
+  coach.view({ id: 'sales-rep' });
+  return {
+    find, requests,
+    async start() {
+      find('#talk').focus();
+      w.dispatchEvent(new w.CustomEvent('sdr:coach-voice'));
+      await new Promise(resolve => setImmediate(resolve));
+      assert.ok(microphone);
+      assert.equal(w.document.activeElement, find('#coach-mic'));
+    },
+    async say(text) {
+      assert.ok(microphone);
+      microphone.onresult({ results: [{ isFinal: true, 0: { transcript: text } }] });
+      await new Promise(resolve => setImmediate(resolve));
+    },
+    heard() {
+      const parts = [];
+      while (pending) {
+        assert.equal(microphone, null);
+        const next = pending;
+        pending = null;
+        parts.push(next.text);
+        next.onend();
+      }
+      return parts.join(' ');
+    },
+  };
+}
+
+test('spoken multi-email confirmation requires each full preview and carries the reviewed turn ID', async t => {
+  const body = 'Please review our reception demo. '.repeat(25) + 'The final sentence is audible.';
+  const ui = voiceWorkspace(t, { answer: ({ question }) => question.startsWith('Email') ?
+    { answer: 'Review the emails', mail: { entries: [
+      { to: 'one@example.test', from: 'rep@example.test', subject: 'First', body },
+      { to: 'two@example.test', from: 'rep@example.test', subject: 'Second', body: 'A separate message.' },
+    ] } } : { answer: 'Both messages accepted.' } });
+  await ui.start();
+  await ui.say('Email my prospects');
+  assert.equal(ui.requests[0].voice, true);
+  assert.match(ui.heard(), /one@example\.test.*final sentence is audible.*Next email/);
+  await ui.say('Send these emails');
+  assert.equal(ui.requests.length, 1);
+  assert.match(ui.heard(), /two@example\.test.*A separate message.*Send these emails/);
+  await ui.say('Send it');
+  assert.equal(ui.requests.length, 1);
+  assert.match(ui.heard(), /Send these emails to send all 2/);
+  await ui.say('Send these emails');
+  assert.equal(ui.requests[1].mailTurnId, 1);
+  assert.equal(ui.requests[1].voice, true);
+  assert.match(ui.heard(), /Both messages accepted/);
+  ui.find('#coach-minimize').click();
+  assert.equal(ui.find('#talk').ownerDocument.activeElement, ui.find('#talk'));
+});
+
+test('voice reads actual form entries, skipped values and required fields', async t => {
+  const markup = '<form id="sdr-category-form"><label>Business type<input name="type"></label>'
+    + '<label>State<select name="state"><option value="CT">Connecticut</option></select></label>'
+    + '<label>City or ZIP<input name="locality" required></label></form>';
+  const ui = voiceWorkspace(t, { markup, answer: () => ({
+    answer: 'Prepared for business research. State Wyoming.', apply: true,
+    draft: { type: 'workspaceForm', formKey: 'research', fields: { type: 'nursing homes', state: 'Wyoming' } },
+  }) });
+  await ui.start();
+  await ui.say('Fill the business research form');
+  const heard = ui.heard();
+  assert.match(heard, /Business type: nursing homes/);
+  assert.match(heard, /left unchanged: State/);
+  assert.match(heard, /required fields.*City or ZIP/);
+  assert.doesNotMatch(heard, /Wyoming/);
+  assert.equal(ui.find('[name="state"]').value, 'CT');
+});

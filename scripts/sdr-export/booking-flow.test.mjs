@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
+import { randomUUID } from 'node:crypto';
 import { once } from 'node:events';
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
@@ -68,6 +69,39 @@ async function withWorkspace(focus, run) {
     rmSync(scratch, { recursive: true, force: true });
   }
 }
+test('a signed-in rep uses Ask Tinky to find a time, review, confirm and cancel a packaged workspace booking', () =>
+  withWorkspace(null, async ({ session, dataDir }) => {
+    const owner = session(), rep = session();
+    await owner.api('login', { code: readFileSync(join(dataDir, 'owner-code'), 'utf8').trim() });
+    const invite = await owner.api('sales-team-invite', { name: 'Example rep', email: 'rep@example.invalid' });
+    await rep.api('login', { code: invite.code, email: invite.agent.email });
+    let lastId = 0;
+    async function ask(question) {
+      const { turn } = await rep.api('coach-ask', { question, lastId, requestId: randomUUID(), timeZone: 'America/New_York' });
+      lastId = turn.id;
+      return turn;
+    }
+    const unpublished = await ask('Book a demo at the next available time');
+    assert.match(unpublished.answer, /Enable client bookings/);
+    const { policy } = await rep.api('booking-dashboard');
+    await rep.api('booking-settings', { ...policy, published: true });
+    assert.match((await ask('Book a demo at the next available time')).answer, /Option 1/);
+    await ask('Option one');
+    await ask('Avery Kim');
+    const draft = await ask('avery at example dot invalid');
+    assert.match(draft.answer, /avery@example\.invalid.*45 minutes.*confirm booking/);
+    assert.equal((await rep.api('booking-dashboard')).entries.length, 0);
+    assert.equal((await ask('Read it back')).answer, draft.answer);
+    const receipt = await ask('Confirm booking');
+    assert.match(receipt.answer, /Product demo confirmed.*Booking email is not configured/);
+    const [record] = (await rep.api('booking-dashboard')).entries;
+    assert.equal(record.id, receipt.bookingSaved.id);
+    assert.equal(record.client.email, 'avery@example.invalid');
+    assert.match((await ask('Cancel the demo with Avery Kim')).answer, /confirm cancellation/);
+    assert.match((await ask('Confirm cancellation')).answer, /cancelled for Avery Kim/);
+    assert.equal((await rep.api('booking-dashboard')).entries[0].status, 'cancelled');
+  }));
+
 test('a client books, moves and cancels a rep demo through the packaged public page and sales calendar', () =>
   withWorkspace(null, async ({ session, dataDir }) => {
     const owner = session(), rep = session(), client = session();
