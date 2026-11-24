@@ -17,7 +17,7 @@ export function messageHandoffs({ db, roster, accountFor, transport, protect, re
   const name = (id) => db.salesRepProfile(id)?.name || person(id)?.name || 'Former team member';
   function recipient(id, source) {
     if (typeof id !== 'string' || id === source || id === 'owner' || !person(id))
-      throw new HttpError(400, 'Choose another active Tinky Team agent.');
+      throw new HttpError(400, 'Choose another active sales agent.');
   }
   function accessible(user, id) {
     if (!person(user.id)) throw new HttpError(403, 'Your sales access has changed.');

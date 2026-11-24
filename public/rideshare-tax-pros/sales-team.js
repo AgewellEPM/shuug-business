@@ -90,6 +90,7 @@
         introduction.append(memberAvatar(profile), element('p', profile.bio || 'No bio yet.', 'sdr-team-member-bio'));
         content.append(introduction);
         const contact = element('dl', '', 'sdr-team-member-contact');
+        if (profile.displayTitle) contact.append(element('dt', 'Display title'), element('dd', profile.displayTitle));
         if (profile.email) contact.append(element('dt', 'Work email'), element('dd', profile.email));
         if (profile.phone) contact.append(element('dt', 'Phone'), element('dd', profile.phone));
         if (contact.children.length) content.append(contact);
@@ -108,8 +109,8 @@
   function mountProfile(api, onSaved) {
     const form = $('sales-team-profile');
     if (!form) return null;
-    const { name, email, phone, bio, headshot } = form.elements;
-    const fields = { name, email, phone, bio };
+    const { name, displayTitle, email, phone, bio, headshot } = form.elements;
+    const fields = { name, displayTitle, email, phone, bio };
     const preview = form.querySelector('[data-team-profile-preview]');
     const remove = form.querySelector('[data-team-profile-remove]');
     const reload = form.querySelector('[data-team-profile-reload]');
@@ -235,7 +236,7 @@
       picker.parentElement.hidden = !section;
       if (!section) return;
       if (!picker.options.length || role !== pickerRole) {
-        const groups = [['Tinky Team', tabs]];
+        const groups = [['Sales team', tabs]];
         for (const group of document.querySelectorAll('[data-team-tools] section')) {
           groups.push([group.querySelector('h3').textContent, group.querySelectorAll('[data-tab]')]);
         }
@@ -373,7 +374,7 @@
       } else if (member.active && Array.isArray(member.marketSegments)) {
         coverage.append(element('p', 'No classified facilities assigned'));
       }
-      if (owner && member.id !== rootId) content.append(element('p', `Tinky Team agent ID ${member.id}`, 'sdr-team-member-meta'));
+      if (owner && member.id !== rootId) content.append(element('p', `Sales agent ID ${member.id}`, 'sdr-team-member-meta'));
       const access = element('div', '', 'sdr-team-member-access');
       access.append(state);
       if (member.canRevoke) access.append(revokeButton(member));
@@ -386,7 +387,7 @@
       const rows = new Map(members.map(member => [member.id, memberRow(member, rootId)]));
       const groups = new Map();
       const tree = element('ul', '', 'sdr-team-tree');
-      tree.setAttribute('aria-label', 'Tinky Team reporting structure');
+      tree.setAttribute('aria-label', 'Sales team reporting structure');
       for (const member of members) {
         const item = rows.get(member.id), parent = rows.get(member.parentId);
         if (!parent) { tree.append(item); continue; }
@@ -415,7 +416,7 @@
       $('sales-team-scope').textContent = owner ? 'See who reports to whom across the workspace.' : 'See your direct reports and the teams they build.';
       const request = ++sequence;
       roster.setAttribute('aria-busy', 'true');
-      if (!ready) roster.textContent = 'Loading Tinky Team…';
+      if (!ready) roster.textContent = 'Loading Sales team…';
       try {
         const team = await api('sales-team-read');
         if (request !== sequence) return;
@@ -424,7 +425,7 @@
         ready = true;
       } catch (error) {
         if (request !== sequence) return;
-        if (!ready) roster.textContent = 'Tinky Team could not load.';
+        if (!ready) roster.textContent = 'Sales team could not load.';
         message(error.message, true);
       } finally {
         if (request === sequence) {

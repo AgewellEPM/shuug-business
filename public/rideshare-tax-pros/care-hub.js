@@ -152,6 +152,7 @@
       wasVisible = false;
       signature = null;
       delete document.body.dataset.carePresent;
+      document.body.removeAttribute('data-care-open');
       return;
     }
     wasVisible = true;
@@ -162,6 +163,7 @@
     if (!venue && args.get('view') === 'demo' && ['hospital', 'stroke'].includes(args.get('product'))) venue = 'guide';
     const mode = args.get('mode') || '';
     home.hidden = Boolean(venue);
+    document.body.toggleAttribute('data-care-open', Boolean(venue));
     stage.hidden = !venue;
     part('place').textContent = names.get(venue) || 'Communication boards';
     const customerExample = part('customer-example');
@@ -193,7 +195,7 @@
       voice.hidden = false;
     }
     if (names.has(venue)) lastLaunch = venue;
-    repTools.open = Boolean(mode || rooms || bedside || args.get('training') || venue === 'guide');
+    repTools.open = Boolean(args.get('pilot') === '1' || mode || rooms || bedside || args.get('training') || venue === 'guide');
     if (venue === 'guide' || (venue === 'stroke' && mode === 'boards')) {
       surface.hidden = true;
       guide.hidden = false;
@@ -240,6 +242,7 @@
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
   });
+  panel.addEventListener('care:leave', () => route(new URLSearchParams({ view: 'demo' })));
   panel.addEventListener('care:stroke-tool', event => {
     route(new URLSearchParams({ view: 'demo', venue: 'stroke', mode: 'tools', strokeView: event.detail }));
   });

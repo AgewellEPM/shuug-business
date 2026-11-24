@@ -39,4 +39,4 @@ body[data-care-present] .sdr-demo [data-care-tour-shell] { display:none; }
 .care-rep-tools { margin-top:14px;padding:10px 14px;border:1px solid #c5d8ef;border-radius:13px;background:white; }
 .care-rep-tools > summary { color:#164b8a;font-weight:650;cursor:pointer;min-height:32px; }
 .care-rep-tools > * + * { margin-top:12px; }
-body[data-care-present] .care-rep-tools { display:none; }
+body[data-care-open] .sdr-team-return { display:none; }
