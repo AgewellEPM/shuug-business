@@ -4,6 +4,7 @@ import { renderCareDemo } from './sales-demo.mjs';
 import { renderCareCampaign } from './sales-care-campaign.mjs';
 import { renderSupport, renderSupportSidebar } from './sales-support.mjs';
 import { renderTraining } from './sales-training.mjs';
+import { renderCertification } from './sales-certification.mjs';
 import { renderTrainingDemo } from './sales-training-demo.mjs';
 import { renderTrainingPipeline } from './sales-training-pipeline.mjs';
 import { bookingOverview, bookingPanel } from './sales-booking.mjs';
@@ -45,6 +46,7 @@ const icons = {
   prospects: '<circle cx="9" cy="8" r="3"/><path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8v6m-3-3h6"/>',
   products: '<path d="m12 3 9 5-9 5-9-5Zm-9 9 9 5 9-5M3 16l9 5 9-5"/>',
   training: '<path d="m2 9 10-5 10 5-10 5-10-5Zm5 3v5a9 9 0 0 0 10 0v-5m4-2v7"/>',
+  certification: '<circle cx="12" cy="9" r="6"/><path d="m9 14-2 7 5-3 5 3-2-7m-5-5 1.5 1.5L14 8"/>',
   support: '<path d="M3 13v-1a9 9 0 0 1 18 0v1m0 4v1a4 4 0 0 1-4 4h-3"/><rect x="2" y="11" width="4" height="7" rx="2"/><rect x="18" y="11" width="4" height="7" rx="2"/><rect x="10" y="20" width="5" height="3" rx="1.5" fill="currentColor"/>',
   campaigns: '<path d="M3 11h5l9-5v12l-9-4H3v-3Zm5 3 2 6m10-11 2-1m-2 7 2 1"/>',
 };
@@ -373,7 +375,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['training', 'Training'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ['team', 'Sales team'], ...(careWorkspace ? [['products', 'Products']] : []), ['certification', 'Certification'], ['training', 'Training'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => {
@@ -403,6 +405,7 @@ ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
 ${prospects ? renderPipelineWorkspace({ icon, toolbar, map: territoryMap({ interactive: false }) }) : `<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Manage business and facility contacts, sales stages, and next steps.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>`}
 ${careWorkspace ? standaloneFacilities : ''}
 ${prospects && careWorkspace ? renderProducts(icon) : ''}
+${prospects ? renderCertification(icon) : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
   <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
