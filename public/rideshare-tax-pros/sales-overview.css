@@ -41,33 +41,10 @@ body.sales-console-page[data-standalone-sdr] {
 [data-standalone-sdr] .sdr-sidebar-bottom { color: #dcecff; border-color: #486282; }
 [data-standalone-sdr] .sdr-sidebar-bottom a { color: #b5dcff; }
 
-[data-standalone-sdr] .sdr-main { padding: 0 16px 28px; background: linear-gradient(#f8fbff, #e9f1fb); }
-[data-standalone-sdr] .sdr-topbar {
-  margin: 0 -16px 16px;
-  padding: 12px 16px;
-  min-height: 70px;
-  gap: 14px;
-  background: #fff;
-  box-shadow: 0 2px 5px #183b6f0d;
-}
-[data-standalone-sdr] #sales-view-title { padding: 0; font-size: clamp(17px, 2vw, 22px); }
-[data-standalone-sdr] .sdr-topbar-right { gap: 12px; flex: none; }
-#sdr-header-search {
-  display: flex;
-  flex: 1 1 260px;
-  align-items: center;
-  min-width: 160px;
-  height: 42px;
-  padding: 0 10px;
-  border: 1px solid #bdcde3;
-  border-radius: 13px;
-  color: #43556e;
-  background: #f5f8fd;
-}
-#sdr-header-search .sdr-icon { flex: none; }
-#sdr-header-search input { width: 100%; min-width: 0; padding: 6px 8px; border: 0; color: #132743; background: transparent; }
-[data-standalone-sdr] .sdr-user-avatar { color: #fff; background: #07438f; }
-.sdr-workspace-tracker { display: flex; align-items: center; gap: 10px; }
+[data-standalone-sdr] .sdr-main { padding: 16px 16px 28px; background: linear-gradient(#f8fbff, #e9f1fb); }
+[data-standalone-sdr] .sdr-sidebar-bottom #sales-logout { align-self: flex-start; color: #dcecff; border-color: #486282; background: transparent; min-height: 36px; }
+[data-standalone-sdr] .sdr-sidebar-bottom #sales-logout:hover { background: #213956; }
+.sdr-workspace-tracker { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 16px 0; }
 .sdr-xp { width: clamp(132px, 13vw, 210px); min-width: 0; }
 .sdr-xp > div { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
 .sdr-xp strong { color: #39217c; font-size: 13px; white-space: nowrap; }
@@ -153,8 +130,6 @@ body.sales-console-page[data-standalone-sdr] {
 
 @media (max-width: 1150px) {
   body.sales-console-page[data-standalone-sdr] { --sidebar-w: 202px; }
-  [data-standalone-sdr] .sdr-topbar { flex-wrap: wrap; }
-  [data-standalone-sdr] .sdr-topbar-right { flex: 0 1 auto; }
 }
 @media (max-width: 920px) {
   .sdr-overview-actions, .sdr-overview-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -166,9 +141,6 @@ body.sales-console-page[data-standalone-sdr] {
   [data-standalone-sdr] .sdr-sidebar .sdr-brand { padding: 0 8px; font-size: 20px; }
   [data-standalone-sdr] .sdr-brand .sdr-brand-mark { font-size: 29px; }
   [data-standalone-sdr] .sdr-nav button { min-height: 41px; font-size: 14px; }
-  [data-standalone-sdr] .sdr-topbar { position: relative; padding: 10px 14px; gap: 8px; }
-  [data-standalone-sdr] .sdr-topbar-right { flex-basis: 100%; }
-  #sdr-header-search { height: 37px; }
   .sdr-overview-hero { min-height: 136px; padding: 18px 16px 26px; background-position: 60% 50%; }
   .sales-console-page .sdr-overview-hero h2 { max-width: 100%; }
   .sales-console-page .sdr-overview-hero p { max-width: 64%; }

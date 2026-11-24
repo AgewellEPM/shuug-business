@@ -15,7 +15,8 @@
     targets.filter(Boolean).forEach(el => { el.textContent = message; el.dataset.error = error; });
   };
   async function api(action, body = {}, signal) {
-    const r = await fetch('/api/sales', { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', signal, body: JSON.stringify({ ...body, action }) });
+    const endpoint = action.startsWith('rep-email-') ? '/api/sales/mail/v1' : '/api/sales';
+    const r = await fetch(endpoint, { method: 'POST', headers: { 'Content-Type':'application/json' }, credentials: 'same-origin', signal, body: JSON.stringify({ ...body, action }) });
     const result = await r.json();
     if (!r.ok) { const error = new Error(result.error || 'The request did not finish.'); error.status = r.status; throw error; }
     return result;
@@ -154,7 +155,9 @@
     }
     async function refresh() {
       data = await api('bootstrap');
-      $('#sales-login').hidden = true; $('#sales-workspace').hidden = false; $('#sales-identity').hidden = false; $('#sales-name').textContent = data.user.name;
+      $('#sales-login').hidden = true; $('#sales-workspace').hidden = false;
+      const identity = $('#sales-identity');
+      if (identity) { identity.hidden = false; $('#sales-name', identity).textContent = data.user.name; }
       if ($('#sales-gate')) $('#sales-gate').hidden = true;
       $$('[data-owner-only]').forEach(el => { el.hidden = data.user.role !== 'owner' || (el.hasAttribute('data-team-identity-portal') && !document.body.dataset.identityPortal); });
       $$('[data-states]').forEach(s => { const previous = s.value; const states = data.user.territory?.version===1 ? data.user.territory.areas.map(area=>area.state) : data.user.states.length ? data.user.states : data.states; s.innerHTML = states.map(v => `<option>${e(v)}</option>`).join(''); if (states.includes(previous)) s.value = previous; });

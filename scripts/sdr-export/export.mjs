@@ -51,7 +51,7 @@ for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'confi
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
 }
-for (const name of ['package.json', 'package-lock.json', 'store.mjs', 'transport.mjs', 'workspace.mjs']) copy('scripts/sdr-export/mail/' + name);
+for (const name of ['store.mjs', 'zoho-account.mjs', 'zoho-mail.mjs', 'workspace.mjs']) copy('scripts/sdr-export/mail/' + name);
 for (const name of ['Capture.swift', 'SDRWrapper.swift']) copy('native/macos/SDRWrapper/' + name);
 copy('scripts/sales/mcp-connection.ts');
 copy('src/lib/backend/sales-mcp.ts');

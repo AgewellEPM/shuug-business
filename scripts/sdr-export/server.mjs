@@ -100,7 +100,7 @@ const sales = createHandler(env, db, {
   localDiscovery: catalogue ? { catalogue, placeLookup: async () => null } : undefined,
   sharedOrigin: signIn?.origin ?? null,
   workspaceName: profile.name,
-  repEmail: repEmailWorkspace(db, sessionKey, process.env),
+  repEmail: repEmailWorkspace(db, sessionKey, process.env, { directory }),
   savedProspects: savedProspects(db),
   campaigns: { actions: campaignActions, dispatch: automation.dispatch },
   research: workspaceResearch(db, { catalogue }),
@@ -128,6 +128,7 @@ const sales = createHandler(env, db, {
 });
 const routes = new Map([
   ['/api/sales', sales],
+  ['/api/sales/mail/v1', sales],
   ['/api/offices', createDirectoryHandler(env, db, { defaultBookingURL: () =>
     origin.protocol === 'https:' && booking.publicAction('hosts', {}).hosts.length ? origin.origin + '/book' : '' })],
   ['/api/sales-webhook', createWebhookHandler(env, db)],
