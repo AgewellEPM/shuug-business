@@ -96,10 +96,12 @@ function standaloneOverview(queue, careWorkspace) {
 }
 
 const workspaceTracker = `<div class="sdr-workspace-tracker"><div class="sdr-xp" title="10 XP per saved business, 20 per first contact, 30 per reply, and 40 per signed agreement"><div><strong id="sdr-xp-level">Level 1</strong><span id="sdr-xp-label">0 / 100 XP</span></div><progress id="sdr-xp-bar" aria-label="XP toward the next level" max="100" value="0"></progress></div>
+<div class="sdr-xp" data-sample-xp hidden><div><strong>Level 5 · Sample</strong><span>50 / 100 XP</span></div><progress aria-label="Sample XP toward Level 6" max="100" value="50"></progress></div>
+<div class="com-sample-total" data-sample-total hidden><small>Sample earnings</small><strong>$4,860.00</strong></div>
 <details id="sdr-earnings" hidden><summary><span>Earned to date</span><strong id="sdr-earning-amount">$0.00</strong></summary><div class="sdr-earnings-panel"><h2>Recorded earnings</h2><form id="sdr-earnings-form" class="sales-form"><label>Payment description<input name="label" maxlength="140" required></label><label>Amount received (USD)<input name="amount" inputmode="decimal" maxlength="12" placeholder="0.00" required></label><button class="button primary" type="submit">Record payment</button></form><div id="sdr-earnings-receipts"></div></div></details></div>`;
 const sidebarProfile = `<button type="button" class="sdr-sidebar-profile" data-sdr-own-profile aria-label="Open My profile">
   <span class="sdr-sidebar-portrait" aria-hidden="true"><img alt="" width="42" height="42" hidden><span data-profile-initials></span></span>
-  <span><strong data-profile-name></strong><small data-profile-role></small></span>
+  <span><strong data-profile-name></strong><small data-profile-role></small><small data-sample-role hidden>Director of Senior Care Partnerships · Sample</small></span>
 </button>`;
 
 function section(markup, marker) {
@@ -291,6 +293,29 @@ function standaloneTeam(legacyTeam, careWorkspace) {
       </section>
       <section class="sdr-team-pane sdr-team-profile" id="sales-team-pane-profile" role="tabpanel" aria-labelledby="sales-team-tab-profile" tabindex="0" hidden>
         <div class="sdr-team-pane-head"><div><h3>My profile</h3><div data-team-profile-progress></div><p>Your profile details are visible to teammates who can view your roster profile.</p></div></div>
+        <div class="com-sample-toolbar">
+          <a class="button secondary" href="#view=team&amp;section=profile&amp;sample=1" data-profile-sample-open>Show sample profile</a>
+        </div>
+        <article class="com-sample-profile" data-profile-sample hidden>
+          <header class="com-sample-banner">
+            <div><strong>Sample profile</strong><p>Fictional contact details, XP, and earnings for demonstrations.</p></div>
+            <div class="com-sample-toolbar"><a class="button secondary" href="#view=commissions&amp;sample=1">Show sample earnings</a><a class="button secondary" href="#view=team&amp;section=profile">Exit sample</a></div>
+          </header>
+          <header class="com-sample-identity"><img data-sample-photo alt="" width="64" height="64" hidden><div><h4 data-sample-name></h4><p>Director of Senior Care Partnerships</p></div></header>
+          <dl>
+            <div><dt>Work email</dt><dd>luke.kist@example.com</dd></div>
+            <div><dt>Phone</dt><dd>(860) 555-0142</dd></div>
+            <div><dt>Territory</dt><dd>Connecticut and Western Massachusetts</dd></div>
+            <div><dt>Focus</dt><dd>Hospitals, nursing homes, and senior centers</dd></div>
+            <div class="com-sample-bio"><dt>Bio</dt><dd>I help healthcare and senior care teams put accessible communication within reach. I partner with administrators and staff to walk through TinkyTown and TinkyStroke, choose a first site, and plan a pilot that fits their daily workflow.</dd></div>
+          </dl>
+          <div class="com-sample-achievements">
+            <div><small>Experience</small><strong>450 XP</strong><p>Level 5 · 50 XP to Level 6</p><progress aria-label="Sample profile XP toward Level 6" max="100" value="50"></progress></div>
+            <div><small>Facility demos</small><strong>32</strong><p>This quarter</p></div>
+            <div><small>Signed agreements</small><strong>14</strong><p>This year</p></div>
+            <div><small>Earnings</small><strong>$4,860.00</strong><p>Sample current total</p></div>
+          </div>
+        </article>
         <form id="sales-team-profile" class="sales-form">
           <div class="sdr-team-profile-fields">
             <label class="sdr-team-profile-name">Name<input name="name" autocomplete="name" maxlength="140" disabled></label>

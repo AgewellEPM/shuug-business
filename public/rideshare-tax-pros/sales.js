@@ -125,7 +125,8 @@
       if (name === 'training') trainingUI?.show();
       if (name === 'certification') certificationUI?.renderEarnings(data);
       if (name === 'resources') prizesUI?.show();
-      if (name === 'commissions') commissionsUI?.show(data);
+      const sample = commissionsUI?.preview(data, name);
+      if (name === 'commissions') commissionsUI?.show(data, sample);
       if (name === 'training-pipeline') trainingPipeline?.show();
       if (name === 'support') supportUI?.show(data.user, enteringWorkspace);
       if (name === 'home' && data) overviewUI?.render(data);

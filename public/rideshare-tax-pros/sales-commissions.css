@@ -50,3 +50,29 @@
 @media (max-width: 1110px) { .com-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .com-grid { grid-template-columns: minmax(0, 1fr); } .com-metrics article > span { display: none; } }
 @media (max-width: 370px) { .com-metrics { grid-template-columns: minmax(0, 1fr); } }
+.com-sample-toolbar { display: flex; flex-wrap: wrap; gap: 8px; }
+.com-sample-banner {
+  display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px;
+  padding: 12px 14px; border: 1px solid #b9ccef; border-radius: 13px; color: #152e55; background: #eaf2ff;
+}
+.com-sample-banner p { margin: 3px 0 0; }
+.com-sample-profile { display: grid; gap: 14px; margin-top: 12px; }
+.com-sample-identity { display: flex; align-items: center; gap: 12px; }
+.com-sample-identity img { object-fit: cover; border-radius: 50%; }
+.sales-console-page .com-sample-identity h4 { font-size: 1.16rem; }
+.com-sample-profile dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 0; }
+.com-sample-profile dl > div, .com-sample-achievements > div {
+  min-width: 0; overflow-wrap: anywhere; border: 1px solid #c7daf2; border-radius: 11px; background: #fff; padding: 11px;
+}
+.com-sample-profile dt, .com-sample-achievements small { color: #3d5676; font-size: .84rem; }
+.com-sample-profile dd { margin: 4px 0 0; }
+.com-sample-bio { grid-column: 1 / -1; }
+.com-sample-achievements { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); gap: 10px; }
+.com-sample-achievements strong { display: block; color: #134b93; font-size: 1.45rem; }
+.com-sample-achievements p { font-size: .85rem; }
+.sales-console-page[data-sdr-sample] :is(#sdr-earnings, .sdr-workspace-tracker .sdr-xp:not([data-sample-xp]), [data-profile-role]) { display: none; }
+.com-sample-total { display: grid; flex: 0 0 auto; padding: 5px 10px; border: 1px solid #addcbe; border-radius: 10px; background: #edfaf0; color: #145238; }
+.com-sample-total small { font-size: .7rem; }
+.com-sample-total strong { font-size: 1.15rem; }
+@media (max-width: 480px) { .com-sample-profile dl { grid-template-columns: minmax(0, 1fr); } }
+.com-sample-achievements progress { display: block; width: 100%; height: 12px; margin-top: 5px; accent-color: #7750dc; }

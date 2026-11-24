@@ -10,6 +10,26 @@
     return element;
   }
 
+  const sampleGoal = 1000000;
+  function sampleHistory() {
+    const today = new Date();
+    const months = [300000, 425000, 620000, 802000, 1229000, 486000].map((cents, i) => ({
+      month: new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth() - 5 + i, 1)).toISOString().slice(0, 7),
+      cents,
+    }));
+    // Use a fixed illustrative yearly total so the same example works in January.
+    const rows = [
+      ['Maple View Nursing Home · Setup and CRM', 125000],
+      ['Riverbend Senior Living · Monthly CRM', 48000],
+      ['Oakridge Care Center · Add-ons', 32000],
+      ['Evergreen Health Services · Referral', 50000],
+      ['Pine Grove Senior Center · CRM and setup', 231000],
+    ].map(([label, cents], i) => ({
+      label, cents, recordedAt: months.at(-1).month + '-' + String(Math.max(1, today.getUTCDate() - i)).padStart(2, '0'),
+    }));
+    return { months, yearCents: 3862000, total: rows.length, size: rows.length, rows };
+  }
+
   function mount({ api }) {
     const panel = document.querySelector('.sdr-commissions');
     if (!panel) return null;
@@ -18,14 +38,45 @@
     const goalForm = find('goal-form');
     const search = find('search');
     const goalKey = 'sdr.workspace.monthlyEarningsGoalCents';
-    let request = 0, offset = 0, query = '', latest, currentMonthCents = 0;
+    const sampleProfile = document.querySelector('[data-profile-sample]');
+    const profileForm = document.getElementById('sales-team-profile');
+    const profileProgress = document.querySelector('[data-team-profile-progress]');
+    const openSampleProfile = document.querySelector('[data-profile-sample-open]');
+    const samplePhoto = sampleProfile?.querySelector('[data-sample-photo]');
+    const sampleName = sampleProfile?.querySelector('[data-sample-name]');
+    const sampleHeader = document.querySelectorAll('[data-sample-xp], [data-sample-total], [data-sample-role]');
+    let request = 0, offset = 0, query = '', latest, currentMonthCents = 0, sampleActive = false;
+
+    function preview(data, view) {
+      const params = new URLSearchParams(location.hash.slice(1));
+      const requested = params.get('sample') === '1' && params.get('view') === view;
+      const profile = requested && view === 'team' && params.get('section') === 'profile';
+      const earnings = requested && view === 'commissions';
+      const active = profile || earnings;
+      document.body.toggleAttribute('data-sdr-sample', active);
+      for (const status of sampleHeader) status.hidden = !active;
+      if (sampleProfile) {
+        sampleProfile.hidden = !profile;
+        profileForm.hidden = profile;
+        profileProgress.hidden = profile;
+        openSampleProfile.hidden = profile;
+      }
+      if (profile && data && sampleName) {
+        sampleName.textContent = data.repProfile?.name || data.user.name;
+        const photo = data.repProfile?.photo;
+        samplePhoto.hidden = !photo;
+        if (photo) samplePhoto.src = photo;
+        else samplePhoto.removeAttribute('src');
+      }
+      return earnings;
+    }
 
     function readGoal() {
       try { return Number(localStorage.getItem(goalKey)) || 0; }
       catch { return 0; }
     }
     function drawGoal() {
-      const goal = latest?.earnings ? readGoal() : 0;
+      const goal = sampleActive ? sampleGoal : latest?.earnings ? readGoal() : 0;
       const progress = find('progress');
       write('goal', goal ? money(goal) : '—');
       write('goal-note', goal ? money(currentMonthCents) + ' recorded this month' : 'No goal set');
@@ -66,6 +117,7 @@
     }
 
     function drawHistory(result) {
+      const start = sampleActive ? 0 : offset;
       currentMonthCents = result.months.at(-1)?.cents || 0;
       write('year', money(result.yearCents));
       drawGoal();
@@ -87,14 +139,40 @@
         row.append(node('td', item.recordedAt.slice(0, 10)), node('td', item.label), node('td', money(item.cents)));
         return row;
       }));
-      find('previous').disabled = offset === 0;
-      find('next').disabled = offset + result.size >= result.total;
-      write('ledger-status', result.total ? (offset + 1) + '–' + (offset + result.rows.length) + ' of ' + result.total : 'No payments match.');
+      find('previous').disabled = start === 0;
+      find('next').disabled = start + result.size >= result.total;
+      write('ledger-status', result.total ? (start + 1) + '–' + (start + result.rows.length) + ' of ' + result.total : 'No payments match.');
       return result.size;
+    }
+
+    function drawSample() {
+      ++request;
+      find('ledger').removeAttribute('aria-busy');
+      find('ledger').hidden = false;
+      find('settings').hidden = true;
+      write('total', money(486000));
+      write('overview', money(486000));
+      write('total-note', 'Illustrative current earnings');
+      write('pending', money(840000));
+      write('pending-note', '5 sample deals · awaiting activation');
+      termsList(find('breakdown'), [
+        ['Software / CRM', money(243000)], ['Contracts / setup', money(97200)],
+        ['Referrals', money(72900)], ['Bonuses / incentives', money(72900)],
+      ]);
+      const rates = node('dl');
+      termsList(rates, [['TinkyTown CRM', '20% recurring'], ['Setup', '10%–25% one-time'], ['Add-ons', '15% one-time'], ['Referrals', '$250–$1,000 sample bonus']]);
+      find('structure').replaceChildren(rates);
+      write('incentives', '$2,500 · +5%  |  $5,000 · +10%  |  $10,000 · +15% sample bonus tiers');
+      write('year-note', 'Illustrative year-to-date payments');
+      write('trend-note', 'Sample payments over six months');
+      write('ledger-title', 'Sample payments');
+      write('payout-notice', 'Example next payout: ' + money(840000) + ' via bank transfer.');
+      drawHistory(sampleHistory());
     }
 
     let pageSize = 10;
     async function load() {
+      if (sampleActive) return;
       const token = ++request;
       find('ledger').setAttribute('aria-busy', 'true');
       try {
@@ -120,6 +198,7 @@
     find('previous').addEventListener('click', () => { offset = Math.max(0, offset - pageSize); void load(); });
     find('next').addEventListener('click', () => { offset += pageSize; void load(); });
     find('record').addEventListener('click', () => {
+      if (sampleActive) return;
       const popover = document.querySelector('#sdr-earnings');
       if (!popover || popover.hidden) return;
       popover.open = true;
@@ -127,6 +206,7 @@
     });
     goalForm.addEventListener('submit', event => {
       event.preventDefault();
+      if (sampleActive) return;
       const raw = goalForm.elements.goal.value.trim();
       if (raw && !/^\d{1,7}(?:\.\d{1,2})?$/.test(raw)) return write('goal-status', 'Enter a USD amount with up to two decimal places.');
       try { localStorage.setItem(goalKey, String(Math.round(Number(raw) * 100))); }
@@ -136,9 +216,28 @@
     });
 
     return {
-      show(data) {
+      preview,
+      show(data, sample) {
         if (!data) return;
+        const wasSample = sampleActive;
+        sampleActive = Boolean(sample);
+        find('sample-open').hidden = sampleActive;
+        find('sample-banner').hidden = !sampleActive;
+        find('search').hidden = find('controls').hidden = sampleActive;
         latest = data;
+        if (sampleActive) { drawSample(); return; }
+        if (wasSample) {
+          currentMonthCents = 0;
+          find('receipts').replaceChildren();
+          find('trend').replaceChildren();
+          write('year', '—');
+          write('trend-empty', '');
+          write('ledger-status', '');
+        }
+        write('year-note', 'Payments logged in the workspace');
+        write('trend-note', 'Recorded payments over the last six months');
+        write('ledger-title', 'Recorded earnings');
+        write('payout-notice', 'Payout scheduling and payment methods are not configured in this workspace.');
         drawSummary(data);
         drawGoal();
         if (data.earnings) {
