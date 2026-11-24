@@ -298,13 +298,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
-  await t.test('training opens from the sidebar and resumes saved onboarding', async t => {
+  await t.test('training opens from the sidebar above Support and resumes saved onboarding', async t => {
     const trainingWindow = await mountConsole(t, first.origin, owner, html);
     const doc = trainingWindow.document;
     const training = doc.querySelector('[data-tab-panel="training"]');
     const find = selector => training.querySelector(selector);
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
-    doc.querySelector('.sdr-sidebar [data-tab="training"]').click();
+    const supportButton = doc.querySelector('.sdr-sidebar [data-tab="support"]');
+    const trainingButton = doc.querySelector('.sdr-sidebar [data-tab="training"]');
+    const trainingLink = doc.querySelector('[data-tab-panel="support"] a[href="#view=training"]');
+    assert.equal(trainingButton.nextElementSibling, supportButton);
+    trainingButton.click();
+    await waitFor(() => !training.hidden, 'The sidebar did not open Training');
+    assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'false');
+    find('a[href="#view=support"]').click();
+    await waitFor(() => trainingLink.closest('[hidden]') === null, 'The Support link did not return to Support');
+    assert.equal(supportButton.getAttribute('aria-pressed'), 'true');
+    trainingLink.click();
+    await waitFor(() => !training.hidden, 'Training did not open from Support');
+    assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
     const planButton = '[data-training-feature] [data-training-plan="sales-onboarding"]';
     const featuredCourse = '[data-training-feature] .training-feature-description [data-training-course="sales-onboarding"]';
     await waitFor(() => find(featuredCourse), 'The featured course did not load');
@@ -373,6 +386,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     find(voiceLink).click();
     const voice = part => find('[data-training-voice-' + part + ']');
     assert.equal(find('[data-tab-panel="training-demo"]').hidden, false);
+    assert.equal(find('.sdr-sidebar [data-tab="training"]').getAttribute('aria-pressed'), 'true');
     assert.equal((await owner.request('/care-location-qr-healthcare.png')).headers.get('content-type'), 'image/png');
     voice('listen').click();
     assert.match(voice('status').textContent, /Listening/);

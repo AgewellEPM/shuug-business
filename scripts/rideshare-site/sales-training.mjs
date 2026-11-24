@@ -37,6 +37,7 @@ const sections = [
 
 export function renderTraining() {
   return `<section class="sdr-training" data-tab-panel="training" aria-labelledby="training-title" hidden>
+    <a class="training-link training-support-link" href="#view=support">← Back to Support</a>
     <header class="training-hero">${art('cap')}<div>
       <h1 id="training-title">Training Center</h1>
       <p>Learn the platform, master the sales process, and succeed with TinkyTown.</p>
