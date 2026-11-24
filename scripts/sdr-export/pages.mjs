@@ -38,6 +38,8 @@ export function renderWorkspace(profile, signIn) {
       .replace('<script src="/sales.js"', '<script src="/territory-dashboard.js" defer></script><script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-pipeline-workspace.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-pipeline-workspace.js" defer></script><script src="/sales.js"')
+      .replace('</head>', '<link rel="stylesheet" href="/sales-certification.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-certification.js" defer></script><script src="/sales.js"')
       .replace(/<section id="sales-login"[^>]*>[\s\S]*?<\/section>/, loginForm)
       .replace('<body class="sales-console-page">', `<body class="sales-console-page" ${standalone}${careWorkspace ? ' data-care-workspace' : ''}>`)
       .replace(/<img src="\/assets\/brand-mark\.svg"[^>]*>/g, '')

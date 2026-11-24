@@ -66,6 +66,7 @@
     } });
     const trainingPipeline = window.SdrTrainingPipeline?.mount({ api });
     const trainingUI = window.SdrTraining?.mount({ api, onDemo: openTrainingDemo });
+    const certificationUI = window.SdrCertification?.mount({ api, onPlanSaved: () => trainingUI?.reload() });
     const supportUI = window.SdrSalesSupport?.mount({ api, navigate: name => tab(name) });
     const productsUI = window.SdrProducts?.mount();
     const bookingUI = window.SdrBookings?.mount({ api });
@@ -83,7 +84,7 @@
       const trainingDemo = name === 'demo' && new URLSearchParams(location.hash.slice(1)).get('training') === '1';
       const trainingView = name === 'training' || trainingTool || trainingDemo;
       const teamTool = !trainingDemo && teamTools.has(name);
-      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts','products'].includes(name)) && document.body.dataset.sdrView !== name;
+      const enteringWorkspace = standalone && (teamTool || trainingView || ['today','team','support','campaigns','pipeline','contracts','products','certification'].includes(name)) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       if (teamArea) {
         teamArea.hidden = name !== 'team' && !teamTool;
@@ -93,7 +94,7 @@
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
-      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products'].includes(name);
+      $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification'].includes(name);
       if (name === 'calendar') {
         const section = calendar?.section ?? new URLSearchParams(location.hash.slice(1)).get('section');
         bookingUI?.show(data.user, section, calendar);
@@ -117,6 +118,7 @@
       if (name === 'facilities') facilitiesUI?.show();
       if (name === 'today') todayUI?.open();
       if (name === 'training') trainingUI?.show();
+      if (name === 'certification') certificationUI?.renderEarnings(data);
       if (name === 'training-pipeline') trainingPipeline?.show();
       if (name === 'support') supportUI?.show(data.user, enteringWorkspace);
       if (name === 'home' && data) overviewUI?.render(data);
@@ -181,6 +183,11 @@
       if (params.get('view') === 'demo' && $('[data-tab-panel="demo"]')) { tab('demo'); return true; }
       if (trainingPipeline && params.get('view') === 'training-pipeline') { tab('training-pipeline'); return true; }
       if ($('[data-tab-panel="training-demo"]') && params.get('view') === 'training-demo') { tab('training-demo'); return true; }
+      if (certificationUI && params.get('view') === 'certification') {
+        tab('certification');
+        certificationUI.show(params.get('section'));
+        return true;
+      }
       if (trainingUI && params.get('view') === 'training') {
         tab('training');
         if (params.has('course')) void trainingUI.openLesson(params.get('course'), params.get('lesson'));
