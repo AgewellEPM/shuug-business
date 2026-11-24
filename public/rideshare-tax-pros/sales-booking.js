@@ -164,13 +164,23 @@
         location.protocol === 'http:' ? 'This link opens on this Mac. Sharing with clients requires the workspace’s HTTPS address.' : 'Clients can choose a meeting and book directly with this rep.';
       fillSettings(); renderConnections(); agenda(); showView(view);
     }
-    async function load() {
+    async function load({ today = false, book = false, appointmentId, date } = {}) {
       const current = ++serial;
       try {
         status('Loading calendar…'); panel.setAttribute('aria-busy', 'true');
         const result = await api('booking-dashboard', { host });
         if (current !== serial) return;
-        host = result.host; data = result; render(); status();
+        host = result.host;
+        data = result;
+        if (today) {
+          const appointment = data.entries.find(row => row.id === appointmentId);
+          selected = appointment ? dateKey(appointment.start, data.policy.zone) : date || dateKey(data.now, data.policy.zone);
+          month = selected.slice(0, 7);
+        }
+        if (book) view = data.policy.published ? 'agenda' : 'hours';
+        render();
+        status();
+        if (book) $(view === 'agenda' ? '#bk-public-link' : '[data-bk-view="hours"]').focus();
       } catch (err) { if (current === serial) status(err.message, true); }
       finally { if (current === serial) panel.removeAttribute('aria-busy'); }
     }
@@ -195,11 +205,13 @@
     $('#bk-copy').onclick = () => copy(data.shareURL, status);
     $('#bk-upcoming').onclick = () => { selected = null; month = dateKey(data.now, data.policy.zone).slice(0, 7); agenda(); };
     window.addEventListener('focus', () => { if (account && !panel.hidden && view === 'agenda') load(); });
-    return { show(user, section) {
+    return { show(user, section, { appointmentId, date } = {}) {
       hideSecret();
       if (user.id !== account?.id) { host = user.id; month = selected = null; view = 'agenda'; }
       if (section === 'connections') view = 'connect';
-      account = user; load();
+      if (section === 'today' || section === 'book') { host = user.id; view = 'agenda'; }
+      account = user;
+      void load({ today: section === 'today', book: section === 'book', appointmentId, date });
     } };
   }
   window.SdrBookings = { mount };

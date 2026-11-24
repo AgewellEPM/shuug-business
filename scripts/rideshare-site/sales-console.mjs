@@ -1,13 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { renderProspects } from './sales-prospects.mjs';
+import { renderCareDemo } from './sales-demo.mjs';
+import { renderSupport, renderSupportSidebar } from './sales-support.mjs';
 import { bookingOverview, bookingPanel } from './sales-booking.mjs';
 import { renderSalesEmail } from './sales-email.mjs';
 import { renderTeamChat } from './sales-chat.mjs';
+import { renderToday } from './sales-today.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
 // GigTax forms/API remain the source of truth; no generic tenant key is exposed.
 const icons = {
+  demo: '<rect x="3" y="5" width="18" height="14" rx="3"/><path d="m10 9 5 3-5 3Z"/>',
   chat: '<path d="M20 11.5a7 7 0 0 1-7 7H8l-5 3 1.3-5.1A7.4 7.4 0 0 1 3 12V9a6 6 0 0 1 6-6h5a6 6 0 0 1 6 6z"/><path d="M7.5 9h8m-8 4h5"/>',
   chatSend: '<path d="m3 4 18 8-18 8 3-8z"/><path d="M6 12h10"/>',
   nursing: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
@@ -26,6 +30,7 @@ const icons = {
   email: '<path d="M4 4h16l2 9v6a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1v-6Zm-2 9h6l2 3h4l2-3h6"/>',
   contacts: '<rect x="4" y="3" width="17" height="18" rx="2"/><path d="M2 7h4M2 12h4M2 17h4"/><circle cx="13" cy="9" r="2"/><path d="M9 17v-1a4 4 0 0 1 8 0v1"/>',
   prospects: '<circle cx="9" cy="8" r="3"/><path d="M3 19v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M19 8v6m-3-3h6"/>',
+  support: '<path d="M3 13v-1a9 9 0 0 1 18 0v1m0 4v1a4 4 0 0 1-4 4h-3"/><rect x="2" y="11" width="4" height="7" rx="2"/><rect x="18" y="11" width="4" height="7" rx="2"/><rect x="10" y="20" width="5" height="3" rx="1.5" fill="currentColor"/>',
   campaigns: '<path d="M3 11h5l9-5v12l-9-4H3v-3Zm5 3 2 6m10-11 2-1m-2 7 2 1"/>',
 };
 const icon = name => `<svg class="sdr-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name]}</svg>`;
@@ -84,6 +89,10 @@ function standaloneOverview(queue) {
 const standaloneHeader = `<form id="sdr-header-search" role="search">${icon('discover')}<input aria-label="Search saved businesses, contacts, or locations" type="search" placeholder="Search businesses, contacts, or locations…" maxlength="180"></form>`;
 const workspaceTracker = `<div class="sdr-workspace-tracker"><div class="sdr-xp" title="10 XP per saved business, 20 per first contact, 30 per reply, and 40 per signed agreement"><div><strong id="sdr-xp-level">Level 1</strong><span id="sdr-xp-label">0 / 100 XP</span></div><progress id="sdr-xp-bar" aria-label="XP toward the next level" max="100" value="0"></progress></div>
 <details id="sdr-earnings" hidden><summary><span>Earned to date</span><strong id="sdr-earning-amount">$0.00</strong></summary><div class="sdr-earnings-panel"><h2>Recorded earnings</h2><form id="sdr-earnings-form" class="sales-form"><label>Payment description<input name="label" maxlength="140" required></label><label>Amount received (USD)<input name="amount" inputmode="decimal" maxlength="12" placeholder="0.00" required></label><button class="button primary" type="submit">Record payment</button></form><div id="sdr-earnings-receipts"></div></div></details></div>`;
+const sidebarProfile = `<button type="button" class="sdr-sidebar-profile" data-sdr-own-profile aria-label="Open My profile">
+  <span class="sdr-sidebar-portrait" aria-hidden="true"><img alt="" width="42" height="42" hidden><span data-profile-initials></span></span>
+  <span><strong data-profile-name></strong><small data-profile-role></small></span>
+</button>`;
 
 function section(markup, marker) {
   const start = markup.indexOf(marker);
@@ -355,15 +364,22 @@ export function renderSalesConsole(page, { prospects = false, seniorCare = false
     nav.sort((first, second) => order.indexOf(first[0]) - order.indexOf(second[0]));
   }
   if (seniorCare) nav.splice(nav.findIndex(([name]) => name === 'territories'), 0, ['facilities', 'Facility directory']);
+  if (prospects) {
+    nav.unshift(['today', 'Today’s Plan']);
+    nav.push(['support', 'Support']);
+  }
+  if (careWorkspace) nav.splice(2, 0, ['demo', 'Demo']);
   const careLabels = { contacts: 'Contacts', discover: 'Local research' };
-  const sidebarNav = prospects ? nav.filter(([name]) => name !== 'discover') : nav;
-  const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === 'home'}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
+  const sidebarNav = prospects ? nav.filter(([name]) => !['discover', 'contacts'].includes(name)) : nav;
+  const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${name === 'campaigns' || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${seniorCare ? careLabels[name] || label : label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Office workspace | Gig Tax Pros</title><meta name="description" content="Private Gig Tax Pros office recruitment workspace."><meta name="robots" content="noindex, nofollow"><meta name="referrer" content="no-referrer"><link rel="icon" href="/assets/brand-mark.svg" type="image/svg+xml"><link rel="stylesheet" href="/sales.css"><link rel="stylesheet" href="/sales-console.css"><link rel="stylesheet" href="/vendor/leaflet-1.9.4/leaflet.css"><link rel="stylesheet" href="/local-offices.css"><script src="/directory-admin.js" defer></script><script src="/sales-research.js" defer></script><script src="/sales-workflows.js" defer></script><script src="/sales-console.js" defer></script><script src="/sales-contacts.js" defer></script><script src="/sales-progress.js" defer></script><script src="/sales-contracts.js" defer></script><script src="/vendor/leaflet-1.9.4/leaflet.js" defer></script><script src="/local-contacts.js" defer></script><script src="/local-offices.js" defer></script><link rel="stylesheet" href="/territories.css"><script src="/territories.js" defer></script><script src="/sales.js" defer></script></head>
 <body class="sales-console-page"><a class="sdr-skip" href="#sales-main">Skip to workspace</a><div class="sdr-ambient" aria-hidden="true"><i></i><i></i><i></i></div><div class="sales-console" data-sales-app${seniorCare ? ' data-senior-care' : ''}>
 <div id="sales-gate" class="sdr-gate"><div class="sdr-gate-brand"><img src="/assets/brand-mark.svg" width="42" height="42" alt=""><strong>Gig Tax Pros</strong></div>${login}<p id="sales-login-status" role="status" aria-live="polite"></p></div>
-<div id="sales-workspace" class="sdr-layout" hidden><aside class="sdr-sidebar"><a class="sdr-brand" href="/" aria-label="Gig Tax Pros public website"><img src="/assets/brand-mark.svg" width="34" height="34" alt="">${seniorCare ? `<span class="care-brand-icon">${icon('center')}</span><span><strong>TinkyTown</strong><small>Senior care sales</small></span>` : prospects ? '<span class="sdr-brand-mark" aria-hidden="true">🚂</span><span><strong>TinkyTown</strong><small>Gig Tax Pros</small></span>' : '<span><strong>Gig Tax Pros</strong><small>OFFICE NETWORK</small></span>'}</a>${careWorkspace ? `<a class="care-workspace-switch" href="${seniorCare ? '/sales' : '/sales/senior-care'}">${icon(seniorCare ? 'pipeline' : 'center')}<span>${seniorCare ? 'Universal CRM' : 'Senior Care CRM'}</span>${icon('arrow')}</a>` : ''}<p class="sdr-sidebar-label">Workspace</p><nav class="sdr-nav sales-tabs" aria-label="Sales workspace">${navButtons}</nav><div class="sdr-sidebar-bottom"><span class="sdr-workspace-indicator">${prospects ? 'Workspace online' : 'Private team workspace'}</span><a href="/">Open public website ↗</a></div></aside>
+<div id="sales-workspace" class="sdr-layout" hidden><aside class="sdr-sidebar"><a class="sdr-brand" href="/" aria-label="Gig Tax Pros public website"><img src="/assets/brand-mark.svg" width="34" height="34" alt="">${seniorCare ? `<span class="care-brand-icon">${icon('center')}</span><span><strong>TinkyTown</strong><small>Senior care sales</small></span>` : prospects ? '<span class="sdr-brand-mark" aria-hidden="true">🚂</span><span><strong>TinkyTown</strong><small>Gig Tax Pros</small></span>' : '<span><strong>Gig Tax Pros</strong><small>OFFICE NETWORK</small></span>'}</a>${prospects ? sidebarProfile : ''}${careWorkspace ? `<a class="care-workspace-switch" href="${seniorCare ? '/sales' : '/sales/senior-care'}">${icon(seniorCare ? 'pipeline' : 'center')}<span>${seniorCare ? 'Universal CRM' : 'Senior Care CRM'}</span>${icon('arrow')}</a>` : ''}<p class="sdr-sidebar-label">Workspace</p><nav class="sdr-nav sales-tabs" aria-label="Sales workspace">${navButtons}</nav><div class="sdr-sidebar-bottom">${prospects ? renderSupportSidebar() : ''}<span class="sdr-workspace-indicator">${prospects ? 'Workspace online' : 'Private team workspace'}</span><a href="/">Open public website ↗</a></div></aside>
 <div class="sdr-main" id="sales-main" tabindex="-1"><header class="sdr-topbar"><div>${prospects ? '' : '<p class="eyebrow">Your office network</p>'}<h1 id="sales-view-title">Overview</h1></div>${seniorCare ? standaloneHeader.replaceAll('businesses, contacts, or locations', 'facilities, contacts, or locations') : prospects ? standaloneHeader : ''}<div class="sdr-topbar-right">${prospects ? workspaceTracker : ''}<div id="sales-revenue" hidden></div><div id="sales-identity" hidden><span class="sdr-user-avatar" aria-hidden="true">G</span><span id="sales-name"></span><button class="button secondary" id="sales-logout">Sign out</button></div></div></header><p id="sales-message" class="sales-message" role="status" aria-live="polite"></p><div class="sales-stats" id="sales-stats"></div>
-<section data-tab-panel="home" aria-label="Workspace overview">${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
+${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
+<section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${seniorCare ? careOverview(queue) : prospects ? standaloneOverview(queue) : '<div id="sales-dashboard"></div>' + queue}</section>
+${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
@@ -376,6 +392,6 @@ ${prospects ? `<header class="sdr-territory-hero">
 <div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
 ${seniorCare ? standaloneFacilities : ''}
 ${prospects ? renderTeamChat(icon) : ''}
-${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + standaloneTeam(team) : team}</div>
+${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects, seniorCare }) + campaignsPanel + standaloneTeam(team) + renderSupport() : team}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }
