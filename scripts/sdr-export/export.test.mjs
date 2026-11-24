@@ -1578,18 +1578,6 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await juniorSession.api('bootstrap', {}, 401);
   await traineeSession.api('bootstrap', {}, 401);
   await traineeSession.api('login', { email: traineeInput.email, code: trainee.code }, 401);
-  await owner.api('revoke-agent', { id: agent.id });
-  await agentSession.api('bootstrap', {}, 401);
-  await agentSession.api('chat-sync', { channel: privateRoom }, 401);
-  assert.equal((await peerSession.api('chat-sync', { channel: privateRoom })).peer.active, false);
-  await peerSession.api('chat-send', { channel: privateRoom, body: 'Inactive', requestId: randomUUID() }, 409);
-  const replacement = await owner.api('sales-team-invite', { ...traineeInput, parentId: peer.id });
-  assert.notEqual(replacement.agent.id, trainee.agent.id);
-  const replacementSession = browserSession(first.origin);
-  await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
-  await owner.api('sales-team-revoke', { id: peer.id });
-  await replacementSession.api('bootstrap', {}, 401);
-
   await t.test('Products shows real rental pricing, protects commission updates and files quote requests', async t => {
     const productsWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=products&section=pricing');
     const find = selector => productsWindow.document.querySelector(selector);
@@ -1642,6 +1630,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(requests.length, before + 1);
     assert.equal(requests.find(row => row.subject === quote.elements.subject.value).category, 'billing');
   });
+
+  await owner.api('revoke-agent', { id: agent.id });
+  await agentSession.api('bootstrap', {}, 401);
+  await agentSession.api('chat-sync', { channel: privateRoom }, 401);
+  assert.equal((await peerSession.api('chat-sync', { channel: privateRoom })).peer.active, false);
+  await peerSession.api('chat-send', { channel: privateRoom, body: 'Inactive', requestId: randomUUID() }, 409);
+  const replacement = await owner.api('sales-team-invite', { ...traineeInput, parentId: peer.id });
+  assert.notEqual(replacement.agent.id, trainee.agent.id);
+  const replacementSession = browserSession(first.origin);
+  await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
+  await owner.api('sales-team-revoke', { id: peer.id });
+  await replacementSession.api('bootstrap', {}, 401);
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {
     const path = '/sales';
@@ -1865,6 +1865,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const reopen = browserSession(restarted.origin);
   await reopen.api('login', { code });
   const recovered = await reopen.api('bootstrap');
+  assert.equal((await reopen.api('products-read')).pricing.commissionCents, 938);
   assert.deepEqual((await reopen.api('chat-sync', { channel: 'deal-desk' })).messages.map(m => m.author), ['Example Agent', 'Example Junior']);
   const recoveredLead = (await reopen.api('territory-map',{state:'SC'})).counties.find(county => county.id === '45027').lead;
   assert.deepEqual(recoveredLead, {name:'Example County Lead', photo:portrait, revision:2});
