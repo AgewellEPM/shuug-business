@@ -9,7 +9,9 @@ import { digest } from './model.mjs';
 
 const origin = 'http://127.0.0.1:8740';
 const ownerCode = 'test-workspace-owner';
-const emptyProfile = { bio: '', photo: '', revision: 0 };
+const emptyStoredProfile = { bio: '', photo: '', revision: 0 };
+const startingProgress = { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 };
+const emptyProfile = { name: '', email: '', phone: '', ...emptyStoredProfile };
 const portrait = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCoBqK//9k=';
 
 function fixture(t) {
@@ -35,41 +37,69 @@ function fixture(t) {
   return { database, session };
 }
 
-test('a rep can save and remove their own sales bio and headshot without editing another account', async t => {
-  const f = fixture(t), owner = f.session(), rep = f.session();
+test('profile edits preserve account credentials and expose contacts only to the reporting team', async t => {
+  const f = fixture(t), owner = f.session(), manager = f.session(), rep = f.session(), peer = f.session();
   await rep('sales-team-profile', {}, 401);
+  await rep('sales-team-member-profile', { id: 'owner' }, 401);
   await owner('login', { code: ownerCode });
-  const email = 'rep@example.test';
-  const { agent, code } = await owner('sales-team-invite', { name: 'Test Rep', email, states: ['MA'] });
-  await rep('login', { email, code });
-  assert.deepEqual((await rep('sales-team-profile')).profile, emptyProfile);
-  const bio = 'I help care teams in Massachusetts.';
-  const changes = { bio, photo: portrait, revision: 0 };
+  const managerEmail = 'lead@example.test', accountEmail = 'rep@example.test', peerEmail = 'peer@example.test';
+  const lead = await owner('sales-team-invite', { name: 'Team Lead', email: managerEmail, states: ['MA'] });
+  const colleague = await owner('sales-team-invite', { name: 'Other Team', email: peerEmail, states: ['MA'] });
+  await manager('login', { email: managerEmail, code: lead.code });
+  await peer('login', { email: peerEmail, code: colleague.code });
+  const { agent, code } = await manager('sales-team-invite', { name: 'Test Rep', email: accountEmail, states: ['MA'] });
+  await rep('login', { email: accountEmail, code });
+  const repDefaults = { ...emptyProfile, name: 'Test Rep', email: accountEmail };
+  assert.deepEqual((await rep('sales-team-profile')).profile, { ...repDefaults, progress: startingProgress });
+
+  const details = {
+    name: 'Test Rep Display', email: 'contact@example.test', phone: '+1 (617) 555-0150 ext. 23',
+    bio: 'I help care teams in Massachusetts.', photo: portrait,
+  };
+  const changes = { ...details, revision: 0 };
   await owner('set-sales-team-profile', { ...changes, memberId: agent.id }, 400);
   await rep('set-sales-team-profile', { ...changes, id: 'owner' }, 400);
+  await rep('set-sales-team-profile', { ...changes, email: 'invalid-address' }, 400);
+  await rep('set-sales-team-profile', { ...changes, phone: 'bad number' }, 400);
   await rep('set-sales-team-profile', { ...changes, bio: 'a'.repeat(801) }, 400);
   await rep('set-sales-team-profile', { ...changes, photo: 'data:image/svg+xml;base64,PD4=' }, 400);
-  await rep('set-sales-team-profile', { ...changes, photo: 'data:image/jpeg;base64,AAAA' }, 400);
-  const profile = { bio, photo: portrait, revision: 1 };
-  assert.deepEqual((await rep('set-sales-team-profile', changes)).profile, profile);
+  const profile = { ...details, revision: 1 };
+  assert.deepEqual((await rep('set-sales-team-profile', changes)).profile, { ...profile, progress: startingProgress });
   await rep('set-sales-team-profile', changes, 409);
-  assert.deepEqual((await rep('sales-team-profile')).profile, profile);
-  assert.deepEqual((await owner('sales-team-profile', { memberId: agent.id })).profile, emptyProfile);
+  await rep('login', { email: details.email, code }, 401);
+  await rep('login', { email: accountEmail, code });
+
+  const memberView = { id: agent.id, ...details, progress: startingProgress };
+  for (const viewer of [owner, manager, rep]) {
+    assert.deepEqual((await viewer('sales-team-member-profile', { id: agent.id })).profile, memberView);
+  }
+  await peer('sales-team-member-profile', { id: agent.id }, 404);
+  await rep('sales-team-member-profile', { id: lead.agent.id }, 404);
+  await rep('sales-team-member-profile', { id: 'owner' }, 404);
+  await owner('sales-team-member-profile', { id: '99999' }, 404);
+  assert.deepEqual((await owner('sales-team-profile', { memberId: agent.id })).profile, { ...emptyProfile, progress: startingProgress });
+  const member = (await owner('sales-team-read')).members.find(row => row.id === agent.id);
+  assert.deepEqual(member.states, ['MA']);
+  assert.equal(member.name, details.name);
+  assert.equal(member.photo, portrait);
+  assert.equal(member.bio, undefined);
+  assert.equal(member.phone, undefined);
 
   const reopened = sqliteStore(f.database);
   try {
     assert.deepEqual(reopened.salesRepProfile(agent.id), profile);
-    assert.deepEqual(reopened.salesRepProfile('owner'), emptyProfile);
+    assert.deepEqual(reopened.salesRepProfile('owner'), emptyStoredProfile);
   } finally { reopened.close(); }
-  const member = (await owner('sales-team-read')).members.find(row => row.id === agent.id);
-  assert.deepEqual(member.states, ['MA']);
-  assert.equal(member.bio, undefined);
-  assert.equal(member.photo, undefined);
-
+  // Older pages still submit only bio and photo.
   assert.deepEqual((await rep('set-sales-team-profile', { bio: '', photo: '', revision: 1 })).profile,
-    { ...emptyProfile, revision: 2 });
+    { ...profile, bio: '', photo: '', revision: 2, progress: startingProgress });
+  const ownerProfile = (await owner('set-sales-team-profile', changes)).profile;
+  assert.deepEqual(ownerProfile, { ...profile, progress: startingProgress });
+  const ownerRow = (await owner('sales-team-read')).members.find(row => row.id === 'owner');
+  assert.equal(ownerRow.name, details.name);
+  assert.equal(ownerRow.photo, portrait);
   await owner('sales-team-revoke', { id: agent.id });
+  await owner('sales-team-member-profile', { id: agent.id }, 404);
   await rep('sales-team-profile', {}, 401);
   await rep('set-sales-team-profile', { ...changes, revision: 2 }, 401);
-  assert.deepEqual((await owner('set-sales-team-profile', changes)).profile, profile);
 });

@@ -69,6 +69,7 @@
       }
       if (name === 'campaigns') campaignUI?.refresh();
       if (name === 'team') teamUI?.refresh(data.user);
+      else teamUI?.closeMemberProfile();
       if (enteringWorkspace) $('.sdr-main').scrollTop = 0;
       if (name === 'facilities') facilitiesUI?.show();
       if (name === 'home' && data) overviewUI?.render(data);

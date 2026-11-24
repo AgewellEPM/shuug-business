@@ -14,15 +14,108 @@
     return states?.length ? states.join(', ') : 'Nationwide';
   }
 
-  function mountProfile(api) {
+  function experience(progress) {
+    if (!progress) return document.createDocumentFragment();
+    const { level, xp, xpIntoLevel, xpPerLevel } = progress;
+    const block = element('div', '', 'sdr-team-xp');
+    block.dataset.teamXp = '';
+    block.title = xp.toLocaleString() + ' total XP';
+    const label = element('div', '', 'sdr-team-xp-label');
+    label.append(element('strong', 'Level ' + level.toLocaleString()), element('span', `${xpIntoLevel} / ${xpPerLevel} XP`));
+    const meter = element('progress');
+    meter.max = xpPerLevel;
+    meter.value = xpIntoLevel;
+    meter.setAttribute('aria-label', 'XP toward the next level');
+    meter.setAttribute('aria-valuetext', `${xpIntoLevel} of ${xpPerLevel} XP toward level ${level + 1}`);
+    block.append(label, meter);
+    return block;
+  }
+
+  function memberAvatar(member) {
+    if (member.photo) {
+      const image = element('img', '', 'sdr-team-member-avatar');
+      image.src = member.photo;
+      image.alt = '';
+      return image;
+    }
+    const initials = member.name.trim().split(/\s+/).slice(0, 2)
+      .map(word => Array.from(word)[0] || '').join('').toUpperCase();
+    const fallback = element('span', initials, 'sdr-team-member-avatar');
+    fallback.setAttribute('aria-hidden', 'true');
+    return fallback;
+  }
+
+  function mountMemberProfile(api) {
+    const dialog = document.querySelector('[data-team-member-profile]');
+    const title = dialog.querySelector('[data-team-member-profile-title]');
+    const progress = dialog.querySelector('[data-team-member-profile-progress]');
+    const closeButton = dialog.querySelector('[data-team-member-profile-close]');
+    const status = dialog.querySelector('[data-team-member-profile-status]');
+    const content = dialog.querySelector('[data-team-member-profile-content]');
+    let sequence = 0, opener;
+
+    function close() {
+      if (dialog.open) dialog.close();
+    }
+
+    closeButton.addEventListener('click', close);
+    dialog.addEventListener('close', () => {
+      if (dialog.open) return;
+      sequence++;
+      progress.replaceChildren();
+      content.replaceChildren();
+      status.textContent = '';
+      if (opener?.isConnected && !opener.closest('[hidden]')) opener.focus();
+      opener = undefined;
+    });
+
+    async function open(member, button) {
+      const request = ++sequence;
+      opener = button;
+      title.textContent = member.name;
+      progress.replaceChildren();
+      content.hidden = true;
+      content.replaceChildren();
+      status.hidden = false;
+      status.dataset.error = 'false';
+      status.textContent = 'Loading profile…';
+      if (!dialog.open) dialog.showModal();
+      closeButton.focus();
+      try {
+        const { profile } = await api('sales-team-member-profile', { id: member.id });
+        if (request !== sequence || !dialog.open) return;
+        title.textContent = profile.name;
+        progress.replaceChildren(experience(profile.progress));
+        const introduction = element('div', '', 'sdr-team-member-dialog-intro');
+        introduction.append(memberAvatar(profile), element('p', profile.bio || 'No bio yet.', 'sdr-team-member-bio'));
+        content.append(introduction);
+        const contact = element('dl', '', 'sdr-team-member-contact');
+        if (profile.email) contact.append(element('dt', 'Work email'), element('dd', profile.email));
+        if (profile.phone) contact.append(element('dt', 'Phone'), element('dd', profile.phone));
+        if (contact.children.length) content.append(contact);
+        content.hidden = false;
+        status.hidden = true;
+      } catch (error) {
+        if (request !== sequence || !dialog.open) return;
+        status.textContent = error.message || 'The profile could not be opened.';
+        status.dataset.error = 'true';
+      }
+    }
+
+    return { open, close };
+  }
+
+  function mountProfile(api, onSaved) {
     const form = $('sales-team-profile');
     if (!form) return null;
-    const bio = form.elements.bio, headshot = form.elements.headshot;
+    const { name, email, phone, bio, headshot } = form.elements;
+    const fields = { name, email, phone, bio };
     const preview = form.querySelector('[data-team-profile-preview]');
     const remove = form.querySelector('[data-team-profile-remove]');
     const reload = form.querySelector('[data-team-profile-reload]');
     const submit = form.querySelector('button[type="submit"]');
     const status = $('sales-team-profile-status');
+    const progress = document.querySelector('[data-team-profile-progress]');
     let identity, saved, photo = '', busy = false, sequence = 0;
 
     function message(text, error = false) {
@@ -31,7 +124,7 @@
     }
 
     function controls() {
-      bio.disabled = headshot.disabled = remove.disabled = submit.disabled = !saved || busy;
+      for (const control of [...Object.values(fields), headshot, remove, submit]) control.disabled = !saved || busy;
       reload.disabled = busy;
     }
 
@@ -42,11 +135,16 @@
       else preview.removeAttribute('src');
     }
 
+    function showProgress(score) {
+      progress.replaceChildren(experience(score));
+    }
+
     function show(profile) {
       saved = profile;
-      bio.value = profile.bio;
+      for (const [key, input] of Object.entries(fields)) input.value = profile[key] ?? '';
       headshot.value = '';
       showPhoto(profile.photo);
+      showProgress(profile.progress);
     }
 
     async function work(action, success, options = {}) {
@@ -92,16 +190,23 @@
     form.addEventListener('submit', event => {
       event.preventDefault();
       if (!saved || busy) return;
-      void work(() => api('set-sales-team-profile', { bio: bio.value, photo, revision: saved.revision }),
-        ({ profile }) => { show(profile); message('Profile saved.'); }, { pending: 'Saving your profile…' });
+      const details = Object.fromEntries(Object.entries(fields).map(([key, input]) => [key, input.value]));
+      if (photo !== saved.photo) details.photo = photo;
+      void work(() => api('set-sales-team-profile', { ...details, revision: saved.revision }), ({ profile }) => {
+        show(profile);
+        message('Profile saved.');
+        onSaved();
+      }, { pending: 'Saving your profile…' });
     });
     return {
+      showProgress,
       refresh(user) {
         if (user.id === identity) return;
         identity = user.id;
         saved = undefined;
         form.reset();
         showPhoto('');
+        progress.replaceChildren();
         void load();
       },
     };
@@ -111,7 +216,8 @@
     const form = $('sales-create-agent'), roster = $('sales-team'), status = $('sales-team-status');
     if (!form || !roster || !status) return null;
     const manager = form.elements.parentId, submit = form.querySelector('button[type="submit"]');
-    const profile = mountProfile(api);
+    const memberProfile = mountMemberProfile(api);
+    const profile = mountProfile(api, () => { void refresh({ role: owner ? 'owner' : 'agent' }); });
     const reload = $('sales-reload-team'), secret = $('sales-agent-code'), code = $('sales-agent-code-value');
     let owner = false, ready = false, busy = false, sequence = 0;
 
@@ -124,6 +230,7 @@
       const next = tabs.find(control => control.dataset.teamView === key);
       if (!next) return;
       current = key;
+      if (key !== 'roster') memberProfile.close();
       for (const control of tabs) {
         const active = control === next;
         control.setAttribute('aria-selected', String(active));
@@ -195,14 +302,22 @@
       item.dataset.teamMember = member.id;
       const row = element('div', '', 'sdr-team-member');
       const content = element('div', '', 'sdr-team-member-content');
-      const title = element('div', '', 'sdr-team-member-title');
+      const title = element('span', '', 'sdr-team-member-title');
+      const identity = element(member.active ? 'button' : 'div', '', 'sdr-team-member-person');
+      if (member.active) {
+        identity.type = 'button';
+        identity.setAttribute('aria-haspopup', 'dialog');
+        identity.dataset.teamMemberProfileOpen = member.id;
+        identity.addEventListener('click', () => void memberProfile.open(member, identity));
+      }
       const coverage = element('div', '', 'sdr-team-member-coverage');
       const state = element('span', member.active ? 'Active' : 'Access ended', 'sdr-team-member-state');
       state.dataset.active = String(member.active);
       title.append(element('strong', member.name));
       if (member.id === rootId) title.append(element('span', 'You', 'sdr-team-member-self'));
-      content.append(title);
-      if (member.email) content.append(element('p', member.email));
+      identity.append(memberAvatar(member), title);
+      content.append(identity, experience(member.progress));
+      if (member.email) content.append(element('p', member.email, 'sdr-team-member-meta'));
       coverage.append(element('p', territoryLabel(member)));
       if (member.marketSegments?.length) {
         const segments = element('div', '', 'sdr-team-member-markets');
@@ -217,7 +332,7 @@
       } else if (member.active && Array.isArray(member.marketSegments)) {
         coverage.append(element('p', 'No classified facilities assigned'));
       }
-      if (owner && member.id !== rootId) content.append(element('p', `Agent ID ${member.id}`));
+      if (owner && member.id !== rootId) content.append(element('p', `Agent ID ${member.id}`, 'sdr-team-member-meta'));
       const access = element('div', '', 'sdr-team-member-access');
       access.append(state);
       if (member.canRevoke) access.append(revokeButton(member));
@@ -264,6 +379,7 @@
         const team = await api('sales-team-read');
         if (request !== sequence) return;
         render(team);
+        profile?.showProgress(team.members.find(member => member.id === team.rootId)?.progress);
         ready = true;
       } catch (error) {
         if (request !== sequence) return;
@@ -317,7 +433,7 @@
       message('');
       void refresh({ role: owner ? 'owner' : 'agent' });
     });
-    return { refresh, view };
+    return { refresh, view, closeMemberProfile: memberProfile.close };
   }
   window.SdrSalesTeam = { mount };
 })();

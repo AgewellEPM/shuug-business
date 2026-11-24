@@ -1,9 +1,9 @@
 import { HttpError, STATES, digest, email, metadata, secret, text } from './model.mjs';
 import { agentTerritory } from './territories.mjs';
-import { salesRepProfileUpdate } from './sales-rep-profile.mjs';
+import { profileForAccount, salesRepProfileUpdate } from './sales-rep-profile.mjs';
 
 const OWNER = 'owner';
-const actions = new Set(['sales-team-read', 'sales-team-invite', 'sales-team-revoke', 'sales-team-profile', 'set-sales-team-profile']);
+const actions = new Set(['sales-team-read', 'sales-team-invite', 'sales-team-revoke', 'sales-team-profile', 'sales-team-member-profile', 'set-sales-team-profile']);
 const idOf = row => String(row.id);
 const parentOf = row => metadata(row).parentId || OWNER;
 const isAgent = row => row.status === 'active' || (row.status === 'revoked' && Boolean(metadata(row).codeHash));
@@ -59,6 +59,10 @@ function pairedRows(rows) {
   return new Map(rows.filter(isAgent).map(row => [idOf(row), row]));
 }
 
+function memberVisible(rootId, member) {
+  return rootId === OWNER || member.chain?.some(ancestor => idOf(ancestor) === rootId);
+}
+
 function publicMember(row, member, rootId) {
   const id = idOf(row), parentId = parentOf(row);
   return { id, name: row.contact_name, email: row.contact_email, parentId: id === rootId ? null : parentId, active: member.active,
@@ -89,13 +93,25 @@ export function salesTeamTools(db, audit, owner) {
     const records = list(), rootId = user.id;
     if (rootId !== OWNER && !account(records.get(rootId), records).active) throw new HttpError(401, 'Your sales access was revoked.');
     const members = [];
-    if (rootId === OWNER) members.push({ id: OWNER, name: owner.name, email: '', parentId: null, active: true,
-      canRevoke: false, states: [], territory: null });
+    function addProfile(member) {
+      if (!member.active) return member;
+      const profile = db.salesRepProfile(member.id);
+      return { ...member, name: profile.name || member.name, photo: profile.photo };
+    }
+    if (rootId === OWNER) members.push(addProfile({ id: OWNER, name: owner.name, email: '', parentId: null, active: true,
+      canRevoke: false, states: [], territory: null }));
     for (const row of records.values()) {
       const member = account(row, records);
-      if (rootId === OWNER || member.chain?.some(ancestor => idOf(ancestor) === rootId)) members.push(publicMember(row, member, rootId));
+      if (memberVisible(rootId, member)) members.push(addProfile(publicMember(row, member, rootId)));
     }
     return { rootId, members };
+  }
+
+  function readMemberProfile(user, id, records) {
+    if (id === OWNER && user.id === OWNER) return profileForAccount(owner, db.salesRepProfile(OWNER), true);
+    const row = records.get(id), member = account(row, records);
+    if (!member.active || !memberVisible(user.id, member)) throw new HttpError(404, 'Sales team profile not found.');
+    return profileForAccount({ id, name: row.contact_name, email: row.contact_email }, db.salesRepProfile(id), true);
   }
 
   function invite(user, body, records) {
@@ -136,14 +152,17 @@ export function salesTeamTools(db, audit, owner) {
     function work() {
       const records = list();
       if (user.role !== 'owner' && !account(records.get(user.id), records).active) throw new HttpError(401, 'Your sales access was revoked.');
-      if (action === 'sales-team-profile') return { profile: db.salesRepProfile(user.id) };
+      if (action === 'sales-team-profile') return { profile: profileForAccount(user, db.salesRepProfile(user.id)) };
+      if (action === 'sales-team-member-profile') {
+        return { profile: readMemberProfile(user, text(body.id ?? '', 40, true), records) };
+      }
       if (action === 'set-sales-team-profile') {
         const changes = salesRepProfileUpdate(body);
-        return { profile: db.setSalesRepProfile(user.id, body.revision, changes) };
+        return { profile: profileForAccount(user, db.setSalesRepProfile(user.id, body.revision, changes)) };
       }
       return action === 'sales-team-invite' ? invite(user, body, records) : revoke(user, body, records);
     }
-    return action === 'sales-team-profile' ? work() : db.writeAgentTeam(work);
+    return ['sales-team-profile', 'sales-team-member-profile'].includes(action) ? work() : db.writeAgentTeam(work);
   }
 
   return { actions, dispatch, roster, rosterUser };

@@ -254,8 +254,13 @@ function standaloneTeam(legacyTeam) {
         <div id="sales-team"></div>
       </section>
       <section class="sdr-team-pane sdr-team-profile" id="sales-team-pane-profile" role="tabpanel" aria-labelledby="sales-team-tab-profile" tabindex="0" hidden>
-        <div class="sdr-team-pane-head"><div><h3>My bio and headshot</h3><p>Your headshot appears in your county assignments.</p></div></div>
+        <div class="sdr-team-pane-head"><div><h3>My profile</h3><div data-team-profile-progress></div><p>Your profile details are visible to teammates who can view your roster profile.</p></div></div>
         <form id="sales-team-profile" class="sales-form">
+          <div class="sdr-team-profile-fields">
+            <label class="sdr-team-profile-name">Name<input name="name" autocomplete="name" maxlength="140" disabled></label>
+            <label>Work email<input name="email" type="email" autocomplete="email" maxlength="240" disabled></label>
+            <label>Phone<input name="phone" type="tel" autocomplete="tel" maxlength="40" disabled></label>
+          </div>
           <label>Bio<textarea name="bio" rows="3" maxlength="800" disabled></textarea></label>
           <div class="sdr-team-profile-photo">
             <img data-team-profile-preview alt="Headshot preview" width="64" height="64" hidden>
@@ -308,6 +313,17 @@ function standaloneTeam(legacyTeam) {
         </details>
       </section>
     </div>
+    <dialog class="sdr-team-member-dialog" data-team-member-profile aria-labelledby="sales-team-member-profile-title">
+      <header class="sdr-team-member-dialog-heading">
+        <div>
+          <h3 id="sales-team-member-profile-title" data-team-member-profile-title>Sales rep profile</h3>
+          <div data-team-member-profile-progress></div>
+        </div>
+        <button type="button" class="button secondary" data-team-member-profile-close autofocus>Close</button>
+      </header>
+      <p data-team-member-profile-status role="status"></p>
+      <div data-team-member-profile-content hidden></div>
+    </dialog>
   </section>`;
 }
 
