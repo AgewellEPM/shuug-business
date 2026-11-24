@@ -18,15 +18,13 @@
 .territory-facility-actions input { min-width: 0; max-width: 100%; padding: 8px; border: 1px solid var(--glass-border-muted); border-radius: 6px; background: var(--glass-fill-strong); color: var(--text-primary); }
 .territory-facility-actions span { align-self: center; font-size: 13px; }
 
-.territory-town-map { min-width: 0; scroll-margin-top: 86px; }
+.territory-town-map { --territory-map-height: clamp(380px, 57vh, 705px); min-width: 0; scroll-margin-top: 86px; }
 .territory-town-map h2:focus { outline: none; }
 .territory-town-map .sdr-card-head p, .town-map-caption { color: var(--text-secondary); font-size: 13px; }
-.town-map-tools { display: flex; align-items: end; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 14px; }
 .town-map-tools label { display: grid; gap: 4px; font-size: 13px; }
-.town-map-tools select { max-width: 100%; width: min(70vw, 320px); min-height: 44px; padding: 6px 10px; color: var(--text-primary); background: var(--glass-fill-strong); border: 1px solid var(--glass-border-muted); border-radius: 8px; }
-.town-map-tools .town-map-color-control { display: flex; align-items: center; gap: 7px; align-self: center; margin-left: auto; min-height: 44px; cursor: pointer; }
-.town-map-color-control input { width: 18px; height: 18px; accent-color: var(--accent); }
-.town-map-canvas.leaflet-container { height: clamp(350px, 60vh, 640px); width: 100%; isolation: isolate; border: 1px solid var(--glass-border-muted); border-radius: 12px; background: #fcfaf4; }
+.town-map-tools .town-map-color-control { display: flex; align-items: center; gap: 7px; align-self: center; margin-inline-start: 3px; min-height: 44px; cursor: pointer; }
+.town-map-color-control input { appearance: auto; flex: none; width: 18px; height: 18px; accent-color: var(--accent); }
+.town-map-canvas.leaflet-container { height: var(--territory-map-height); width: 100%; isolation: isolate; border: 1px solid var(--glass-border-muted); border-radius: 12px; background: #fcfaf4; }
 .town-map-water { fill: #b7e0ec; fill-rule: evenodd; pointer-events: none; }
 .town-map-outline { fill: #f6f0d8; fill-rule: evenodd; }
 .town-map-county { stroke: #745f47; stroke-width: .9px; vector-effect: non-scaling-stroke; fill-rule: evenodd; cursor: pointer; }
@@ -51,7 +49,7 @@
 .map-grayscale .town-map-area.is-selected { fill: #c6c6c6; stroke: #222; }
 #sales-territory-map { scroll-margin-top: 86px; }
 @media (max-width: 650px) {
-  .town-map-tools .town-map-color-control, .town-map-caption small { margin-left: 0; }
+  .town-map-caption small { margin-left: 0; }
 }
 
 .town-map-district { stroke: #797768; stroke-width: 1.2px; stroke-dasharray: 4 2; vector-effect: non-scaling-stroke; fill-rule: evenodd; cursor: pointer; }
@@ -67,7 +65,7 @@
 
 .town-map-layout { display: grid; gap: 12px; align-items: stretch; grid-template-columns: minmax(0, 1fr); }
 @media(min-width:1200px) { .town-map-layout:has(.town-map-roster:not([hidden])) { grid-template-columns: minmax(0,1fr) minmax(208px,24%); } }
-.town-map-roster { display: flex; flex-direction: column; gap: 8px; padding: 12px; min-width: 0; max-height: clamp(350px,60vh,640px); box-sizing: border-box; overflow: auto; background: var(--glass-fill-muted); border: 1px solid var(--glass-border-muted); border-radius: 12px; }
+.town-map-roster { display: flex; flex-direction: column; gap: 8px; padding: 12px; min-width: 0; max-height: var(--territory-map-height); box-sizing: border-box; overflow: auto; background: var(--glass-fill-muted); border: 1px solid var(--glass-border-muted); border-radius: 12px; }
 .town-map-roster h3 { font-size: 15px; }
 .town-map-roster label { display: grid; gap: 4px; font-size: 12px; }
 .town-map-roster input:not([type=checkbox]) { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px; border: 1px solid var(--glass-border-muted); border-radius: 6px; color: var(--text-primary); background: var(--glass-fill-strong); }
@@ -77,7 +75,6 @@
 .county-lead-row small { display: block; color: var(--text-secondary); }
 .county-avatar { flex: 0 0 28px; width: 28px; height: 28px; display: inline-grid; place-items:center; border-radius: 50%; object-fit: cover; background: var(--accent-soft); font-size: 11px; }
 
-.town-map-tools .territory-lookup { flex: 1 1 245px; max-width: 420px; }
 .territory-lookup input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 8px 11px; color: var(--text-primary); background: var(--glass-fill-strong); border: 1px solid var(--glass-border-muted); border-radius: 8px; }
 .territory-lookup-results { margin: 0 0 14px; padding: 8px 12px; border: 1px solid var(--glass-border-muted); background: var(--glass-fill-muted); border-radius: 10px; }
 .territory-lookup-results > p { margin: 0; color: var(--text-secondary); font-size: 13px; }
@@ -104,3 +101,64 @@
 .county-rep-preview { display: flex; gap: 8px; align-items: center; color: var(--text-secondary); font-size: 13px; }
 .territory-market-coverage { display: flex; flex-wrap: wrap; gap: 5px; flex: 0 0 100%; margin: 0; padding: 0; list-style: none; }
 .territory-market-coverage li { padding: 4px 8px; border-radius: 6px; color: var(--text-primary); background: var(--accent-soft); font-size: 12px; }
+
+[data-standalone-sdr][data-sdr-view="territories"] #sales-view-title { display: none; }
+.sdr-territory-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  min-height: 104px;
+  margin-bottom: 14px;
+  scroll-margin-top: 86px;
+  padding: 16px clamp(16px, 3vw, 34px);
+  border-radius: 18px;
+  color: #fff;
+  background: linear-gradient(114deg, #073586 5%, #075cb3 56%, #1789d8);
+}
+.sdr-territory-hero-title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.sdr-territory-hero-title > svg { width: 35px; height: 35px; flex: none; }
+.sales-console-page .sdr-territory-hero h2 { color: #fff; font-size: clamp(27px, 3.3vw, 40px); line-height: 1.08; letter-spacing: -.04em; }
+.sales-console-page .sdr-territory-hero p { margin-top: 5px; color: #e6f4ff; font-size: clamp(13px, 1.25vw, 16px); }
+.sdr-territory-state-field { display: grid; gap: 5px; flex: 0 1 240px; width: min(100%, 240px); color: #f2f8ff; font-size: 13px; font-weight: 650; }
+.sales-console-page :is(.sdr-territory-state-field select, .town-map-tools [data-map-town]) {
+  appearance: none;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  padding: 8px 32px 8px 11px;
+  border: 1px solid var(--glass-border-muted);
+  border-radius: 9px;
+  color: var(--text-primary);
+  background:
+    linear-gradient(45deg, transparent 50%, #425874 50%) right 15px center / 5px 5px no-repeat,
+    linear-gradient(135deg, #425874 50%, transparent 50%) right 10px center / 5px 5px no-repeat,
+    var(--glass-fill-strong);
+  font: inherit;
+}
+.sdr-territory-state-field select:focus-visible { outline-color: #d0ecff; }
+.town-map-tools {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(170px, 1fr) minmax(0, max-content);
+  align-items: end;
+  gap: 10px 12px;
+  padding: 11px;
+  margin-bottom: 14px;
+  border: 1px solid var(--glass-border-muted);
+  border-radius: 12px;
+  background: var(--glass-fill-muted);
+}
+.town-map-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
+.town-map-tools .town-map-actions .button { min-height: 44px; padding-inline: 11px; }
+@media (max-width: 1190px) {
+  .town-map-tools { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .town-map-actions { grid-column: 1 / -1; }
+}
+@media (max-width: 530px) {
+  .sdr-territory-hero { align-items: flex-start; }
+  .sdr-territory-state-field { flex-basis: 100%; width: 100%; }
+  .town-map-tools { grid-template-columns: minmax(0, 1fr); }
+  .territory-town-map { --territory-map-height: clamp(330px, 54vh, 510px); }
+}

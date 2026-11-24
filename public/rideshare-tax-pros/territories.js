@@ -2,7 +2,7 @@
   'use strict';
   const e=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
   const covers=(agent,state,key)=>agent.territory?.version===1?agent.territory.areas.some(area=>area.state===state&&(area.cities===null||area.cities.includes(key))):!agent.states?.length||agent.states.includes(state);
-  window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate}){
+  window.GigTaxTerritories={mount({api,status,refresh,onSearch,onNavigate,onClearState}){
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
     const townMap=window.SdrTerritoryTownMap?.mount({api,onBack:returnToStates});
     const townAccessState=document.querySelector('#sales-town-access-state');
@@ -10,18 +10,24 @@
     let data,state='',agentId='',report,selected=new Set(),mode='selected',query='',offset=0,sequence=0,timer,saving=false;
     const agent=()=>data?.agents.find(row=>String(row.id)===agentId);
     const owner=()=>data?.user.role==='owner';
-    function updateStateLink(region){
-      if(!townMap || new URLSearchParams(location.hash.slice(1)).get('view')!=='territories')return;
-      history.replaceState(null,'',location.pathname+location.search+'#view=territories'+(region?'&state='+region:''));
+    function updateStateLink(region, focus){
+      if(!townMap || document.body.dataset.sdrView!=='territories')return;
+      const params=new URLSearchParams({view:'territories'});
+      if(region)params.set('state',region);
+      if(region&&focus?.place)params.set('place',focus.place);
+      if(region&&focus?.streets)params.set('layer','streets');
+      history.replaceState(null,'',location.pathname+location.search+'#'+params);
     }
-    function returnToStates(){
+    function returnToStates(focus){
       const previous=townMap?mapState:state;
       if(!previous)return;
       updateStateLink('');
-      if(townMap){mapState='';townMap.clear();}
+      if(townMap){mapState='';townMap.clear();onClearState?.();}
       else selectTownAccess('');
+      if(focus?.statePicker)return;
       document.querySelector(`#sales-territory-map [data-state="${previous}"]`)?.focus?.({preventScroll:true});
-      document.querySelector('#sales-territory-map')?.scrollIntoView?.({block:'start'});
+      const top=document.querySelector('.sdr-territory-hero')||document.querySelector('#sales-territory-map');
+      top?.scrollIntoView?.({block:'start'});
     }
     function resetSelection(){
       const person=agent(),area=person?.territory?.areas.find(area=>area.state===state);
@@ -97,10 +103,11 @@
       resetSelection();paint();
     },selectState(region, focus){
       if(townMap){
+        if(!region)return returnToStates(focus);
         mapState=region;
-        updateStateLink(region);
+        updateStateLink(region,focus);
         void townMap.open(region,focus);
-        townMap.focus();
+        if(!focus?.statePicker)townMap.focus();
         return;
       }
       selectTownAccess(region);

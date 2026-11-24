@@ -54,7 +54,7 @@
     const teamUI = window.SdrSalesTeam?.mount({ api, refreshWorkspace: refresh });
     const tab = name => {
       if ((name === 'campaigns' || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
-      const enteringTeam = standalone && name === 'team' && document.body.dataset.sdrView !== 'team';
+      const enteringWorkspace = standalone && ['team','territories'].includes(name) && document.body.dataset.sdrView !== name;
       if (standalone) document.body.dataset.sdrView = name;
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
       $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name));
@@ -67,7 +67,7 @@
       }
       if (name === 'campaigns') campaignUI?.refresh();
       if (name === 'team') teamUI?.refresh(data.user);
-      if (enteringTeam) $('.sdr-main').scrollTop = 0;
+      if (enteringWorkspace) $('.sdr-main').scrollTop = 0;
       if (name === 'facilities') facilitiesUI?.show();
       if (name === 'home' && data) overviewUI?.render(data);
     };
@@ -295,7 +295,7 @@
     prospectsWorkspace = window.SdrProspects?.mount({ api, refresh, onOpenOffice: showOffice });
     campaignUI = window.SdrCampaigns?.mount({ api, status });
     overviewUI = window.SdrOverview?.mount({ api, status, refresh, onNavigate: tab, onOpenOffice: showOffice, onBrowseFacilities: browseFacilities, facilityType });
-    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
+    territoryUI = window.GigTaxTerritories?.mount({api,status,refresh,onNavigate:tab,onClearState:()=>consoleUI?.clearState(),onSearch:async input=>{tab('discover');$('#sales-discover').elements.state.value=input.state;$('#sales-discover').elements.city.value=input.city;await localUI.search(input);}});
     consoleUI = window.GigTaxConsole?.mount({ api, status, onSelect: showOffice, onNavigate: tab, matchesFacility, facilityLabel: office => careCRM && classified(office) ? facilityLabels[facilityType(office)] : '',
       onTerritory: territoryUI ? (state, _category, _query, focus) => territoryUI.selectState(state, focus) : undefined, onSearch: async input => {
       for (const [name, value] of Object.entries(input)) if (discovery.elements[name]) discovery.elements[name].value = value;
