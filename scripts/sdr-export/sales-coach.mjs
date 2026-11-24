@@ -34,7 +34,7 @@ const destinations = {
   today: ['Today’s Plan', 'today', 'todays plan', 'daily plan'], home: ['Overview', 'dashboard'], prospects: ['Prospects', 'prospect list'],
   pipeline: ['Pipeline', 'sales pipeline'], calendar: ['Calendar', 'sales calendar'], training: ['Training', 'training center'],
   demo: ['Demo', 'demos'], email: ['Email', 'inbox', 'mailbox'], chat: ['Team chat', 'staff chat'],
-  team: ['Sales team', 'team roster'], contracts: ['Contracts', 'agreements'], contacts: ['Contacts', 'rolodex'],
+  team: ['Tinky Team', 'Sales team', 'team roster'], contracts: ['Contracts', 'agreements'], contacts: ['Contacts', 'rolodex'],
   territories: ['Territories', 'territory map'], campaigns: ['Campaigns'], support: ['Support', 'help center'],
   facilities: ['Facility directory'], mail: ['Senders'], locations: ['Signup locations'],
   'training-demo': ['Demo Lab'], 'training-pipeline': ['Pipeline practice'],

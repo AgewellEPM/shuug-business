@@ -46,7 +46,7 @@
       };
       (async () => {
         try {
-          if (!invitation.id || !invitation.token) throw new Error('Open the private contract link supplied by your sales agent.');
+          if (!invitation.id || !invitation.token) throw new Error('Open the private contract link supplied by your Tinky Team agent.');
           view = await api('signup-view', invitation);
           $('#signup-record').hidden = false; $('#signup-office').textContent = view.office; $('#signup-address').textContent = view.address;
           $('#signup-contact').textContent = `Invited owner: ${view.ownerName} · ${view.email}`;

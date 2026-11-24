@@ -6,7 +6,7 @@
         if (!host) return;
         const details = document.createElement('details');
         details.className = 'sdr-card sdr-mail-allocation';
-        details.innerHTML = '<summary>Rep mailboxes</summary><div data-allocation-content></div>';
+        details.innerHTML = '<summary>Agent mailboxes</summary><div data-allocation-content></div>';
         host.append(details);
         const content = details.querySelector('[data-allocation-content]');
         let data,
@@ -28,10 +28,10 @@
           const status = (box?.address ? box.address + ' · ' : '') + (box?.label || '');
           content.innerHTML = `<div class="sdr-mail-allocation-head">
           <p>${escape(data.directoryError || (data.domains.length ? 'Company email · ' + data.domains.join(', ') : 'Company email'))}</p>
-          <button type="button" class="button secondary" data-add-rep>${members.length ? 'Sales team' : 'Add a sales rep'}</button></div>
+          <button type="button" class="button secondary" data-add-rep>${members.length ? 'Tinky Team' : 'Add a Tinky Team agent'}</button></div>
           ${
             member
-              ? `<label>Sales rep<select data-allocation-member>${members.map((m) => opt(m.id, m.name + ' · ' + m.login)).join('')}</select></label>
+              ? `<label>Tinky Team agent<select data-allocation-member>${members.map((m) => opt(m.id, m.name + ' · ' + m.login)).join('')}</select></label>
           <p class="sdr-allocation-current">${escape(status)}</p>
           ${box?.status === 'pending' ? '<p>Grant the workspace account access to this mailbox, then choose Check access. <a href="https://www.zoho.com/mail/help/adminconsole/mailbox-delegation-admin-settings.html" target="_blank" rel="noopener noreferrer">Zoho delegation instructions</a></p>' : ''}
           <form class="sales-form sdr-allocation-form" data-allocation-form>
@@ -51,7 +51,7 @@
               ${box?.address && ['pending', 'check', 'creating'].includes(box.status) ? '<button class="button secondary" type="button" data-check-mail>Check access</button>' : ''}
               ${box?.address ? '<button class="button secondary" type="button" data-release-mail>Release SDR assignment</button>' : ''}</div>
           </form>`
-              : '<p>Add a sales rep to assign or create their company mailbox.</p>'
+              : '<p>Add a Tinky Team agent to assign or create their company mailbox.</p>'
           }
           ${retired.map((row) => `<div class="sdr-mail-allocation-head"><span>${escape(row.address)} · Former rep</span><button class="button secondary" type="button" data-release-former="${escape(row.memberId)}">Release SDR assignment</button></div>`).join('')}
           <p role="status" data-allocation-status>${escape(note)}</p><button type="button" class="button secondary" data-directory-refresh>Refresh directory</button>`;
@@ -127,7 +127,7 @@
             const box = result.mailbox;
             message =
               box.status === 'ready'
-                ? box.address + ' is assigned. The rep can open Email.'
+                ? box.address + ' is assigned. The agent can open Email.'
                 : box.status === 'released'
                   ? 'SDR assignment released.'
                   : box.status === 'pending'
@@ -168,7 +168,7 @@
       }
       function incoming(host, id, owner) {
         host.innerHTML =
-          '<button type="button" class="button secondary" data-route-email>Assign to rep</button><div data-route-fields></div>';
+          '<button type="button" class="button secondary" data-route-email>Assign to agent</button><div data-route-fields></div>';
         const trigger = host.querySelector('[data-route-email]'),
           fields = host.querySelector('[data-route-fields]');
         trigger.onclick = async () => {
@@ -178,12 +178,12 @@
             if (!host.isConnected) return;
             if (!result.members.length) {
               fields.innerHTML =
-                '<p>No other active sales reps are available.</p>' +
-                (owner ? '<button type="button" class="button secondary">Add a sales rep</button>' : '');
+                '<p>No other active Tinky Team agents are available.</p>' +
+                (owner ? '<button type="button" class="button secondary">Add a Tinky Team agent</button>' : '');
               fields.querySelector('button')?.addEventListener('click', () => onNavigate('team'));
               return;
             }
-            fields.innerHTML = `<form class="sdr-mail-route-form"><label>Assign to<select name="rep" required><option value="">Choose a rep</option>${result.members.map((m) => `<option value="${escape(m.id)}">${escape(m.name)}</option>`).join('')}</select></label><button type="submit" class="button primary">Assign email</button><p role="status"></p></form>`;
+            fields.innerHTML = `<form class="sdr-mail-route-form"><label>Assign to<select name="rep" required><option value="">Choose an agent</option>${result.members.map((m) => `<option value="${escape(m.id)}">${escape(m.name)}</option>`).join('')}</select></label><button type="submit" class="button primary">Assign email</button><p role="status"></p></form>`;
             const form = fields.querySelector('form'),
               note = form.querySelector('[role="status"]');
             if (result.current) {

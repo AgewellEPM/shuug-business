@@ -23,12 +23,13 @@ for (const filename of readdirSync(join(root, 'sales'))) {
   if (filename.endsWith('.mjs') && !filename.endsWith('.test.mjs')) copy('sales/' + filename);
 }
 copy('sales/facility-leadership-data.json');
+copy('sales/territory-map-data/context.json.gz');
 for (const directory of ['business-places-data', 'territory-data', 'territory-map-data']) {
   for (const filename of readdirSync(join(root, 'sales', directory))) {
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);
   }
 }
-const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-care-campaign.mjs', 'sales-today.mjs', 'sales-training.mjs', 'sales-training-demo.mjs', 'sales-training-pipeline.mjs'];
+const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-care-campaign.mjs', 'sales-today.mjs', 'sales-training.mjs', 'sales-training-demo.mjs', 'sales-training-pipeline.mjs', 'sales-pipeline-workspace.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
@@ -43,6 +44,7 @@ const assets = [
   'local-contacts.js', 'local-offices.css', 'local-offices.js', 'sales.css', 'sales.js', 'sales-console.css',
   'sales-campaigns.js', 'sales-console.js', 'sales-contacts.js', 'sales-contracts.js', 'sales-linkedin.js', 'sales-progress.js', 'sales-research.js',
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
+  'sales-pipeline-workspace.css', 'sales-pipeline-workspace.js', 'sales-pipeline-hero.webp',
   'sales-display.css', 'sales-display.js',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
   ...['care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot'].flatMap(name => [name + '.js', name + '.css']),

@@ -6,7 +6,6 @@
     const host=document.querySelector('#sales-territory-cities');if(!host)return;
     const dashboard=window.SdrTerritoryDashboard?.mount(api);
     const townMap=window.SdrTerritoryTownMap?.mount({api,onBack:returnToStates,
-      onMap:map=>dashboard?.setMap(map), onSelect:(counties,name)=>dashboard?.selected(counties,name),
       onAssignment:()=>dashboard?.show(mapState,true)});
     const townAccessState=document.querySelector('#sales-town-access-state');
     let mapState='';
@@ -51,7 +50,7 @@
       const person=agent(),own=owner();
       host.innerHTML=`<section class="sdr-card territory-drilldown"><div class="sdr-card-head"><div><h3>${e(state)} · Towns & cities</h3><p>${report?`${report.stateTotal.toLocaleString()} available · Census ${e(report.version)}`:'Loading the town catalog…'}</p></div>${townAccessState?'':'<button type="button" class="button secondary" data-territory-back>All states</button>'}</div>
         <p>Assignments follow the town or city recorded on an office’s address. Identically named localities within a state share coverage.</p>
-        ${own?`<div class="territory-controls"><label>Salesperson<select data-territory-agent><option value="">Choose a salesperson</option>${data.agents.map(row=>`<option value="${e(row.id)}" ${String(row.id)===agentId?'selected':''}>${e(row.name)}</option>`).join('')}</select></label><label>Coverage in ${e(state)}<select data-territory-mode><option value="selected">Selected towns & cities</option><option value="state">Whole state</option><option value="none">No coverage</option></select></label></div>${!data.agents.length?'<p>Create a salesperson in Sales team, then assign their towns here. <button type="button" class="button secondary" data-territory-team>Open Sales team</button></p>':''}${person&&!person.territory&&!person.states?.length?'<p class="local-owner-note">This salesperson currently has nationwide access. Saving here starts a restricted territory with this state’s selection.</p>':''}<div class="sales-actions"><strong data-territory-selected></strong><button type="button" class="button primary" data-territory-save>Save territory</button></div>`:'<p>Your assigned towns and cities are listed below. Choose a town to find offices.</p>'}
+        ${own?`<div class="territory-controls"><label>Tinky Team agent<select data-territory-agent><option value="">Choose a Tinky Team agent</option>${data.agents.map(row=>`<option value="${e(row.id)}" ${String(row.id)===agentId?'selected':''}>${e(row.name)}</option>`).join('')}</select></label><label>Coverage in ${e(state)}<select data-territory-mode><option value="selected">Selected towns & cities</option><option value="state">Whole state</option><option value="none">No coverage</option></select></label></div>${!data.agents.length?'<p>Create a salesperson in Sales team, then assign their towns here. <button type="button" class="button secondary" data-territory-team>Open Sales team</button></p>':''}${person&&!person.territory&&!person.states?.length?'<p class="local-owner-note">This salesperson currently has nationwide access. Saving here starts a restricted territory with this state’s selection.</p>':''}<div class="sales-actions"><strong data-territory-selected></strong><button type="button" class="button primary" data-territory-save>Save territory</button></div>`:'<p>Your assigned towns and cities are listed below. Choose a town to find offices.</p>'}
         <label>Find a town or city<input type="search" data-territory-query placeholder="Search town or city name" value="${e(query)}"></label>
         <p data-territory-count role="status">${report?`${report.total} matching towns / cities`:'Loading…'}</p>
         ${own&&report?'<div class="sales-actions"><button type="button" class="button secondary" data-territory-select-page>Select this page</button><button type="button" class="button secondary" data-territory-clear-page>Clear this page</button></div>':''}
@@ -99,7 +98,7 @@
     return {showStates:returnToStates,enter(){dashboard?.show(mapState);},render(next){
       if(data&&scope(data.user)!==scope(next.user)){returnToStates();dashboard?.reset();}
       data=next;
-      dashboard?.setUser(next.user);dashboard?.show(mapState,true);
+      dashboard?.show(mapState,true);
       if(townAccessState&&owner()&&townAccessState.options.length===0){
         townAccessState.replaceChildren(new Option('Choose a state',''),...data.states.map(region=>new Option(region,region)));
       }

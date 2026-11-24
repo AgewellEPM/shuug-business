@@ -7,6 +7,18 @@ import { countyMarketCoverage } from './sales-market-segments.mjs';
 import { localityAllowed, localityKey, stateAllowed } from './territory-access.mjs';
 
 const decompress = promisify(gunzip);
+let contextIndex;
+
+async function stateContext(region) {
+  contextIndex ??= readFile(new URL('./territory-map-data/context.json.gz', import.meta.url))
+    .then(decompress).then(bytes => JSON.parse(bytes)).catch(error => {
+      contextIndex = undefined;
+      if (error.code === 'ENOENT') return null;
+      throw error;
+    });
+  const index = await contextIndex;
+  return (index?.views[region] || []).map(item => ({ ...item, ...index.outlines[item.state] }));
+}
 
 export async function territoryGeometry(region) {
   const file = new URL(`./territory-map-data/${region}.json.gz`, import.meta.url);
@@ -57,7 +69,9 @@ async function describeCounties(user, db, map, counties, scope) {
 export async function territoryMap(user, input, db, readTeam) {
   const region = state(input.state);
   if (!stateAllowed(user, region)) throw new HttpError(403, 'This state is outside your territory.');
-  const map = await territoryGeometry(region), scope = assignmentScope(user, map, readTeam);
+  const [map, context] = await Promise.all([territoryGeometry(region), stateContext(region)]);
+  const scope = assignmentScope(user, map, readTeam);
+  map.context = context;
   const descriptions = await describeCounties(user, db, map, map.counties, scope);
   map.counties.forEach((county, index) => Object.assign(county, descriptions[index]));
   map.features = map.features.filter(feature => localityAllowed(user, region, feature.name));

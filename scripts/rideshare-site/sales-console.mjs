@@ -11,7 +11,8 @@ import { renderSalesEmail } from './sales-email.mjs';
 import { renderTeamChat } from './sales-chat.mjs';
 import { renderSalesCoach } from './sales-coach.mjs';
 import { renderToday } from './sales-today.mjs';
-import { renderTerritoryDashboard } from './sales-territory-dashboard.mjs';
+import { renderTerritoryHeader } from './sales-territory-dashboard.mjs';
+import { renderPipelineWorkspace } from './sales-pipeline-workspace.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
@@ -26,6 +27,11 @@ const icons = {
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v5m10-5v5M3 10h18M7 15h4"/>',
   home: '<path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-8H9v8H4a1 1 0 0 1-1-1Z"/>',
   pipeline: '<rect x="3" y="4" width="5" height="16" rx="1"/><rect x="10" y="4" width="5" height="11" rx="1"/><rect x="17" y="4" width="4" height="14" rx="1"/>',
+  check: '<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  forecast: '<path d="M3 3v17h18M7 14l5-5 3 3 5-6m-5 0h5v5"/>',
+  reports: '<path d="M4 20h16M7 16v-4m5 4V8m5 8V4" stroke-width="2.5"/>',
+  revenue: '<circle cx="12" cy="12" r="9"/><path d="M12 6v12m3-9H11a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3H9"/>',
+  download: '<path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/>',
   facilities: '<path d="M3 18V8m0 8h18v4m0-4v-5h-9v5M5 11h4v3H5z"/><path d="M16 3v5m-2.5-2.5h5"/>',
   territories: '<path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3Z"/><path d="M9 3v15M15 6v15"/>',
   discover: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5M8 10.5h5M10.5 8v5"/>',
@@ -98,15 +104,18 @@ function section(markup, marker) {
   throw new Error(`Unclosed private sales section: ${marker}`);
 }
 
-function territoryMap() {
+function territoryMap({ interactive = true } = {}) {
   const original = readFileSync(new URL('../../public/rideshare-tax-pros/assets/us-national-vision.svg', import.meta.url), 'utf8');
   const states = [...original.matchAll(/<path\s+data-state="([A-Z]{2})"\s+d="([^"]+)"/g)];
   if (states.length !== 51 || new Set(states.map(match => match[1])).size !== 51) throw new Error('The territory map must contain all 50 states and DC.');
   const paths = states.map(([, state, geometry]) => {
     if (!/^[MmLlHhVvCcSsQqTtAaZz\d.,+\-\s]+$/.test(geometry)) throw new Error('Unexpected territory map geometry.');
-    return `<path data-state="${state}" d="${geometry}" role="button" tabindex="0" aria-label="${state}: choose territory" aria-pressed="false"><title>${state}</title></path>`;
+    const controls = interactive ? ` role="button" tabindex="0" aria-label="${state}: choose territory" aria-pressed="false"` : '';
+    return `<path data-state="${state}" d="${geometry}"${controls}><title>${state}</title></path>`;
   }).join('');
-  return `<svg data-sales-state-map viewBox="0 0 1000 650" role="group" aria-label="United States territory map, including Alaska and Hawaii">${paths}</svg>`;
+  return interactive
+    ? `<svg data-sales-state-map viewBox="0 0 1000 650" role="group" aria-label="United States territory map, including Alaska and Hawaii">${paths}</svg>`
+    : `<svg viewBox="0 0 1000 650" role="img" aria-label="United States opportunity map">${paths}</svg>`;
 }
 
 const townMap = `<section id="territory-town-map" class="sdr-card territory-town-map" hidden aria-labelledby="town-map-title">
@@ -117,7 +126,7 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
     <div class="town-map-actions">
       <button type="button" class="button secondary" data-map-streets>Show streets</button>
       <button type="button" class="button secondary" data-map-reset>Fit state</button>
-      <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="false">County leads</button>
+      <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="true">County leads</button>
       <label class="town-map-color-control"><input type="checkbox" data-map-colors checked>Map colors</label>
     </div>
   </div>
@@ -238,7 +247,7 @@ function teamNavigation(careWorkspace) {
     ['Communication', [['chat', 'Team chat'], ['email', 'Email'], ['mail', 'Senders']]],
     ['Coverage & contacts', [['territories', 'Territories'], ['locations', 'Signup locations'], ['contacts', 'Owners & Rolodex']]],
   ];
-  return `<nav class="sdr-team-tools" aria-label="Sales team tools" data-team-tools>
+  return `<nav class="sdr-team-tools" aria-label="Tinky Team tools" data-team-tools>
     ${groups.map(([title, tools]) => `<section><h3>${title}</h3><div>${tools.map(([name, label]) =>
       `<button type="button" data-tab="${name}" aria-pressed="false"${name === 'territories' ? ' id="sales-team-territories"' : ''}>${icon(name)}<span>${label}</span></button>`).join('')}</div></section>`).join('')}
   </nav>`;
@@ -252,16 +261,16 @@ function standaloneTeam(legacyTeam, careWorkspace) {
   return `<section class="sdr-team-workspace" data-tab-panel="team" aria-labelledby="sales-team-title" hidden>
     <header class="sdr-team-hero">
       <div class="sdr-team-hero-main">
-        <div class="sdr-team-hero-title"><h2 id="sales-team-title">Sales team</h2><p>Reporting structure, rep profiles, and territory assignments</p></div>
+        <div class="sdr-team-hero-title"><h2 id="sales-team-title">Tinky Team</h2><p>Reporting structure, agent profiles, and territory assignments</p></div>
         <div class="sdr-team-hero-actions">
-          <button type="button" class="button primary" id="sales-team-add-rep">${icon('prospects')} Add sales rep</button>
+          <button type="button" class="button primary" id="sales-team-add-rep">${icon('prospects')} Add Tinky Team agent</button>
         </div>
       </div>
       <img class="sdr-team-hero-art" src="/sales-team-territory-planning.webp" alt="" width="1000" height="500">
     </header>
     ${teamNavigation(careWorkspace)}
     <div class="sdr-team-surface">
-      <div class="sdr-team-tabs" role="tablist" aria-label="Sales team workspace">
+      <div class="sdr-team-tabs" role="tablist" aria-label="Tinky Team workspace">
         ${tabs.map(([key, label], index) => `<button type="button" role="tab" id="sales-team-tab-${key}" data-team-view="${key}" aria-controls="sales-team-pane-${key}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}"${key === 'settings' ? ' data-owner-only hidden' : ''}>${label}</button>`).join('')}
       </div>
       <p id="sales-team-status" role="status" aria-live="polite"></p>
@@ -291,7 +300,7 @@ function standaloneTeam(legacyTeam, careWorkspace) {
         </form>
       </section>
       <section class="sdr-team-pane" id="sales-team-pane-invite" role="tabpanel" aria-labelledby="sales-team-tab-invite" tabindex="0" hidden>
-        <div class="sdr-team-pane-head"><div><h3>Add a sales rep</h3><p>Share the sign-in page and access code privately.</p></div></div>
+        <div class="sdr-team-pane-head"><div><h3>Add a Tinky Team agent</h3><p>Share the sign-in page and access code privately.</p></div></div>
         <form id="sales-create-agent" class="sales-form">
           <label>Name<input name="name" autocomplete="off" maxlength="140" required></label>
           <label>Business email<input name="email" type="email" autocomplete="off" maxlength="200" required></label>
@@ -308,7 +317,7 @@ function standaloneTeam(legacyTeam, careWorkspace) {
           </div>
         </div>
         <div data-owner-only hidden data-team-identity-portal>
-          <p>For shared sign-in, link a staff account to its SDR agent ID.</p>
+          <p>For shared sign-in, link a staff account to its Tinky Team agent ID.</p>
           <button type="button" class="button secondary" id="sales-copy-login-link">Copy shared sign-in link</button>
         </div>
       </section>
@@ -332,7 +341,7 @@ function standaloneTeam(legacyTeam, careWorkspace) {
     <dialog class="sdr-team-member-dialog" data-team-member-profile aria-labelledby="sales-team-member-profile-title">
       <header class="sdr-team-member-dialog-heading">
         <div>
-          <h3 id="sales-team-member-profile-title" data-team-member-profile-title>Sales rep profile</h3>
+          <h3 id="sales-team-member-profile-title" data-team-member-profile-title>Tinky Team agent profile</h3>
           <div data-team-member-profile-progress></div>
         </div>
         <button type="button" class="button secondary" data-team-member-profile-close autofocus>Close</button>
@@ -359,7 +368,7 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
   }
   const sidebarNav = prospects
     ? [['today', 'Today’s Plan'], ['home', 'Overview'], ['prospects', 'Prospects'], ['campaigns', 'Campaigns'], ['pipeline', 'Pipeline'],
-      ['contracts', 'Contracts'], ...(careWorkspace ? [['facilities', 'Facility directory']] : []), ['team', 'Sales team'], ['training', 'Training'], ['support', 'Support']]
+      ['contracts', 'Contracts'], ...(careWorkspace ? [['facilities', 'Facility directory']] : []), ['team', 'Tinky Team'], ['training', 'Training'], ['support', 'Support']]
     : [['home', 'Overview'], ['pipeline', 'Pipeline'], ['contacts', 'Owners & Rolodex'], ['contracts', 'Contracts'], ['locations', 'Signup locations'],
       ['mail', 'Senders'], ['territories', 'Territories'], ['discover', 'Find offices'], ['team', 'Sales team']];
   const navButtons = sidebarNav.map(([name, label]) => `<button type="button" data-tab="${name}" aria-pressed="${name === (prospects ? 'today' : 'home')}"${(name === 'campaigns' && !careWorkspace) || (name === 'team' && !prospects) ? ' data-owner-only hidden' : ''}>${icon(name === 'today' ? 'calendar' : name)}<span>${label}</span>${name === 'pipeline' ? '<span class="sdr-nav-count" id="sales-nav-count">0</span>' : ''}</button>`).join('');
@@ -378,19 +387,19 @@ export function renderSalesConsole(page, { prospects = false, careWorkspace = fa
 ${prospects ? renderToday({ icon, hasCalendar: true }) : ''}
 <section data-tab-panel="home" aria-label="Workspace overview"${prospects ? ' hidden' : ''}>${prospects ? standaloneOverview(queue, careWorkspace) : '<div id="sales-dashboard"></div>' + queue}</section>
 <section data-tab-panel="contracts" hidden aria-label="Office agreements and signatures"><div id="sales-contracts"></div></section>
-<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Manage business and facility contacts, sales stages, and next steps.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>
+${prospects ? renderPipelineWorkspace({ icon, toolbar, map: territoryMap({ interactive: false }) }) : `<section data-tab-panel="pipeline" hidden aria-label="Office pipeline"><div class="sdr-card-head"><div><h2>Your pipeline</h2><p>Manage business and facility contacts, sales stages, and next steps.</p></div><div class="sdr-view-toggle" role="group" aria-label="Pipeline layout"><button type="button" data-pipeline-view="list" aria-pressed="true">List</button><button type="button" data-pipeline-view="board" aria-pressed="false">Board</button></div></div><div id="sales-stage-strip" class="sdr-stage-strip" aria-label="Filter by stage"></div>${toolbar}<div id="sales-pipeline-list" class="sdr-pipeline-layout"><div id="sales-offices" class="sales-office-list"></div></div><div id="sales-board" class="sdr-board" hidden></div></section>`}
 ${careWorkspace ? standaloneFacilities : ''}
 ${discover}${prospects ? renderProspects({ icon, map: territoryMap(), linkedIn: linkedInProspects }) + (careWorkspace ? renderCareCampaign(outreachCampaigns) : campaignsPanel) + renderTraining() + renderTrainingDemo({ careWorkspace }) + renderTrainingPipeline() + renderSupport() : team}
 ${prospects ? `<div class="sdr-team-group" data-team-workspace hidden>
-  <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Sales team</button>
+  <button type="button" class="sdr-team-return" data-team-return hidden>${icon('arrow')} Tinky Team</button>
   ${standaloneTeam(team, careWorkspace)}` : ''}
 ${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
-${prospects ? renderTerritoryDashboard(territoryMap(), townMap, icon) : `<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title">
-<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>
-<div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div><div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>`}
+<section data-tab-panel="territories"${prospects ? ' data-territory-dashboard' : ''} hidden aria-labelledby="sales-territory-title">
+${prospects ? renderTerritoryHeader(icon) : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
+<div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
 ${prospects ? renderTeamChat(icon) + '</div>' : ''}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside>${prospects ? renderSalesCoach(icon) : ''}</div></div></body></html>`;
 }

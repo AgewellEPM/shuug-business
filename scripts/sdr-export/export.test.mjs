@@ -403,6 +403,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual(spoken, []);
     voice('speak').click();
     assert.match(spoken[0], /water/);
+    voice('listen').click();
+    microphone.onerror({ error: 'audio-capture' });
+    assert.equal(microphone.aborted, true);
+    assert.equal(voice('listen').getAttribute('aria-pressed'), 'false');
+    assert.match(voice('status').textContent, /No microphone input/);
+    voice('form').elements.words.value = 'Can I call my family?';
+    voice('form').requestSubmit();
+    assert.match(voice('choices').textContent, /family/);
     find('[data-training-demo-return]').click();
     find('[data-training-demo="pipeline"]').click();
     const scenario = trainingScenarios.find(item => item.id === 'nursing-home-pipeline');
@@ -446,6 +454,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.ok(header.querySelector('#sales-logout'));
     assert.equal(header.querySelector('.sdr-user-avatar, #sales-name'), null);
     assert.equal(header.querySelector('#sdr-header-search'), null);
+    assert.ok(document.querySelector('[data-pipeline-part="board"] #sales-filter'));
   });
   await t.test('support deep link opens help and preserves request conversations in the exported workspace', async t => {
     const supportWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=support');
@@ -535,15 +544,14 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(territoryState.querySelector('option[value="DC"]').textContent, 'District of Columbia');
   const territoryMetric = key => territoriesPanel.querySelector(`[data-td-metric="${key}"]`).textContent;
   await waitFor(() => territoryMetric('total') === '51', 'Nationwide dashboard did not include all states and DC');
-  territoriesPanel.querySelector('[data-td-view-all]').click();
-  assert.equal(territoriesPanel.querySelectorAll('[data-td-row]').length, 51);
-  territoriesPanel.querySelector('[data-td-tool="list"]').click();
-  assert.equal(territoriesPanel.querySelectorAll('[data-td-open]').length, 51);
-  const territorySearch = territoriesPanel.querySelector('[data-td-search]');
-  territorySearch.value = 'Pennsylvania';
-  territorySearch.dispatchEvent(new window.Event('input'));
-  territoriesPanel.querySelector('[data-td-open="PA"]').click();
-  await waitFor(() => territoryMetric('total') === '67', 'The territory list did not drill into Pennsylvania');
+  const nationalCard = territoriesPanel.querySelector('#sales-territory-national');
+  assert.equal(nationalCard.parentElement, territoriesPanel);
+  assert.equal(nationalCard.previousElementSibling.className, 'td-header');
+  assert.equal(nationalCard.firstElementChild.tagName, 'DETAILS');
+  assert.equal(nationalCard.nextElementSibling.id, 'territory-town-map');
+  assert.equal(territoriesPanel.querySelectorAll('[data-td-metric]').length, 6);
+  chooseTerritory('PA');
+  await waitFor(() => territoryMetric('total') === '67', 'The state picker did not load Pennsylvania totals');
   assert.equal(territoryState.value, 'PA');
   pageDocument.querySelector('[data-territory-state="AK"]').click();
   assert.equal(territoryState.value, 'AK');
@@ -565,6 +573,8 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   stateShape('CT').dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
   await waitFor(() => townCanvas.querySelectorAll('.town-map-area').length === 169, 'CT town polygons did not open');
   assert.equal(townPanel.hidden, false);
+  assert.equal(townPanel.querySelector('#territory-county-roster').hidden, false);
+  assert.equal(townPanel.querySelector('[data-map-roster]').getAttribute('aria-expanded'), 'true');
   assert.equal(pageDocument.activeElement.id, 'town-map-title');
   assert.equal(stateShape('CT').closest('.sdr-card').hidden, true);
   assert.ok(statePicker.closest('[hidden]'));
@@ -576,6 +586,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => territoryMetric('total') === '9', 'A previous state overwrote the Connecticut dashboard');
   assert.equal(colors.checked, true);
   assert.equal(townCanvas.querySelectorAll('.town-map-county').length, 9);
+  const nearby = () => townCanvas.querySelector('.leaflet-territory-context-pane svg');
+  assert.ok(nearby().querySelector('path[data-context-state="NY"]'));
+  assert.equal(nearby().getAttribute('aria-hidden'), 'true');
+  assert.equal(nearby().querySelector('[data-county], [data-locality], [tabindex]'), null);
   const townSelect = townPanel.querySelector('[data-map-town]');
   const hartford = [...townSelect.options].find(option => option.text === 'Hartford');
   assert.equal(townSelect.options.length, 170);
@@ -634,7 +648,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   clarendon.dispatchEvent(new window.MouseEvent('click', {bubbles:true}));
   assert.equal(mapSelection.hidden, false);
   assert.match(mapSelection.textContent, /Clarendon County/);
-  await waitFor(() => /No sales rep currently assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
+  await waitFor(() => /No Tinky Team agent assigned/.test(mapSelection.textContent), 'The county’s unassigned status did not load');
   assert.equal(clarendon.parentElement.getAttribute('display'), 'none');
   assert.equal(atlas.querySelector('.town-map-districts').getAttribute('display'), 'inline');
   assert.equal(atlas.querySelectorAll('.town-map-district[data-district^="45027"]').length, 7);
@@ -650,10 +664,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   leadForm.elements.name.value = 'Example County Lead';
   leadForm.requestSubmit();
   await waitFor(() => townPanel.querySelector('[data-county-row="45027"]').textContent.includes('Example County Lead'), 'County roster did not update');
-  await waitFor(() => territoriesPanel.querySelector('[data-td-stat="lead"]').textContent === 'Example County Lead', 'Dashboard did not refresh the selected county after assignment');
-  assert.equal(territoriesPanel.querySelector('#td-detail-title').textContent, 'Clarendon County');
-  assert.equal(territoriesPanel.querySelector('[data-td-manage]').textContent, 'Manage assignment');
-  assert.equal(territoryMetric('reps'), '1');
+  await waitFor(() => territoryMetric('reps') === '1', 'Saving a county assignment did not update the header');
   await waitFor(() => mapSelection.querySelector('[data-county-assign]')?.textContent === 'Change rep', 'County assignment action did not switch to Change rep');
   const portrait = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCoBqK//9k=';
   const change = {state:'SC', county:'45027', name:'Example County Lead', photo:portrait, revision:1};
@@ -676,10 +687,11 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => /Clarendon County.*Example County Lead/.test(mapSelection.textContent), 'The town’s assigned rep did not load');
   townPanel.querySelector('[data-map-streets]').click();
   assert.equal(townCanvas.dataset.layer, 'streets');
+  assert.equal(nearby(), null);
   const tile = townCanvas.querySelector('img.leaflet-tile');
   assert.match(tile.src, /^https:\/\/tile\.openstreetmap\.org\/16\//);
   townCanvas.dispatchEvent(new window.MouseEvent('click', {clientX:400, clientY:240, bubbles:true}));
-  assert.match(mapSelection.textContent, /Checking sales rep/);
+  assert.match(mapSelection.textContent, /Checking agent assignment/);
   await waitFor(() => {
     const selection = townPanel.querySelector('[data-map-selection]');
     return /Manning.*Clarendon County.*Example County Lead/.test(selection.textContent);
@@ -691,6 +703,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.ok(townCanvas.querySelector('img.leaflet-tile[src*="/19/"]'));
   townPanel.querySelector('[data-map-reset]').click();
   assert.equal(townCanvas.dataset.layer, 'counties');
+  assert.ok(nearby().querySelector('path[data-context-state="GA"]'));
   assert.equal(clarendon.parentElement.getAttribute('display'), 'inline');
   assert.equal(mapSelection.hidden, true);
   assert.equal(townPanel.querySelector('.county-lead-form'), null);
@@ -997,6 +1010,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(email.elements.body.value, reviewedDraft);
     assert.equal(email.querySelector('[data-email-send]').disabled, true);
     assert.equal(pageDocument.querySelector('#sales-identity, [data-mail-connect]'), null);
+    assert.ok(pageDocument.querySelector('.sdr-topbar #sdr-xp-bar'));
     assert.equal(pageDocument.querySelector('.sdr-topbar #sdr-header-search'), null);
     assert.ok(pageDocument.querySelector('.sdr-topbar #sales-logout'));
     const mailApi = async (action, data = {}) => owner.request('/api/sales/mail/v1', { method: 'POST',
@@ -1133,7 +1147,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   window.document.querySelector('[data-tab=team]').click();
   const addRep = pageDocument.querySelector('#sales-team-add-rep');
   assert.equal(addRep.closest('[hidden]'), null);
-  assert.match(addRep.textContent.trim(), /^Add sales rep$/);
+  assert.match(addRep.textContent.trim(), /^Add Tinky Team agent$/);
   addRep.click();
   assert.equal(teamPane('invite').hidden, false);
   assert.equal(teamPane('settings').hidden, true);
@@ -1237,6 +1251,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const agentNav = agentDocument.querySelector('[data-tab=team]');
   agentWindow.location.hash = 'view=team&section=settings';
   await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
+  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Tinky Team');
+  assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Tinky Team');
+  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Tinky Team agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
   assert.equal(agentDocument.getElementById('sales-team-pane-settings').hidden, true);
@@ -1270,7 +1287,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => agentDocument.querySelector('[data-county-row="09110"]'), 'Team county roster did not load');
   const teamSelection = agentDocument.querySelector('[data-map-selection]');
   agentDocument.querySelector('[data-county-row="09190"]').click();
-  await waitFor(() => /No sales rep currently assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
+  await waitFor(() => /No Tinky Team agent assigned/.test(teamSelection.textContent), 'The out-of-scope county did not report its assignment status');
   assert.equal(teamSelection.querySelector('[data-county-assign]'), null);
   agentDocument.querySelector('[data-county-row="09110"]').click();
   assert.equal(agentDocument.querySelector('.county-lead-form'), null);
@@ -1333,6 +1350,26 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   window.document.querySelector('#sales-refresh').click();
   const officeSelector = `#sales-offices [data-office="${id}"]`;
   for (let retry = 0; retry < 100 && !window.document.querySelector(officeSelector); retry++) await delay(20);
+  const pipelinePage = window.document.querySelector('.sdr-pipeline-workspace');
+  assert.equal(pipelinePage.hidden, false);
+  const board = pipelinePage.querySelector('#sales-board');
+  assert.deepEqual([...board.querySelectorAll('.sdr-lane')].slice(0, 5).map(lane => lane.dataset.stage), ['lead', 'engaged', 'demo', 'proposal', 'won']);
+  assert.match(board.querySelector(`[data-console-office="${id}"]`).textContent, /Sample Solar Partner/);
+  assert.ok(pipelinePage.querySelector('.pipeline-map [data-state="CT"]').classList.contains('has-opportunities'));
+  pipelinePage.querySelector('button[data-pipeline-page="list"]').click();
+  assert.ok(board.hidden);
+  assert.equal(pipelinePage.querySelector('#sales-pipeline-list').hidden, false);
+  const filter = pipelinePage.querySelector('#sales-filter');
+  filter.value = 'no matching name';
+  filter.dispatchEvent(new window.Event('input', { bubbles: true }));
+  assert.equal(pipelinePage.querySelector('[data-pipeline-kpi="total"] dd').textContent, '0');
+  assert.equal(pipelinePage.querySelector(officeSelector), null);
+  filter.value = '';
+  filter.dispatchEvent(new window.Event('input', { bubbles: true }));
+  pipelinePage.querySelector('button[data-pipeline-page="tasks"]').click();
+  assert.equal(pipelinePage.querySelector('[data-pipeline-part="tasks"]').hidden, false);
+  assert.ok(pipelinePage.querySelector('[data-pipeline-part="board"]').hidden);
+  pipelinePage.querySelector('button[data-pipeline-page="list"]').click();
   window.document.querySelector(officeSelector).click();
   const sourceLinks = '#sales-detail .sales-actions a[href^="https://www.linkedin.com/"]';
   for (let retry = 0; retry < 100 && !window.document.querySelector(sourceLinks); retry++) await delay(20);

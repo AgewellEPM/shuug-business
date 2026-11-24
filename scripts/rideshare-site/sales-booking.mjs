@@ -17,12 +17,12 @@ export function bookingOverview(icon) {
 const durationOptions = '<option value="0">Off</option>' + Array.from({ length: 12 }, (_, i) => '<option value="' + (i + 1) * 15 + '">' + (i + 1) * 15 + ' minutes</option>').join('');
 export function bookingPanel() {
   return `<section data-tab-panel="calendar" hidden aria-label="Booking calendar" class="bk-staff">
-  <header class="bk-hero"><div><h2>Booking calendar</h2><p>Appointments and product demos with your sales team.</p></div></header>
+  <header class="bk-hero"><div><h2>Booking calendar</h2><p>Appointments and product demos with the Tinky Team.</p></div></header>
   <div class="bk-toolbar"><div class="bk-tabs" role="group" aria-label="Calendar views">
     <button type="button" data-bk-view="agenda" aria-pressed="true">Schedule</button>
     <button type="button" data-bk-view="hours" aria-pressed="false">Availability</button>
     <button type="button" data-bk-view="connect" aria-pressed="false">Connections</button>
-  </div><label class="bk-rep-picker">Calendar<select id="bk-staff-host" aria-label="Sales rep calendar"></select></label></div>
+  </div><label class="bk-rep-picker">Calendar<select id="bk-staff-host" aria-label="Tinky Team agent calendar"></select></label></div>
   <p id="bk-staff-status" class="bk-status" role="status"></p>
   <div data-bk-pane="agenda"><div class="bk-staff-grid"><div class="bk-card">
     ${monthGrid('bk-rep-month')}<button type="button" class="bk-text" id="bk-upcoming">Show upcoming appointments</button>
@@ -32,7 +32,7 @@ export function bookingPanel() {
     <section class="bk-card bk-sharing"><div><h3>Your booking page</h3><p id="bk-share-hint"></p></div>
     <div class="bk-actions"><a class="bk-button" id="bk-public-link" href="/book" target="_blank" rel="noopener">Open booking page ↗</a>
     ${button('bk-copy', 'Copy booking link', true)}</div></section></div>
-  <section class="bk-card" data-bk-pane="hours" hidden><h3>Rep availability</h3>
+  <section class="bk-card" data-bk-pane="hours" hidden><h3>Agent availability</h3>
     <form id="bk-settings" class="bk-form"><label class="bk-check"><input type="checkbox" name="published"> Accept client bookings</label>
     <div class="bk-fields"><label>Public rep name<input name="name" maxlength="120" required></label>
     <label>Booking notification email<input name="email" type="email" maxlength="240"></label>${zoneField('bk-staff-zone')}
@@ -68,10 +68,10 @@ function publicFrame(name, title, main, script) {
 }
 export function clientBookingPage(name) {
   return publicFrame(name, 'Book a meeting', `<header class="bk-hero"><div><h1 id="bk-title">Book a meeting</h1>
-    <p id="bk-intro">Choose a sales rep and a time for your appointment or product demo.</p></div></header>
+    <p id="bk-intro">Choose a Tinky Team agent and a time for your appointment or product demo.</p></div></header>
     <p id="bk-message" class="bk-status" role="status" aria-live="polite">Loading booking calendar…</p>
     <div id="bk-picker" class="bk-public-grid" hidden><aside class="bk-sidebar bk-form"><h2>Meeting details</h2>
-      <label>Sales rep<select id="bk-rep"></select></label><fieldset id="bk-types"><legend>Meeting type</legend><div></div></fieldset>
+      <label>Tinky Team agent<select id="bk-rep"></select></label><fieldset id="bk-types"><legend>Meeting type</legend><div></div></fieldset>
       ${zoneField('bk-zone')}</aside><div class="bk-picker-body"><section id="bk-choose"><h2>Choose a date and time</h2>
       <div class="bk-pick-grid">${monthGrid('bk-client-month')}<section class="bk-times" aria-labelledby="bk-times-title">
         <h3 id="bk-times-title">Available times</h3><div id="bk-times" aria-live="polite"></div></section></div></section>

@@ -58,6 +58,49 @@
     return inside;
   }
 
+  function neighborBackdrop(map, states, atlasPoint, latLng) {
+    if (!states?.length) return null;
+    const L = window.L, pane = 'territory-context';
+    map.createPane(pane);
+    const drawing = svg('svg', { 'aria-hidden': 'true', preserveAspectRatio: 'none' });
+    const names = svg('g', { class: 'town-map-context-names' });
+    for (const state of states) {
+      const [x, y] = state.offset;
+      drawing.append(svg('path', { class: 'town-map-neighbor', 'data-context-state': state.state, d: state.path,
+        transform: `translate(${x} ${y}) scale(${state.scale})` }));
+    }
+    drawing.append(names);
+    let layer;
+    return { hide() { layer?.remove(); }, draw(scale, showNames) {
+      // Keep the SVG near screen size even for small territories bordering
+      // large states. Its paths stay in the same Mercator space as the atlas.
+      const frame = map.getBounds().pad(.55);
+      const [left, top] = atlasPoint(frame.getNorthWest()), [right, bottom] = atlasPoint(frame.getSouthEast());
+      drawing.setAttribute('viewBox', [left, top, right-left, bottom-top].join(' '));
+      if (!layer) layer = L.svgOverlay(drawing, frame, { pane, interactive: false, className: 'town-map-backdrop' });
+      else layer.setBounds(frame);
+      if (!map.hasLayer(layer)) layer.addTo(map);
+      names.replaceChildren();
+      if (!showNames) return;
+      const size = map.getSize();
+      for (const state of states) {
+        for (const text of [state.name.toUpperCase(), state.state]) {
+          const half = text.length * 3.9 + 3;
+          const anchor = state.anchors.find(([x,y,r]) => {
+            if (r * scale < Math.hypot(half, 7)) return false;
+            const p = map.latLngToContainerPoint(latLng(x,y));
+            return p.x > half && p.x < size.x-half && p.y > 12 && p.y < size.y-12;
+          });
+          if (!anchor) continue;
+          const [x,y] = anchor, label = svg('text', { x, y, 'font-size': 11/scale });
+          label.textContent = text;
+          names.append(label);
+          break;
+        }
+      }
+    } };
+  }
+
   function selectionStatus(panel, state, api, refreshAssignments, editCounty) {
     const host = panel.querySelector('[data-map-selection]');
     let current, revision = 0;
@@ -68,7 +111,7 @@
       host.replaceChildren(heading);
       if (current.pending || current.unconfirmed) {
         const status = document.createElement('span');
-        status.textContent = current.pending ? 'Checking sales rep…' : 'Could not confirm the current assignment.';
+        status.textContent = current.pending ? 'Checking agent assignment…' : 'Could not confirm the current assignment.';
         host.append(status);
         return;
       }
@@ -76,7 +119,7 @@
         const row = document.createElement('div');
         row.className = 'territory-selection-county';
         const text = document.createElement('span');
-        const rep = county.lead?.name ? 'Sales rep · ' + county.lead.name : 'No sales rep currently assigned';
+        const rep = county.lead?.name ? 'Tinky Team agent · ' + county.lead.name : 'No Tinky Team agent assigned';
         text.textContent = current.name === county.label ? rep : county.label + ' · ' + rep;
         if (county.lead?.name) row.append(window.SdrCountyLeads.avatar(county.lead));
         row.append(text);
@@ -135,7 +178,7 @@
     return {show, clear, render};
   }
 
-  function draw(panel, data, api, focus, events) {
+  function draw(panel, data, api, focus, onAssignment) {
     const L = window.L, canvas = panel.querySelector('[data-map-canvas]');
     const picker = panel.querySelector('[data-map-town]');
     const reset = panel.querySelector('[data-map-reset]');
@@ -182,18 +225,19 @@
       if (window.SdrTerritoryOwnership.applyCountyAssignments(counties, updates)) {
         roster.refresh();
         ownership.refresh();
-        events.onAssignment?.();
+        onAssignment?.();
       }
     }, county => roster.edit(county));
     function showAssignment(name, counties, reveal = true) {
       roster.close();
-      events.onSelect?.(counties, name);
       void selection.show(name, counties, reveal);
     }
     try {
       const [left, top, right, bottom] = data.frame;
       const drawing = svg('svg', { viewBox: [left, top, right - left, bottom - top].join(' '), 'aria-hidden': 'true' });
-      drawing.append(svg('path', { class: 'town-map-water', d: data.water }),
+      const backdrop = neighborBackdrop(map, data.context, atlasPoint, latLng);
+      const shadow = svg('path', { class: 'town-map-state-shadow', d: data.outline });
+      drawing.append(svg('path', { class: 'town-map-water', d: data.water }), shadow,
         svg('path', { class: 'town-map-outline', d: data.outline }));
       const counties = new Map(), countyShapes = svg('g', {});
       for (const county of data.counties) {
@@ -238,6 +282,7 @@
         mode.textContent = street ? 'Streets' : detail ? 'Town limits and local subdivisions' : 'County boundaries';
         streetsButton.disabled = street && zoom >= 16;
         if (street) {
+          backdrop?.hide();
           if (atlas && map.hasLayer(atlas)) atlas.remove();
           if (!map.hasLayer(roads)) roads.addTo(map);
           updateStreetLines();
@@ -250,6 +295,8 @@
         shapes.setAttribute('display', detail ? 'inline' : 'none');
         localAreas.setAttribute('display', detail ? 'inline' : 'none');
         const scale = map.options.crs.scale(zoom) * data.metersPerUnit / 40075016.68557849;
+        shadow.setAttribute('transform', `translate(${1.1/scale} ${2.4/scale})`);
+        backdrop?.draw(scale, !detail);
         const layout = labelLayout(map, scale, latLng), dots = [], landmarkNames = new Set();
         const viewport = map.getBounds().pad(0.04);
         const visible = item => viewport.contains(latLng(item.x, item.y));
@@ -302,7 +349,6 @@
 
       function fitState() {
         selection.clear();
-        events.onSelect?.([], '');
         roster?.close();
         selected?.path.classList.remove('is-selected');
         selected = null;
@@ -327,8 +373,8 @@
       picker.onchange = () => select(picker.value);
       reset.onclick = fitState;
       streetsButton.onclick = () => map.setView(selected ? selected.position : map.getCenter(), Math.max(16, map.getZoom()), { animate: false });
-      function zoomCounty(county, reveal = true) {
-        showAssignment(county.label, [county], reveal);
+      function zoomCounty(county) {
+        showAssignment(county.label, [county]);
         selected?.path.classList.remove('is-selected');
         selected = null;
         picker.value = '';
@@ -340,13 +386,13 @@
       roster = window.SdrCountyLeads.mount(panel, data, api, zoomCounty, () => {
         selection.render();
         ownership?.refresh();
-        events.onAssignment?.();
+        onAssignment?.();
       });
       ownership = window.SdrTerritoryOwnership.mount(panel, data, api, place => {
         if (place.feature) select(place.feature.id, place.county.id);
         else zoomCounty(place.county);
         roster.select(place.county);
-      }, () => { roster.refresh(); events.onAssignment?.(); });
+      }, () => { roster.refresh(); onAssignment?.(); });
       drawing.addEventListener('click', event => {
         if (map.dragging.moved()) return;
         const target = event.target.closest('[data-locality], [data-county], [data-landmark], [data-district]');
@@ -390,20 +436,9 @@
         if (!map.hasLayer(roads) || event.originalEvent?.target?.closest?.('[data-locality], [data-county], [data-landmark], [data-district]')) return;
         const point = atlasPoint(event.latlng);
         const county = data.counties.find(area => boundaryHit(area, ...point));
-        if (!county) { selection.clear(); roster.close(); events.onSelect?.([], ''); return; }
+        if (!county) { selection.clear(); roster.close(); return; }
         const town = data.features.findLast(feature => feature.counties.includes(county.id) && boundaryHit(feature, ...point));
         showAssignment(town?.name || county.label, [county]);
-      });
-      events.onMap?.({
-        canAssign: data.counties.some(county => county.canEdit),
-        canEdit: id => Boolean(counties.get(id)?.canEdit),
-        selectCounty(id, edit) {
-          const county = counties.get(id);
-          if (!county) return;
-          map.invalidateSize({ pan: false });
-          zoomCounty(county, !edit); roster.select(county);
-          if (edit && county.canEdit) roster.edit(county);
-        },
       });
       if (items.has(focus?.place)) {
         select(focus.place, undefined, false);
@@ -437,7 +472,7 @@
     }
   }
 
-  function mount({ api, onBack, ...events }) {
+  function mount({ api, onBack, onAssignment }) {
     const panel = document.getElementById('territory-town-map');
     if (!panel) return null;
     const find = name => panel.querySelector('[data-map-' + name + ']');
@@ -459,7 +494,6 @@
       sequence++;
       dispose?.();
       dispose = null;
-      events.onMap?.(null);
       panel.hidden = true;
       nationalMap.hidden = false;
     }
@@ -468,7 +502,6 @@
       const request = ++sequence;
       dispose?.();
       dispose = null;
-      events.onMap?.(null);
       nationalMap.hidden = true;
       panel.hidden = false;
       canvas.hidden = tools.hidden = caption.hidden = retry.hidden = true;
@@ -481,7 +514,7 @@
         if (request !== sequence) return;
         canvas.hidden = tools.hidden = caption.hidden = false;
         const total = new Set(data.features.map(feature => feature.name)).size;
-        dispose = draw(panel, data, api, focus, events);
+        dispose = draw(panel, data, api, focus, onAssignment);
         status.textContent = total.toLocaleString() + (region === 'CT' ? ' towns' : total === 1 ? ' locality' : ' localities');
       } catch (error) {
         if (request !== sequence) return;
