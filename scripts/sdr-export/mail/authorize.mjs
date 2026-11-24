@@ -6,9 +6,6 @@ import { HttpError } from '../../../sales/model.mjs';
 import { privateValue } from '../setup.mjs';
 import { sameAddress, zohoConfig, zohoId, zohoSession } from './zoho-account.mjs';
 
-const requiredScopes = ['ZohoMail.accounts.READ', 'ZohoMail.folders.READ', 'ZohoMail.messages.ALL'];
-export const zohoScopes = requiredScopes.join(',');
-
 // Zoho Self Client grants are issued by the organization owner and consumed once.
 export async function authorizeZoho(env, directory, grant, ownerAddress, fetcher = fetch) {
   const path = env.SDR_ZOHO_CONFIG_FILE || join(directory, 'zoho-mail.json');

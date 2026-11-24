@@ -134,13 +134,16 @@
           <button type="button" class="button primary" data-open-mailbox>Open Email</button></div>
           ${owner ? `<details class="sdr-zoho-admin"><summary>Workspace mail authorization</summary>
             <form class="sales-form" data-zoho-admin>
-              <p>In the <a href="https://api-console.zoho.com/" target="_blank" rel="noopener noreferrer">Zoho API Console</a>, open Self Client, generate a code with the scopes below, then download the JSON.</p>
-              <code>ZohoMail.accounts.READ,ZohoMail.folders.READ,ZohoMail.messages.ALL</code>
+              <ol class="sdr-zoho-steps">
+                <li>Open the <a href="https://api-console.zoho.com/" target="_blank" rel="noopener noreferrer">Zoho API Console</a> using the company owner account. Select <strong>Self Client</strong>. On a new account, choose <strong>Get Started → Self Client → Create Now → Create → OK</strong>.</li>
+                <li>Open <strong>Generate Code</strong> and paste these scopes. <code>ZohoMail.accounts.READ,ZohoMail.folders.READ,ZohoMail.messages.ALL</code></li>
+                <li>Choose <strong>10 minutes</strong>, enter <strong>TinkyTown sales email</strong> as the description, and click <strong>Create</strong>. Choose the company organization if prompted, then click <strong>Download</strong>.</li>
+              </ol>
               <label>Owner’s business email<input type="email" name="ownerAddress" value="${escape(mailbox.address)}" ${mailbox.address ? 'readonly' : ''} required></label>
               <label>Zoho grant file<input type="file" accept=".json,application/json" name="grant" required></label>
               <button type="submit" class="button secondary">Authorize workspace mail</button>
               <p role="status" data-zoho-status></p>
-            </form></details>` : ''}</section>`;
+            </form></details><p role="status" data-zoho-result></p>` : ''}</section>`;
         settings.querySelector('[data-open-mailbox]').onclick = () => onNavigate('email');
         const form = settings.querySelector('[data-zoho-admin]');
         if (form) form.onsubmit = async event => {
@@ -155,7 +158,7 @@
             try { grant = JSON.parse(await file.text()); }
             catch { throw new Error('Choose a valid Zoho JSON grant file.'); }
             applySettings(await api('rep-email-authorize', { address: form.elements.ownerAddress.value, grant }));
-            await firstPage();
+            settings.querySelector('[data-zoho-result]').textContent = 'Zoho verified the owner inbox. Open Email to read your mail.';
           } catch (error) { note.textContent = error.message; }
           finally { form.reset(); submit.disabled = false; }
         };
