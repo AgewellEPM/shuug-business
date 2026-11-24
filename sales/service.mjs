@@ -17,6 +17,7 @@ import {localityAllowed} from './territory-access.mjs';
 import { teamMarketSegments } from './sales-market-segments.mjs';
 import { pipelineExperience, teamExperience } from './sales-experience.mjs';
 import { salesTeamTools } from './sales-team.mjs';
+import { SUPPORT_REQUEST_ACTIONS, supportRequests } from './support-requests.mjs';
 
 export function service(env, db, payment = payments(env), tools = {}) {
   const key = env.GIGTAX_SALES_SESSION_KEY;
@@ -63,6 +64,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
   const audit = (user, leadId, action, detail) => db.create('events', { town: `${action} ${secret().slice(0, 12)}`, contact_name: user.name, assigned_to: String(leadId), status: 'recorded', notes: JSON.stringify({ actorId: user.id, action, detail, at: new Date().toISOString() }) });
   const salesTeam = tools.salesTeam ? salesTeamTools(db, audit, owner) : null;
   const contacts = contactTools(db, audit, tools.now);
+  const support = supportRequests(db, tools.now);
   const territories = territoryTools(db,audit);
   const progress = progressTools(db, audit, tools.now);
   const delivery = deliveryTools(env, db, salesTeam ? { ...tools, isActiveAgent: row => Boolean(rosterUser(row)) } : tools);
@@ -105,6 +107,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
         membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
+    if (SUPPORT_REQUEST_ACTIONS.has(action)) return support(user, action, b);
     if (tools.booking && typeof action === 'string' && action.startsWith('booking-')) return tools.booking(user, action, b);
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);

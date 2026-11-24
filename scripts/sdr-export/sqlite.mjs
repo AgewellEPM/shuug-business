@@ -5,7 +5,7 @@ import { bookingStore } from './booking-store.mjs';
 import { mailStore } from './mail/store.mjs';
 import { teamChat } from './team-chat.mjs';
 
-const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings']);
+const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests']);
 function kindFor(kind) {
   if (!kinds.has(kind)) throw new Error('Unknown SDR collection.');
   return kind;
