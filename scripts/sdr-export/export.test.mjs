@@ -518,6 +518,18 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(territoryState.value, '');
   assert.equal(territoryState.options.length, 52);
   assert.equal(territoryState.querySelector('option[value="DC"]').textContent, 'District of Columbia');
+  const territoryMetric = key => territoriesPanel.querySelector(`[data-td-metric="${key}"]`).textContent;
+  await waitFor(() => territoryMetric('total') === '51', 'Nationwide dashboard did not include all states and DC');
+  territoriesPanel.querySelector('[data-td-view-all]').click();
+  assert.equal(territoriesPanel.querySelectorAll('[data-td-row]').length, 51);
+  territoriesPanel.querySelector('[data-td-tool="list"]').click();
+  assert.equal(territoriesPanel.querySelectorAll('[data-td-open]').length, 51);
+  const territorySearch = territoriesPanel.querySelector('[data-td-search]');
+  territorySearch.value = 'Pennsylvania';
+  territorySearch.dispatchEvent(new window.Event('input'));
+  territoriesPanel.querySelector('[data-td-open="PA"]').click();
+  await waitFor(() => territoryMetric('total') === '67', 'The territory list did not drill into Pennsylvania');
+  assert.equal(territoryState.value, 'PA');
   pageDocument.querySelector('[data-territory-state="AK"]').click();
   assert.equal(territoryState.value, 'AK');
   assert.equal(pageDocument.querySelector('#sales-territory-facilities'), null);
@@ -546,6 +558,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.equal(townPanel.querySelector('h2').textContent, 'Connecticut towns and cities');
   assert.ok(townCanvas.querySelector('.town-map-label'));
   const colors = townPanel.querySelector('[data-map-colors]');
+  await waitFor(() => territoryMetric('total') === '9', 'A previous state overwrote the Connecticut dashboard');
   assert.equal(colors.checked, true);
   assert.equal(townCanvas.querySelectorAll('.town-map-county').length, 9);
   const townSelect = townPanel.querySelector('[data-map-town]');
@@ -622,6 +635,10 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   leadForm.elements.name.value = 'Example County Lead';
   leadForm.requestSubmit();
   await waitFor(() => townPanel.querySelector('[data-county-row="45027"]').textContent.includes('Example County Lead'), 'County roster did not update');
+  await waitFor(() => territoriesPanel.querySelector('[data-td-stat="lead"]').textContent === 'Example County Lead', 'Dashboard did not refresh the selected county after assignment');
+  assert.equal(territoriesPanel.querySelector('#td-detail-title').textContent, 'Clarendon County');
+  assert.equal(territoriesPanel.querySelector('[data-td-manage]').textContent, 'Manage assignment');
+  assert.equal(territoryMetric('reps'), '1');
   await waitFor(() => mapSelection.querySelector('[data-county-assign]')?.textContent === 'Change rep', 'County assignment action did not switch to Change rep');
   const portrait = 'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAP/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAABAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCoBqK//9k=';
   const change = {state:'SC', county:'45027', name:'Example County Lead', photo:portrait, revision:1};
@@ -1231,6 +1248,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   agentDocument.querySelector('#sales-team-territories').click();
   const scopedStatePicker = agentDocument.querySelector('#sales-territory-state');
   assert.deepEqual([...scopedStatePicker.options].filter(option => !option.disabled).map(option => option.value), ['', 'CT']);
+  await waitFor(() => agentDocument.querySelector('[data-td-metric="total"]').textContent === '1', 'Rep dashboard included an inaccessible state');
   scopedStatePicker.value = 'CT';
   scopedStatePicker.dispatchEvent(new agentWindow.Event('change', { bubbles: true }));
   const capitolId = '09110';

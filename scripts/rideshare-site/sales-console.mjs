@@ -11,6 +11,7 @@ import { renderSalesEmail } from './sales-email.mjs';
 import { renderTeamChat } from './sales-chat.mjs';
 import { renderSalesCoach } from './sales-coach.mjs';
 import { renderToday } from './sales-today.mjs';
+import { renderTerritoryDashboard } from './sales-territory-dashboard.mjs';
 
 // Presentation adapted from the existing online TinkySDR cockpit, embedded by
 // TinkySDRMac: TinkySpeak-Web/outreach.html and css/outreach.css. The existing
@@ -131,7 +132,7 @@ const townMap = `<section id="territory-town-map" class="sdr-card territory-town
     <div class="town-map-actions">
       <button type="button" class="button secondary" data-map-streets>Show streets</button>
       <button type="button" class="button secondary" data-map-reset>Fit state</button>
-      <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="true">County leads</button>
+      <button type="button" class="button secondary" data-map-roster aria-controls="territory-county-roster" aria-expanded="false">County leads</button>
       <label class="town-map-color-control"><input type="checkbox" data-map-colors checked>Map colors</label>
     </div>
   </div>
@@ -404,12 +405,9 @@ ${careWorkspace ? renderCareDemo() : ''}
 ${prospects ? bookingPanel() : ''}
 <section data-tab-panel="contacts" hidden aria-label="Owners and contact Rolodex"><div id="sales-rolodex"></div></section><section data-tab-panel="locations" hidden aria-label="Signed office locations"><div id="sales-signup-locations"></div></section>
 ${prospects ? renderSalesEmail(icon) : ''}<section data-tab-panel="mail" hidden aria-label="Email senders">${prospects ? '<div id="sales-rep-email-settings"></div>' : ''}<div id="sales-mailboxes"></div></section>
-<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title">
-${prospects ? `<header class="sdr-territory-hero">
-  <div class="sdr-territory-hero-title">${icon('territories')}<div><h2 id="sales-territory-title">Territories</h2><p>Explore territories and see who covers each area</p></div></div>
-  <label class="sdr-territory-state-field">State<select id="sales-territory-state"><option value="">All states</option></select></label>
-</header>` : '<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>'}
-<div class="sdr-card"${prospects ? ' id="sales-territory-national"' : ''}>${prospects ? `<details><summary>Choose a state</summary><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></details>` : ''}<div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div>${prospects ? townMap : '<div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div>'}</section>
+${prospects ? renderTerritoryDashboard(territoryMap(), townMap, icon) : `<section data-tab-panel="territories" hidden aria-labelledby="sales-territory-title">
+<div class="sdr-card-head"><div><h2 id="sales-territory-title">Your territories</h2><p>Choose a state, drill into towns and cities, and assign sales coverage.</p></div><span class="sdr-count-label">50 states + DC</span></div>
+<div class="sdr-card"><div id="sales-territory-map" class="sdr-map">${territoryMap()}</div><p class="sdr-map-caption">Census state boundaries. Counts show offices saved in your pipeline, not current service coverage.</p></div><div id="sales-territory-cities" class="sdr-territory-cities"></div><div id="sales-territory-cards" class="sdr-state-grid" aria-label="Choose a state territory"></div></section>`}
 ${prospects ? renderTeamChat(icon) + '</div>' + renderSalesCoach(icon) : ''}</div>
 <button type="button" id="sales-detail-backdrop" class="sdr-detail-backdrop" aria-label="Close office workspace" tabindex="-1" hidden></button><aside id="sales-detail-drawer" class="sdr-detail-drawer" role="dialog" aria-modal="true" aria-labelledby="sales-detail-title" hidden><header class="sdr-detail-heading"><div><p class="eyebrow">Office workspace</p><h2 id="sales-detail-title">Office details</h2></div><button type="button" id="sales-detail-close" class="sdr-icon-button" aria-label="Close office details">×</button></header><p id="sales-detail-status" role="status" aria-live="polite"></p><section id="sales-detail" class="sales-panel" aria-live="polite"><h2>Your next conversation</h2><p>Select an office to see its record.</p></section></aside></div></div></body></html>`;
 }

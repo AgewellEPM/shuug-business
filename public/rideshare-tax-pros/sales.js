@@ -90,6 +90,7 @@
       }
       if (data) chatUI?.view(data.user, name, chatChannel);
       if (data) coachUI?.view(data.user, name);
+      if (name === 'territories') territoryUI?.enter();
       consoleUI?.navigate(name); if (name === 'discover') localUI?.visible();
       if (name === 'prospects') {
         prospectsWorkspace?.enter();

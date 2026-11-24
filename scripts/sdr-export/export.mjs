@@ -31,6 +31,7 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
 const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-care-campaign.mjs', 'sales-today.mjs', 'sales-training.mjs', 'sales-training-demo.mjs', 'sales-training-pipeline.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('scripts/rideshare-site/sales-coach.mjs');
+copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
 copy('public/rideshare-tax-pros/sales-support-content.js', 'scripts/sdr-export/coach-help.cjs');
 for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge']) copy('scripts/sdr-export/' + file + '.mjs');
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
@@ -53,6 +54,7 @@ const assets = [
   'sales-email.css', 'sales-mail-team.js', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
   'sales-coach.css', 'sales-coach.js',
+  'territory-dashboard.css', 'territory-dashboard.js', 'territory-dashboard-hero.webp',
   'sales-training.css', 'sales-training.js', 'sales-training-demo.css', 'sales-training-voice.js', 'sales-training-pipeline.js',
   'sales-support.css', 'sales-support.js', 'sales-support-content.js',
   'facility-reviews.css', 'facility-reviews.js',
