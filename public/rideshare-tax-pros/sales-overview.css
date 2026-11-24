@@ -34,10 +34,10 @@ body.sales-console-page[data-standalone-sdr] {
 [data-standalone-sdr] .sdr-brand .sdr-brand-mark { font-size: 38px; line-height: 1; }
 [data-standalone-sdr] .sdr-brand small { color: #e2edfc; font-size: 13px; letter-spacing: 0; font-weight: 600; }
 [data-standalone-sdr] .sdr-sidebar-profile { position: relative; display: flex; align-items: center; gap: 10px; padding: 6px 9px; color: inherit; text-align: start; font: inherit; border: 1px solid transparent; border-radius: 11px; background: none; cursor: pointer; }
-[data-standalone-sdr] .sdr-sidebar-profile::after {
+[data-standalone-sdr] .sdr-sidebar-profile::before {
   position: absolute;
-  inset: auto 0 -9px;
-  border-bottom: 1px solid var(--sdr-sidebar-divider);
+  inset: -9px 11px auto;
+  border-top: 1px solid var(--sdr-sidebar-divider);
   pointer-events: none;
   content: '';
 }
@@ -175,7 +175,7 @@ body.sales-console-page[data-standalone-sdr] {
 }
 @media (max-width: 760px) {
   [data-standalone-sdr] .sdr-sidebar { padding: 8px 12px 0; }
-  [data-standalone-sdr] .sdr-sidebar-profile::after { bottom: -6px; }
+  [data-standalone-sdr] .sdr-sidebar-profile::before { top: -6px; }
   [data-standalone-sdr] .sdr-sidebar .sdr-brand { padding: 0 8px; font-size: 20px; }
   [data-standalone-sdr] .sdr-brand .sdr-brand-mark { font-size: 29px; }
   [data-standalone-sdr] .sdr-nav button { min-height: 41px; font-size: 14px; }
