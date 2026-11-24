@@ -117,9 +117,9 @@
     const pages = document.createElement('div');
     pages.className = 'prospects-administrator-sources';
     if (role?.sourceURL) {
-      const source = links?.(role.sourceURL, 'Role source');
+      const source = links?.(role.sourceURL, role.sourceName || 'Role source');
       if (source) {
-        if (role.checkedOn) source.title = 'Role source checked ' + role.checkedOn;
+        if (role.checkedOn) source.title = 'Role source dated ' + role.checkedOn;
         pages.append(source);
       }
     }
@@ -361,9 +361,17 @@
       }));
       const source = facilities.sourceLink(facility.sourceURL, facility.sourceName || 'Source record');
       if (source) row.querySelector('th').append(source);
-      row.lastElementChild.append(facilities.saveForm(facility,
+      const actions = document.createElement('div');
+      actions.className = 'prospects-directory-actions';
+      const view = document.createElement('button');
+      view.type = 'button';
+      view.className = 'button secondary';
+      view.textContent = 'View profile';
+      view.onclick = () => openProfile(facility, page.category);
+      actions.append(view, facilities.saveForm(facility,
         fields => api('territory-facility-save', { ...fields, state: page.state, category: page.category, sourceURL: facility.sourceURL }),
         onOpenOffice, refresh, 'Open prospect'));
+      row.lastElementChild.append(actions);
       return row;
     }
 
@@ -392,6 +400,9 @@
         status.textContent = page.results.length
           ? `Showing ${page.offset + 1}–${page.offset + page.results.length} of ${page.total.toLocaleString()} for ${regionLabel(page.state)}.`
           : 'No directory matches for these filters.';
+        if (page.total && page.category === 'nursing-home' && Number.isInteger(page.namedAdministrators)) {
+          status.textContent += ` ${page.namedAdministrators.toLocaleString()} of ${page.total.toLocaleString()} have a published administrator.`;
+        }
         if (page.issues?.length) status.textContent += ' Some source results may be unavailable.';
       } catch (error) {
         if (request !== sequence) return;

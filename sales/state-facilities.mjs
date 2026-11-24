@@ -71,8 +71,13 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
       const label = localityKey([row.name, row.city, row.zip].join(' '));
       return terms.every(term => label.includes(term));
     });
+    const administrators = category === 'nursing-home'
+      ? new Map(matches.flatMap(row => {
+        const person = publishedFacilityAdministrator(row);
+        return person ? [[row.sourceURL, person]] : [];
+      })) : new Map();
     const page = matches.slice(offset, offset + pageSize).map(row => {
-      const administrator = category === 'nursing-home' ? publishedFacilityAdministrator(row) : null;
+      const administrator = administrators.get(row.sourceURL);
       const profile = category === 'nursing-home' ? publishedFacilityProfile(row) : null;
       return { ...row, ...(administrator ? { administrator } : {}), ...(profile ? { profile } : {}) };
     });
@@ -91,6 +96,7 @@ export function stateFacilityDirectory({ db, load = loadStateFacilities, now = D
       }
     }
     return { state: region, category, results: page,
-      total: matches.length, offset, limit: pageSize, hasMore: offset + pageSize < matches.length, coverage, sources, issues };
+      total: matches.length, namedAdministrators: administrators.size,
+      offset, limit: pageSize, hasMore: offset + pageSize < matches.length, coverage, sources, issues };
   };
 }

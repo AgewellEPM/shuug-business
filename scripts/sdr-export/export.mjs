@@ -22,6 +22,7 @@ function write(file, value) {
 for (const filename of readdirSync(join(root, 'sales'))) {
   if (filename.endsWith('.mjs') && !filename.endsWith('.test.mjs')) copy('sales/' + filename);
 }
+copy('sales/facility-leadership-data.json');
 for (const directory of ['business-places-data', 'territory-data', 'territory-map-data']) {
   for (const filename of readdirSync(join(root, 'sales', directory))) {
     if (/^(?:[A-Z]{2}|manifest)\.json(?:\.gz)?$/.test(filename)) copy('sales/' + directory + '/' + filename);

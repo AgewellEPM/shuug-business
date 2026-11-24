@@ -58,6 +58,13 @@ the local Ollama service with `qwen3:4b-instruct-2507-q4_K_M` by default.
 `SDR_OUTREACH_MODEL` selects another local model. When the model is unavailable,
 the drafts use role-specific templates.
 
+The nursing-home directory reads administrator listings from matched CMS
+enrollments and state licensure rosters. Each name links to its publisher.
+Directory results show administrator coverage for the current filters.
+The index contains public professional contacts and can be regenerated with
+`scripts/sales/build-facility-leadership.py`. California licensure data are
+published by the California Department of Public Health under [CC BY](https://publish.data.ca.gov/dataset/licensed-and-certified-healthcare-facility-listing).
+
 ## Sales teams
 
 Open **Sales team** to invite a member and share their access code privately. The owner can place a new member anywhere in the active reporting tree. Each member can invite their own direct reports and see everyone who reports through them. New reports inherit the manager’s territory by default. A narrower state selection keeps any town restrictions from the manager’s territory, and later changes to the manager’s territory also apply to their branch.

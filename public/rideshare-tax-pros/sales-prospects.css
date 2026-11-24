@@ -274,6 +274,7 @@
   cursor: pointer;
 }
 .facility-profile-open:hover { text-decoration: underline; }
+.prospects-directory-actions { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
 button.prospects-administrator-photo { padding: 0; border: 0; border-radius: 8px; background: #e2ecfa; cursor: pointer; }
 button.prospects-administrator-photo:is(:hover,:focus-visible) { outline: 2px solid #166cd3; outline-offset: 2px; }
 
