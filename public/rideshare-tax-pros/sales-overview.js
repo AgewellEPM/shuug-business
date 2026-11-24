@@ -26,7 +26,7 @@
     return button;
   }
   function navigationIcon(view) {
-    return document.querySelector('.sdr-nav [data-tab="' + view + '"] svg')?.cloneNode(true) || node('span');
+    return document.querySelector('[data-tab="' + view + '"] svg')?.cloneNode(true) || node('span');
   }
 
   function mount({ api, onNavigate, onOpenOffice, onBrowseFacilities, facilityType, refresh, status }) {

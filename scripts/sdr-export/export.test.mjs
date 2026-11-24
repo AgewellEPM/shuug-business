@@ -294,7 +294,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
       'Support Center did not open from its deep link');
     assert.equal(rail.querySelector('[data-tab="support"]').getAttribute('aria-pressed'), 'true');
     assert.equal(rail.querySelector('[data-tab="campaigns"]').hidden, false);
-    assert.ok(rail.querySelector('[data-tab="locations"]'));
+    assert.equal(rail.querySelector('[data-tab="locations"]'), null);
     assert.equal(rail.querySelector('[data-tab="contacts"]'), null);
     await waitFor(() => find('[data-support-service="requests"]').textContent === 'Available',
       'Support request availability was not reported');
@@ -1367,7 +1367,12 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'The signed-in demo entrypoint did not open');
     assert.ok(panel.hidden);
-    doc.querySelector('[data-tab="demo"]').click();
+    assert.equal(doc.querySelector('.sdr-sidebar [data-tab="demo"]'), null);
+    doc.querySelector('.sdr-sidebar [data-tab="team"]').click();
+    const demoTool = doc.querySelector('[data-team-tools] [data-tab="demo"]');
+    assert.equal(demoTool.closest('[hidden]'), null);
+    demoTool.click();
+    assert.equal(panel.closest('[data-team-workspace]').hidden, false);
     await waitFor(() => !find('session').hidden, 'The exported demo boards did not load');
     assert.equal(find('setting').textContent, 'Nursing home');
     assert.equal(find('board-picker').options.length, 19);
@@ -1519,13 +1524,29 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const secondCookie = (await doLogin(other.origin, otherCode)).headers.get('set-cookie').split('=')[0];
   assert.notEqual(firstCookie, secondCookie);
 
-  await t.test('the sidebar keeps Signup locations and the Rolodex adds contacts in an empty workspace', async t => {
+  await t.test('Sales team groups its tools and the Rolodex adds contacts in an empty workspace', async t => {
     const response = await differentProject.request('/sales');
     const contactsWindow = await mountConsole(t, other.origin, differentProject, await response.text(), '/sales#view=contacts');
     const doc = contactsWindow.document;
     const find = selector => doc.querySelector(selector);
     await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
-    assert.ok(find('.sdr-sidebar [data-tab="locations"]'));
+    const rail = find('.sdr-nav');
+    assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
+      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'support']);
+    assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
+    const back = find('[data-team-return]');
+    assert.equal(back.closest('[hidden]'), null);
+    back.click();
+    assert.equal(doc.activeElement, find('[data-team-tools] [data-tab="contacts"]'));
+    for (const name of ['calendar', 'email', 'mail', 'locations', 'territories', 'chat', 'contacts']) {
+      const button = find('[data-team-tools] [data-tab="' + name + '"]');
+      assert.equal(button.closest('[hidden]'), null);
+      button.click();
+      assert.equal(find('[data-tab-panel="' + name + '"]').closest('[hidden]'), null);
+      assert.equal(new URLSearchParams(contactsWindow.location.hash.slice(1)).get('view'), name);
+      assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
+      if (name !== 'contacts') back.click();
+    }
     assert.equal(find('.sdr-sidebar [data-tab="discover"]'), null);
     assert.ok(find('[data-tab-panel="discover"]'));
     const opener = find('[data-rolodex-add]');

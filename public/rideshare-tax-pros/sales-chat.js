@@ -14,10 +14,12 @@
     const panel = document.querySelector('[data-tab-panel="chat"]');
     if (!panel) return;
     const $ = selector => panel.querySelector(selector);
-    const nav = document.querySelector('[data-tab="chat"]');
-    const badge = element('span', '', 'chat-nav-count');
-    badge.hidden = true;
-    nav.append(badge);
+    const badges = [...document.querySelectorAll('[data-tab="chat"], .sdr-nav [data-tab="team"]')].map(button => {
+      const badge = element('span', '', 'chat-nav-count');
+      badge.hidden = true;
+      button.append(badge);
+      return { button, badge, label: button.dataset.tab === 'chat' ? 'Team chat' : 'Sales team' };
+    });
     const list = $('#chat-channels'), log = $('#chat-messages'), scroll = $('#chat-scroll');
     const directs = $('#chat-directs'), peoplePanel = $('#chat-people'), newDirect = $('#chat-new-direct');
     const personSearch = $('#chat-person-search'), personResults = $('#chat-person-results'), firstDirect = $('#chat-first-direct');
@@ -37,9 +39,11 @@
     function renderChannels() {
       const all = [...channelList, ...directList];
       const unread = all.reduce((sum, channel) => sum + channel.unread, 0);
-      badge.hidden = !unread;
-      badge.textContent = unread ? countLabel(unread) : '';
-      nav.setAttribute('aria-label', unread ? `Team chat, ${unread} unread messages` : 'Team chat');
+      for (const { button, badge, label } of badges) {
+        badge.hidden = !unread;
+        badge.textContent = unread ? countLabel(unread) : '';
+        button.setAttribute('aria-label', unread ? `${label}, ${unread} unread chat messages` : label);
+      }
       firstDirect.hidden = Boolean(directList.length) || !peoplePanel.hidden;
       const signature = JSON.stringify(all.map(c => [c.slug, c.name, c.unread])) + room?.slug;
       if (signature === channelSignature) return;
