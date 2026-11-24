@@ -14,7 +14,7 @@
       const list = find('list'), reader = find('reader'), editor = find('editor');
       const search = host.querySelector('.sdr-email-search');
       const pages = host.querySelector('.sdr-email-pages');
-      let state, contacts = [], folder = 'inbox', query = '', contactFilter = null;
+      let owner = false, state, contacts = [], folder = 'inbox', query = '', contactFilter = null;
       let cursors = [''], next = '', messages = [], drafts = [], editing, dirty = false, working = false, loaded = false;
       let listRequest = 0, readRequest = 0, selected = '';
 
@@ -131,8 +131,34 @@
         settings.innerHTML = `<section class="sdr-card sdr-email-settings" aria-labelledby="sdr-email-settings-title">
           <div class="sdr-card-head"><div><h2 id="sdr-email-settings-title">My business mailbox</h2>
           <p>${escape(mailbox.address || 'Zoho Mail')} · ${mailbox.configured ? 'Managed by your workspace' : 'Awaiting workspace authorization'}</p></div>
-          <button type="button" class="button primary" data-open-mailbox>Open Email</button></div></section>`;
+          <button type="button" class="button primary" data-open-mailbox>Open Email</button></div>
+          ${owner ? `<details class="sdr-zoho-admin"><summary>Workspace mail authorization</summary>
+            <form class="sales-form" data-zoho-admin>
+              <p>In the <a href="https://api-console.zoho.com/" target="_blank" rel="noopener noreferrer">Zoho API Console</a>, open Self Client, generate a code with the scopes below, then download the JSON.</p>
+              <code>ZohoMail.accounts.READ,ZohoMail.folders.READ,ZohoMail.messages.ALL</code>
+              <label>Owner’s business email<input type="email" name="ownerAddress" value="${escape(mailbox.address)}" ${mailbox.address ? 'readonly' : ''} required></label>
+              <label>Zoho grant file<input type="file" accept=".json,application/json" name="grant" required></label>
+              <button type="submit" class="button secondary">Authorize workspace mail</button>
+              <p role="status" data-zoho-status></p>
+            </form></details>` : ''}</section>`;
         settings.querySelector('[data-open-mailbox]').onclick = () => onNavigate('email');
+        const form = settings.querySelector('[data-zoho-admin]');
+        if (form) form.onsubmit = async event => {
+          event.preventDefault();
+          const file = form.elements.grant.files[0], note = form.querySelector('[data-zoho-status]'), submit = form.querySelector('button');
+          if (!file || !form.reportValidity() || submit.disabled) return;
+          if (file.size > 16384) { note.textContent = 'Choose the JSON file downloaded from the Zoho API Console.'; return; }
+          submit.disabled = true;
+          note.textContent = 'Verifying the owner mailbox with Zoho…';
+          try {
+            let grant;
+            try { grant = JSON.parse(await file.text()); }
+            catch { throw new Error('Choose a valid Zoho JSON grant file.'); }
+            applySettings(await api('rep-email-authorize', { address: form.elements.ownerAddress.value, grant }));
+            await firstPage();
+          } catch (error) { note.textContent = error.message; }
+          finally { form.reset(); submit.disabled = false; }
+        };
       }
       function contactOptions(value) {
         const term = value.trim().toLowerCase();
@@ -429,6 +455,7 @@
       return {
         render(data) {
           if (!data.repEmail) return;
+          owner = data.user.role === 'owner';
           contacts = data.rolodex?.contacts || [];
           if (state?.revision !== data.repEmail.revision || !state) applySettings(data.repEmail);
         },

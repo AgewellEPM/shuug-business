@@ -72,6 +72,10 @@
 .sdr-email-copy summary { width: fit-content; cursor: pointer; color: var(--text-secondary); }
 .sdr-email-copy label { margin-top: 8px; }
 .sdr-email-settings { margin-bottom: 20px; }
+.sdr-zoho-admin { margin-top: 12px; }
+.sdr-zoho-admin summary { width: fit-content; cursor: pointer; font-size: .9rem; }
+.sdr-zoho-admin form { max-width: 640px; margin-top: 12px; }
+.sdr-zoho-admin code { white-space: normal; overflow-wrap: anywhere; }
 
 @media (max-width: 720px) {
   .sdr-email-grid { grid-template-columns: minmax(0, 1fr); min-height: 0; }

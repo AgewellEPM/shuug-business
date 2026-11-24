@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { HttpError, metadata } from '../../../sales/model.mjs';
 import { privateValue } from '../setup.mjs';
 
-const regions = { us: 'zoho.com', eu: 'zoho.eu', in: 'zoho.in', au: 'zoho.com.au', jp: 'zoho.jp', ca: 'zohocloud.ca', sa: 'zoho.sa', cn: 'zoho.com.cn' };
+const regions = { us: 'zoho.com', eu: 'zoho.eu', in: 'zoho.in', au: 'zoho.com.au', jp: 'zoho.jp', ca: 'zohocloud.ca', sa: 'zoho.sa', ae: 'zoho.ae', cn: 'zoho.com.cn' };
 const addressOf = value => typeof value === 'string' && /^[^\s<>,;@"\\]+@(?:[a-z0-9-]+\.)+[a-z]{2,}$/i.test(value.trim()) ? value.trim().toLowerCase() : '';
 export const zohoId = value => /^[1-9]\d{0,24}$/.test(String(value)) ? String(value) : '';
 

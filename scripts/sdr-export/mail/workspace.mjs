@@ -5,6 +5,7 @@ import { singleEmail } from '../../../sales/mail-provider.mjs';
 import { HttpError, digest, seal, text, unseal, visible } from '../../../sales/model.mjs';
 import { emailOutreachBlocked, officeOutreachBlocked } from '../../../sales/outreach-preferences.mjs';
 import { zohoAssignment, zohoConfig, zohoId } from './zoho-account.mjs';
+import { authorizeZoho } from './authorize.mjs';
 import { zohoMail } from './zoho-mail.mjs';
 
 const draftId = value => {
@@ -174,10 +175,15 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
     return value;
   }
   const actions = new Set(['rep-email-list', 'rep-email-read', 'rep-email-download', 'rep-email-change',
-    'rep-email-drafts', 'rep-email-save', 'rep-email-discard', 'rep-email-send', 'rep-email-settings']);
+    'rep-email-drafts', 'rep-email-save', 'rep-email-discard', 'rep-email-send', 'rep-email-settings', 'rep-email-authorize']);
   async function dispatch(user, action, body = {}) {
     switch (action) {
       case 'rep-email-settings': return summary(user);
+      case 'rep-email-authorize':
+        if (user.role !== 'owner') throw new HttpError(403, 'Only the workspace owner can authorize company mail.');
+        if (!directory) throw new HttpError(503, 'The private workspace directory is unavailable.');
+        await authorizeZoho(env, directory, body.grant, body.address);
+        return summary(user);
       case 'rep-email-drafts': return { drafts: store.drafts(user.id).map(row => draftView(user, row)) };
       case 'rep-email-save': return { draft: store.transaction(() => saveDraft(user, body)) };
       case 'rep-email-discard': return store.transaction(() => {
@@ -211,8 +217,10 @@ export function repEmailWorkspace(db, sessionKey, env, { directory, transport = 
   }
   function bookingSender(user) {
     if (!user) return null;
-    const { mailbox, revision } = summary(user);
-    return mailbox.configured ? { from: mailbox.address, fromName: mailbox.name, replyTo: mailbox.address, revision, mode: 'zoho' } : null;
+    const account = accountFor(user);
+    if (!account.configured) return null;
+    const revision = digest(JSON.stringify([key, user.id, account.address, account.accountId, account.config.host, account.config.clientId, account.config.refreshToken]));
+    return { from: account.address, fromName: account.name, replyTo: account.address, revision, mode: 'zoho' };
   }
   async function sendBooking(user, revision, message) {
     if (!user || bookingSender(user)?.revision !== revision) return 'setup-changed';

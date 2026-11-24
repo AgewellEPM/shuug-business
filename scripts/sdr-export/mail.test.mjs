@@ -155,3 +155,29 @@ test('outreach checks all recipients, records one accepted send, and retains unc
   assert.equal(queued, 3);
   assert.equal(db.list('events').length, 1);
 });
+
+test('owner grant import verifies the Zoho owner and Inbox before installing a private refreshable grant', async t => {
+  const { dir, db, rep } = fixture(t);
+  const path = join(dir, 'zoho-mail.json');
+  writeFileSync(path, JSON.stringify({ ownerAddress: 'office@example.test' }), { mode: 0o600 });
+  const { authorizeZoho } = await import('./mail/authorize.mjs');
+  const { privateValue } = await import('./setup.mjs');
+  const grant = { client_id: 'fixture-id', client_secret: 'fixture-secret', code: 'one-time-fixture-code' };
+  let email = 'other@example.test';
+  const fixtureFetch = async (value, options) => {
+    const url = new URL(value);
+    if (url.hostname === 'accounts.zoho.com') return Response.json({ access_token: 'fixture-access', refresh_token: 'fixture-offline', expires_in: 3600 });
+    assert.equal(options.headers.Authorization, 'Zoho-oauthtoken fixture-access');
+    return Response.json({ data: url.pathname === '/api/accounts' ? [{ primaryEmailAddress: email, accountId: '9000001' }] : [{ folderType: 'Inbox', folderId: '1001' }] });
+  };
+  const app = repEmailWorkspace(db, key, {}, { directory: dir });
+  await assert.rejects(app.dispatch(rep, 'rep-email-authorize', { grant }), { status: 403 });
+  await assert.rejects(authorizeZoho({}, dir, grant, undefined, fixtureFetch), { status: 503 });
+  assert.equal(JSON.parse(privateValue(path)).refreshToken, undefined);
+  email = 'office@example.test';
+  assert.deepEqual(await authorizeZoho({}, dir, grant, undefined, fixtureFetch), { authorized: true });
+  assert.equal(JSON.parse(privateValue(path)).refreshToken, 'fixture-offline');
+  assert.ok(!privateValue(path).includes(grant.code));
+  assert.equal(app.summary(owner).mailbox.configured, true);
+  assert.ok(!JSON.stringify(app.summary(owner)).includes(grant.client_secret));
+});
