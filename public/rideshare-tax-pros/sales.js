@@ -71,6 +71,7 @@
     const bookingUI = window.SdrBookings?.mount({ api });
     const chatUI = window.SdrTeamChat?.mount({ api });
     const coachUI = window.SdrCoach?.mount({ api, review: reviewCoachDraft, context: coachContext, navigate: coachNavigate, changed: refresh });
+    const tourUI = window.SdrGettingStarted?.mount({ api, navigate: href => coachNavigate(href, { replace: true }) });
     if (coachUI) document.addEventListener('click', event => {
       if (event.target.closest('[data-prospect-select],[data-prospect-add],[data-prospect-cancel]')) coachUI.sync();
     });
@@ -263,7 +264,7 @@
       }
       return out;
     }
-    async function coachNavigate(href) {
+    async function coachNavigate(href, { replace = false } = {}) {
       if (!/^#view=[a-z-]+(?:&[a-z]+=[a-z0-9-]+)*$/.test(href)) throw new Error('That workspace view is unavailable.');
       const params = new URLSearchParams(href.slice(1)), destination = params.get('view');
       const target = $$('[data-tab-panel]').find(el => el.dataset.tabPanel === destination);
@@ -273,7 +274,7 @@
         if (officeHasEdits()) throw new Error('Finish your open account edits, then open this link.');
         closeDetail();
       }
-      if (location.hash !== href) history.pushState(null, '', href);
+      if (location.hash !== href) history[replace ? 'replaceState' : 'pushState'](null, '', href);
       if (!showRequestedView(params)) tab(destination);
       if (destination === 'pipeline' && /^\d+$/.test(params.get('account') || '')) await showOffice(params.get('account'));
     }
@@ -388,6 +389,7 @@
       const identity = $('#sales-identity');
       if (identity) identity.hidden = false;
       renderIdentity();
+      tourUI?.view(data.user);
       todayUI?.render(data);
       if ($('#sales-gate')) $('#sales-gate').hidden = true;
       $$('[data-owner-only]').forEach(el => { el.hidden = data.user.role !== 'owner' || (el.hasAttribute('data-team-identity-portal') && !document.body.dataset.identityPortal); });

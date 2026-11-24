@@ -1,6 +1,7 @@
 import { escape } from '../rideshare-site/layout.mjs';
 import { salesPages } from '../rideshare-site/sales.mjs';
 import { bookingAPIGuide, clientBookingPage, connectionPage } from '../rideshare-site/sales-booking.mjs';
+import { gettingStarted } from './getting-started-page.mjs';
 
 const loginForm = `<section id="sales-login" class="sales-panel"><h2>Sales workspace sign-in</h2>
 <form id="sales-login-form" class="sales-form" method="post">
@@ -26,6 +27,10 @@ export function renderWorkspace(profile, signIn) {
     const careScripts = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosk-packs','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign','sales-products']
       .map(name => `<script src="/${name}.js" defer></script>`).join('') : '';
     let sales = source
+      .replace('</head>', '<link rel="stylesheet" href="/sales-getting-started.css"></head>')
+      .replace('<script src="/sales.js"', '<script src="/sales-tour-steps.js" defer></script><script src="/sales-getting-started.js" defer></script><script src="/sales.js"')
+      .replace('</body>', gettingStarted + '</body>')
+      .replace('<div class="sdr-topbar-right">', '<div class="sdr-topbar-right"><button class="button secondary" type="button" data-sdr-tour-open hidden>Getting started</button>')
       .replace('</head>', '<link rel="stylesheet" href="/sales-coach.css"></head>')
       .replace('<script src="/sales.js"', '<script src="/sales-coach-controls.js" defer></script><script src="/sales-coach.js" defer></script><script src="/sales.js"')
       .replace('</head>', '<link rel="stylesheet" href="/sales-contract-center.css"></head>')

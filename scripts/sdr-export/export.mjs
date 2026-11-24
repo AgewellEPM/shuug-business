@@ -59,6 +59,7 @@ const assets = [
   'sales-email.css', 'sales-mail-team.js', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
   'sales-coach.css', 'sales-coach-controls.js', 'sales-coach.js', 'sales-coach-audio-worklet.js',
+  'sales-getting-started.css', 'sales-tour-steps.js', 'sales-getting-started.js',
   'sales-contract-center.css', 'sales-contract-center.js', 'sales-contracts-hero.webp', 'sales-contracts-care.webp',
   'territory-dashboard.css', 'territory-dashboard.js', 'territory-dashboard-hero.webp',
   'sales-training.css', 'sales-training.js', 'sales-training-demo.css', 'sales-training-voice.js', 'sales-training-pipeline.js',
@@ -75,6 +76,7 @@ for (const directory of ['support-art', 'training-art']) {
   }
 }
 for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'care-replies.mjs', 'care-replies.json', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'team-chat.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
+copy('scripts/sdr-export/getting-started-page.mjs');
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
 }
