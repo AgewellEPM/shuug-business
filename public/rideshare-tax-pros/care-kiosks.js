@@ -145,6 +145,18 @@
       exchange = { said, shown: [] };
       await replies('reply');
     }
+    // A wrong picture can mislead someone who cannot read the label. Prefer the picture this
+    // location's own boards use for the word, and never show the same one for different answers.
+    function pictured(tiles) {
+      const known = new Map();
+      for (const board of pack.pool) for (const tile of board.tiles) {
+        const word = normalize(tile.label).replace(/ ›$/,'');
+        if (tile.emoji && !known.has(word)) known.set(word, tile.emoji);
+      }
+      const parts = tiles.map(words => { const cut = words.indexOf(' '); return { emoji: words.slice(0,cut), label: words.slice(cut + 1).trim() }; });
+      const uses = emoji => parts.filter(part => part.emoji === emoji).length;
+      return parts.map(({ emoji, label }) => ({ label, emoji: /^yes\b/i.test(label) ? '✅' : /^no\b/i.test(label) ? '❌' : known.get(normalize(label)) || (uses(emoji) > 1 ? '💬' : emoji) }));
+    }
     async function replies(mode) {
       const turn = ++turns, { said } = exchange;
       panel(Object.assign(element('p','🧠'),{className:'ck-big'}), element('p','Thinking…'));
@@ -160,12 +172,10 @@
       exchange.shown.push(...result.tiles);
       helper.replaceChildren();
       if (mode !== 'continue') helper.append(Object.assign(element('p','They said: ' + said),{className:'ck-prompt'}));
-      if (result.source === 'fixed') helper.append(Object.assign(element('p','The AI is unavailable. These are the app’s saved replies.'),{className:'ck-note'}));
+      if (result.source === 'fixed') helper.append(Object.assign(element('p','These are TinkyStroke’s saved replies.'),{className:'ck-note'}));
       const after = place.boards.ts_after !== undefined ? 'ts_after' : undefined;
-      grid.replaceChildren(...result.tiles.map(words => {
-        const cut = words.indexOf(' '), label = words.slice(cut + 1).trim();
-        return tileButton({ emoji: words.slice(0,cut), label, spokenText: label, color: 'blue', navigateTo: after });
-      }), tileButton({ emoji: '🔄', label: 'More Choices', color: 'gray', action: 'more_choices', wide: true }));
+      grid.replaceChildren(...pictured(result.tiles).map(({ emoji, label }) =>
+        tileButton({ emoji, label, spokenText: label, color: /^yes\b/i.test(label) ? 'green' : /^no\b/i.test(label) ? 'red' : 'blue', navigateTo: after })), tileButton({ emoji: '🔄', label: 'More Choices', color: 'gray', action: 'more_choices', wide: true }));
       area.scrollTop = 0;
     }
     // The browser handles recognition. Without it, or without permission, the same words can be typed.
