@@ -127,6 +127,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const fetchNetwork = globalThis.fetch;
     globalThis.fetch = async (address, options) => {
       const url = new URL(address);
+      if (url.href === 'http://127.0.0.1:11434/api/chat') {
+        const { messages } = JSON.parse(options.body);
+        if (messages[0].content.includes('TinkyTown communication demo')) {
+          const question = messages.at(-1).content;
+          if (question === 'Simulate an unavailable model') return new Response('', { status: 503 });
+          if (question === 'What is five plus seven?') return Response.json({ message: { content: 'Five plus seven is twelve.' } });
+          throw new Error('Unexpected demo question.');
+        }
+      }
       if (url.hostname === 'places.googleapis.com') {
         if (options.headers['X-Goog-Api-Key'] !== 'fixture-places-key') throw new Error('Places key must stay in the request header.');
         if (url.pathname === '/v1/places:searchText') {
@@ -1634,6 +1643,29 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     const { requests } = await owner.api('support-requests');
     assert.equal(requests.length, before + 1);
     assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
+  });
+
+  await t.test('the Senior center kiosk sends typed questions to AI and keeps only staff listening', async t => {
+    const anonymous = browserSession(first.origin);
+    await anonymous.api('demo-kiosk-ask', { question: 'What is five plus seven?' }, 401);
+    await owner.api('demo-kiosk-ask', { question: ' ' }, 400);
+    const demoWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=demo&venue=senior-center');
+    const find = selector => demoWindow.document.querySelector(selector);
+    await waitFor(() => !find('[data-tab-panel="demo"]').hidden && find('.care-kiosk-tiles button'), 'Senior center kiosk did not load');
+    assert.equal(find('.ck-talk'), null);
+    assert.match(find('.ck-staff').textContent, /Listen for Staff/);
+    const field = find('.ck-type input'), form = field.form, send = find('.ck-type button[type="submit"]');
+    field.value = 'What is five plus seven?';
+    form.requestSubmit();
+    assert.equal(send.disabled, true);
+    await waitFor(() => find('.care-kiosk-message').textContent === 'Five plus seven is twelve.', 'The AI answer did not reach the kiosk');
+    assert.equal(find('.ck-words strong').textContent, 'AI answer:');
+    assert.equal(find('.ck-transcript summary').textContent, 'Conversation (2)');
+    assert.equal(send.disabled, false);
+    field.value = 'Simulate an unavailable model';
+    form.requestSubmit();
+    await waitFor(() => [...demoWindow.document.querySelectorAll('.ck-status')].some(node => node.textContent.includes('AI is unavailable')), 'The model error was not displayed');
+    assert.equal(send.disabled, false);
   });
 
   await t.test('the care workspace presents the hospital and stroke boards under Demo', async t => {

@@ -127,6 +127,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
     if (tools.repEmail?.actions.has(action)) return tools.repEmail.dispatch(user, action, b);
     if (tools.teamChat?.actions.has(action)) return tools.teamChat.dispatch(user, action, b, tools.requestSignal, salesTeam.messagingMembers);
     if (tools.salesCoach?.actions.has(action)) return tools.salesCoach.dispatch(user, action, b, dispatch);
+    if (action === 'demo-kiosk-ask' && tools.demoKioskAI) return tools.demoKioskAI(user, b);
     if (tools.campaigns?.actions.has(action)) return tools.campaigns.dispatch(user, action, b, dispatch);
     if (tools.careCampaign && action === 'start-care-pilot') {
       const office = await leadFor(user, b.id);

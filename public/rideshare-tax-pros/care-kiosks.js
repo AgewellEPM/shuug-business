@@ -37,41 +37,48 @@
   function mount(root, venue, params, {diet} = {}) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
     let lexicon = indexed({}), lastUtterance, pendingSign = false;
-    let recognition = null, privacy = false;
+    let recognition = null, pendingAnswer = null, privacy = false;
     const app = element('article'); app.className = 'care-venue-kiosk';
     const header = element('header'), about = element('div'), title = element('h3'), address = element('p'), contact = element('p'), boardName = element('p');
     const captions = element('div'), words = element('div'), speaker = element('strong'), message = element('p'), original = element('p');
     const area = element('div'), heading = element('h4'), grid = element('div'), helper = element('div'), dock = element('footer');
     const transcript = element('details'), transcriptTitle = element('summary','Conversation'), transcriptList = element('ol');
-    const selectors = element('div'), status = element('p');
+    const selectors = element('div'), status = element('p'), answerStatus = element('p');
     const back = icon('Back', '←', previous, 'ck-back'); back.dataset.back = '';
     header.className = 'ck-header'; about.className = 'ck-about'; contact.className = 'ck-contact'; boardName.className = 'ck-board';
     about.append(title,address,contact,boardName); header.append(back,about);
     captions.className = 'ck-captions'; words.className = 'ck-words';
     message.className = 'care-kiosk-message'; words.setAttribute('role','status');
     original.className = 'ck-original'; original.hidden = true;
-    const hear = icon('Listen for staff', '👂', () => listen('staff'), 'ck-ear');
+    const hear = icon('Listen for staff', '👂', listenForStaff, 'ck-ear');
     const replay = icon('Speak again', '🔊', () => { const m = messages.at(-1); if (m) utter(m.text,m.lang); }, 'ck-replay'); replay.dataset.replay = '';
     words.append(speaker,message,original); captions.append(words,hear,replay);
     area.className = 'ck-area'; heading.className = 'ck-sr'; heading.tabIndex = -1;
     grid.className = 'care-kiosk-tiles'; helper.className = 'ck-helper';
     const emergency = element('div'); emergency.className = 'ck-strip';
     area.append(heading,emergency,helper,grid);
-    const talk = button('🎤 Tap to Speak', () => listen('visitor')); talk.className = 'ck-talk';
     const type = element('form'), draft = element('input'), clear = button('Clear', () => { draft.value = ''; draft.focus(); }), send = element('button','↑');
     type.className = 'ck-type'; draft.placeholder = 'Type your question…'; draft.maxLength = 350; draft.setAttribute('aria-label','Type your question');
-    clear.className = 'ck-clear'; send.className = 'ck-send'; send.type = 'submit'; send.setAttribute('aria-label','Show and speak');
+    clear.className = 'ck-clear'; send.className = 'ck-send'; send.type = 'submit'; send.setAttribute('aria-label','Ask AI');
     type.append(draft,clear,send);
-    type.addEventListener('submit', e => { e.preventDefault(); const text = draft.value.trim(); if (text) { show(text,language,'Visitor'); draft.value = ''; } });
-    const staff = button('👂 Listen for Staff', () => listen('staff')); staff.className = 'ck-staff';
+    type.addEventListener('submit', event => {
+      event.preventDefault();
+      const question = draft.value.trim();
+      if (!question || pendingAnswer) return;
+      draft.value = '';
+      show(question, language, 'Visitor');
+      void ask(question, language);
+    });
+    const staff = button('👂 Listen for Staff', listenForStaff); staff.className = 'ck-staff';
     status.className = 'ck-status'; status.setAttribute('role','status');
+    answerStatus.className = 'ck-status'; answerStatus.setAttribute('role','status');
     transcript.className = 'ck-transcript'; transcript.append(transcriptTitle,transcriptList);
     selectors.className = 'ck-places'; selectors.hidden = true;
     const nav = element('nav'); nav.className = 'ck-nav'; nav.setAttribute('aria-label','Kiosk');
     const tabs = [['Home','🏠',() => { history = []; go('main',false); }],['Numbers','🔢',() => compose('Number',{numeric:true})],
       ['Translate','🌐',() => translateSign()],['Places','📍',() => { selectors.hidden = !selectors.hidden; if (!selectors.hidden) selectors.querySelector('select').focus(); }]];
     for (const [label,glyph,click] of tabs) { const b = icon(label,glyph,click,'ck-tab'); b.append(element('small',label)); nav.append(b); }
-    dock.className = 'ck-dock'; dock.append(talk,type,staff,status,transcript);
+    dock.className = 'ck-dock'; dock.append(type,answerStatus,staff,status,transcript);
     app.append(header,captions,selectors,area,dock,nav);
     root.replaceChildren(app);
     const live = [captions,dock,nav];
@@ -110,29 +117,29 @@
       recognition.onresult = recognition.onerror = recognition.onend = null;
       try { recognition.abort(); } catch { /* already ended */ }
       recognition = null;
-      for (const b of [talk,staff,hear]) b.removeAttribute('data-listening');
+      for (const b of [staff,hear]) b.removeAttribute('data-listening');
       status.textContent = '';
     }
     // The browser handles recognition. Without it, or without permission, the same words can be typed.
-    function listen(who) {
+    function listenForStaff() {
       const active = Boolean(recognition);
       stopListening();
       if (active) return;
       cancelVoice();
-      const fallback = () => { stopListening(); compose(who === 'staff' ? 'Staff reply' : 'Your message'); };
+      const fallback = () => { stopListening(); compose('Staff reply'); };
       const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!Recognition) return fallback();
       recognition = new Recognition();
-      recognition.lang = who === 'staff' ? 'en-US' : language;
+      recognition.lang = 'en-US';
       recognition.onresult = event => {
         const heard = event.results[0][0].transcript.trim();
         stopListening();
-        if (heard) show(heard, who === 'staff' ? 'en' : language, who === 'staff' ? 'Staff' : 'Visitor', null, who !== 'staff');
+        if (heard) show(heard, 'en', 'Staff', null, false);
       };
       recognition.onerror = fallback;
       recognition.onend = () => { stopListening(); status.textContent = 'No words were heard. Try again.'; };
-      (who === 'staff' ? [staff,hear] : [talk]).forEach(b => b.setAttribute('data-listening',''));
-      status.textContent = who === 'staff' ? 'Listening for staff…' : 'Listening…';
+      [staff,hear].forEach(b => b.setAttribute('data-listening',''));
+      status.textContent = 'Listening for staff…';
       try { recognition.start(); } catch { fallback(); }
     }
     function show(text, lang, who, english, speakNow = true) {
@@ -149,6 +156,41 @@
       replay.disabled = false;
       if (speakNow) utter(text,lang);
       return {item,words:line,li};
+    }
+    function finishAnswer(message = '') {
+      pendingAnswer = null;
+      send.disabled = false;
+      type.removeAttribute('aria-busy');
+      answerStatus.textContent = message;
+    }
+    function cancelAnswer() {
+      pendingAnswer?.abort();
+      finishAnswer();
+    }
+    async function ask(question, lang) {
+      const request = new AbortController();
+      pendingAnswer = request;
+      send.disabled = true;
+      type.setAttribute('aria-busy', 'true');
+      answerStatus.textContent = 'Thinking…';
+      try {
+        const response = await fetch('/api/sales', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'demo-kiosk-ask', question }),
+          signal: request.signal,
+        });
+        const result = await response.json();
+        if (pendingAnswer !== request) return;
+        if (!response.ok || typeof result.answer !== 'string' || !result.answer.trim()) {
+          finishAnswer(typeof result.error === 'string' ? result.error : 'AI is unavailable. Try again.');
+          return;
+        }
+        show(result.answer, lang, 'AI answer', null, false);
+        finishAnswer();
+      } catch {
+        if (pendingAnswer === request) finishAnswer('AI is unavailable. Try again.');
+      }
     }
     function speak(english, fallback, {who = 'Visitor', aloud = true} = {}) {
       if (!english) return;
@@ -269,7 +311,7 @@
       if (action === 'back') return previous(tile.navigateTo);
       if (action === 'go_home') { history = []; return go('main',false); }
       if (action === 'language_picker') { selectors.hidden = false; return selectors.querySelector('[data-language] select').focus(); }
-      if (action === 'caption_teller') return listen('staff');
+      if (action === 'caption_teller') return listenForStaff();
       if (action === 'focus_input') return draft.focus();
       if (['number_pad','weight_pad','number_pad_digits','number_pad_date'].includes(action)) return compose(tile.label,{numeric:true});
       if (action === 'translate_sign') return translateSign();
@@ -342,6 +384,7 @@
     }
     function setPlace(id, requestedBoard) {
       generation++; pendingSign = false; stopListening();
+      cancelAnswer();
       place = pack.places.find(p => p.key === id) || pack.places[0];
       key = Object.hasOwn(place.boards,requestedBoard) ? requestedBoard : 'main';
       history = []; messages = []; transcriptList.replaceChildren(); transcript.open = false; transcriptTitle.textContent = 'Conversation';
@@ -373,7 +416,7 @@
         if(!closed) {title.textContent='This location could not load.';helper.replaceChildren(button('Try again',load));}
       }
     }
-    const pause = () => { stopListening(); cancelVoice(); };
+    const pause = () => { stopListening(); cancelVoice(); cancelAnswer(); };
     root.addEventListener('care:pause', pause);
     load();
     return () => {closed=true;generation++;pause();root.removeEventListener('care:pause', pause);app.remove();};

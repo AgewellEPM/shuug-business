@@ -35,7 +35,7 @@ copy('scripts/rideshare-site/sales-products.mjs');
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
 copy('public/rideshare-tax-pros/sales-support-content.js', 'scripts/sdr-export/coach-help.cjs');
-for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge', 'coach-mail', 'coach-save', 'coach-speech']) copy('scripts/sdr-export/' + file + '.mjs');
+for (const file of ['sales-coach', 'coach-store', 'coach-context', 'coach-knowledge', 'coach-mail', 'coach-save', 'coach-speech', 'demo-kiosk-ai']) copy('scripts/sdr-export/' + file + '.mjs');
 copy('public/rideshare-tax-pros/assets/us-national-vision.svg');
 const assets = [
   'booking-ui.js', 'booking-client.js', 'booking-connect.js', 'sales-booking.js', 'sales-booking.css',
