@@ -5,17 +5,17 @@ const sdrSupportArticles = [
     description: 'Open the workspace and check that you are signed in with the right account.',
     steps: [
       'Open the Sales Workspace link from your team. If the sign-in screen appears, choose Go to sign-in and use your work account.',
-      'Return to the workspace and check the account name in the top bar. If access is denied, ask your workspace owner to confirm your access.',
+      'Return to the workspace and check your profile in the sidebar. If access is denied, ask your workspace owner to confirm your access.',
     ],
   },
   {
     id: 'choose-workspace', kind: 'guide', topic: 'Login & Access',
-    title: 'Choose the right sales workspace',
-    description: 'Switch between the Universal CRM and Senior Care CRM.',
+    title: 'Find the right area in Sales Workspace',
+    description: 'Work with businesses, facilities and demonstrations in the Sales Workspace.',
     steps: [
-      'Use the workspace switch near the top of the sidebar when both workspaces are available.',
-      'Choose Senior Care CRM for nursing homes and senior community centers. Open Universal CRM to work with other business prospects.',
-      'Check the workspace name before saving a prospect or changing a contact.',
+      'Open Prospects or Pipeline to work with saved businesses and facilities.',
+      'Use Facility directory to browse nursing homes and senior community centers. Use the Pipeline facility type filter to focus on care accounts.',
+      'Find product demos and the booking calendar under Sales team.',
     ],
   },
   {

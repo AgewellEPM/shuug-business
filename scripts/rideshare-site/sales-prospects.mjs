@@ -33,7 +33,7 @@ function renderFacilityReviews() {
   </details>`;
 }
 
-export function renderProspects({ icon, map, linkedIn, seniorCare }) {
+export function renderProspects({ icon, map, linkedIn }) {
   const metrics = [
     ['total', 'Saved prospects', 'team', 'blue'],
     ['active', 'Active', 'arrow', 'green'],
@@ -112,10 +112,10 @@ export function renderProspects({ icon, map, linkedIn, seniorCare }) {
     <div class="prospects-card-head"><h3 id="prospects-add-title">Add prospect</h3><button type="button" class="prospects-text" data-prospect-cancel>Cancel</button></div>
     <form class="sales-form" id="sales-business-prospect-form">
       <label>Office or organization<input name="name" maxlength="180" required></label>
-      <label>Office type<select name="facilityType" ${seniorCare ? 'required' : ''}>
-        <option value="">${seniorCare ? 'Choose a type' : 'Other business'}</option>
+      <label>Office type<select name="facilityType">
+        <option value="">Other business</option>
         <option value="nursing-home">Nursing home</option><option value="senior-center">Senior community center</option>
-        ${seniorCare ? '' : '<option value="assisted-living">Assisted living</option><option value="independent-living">Independent living</option><option value="long-term-care">Rehab / long-term care</option>'}
+        <option value="assisted-living">Assisted living</option><option value="independent-living">Independent living</option><option value="long-term-care">Rehab / long-term care</option>
       </select></label>
       <label>Street address<input name="address" maxlength="300" required></label>
       <label>City<input name="city" maxlength="100" required></label>

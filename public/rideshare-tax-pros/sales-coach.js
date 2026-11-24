@@ -271,7 +271,7 @@
         const here = context(), activeForm = nativeForms?.current();
         const reviewed = /^(?:please )?(?:save|record) (?:it|this|that|the )/i.test(message) ? reviewedFields(state.turns.at(-1)) : undefined;
         const { turn } = await api('coach-ask', { question: message, lastId, requestId: key, timeZone, mailTurnId, reviewed,
-          screen: { view: here.view, care: here.care, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm } });
+          screen: { view: here.view, form: here.form, officeId: here.officeId, prospect: here.prospect, activeForm } });
         if (generation !== version) return;
         pending.remove(); pending = null;
         if (!state.turns.some(item => item.id === turn.id)) { state.turns.push(turn); log.append(renderTurn(turn)); }

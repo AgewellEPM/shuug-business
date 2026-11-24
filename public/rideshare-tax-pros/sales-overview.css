@@ -187,74 +187,12 @@ body.sales-console-page[data-standalone-sdr] {
 }
 
 /* Senior care shares the CRM navigation while giving its directory and working accounts priority. */
-.care-workspace-switch {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  margin: 2px 5px 4px;
-  padding: 10px 12px;
-  color: #ecf6ff;
-  border: 1px solid #637993;
-  border-radius: 9px;
-  font-size: 13px;
-  font-weight: 650;
-  text-decoration: none;
-}
-.care-workspace-switch:hover { color: white; background: #ffffff1b; }
-.care-workspace-switch .sdr-icon { width: 17px; height: 17px; }
-.care-workspace-switch .sdr-icon:last-child { margin-left: auto; }
-[data-senior-care] {
-  --accent: #245f54;
-  --accent-hover: #337768;
-  --accent-active: #19473f;
-  --accent-soft: #e3f2eb;
-  --glass-border: #d7e2dc;
-  --glass-border-muted: #c4d5ce;
-  --text-primary: #192e2a;
-  --text-secondary: #435d55;
-  --text-tertiary: #596c65;
-}
-[data-standalone-sdr] [data-senior-care] .sdr-sidebar { background: #133c35; border-color: #31574e; }
-[data-standalone-sdr] [data-senior-care] .sdr-brand small { color: #ccddd4; }
-.care-brand-icon { display: grid; place-items: center; width: 40px; height: 40px; border: 1px solid #aac5b7; border-radius: 11px; }
-.sales-console-page .care-brand-icon .sdr-icon { width: 26px; height: 26px; color: #e9f4ea; }
-[data-standalone-sdr] [data-senior-care] .sdr-nav button[aria-pressed=true] { color: #133d34; border-color: #e4efdd; background: #dcebd6; }
-[data-standalone-sdr] [data-senior-care] .sdr-nav button:hover { background: #355a50; color: white; }
-[data-senior-care] .care-workspace-switch { color: #edf6ed; border-color: #66877b; }
-[data-standalone-sdr] [data-senior-care] .sdr-main { background: #f6f7f2; }
-[data-senior-care] .care-hero {
-  display: flex;
-  align-items: center;
-  min-height: 225px;
-  padding: clamp(22px, 3vw, 42px);
-  margin-bottom: 15px;
-  overflow: hidden;
-  border-radius: 19px;
-  color: white;
-  background-color: #193f37;
-  background-image: linear-gradient(90deg, #103b34 1%, #123e36f7 26%, #174238bb 49%, #183f3515 76%), url('/sales-care-community.webp');
-  background-position: center, center 45%;
-  background-size: cover;
-}
-.care-hero > div { max-width: min(55%, 480px); }
-.sales-console-page .care-hero h2 { max-width: 12em; margin: 0; color: #fffdf3; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 4vw, 62px); font-weight: 500; letter-spacing: -.045em; line-height: 1.02; }
-.sales-console-page .care-hero p { margin: 12px 0 19px; max-width: 37ch; color: #e9f1e8; line-height: 1.45; font-size: clamp(14px, 1.25vw, 17px); }
-.care-hero-action, .care-text-action { display: inline-flex; align-items: center; justify-content: center; gap: 9px; cursor: pointer; font-weight: 650; }
-.care-hero-action { min-height: 40px; padding: 8px 15px; color: #173c32; border: 1px solid #cee5bb; border-radius: 8px; background: #e1efcc; }
-.care-hero-action:hover { background: #f2f9e6; }
-.care-hero-action .sdr-icon, .care-text-action .sdr-icon { width: 16px; height: 16px; }
-.care-text-action { border: 0; border-bottom: 1px solid #8ea99b; color: #275f51; background: none; padding: 4px 0; font-size: 13px; }
-[data-senior-care] .sdr-overview-stat { border-radius: 13px; border-color: #d8e1da; box-shadow: none; background: white; color: #29423b; }
-[data-senior-care] .sdr-overview-stat .sdr-icon { color: #477563; }
-[data-senior-care] .sdr-overview-stat:nth-child(2) .sdr-icon { color: #97723f; }
-[data-senior-care] .sdr-overview-stat:nth-child(3) .sdr-icon { color: #866243; }
-[data-senior-care] .sdr-overview-stat:hover { border-color: #739c87; }
-[data-senior-care] .sdr-overview-stat strong { font-variant-numeric: tabular-nums; }
-[data-senior-care] :is(.care-directory, .care-accounts, .care-research, #sales-followups) { background: #fff; border: 1px solid #dae1dc; border-radius: 16px; box-shadow: none; }
-[data-senior-care] .care-directory .sdr-card-head { margin-bottom: 15px; }
-[data-senior-care] :is(.care-directory, .care-accounts) h2 { font-size: 21px; color: #182f28; }
-.care-state-field { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: #465e53; }
-.care-state-field select { min-height: 40px; min-width: 76px; padding: 5px 12px; background: #fff; color: #213b31; border: 1px solid #b8cbc0; border-radius: 8px; font: inherit; }
+.sdr-overview-hero ~ :is(.care-directory, .care-accounts) { margin-block: 14px; }
+.care-directory .sdr-card-head { margin-bottom: 15px; }
+.care-text-action { display: inline-flex; align-items: center; gap: 7px; border: 0; background: transparent; color: #0755c3; padding: 4px 0; font-weight: 650; cursor: pointer; }
+.care-text-action .sdr-icon { width: 16px; height: 16px; }
+.care-state-field { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; color: #405777; }
+.care-state-field select { min-height: 40px; min-width: 76px; padding: 5px 12px; background: #fff; color: #183a65; border: 1px solid #b7d1ef; border-radius: 8px; font: inherit; }
 .care-directory-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
 .care-directory-options button {
   display: grid;
@@ -263,14 +201,14 @@ body.sales-console-page[data-standalone-sdr] {
   gap: 13px;
   min-height: 86px;
   padding: 14px 16px;
-  background: #eef5ed;
-  border: 1px solid #c9dcca;
+  background: #eaf3ff;
+  border: 1px solid #c1d9f4;
   border-radius: 13px;
-  color: #254b3a;
+  color: #173f77;
   text-align: left;
   cursor: pointer;
 }
-.care-directory-options button:nth-child(2) { background: #faf3e5; color: #654c34; border-color: #e9dabc; }
+.care-directory-options button:nth-child(2) { background: #f2f7ff; color: #264a80; border-color: #ccdef5; }
 .care-directory-options button:hover { border-color: currentColor; }
 .care-directory-options button:disabled { cursor: default; opacity: .55; }
 .care-directory-options button strong, .care-directory-options button small { display: block; }
@@ -279,28 +217,15 @@ body.sales-console-page[data-standalone-sdr] {
 .care-directory-icon { display: grid; place-items: center; height: 44px; width: 44px; border-radius: 12px; background: #fffafaac; }
 .care-directory-icon .sdr-icon { width: 27px; height: 27px; }
 #care-directory-status:empty { display: none; }
-.care-work-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: start; gap: 15px; }
 .care-accounts-empty { display: grid; justify-items: start; gap: 5px; padding: 15px 0; font-size: 14px; }
-.care-accounts-empty > .sdr-icon { width: 26px; height: 26px; margin-bottom: 7px; color: #638777; }
+.care-accounts-empty > .sdr-icon { width: 26px; height: 26px; margin-bottom: 7px; color: #4784c0; }
 .care-accounts-empty p { max-width: 44ch; }
-.care-account-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border: 0; border-top: 1px solid #e0e7e1; background: transparent; color: #1e372d; text-align: left; cursor: pointer; }
-.care-account-row:hover { color: #286c4b; }
+.care-account-row { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border: 0; border-top: 1px solid #dbe7f4; background: transparent; color: #153457; text-align: left; cursor: pointer; }
+.care-account-row:hover { color: #0755c3; }
 .care-account-row > span { min-width: 0; overflow-wrap: anywhere; }
-.care-account-row small { display: block; margin-top: 4px; color: #53675c; font-size: 12px; }
+.care-account-row small { display: block; margin-top: 4px; color: #435c79; font-size: 12px; }
 .care-account-next { text-align: right; font-size: 13px; }
-.care-research summary { cursor: pointer; color: #274d3a; font-weight: 650; }
-@media (max-width: 1020px) {
-  .care-work-grid { grid-template-columns: 1fr; gap: 0; }
-}
-@media (max-width: 760px) {
-  .care-workspace-switch { order: 1; margin: 0; padding: 7px 9px; }
-  [data-senior-care] .care-hero { min-height: 208px; padding: 23px 19px; background-position: center, 65% center; }
-  .care-hero > div { max-width: 71%; }
-}
 @media (max-width: 590px) {
   .care-directory-options { grid-template-columns: 1fr; }
   .care-directory-options button { min-height: 70px; padding: 10px 13px; }
-  [data-senior-care] .sdr-overview-stat { min-height: 66px; padding: 10px; gap: 8px; }
-  [data-senior-care] .sdr-overview-stat .sdr-icon { width: 21px; height: 21px; }
-  .care-hero > div { max-width: 82%; }
 }

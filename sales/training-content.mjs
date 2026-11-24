@@ -21,7 +21,7 @@ export const trainingCourses = [
       {
         id: 'workspace', title: 'Get oriented in the workspace',
         steps: [
-          'Open Today’s Plan and locate your follow-ups. Use the sidebar profile to check your name and role, then use the CRM switch to open Senior Care CRM if it is available.',
+          'Open Today’s Plan and locate your follow-ups. Use the sidebar profile to check your name and role. Open Facility directory to work with care facilities.',
           'In Prospects, choose List, Nursing home, and a territory you cover. Open one directory result and check its address, facility overview, and role source.',
           'In the facility profile, explore the organization chart. Identify a role to ask about how a resident communicates a routine need. Note the difference between the main facility number and a person’s published work contact.',
         ],
