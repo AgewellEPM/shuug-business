@@ -170,11 +170,12 @@
       draft.value = said;
       show(said, who === 'Staff' ? 'en' : language, who, null, false);
       exchange = { said, shown: [], tiles: [], listening: who === 'Staff', who };
+      const pending = replies('reply');
       if (patientScreen && window.matchMedia?.('(max-width: 640px)').matches) {
         if (document.activeElement === draft) draft.blur();
-        app.scrollIntoView?.({block:'start', behavior:'instant'});
+        dock.scrollIntoView?.({block:'nearest', behavior:'instant'});
       }
-      await replies('reply');
+      await pending;
     }
     // A wrong picture can mislead someone who cannot read the label. Prefer the words and picture this
     // location's own boards use, and never show one picture for two different answers.
