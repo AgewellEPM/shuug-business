@@ -21,9 +21,9 @@ export function renderWorkspace(profile, signIn) {
   const standalone = `data-standalone-sdr data-workspace-name="${escape(profile.name)}" data-directory-profile="${profile.directory}"${profile.contracts === 'agreement' ? ' data-agreement-only' : ''}${portal}`;
   const site = escape(profile.publicSite || '/sales');
   function salesPage(source, seniorCare = false) {
-    const careStyles = careWorkspace ? ['sales-demo','care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot','sales-care-campaign']
+    const careStyles = careWorkspace ? ['sales-demo','care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot','sales-care-campaign','sales-products']
       .map(name => `<link rel="stylesheet" href="/${name}.css">`).join('') : '';
-    const careScripts = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign']
+    const careScripts = careWorkspace ? ['care-locations','care-facility','care-stroke','care-library','care-kiosks','care-tour','care-venue-tour','care-pilot','sales-demo','care-hub','sales-care-campaign','sales-products']
       .map(name => `<script src="/${name}.js" defer></script>`).join('') : '';
     let sales = source
       .replace('</head>', '<link rel="stylesheet" href="/sales-coach.css"></head>')
