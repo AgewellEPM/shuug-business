@@ -1728,8 +1728,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'The signed-in demo entrypoint did not open');
     assert.ok(panel.hidden);
-    assert.equal(doc.querySelector('.sdr-sidebar [data-tab="demo"]'), null);
-    doc.querySelector('.sdr-sidebar [data-tab="team"]').click();
+    const demoRail = doc.querySelector('.sdr-sidebar [data-tab="demo"]');
+    const teamRail = doc.querySelector('.sdr-sidebar [data-tab="team"]');
+    assert.equal(demoRail.textContent.trim(), 'Demo');
+    assert.equal(demoRail.nextElementSibling.dataset.tab, 'contracts');
+    demoRail.click();
+    assert.equal(panel.hidden, false);
+    assert.equal(demoRail.getAttribute('aria-pressed'), 'true');
+    assert.equal(teamRail.getAttribute('aria-pressed'), 'false');
+    teamRail.click();
     const demoTool = doc.querySelector('[data-team-tools] [data-tab="demo"]');
     assert.equal(demoTool.closest('[hidden]'), null);
     demoTool.click();

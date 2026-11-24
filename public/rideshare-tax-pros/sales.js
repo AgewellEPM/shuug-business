@@ -79,6 +79,7 @@
     });
     const careCampaign = window.SdrCareCampaign?.mount();
     const teamArea = $('[data-team-workspace]'), teamReturn = $('[data-team-return]');
+    const railTabs = new Set($$('.sdr-sidebar [data-tab]').map(button => button.dataset.tab));
     const teamTools = new Map($$('[data-team-tools] [data-tab]').map(button => [button.dataset.tab, button]));
     const tab = (name, chatChannel, calendar) => {
       if (((name === 'campaigns' && !careCampaign) || (name === 'team' && !teamUI)) && data?.user.role !== 'owner') name = 'home';
@@ -94,7 +95,7 @@
         teamUI?.showSidebar(teamArea.hidden ? null : name, data?.user.role);
       }
       $$('[data-tab-panel]').forEach(p => p.hidden = p.dataset.tabPanel !== name || (p.hasAttribute('data-owner-only') && data.user.role !== 'owner'));
-      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && b.dataset.tab === 'team')));
+      $$('[data-tab]').forEach(b => b.setAttribute('aria-pressed', b.dataset.tab === name || (trainingView && b.dataset.tab === 'training') || (teamTool && !railTabs.has(name) && b.dataset.tab === 'team')));
       if ($('#sales-view-title')) $('#sales-view-title').textContent = ({ today: 'Today’s Plan', home: 'Overview', demo: 'Demo', calendar: 'Calendar', pipeline: 'Pipeline', contacts: 'Owners & Rolodex', contracts: 'Contracts', locations: 'Signup locations', email: 'Email', mail: 'Senders', territories: 'Territories', facilities: 'Facility directory', discover: 'Find offices', prospects: 'Prospects', campaigns: 'Campaigns', team: 'Sales team', chat: 'Team chat', training: 'Training Center', 'training-demo': 'TinkyTown Demo Lab', 'training-pipeline': 'Pipeline Practice', support: 'Support Center', coach: 'Ask Tinky' })[name] || 'Workspace';
       $('#sales-stats').hidden = trainingTool || (standalone && name === 'pipeline') || (agreementOnly && name === 'contracts') || ['today','home','demo','calendar','discover','prospects','campaigns','facilities','territories','team','chat','email','training','support','coach','products','certification','mission'].includes(name);
       if (name === 'calendar') {
