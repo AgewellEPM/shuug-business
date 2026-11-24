@@ -82,39 +82,59 @@
     return { boards, groups, catalog };
   }
 
-  // What a person in bed needs first. Aphasia can leave someone knowing exactly
-  // what they mean, so the board opens with ways to slow the conversation down.
-  async function bedside() {
-    const resident = await read('/care-kiosks/nursing-home.json');
-    const boards = Object.fromEntries(Object.entries(resident.places[0].boards).map(([id, i]) => [id, resident.pool[i]]));
-    const stroke = shape(Object.fromEntries((await read('/sales-demo-boards.json')).stroke.map(board => [board.id, board])),
-      tile => ({ ...libraryTile(tile), navigateTo: tile.navigateTo === 'main_board' ? 'stroke_home' : tile.navigateTo }));
-    for (const board of Object.values(stroke)) board.title = plain(board.title);
-    const say = (emoji, label, spokenText, navigateTo, color = 'blue') => ({ emoji, label, spokenText, navigateTo, color });
-    Object.assign(boards, stroke, {
-      stroke_home: { title: 'I had a stroke', tiles: [
-        say('🚨','Nurse NOW','I need a nurse right now.','senior_urgent','red'),
-        say('💬','I know what I want to say','I know what I want to say. The words will not come out.',undefined,'purple'),
-        say('⏳','Give me time','Please give me time. I am thinking.',undefined,'purple'),
-        say('❓','Ask me yes or no','Please ask me questions I can answer with yes or no.',undefined,'purple'),
-        say('🐢','Slow down','Please speak slowly, one thing at a time.',undefined,'purple'),
-        say('🫨','Something changed','Something feels different right now. Please check me.','quick_symptoms','red'),
-        say('🤕','Pain','I have pain.','pain_body_board','orange'),
-        say('🚽','Bathroom','I need help with the bathroom.','senior_bathroom'),
-        say('💧','Food & drink','I would like something to eat or drink.','senior_food','green'),
-        say('🛏️','Comfort','I am not comfortable.','senior_comfort','teal'),
-        say('💪','My arm or leg','I want to talk about my arm or my leg.','stroke_mobility_recovery','teal'),
-        say('💊','Medicine','I want to talk about my medicine.','senior_meds','purple'),
-        say('😰','How I feel','I want to tell you how I feel.','quick_feelings','pink'),
-        say('👨‍👩‍👧','My family','I want to talk about my family.','senior_family','green'),
-        say('🧑‍⚕️','Talk to someone','I would like to talk to someone.','senior_staff','indigo'),
-        say('🌐','More stroke boards','','stroke_boards','gray'),
-      ] },
-    });
-    boards.stroke_boards = menu('Stroke boards', Object.entries(stroke));
-    const my = boards.senior_resident;
-    boards.senior_resident = { ...my, tiles: [my.tiles[0], say('🧠','I had a stroke','I had a stroke. I use this board to talk.','stroke_home','purple'), ...my.tiles.slice(1)] };
+  // TinkyStroke, carried over from the Android app. care-tinkystroke.json is read from its Kotlin,
+  // so every label and phrase here is the app's own.
+  async function tinkyStroke() {
+    const [app, catalog] = await Promise.all([read('/care-tinkystroke.json'), read('/sales-demo-boards.json')]);
+    const boards = {};
+    const strip = app.strip.map(tile => ({ emoji: tile.emoji, label: tile.label, spokenText: tile.say, color: 'red' }));
+    const add = (id, title, tiles, extra) => { boards[id] = { title, strip, tiles, ...extra }; };
+    const say = (tile, color = 'blue') => ({ emoji: tile.emoji, label: tile.label, spokenText: tile.say, color, navigateTo: /^(yes|no)$/i.test(tile.label) ? undefined : 'ts_after' });
+    const open = (tile, navigateTo, color = 'blue', extra) => ({ emoji: tile.emoji, label: tile.label + ' ›', spokenText: '', color, navigateTo, ...extra });
+    const tools = { talk_together: 'talk', vitals: 'nurse', patient_info: 'profile' };
+    const home = tile => {
+      if (tile.label === 'Yes') return say(tile, 'green');
+      if (tile.label === 'No') return say(tile, 'red');
+      if (tile.open) return open(tile, 'ts_' + tile.open, 'blue', { diet: { food: 'food', drinks: 'drink' }[tile.open] });
+      if (tools[tile.tool]) return open(tile, undefined, 'blue', { action: 'stroke_tool', tool: tools[tile.tool] });
+      if (tile.tool) return open(tile, undefined, 'blue', { action: 'number_pad' });
+      if (tile.topic) return /symptom/.test(tile.topic) ? open(tile, 'ts_board_stroke_symptoms') : open(tile, undefined, 'blue', { action: 'stroke_tool', tool: 'profile' });
+      return say(tile);
+    };
+    const pain = { emoji: '🩺', label: 'Pain Scale', spokenText: '', color: 'orange', navigateTo: 'ts_pain', wide: true };
+    for (const [id, tiles] of Object.entries(app.tiers)) add('ts_' + id, 'TinkyStroke', [...tiles.map(home), pain]);
+    for (const [id, board] of Object.entries(app.boards)) add('ts_' + id, board.title, board.tiles.map(tile => say(tile)));
+    boards.ts_nurse.tiles.unshift({ emoji: '🚨', label: plain(app.nurse.urgent), spokenText: app.nurse.alert, color: 'red', navigateTo: 'ts_alert', wide: true },
+      { emoji: '👩‍⚕️', label: plain(app.nurse.tools), spokenText: '', color: 'indigo', action: 'stroke_tool', tool: 'nurse', wide: true });
+    add('ts_alert', app.nurse.sounded, app.nurse.followUps.map(tile => tile.say === '__NURSE_ALERT__' ? { ...say(tile, 'red'), spokenText: app.nurse.alert, navigateTo: 'ts_alert' }
+      : tile.say === '__BACK_TO_TILES__' ? { emoji: tile.emoji, label: tile.label, spokenText: '', color: 'gray', navigateTo: 'ts_hospital' } : say(tile)), { notice: app.nurse.show });
+    // How much → what kind → where, one tap each.
+    const tones = level => level < 3 ? 'green' : level < 6 ? 'yellow' : level < 8 ? 'orange' : 'red';
+    add('ts_pain', 'How much pain?', app.pain.levels.map(p => ({ emoji: p.emoji, label: p.level + ' · ' + p.label, spokenText: '', color: tones(p.level), navigateTo: 'ts_pain_' + p.level })));
+    for (const { level } of app.pain.levels) {
+      add('ts_pain_' + level, 'Pain ' + level + '/10 — What kind?', [...app.pain.kinds.map((kind, i) => ({ emoji: kind.emoji, label: kind.label, spokenText: '', color: 'blue', navigateTo: 'ts_pain_' + level + '_' + i })),
+        { emoji: '✅', label: 'JUST SAY ' + level + '/10', spokenText: level === 0 ? 'I have no pain right now' : 'My pain is a ' + level + ' out of 10', color: 'indigo', navigateTo: 'ts_after', wide: true }], { unlisted: true });
+      app.pain.kinds.forEach((kind, i) => add('ts_pain_' + level + '_' + i, level + '/10 ' + kind.descriptor + ' — Where?', app.pain.places.map(where => ({ emoji: where.emoji, label: where.label,
+        spokenText: 'I have ' + kind.descriptor + ' pain at level ' + level + ' in ' + where.location + '.', color: 'blue', navigateTo: 'ts_after' })), { unlisted: true }));
+    }
+    const actions = [['replay','teal'],['wrong_one','red'],['caption_teller','purple'],['stroke_tool','blue'],['see','teal'],['done','gray']];
+    add('ts_after', 'What next?', app.after.map((words, i) => ({ emoji: words.split(' ')[0], label: plain(words), color: actions[i][1], action: actions[i][0],
+      tool: 'talk', navigateTo: actions[i][0] === 'done' ? 'ts_hospital' : undefined })), { unlisted: true, answers: false });
+    const library = [...app.saved.map(board => ['ts_board_' + board.id, board.emoji, board.title, board.tiles]),
+      ...catalog.stroke.filter(board => !/^quick_|^basic_needs$|^stroke_answers$|^stroke_pain_scale$/.test(board.id)).map(board => ['ts_board_asset_' + board.id, board.tiles[0].emoji, plain(board.title),
+        board.tiles.filter(tile => !/^(GO BACK|ADD NEW)$/.test(tile.label)).map(tile => ({ emoji: tile.emoji, label: tile.label, say: tile.spokenText }))])];
+    for (const [id, , title, tiles] of library) add(id, title, tiles.map(tile => say(tile)));
+    add('ts_boards', 'Boards', library.map(([id, emoji, title]) => ({ emoji, label: title, spokenText: '', color: 'blue', navigateTo: id })));
+    boards.ts_hospital.tiles.push({ emoji: '🗂️', label: 'Boards ›', spokenText: '', color: 'gray', navigateTo: 'ts_boards' });
+    boards.ts_full.tiles.push({ emoji: '🗂️', label: 'Boards ›', spokenText: '', color: 'gray', navigateTo: 'ts_boards' });
     return boards;
+  }
+  async function bedside() {
+    const [resident, stroke] = await Promise.all([read('/care-kiosks/nursing-home.json'), tinkyStroke()]);
+    const boards = Object.fromEntries(Object.entries(resident.places[0].boards).map(([id, i]) => [id, resident.pool[i]]));
+    const my = boards.senior_resident;
+    boards.senior_resident = { ...my, tiles: [my.tiles[0], { emoji: '🧠', label: 'I had a stroke', spokenText: 'I had a stroke. I use this board to talk.', color: 'purple', navigateTo: 'ts_hospital' }, ...my.tiles.slice(1)] };
+    return Object.assign(boards, stroke);
   }
 
   const hartfordHospital = { phone: '(860) 545-5000', hours: 'Open 24 hours' };
@@ -126,7 +146,7 @@
       Object.assign(desk, room);
       desk.loc_hospital_arrive = { ...desk.loc_hospital_arrive, tiles: [
         { emoji: '🛏️', label: 'In my room', spokenText: 'I am in my room.', color: 'green', navigateTo: 'senior_resident' },
-        { emoji: '🧠', label: 'I had a stroke', spokenText: 'I had a stroke. I use this board to talk.', color: 'purple', navigateTo: 'stroke_home' },
+        { emoji: '🧠', label: 'I had a stroke', spokenText: 'I had a stroke. I use this board to talk.', color: 'purple', navigateTo: 'ts_hospital' },
         ...desk.loc_hospital_arrive.tiles] };
       const address = '80 Seymour Street, Hartford, CT 06102';
       return pack([
@@ -138,7 +158,7 @@
       const boards = await bedside(), health = await locations();
       return pack([
         place(boards, 'resident', 'Nursing Home — In My Room', 'Bedside communication', 'senior_resident'),
-        place(boards, 'stroke', 'Nursing Home — After a Stroke', 'Bedside communication', 'stroke_home'),
+        place(boards, 'stroke', 'Nursing Home — TinkyStroke', 'Bedside communication', 'ts_hospital'),
         place(health, 'visitor', 'Nursing Home — Visitor', 'Front desk', 'loc_visit_biz_nursing_home_arrive'),
         place(health, 'assisted', 'Assisted Living — Visitor', 'Front desk', 'loc_visit_biz_assisted_living_facility_arrive'),
       ]);
@@ -146,12 +166,17 @@
     async bedside() {
       const boards = await bedside();
       return pack([
-        place(boards, 'stroke', 'Bedside — After a Stroke', 'Scanned in the room', 'stroke_home'),
-        place(boards, 'resident', 'Bedside — In My Room', 'Scanned in the room', 'senior_resident'),
+        place(boards, 'stroke', 'Bedside — TinkyStroke', 'Stroke communication', 'ts_hospital'),
+        place(boards, 'resident', 'Bedside — In My Room', 'Bedside communication', 'senior_resident'),
       ]);
     },
     async stroke() {
-      return pack([place(await bedside(), 'bedside', 'TinkyStroke', 'Stroke ward and bedside communication', 'stroke_home')]);
+      const boards = await tinkyStroke();
+      return pack([
+        place(boards, 'ward', 'TinkyStroke — Ward stay', 'Stroke ward', 'ts_hospital'),
+        place(boards, 'acute', 'TinkyStroke — First hours', 'ER and ICU', 'ts_acute'),
+        place(boards, 'recovery', 'TinkyStroke — Recovery', 'Rehab and home', 'ts_full'),
+      ]);
     },
     async 'senior-center'() {
       const community = await read('/care-kiosks/community.json');
@@ -178,6 +203,7 @@
     },
   };
   async function load(family) {
+    if (['hospital','nursing-home','bedside','stroke'].includes(family)) return { ...await sources[family](), diet: (await read('/care-tinkystroke.json')).diet };
     return Object.hasOwn(sources, family) ? sources[family]() : read('/care-kiosks/' + encodeURIComponent(family) + '.json');
   }
   window.CareKioskPacks = { load, read };

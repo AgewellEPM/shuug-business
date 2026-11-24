@@ -34,6 +34,14 @@ body[data-care-present] .care-venue-kiosk { height:calc(100dvh - 78px); }
 
 .ck-area { flex:1; min-height:0; padding:14px 12px; overflow:hidden auto; overscroll-behavior:contain; }
 .ck-sr { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+/* TinkyStroke keeps these four in reach on every one of its boards. */
+.ck-strip { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; max-width:600px; margin:0 auto 12px; }
+.ck-strip:empty { display:none; }
+.ck-strip .care-kiosk-tile { --tile:#b71c1c; min-height:88px; background:#b71c1c; }
+.ck-strip .care-kiosk-tile > span { min-height:48px; font-size:1.9rem; }
+.care-kiosk-tile[data-wide] { grid-column:1 / -1; flex-direction:row; align-items:stretch; min-height:64px; background:var(--tile); }
+.care-kiosk-tile[data-wide] > span { flex:none; width:72px; min-height:0; font-size:1.7rem; }
+.care-kiosk-tile[data-wide] .ck-label { display:grid; align-content:center; flex:1; padding-right:72px; }
 .ck-helper { max-width:600px; margin:0 auto; }
 .ck-helper:not(:empty) { margin-bottom:12px; }
 .ck-helper form { display:flex; flex-wrap:wrap; align-items:end; gap:8px; }

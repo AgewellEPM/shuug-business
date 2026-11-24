@@ -34,7 +34,7 @@
     }
     return { dictionary, forward, reverse };
   }
-  function mount(root, venue, params) {
+  function mount(root, venue, params, {diet} = {}) {
     let closed = false, pack, place, key, history = [], messages = [], language = 'en', generation = 0;
     let lexicon = indexed({}), lastUtterance, pendingSign = false;
     let recognition = null, privacy = false;
@@ -55,7 +55,8 @@
     words.append(speaker,message,original); captions.append(words,hear,replay);
     area.className = 'ck-area'; heading.className = 'ck-sr'; heading.tabIndex = -1;
     grid.className = 'care-kiosk-tiles'; helper.className = 'ck-helper';
-    area.append(heading,helper,grid);
+    const emergency = element('div'); emergency.className = 'ck-strip';
+    area.append(heading,emergency,helper,grid);
     const talk = button('🎤 Tap to Speak', () => listen('visitor')); talk.className = 'ck-talk';
     const type = element('form'), draft = element('input'), clear = button('Clear', () => { draft.value = ''; draft.focus(); }), send = element('button','↑');
     type.className = 'ck-type'; draft.placeholder = 'Type your question…'; draft.maxLength = 350; draft.setAttribute('aria-label','Type your question');
@@ -245,8 +246,25 @@
       const chooseDirection = picker('Translate', [['fromEnglish','English → ' + langs[lang]],['toEnglish',langs[lang] + ' → English']], direction, value => {direction = value;pass++;result.textContent='';});
       f.prepend(chooseDirection); helper.append(result);
     }
+    function dietBlocks(tile) {
+      const status = tile.diet && diet?.();
+      if (!status) return false;
+      const rule = pack.diet.warnings.find(item => item.status === status && item.kind === tile.diet);
+      if (status !== 'npo' && !rule) return false;
+      helper.replaceChildren(element('blockquote', status === 'npo' ? pack.diet.npo.message : rule.message));
+      if (status === 'npo') utter(pack.diet.npo.say, 'en');
+      else helper.append(button('Yes, Proceed', () => go(tile.navigateTo)), button('Cancel', () => helper.replaceChildren()));
+      area.scrollTop = 0;
+      return true;
+    }
     function choose(tile) {
       const action = tile.action;
+      if (dietBlocks(tile)) return;
+      if (action === 'replay') { const m = messages.at(-1); if (m) utter(m.text,m.lang); return; }
+      if (action === 'wrong_one') { messages.pop(); transcriptList.lastElementChild?.remove(); transcriptTitle.textContent = 'Conversation (' + messages.length + ')'; utter('Sorry, wrong one','en'); return previous(); }
+      if (action === 'done') { utter("I'm done",'en'); history = []; return go('main',false); }
+      if (action === 'see') return helper.replaceChildren(element('p','See to Speak uses the camera in the TinkyStroke app.'));
+      if (action === 'stroke_tool') return root.dispatchEvent(new CustomEvent('care:stroke-tool',{bubbles:true,detail:tile.tool}));
       if (action === 'back') return previous(tile.navigateTo);
       if (action === 'go_home') { history = []; return go('main',false); }
       if (action === 'language_picker') { selectors.hidden = false; return selectors.querySelector('[data-language] select').focus(); }
@@ -284,6 +302,7 @@
       label.append(localized(element('strong'),tile.label));
       if (tile.subtitle) label.append(localized(element('small'),tile.subtitle));
       b.append(emoji,label);
+      if (tile.wide) b.dataset.wide = '';
       return b;
     }
     function draw() {
@@ -293,12 +312,14 @@
       boardName.textContent = key === 'main' ? '' : heading.textContent;
       // The kiosk keeps Yes and No on every board.
       const has = word => board.tiles.some(tile => tile.label?.trim().toLowerCase() === word);
-      const answers = privacy ? [] : [['Yes','✅','green'],['No','❌','red']].filter(([label]) => !has(label.toLowerCase()))
+      const answers = privacy || board.answers === false ? [] : [['Yes','✅','green'],['No','❌','red']].filter(([label]) => !has(label.toLowerCase()))
         .map(([label,emoji,color]) => ({label,emoji,color,spokenText:label}));
       grid.replaceChildren(...[...answers,...board.tiles].map(tileButton));
       const boards = selectors.querySelector('[data-board] select');
       for (const option of boards.options) localized(option,pack.pool[place.boards[option.value]].title);
       boards.value = key; helper.replaceChildren();
+      emergency.replaceChildren(...(board.strip || []).map(tileButton));
+      if (board.notice) helper.append(element('blockquote',board.notice));
       if (board.prompt) helper.append(Object.assign(element('p','They may say: ' + board.prompt),{className:'ck-prompt'}));
       back.disabled = !history.length && key === 'main';
       nav.firstElementChild.toggleAttribute('data-current', key === 'main');
@@ -328,7 +349,7 @@
       title.textContent = place.name; address.textContent = place.address; address.hidden = !place.address;
       contact.textContent = [place.phone && '☎️ ' + place.phone, place.hours].filter(Boolean).join(' · '); contact.hidden = !contact.textContent;
       const where = picker('Location',pack.places.map(p => [p.key,p.name]),place.key,value => {setPlace(value);setAddress();});
-      const boards = picker('Board',Object.entries(place.boards).map(([id,i]) => [id,pack.pool[i].title]),key,id => go(id)); boards.dataset.board='';
+      const boards = picker('Board',Object.entries(place.boards).filter(([id,i]) => id === 'main' || !pack.pool[i].unlisted).map(([id,i]) => [id,pack.pool[i].title]),key,id => go(id)); boards.dataset.board='';
       const lang = picker('Board language',Object.entries(langs),language,changeLanguage); lang.dataset.language='';
       selectors.replaceChildren(where,boards,lang);
       replay.disabled = true;

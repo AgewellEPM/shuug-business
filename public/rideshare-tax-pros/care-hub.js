@@ -214,7 +214,7 @@
       window.CareLocations.mount(surface, stations[venue], board);
       cleanup = () => window.CareLocations.unmount(surface);
     } else {
-      cleanup = window.CareKiosks.mount(surface, venue, args);
+      cleanup = window.CareKiosks.mount(surface, venue, args, { diet: () => stroke?.diet() });
     }
     part('return').focus({ preventScroll: true });
   }
@@ -239,6 +239,9 @@
       if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
       if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
     }
+  });
+  panel.addEventListener('care:stroke-tool', event => {
+    route(new URLSearchParams({ view: 'demo', venue: 'stroke', mode: 'tools', strokeView: event.detail }));
   });
   panel.addEventListener('care:stroke-message', event => {
     stroke ||= window.CareStroke.mount(strokeHost);
