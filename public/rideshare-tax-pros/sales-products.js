@@ -1,9 +1,88 @@
 (() => {
   'use strict';
 
-  function mount() {
+  const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 0 });
+
+  function mountPricing(root, api) {
+    const groups = {
+      rate: [...root.querySelectorAll('[data-product-rate]')],
+      commission: [...root.querySelectorAll('[data-product-commission]')],
+    };
+    const editor = root.querySelector('[data-product-owner]');
+    const form = editor.querySelector('form');
+    const fields = form.elements;
+    const status = editor.querySelector('[data-product-pricing-status]');
+    const submit = form.querySelector('button[type="submit"]');
+    let revision, pending, saving = false, loaded = false;
+
+    function showRates(rate, commission) {
+      for (const entry of groups.rate) entry.textContent = rate;
+      for (const entry of groups.commission) entry.textContent = commission;
+    }
+
+    function showRuleFields() {
+      const configured = Boolean(fields.kind.value);
+      for (const label of form.querySelectorAll('[data-product-rule]')) label.hidden = !configured;
+      fields.amount.required = configured;
+    }
+
+    function render({ pricing, canEdit }) {
+      loaded = true;
+      const rule = pricing.commission;
+      let payment = 'Pending owner approval';
+      if (rule) {
+        const frequency = rule.frequency === 'each' ? 'each paid month' : 'on the first paid month';
+        const amount = usd.format(pricing.commissionCents / 100);
+        const percentage = rule.kind === 'percent' ? ' (' + rule.value / 100 + '%)' : '';
+        payment = amount + ' ' + frequency + percentage;
+      }
+      showRates(usd.format(pricing.rentalCents / 100) + ' / month', payment);
+      editor.hidden = !canEdit;
+      if (!canEdit) return;
+      revision = pricing.revision;
+      fields.rental.value = (pricing.rentalCents / 100).toFixed(2);
+      fields.hardwareCost.value = pricing.hardwareCostCents === null ? '' : (pricing.hardwareCostCents / 100).toFixed(2);
+      fields.kind.value = rule?.kind || '';
+      fields.amount.value = rule ? (rule.value / 100).toFixed(2) : '';
+      fields.frequency.value = rule?.frequency || 'first';
+      showRuleFields();
+    }
+
+    function load() {
+      pending ??= api('products-read').then(render).catch(() => {
+        loaded = false;
+        showRates('Pricing unavailable', 'Commission unavailable');
+        editor.hidden = true;
+        editor.open = false;
+      }).finally(() => { pending = undefined; });
+      return pending;
+    }
+
+    fields.kind.addEventListener('change', showRuleFields);
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      if (saving || pending) return;
+      submit.disabled = saving = true;
+      status.textContent = 'Saving…';
+      try {
+        const values = Object.fromEntries(new FormData(form));
+        render(await api('products-save', { revision, ...values }));
+        status.textContent = 'Pricing saved.';
+      } catch (error) {
+        if (error.status === 409) await load();
+        status.textContent = error.message;
+      } finally {
+        submit.disabled = saving = false;
+      }
+    });
+
+    return reload => { if ((reload || !loaded) && !editor.open && !saving) void load(); };
+  }
+
+  function mount({ api }) {
     const root = document.querySelector('.sdr-products');
     if (!root) return;
+    const refreshPricing = mountPricing(root, api);
     const search = root.querySelector('[data-product-search]');
     const clear = search.querySelector('[data-product-clear]');
     const input = search.elements.query;
@@ -37,7 +116,7 @@
       count.textContent = total ? `${total} ${total === 1 ? 'match' : 'matches'}` : 'No products or packages match your search.';
     }
 
-    function show(section, reset = false) {
+    function show(section, reset = false, reloadPricing = false) {
       const active = tabs.find(link => link.dataset.productTab === section) || tabs[0];
       if (current !== active.dataset.productTab || reset) input.value = '';
       current = root.dataset.productSection = active.dataset.productTab;
@@ -46,6 +125,7 @@
         else link.removeAttribute('aria-current');
       }
       refresh();
+      refreshPricing(reloadPricing);
     }
 
     search.addEventListener('input', refresh);

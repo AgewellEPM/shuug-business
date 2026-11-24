@@ -100,7 +100,25 @@ export function sqliteStore(filename) {
   }
 
   const chat = teamChat(db);
+  const readTour = id => JSON.parse(setting.get('getting-started:' + id)?.value ?? 'null');
   return {
+    gettingStarted: {
+      read: readTour,
+      save(id, { step, state, revision }) {
+        if (typeof step !== 'string' || !/^[a-z][a-z0-9-]{0,35}$/.test(step) ||
+            !['active', 'paused', 'complete'].includes(state) || !Number.isSafeInteger(revision) || revision < 0) {
+          throw new HttpError(400, 'Invalid walkthrough progress.');
+        }
+        return writeTransaction(() => {
+          const current = readTour(id);
+          if (current?.state === 'complete') return current;
+          if ((current?.revision ?? 0) !== revision) throw new HttpError(409, 'Walkthrough progress changed in another tab.');
+          const next = { step, state, revision: revision + 1 };
+          save.run('getting-started:' + id, JSON.stringify(next));
+          return next;
+        });
+      },
+    },
     booking: bookingStore(db, writeTransaction),
     coach: coachStore(db),
     repMail: mailStore(db, writeTransaction),
@@ -147,6 +165,16 @@ export function sqliteStore(filename) {
     suppressedEmail: address => Boolean(suppressedEmail.get(address)),
     patch: (kind, id, body) => patch(kind, id, body),
     patchIfUnchanged: (kind, id, notes, body) => patch(kind, id, body, notes ?? null),
+    productPricing: () => JSON.parse(setting.get('product-pricing')?.value ?? 'null'),
+    saveProductPricing(revision, pricing) {
+      return writeTransaction(() => {
+        const current = this.productPricing();
+        if ((current?.revision ?? 0) !== revision) throw new HttpError(409, 'Product pricing changed. Review the current values before saving.');
+        const next = { ...pricing, revision: revision + 1 };
+        save.run('product-pricing', JSON.stringify(next));
+        return next;
+      });
+    },
     countyLead: id => JSON.parse(setting.get('county-lead:' + id)?.value ?? 'null'),
     countyLeadAssignments: () => new Map(assignedCounties.all().map(row => [row.county, { memberId: row.memberId, name: row.leadName }])),
     saveCountyLead(id, revision, changes) {

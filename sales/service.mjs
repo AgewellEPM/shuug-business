@@ -120,6 +120,9 @@ export function service(env, db, payment = payments(env), tools = {}) {
         membership: saved?.payment?.live ? enrollmentEligibility(latest).status : saved?.acceptedAt ? 'agreement_signed' : 'setup_pending' } };
     }
     if (action === 'my-location') throw new HttpError(403, 'Use a tax location account to view this workspace.');
+    if (db.gettingStarted && ['getting-started-read', 'getting-started-save'].includes(action)) {
+      return { progress: action === 'getting-started-read' ? db.gettingStarted.read(user.id) : db.gettingStarted.save(user.id, b) };
+    }
     if (contractCenter && CONTRACT_WORKSPACE_ACTIONS.has(action)) return contractCenter(user, action, b);
     if (SUPPORT_REQUEST_ACTIONS.has(action)) return support(user, action, b);
     if (TRAINING_ACTIONS.has(action)) return training(user, action, b);
@@ -140,6 +143,7 @@ export function service(env, db, payment = payments(env), tools = {}) {
       return { event: db.saveCarePilot(user, office.id, requestId, detail) };
     }
     if (tools.research?.actions.has(action)) return tools.research.dispatch(user, action, b, dispatch);
+    if (tools.products?.actions.has(action)) return tools.products.dispatch(user, action, b);
     if (tools.earnings?.actions.has(action)) return tools.earnings.dispatch(user, action, b);
     if (tools.dailyPlan?.actions.has(action)) return tools.dailyPlan.dispatch(user, action, b);
     if (salesTeam?.actions.has(action)) {

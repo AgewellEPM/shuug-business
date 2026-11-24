@@ -264,7 +264,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const today = window.document.querySelector('[data-tab-panel="today"]');
   assert.equal(today.hidden, false);
   assert.equal(window.document.querySelector('[data-tab="today"]').getAttribute('aria-pressed'), 'true');
-  assert.equal(window.document.querySelector('[data-profile-name]').textContent, 'Workspace owner');
+  assert.equal(window.document.querySelector('.sdr-sidebar [data-profile-name]').textContent, 'Workspace owner');
   assert.equal((await owner.request('/sales-today-hero.webp')).headers.get('content-type'), 'image/webp');
   const firstTask = await waitFor(() => today.querySelector('[data-today-tasks] input[type="checkbox"]'),
     'The opening action plan did not load workspace tasks');
@@ -307,7 +307,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await owner.api('territory-facilities', { state: 'CT', category: 'other' }, 400);
   await owner.api('territory-facilities', { state: 'CT', category: 'nursing-home', offset: -1 }, 400);
   const pageDocument = window.document;
-  await t.test('training opens from the sidebar above Support and resumes saved onboarding', async t => {
+  await t.test('Training, Certification, and Support open in sidebar order and Training resumes saved onboarding', async t => {
     const trainingWindow = await mountConsole(t, first.origin, owner, html);
     const doc = trainingWindow.document;
     const training = doc.querySelector('[data-tab-panel="training"]');
@@ -315,8 +315,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'Workspace did not sign in');
     const supportButton = doc.querySelector('.sdr-sidebar [data-tab="support"]');
     const trainingButton = doc.querySelector('.sdr-sidebar [data-tab="training"]');
+    const certificationButton = doc.querySelector('.sdr-sidebar [data-tab="certification"]');
     const trainingLink = doc.querySelector('[data-tab-panel="support"] a[href="#view=training"]');
-    assert.equal(trainingButton.nextElementSibling, supportButton);
+    assert.equal(trainingButton.nextElementSibling, certificationButton);
+    assert.equal(certificationButton.nextElementSibling, supportButton);
+    certificationButton.click();
+    await waitFor(() => !doc.querySelector('[data-tab-panel="certification"]').hidden, 'The sidebar did not open Certification');
+    assert.equal(certificationButton.getAttribute('aria-pressed'), 'true');
     trainingButton.click();
     await waitFor(() => !training.hidden, 'The sidebar did not open Training');
     assert.equal(trainingButton.getAttribute('aria-pressed'), 'true');
@@ -1040,6 +1045,13 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal((await mailApi('login')).status, 404);
     assert.deepEqual((await owner.api('rep-email-drafts')).drafts, []);
     pageDocument.querySelector('[data-tab="prospects"]').click();
+    const mailbox = pageDocument.querySelector('.sdr-sidebar [data-tab="email"]');
+    assert.equal(mailbox.textContent.trim(), 'Mailbox');
+    mailbox.click();
+    assert.equal(mailbox.getAttribute('aria-pressed'), 'true');
+    assert.equal(pageDocument.querySelector('[data-tab-panel="email"]').closest('[hidden]'), null);
+    assert.equal(pageDocument.querySelector('[data-team-workspace]').hidden, true);
+    pageDocument.querySelector('[data-tab="prospects"]').click();
     listing.rows[1].querySelector('[data-open-facility-profile]').click();
     assert.equal(profile.open, true);
     assert.equal(reviewPane.open, false);
@@ -1224,7 +1236,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     !profileForm.elements.bio.disabled, 'The rep portrait did not preview');
   profileForm.requestSubmit();
   await waitFor(() => /Profile saved/.test(profileForm.textContent), 'The rep could not save their own contact details, bio and headshot');
-  assert.equal(juniorDocument.querySelector('[data-profile-role]').textContent, contact.displayTitle);
+  assert.equal(juniorDocument.querySelector('.sdr-sidebar [data-profile-role]').textContent, contact.displayTitle);
   const { progress: initialProgress, ...savedProfile } = (await juniorSession.api('sales-team-profile')).profile;
   assert.deepEqual(savedProfile, { ...contact, photo: portrait, revision: 1 });
   assert.deepEqual(initialProgress, { level: 1, xp: 0, xpIntoLevel: 0, xpPerLevel: 100 });
@@ -1275,7 +1287,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   await waitFor(() => !agentDocument.querySelector('[data-tab-panel="team"]').hidden, 'The direct Sales team link did not open');
   assert.equal(agentDocument.querySelector('.sdr-sidebar [data-tab="team"]').textContent.trim(), 'Sales team');
   assert.equal(agentDocument.querySelector('#sales-team-title').textContent, 'Sales team');
-  assert.equal(agentDocument.querySelector('[data-profile-role]').textContent, 'Sales agent');
+  assert.equal(agentDocument.querySelector('.sdr-sidebar [data-profile-role]').textContent, 'Sales agent');
   const agentSettings = agentDocument.querySelector('[data-team-view="settings"]');
   assert.equal(agentSettings.hidden, true);
   const agentPicker = agentDocument.querySelector('#sales-team-sidebar-section');
@@ -1602,18 +1614,20 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   assert.notEqual(replacement.agent.id, trainee.agent.id);
   const replacementSession = browserSession(first.origin);
   await replacementSession.api('login', { email: traineeInput.email, code: replacement.code });
-  await owner.api('sales-team-revoke', { id: peer.id });
-  await replacementSession.api('bootstrap', {}, 401);
-
   await t.test('Products opens from the rail, searches catalog sections, compares devices, and starts a quote request', async t => {
     const productsWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=products&section=phones');
     const find = selector => productsWindow.document.querySelector(selector);
     const pane = find('[data-tab-panel="products"]');
-    await waitFor(() => !pane.hidden, 'Products did not open from its deep link');
+    await waitFor(() => !pane.hidden && find('[data-product-device="phones"] [data-product-rate]').textContent.includes('$75'),
+      'Products and its rental price did not open from the deep link');
+    assert.match(find('[data-product-device="phones"] [data-product-commission]').textContent, /Pending owner approval/);
+    assert.equal(find('[data-product-device="phones"] img').getAttribute('src'), '/sales-products-phone.webp');
     assert.equal(find('[data-product-device="phones"]').hidden, false);
     assert.ok(find('[data-product-device="tablets"]').hidden);
     find('.sdr-nav [data-tab="products"]').click();
     assert.equal(find('[data-product-device="tablets"]').hidden, false);
+    assert.equal(find('[data-product-device="tablets"] [data-product-rate]').textContent, '$75 / month');
+    assert.equal(find('[data-product-device="tablets"] img').getAttribute('src'), '/sales-products-tablet.webp');
     const search = find('[data-product-search] input');
     search.value = 'charging dock';
     search.dispatchEvent(new productsWindow.Event('input', { bubbles: true }));
@@ -1626,13 +1640,41 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     find('[data-product-tab="compare"]').click();
     assert.equal(find('[data-product-pane="compare"]').hidden, false);
     assert.match(find('.products-table-wrap table').textContent, /Larger landscape touchscreen/);
+    assert.equal(find('[data-product-pane="compare"] [data-product-rate]').textContent, '$75 / month');
     assert.equal(find('.products-cta a').getAttribute('href'), '/book?type=demo');
 
     const before = (await owner.api('support-requests')).requests.length;
     find('[data-product-tab="packages"]').click();
+    assert.equal(find('[data-product-pane="overview packages"] [data-product-rate]').textContent, '$75 / month');
+    const editor = find('[data-product-owner]');
+    const form = find('[data-products-pricing-form]');
+    await waitFor(() => !editor.hidden && form.elements.rental.value === '75.00', 'Owner editor did not load');
+    editor.open = true;
+    form.elements.hardwareCost.value = '120';
+    form.elements.kind.value = 'percent';
+    form.elements.kind.dispatchEvent(new productsWindow.Event('change'));
+    form.elements.amount.value = '12.5';
+    form.elements.frequency.value = 'each';
+    form.requestSubmit();
+    await waitFor(() => find('[data-product-pricing-status]').textContent === 'Pricing saved.', 'Pricing did not save');
+    const { pricing, canEdit } = await peerSession.api('products-read');
+    assert.equal(canEdit, false);
+    assert.equal(pricing.commissionCents, 938);
+    assert.equal(pricing.hardwareCostCents, undefined);
+    assert.equal((await owner.api('products-read')).pricing.hardwareCostCents, 12000);
+    const changes = { revision: 0, rental: '75', hardwareCost: '120', kind: 'fixed', amount: '8', frequency: 'first' };
+    await peerSession.api('products-save', changes, 403);
+    await owner.api('products-save', changes, 409);
+    const repWindow = await mountConsole(t, first.origin, peerSession, html, '/sales#view=products&section=packages');
+    await waitFor(() => repWindow.document.querySelector('[data-product-pane="overview packages"] [data-product-commission]').textContent.includes('$9.38 each paid month'),
+      'The rep could not see the approved commission');
+    assert.equal(repWindow.document.querySelector('[data-product-owner]').hidden, true);
+    assert.equal(repWindow.document.querySelector('[name="hardwareCost"]').value, '');
+    editor.open = false;
     find('[data-product-package-open="care"]').click();
     assert.ok(find('[data-product-dialog]').open);
     assert.equal(find('#products-dialog-title').textContent, 'Care Package');
+    assert.match(find('[data-product-package-detail="care"] [data-product-commission]').textContent, /\$9\.38 each paid month/);
     find('[data-product-package-detail="care"] [data-product-dialog-quote]').click();
     const quote = await waitFor(() => find('[data-support-form="create"]'), 'Quote request form did not open');
     assert.equal(quote.elements.subject.value, 'Quote request for the Care Package');
@@ -1645,6 +1687,9 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.equal(requests.length, before + 1);
     assert.equal(requests.find(row => row.subject === 'Quote request for the Care Package').category, 'billing');
   });
+
+  await owner.api('sales-team-revoke', { id: peer.id });
+  await replacementSession.api('bootstrap', {}, 401);
 
   await t.test('the Senior center kiosk sends typed questions to AI and keeps only staff listening', async t => {
     const anonymous = browserSession(first.origin);
@@ -1683,8 +1728,15 @@ test('exported workspace runs its real console, keeps projects isolated and pers
 
     await waitFor(() => !doc.querySelector('#sales-workspace').hidden, 'The signed-in demo entrypoint did not open');
     assert.ok(panel.hidden);
-    assert.equal(doc.querySelector('.sdr-sidebar [data-tab="demo"]'), null);
-    doc.querySelector('.sdr-sidebar [data-tab="team"]').click();
+    const demoRail = doc.querySelector('.sdr-sidebar [data-tab="demo"]');
+    const teamRail = doc.querySelector('.sdr-sidebar [data-tab="team"]');
+    assert.equal(demoRail.textContent.trim(), 'Demo');
+    assert.equal(demoRail.nextElementSibling.dataset.tab, 'contracts');
+    demoRail.click();
+    assert.equal(panel.hidden, false);
+    assert.equal(demoRail.getAttribute('aria-pressed'), 'true');
+    assert.equal(teamRail.getAttribute('aria-pressed'), 'false');
+    teamRail.click();
     const demoTool = doc.querySelector('[data-team-tools] [data-tab="demo"]');
     assert.equal(demoTool.closest('[hidden]'), null);
     demoTool.click();
@@ -1809,6 +1861,38 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     assert.deepEqual(after.contracts, before.contracts);
   });
 
+  await t.test('Mission opens directly below Overview, searches its sections, and links to demos and booking', async t => {
+    const missionWindow = await mountConsole(t, first.origin, owner, html, '/sales#view=home');
+    const doc = missionWindow.document;
+    const find = selector => doc.querySelector(selector);
+    await waitFor(() => !find('#sales-workspace').hidden, 'Workspace did not sign in');
+    const nav = find('.sdr-sidebar [data-tab="mission"]');
+    assert.equal(nav.previousElementSibling.dataset.tab, 'home');
+    nav.click();
+    const page = find('[data-tab-panel="mission"]');
+    await waitFor(() => !page.hidden, 'Mission did not open from the sidebar');
+    assert.equal(nav.getAttribute('aria-pressed'), 'true');
+    assert.equal(page.querySelector('h1').textContent, 'Our Mission');
+    for (const asset of ['sales-mission-hero.webp', 'sales-mission-vision.webp']) {
+      const response = await owner.request('/' + asset);
+      assert.equal(response.status, 200);
+      assert.equal(response.headers.get('content-type'), 'image/webp');
+    }
+    const form = page.querySelector('[data-mission-search]');
+    const search = form.elements.query;
+    const results = page.querySelector('[data-mission-results]');
+    search.value = 'AngelCare';
+    search.dispatchEvent(new missionWindow.Event('input', { bubbles: true }));
+    const result = results.querySelector('a');
+    assert.equal(result.textContent, 'AngelCare™');
+    result.click();
+    await waitFor(() => doc.activeElement?.id === 'mission-angelcare', 'Search result did not focus its section');
+    assert.equal(results.hidden, true);
+    assert.equal((await owner.request('/book?type=demo')).status, 200);
+    page.querySelector('.mission-footer a[href="#view=demo"]').click();
+    await waitFor(() => !find('[data-tab-panel="demo"]').hidden, 'Mission did not open the Demo workspace');
+  });
+
   await t.test('one blue Sales Workspace includes business and facility tools and supports old links', async t => {
     const path = '/sales';
     const old = await owner.request('/sales/senior-care?ref=bookmark', { redirect: 'manual' });
@@ -1893,6 +1977,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
   const reopen = browserSession(restarted.origin);
   await reopen.api('login', { code });
   const recovered = await reopen.api('bootstrap');
+  assert.equal((await reopen.api('products-read')).pricing.commissionCents, 938);
   assert.deepEqual((await reopen.api('chat-sync', { channel: 'deal-desk' })).messages.map(m => m.author), ['Example Agent', 'Example Junior']);
   const recoveredLead = (await reopen.api('territory-map',{state:'SC'})).counties.find(county => county.id === '45027').lead;
   assert.deepEqual(recoveredLead, {name:'Example County Lead', photo:portrait, revision:2});
@@ -1924,7 +2009,7 @@ test('exported workspace runs its real console, keeps projects isolated and pers
     await waitFor(() => !find('[data-tab-panel="contacts"]').hidden, 'The Rolodex did not open');
     const rail = find('.sdr-nav');
     assert.deepEqual([...rail.querySelectorAll('[data-tab]')].map(button => button.dataset.tab),
-      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'support']);
+      ['today', 'home', 'prospects', 'campaigns', 'pipeline', 'contracts', 'team', 'training', 'certification', 'support']);
     assert.equal(rail.querySelector('[data-tab="team"]').getAttribute('aria-pressed'), 'true');
     const picker = rail.querySelector('select[aria-label="Sales team section"]');
     assert.equal(picker.closest('[hidden]'), null);

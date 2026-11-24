@@ -19,6 +19,8 @@ Building with `--gig-tax` opens the hosted Gig Tax Pros workspace on the left. *
 
 ## What is included
 
+The **Getting started** walkthrough opens automatically the first time a sales rep signs in after the feature is installed. It opens each applicable workspace view, dims the surrounding interface and highlights a control while coaching the rep. Practice exercises run with sample prompts inside the guide. Use **Continue later** to pause and **Resume walkthrough** in the header to pick up the same step from any signed-in session. The owner can open it from the header at any time. Completed reps can replay it there.
+
 - Overview, territory maps and US town catalogues, local discovery, approved website research, public registry lookup, ownership evidence and contact Rolodex.
 - LinkedIn prospect collection. In **Prospects**, open LinkedIn and sign into your own account to find people or companies. Use **Add prospect** to save the selected profile URL and the details you want to keep. Search, edit, or archive those records inside SDR. **Search the public web** looks up a prospect by their saved professional details and excludes LinkedIn results. The workspace owner can review team prospects, and agents see their own saved records.
 - Pipeline list and board, assignments, follow-ups, recorded contact and reply history, suppression preferences, and CSV export.

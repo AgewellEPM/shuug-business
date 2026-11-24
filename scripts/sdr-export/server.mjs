@@ -18,6 +18,7 @@ import { savedProspects } from './saved-prospects.mjs';
 import { campaignActions, campaigns } from './campaigns.mjs';
 import { campaignNotifications } from './campaign-mail.mjs';
 import { workspaceResearch } from '../../sales/workspace-research.mjs';
+import { workspaceProducts } from '../../sales/workspace-products.mjs';
 import { workspaceEarnings } from '../../sales/workspace-earnings.mjs';
 import { salesDailyPlan } from '../../sales/sales-daily-plan.mjs';
 import { salesCoach } from './sales-coach.mjs';
@@ -117,6 +118,7 @@ const sales = createHandler(env, db, {
   careCampaign: profile.focus === 'senior-care',
   research: workspaceResearch(db, { catalogue }),
   earnings: agreementOnly ? workspaceEarnings(db) : null,
+  products: profile.focus === 'senior-care' ? workspaceProducts(db) : null,
   facilities,
   facilityReviews: async (user, input, office) => googleReviews(office || await directoryFacility(facilities, user, input)),
   facilityOutreach: facilityOutreach(db, facilities, { model: process.env.SDR_OUTREACH_MODEL }),

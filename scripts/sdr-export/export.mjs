@@ -32,6 +32,8 @@ for (const directory of ['business-places-data', 'territory-data', 'territory-ma
 const renderer = ['content.mjs', 'layout.mjs', 'mobile-hero.mjs', 'platform-bar.mjs', 'public-navigation.mjs', 'sales.mjs', 'sales-console.mjs', 'sales-prospects.mjs', 'sales-booking.mjs', 'sales-chat.mjs', 'sales-email.mjs', 'sales-support.mjs', 'sales-demo.mjs', 'sales-care-campaign.mjs', 'sales-today.mjs', 'sales-training.mjs', 'sales-training-demo.mjs', 'sales-training-pipeline.mjs', 'sales-pipeline-workspace.mjs'];
 for (const filename of renderer) copy('scripts/rideshare-site/' + filename);
 copy('scripts/rideshare-site/sales-products.mjs');
+copy('scripts/rideshare-site/sales-mission.mjs');
+copy('scripts/rideshare-site/sales-certification.mjs');
 copy('scripts/rideshare-site/sales-coach.mjs');
 copy('scripts/rideshare-site/sales-territory-dashboard.mjs');
 copy('public/rideshare-tax-pros/sales-support-content.js', 'scripts/sdr-export/coach-help.cjs');
@@ -47,6 +49,8 @@ const assets = [
   'sales-prospects.css', 'sales-prospects.js', 'sales-prospects-community.webp',
   'sales-pipeline-workspace.css', 'sales-pipeline-workspace.js', 'sales-pipeline-hero.webp',
   'sales-products.css', 'sales-products.js', 'sales-products-hero.webp', 'sales-products-tablet.webp', 'sales-products-phone.webp',
+  'sales-mission.css', 'sales-mission.js', 'sales-mission-hero.webp', 'sales-mission-vision.webp',
+  'sales-certification.css', 'sales-certification.js', 'sales-certification-hero.webp',
   'sales-display.css', 'sales-display.js',
   'sales-demo.css', 'sales-demo.js', 'sales-demo-boards.json', 'care-town.webp',
   ...['care-hub','care-locations','care-facility','care-stroke','care-library','care-tour','care-pilot'].flatMap(name => [name + '.js', name + '.css']),
@@ -59,6 +63,7 @@ const assets = [
   'sales-email.css', 'sales-mail-team.js', 'sales-email.js',
   'sales-chat.css', 'sales-chat.js', 'sales-chat-express.webp',
   'sales-coach.css', 'sales-coach-controls.js', 'sales-coach.js', 'sales-coach-audio-worklet.js',
+  'sales-getting-started.css', 'sales-tour-steps.js', 'sales-getting-started.js',
   'sales-contract-center.css', 'sales-contract-center.js', 'sales-contracts-hero.webp', 'sales-contracts-care.webp',
   'territory-dashboard.css', 'territory-dashboard.js', 'territory-dashboard-hero.webp',
   'sales-training.css', 'sales-training.js', 'sales-training-demo.css', 'sales-training-voice.js', 'sales-training-pipeline.js',
@@ -75,6 +80,7 @@ for (const directory of ['support-art', 'training-art']) {
   }
 }
 for (const name of ['build-mac.sh', 'campaigns.mjs', 'campaign-mail.mjs', 'configuration.mjs', 'facility-outreach.mjs', 'care-replies.mjs', 'care-replies.json', 'pages.mjs', 'saved-prospects.mjs', 'server.mjs', 'setup.mjs', 'sqlite.mjs', 'team-chat.mjs', 'mcp.mjs']) copy('scripts/sdr-export/' + name);
+copy('scripts/sdr-export/getting-started-page.mjs');
 for (const name of readdirSync(join(root, 'scripts/sdr-export'))) {
   if (/^bookings?(?:-[a-z-]+)?\.mjs$/.test(name)) copy('scripts/sdr-export/' + name);
 }

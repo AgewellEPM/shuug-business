@@ -45,6 +45,11 @@ const tab = name => `#view=products${name === 'overview' ? '' : `&amp;section=${
 const quote = (id = '') => `#view=support&amp;request=quote${id ? '&amp;package=' + id : ''}`;
 const items = values => `<ul class="products-checklist">${values.map(value => `<li>${value}</li>`).join('')}</ul>`;
 
+const rates = `<dl class="product-rates">
+  <div><dt>Facility hardware rental</dt><dd data-product-rate>Loading…</dd></div>
+  <div><dt>Rep commission</dt><dd data-product-commission>Loading…</dd></div>
+</dl>`;
+
 export function renderProducts(workspaceIcon) {
   const icon = key => symbols[key]
     ? `<svg class="sdr-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${symbols[key]}</svg>`
@@ -62,7 +67,7 @@ export function renderProducts(workspaceIcon) {
     ['phones', 'TinkySpeak Bedside Phone', 'phone mobile portrait bedside dock touchscreen compact aac'],
     ['features', 'Communication features', featureList.map(([, title, detail]) => title + ' ' + detail).join(' ')],
     ['accessories', 'Accessories', accessoryList.map(([, title, detail]) => title + ' ' + detail).join(' ')],
-    ['packages', 'Starter, Care, and Enterprise packages', 'pricing price quotes quantity pilot deployment rollout facility'],
+    ['packages', 'Starter, Care, and Enterprise packages', 'pricing price cost rental commission quotes quantity pilot deployment rollout facility'],
     ['compare', 'Compare devices', 'comparison screen format tablet phone placement stand dock'],
   ];
   return `<section class="sdr-products" data-tab-panel="products" hidden aria-labelledby="products-title">
@@ -84,7 +89,7 @@ export function renderProducts(workspaceIcon) {
   <div class="products-devices" data-product-pane="overview tablets phones">
     ${devices.map(({ id, icon: symbol, name, badge, image, ratio, description, points }) => `<article class="product-panel product-device" data-product-device="${id}">
       <header><h2>${icon(symbol)} ${name}</h2><span class="product-device-badge">${badge}</span></header>
-      <div class="product-device-body"><div><p>${description}</p>${items(points)}</div>
+      <div class="product-device-body"><div><p>${description}</p>${items(points)}${rates}</div>
         <img src="/sales-products-${image}.webp" ${ratio} alt="Illustration of a TinkySpeak ${image === 'phone' ? 'bedside phone in its dock' : 'tablet on a stand'}" decoding="async"></div>
     </article>`).join('')}
   </div>
@@ -103,14 +108,16 @@ export function renderProducts(workspaceIcon) {
   </div>
   <section class="product-panel" data-product-pane="accessories" hidden aria-labelledby="products-accessories-title">
     <h2 id="products-accessories-title">${icon('support')} Accessories</h2>
+    <p class="product-intro">Accessory pricing depends on the selected hardware and quantity. <a href="${quote()}">Request a quote</a></p>
     <div class="products-option-grid">${accessoryList.map(([symbol, name, description]) => `<article>${icon(symbol)}<h3>${name}</h3><p>${description}</p></article>`).join('')}</div>
   </section>
   <div class="products-offers" data-product-pane="overview packages">
     <section class="product-panel" aria-labelledby="products-package-title">
       <h2 id="products-package-title">${icon('products')} Product packages</h2><p class="product-intro">Suggested configurations for pilots, unit rollouts, and multi-site deployments.</p>
+      ${rates}
       <div class="products-option-grid">${packageList.map(({ id, name, icon: symbol, configuration, purpose }) =>
         `<article data-product-package="${id}"><header>${icon(symbol)}<div><h3>${name}</h3><small>${configuration}</small></div></header>
-          <p>${purpose}</p><button class="products-button primary" type="button" data-product-package-open="${id}">Learn more<span class="products-sr-only"> about the ${name}</span></button></article>`).join('')}</div>
+          <p>${purpose}</p><small>Package pricing by quote</small><button class="products-button primary" type="button" data-product-package-open="${id}">Learn more<span class="products-sr-only"> about the ${name}</span></button></article>`).join('')}</div>
     </section>
     <section class="product-panel products-compare-promo" data-product-overview-only aria-labelledby="products-compare-promo-title">
       <h2 id="products-compare-promo-title">${icon('compare')} Compare devices</h2>
@@ -118,6 +125,22 @@ export function renderProducts(workspaceIcon) {
       <a class="products-button secondary" href="${tab('compare')}">Compare now ${icon('arrow')}</a>
     </section>
   </div>
+  <section class="product-panel products-pricing-settings" data-product-pane="packages" hidden aria-labelledby="products-pricing-title">
+    <h2 id="products-pricing-title">${icon('revenue')} Rental and commission</h2>
+    <p>Confirm Medicare or Medicaid coverage for the proposed rental with the payer before quoting reimbursement.</p>
+    <details data-product-owner hidden>
+      <summary>Edit rental price and commission</summary>
+      <form class="products-pricing-form" data-products-pricing-form>
+        <label>Monthly facility rental (USD)<input name="rental" inputmode="decimal" maxlength="10" required></label>
+        <label>Company hardware cost (USD)<input name="hardwareCost" inputmode="decimal" maxlength="10" placeholder="Optional"></label>
+        <label>Rep commission<select name="kind"><option value="">Pending approval</option><option value="fixed">Flat amount (USD)</option><option value="percent">Percent of rent</option></select></label>
+        <label data-product-rule hidden>Commission amount<input name="amount" inputmode="decimal" maxlength="10"></label>
+        <label data-product-rule hidden>Applies to<select name="frequency"><option value="first">First paid month</option><option value="each">Each paid month</option></select></label>
+        <button type="submit" class="products-button primary">Save pricing</button>
+      </form>
+      <p role="status" data-product-pricing-status></p>
+    </details>
+  </section>
   <section class="product-panel" data-product-pane="compare" hidden aria-labelledby="products-compare-title">
     <h2 id="products-compare-title">${icon('compare')} Compare devices</h2>
     <div class="products-table-wrap" tabindex="0" role="region" aria-label="Tablet and bedside phone comparison"><table>
@@ -126,6 +149,8 @@ export function renderProducts(workspaceIcon) {
         <tr><th scope="row">Communication</th><td>Picture and phrase boards</td><td>Picture and phrase boards</td></tr>
         <tr><th scope="row">Common setup</th><td>Tabletop or shared care area</td><td>Bedside or one-to-one use</td></tr>
         <tr><th scope="row">Accessories to discuss</th><td>Stand and protective case</td><td>Charging dock and protective case</td></tr>
+        <tr><th scope="row">Facility hardware rental</th><td colspan="2" data-product-rate>Loading…</td></tr>
+        <tr><th scope="row">Rep commission</th><td colspan="2" data-product-commission>Loading…</td></tr>
       </tbody></table></div>
   </section>
   <footer class="product-panel products-cta">
@@ -138,7 +163,7 @@ export function renderProducts(workspaceIcon) {
       <form method="dialog"><button type="submit" class="products-button secondary">Close</button></form>
     </div>
     ${packageList.map(({ id, name, detail, review }) => `<div data-product-package-detail="${id}" data-product-package-name="${name}" hidden>
-      <p>${detail}</p><p>${review}</p><a href="${quote(id)}" data-product-dialog-quote class="products-button primary">Request a quote</a>
+      <p>${detail}</p><p>${review}</p>${rates}<p>Package total by quote.</p><a href="${quote(id)}" data-product-dialog-quote class="products-button primary">Request a quote</a>
     </div>`).join('')}
   </dialog>
 </section>`;
