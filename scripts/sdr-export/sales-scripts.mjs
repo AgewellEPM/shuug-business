@@ -71,6 +71,7 @@ const generationRules = [
   'Use placeholders as needed from {{FirstName}}, {{LastName}}, {{Organization}}, {{Title}}, {{YourName}}, {{Phone}}, {{DemoDate}}, {{Product}}.',
   'Use only the listed personalization variables. Refer to the current written offer for unknown prices and terms. Avoid healthcare, legal compliance and client outcome promises.',
   'Write lines a rep can actually say aloud. Start with a specific question and pause for the buyer. Offer one example and ask for one decision. Put stage directions only in talking points. Write distinct email, voicemail, buyer objection and spoken reply, and follow-up versions. For a signing request, confirm authority and approved terms before offering the private link.',
+  'For objections give the buyer’s concern, an original spoken response, a plausible buyer follow-up, and a second rep line. Build trust through one verifiable example. Give one specific delivery cue in rep notes. Respect an explicit no.',
   'Retain deliberate paragraph breaks. Keep each version under 1000 characters. Return only the requested JSON.',
 ].join(' ');
 const generationSchema = {

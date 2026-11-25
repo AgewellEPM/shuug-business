@@ -23,9 +23,10 @@ function makeScript(entry) {
         'Ask, then pause\n' + entry.next].join('\n\n'),
       email: ['Hi {{FirstName}},', entry.emailOpening, entry.emailAsk || entry.followup, signature].join('\n\n'),
       voicemail: 'Hi {{FirstName}}, it’s {{YourName}} with TinkyTown. ' + entry.voicemail + ' My number is {{Phone}}. Thanks.',
-      talking: ['Listen for\n' + entry.question, 'During the visit\n' + entry.demonstrate,
+      talking: ['Listen for\n' + entry.question, 'During the visit\n' + entry.demonstrate, 'Delivery\n' + entry.delivery,
         'Before you leave\n' + entry.next].join('\n\n'),
-      objections: 'Buyer\n“' + entry.objection + '”\n\nYou\n“' + entry.response + '”',
+      objections: 'Buyer\n“' + entry.objection + '”\n\nYou\n“' + entry.response + '”' +
+        '\n\nIf the buyer says\n“' + entry.buyerReply + '”\n\nYour next line\n“' + entry.nextReply + '”\n\nCoach’s cue\n' + entry.delivery,
       followup: ['Hi {{FirstName}},', entry.followup, signature].join('\n\n'),
     },
   };
@@ -46,6 +47,9 @@ export const scriptLibrary = [
     followup: "Would your reception lead like to try the visitor board, or is the desk covered?",
     emailOpening: "When a family arrives at reception, a visitor can tap a picture on a phone to ask where to check in.",
     emailSubject: "A question for your front desk",
+    buyerReply: "Sometimes people just point down the hall.",
+    nextReply: "Could we try that moment? You point to the destination on the board and I’ll tell you which way to go.",
+    delivery: "Start with respect for the desk staff. Ask what they still have to guess.",
     channels: ['phone', 'email', 'demo', 'voicemail'],
   },
   {
@@ -62,6 +66,9 @@ export const scriptLibrary = [
     followup: "Would a tour arrival be a good example for your admissions lead to try?",
     emailOpening: "I have a short picture-board example for families who come in for a tour.",
     emailSubject: "When a family arrives for a tour",
+    buyerReply: "We sometimes have to guess which appointment they mean.",
+    nextReply: "Would you try telling me you’re here for a tour before I hand you the forms?",
+    delivery: "Let admissions name the gap before you touch the device.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -78,6 +85,9 @@ export const scriptLibrary = [
     followup: "Is there an activity your team would like to try with the board?",
     emailOpening: "On a sample activities board, someone can choose a different activity and play their answer aloud.",
     emailSubject: "Choosing an activity",
+    buyerReply: "One person likes pictures and someone else prefers to write.",
+    nextReply: "Let’s try a fictional example with pictures. What would staff offer if the person wanted to write instead?",
+    delivery: "Keep the choice with the person.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -94,6 +104,9 @@ export const scriptLibrary = [
     followup: "Would your therapist like to try the break request with a colleague?",
     emailOpening: "TinkyStroke has a rehab practice board. Staff can try asking for a break the way a participant would.",
     emailSubject: "Trying a break request in rehab",
+    buyerReply: "Asking for a break is tricky during exercises.",
+    nextReply: "Would your therapist try that exact request with me on the rehab board?",
+    delivery: "Use the therapist’s example as the entire demo.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -110,6 +123,9 @@ export const scriptLibrary = [
     followup: "Which visitor question and language should I have ready for reception?",
     emailOpening: "A visitor can use the reception board to ask for directions. Your team can check the wording on the actual board.",
     emailSubject: "A directions question for reception",
+    buyerReply: "Sometimes visitors can’t tell us they want an interpreter.",
+    nextReply: "Could we try just that first request and have staff show what they do next?",
+    delivery: "Leave interpretation with the facility’s service.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -126,6 +142,9 @@ export const scriptLibrary = [
     followup: "Do we have the right desk and the right person to review a small trial?",
     emailOpening: "A pilot could start with one entrance and one visitor request that staff hear often.",
     emailSubject: "Trying the board at one desk",
+    buyerReply: "One desk might work. Four sites won’t.",
+    nextReply: "Let’s price one desk in writing. If the scope fits, who reviews it with you?",
+    delivery: "Confirm the buyer’s limit before discussing the offer.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -142,6 +161,9 @@ export const scriptLibrary = [
     followup: "Is there one direction your desk gives all day that we could use for a demo?",
     emailOpening: "A resident looking for the clerk can use a picture board to ask someone where to go.",
     emailSubject: "Finding the clerk’s counter",
+    buyerReply: "Once they get here, people still ask for the clerk.",
+    nextReply: "Could we stand where visitors arrive and try asking for the clerk once?",
+    delivery: "Move from a general objection to the actual counter.",
     channels: ['phone', 'email', 'demo', 'voicemail'],
   },
   {
@@ -158,6 +180,9 @@ export const scriptLibrary = [
     followup: "Which form or counter question would your clerk like to try?",
     emailOpening: "I have a sample board that lets someone ask which form they need. The clerk gives the answer.",
     emailSubject: "Asking the clerk for a form",
+    buyerReply: "The hard part is finding out which form they mean.",
+    nextReply: "Would you try being the resident asking for a form? You can tell me what the clerk needs to hear.",
+    delivery: "Keep the clerk responsible for the official answer.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -174,6 +199,9 @@ export const scriptLibrary = [
     followup: "Would your circulation team rather try asking for a library card or a computer?",
     emailOpening: "A patron can open a picture board on their phone and ask for a library card at the desk.",
     emailSubject: "Asking for a library card",
+    buyerReply: "I don’t want patrons downloading things.",
+    nextReply: "Here’s the sample QR. Would you open it and tell me what you see?",
+    delivery: "Give one factual answer, then let them verify it themselves.",
     channels: ['phone', 'email', 'demo', 'voicemail'],
   },
   {
@@ -190,6 +218,9 @@ export const scriptLibrary = [
     followup: "Which language and counter should we prepare for your access lead?",
     emailOpening: "I’d like to try one everyday counter question in a language your team picks and check it on the board with you.",
     emailSubject: "Which counter and language?",
+    buyerReply: "The first hard part is asking us to call someone.",
+    nextReply: "Which language should we check for that request, and who can verify the wording?",
+    delivery: "Focus on the first exchange and respect the existing interpreter process.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -206,6 +237,9 @@ export const scriptLibrary = [
     followup: "Is there a routine your classroom team would like to try with a sample board?",
     emailOpening: "A teacher can try a sample TinkySpeak board to see how a student could choose an activity.",
     emailSubject: "Trying one classroom routine",
+    buyerReply: "Choosing between activities is where we get stuck.",
+    nextReply: "Would the educator try that routine with a fictional student before deciding whether it adds anything?",
+    delivery: "Invite an educator to judge fit with the student’s existing support.",
     channels: ['phone', 'email', 'demo', 'voicemail'],
   },
   {
@@ -222,6 +256,9 @@ export const scriptLibrary = [
     followup: "Would family check-in be the right example for your front office?",
     emailOpening: "A visitor can use a phone board to say they’re here for a meeting, then check in with your staff.",
     emailSubject: "Arriving for a school meeting",
+    buyerReply: "Mostly we need to know who they’re visiting.",
+    nextReply: "Want to try telling me you’re here for a meeting before we open the visitor register?",
+    delivery: "Keep the example small enough to try at the desk.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -238,6 +275,9 @@ export const scriptLibrary = [
     followup: "Who should receive a sample classroom example for the district review?",
     emailOpening: "I can provide a fictional classroom example that your educators can try before considering a purchase.",
     emailSubject: "Who reviews classroom tools?",
+    buyerReply: "Technology sees it before any classroom trial.",
+    nextReply: "What does the technology reviewer need to see? I can bring that to a short review with you.",
+    delivery: "Follow the buyer’s review sequence.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -254,6 +294,9 @@ export const scriptLibrary = [
     followup: "Is this the entrance where your guest services team would want to try the board?",
     emailOpening: "On the TinkyTown reception board, a visitor can ask where to check in and a volunteer can answer.",
     emailSubject: "Directions at the hospital entrance",
+    buyerReply: "Volunteers sometimes guess which clinic the visitor means.",
+    nextReply: "Could a volunteer try one directions question with us at that entrance?",
+    delivery: "Hear the volunteer’s experience before suggesting a change.",
     channels: ['phone', 'email', 'demo', 'voicemail'],
   },
   {
@@ -270,6 +313,9 @@ export const scriptLibrary = [
     followup: "Would your communication lead like to try a routine bedside exchange with another staff member?",
     emailOpening: "TinkyStroke has a sample bedside board. A staff member can use it to ask for a question to be repeated.",
     emailSubject: "Trying a bedside request",
+    buyerReply: "Repeat requests would be a useful example.",
+    nextReply: "You play the patient asking me to repeat a question. How would staff normally answer?",
+    delivery: "Rehearse an everyday exchange with a staff member present.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -286,6 +332,9 @@ export const scriptLibrary = [
     followup: "Which arrival desk would you like us to prepare an example for?",
     emailOpening: "I’d like to try one arrival question with someone who works at the entrance you choose.",
     emailSubject: "Which entrance should we try?",
+    buyerReply: "The outpatient desk gets most of those questions.",
+    nextReply: "Who works that desk when it’s busiest? Could we try a single visitor question with them?",
+    delivery: "Narrow the discussion to one entrance and one staff owner.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -302,6 +351,9 @@ export const scriptLibrary = [
     followup: "Who’s the best person to ask about visitor communication at your desk?",
     emailOpening: "TinkyTown makes picture boards that visitors can open on a phone and use to ask staff a question.",
     emailSubject: "Who looks after the front desk?",
+    buyerReply: "You want our reception supervisor.",
+    nextReply: "Thanks. What’s the best work number to reach them on?",
+    delivery: "Ask for the work contact, thank the person and release them.",
     channels: ['phone', 'email', 'voicemail'],
   },
   {
@@ -318,6 +370,9 @@ export const scriptLibrary = [
     followup: "Would you like the short example I mentioned in my message?",
     emailOpening: "I have a short example of a visitor using a picture on a phone to ask for help.",
     emailSubject: "A front desk example",
+    buyerReply: "Honestly, I just don’t have time.",
+    nextReply: "Understood. Thanks for taking the call.",
+    delivery: "Keep the response short. A callback still belongs to the buyer.",
     channels: ['phone', 'email', 'voicemail'],
   },
   {
@@ -334,6 +389,9 @@ export const scriptLibrary = [
     followup: "What’s the right business contact for a question about your visitor desk?",
     emailOpening: "I’m looking for the team that decides what visitors can use to ask staff for help.",
     emailSubject: "Who handles visitor desk tools?",
+    buyerReply: "There’s a vendor form on the town website.",
+    nextReply: "Thank you. I’ll follow that process.",
+    delivery: "Respect the purchasing route and end the call.",
     channels: ['phone', 'email', 'voicemail'],
   },
   {
@@ -350,6 +408,9 @@ export const scriptLibrary = [
     followup: "After trying the board, is there anything you’d want changed before your team sees it?",
     emailOpening: "Thanks for taking the time to try TinkyTown with me.",
     emailSubject: "What would you change after the demo?",
+    buyerReply: "Send me something I can show my director.",
+    nextReply: "Sure. What question will your director ask first? I’ll make sure the recap answers that.",
+    delivery: "Ask permission before scheduling another call.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -366,6 +427,9 @@ export const scriptLibrary = [
     followup: "Is there a gap you’d like us to look at, or should I leave this with you?",
     emailOpening: "You mentioned you already have a tool for people who need help asking questions.",
     emailSubject: "The board you use today",
+    buyerReply: "It works for residents, but visitors don’t know where to start.",
+    nextReply: "Would it help to try just the visitor’s first question and leave the resident setup as it is?",
+    delivery: "Test the newly identified gap.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -382,6 +446,9 @@ export const scriptLibrary = [
     followup: "Would an example still be useful? If I don’t hear back, I’ll leave it here.",
     emailOpening: "I’m following up on my note about your front desk.",
     emailSubject: "Should I leave this here?",
+    buyerReply: "Yes, please close it out.",
+    nextReply: "I will. Thanks for letting me know.",
+    delivery: "Record the decline and stop follow-up.",
     channels: ['phone', 'email', 'voicemail'],
   },
   {
@@ -398,6 +465,9 @@ export const scriptLibrary = [
     followup: "Would {{DemoDate}} work for the people who’ll actually use the board?",
     emailOpening: "Let’s use one real desk question so your team gets to try the board during the demo.",
     emailSubject: "A time for the desk team",
+    buyerReply: "Our desk lead can try it next week.",
+    nextReply: "What day works for the desk lead, and what would the director want to learn from that visit?",
+    delivery: "Turn interest into an agreed date and a useful agenda.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -414,6 +484,9 @@ export const scriptLibrary = [
     followup: "Are you ready to review the pilot terms, or is there a question we still need to answer?",
     emailOpening: "We can put the desk, staff lead, review date and cost in writing so you can decide.",
     emailSubject: "Ready to review the pilot?",
+    buyerReply: "I need to know exactly what’s included.",
+    nextReply: "Let’s go through the approved offer together. If the scope and price fit, are you ready to take it to the signer?",
+    delivery: "Use the written terms and wait for their decision.",
     channels: ['phone', 'email', 'demo'],
   },
   {
@@ -426,6 +499,9 @@ export const scriptLibrary = [
     objection: 'You’ll need to speak to our manager.', response: 'Thanks. What’s the best way to reach them about the front desk?',
     emailOpening: 'I have a picture board visitors can use to ask a question at a staffed desk.', emailSubject: 'A question for the desk manager',
     voicemail: 'I’m looking for the person who runs your front desk.', followup: 'Is there a quiet time when the desk manager could try a visitor question with me?',
+    buyerReply: "She’s here before the lunch rush.",
+    nextReply: "Would it work if I stopped by then, or would she prefer a call first?",
+    delivery: "Accept the desk staff’s direction and keep the visit brief.",
     channels: ['demo', 'phone', 'email', 'voicemail'],
   },
   {
@@ -437,6 +513,9 @@ export const scriptLibrary = [
     objection: 'Our visitors don’t all use smartphones.', response: 'Would you try it on this shared screen? How would your staff help someone who prefers a different way to ask?',
     emailOpening: 'You can try one visitor question on a shared screen or on a phone.', emailSubject: 'Try a question at your desk',
     voicemail: 'I have the sample board ready if your desk team wants to try it.', followup: 'What should we change before the desk team tries the board again?',
+    buyerReply: "The shared tablet would work, but staff would have to help.",
+    nextReply: "Would you play the staff member while I ask for directions? Let’s see what help that really takes.",
+    delivery: "Test the objection in the buyer’s own setting.",
     channels: ['demo', 'email', 'phone'],
   },
   {
@@ -448,6 +527,9 @@ export const scriptLibrary = [
     objection: 'We need to think about it.', response: 'Of course. Is there a question I can help answer before I go?',
     emailOpening: 'I can send the written price and what is included for the desk you choose.', emailSubject: 'What do you need for review?',
     voicemail: 'I’m available if you want to go over an open question about the board.', followup: 'What question, if any, would you like me to take back to our team?',
+    buyerReply: "I’m not sure the team would use it.",
+    nextReply: "Which person would know? Would a five-minute test with them answer that, or would you rather pause?",
+    delivery: "Identify the specific uncertainty and offer one relevant test.",
     channels: ['demo', 'phone', 'email'],
   },
   {
@@ -459,6 +541,9 @@ export const scriptLibrary = [
     objection: 'I like it, but the director has to sign.', response: 'Would you introduce me to the director? What will they want to review before they decide?',
     emailOpening: 'I can send the approved agreement to the person authorized to sign for your location.', emailSubject: 'Agreement for your review',
     voicemail: 'I’m available to go through the written agreement with the person signing for your location.', followup: 'Have you had a chance to review the agreement? If it matches what you want, you can sign through your private link. Is there anything you’d like to go over first?',
+    buyerReply: "The director is here and the approved terms look right.",
+    nextReply: "Great. Can we review them with the director? If everything matches, are you ready to sign for this location?",
+    delivery: "Direct the signature question to the authorized signer. Wait for the answer.",
     channels: ['demo', 'phone', 'email'],
   },
 ].map(makeScript);

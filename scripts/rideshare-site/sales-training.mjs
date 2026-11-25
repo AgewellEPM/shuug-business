@@ -23,7 +23,7 @@ const metrics = [
 ];
 
 const menu = [
-  ['home', 'Training Home'], ['catalog', 'Course Catalog'], ['paths', 'Learning Paths'],
+  ['home', 'Training Home'], ['simulator', 'AI Sales Simulator'], ['catalog', 'Course Catalog'], ['paths', 'Learning Paths'],
   ['certificates', 'Certifications'], ['live', 'Live Training'], ['faqs', 'FAQs'], ['plan', 'My Plan'],
   ['playbooks', 'Field Playbooks'], ['demo', 'Demo Lab'],
 ];
@@ -51,9 +51,14 @@ export function renderTraining() {
     <div class="training-feature-grid">
       <nav class="training-hub training-card" aria-label="Training Hub">
         <h2>Training Hub</h2>
-        ${menu.map(([name, label]) => `<button type="button" data-training-nav="${name}"${name === 'home' ? ' aria-current="page"' : ''}>${icon(name)}<span>${label}</span></button>`).join('')}
+        ${menu.map(([name, label]) => `<button type="button" data-training-nav="${name}"${name === 'home' ? ' aria-current="page"' : ''}>${icon(name === 'simulator' ? 'demo' : name)}<span>${label}</span></button>`).join('')}
       </nav>
       <article class="training-feature training-card" aria-label="Featured course" data-training-feature></article>
+      <section class="training-card training-content" data-training-simulator hidden aria-labelledby="sim-title">
+        <h2 id="sim-title" tabindex="-1">AI Sales Simulator</h2>
+        <p>Choose a buyer and a skill. Type a reply or record it and listen back. Try another phrasing against the same buyer prompt. Your account saves the transcript, feedback and practice scores for your wording.</p>
+        <p data-sim-status role="status" aria-live="polite"></p><div data-sim-panel></div>
+      </section>
       <section class="training-card training-content" data-training-content hidden aria-label="Training details"></section>
     </div>
     <div class="training-board-grid" data-training-home>

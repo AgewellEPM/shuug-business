@@ -5,6 +5,7 @@ import { bookingStore } from './booking-store.mjs';
 import { mailStore } from './mail/store.mjs';
 import { teamChat } from './team-chat.mjs';
 import { coachStore } from './coach-store.mjs';
+import { simulationStore } from '../../sales/training-simulator.mjs';
 import { salesScriptsStore } from './sales-scripts.mjs';
 
 const kinds = new Set(['offices', 'agents', 'enrollments', 'events', 'prospects', 'campaigns', 'campaign-leads', 'earnings', 'support-requests', 'contract-drafts']);
@@ -122,6 +123,7 @@ export function sqliteStore(filename) {
     },
     booking: bookingStore(db, writeTransaction),
     coach: coachStore(db),
+    simulations: simulationStore(db),
     salesScripts: salesScriptsStore(db, writeTransaction),
     repMail: mailStore(db, writeTransaction),
     contractTransaction: writeTransaction,

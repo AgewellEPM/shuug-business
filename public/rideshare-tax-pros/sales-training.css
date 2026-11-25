@@ -499,3 +499,14 @@
   .training-card-head { flex-wrap: wrap; }
   .training-content { padding-inline: 12px; }
 }
+
+[data-training-simulator] form, [data-sim-panel] { display: grid; gap: .7rem; }
+[data-training-simulator] label { display: grid; gap: .25rem; font-weight: 650; }
+[data-training-simulator] :is(input,textarea,select) { width: 100%; box-sizing: border-box; padding: .6rem; border: 1px solid #91b4da; border-radius: 6px; font: inherit; }
+[data-training-simulator] :is(p,summary) { overflow-wrap: anywhere; }
+[data-training-simulator] details { border-block-start: 1px solid #c3d9ec; padding-block: .55rem; }
+[data-training-simulator] summary { cursor: pointer; font-weight: 650; }
+[data-training-simulator] audio { max-width: 100%; }
+.sim-prompt, .sim-version { padding: .7rem; border-inline-start: 3px solid #2269af; background: #f0f6fc; }
+.sim-version { margin-top: .5rem; }
+[data-training-simulator] form button, [data-sim-panel] > button { justify-self: start; }

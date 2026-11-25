@@ -35,7 +35,8 @@
           </p>
           <ol class="training-pipeline-feedback">${result.feedback.map(item => {
             const stage = scenario.stages.find(stage => stage.id === item.stageId);
-            return `<li><strong>${escape(stage.phase)} · ${item.correct ? 'Good choice' : 'Review this step'}</strong><p>${escape(item.feedback)}</p></li>`;
+            return `<li><strong>${escape(stage.phase)} · ${item.correct ? 'Good choice' : 'Review this step'}</strong><p>${escape(item.feedback)}</p>
+              ${item.line ? `<p><strong>Try saying</strong> · “${escape(item.line)}”</p><p><strong>Delivery</strong> · ${escape(item.delivery)}</p>` : ''}</li>`;
           }).join('')}</ol>
           <div class="training-actions"><button type="button" class="training-button training-primary" data-pipeline-practice-start="${escape(scenario.id)}">Try again</button>
             <button type="button" class="training-button" data-pipeline-practice-exit>Choose another case</button></div>`;

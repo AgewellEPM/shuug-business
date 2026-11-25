@@ -266,5 +266,5 @@
     window.addEventListener('pagehide', stop); document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
     return { start, stop, fail, answer, repeat, active: () => active };
   }
-  window.SdrCoachControls = { forms, voice, fieldLabel, fieldValue, missingFields };
+  window.SdrCoachControls = { forms, voice, fieldLabel, fieldValue, missingFields, recordPhrase, microphoneHelp };
 })();

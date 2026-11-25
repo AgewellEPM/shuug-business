@@ -81,6 +81,7 @@ test('training catalog and learner progress require sign-in and persist privatel
     for (const question of exercise.questions) {
       assert.equal(Object.hasOwn(question, 'correct'), false);
       assert.equal(Object.hasOwn(question, 'explanation'), false);
+      assert.equal(Object.hasOwn(question, 'line'), false);
     }
   }
   assert.deepEqual(catalog.sessions, []);
@@ -207,7 +208,7 @@ test('rehearsals grade private answers and retain best and latest scores separat
   assert.deepEqual(scenarioResult, {
     scenarioId: scenario.id, correct: total, total, percent: 100, passed: true,
     feedback: scenario.stages.map(stage => ({
-      stageId: stage.id, correct: true, feedback: stage.options[stage.correct].feedback,
+      stageId: stage.id, correct: true, feedback: stage.options[stage.correct].feedback, line: stage.line, delivery: stage.delivery,
     })),
   });
   const best = { correct: total, total, percent: 100, passed: true, attemptedAt: bestAt };
@@ -263,4 +264,23 @@ test('the practical requires an active rep, coursework, a passed scenario and an
   f.reopen();
   assert.deepEqual((await rep('training-progress')).progress.fieldReview, second.review);
   assert.equal((await owner('training-progress')).field.review, null);
+});
+
+test('every graded answer and role-play stage provides a spoken line and a delivery cue', async t => {
+  const owner = fixture(t).session();
+  await owner('login', { code:ownerCode });
+  const { catalog } = await owner('training-progress');
+  for (const course of catalog.courses) {
+    const { questions } = trainingCourseExercises[course.id];
+    const answers = Object.fromEntries(questions.map(q => [q.id, q.correct]));
+    const result = await owner('training-update', { courseId:course.id, assessment:{ answers } });
+    for (const answer of result.result.assessment.answers) {
+      assert.ok(answer.correct && answer.answer && answer.line && answer.delivery, course.id + '/' + answer.id);
+    }
+  }
+  for (const scenario of trainingScenarios) {
+    const answers = Object.fromEntries(scenario.stages.map(stage => [stage.id, stage.correct]));
+    const { scenarioResult } = await owner('training-update', { scenarioAttempt:{ scenarioId:scenario.id, answers } });
+    assert.ok(scenarioResult.feedback.every(step => step.correct && step.line && step.delivery), scenario.id);
+  }
 });

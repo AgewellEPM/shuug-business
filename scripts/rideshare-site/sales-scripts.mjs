@@ -86,6 +86,7 @@ export function renderSalesScripts(icon) {
         <p data-scripts-signing hidden><a href="#view=contracts">Open Contracts to review the approved agreement</a> ·
           <a href="#view=training&amp;course=first-week-in-the-field&amp;lesson=decide">Practice the signing conversation</a></p>
         <footer class="scripts-actions">
+          <a class="scripts-button" data-scripts-simulator href="#view=training&amp;section=simulator">Practice with an AI buyer</a>
           ${button('copy', 'Copy Script', 'contracts', 'scripts-blue')}
           ${button('email', 'Generate Email', 'mail')}
           ${button('followup', 'Create Follow-Up', 'calendar')}

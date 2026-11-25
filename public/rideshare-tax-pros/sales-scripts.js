@@ -129,6 +129,12 @@
       desktop.hidden = !script;
       if (!script) return;
       title.textContent = script.title;
+      const buyer = { 'Nursing Homes / Senior Living': 'reception', 'Hospitals / Health Systems': 'hospital',
+        'Schools / Education': 'school', 'Town Halls / Municipalities': 'town' }[script.category] || 'shop';
+      const focus = version === 'objections' || script.id === 'visit-objection' ? 'objection' :
+        script.category === 'Closing & Next Steps' || script.id === 'visit-sign' ? 'close' : 'discovery';
+      find('[data-scripts-simulator]').hash = new URLSearchParams({ view:'training', section:'simulator',
+        buyer:script.id === 'municipal-library' ? 'library' : buyer, skill:focus }).toString();
       find('[data-scripts-signing]').hidden = script.id !== 'visit-sign';
       for (const shortcut of all('[data-visit-script]')) {
         shortcut.setAttribute('aria-pressed', String(shortcut.dataset.visitScript === script.id));

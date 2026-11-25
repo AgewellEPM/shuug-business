@@ -9,6 +9,8 @@ export const trainingScenarios = [
       {
         id: 'qualify', phase: 'Prospect', title: 'Qualify the location',
         prompt: 'The directory lists two related facilities with similar names. What do you do before preparing outreach?',
+        line: "I have two locations with similar names. Is this the rehab wing on the address I’ve got here? Who runs admissions there?",
+        delivery: "Resolve the location before asking for a meeting.",
         options: [
           { label: 'Use the parent organization’s main number as the administrator’s direct line.', feedback: 'Confirm the location and contact role. A parent company number is a separate contact point.' },
           { label: 'Match the address to the facility’s source listing and confirm who manages the communication workflow.', feedback: 'That gives you a documented location and a confirmed role to invite.' },
@@ -19,6 +21,8 @@ export const trainingScenarios = [
       {
         id: 'discover', phase: 'Discovery', title: 'Learn the resident workflow',
         prompt: 'The administrator says residents struggle to communicate after admission. What do you ask first?',
+        line: "On a resident’s first day, how do staff find out what they want when speaking is difficult?",
+        delivery: "Listen for an actual exchange and what already works.",
         options: [
           { label: 'How does an individual currently express a need, and who helps when their preferred method is unavailable?', feedback: 'This identifies a real interaction and respects the supports the resident already uses.' },
           { label: 'How many devices would you buy if I showed you all the features?', feedback: 'Start with a specific communication barrier and the people affected.' },
@@ -29,6 +33,8 @@ export const trainingScenarios = [
       {
         id: 'demo', phase: 'Demo', title: 'Show one communication moment',
         prompt: 'The nursing team wants to see how someone can express discomfort at the bedside. What do you show?',
+        line: "Let’s use a fictional bedside conversation. You choose how you want to tell me you’re uncomfortable. I’ll respond as the staff member.",
+        delivery: "Let them select, correct or stop. Then ask what staff would do.",
         options: [
           { label: 'Present a catalog of every board and feature that could be relevant.', feedback: 'An end-to-end example lets staff see who enters, selects, and responds to a message.' },
           { label: 'Open the board and have the rep announce a condition on the resident’s behalf.', feedback: 'Keep control with the person. The resident can select or correct what they want to say.' },
@@ -39,6 +45,8 @@ export const trainingScenarios = [
       {
         id: 'objection', phase: 'Pilot', title: 'Respond to an accommodation question',
         prompt: 'A staff lead asks whether the boards replace their current accommodations. What do you tell them?',
+        line: "What supports do residents already choose? We can try one everyday request alongside those and have your lead review it.",
+        delivery: "Acknowledge what they trust before showing where the board might fit.",
         options: [
           { label: 'The boards are an option for certain interactions. Keep the resident’s preferred supports and ask the facility’s appropriate lead to review fit.', feedback: 'This gives staff a clear role for the product and preserves individualized support.' },
           { label: 'The QR code handles the facility’s effective communication responsibilities.', feedback: 'The relevant aid or service depends on the individual, interaction and facility obligations.' },
@@ -49,6 +57,8 @@ export const trainingScenarios = [
       {
         id: 'agreement', phase: 'Agreement', title: 'Set the scope and approver',
         prompt: 'The team likes the demo. The person who attended can recommend a pilot, and the administrator signs agreements. What’s the next step?',
+        line: "You’d like to try it in rehab. Could we agree on the desk and review date, then take the written terms to the administrator?",
+        delivery: "Ask the sponsor for a step they have authority to take.",
         options: [
           { label: 'Mark the agreement signed when the person who attended says yes.', feedback: 'Record the meeting outcome and the review step. A signature has its own status.' },
           { label: 'Agree on the pilot setting and review date, then prepare the agreement for the identified signer.', feedback: 'Confirm the implementation scope and evidence before advancing the agreement status.' },
@@ -59,6 +69,8 @@ export const trainingScenarios = [
       {
         id: 'handoff', phase: 'Handoff', title: 'Close the loop with staff',
         prompt: 'The approved pilot is ready for practice. What does a clear handoff include?',
+        line: "Who’ll practice this with staff, what will they do if the board doesn’t work for someone, and when should we check back?",
+        delivery: "Read the plan back in the team’s own words.",
         options: [
           { label: 'An install date and no further meetings.', feedback: 'The handoff also needs an owner, agreed workflow and a method to review what happened.' },
           { label: 'A list of residents and diagnoses to track centrally in the sales workspace.', feedback: 'Keep resident information in the facility’s approved workflow. Discuss measures at the process level.' },
@@ -78,6 +90,8 @@ export const trainingScenarios = [
       {
         id: 'qualify', phase: 'Prospect', title: 'Identify decision makers',
         prompt: 'The town runs the center. Who should be involved in exploring the visitor workflow?',
+        line: "Who runs the shuttle desk? And who at the town would help that team review a trial?",
+        delivery: "Find the front-line owner, the accessibility lead and the buyer.",
         options: [
           { label: 'Only the volunteer who answers the visitor desk phone.', feedback: 'Ask the desk about workflow and bring in the program and accessibility leads and authorized buyer.' },
           { label: 'The program lead, the visitor desk and the town’s appropriate accessibility and purchasing contacts.', feedback: 'The people doing the work and the authority that evaluates it should both be involved.' },
@@ -88,6 +102,8 @@ export const trainingScenarios = [
       {
         id: 'discover', phase: 'Discovery', title: 'Ask about one real interaction',
         prompt: 'You have time for one question on your first call. What do you ask?',
+        line: "Walk me through what happens when a new visitor wants the shuttle but can’t explain where they’re going.",
+        delivery: "Give the director room to describe the problem before proposing a board.",
         options: [
           { label: 'What happens when a visitor arrives and needs help finding the shuttle or the right class?', feedback: 'This gives you a concrete example you can demonstrate and test.' },
           { label: 'Would you like our complete list of accessibility products?', feedback: 'Learn where people currently need help before deciding which feature to show.' },
@@ -98,6 +114,8 @@ export const trainingScenarios = [
       {
         id: 'demo', phase: 'Demo', title: 'Start with access then show the reply',
         prompt: 'Two staff members join your demo. One wants to see the phone experience, the other asks what visitors without phones can do.',
+        line: "Try asking about the shuttle on my phone. Now let’s try the same question on the shared screen. Which fits your desk?",
+        delivery: "Let staff experience both routes and report the difference.",
         options: [
           { label: 'Show only the QR code because most visitors have a phone.', feedback: 'Show how someone can get help with the same interaction through another route.' },
           { label: 'Start with staff reports so they can see the technical setup.', feedback: 'Begin with the actual visitor interaction. Staff tools can come after that.' },
@@ -108,6 +126,8 @@ export const trainingScenarios = [
       {
         id: 'objection', phase: 'Pilot', title: 'Be precise about access',
         prompt: 'The director asks if the town can count on the QR sign as its complete accommodation plan.',
+        line: "We can show what the sign does for this one question. Who on your team reviews the other ways people ask for help?",
+        delivery: "Speak with certainty about the example and bring in the right reviewer.",
         options: [
           { label: 'Say that the QR sign is one access option and ask how the town handles other effective communication requests.', feedback: 'Identify the product’s role and include the town’s accessibility lead and existing options.' },
           { label: 'Guarantee the QR sign covers all visitors in every context.', feedback: 'A single tool cannot determine whether communication is effective for everyone.' },
@@ -118,6 +138,8 @@ export const trainingScenarios = [
       {
         id: 'agreement', phase: 'Agreement', title: 'Respect the purchasing process',
         prompt: 'The director wants to start, and the town’s purchasing office must approve the agreement.',
+        line: "What does purchasing need from us to decide on a trial at the activity desk?",
+        delivery: "Qualify the approval process before asking for the agreement.",
         options: [
           { label: 'Present the price as accepted and request immediate setup.', feedback: 'Confirm the purchasing steps and the person authorized to sign.' },
           { label: 'Record the director’s recommendation, document the pilot scope, and ask what the purchasing office needs for review.', feedback: 'You have a documented next step while the authorized team reviews the terms.' },
@@ -128,6 +150,8 @@ export const trainingScenarios = [
       {
         id: 'handoff', phase: 'Handoff', title: 'Set a practice and review date',
         prompt: 'The pilot was approved for the activity desk. What should staff practice first?',
+        line: "Let’s practice a visitor asking about a class. Who will cover that desk, and when should we review what happened?",
+        delivery: "Ask staff to name a backup communication method as part of the rehearsal.",
         options: [
           { label: 'The number of buttons and every language setting.', feedback: 'Practice a complete visitor interaction before introducing optional settings.' },
           { label: 'Replacing all existing desk and phone support with a QR sign.', feedback: 'Keep the existing ways to communicate and test one accessible workflow.' },
@@ -146,6 +170,8 @@ export const trainingScenarios = [
       {
         id: 'permission', phase: 'First visit', title: 'Read the room',
         prompt: 'You arrive just as a line forms. What do you say?',
+        line: "You’ve got a line. Is there a quieter time to catch you, or should I leave you to it?",
+        delivery: "Step away from the checkout and give the manager an easy choice.",
         options: [
           { label: '“I have a quick demo. I can do it while you ring people up.”', feedback: 'Even a short demo draws attention away from a customer.' },
           { label: '“I’ll set the board here for people to try while we wait.”', feedback: 'Ask staff before introducing anything at their counter.' },
@@ -155,6 +181,8 @@ export const trainingScenarios = [
       {
         id: 'discovery', phase: 'Discovery', title: 'Understand the paper board',
         prompt: '“We already keep a picture board here.” What do you ask?',
+        line: "What does your paper board do well? What’s the last thing someone wanted to ask that wasn’t on it?",
+        delivery: "Stay genuinely curious. A working paper board is a good answer.",
         options: [
           { label: '“What does yours handle well? Is there a request people still struggle to get across?”', feedback: 'Learn whether there is a gap worth exploring.' },
           { label: '“Could I show you the digital version before we get into that?”', feedback: 'You might demo something they already do well.' },
@@ -164,6 +192,8 @@ export const trainingScenarios = [
       {
         id: 'try', phase: 'Demo', title: 'Try the buyer’s example',
         prompt: 'The manager says customers struggle to ask where to find an item. The sample board has a request for help. What do you offer?',
+        line: "You be the shopper trying to find an item. Can you show me how you’d ask for help on this screen?",
+        delivery: "Let the manager try the exchange before discussing features.",
         options: [
           { label: '“I’ll walk you through the settings first.”', feedback: 'Start with the buyer’s task while you have their attention.' },
           { label: '“Try asking me for help on this screen. I’ll be at the counter. What would you say next if you were working here?”', feedback: 'The manager experiences both sides and can tell you what is missing.' },
@@ -173,6 +203,8 @@ export const trainingScenarios = [
       {
         id: 'cost', phase: 'Objection', title: 'Clarify the budget objection',
         prompt: '“The paper board cost almost nothing.” How do you reply?',
+        line: "What would this need to do at the counter for you to consider paying for it?",
+        delivery: "Pause after the question. Compare only the task they value.",
         options: [
           { label: '“Would you buy if I could cut the price in half?”', feedback: 'Use approved terms and first find out whether there is a reason to change.' },
           { label: '“Would you rather see a monthly figure or an annual figure?”', feedback: 'They have raised a value question as well as a price question.' },
@@ -182,6 +214,8 @@ export const trainingScenarios = [
       {
         id: 'sign', phase: 'Decision', title: 'Ask for a real commitment',
         prompt: 'The manager wants one counter. The owner signs. What do you ask for today?',
+        line: "Would you introduce me to the owner so we can check the written price and scope together?",
+        delivery: "The manager can sponsor the conversation. The authorized buyer decides.",
         options: [
           { label: 'An introduction to the owner to review the desk, the written price and the terms before deciding.', feedback: 'The manager can sponsor the next conversation with the actual buyer.' },
           { label: 'Permission to call the account signed and sort out the link later.', feedback: 'Interest and a recorded signature are separate events.' },
@@ -191,6 +225,8 @@ export const trainingScenarios = [
       {
         id: 'decline', phase: 'Follow-up', title: 'Honor the owner’s decision',
         prompt: 'At review the owner says, “We’ll stick with paper. Please close this out.” What do you do?',
+        line: "Understood. I’ll close this out. Thanks for trying it with me.",
+        delivery: "End there and record the decision.",
         options: [
           { label: 'Ask the manager to raise it again next week.', feedback: 'That would continue an inquiry the buyer has closed.' },
           { label: 'Thank them, record the decline and close out the follow-up.', feedback: 'Another rep can see the actual decision and honor it.' },

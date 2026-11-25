@@ -77,7 +77,7 @@ export function renderCertification(icon) {
     <h2 id="cert-practical-title">Observed sales practical</h2>
     <p>Work with the workspace owner for a ten-minute, fictional buyer visit. You can speak, type or use your usual communication aid.</p>
     <p><a class="cert-text-link" href="#view=training&amp;course=first-week-in-the-field">Take Your First Week Selling TinkyTown</a> ·
-      <a class="cert-text-link" href="#view=training-pipeline">Open Pipeline Practice</a> · <a class="cert-text-link" href="#view=scripts">Rehearse with Sales Scripts</a></p>
+      <a class="cert-text-link" href="#view=training&amp;section=simulator">Practice with an AI buyer</a> · <a class="cert-text-link" href="#view=training-pipeline">Open Pipeline Practice</a> · <a class="cert-text-link" href="#view=scripts">Rehearse with Sales Scripts</a></p>
     <p data-field-standing></p><p data-field-feedback hidden></p>
     <h3>Run the visit</h3>
     <p>The owner plays a library manager or a nursing-home administrator. Start at a busy desk. The buyer chooses a genuine response as you go. Demonstrate one request, then handle a concern about cost or an existing board. Ask the buyer what they want to do.</p>

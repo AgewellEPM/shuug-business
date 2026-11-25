@@ -2,7 +2,7 @@
   'use strict';
 
   const areaNames = {
-    home: 'Training Home',
+    home: 'Training Home', simulator: 'AI Sales Simulator',
     catalog: 'Course Catalog',
     paths: 'Learning Paths',
     certificates: 'Certifications',
@@ -91,6 +91,8 @@
     const home = find('[data-training-home]');
     const content = find('[data-training-content]');
     const status = find('[data-training-status]');
+    const simPanel = find('[data-training-simulator]');
+    const simulator = window.SdrTrainingSimulator?.mount(simPanel, api);
     const assessmentFeedback = new Map();
     let catalog;
     let progress = { completed: {}, sections: {}, plan: [], currentCourseId: null };
@@ -366,7 +368,8 @@
               ${question.options.map((option, choice) => `<label class="training-choice">
                 <input type="radio" name="${escape(question.id)}" value="${choice}" required${feedback?.choices[question.id] === choice ? ' checked' : ''}>
                 <span>${escape(option)}</span></label>`).join('')}
-              ${answer ? `<p class="training-answer" data-correct="${answer.correct}"><strong>${answer.correct ? 'Correct' : 'Review'}</strong> ${escape(answer.explanation)}</p>` : ''}
+              ${answer ? `<p class="training-answer" data-correct="${answer.correct}"><strong>${answer.correct ? 'Correct' : 'Review'}</strong> ${escape(answer.explanation)}</p>
+                ${answer.line ? `<p><strong>Best answer</strong> · ${escape(answer.answer)}</p><p><strong>Try saying</strong> · “${escape(answer.line)}”</p><p><strong>Delivery</strong> · ${escape(answer.delivery)}</p>` : ''}` : ''}
             </fieldset>`;
           }).join('')}
           <button type="submit" class="training-button training-primary">${attempt ? 'Submit New Attempt' : 'Submit Answers'}</button>
@@ -449,9 +452,12 @@
       }
       feature.hidden = !isHome;
       home.hidden = !isHome;
-      content.hidden = isHome;
+      const showSimulator = view.name === 'simulator';
+      if (simPanel) simPanel.hidden = !showSimulator;
+      content.hidden = isHome || showSimulator;
       renderMetrics();
-      if (isHome) renderHome();
+      if (showSimulator) simulator?.show();
+      else if (isHome) renderHome();
       else content.innerHTML = `${view.back ? '<button type="button" class="training-link training-back" data-training-back><span aria-hidden="true">← </span>Back</button>' : ''}
         <h2 tabindex="-1" data-training-pane-title>${escape(paneTitle())}</h2>${paneBody()}`;
     }
@@ -459,7 +465,7 @@
     function go(next, focus = true) {
       view = next;
       render();
-      if (focus) (view.name === 'home' ? find('.training-hub [aria-current="page"]') : find('[data-training-pane-title]'))?.focus();
+      if (focus) (view.name === 'home' ? find('.training-hub [aria-current="page"]') : view.name === 'simulator' ? find('#sim-title') : find('[data-training-pane-title]'))?.focus();
     }
 
     function load() {

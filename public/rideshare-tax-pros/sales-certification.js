@@ -136,7 +136,7 @@
       const { field, catalog } = record;
       find('[data-field-standing]').textContent = standingText(field);
       callout(find('[data-field-feedback]'), feedbackText(field.review));
-      find('[data-field-rubric]').replaceChildren(...catalog.fieldRubric.map(row => element('li', row.label)));
+      find('[data-field-rubric]').replaceChildren(...catalog.fieldRubric.map(row => element('li', row.label + (row.line ? ' Try saying “' + row.line + '”' : ''))));
       find('[data-field-owner]').hidden = !field.canReview;
     }
     function selectRep() {

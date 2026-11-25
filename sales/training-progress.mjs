@@ -1,3 +1,4 @@
+import { salesSimulator, simulationActions } from './training-simulator.mjs';
 import { activeSalesRoster } from './sales-team.mjs';
 import { fieldCourse, fieldRubric } from './training-field-course.mjs';
 import { HttpError, text } from './model.mjs';
@@ -33,7 +34,7 @@ const catalog = {
 const coursesById = new Map(catalog.courses.map(course => [course.id, course]));
 const scenariosById = new Map(trainingScenarios.map(scenario => [scenario.id, scenario]));
 
-export const TRAINING_ACTIONS = new Set(['training-progress', 'training-update', 'training-field-candidates', 'training-field-review']);
+export const TRAINING_ACTIONS = new Set([...simulationActions, 'training-progress', 'training-update', 'training-field-candidates', 'training-field-review']);
 
 function trainingProgress(saved) {
   const sections = saved?.sections ?? {};
@@ -68,7 +69,7 @@ function gradeAssessment(exercise, submission) {
   const questions = exercise?.questions;
   const choices = selectAnswers(questions, submission?.answers);
   const feedback = questions.map((question, index) => ({
-    id: question.id, correct: choices[index] === question.correct, explanation: question.explanation,
+    id: question.id, correct: choices[index] === question.correct, explanation: question.explanation, answer: question.options[question.correct], line: question.line, delivery: question.delivery,
   }));
   const score = feedback.filter(answer => answer.correct).length;
   return { score, total: questions.length, passed: score >= requiredCorrect(questions), answers: feedback };
@@ -80,7 +81,7 @@ async function saveScenarioAttempt(db, userId, submission, now) {
   const choices = selectAnswers(scenario.stages, submission.answers);
   const feedback = scenario.stages.map((stage, index) => {
     const choice = choices[index];
-    return { stageId: stage.id, correct: choice === stage.correct, feedback: stage.options[choice].feedback };
+    return { stageId: stage.id, correct: choice === stage.correct, feedback: stage.options[choice].feedback, line: stage.line, delivery: stage.delivery };
   });
   const correct = feedback.filter(answer => answer.correct).length;
   const total = scenario.stages.length;
@@ -184,8 +185,10 @@ async function fieldReviewTools(db, user, action, body, now) {
 }
 
 export function trainingTools(db, now = Date.now) {
+  const simulate = salesSimulator(db.simulations, { now });
   return async (user, action, body) => {
     if (!['owner', 'agent'].includes(user.role)) throw new HttpError(403, 'Open the Sales Workspace to use training.');
+    if (simulationActions.includes(action)) return simulate(user, action, body);
     if (typeof db.trainingProgress !== 'function' || typeof db.updateTrainingProgress !== 'function') {
       throw new HttpError(503, 'Training progress is unavailable in this workspace.');
     }
