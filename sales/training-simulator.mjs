@@ -31,7 +31,7 @@ const cases = [
 ];
 function opening(persona, focus) {
   if (focus === 'objection') return persona.objection;
-  if (focus === 'close' && persona.id === 'shop') return 'One counter, the price and the start date all look right on this practice agreement. I own the shop. What do we do next?';
+  if (focus === 'close' && persona.id === 'shop') return 'I’ve tried it here. One counter, the price and the start date all look right on this practice agreement. I own the shop and I’m ready. What do we do next?';
   if (focus === 'close') return 'I’ve tried the example for ' + persona.desk + '. What exactly are you asking us to do next?';
   if (focus === 'clarity') return 'I’ve got a minute. What does this actually look like at my desk?';
   return 'You caught me between things. What did you want to ask about our desk?';
@@ -95,7 +95,10 @@ async function modelTurn(session, focus, persona, words, retry, fetcher, model) 
     return [{ role: 'user', content: last.words }, { role: 'assistant', content: last.buyer }];
   });
   const buyerPrompt = exchanges.at(-1)?.versions.at(-1).buyer || session.opening;
-  const personaNotes = [persona.title, persona.buyer, deskStories[persona.id]].join('. ');
+  const readySigner = focus.id === 'close' && persona.id === 'shop';
+  const personaNotes = readySigner
+    ? 'You own the shop, have tried the board, reviewed the approved agreement and decided to sign for one counter. If the salesperson asks you to sign those terms, accept in your own words. Ask where to sign. If they change the terms or skip the decision, ask for clarification.'
+    : [persona.title, persona.buyer, deskStories[persona.id]].join('. ');
   const checks = criteria[focus.id];
   async function generate(messages, format, temperature) {
     const res = await fetcher('http://127.0.0.1:11434/api/chat', { method: 'POST', redirect: 'error',

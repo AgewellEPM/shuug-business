@@ -70,3 +70,32 @@ test('a rephrase revisits the same buyer prompt, and only the chosen branch cont
   await run(rep,'simulation-finish',{id:empty.active.id,revision:0});
   assert.equal((await run(rep,'simulation-read')).history.length,1);
 });
+
+test('the signing drill distinguishes a ready shop owner from a school contact who needs district review', async t => {
+  const db = new DatabaseSync(':memory:');
+  t.after(() => db.close());
+  const briefings = [];
+  const run = salesSimulator(simulationStore(db), { fetcher:async (url, {body}) => {
+    const { messages, format } = JSON.parse(body);
+    const buyer = 'buyer' in format.properties;
+    if (buyer) briefings.push(messages[0].content);
+    const reply = buyer ? { buyer:'What happens next?' } : {
+      coach:'You asked for a decision.', delivery:'Pause after the question.', suggestion:'Are you ready to sign?',
+      check1:true, check2:true, check3:true, check4:true,
+    };
+    return { ok:true, json:async () => ({ message:{content:JSON.stringify(reply)} }) };
+  } });
+  for (const scenario of ['shop','school']) {
+    const id = randomUUID();
+    const { active } = await run(rep,'simulation-start',{id,scenario,focus:'close'});
+    assert.equal(active.opening.includes('I own the shop'),scenario==='shop');
+    await run(rep,'simulation-turn',{id,revision:0,requestId:randomUUID(),words:'Are you ready to sign the agreement today?'});
+    await run(rep,'simulation-finish',{id,revision:1});
+  }
+  assert.match(briefings[0],/decided to sign/);
+  assert.match(briefings[1],/cannot sign/);
+  const { totals } = await run(rep,'simulation-read');
+  assert.equal(totals[0].sessions,2);
+  assert.equal(totals[0].firstScore,5);
+  assert.equal(totals[0].latestScore,5);
+});
