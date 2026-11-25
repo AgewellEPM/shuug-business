@@ -1,0 +1,29 @@
+[Unit]
+Description=TinkyTown sales portal
+Wants=network-online.target ollama.service
+After=network-online.target ollama.service
+
+[Service]
+Type=simple
+User=tinkytown
+Group=tinkytown
+WorkingDirectory=/opt/tinkytown/current
+Environment=SDR_ORIGIN=https://portal.tinkytown.com
+Environment=SDR_PORT=8740
+Environment=SDR_DATA_DIR=/var/lib/tinkytown/workspace-data
+Environment=SDR_WHISPER_CLI=/usr/local/bin/whisper-cli
+Environment=SDR_WHISPER_MODEL=/opt/tinkytown/models/ggml-base.en.bin
+EnvironmentFile=-/etc/tinkytown/portal.env
+ExecStart=/usr/bin/env node scripts/sdr-export/server.mjs
+Restart=on-failure
+RestartSec=5
+StateDirectory=tinkytown
+StateDirectoryMode=0700
+UMask=0077
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
